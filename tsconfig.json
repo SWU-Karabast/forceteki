@@ -14,6 +14,8 @@
         "forceConsistentCasingInFileNames": true,
         "types": ["node"]
     },
-    "include": ["server/**/*", "index.js"],
-    "exclude": ["test/**/*", "client/**/*"]
+    // "include": ["server/jigoku/**/*"],
+    "include": ["server/swu/**/*"],
+    // "include": ["server/**/*"],
+    "exclude": ["test/**/*"]
 }

@@ -5,7 +5,7 @@ const _ = require('underscore');
 const {matchCardByNameAndPack} = require('./cardutil.js');
 
 const PathToSubModulePacks = path.join(__dirname, '../json/Card');
-const { GameModes } = require('../../build/GameModes');
+const { GameModes } = require('../../build/jigoku/GameModes');
 
 const defaultFaction = 'phoenix';
 const defaultRole = 'support-of-the-scorpion';

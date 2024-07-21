@@ -2,7 +2,7 @@
 /* eslint camelcase: 0, no-invalid-this: 0 */
 
 const _ = require('underscore');
-const { GameModes } = require('../../build/GameModes.js');
+const { GameModes } = require('../../build/jigoku/GameModes.js');
 
 require('./objectformatters.js');
 

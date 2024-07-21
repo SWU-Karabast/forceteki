@@ -2,50 +2,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug Node File",
+            "program": "${file}",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+        },
+        {
             "type": "node",
             "request": "attach",
             "name": "Attach by Process ID",
             "processId": "${command:PickProcess}"
-        },
-        {
-            "name": "Launch (Lobby Server)",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceRoot}/index.js",
-            "stopOnEntry": false,
-            "args": [],
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": null,
-            "runtimeExecutable": null,
-            "runtimeArgs": [
-                "--nolazy"
-            ],
-            "env": {
-                "NODE_ENV": "development"
-            },
-            "console": "internalConsole",
-            "sourceMaps": false,
-            "outDir": null
-        },
-        {
-            "name": "Launch (Game Server)",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceRoot}/server/gamenode/index.js",
-            "stopOnEntry": false,
-            "args": [],
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": null,
-            "runtimeExecutable": null,
-            "runtimeArgs": [
-                "--nolazy"
-            ],
-            "env": {
-                "NODE_ENV": "development"
-            },
-            "console": "internalConsole",
-            "sourceMaps": false,
-            "outDir": null
         },
         {
             "name": "Attach",
@@ -73,8 +42,18 @@
             "type": "node",
             "request": "launch",
             "program": "${workspaceRoot}/node_modules/jasmine/bin/jasmine.js",
+            "preLaunchTask": "tsc: build - tsconfig.json",
             "env": { "JASMINE_CONFIG_PATH": "./jasmine.json" },
             "cwd": "${workspaceRoot}"
+        },
+        {
+            "type": "node", 
+            "request": "launch", 
+            "name": "Debug Open Jasmine Test (No Compile)", 
+            "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
+            "args": ["--config=./jasmine.json", "${file}"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         }
     ]
 }

@@ -15,10 +15,6 @@ class BaseAction extends BaseAbility {
     }
 
     meetsRequirements(context) {
-        if(this.isCardPlayed() && this.card.isLimited() && context.player.limitedPlayed >= context.player.maxLimited) {
-            return 'limited';
-        }
-
         return super.meetsRequirements(context);
     }
 
@@ -43,4 +39,3 @@ class BaseAction extends BaseAbility {
 }
 
 module.exports = BaseAction;
-
