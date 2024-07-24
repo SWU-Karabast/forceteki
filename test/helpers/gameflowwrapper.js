@@ -1,9 +1,9 @@
 /* global jasmine */
 
 const _ = require('underscore');
-const Game = require('../../build/jigoku/game/game.js');
+const Game = require('../../../build/game/game.js');
 const PlayerInteractionWrapper = require('./playerinteractionwrapper.js');
-const Settings = require('../../build/jigoku/settings.js');
+const Settings = require('../../../build/settings.js');
 
 class GameFlowWrapper {
     constructor() {
@@ -32,15 +32,11 @@ class GameFlowWrapper {
     }
 
     get firstPlayer() {
-        return _.find(this.allPlayers, player => player.firstPlayer);
+        return _.find(this.allPlayers, player => player.initiativePlayer);
     }
 
-    get rings() {
-        return this.game.rings;
-    }
-
-    eachPlayerInFirstPlayerOrder(handler) {
-        var playersInOrder = _.sortBy(this.allPlayers, player => !player.firstPlayer);
+    eachPlayerInInitiativeOrder(handler) {
+        var playersInOrder = _.sortBy(this.allPlayers, player => !player.initiativePlayer);
 
         _.each(playersInOrder, player => handler(player));
     }
@@ -54,61 +50,49 @@ class GameFlowWrapper {
         _.each(playersInPromptedOrder, player => handler(player));
     }
 
+    /**
+     * Resource any two cards in hand for each player
+     */
+    resourceAnyTwo() {
+        this.guardCurrentPhase('setup');
+        _.each(this.allPlayers, player => player.clickAnyOfSelectableCards(2));
+        this.game.continue();
+    }
+
     startGame() {
         this.game.initialise();
     }
 
     /**
-     * Selects stronghold provinces for both players
-     * @param {Object} [strongholds = {}] - names of provinces to select for each player
-     * @param {String} strongholds.player1 - stronghold province for player 1
-     * @param {String} strongholds.player2 - stronghold province for player 2
-     */
-    selectStrongholdProvinces(strongholds = {}) {
-        this.guardCurrentPhase('setup');
-        //Select the fillers, so that province cards specified for province setup aren't used
-        this.player1.selectStrongholdProvince(strongholds.player1 || 'shameful-display');
-        this.player2.selectStrongholdProvince(strongholds.player2 || 'shameful-display');
-    }
-
-    /**
-     * Keeps provinces during prompts for dynasty mulligan
-     */
-    keepDynasty() {
-        this.guardCurrentPhase('setup');
-        this.eachPlayerInFirstPlayerOrder(player => player.clickPrompt('Done'));
-    }
-    /**
      * Keeps hand during prompt for conflict mulligan
      */
-    keepConflict() {
+    keepStartingHand() {
         this.guardCurrentPhase('setup');
-        this.eachPlayerInFirstPlayerOrder(player => player.clickPrompt('Done'));
+        this.eachPlayerInInitiativeOrder(player => player.clickPrompt('No'));
     }
     /**
      * Skips setup phase with defaults
      */
     skipSetupPhase() {
-        this.selectFirstPlayer(this.player1);
-        this.selectStrongholdProvinces();
-        this.keepDynasty();
-        this.keepConflict();
+        this.selectInitiativePlayer(this.player1);
+        this.keepStartingHand();
+        this.resourceAnyTwo();
     }
 
     /**
      * Both players pass for the rest of the action window
      */
     noMoreActions() {
-        if(this.game.currentPhase === 'dynasty') {
-            // Players that have already passed aren't prompted again in dynasty
-            this.eachPlayerStartingWithPrompted(player => {
-                if(!player.player.passedDynasty) {
-                    player.clickPrompt('Pass');
-                }
-            });
-        } else {
-            this.eachPlayerStartingWithPrompted(player => player.clickPrompt('Pass'));
-        }
+        // if(this.game.currentPhase === 'dynasty') {
+        //     // Players that have already passed aren't prompted again in dynasty
+        //     this.eachPlayerStartingWithPrompted(player => {
+        //         if(!player.player.passedDynasty) {
+        //             player.clickPrompt('Pass');
+        //         }
+        //     });
+        // } else {
+        //     this.eachPlayerStartingWithPrompted(player => player.clickPrompt('Pass'));
+        // }
     }
 
     /**
@@ -137,24 +121,6 @@ class GameFlowWrapper {
     }
 
     /**
-     * Completes the fate phase
-     */
-    finishFatePhase() {
-        // this.guardCurrentPhase('fate');
-        for(let player of this.allPlayers) {
-            if(this.player.currentPrompt().menuTitle === 'Fate Phase') {
-                player.clickPrompt('Done');
-            }
-        }
-        var playersInPromptedOrder = _.sortBy(this.allPlayers, player => player.hasPrompt('Waiting for opponent to discard dynasty cards'));
-        _.each(playersInPromptedOrder, player => player.clickPrompt('Done'));
-        // End the round
-        var promptedToEnd = _.sortBy(this.allPlayers, player => player.hasPrompt('Waiting for opponent to end the round'));
-        _.each(promptedToEnd, player => player.clickPrompt('End Round'));
-        this.guardCurrentPhase('dynasty');
-    }
-
-    /**
      * Completes the regroup phase
      */
     finishRegroupPhase() {
@@ -179,20 +145,8 @@ class GameFlowWrapper {
             case 'setup':
                 this.skipSetupPhase();
                 break;
-            case 'dynasty':
-                this.noMoreActions();
-                phaseChange = -1;
-                break;
-            case 'draw':
-                this.bidHonor();
-                phaseChange = -1;
-                break;
-            case 'conflict':
+            case 'action':
                 this.finishConflictPhase();
-                phaseChange = -1;
-                break;
-            case 'fate':
-                this.finishFatePhase();
                 phaseChange = -1;
                 break;
             case 'regroup':
@@ -229,7 +183,7 @@ class GameFlowWrapper {
         this.player1.bidHonor(player1amt);
         this.player2.bidHonor(player2amt);
         if(this.game.currentPhase === 'draw') {
-            this.eachPlayerInFirstPlayerOrder(player => {
+            this.eachPlayerInInitiativeOrder(player => {
                 if(player.hasPrompt('Triggered Abilities')) {
                     player.pass();
                 }
@@ -258,12 +212,12 @@ class GameFlowWrapper {
         return promptedPlayer;
     }
 
-    selectFirstPlayer(player) {
-        var promptedPlayer = this.getPromptedPlayer('You won the flip. Do you want to be:');
+    selectInitiativePlayer(player) {
+        var promptedPlayer = this.getPromptedPlayer('You won the flip. Do you want to start with initiative:');
         if(player === promptedPlayer) {
-            promptedPlayer.clickPrompt('First Player');
+            promptedPlayer.clickPrompt('Yes');
         } else {
-            promptedPlayer.clickPrompt('Second Player');
+            promptedPlayer.clickPrompt('No');
         }
     }
 

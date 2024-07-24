@@ -1,11 +1,11 @@
-const CardSelector = require('../CardSelector.js');
-const { CardTypes, Stages, Players, Locations } = require('../Constants.js');
+const CardSelector = require('../cardSelector/CardSelector.js');
+const { CardTypes, Stages, Players, Locations, WildcardLocations } = require('../Constants.js');
 
 class AbilityTargetToken {
     constructor(name, properties, ability) {
         this.name = name;
         this.properties = properties;
-        this.properties.location = this.properties.location || Locations.PlayArea;
+        this.properties.location = this.properties.location || WildcardLocations.AnyArena;
         this.selector = this.getSelector(properties);
         this.properties.singleToken = this.properties.singleToken || true;
         for(let gameAction of this.properties.gameAction) {
@@ -46,7 +46,7 @@ class AbilityTargetToken {
             return (tokensValid && cardValid) && (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
                     (properties.gameAction.length === 0 || properties.gameAction.some(gameAction => gameAction.hasLegalTarget(contextCopy)));
         };
-        let cardType = properties.cardType || [CardTypes.Attachment, CardTypes.Character, CardTypes.Event, CardTypes.Holding, CardTypes.Province, CardTypes.Role, CardTypes.Stronghold];
+        let cardType = properties.cardType || [CardTypes.Upgrade, CardTypes.Unit, CardTypes.Event, CardTypes.Leader, CardTypes.Base];
         return CardSelector.for(Object.assign({}, properties, { cardType: cardType, cardCondition: cardCondition, targets: false }));
     }
 

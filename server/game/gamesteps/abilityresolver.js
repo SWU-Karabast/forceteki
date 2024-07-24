@@ -2,8 +2,8 @@ const _ = require('underscore');
 
 const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
-const InitiateCardAbilityEvent = require('../Events/InitiateCardAbilityEvent');
-const InitiateAbilityEventWindow = require('../Events/InitiateAbilityEventWindow');
+const InitiateCardAbilityEvent = require('../events/InitiateCardAbilityEvent');
+const InitiateAbilityEventWindow = require('../events/InitiateAbilityEventWindow');
 const { Locations, Stages, CardTypes, EventNames } = require('../Constants');
 
 class AbilityResolver extends BaseStepWithPipeline {
@@ -27,12 +27,11 @@ class AbilityResolver extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.resolveEarlyTargets()),
             new SimpleStep(this.game, () => this.checkForCancel()),
             new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow()),
-            new SimpleStep(this.game, () => this.refillProvinces())
         ]);
     }
 
     createSnapshot() {
-        if([CardTypes.Character, CardTypes.Holding, CardTypes.Attachment].includes(this.context.source.getType())) {
+        if([CardTypes.Unit, CardTypes.Base, CardTypes.Leader, CardTypes.Upgrade].includes(this.context.source.getType())) {
             this.context.cardStateWhenInitiated = this.context.source.createSnapshot();
         }
     }
@@ -172,11 +171,9 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if(this.context.ability.isCardPlayed()) {
+            // TODO: remove all references to 'limited'
             if(this.context.source.isLimited()) {
                 this.context.player.limitedPlayed += 1;
-            }
-            if(this.game.currentConflict) {
-                this.game.currentConflict.addCardPlayed(this.context.player, this.context.source);
             }
         }
 
@@ -211,16 +208,8 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     moveEventCardToDiscard() {
         if(this.context.source.location === Locations.BeingPlayed) {
-            if(this.context.source.isDynasty) {
-                this.context.player.moveCard(this.context.source, Locations.DynastyDiscardPile);
-            } else {
-                this.context.player.moveCard(this.context.source, Locations.ConflictDiscardPile);
-            }
+            this.context.player.moveCard(this.context.source, Locations.Discard);
         }
-    }
-
-    refillProvinces() {
-        this.context.refill();
     }
 }
 

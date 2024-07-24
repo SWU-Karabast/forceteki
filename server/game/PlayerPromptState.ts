@@ -1,6 +1,5 @@
-import type BaseCard from './basecard';
+import type BaseCard from './card/basecard';
 import type Player from './player';
-import type Ring from './ring';
 
 export class PlayerPromptState {
     selectCard = false;
@@ -11,7 +10,6 @@ export class PlayerPromptState {
     buttons = [];
     controls = [];
 
-    selectableRings: Ring[] = [];
     selectableCards: BaseCard[] = [];
     selectedCards?: BaseCard[] = [];
 
@@ -31,14 +29,6 @@ export class PlayerPromptState {
 
     public clearSelectableCards() {
         this.selectableCards = [];
-    }
-
-    public setSelectableRings(rings: Ring[]) {
-        this.selectableRings = rings;
-    }
-
-    public clearSelectableRings() {
-        this.selectableRings = [];
     }
 
     setPrompt(prompt: {
@@ -95,13 +85,6 @@ export class PlayerPromptState {
         }
 
         return result;
-    }
-
-    getRingSelectionState(ring: Ring) {
-        if (this.selectRing) {
-            return { unselectable: !this.selectableRings.includes(ring) };
-        }
-        return { unselectable: ring.game.currentConflict && !ring.contested };
     }
 
     getState() {

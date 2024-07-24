@@ -48,7 +48,7 @@ export class RandomDiscardAction extends PlayerAction {
         player.game.addMessage('{0} discards {1} at random', player, cardsToDiscard);
 
         for (const card of cardsToDiscard) {
-            player.moveCard(card, card.isDynasty ? Locations.DynastyDiscardPile : Locations.ConflictDiscardPile);
+            player.moveCard(card, Locations.Discard);
         }
     }
 }

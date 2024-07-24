@@ -2,7 +2,7 @@ const _ = require('underscore');
 
 const { BaseStep } = require('./BaseStep');
 const { TriggeredAbilityWindowTitle } = require('./TriggeredAbilityWindowTitle');
-const { Locations } = require('../Constants');
+const { Locations, WildcardLocations } = require('../Constants');
 
 class ForcedTriggeredAbilityWindow extends BaseStep {
     constructor(game, abilityType, window, eventsToExclude = []) {
@@ -12,7 +12,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
         this.eventWindow = window;
         this.eventsToExclude = eventsToExclude;
         this.abilityType = abilityType;
-        this.currentPlayer = this.game.getFirstPlayer();
+        this.activePlayer = this.game.actionPhaseActivePlayer;
         this.resolvedAbilities = [];
     }
 
@@ -40,7 +40,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
         if(this.choices.length === 0) {
             return true;
         }
-        if(this.choices.length === 1 || !this.currentPlayer.optionSettings.orderForcedAbilities) {
+        if(this.choices.length === 1 || !this.activePlayer.optionSettings.orderForcedAbilities) {
             this.resolveAbility(this.choices[0]);
             return false;
         }
@@ -55,7 +55,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
     }
 
     promptBetweenSources(choices) {
-        this.game.promptForSelect(this.currentPlayer, _.extend(this.getPromptForSelectProperties(), {
+        this.game.promptForSelect(this.activePlayer, _.extend(this.getPromptForSelectProperties(), {
             cardCondition: card => _.any(choices, context => context.source === card),
             onSelect: (player, card) => {
                 this.promptBetweenAbilities(choices.filter(context => context.source === card));
@@ -65,7 +65,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
     }
 
     getPromptForSelectProperties() {
-        return Object.assign({ location: Locations.Any }, this.getPromptProperties());
+        return Object.assign({ location: WildcardLocations.Any }, this.getPromptProperties());
     }
 
     getPromptProperties() {
@@ -97,7 +97,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
         return [...map.entries()].map(([source, targets]) => ({
             type: 'targeting',
             source: source.getShortSummary(),
-            targets: targets.map(target => target.getShortSummaryForControls(this.currentPlayer))
+            targets: targets.map(target => target.getShortSummaryForControls(this.activePlayer))
         }));
     }
 
@@ -114,7 +114,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
             menuChoices.push('Back');
             handlers.push(() => this.promptBetweenSources(this.choices));
         }
-        this.game.promptWithHandlerMenu(this.currentPlayer, _.extend(this.getPromptProperties(), {
+        this.game.promptWithHandlerMenu(this.activePlayer, _.extend(this.getPromptProperties(), {
             activePromptTitle: 'Which ability would you like to use?',
             choices: menuChoices,
             handlers: handlers
@@ -132,7 +132,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
             return;
         }
         // Several cards could be affected by this ability - prompt the player to choose which they want to affect
-        this.game.promptForSelect(this.currentPlayer, _.extend(this.getPromptForSelectProperties(), {
+        this.game.promptForSelect(this.activePlayer, _.extend(this.getPromptForSelectProperties(), {
             activePromptTitle: 'Select a card to affect',
             cardCondition: card => _.any(choices, context => context.event.card === card),
             buttons: addBackButton ? [{ text: 'Back', arg: 'back' }] : [],
@@ -163,7 +163,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
             menuChoices.push('Back');
             handlers.push(() => this.promptBetweenSources(this.choices));
         }
-        this.game.promptWithHandlerMenu(this.currentPlayer, _.extend(this.getPromptProperties(), {
+        this.game.promptWithHandlerMenu(this.activePlayer, _.extend(this.getPromptProperties(), {
             activePromptTitle: 'Choose an event to respond to',
             choices: menuChoices,
             handlers: handlers

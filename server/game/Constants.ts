@@ -1,211 +1,88 @@
 export enum Locations {
-    Any = 'any',
     Hand = 'hand',
-    ConflictDeck = 'conflict deck',
-    DynastyDeck = 'dynasty deck',
-    ConflictDiscardPile = 'conflict discard pile',
-    DynastyDiscardPile = 'dynasty discard pile',
-    PlayArea = 'play area',
-    Provinces = 'province',
-    ProvinceOne = 'province 1',
-    ProvinceTwo = 'province 2',
-    ProvinceThree = 'province 3',
-    ProvinceFour = 'province 4',
-    StrongholdProvince = 'stronghold province',
-    ProvinceDeck = 'province deck',
+    Deck = 'deck',
+    Discard = 'discard',
+    Base = 'base',
+    Leader = 'leader',
+    GroundArena = 'ground arena',
+    SpaceArena = 'space arena',
+    Resource = 'resource',
     RemovedFromGame = 'removed from game',
-    UnderneathStronghold = 'underneath stronghold',
     OutsideTheGame = 'outside the game',
     BeingPlayed = 'being played',
-    Role = 'role'
 }
 
-export enum CharacterStatus {
-    Honored = 'honored',
-    Dishonored = 'dishonored',
-    Tainted = 'tainted'
+// TODO: make enum names singular
+export enum WildcardLocations {
+    Any = 'any',
+    AnyArena = 'any arena'
 }
 
-export enum Decks {
-    ConflictDeck = 'conflict deck',
-    DynastyDeck = 'dynasty deck'
+export type TargetableLocations = Locations | WildcardLocations;
+
+// TODO: where to put these helpers?
+export const isArena = (location: TargetableLocations) => {
+    switch (location) {
+        case Locations.GroundArena:
+        case Locations.SpaceArena:
+        case WildcardLocations.AnyArena:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// return true if the location matches one of the allowed location filters
+export const cardLocationMatches = (cardLocation: Locations, allowedLocations: TargetableLocations | TargetableLocations[]) => {
+    if (!Array.isArray(allowedLocations)) {
+        allowedLocations = [allowedLocations];
+    }
+
+    return allowedLocations.some((allowedLocation) => {
+        switch (allowedLocation) {
+            case WildcardLocations.Any:
+                return true;
+            case WildcardLocations.AnyArena:
+                return isArena(cardLocation);
+            default:
+                return cardLocation === allowedLocation;
+        }});
+}
+
+export enum PlayTypes {
+    PlayFromHand = 'playFromHand',
+    Smuggle = 'smuggle'
 }
 
 export enum EffectNames {
     AbilityRestrictions = 'abilityRestrictions',
-    AddElementAsAttacker = 'addElementAsAttacker',
-    AddFaction = 'addFaction',
-    AddKeyword = 'addKeyword',
-    AddTrait = 'addTrait',
-    LoseTrait = 'loseTrait',
-    AttachmentCardCondition = 'attachmentCardCondition',
-    AttachmentFactionRestriction = 'attachmentFactionRestriction',
-    AttachmentLimit = 'attachmentLimit',
-    AttachmentMyControlOnly = 'attachmentMyControlOnly',
-    AttachmentOpponentControlOnly = 'attachmentOpponentControlOnly',
-    AttachmentRestrictTraitAmount = 'attachmentRestrictTraitAmount',
-    AttachmentTraitRestriction = 'attachmentTraitRestriction',
-    AttachmentUniqueRestriction = 'attachmentUniqueRestriction',
-    Blank = 'blank',
-    CalculatePrintedMilitarySkill = 'calculatePrintedMilitarySkill',
-    CanBeSeenWhenFacedown = 'canBeSeenWhenFacedown',
-    CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
-    CanOnlyBeDeclaredAsAttackerWithElement = 'canOnlyBeDeclaredAsAttackerWithElement',
-    CannotApplyLastingEffects = 'cannotApplyLastingEffects',
-    CannotBeAttacked = 'cannotBeAttacked',
-    CannotBidInDuels = 'cannotBidInDuels',
-    CannotContribute = 'cannotContribute',
-    CannotHaveConflictsDeclaredOfType = 'cannotHaveConflictsDeclaredOfType',
-    CannotHaveOtherRestrictedAttachments = 'cannotHaveOtherRestrictedAttachments',
-    CannotParticipateAsAttacker = 'cannotParticipateAsAttacker',
-    CannotParticipateAsDefender = 'cannotParticipateAsDefender',
-    CardCostToAttackMilitary = 'cardCostToAttackMilitary',
-    ChangeContributionFunction = 'changeContributionFunction',
     ChangeType = 'changeType',
-    CopyCharacter = 'copyCharacter',
-    CustomEffect = 'customEffect',
-    CustomProvinceRefillEffect = 'customProvinceRefillEffect',
-    DelayedEffect = 'delayedEffect',
-    DoesNotBow = 'doesNotBow',
-    DoesNotReady = 'doesNotReady',
-    EntersPlayWithStatus = 'entersPlayWithStatus',
-    EntersPlayForOpponent = 'entersPlayForOpponent',
-    FateCostToAttack = 'fateCostToAttack',
-    HonorCostToDeclare = 'honorCostToDeclare',
-    FateCostToRingToDeclareConflictAgainst = 'fateCostToRingToDeclareConflictAgainst',
-    FateCostToTarget = 'fateCostToTarget',
-    PlayerFateCostToTargetCard = 'playerFateCostToTargetCard',
-    GainAbility = 'gainAbility',
-    GainAllAbilities = 'gainAllAbilities',
-    GainAllAbilitiesDynamic = 'gainAllAbilitiesDynamic',
-    GainExtraFateWhenPlayed = 'gainExtraFateWhenPlayed',
-    GainPlayAction = 'gainPlayAction',
-    HideWhenFaceUp = 'hideWhenFaceUp',
-    HonorStatusDoesNotAffectLeavePlay = 'honorStatusDoesNotAffectLeavePlay',
-    HonorStatusDoesNotModifySkill = 'honorStatusDoesNotModifySkill',
-    TaintedStatusDoesNotCostHonor = 'taintedStatusDoesNotCostHonor',
-    HonorStatusReverseModifySkill = 'honorStatusReverseModifySkill',
-    IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
-    IncreaseLimitOnPrintedAbilities = 'IncreaseLimitOnPrintedAbilities',
-    LegendaryFate = 'legendaryFate',
-    LoseKeyword = 'loseKeyword',
-    ModifyBaseMilitarySkillMultiplier = 'modifyBaseMilitarySkillMultiplier',
-    ModifyBasePoliticalSkillMultiplier = 'modifyBasePoliticalSkillMultiplier',
-    ModifyBaseProvinceStrength = 'modifyBaseProvinceStrength',
-    ModifyBothSkills = 'modifyBothSkills',
-    ModifyDuelistSkill = 'modifyDuelistSkill',
-    ModifyGlory = 'modifyGlory',
-    ModifyMilitarySkill = 'modifyMilitarySkill',
-    SwitchAttachmentSkillModifiers = 'switchAttachmentSkillModifiers',
-    AttachmentMilitarySkillModifier = 'attachmentMilitarySkillModifier',
-    ModifyMilitarySkillMultiplier = 'modifyMilitarySkillMultiplier',
-    ModifyPoliticalSkill = 'modifyPoliticalSkill',
-    AttachmentPoliticalSkillModifier = 'attachmentPoliticalSkillModifier',
-    ModifyPoliticalSkillMultiplier = 'modifyPoliticalSkillMultiplier',
-    ModifyProvinceStrengthBonus = 'modifyProvinceStrengthBonus',
-    ModifyProvinceStrength = 'modifyProvinceStrength',
-    ModifyProvinceStrengthMultiplier = 'modifyProvinceStrengthMultiplier',
-    ModifyRestrictedAttachmentAmount = 'modifyRestrictedAttachmentAmount',
-    MustBeChosen = 'mustBeChosen',
-    MustBeDeclaredAsAttacker = 'mustBeDeclaredAsAttacker',
-    MustBeDeclaredAsAttackerIfType = 'mustBeDeclaredAsAttackerifType',
-    MustBeDeclaredAsDefender = 'mustBeDeclaredAsDefender',
-    SetApparentFate = 'setApparentFate',
-    SetBaseDash = 'setBaseDash',
-    SetBaseMilitarySkill = 'setBaseMilitarySkill',
-    SetBasePoliticalSkill = 'setBasePoliticalSkill',
-    SetBaseProvinceStrength = 'setBaseProvinceStrength',
-    SatisfyAffinity = 'satisfyAffinity',
-    SetConflictDeclarationType = 'setConflictDeclarationType',
-    ProvideConflictDeclarationType = 'provideConflictDeclarationType',
-    ForceConflictDeclarationType = 'forceConflictDeclarationType',
-    SetConflictTotalSkill = 'setConflictTotalSkill',
-    SetDash = 'setDash',
-    SetGlory = 'setGlory',
-    SetMilitarySkill = 'setMilitarySkill',
-    SetPoliticalSkill = 'setPoliticalSkill',
-    SetProvinceStrengthBonus = 'setProvinceStrengthBonus',
-    SetProvinceStrength = 'setProvinceStrength',
-    SwitchBaseSkills = 'switchBaseSkills',
     SuppressEffects = 'suppressEffects',
-    TakeControl = 'takeControl',
-    TerminalCondition = 'terminalCondition',
-    UnlessActionCost = 'unlessActionCost',
-    AddElement = 'addElement',
-    CannotDeclareRing = 'cannotDeclare',
-    ConsiderRingAsClaimed = 'considerAsClaimed',
-    AdditionalAction = 'additionalAction',
-    AdditionalActionAfterWindowCompleted = 'additionalActionAfterWindowCompleted',
-    AdditionalCardPlayed = 'additionalCardPlayed',
-    AdditionalCharactersInConflict = 'additionalCharactersInConflict',
-    AdditionalConflict = 'additionalConflict',
-    AdditionalTriggerCost = 'additionalTriggerCost',
-    AdditionalPlayCost = 'additionalPlayCost',
-    AlternateFatePool = 'alternateFatePool',
-    CannotDeclareConflictsOfType = 'cannotDeclareConflictsOfType',
-    CanPlayFromOwn = 'canPlayFromOwn',
-    CanPlayFromOutOfPlay = 'canPlayFromOutOfPlay',
-    CanPlayFromOpponents = 'canPlayFromOpponents',
-    CannotResolveRings = 'cannotResolveRings',
-    ChangePlayerGloryModifier = 'gloryModifier',
-    ChangePlayerSkillModifier = 'conflictSkillModifier',
-    GainActionPhasePriority = 'actionPhasePriority',
+    ShowTopCard = 'showTopCard',
+    EntersPlayForOpponent = 'entersPlayForOpponent',
     CostReducer = 'costReducer',
-    ModifyCardsDrawnInDrawPhase = 'modifyCardsDrawnInDrawPhase',
-    SetMaxConflicts = 'maxConflicts',
-    ShowTopConflictCard = 'showTopConflictCard',
-    ShowTopDynastyCard = 'showTopDynastyCard',
-    ContributeToConflict = 'contribute',
-    CanContributeWhileBowed = 'canContributeWhileBowed',
-    CanContributeGloryWhileBowed = 'canContributeGloryWhileBowed',
-    ChangeConflictSkillFunction = 'skillFunction',
-    ModifyConflictElementsToResolve = 'modifyConflictElementsToResolve',
-    RestrictNumberOfDefenders = 'restrictNumberOfDefenders',
-    ResolveConflictEarly = 'resolveConflictEarly',
-    SetBaseGlory = 'setBaseGlory',
-    EventsCannotBeCancelled = 'eventsCannotBeCancelled',
-    ForceConflictUnopposed = 'forceConflictUnopposed',
-    MustDeclareMaximumAttackers = 'mustDeclareMaximumAttackers',
-    RefillProvinceTo = 'refillProvinceTo',
-    RestartDynastyPhase = 'restartDynastyPhase',
-    StrongholdCanBeAttacked = 'strongholdCanBeAttacked',
-    DefendersChosenFirstDuringConflict = 'defendersChosenFirstDuringConflict',
-    LimitHonorGainPerPhase = 'limitHonorGainPerPhase',
-    RegisterToPlayFromOutOfPlay = 'registerToPlayFromOutOfPlay',
-    CostToDeclareAnyParticipants = 'costToDeclareAnyParticipants',
-    LoseAllNonKeywordAbilities = 'loseAllNonKeywordAbilities',
-    ParticipatesFromHome = 'participatesFromHome',
-    AdditionalAttackedProvince = 'additionalAttackedProvince',
-    ReplacePrintedElement = 'replacePrintedElement',
-    ProvinceCannotHaveSkillIncreased = 'provinceCannotHaveSkillIncreased',
-    ConsideredLessHonorable = 'consideredLessHonorable',
-    CustomFatePhaseFateRemoval = 'customFatePhaseFateRemoval',
-    WinDuel = 'winDuel',
-    WinDuelTies = 'winDuelTies',
-    IgnoreDuelSkill = 'ignoreDuelSkill',
-    ConflictIgnoreStatusTokens = 'conflictIgnoreStatusTokens',
-    LimitLegalAttackers = 'limitLegalAttackers',
-    ModifyHonorTransferGiven = 'modifyHonorTransferGiven',
-    ModifyHonorTransferReceived = 'modifyHonorTransferReceived',
-    ModifyUnopposedHonorLoss = 'modifyUnopposedHonorLoss',
-    TriggersAbilitiesFromHome = 'triggersAbilitiesFromHome',
-    // New Duel effects
-    ModifyDuelSkill = 'modifyDuelSkill',
-    ApplyStatusTokensToDuel = 'applyStatusTokensToDuel',
-    DuelIgnorePrintedSkill = 'duelIgnorePrintedSkill'
+    CanPlayFromOutOfPlay = 'canPlayFromOutOfPlay',
+    DoesNotReady = 'doesnotready',
+    Blank = 'blank',
+    AddKeyword = 'addkeyword',
+    LoseKeyword = 'losekeyword',
+    CopyCharacter = 'copycharacter',
+    GainAbility = 'gainability',
+    CanBeTriggeredByOpponent = 'canbetriggeredbyopponent',
+    UnlessActionCost = 'unlessactioncost',
+    MustBeChosen = 'mustbechosen',
+    TakeControl = 'takecontrol',
+    AdditionalAction = 'additionalaction',
+    AdditionalActionAfterWindowCompleted = 'additionalactionafterwindowcompleted',
+    AdditionalTriggerCost = 'additionaltriggercost',
+    AdditionalPlayCost = 'additionalplaycost',
 }
 
 export enum Durations {
-    UntilEndOfDuel = 'untilEndOfDuel',
-    UntilEndOfConflict = 'untilEndOfConflict',
-    UntilEndOfPhase = 'untilEndOfPhase',
-    UntilEndOfRound = 'untilEndOfRound',
-    UntilPassPriority = 'untilPassPriority',
-    UntilOpponentPassPriority = 'untilOpponentPassPriority',
-    UntilSelfPassPriority = 'untilSelfPassPriority',
-    UntilNextPassPriority = 'untilNextPassPriority',
+    UntilEndOfPhase = 'untilendofphase',
+    UntilEndOfRound = 'untilendofround',
     Persistent = 'persistent',
-    Custom = 'lastingEffect'
+    Custom = 'custom'
 }
 
 export enum Stages {
@@ -222,11 +99,9 @@ export enum Players {
 }
 
 export enum TargetModes {
-    Ring = 'ring',
     Select = 'select',
     Ability = 'ability',
     Token = 'token',
-    ElementSymbol = 'elementSymbol',
     AutoSingle = 'autoSingle',
     Exactly = 'exactly',
     ExactlyVariable = 'exactlyVariable',
@@ -238,126 +113,51 @@ export enum TargetModes {
 }
 
 export enum Phases {
-    Setup = 'setup',
-    Dynasty = 'dynasty',
-    Draw = 'draw',
-    Conflict = 'conflict',
-    Fate = 'fate',
+    Action = 'action',
     Regroup = 'regroup'
 }
 
 export enum CardTypes {
-    Stronghold = 'stronghold',
-    Role = 'role',
-    Province = 'province',
-    Character = 'character',
-    Holding = 'holding',
+    Unit = 'unit',
+    Leader = 'leader',
+    Base = 'base',
     Event = 'event',
-    Attachment = 'attachment'
-}
-
-export enum PlayTypes {
-    PlayFromHand = 'playFromHand',
-    PlayFromProvince = 'playFromProvince',
-    Other = 'other'
+    Upgrade = 'upgrade',
+    Token = 'token'
 }
 
 export enum EventNames {
-    OnMoveFate = 'onMoveFate',
     OnBeginRound = 'onBeginRound',
-    OnCreateTokenCharacter = 'onCreateTokenCharacter',
-    OnCharacterEntersPlay = 'onCharacterEntersPlay',
+    OnUnitEntersPlay = 'onUnitEntersPlay',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
-    OnConflictInitiated = 'onConflictInitiated',
-    OnDuelInitiated = 'onDuelInitiated',
-    OnConflictDeclared = 'onConflictDeclared',
-    OnConflictOpportunityAvailable = 'onConflictOpportunityAvailable',
-    OnCovertResolved = 'onCovertResolved',
-    OnCardRevealed = 'onCardRevealed',
-    OnCardTurnedFacedown = 'onCardTurnedFacedown',
-    OnDefendersDeclared = 'onDefendersDeclared',
-    AfterConflict = 'afterConflict',
-    OnBreakProvince = 'onBreakProvince',
-    OnRestoreProvince = 'onRestoreProvince',
-    OnResolveConflictRing = 'onResolveConflictRing',
-    OnResolveRingElement = 'onResolveRingElement',
-    OnClaimRing = 'onClaimRing',
-    OnRemoveRingFromPlay = 'onRemoveRingFromPlay',
-    OnReturnRingtoPlay = 'onRemoveRingFromPlay',
-    OnReturnHome = 'onReturnHome',
-    OnParticipantsReturnHome = 'onParticipantsReturnHome',
-    OnConflictStarted = 'onConflictStarted',
-    OnConflictFinished = 'onConflictFinished',
-    OnConflictPass = 'onConflictPass',
-    OnFavorGloryTied = 'onFavorGloryTied',
-    OnPlaceFateOnUnclaimedRings = 'onPlaceFateOnUnclaimedRings',
-    OnHonorDialsRevealed = 'onHonorDialsRevealed',
     OnPhaseCreated = 'onPhaseCreated',
     OnPhaseStarted = 'onPhaseStarted',
     OnPhaseEnded = 'onPhaseEnded',
-    OnReturnRing = 'onReturnRing',
-    OnPassFirstPlayer = 'onPassFirstPlayer',
     OnRoundEnded = 'onRoundEnded',
-    OnFateCollected = 'onFateCollected',
-    OnCardAttached = 'onCardAttached',
-    OnCardDetached = 'onCardDetached',
-    OnCardHonored = 'onCardHonored',
-    OnCardDishonored = 'onCardDishonored',
-    OnCardTainted = 'onCardTainted',
-    OnCardBowed = 'onCardBowed',
+    OnCardExhausted = 'onCardExhausted',
     OnCardReadied = 'onCardReadied',
     OnCardsDiscarded = 'onCardsDiscarded',
     OnCardsDiscardedFromHand = 'onCardsDiscardedFromHand',
     OnCardLeavesPlay = 'onCardLeavesPlay',
     OnAddTokenToCard = 'onAddTokenToCard',
-    OnMoveToConflict = 'onMoveToConflict',
-    OnSendHome = 'onSendHome',
     OnCardPlayed = 'onCardPlayed',
     OnDeckShuffled = 'onDeckShuffled',
-    AfterDuel = 'afterDuel',
-    OnDuelStarted = 'onDuelStarted',
-    OnDuelChallenge = 'onDuelChallenge',
-    OnDuelFocus = 'onDuelFocus',
-    OnDuelStrike = 'onDuelStrike',
-    OnDuelResolution = 'onDuelResolution',
-    OnDuelFinished = 'onDuelFinished',
-    OnDynastyCardTurnedFaceup = 'onDynastyCardTurnedFaceup',
-    OnRevealFacedownDynastyCards = 'onRevealFacedownDynastyCards',
-    OnTransferHonor = 'onTransferHonor',
-    OnPassDuringDynasty = 'onPassDuringDynasty',
-    OnModifyHonor = 'onModifyHonor',
+    OnTakeInitiative = 'onTakeInitiative',
     OnAbilityResolved = 'onAbilityResolved',
-    OnResolveFateCost = 'onResolveFateCost',
     OnCardMoved = 'onCardMoved',
     OnDeckSearch = 'onDeckSearch',
     OnEffectApplied = 'onEffectApplied',
-    OnDiscardFavor = 'onDiscardFavor',
     OnStatusTokenDiscarded = 'onStatusTokenDiscarded',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnStatusTokenGained = 'onStatusTokenGained',
     OnCardsDrawn = 'onCardsDrawn',
     OnLookAtCards = 'onLookAtCards',
-    OnModifyBid = 'onModifyBid',
-    OnHonorBid = 'onHonorBid',
-    OnModifyFate = 'onModifyFate',
-    OnSetHonorDial = 'onSetHonorDial',
-    OnSwitchConflictElement = 'onSwitchConflictElement',
-    OnSwitchConflictType = 'onSwitchConflictType',
-    OnTakeRing = 'onTakeRing',
-    OnSpendFate = 'onSpendFate',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
-    OnGloryCount = 'onGloryCount',
-    OnClaimFavor = 'onClaimFavor',
-    OnFlipFavor = 'onFlipFavor',
-    OnConflictMoved = 'onConflictMoved',
-    OnConflictDeclaredBeforeProvinceReveal = 'onConflictDeclaredBeforeProvinceReveal',
-    OnTheCrashingWave = 'onTheCrashingWave',
     Unnamed = 'unnamedEvent',
-    OnAddDuelParticipant = 'onAddDuelParticipant',
-    OnReplaceDuelParticipant = 'onReplaceDuelParticipant',
-    OnAbilityResolverInitiated = 'onAbilityResolverInitiated'
+    OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
+    OnSpendResources = 'onSpendResources',
 }
 
 export enum AbilityTypes {
@@ -369,43 +169,18 @@ export enum AbilityTypes {
     KeywordReaction = 'forcedreaction',
     ForcedReaction = 'forcedreaction',
     Reaction = 'reaction',
-    DuelReaction = 'duelreaction', // ONLY USE FOR DUEL CHALLENGE, FOCUS, AND STRIKE
     Persistent = 'persistent',
     OtherEffects = 'OtherEffects'
 }
 
-export enum DuelTypes {
-    Military = 'military',
-    Political = 'political',
-    Glory = 'glory'
-}
-
-export enum Elements {
-    Fire = 'fire',
-    Earth = 'earth',
-    Air = 'air',
-    Water = 'water',
-    Void = 'void'
-}
-
-export enum ConflictTypes {
-    Military = 'military',
-    Political = 'political',
-    Passed = 'passed',
-    Forced = 'forced'
-}
-
 export enum TokenTypes {
-    Honor = 'honor'
 }
 
-export enum FavorTypes {
-    Military = 'military',
-    Political = 'political',
-    Both = 'both'
-}
-
-export enum SkillType {
-    Military = 'military',
-    Political = 'political'
+export enum Aspects {
+    Heroism = 'heroism',
+    Villainy = 'villainy',
+    Aggression = 'aggression',
+    Command = 'command',
+    Cunning = 'cunning',
+    Vigilance = 'vigilance'
 }

@@ -1,15 +1,15 @@
 import type { AbilityContext } from '../AbilityContext';
-import type BaseCard from '../basecard';
+import type BaseCard from '../card/basecard';
 import { CardTypes, EventNames, Stages } from '../Constants';
-import { Event } from '../Events/Event';
+import { Event } from '../events/Event';
 import type Player from '../player';
-import type Ring from '../ring';
-import type { StatusToken } from '../StatusToken';
+// import type { StatusToken } from '../StatusToken';
 
-type PlayerOrRingOrCardOrToken = Player | Ring | BaseCard | StatusToken;
+// type PlayerOrCardOrToken = Player | BaseCard | StatusToken;
+type PlayerOrCardOrToken = Player | BaseCard;
 
 export interface GameActionProperties {
-    target?: PlayerOrRingOrCardOrToken | PlayerOrRingOrCardOrToken[];
+    target?: PlayerOrCardOrToken | PlayerOrCardOrToken[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
     parentAction?: GameAction<GameActionProperties>;
@@ -75,7 +75,7 @@ export class GameAction<P extends GameActionProperties = GameActionProperties> {
     }
 
     #targets(context: AbilityContext, additionalProperties = {}) {
-        return this.getProperties(context, additionalProperties).target as PlayerOrRingOrCardOrToken[];
+        return this.getProperties(context, additionalProperties).target as PlayerOrCardOrToken[];
     }
 
     hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
@@ -126,7 +126,7 @@ export class GameAction<P extends GameActionProperties = GameActionProperties> {
     }
 
     resolve(
-        target: undefined | PlayerOrRingOrCardOrToken | PlayerOrRingOrCardOrToken[],
+        target: undefined | PlayerOrCardOrToken | PlayerOrCardOrToken[],
         context: AbilityContext
     ): void {
         if (target) {
@@ -159,38 +159,6 @@ export class GameAction<P extends GameActionProperties = GameActionProperties> {
 
     isOptional(context: AbilityContext, additionalProperties = {}): boolean {
         return this.getProperties(context, additionalProperties).optional ?? false;
-    }
-
-    moveFateEventCondition(event): boolean {
-        if (event.origin) {
-            if (event.origin.getFate() === 0) {
-                return false;
-            } else if (
-                event.origin.type === CardTypes.Character &&
-                !event.origin.allowGameAction('removeFate', event.context)
-            ) {
-                return false;
-            }
-        }
-        if (event.recipient) {
-            if (
-                event.recipient.type === CardTypes.Character &&
-                !event.recipient.allowGameAction('placeFate', event.context)
-            ) {
-                return false;
-            }
-        }
-        return !!event.origin || !!event.recipient;
-    }
-
-    moveFateEventHandler(event): void {
-        if (event.origin) {
-            event.fate = Math.min(event.fate, event.origin.getFate());
-            event.origin.modifyFate(-event.fate);
-        }
-        if (event.recipient) {
-            event.recipient.modifyFate(event.fate);
-        }
     }
 
     hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {

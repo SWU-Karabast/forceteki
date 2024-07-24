@@ -1,7 +1,7 @@
 const AbilityLimit = require('./AbilityLimit');
-const Effects = require('./effects.js');
-const Costs = require('./Costs.js');
-const GameActions = require('./GameActions/GameActions');
+const Effects = require('./effects/effects.js');
+const Costs = require('./costs/Costs.js');
+const GameActions = require('./gameActions/GameActions');
 
 const AbilityDsl = {
     limit: AbilityLimit,

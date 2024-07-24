@@ -3,7 +3,7 @@ const { AbilityTypes } = require('../Constants');
 
 class ThenEventWindow extends EventWindow {
     openWindow(abilityType) {
-        if(abilityType !== AbilityTypes.ForcedReaction && abilityType !== AbilityTypes.Reaction && abilityType !== AbilityTypes.DuelReaction) {
+        if(abilityType !== AbilityTypes.ForcedReaction && abilityType !== AbilityTypes.Reaction) {
             super.openWindow(abilityType);
         }
     }

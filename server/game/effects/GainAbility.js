@@ -1,5 +1,5 @@
 const { EffectValue } = require('./EffectValue');
-const { AbilityTypes, Locations } = require('../Constants');
+const { AbilityTypes, Locations, WildcardLocations } = require('../Constants');
 
 class GainAbility extends EffectValue {
     constructor(abilityType, ability) {
@@ -31,7 +31,7 @@ class GainAbility extends EffectValue {
             this.properties = Object.assign({ printedAbility: false }, ability);
         }
         if (abilityType === AbilityTypes.Persistent && !this.properties.location) {
-            this.properties.location = Locations.PlayArea;
+            this.properties.location = WildcardLocations.AnyArena;
             this.properties.abilityType = AbilityTypes.Persistent;
         }
     }
@@ -49,31 +49,31 @@ class GainAbility extends EffectValue {
         this.grantedAbilityLimits = {};
     }
 
-    apply(target) {
-        let properties = Object.assign({ origin: this.context.source }, this.properties);
-        if (this.abilityType === AbilityTypes.Persistent) {
-            const activeLocations = {
-                'play area': [Locations.PlayArea],
-                province: this.context.game.getProvinceArray()
-            };
-            this.value = properties;
-            if (activeLocations[this.value.location].includes(target.location)) {
-                this.value.ref = target.addEffectToEngine(this.value);
-            }
-            return;
-        } else if (this.abilityType === AbilityTypes.Action) {
-            this.value = target.createAction(properties);
-        } else {
-            this.value = target.createTriggeredAbility(this.abilityType, properties);
-            this.value.registerEvents();
-        }
-        if (!this.grantedAbilityLimits[target.uuid]) {
-            this.grantedAbilityLimits[target.uuid] = this.value.limit;
-        } else {
-            this.value.limit = this.grantedAbilityLimits[target.uuid];
-        }
-        this.grantedAbilityLimits[target.uuid].currentUser = target.uuid;
-    }
+    // apply(target) {
+    //     let properties = Object.assign({ origin: this.context.source }, this.properties);
+    //     if (this.abilityType === AbilityTypes.Persistent) {
+    //         const activeLocations = {
+    //             'play area': [Locations.PlayArea],
+    //             province: this.context.game.getProvinceArray()
+    //         };
+    //         this.value = properties;
+    //         if (activeLocations[this.value.location].includes(target.location)) {
+    //             this.value.ref = target.addEffectToEngine(this.value);
+    //         }
+    //         return;
+    //     } else if (this.abilityType === AbilityTypes.Action) {
+    //         this.value = target.createAction(properties);
+    //     } else {
+    //         this.value = target.createTriggeredAbility(this.abilityType, properties);
+    //         this.value.registerEvents();
+    //     }
+    //     if (!this.grantedAbilityLimits[target.uuid]) {
+    //         this.grantedAbilityLimits[target.uuid] = this.value.limit;
+    //     } else {
+    //         this.value.limit = this.grantedAbilityLimits[target.uuid];
+    //     }
+    //     this.grantedAbilityLimits[target.uuid].currentUser = target.uuid;
+    // }
 
     unapply(target) {
         if (this.grantedAbilityLimits[target.uuid]) {

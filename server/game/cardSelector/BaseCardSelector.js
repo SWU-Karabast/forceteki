@@ -1,4 +1,4 @@
-const { Locations, Players } = require('../Constants');
+const { Locations, Players, WildcardLocations } = require('../Constants');
 const _ = require('underscore');
 
 class BaseCardSelector {
@@ -17,22 +17,9 @@ class BaseCardSelector {
     }
 
     buildLocation(property) {
-        let location = property || Locations.PlayArea || [];
-        if(!Array.isArray(location)) {
-            location = [location];
-        }
-        let index = location.indexOf(Locations.Provinces);
-        if(index > -1) {
-            location.splice(
-                index,
-                1,
-                Locations.ProvinceOne,
-                Locations.ProvinceTwo,
-                Locations.ProvinceThree,
-                Locations.ProvinceFour,
-                Locations.StrongholdProvince
-            );
-        }
+        // TODO: what is the point of the last OR here?
+        // TODO: change this to not have to be an array
+        let location = [property] || [WildcardLocations.AnyArena] || [];
         return location;
     }
 
@@ -42,7 +29,7 @@ class BaseCardSelector {
             controllerProp = controllerProp(context);
         }
 
-        if(this.location.includes(Locations.Any)) {
+        if(this.location.includes(WildcardLocations.Any)) {
             if(controllerProp === Players.Self) {
                 return context.game.allCards.filter((card) => card.controller === context.player);
             } else if(controllerProp === Players.Opponent) {
@@ -51,23 +38,7 @@ class BaseCardSelector {
             return context.game.allCards.toArray();
         }
         let attachments = context.player.cardsInPlay.reduce((array, card) => array.concat(card.attachments), []);
-        let allProvinceAttachments = context.player
-            .getProvinces()
-            .reduce((array, card) => array.concat(card.attachments), []);
 
-        if(context.player.opponent) {
-            allProvinceAttachments = allProvinceAttachments.concat(
-                context.player.opponent.getProvinces().reduce((array, card) => array.concat(card.attachments), [])
-            );
-        }
-
-        attachments = attachments.concat(allProvinceAttachments);
-
-        if(context.source.game.rings) {
-            let rings = Object.values(context.source.game.rings);
-            let allRingAttachments = _.flatten(rings.map((ring) => ring.attachments));
-            attachments = attachments.concat(allRingAttachments);
-        }
         if(context.player.opponent) {
             attachments = attachments.concat(...context.player.opponent.cardsInPlay.map((card) => card.attachments));
         }
@@ -75,7 +46,7 @@ class BaseCardSelector {
         if(controllerProp !== Players.Opponent) {
             possibleCards = this.location.reduce((array, location) => {
                 let cards = context.player.getSourceList(location).toArray();
-                if(location === Locations.PlayArea) {
+                if(location === WildcardLocations.AnyArena) {
                     return array.concat(
                         cards,
                         attachments.filter((card) => card.controller === context.player)
@@ -87,7 +58,7 @@ class BaseCardSelector {
         if(controllerProp !== Players.Self && context.player.opponent) {
             possibleCards = this.location.reduce((array, location) => {
                 let cards = context.player.opponent.getSourceList(location).toArray();
-                if(location === Locations.PlayArea) {
+                if(location === WildcardLocations.AnyArena) {
                     return array.concat(
                         cards,
                         attachments.filter((card) => card.controller === context.player.opponent)
@@ -122,7 +93,7 @@ class BaseCardSelector {
         if(controllerProp === Players.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if(!this.location.includes(Locations.Any) && !this.location.includes(card.location)) {
+        if(!this.location.includes(WildcardLocations.Any) && !this.location.includes(card.location)) {
             return false;
         }
         if(card.location === Locations.Hand && card.controller !== choosingPlayer) {

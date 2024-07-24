@@ -1,7 +1,6 @@
-import type BaseCard = require('../basecard');
+import type BaseCard = require('../card/basecard');
 import type Game = require('../game');
 import type Player = require('../player');
-import type Ring = require('../ring');
 import type { Step } from './Step';
 
 export class BaseStep implements Step {
@@ -12,10 +11,6 @@ export class BaseStep implements Step {
     }
 
     public onCardClicked(player: Player, card: BaseCard): boolean {
-        return false;
-    }
-
-    public onRingClicked(player: Player, ring: Ring): boolean {
         return false;
     }
 

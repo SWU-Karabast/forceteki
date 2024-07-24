@@ -1,6 +1,5 @@
 import type Player = require('./player');
-import type BaseCard = require('./basecard');
-import type Ring = require('./ring');
+import type BaseCard = require('./card/basecard');
 import type { Step } from './gamesteps/Step';
 
 type StepFactory = () => Step;
@@ -69,17 +68,6 @@ export class GamePipeline {
         }
 
         return false;
-    }
-
-    handleRingClicked(player: Player, ring: Ring) {
-        if (this.pipeline.length === 0) {
-            return false;
-        }
-
-        const step = this.getCurrentStep();
-        if (step.onRingClicked(player, ring) !== false) {
-            return true;
-        }
     }
 
     handleMenuCommand(player: Player, arg: string, uuid: string, method: string) {

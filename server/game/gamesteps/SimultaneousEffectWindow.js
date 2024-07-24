@@ -19,7 +19,7 @@ class SimultaneousEffectWindow extends ForcedTriggeredAbilityWindow {
         if(choices.length === 0) {
             return true;
         }
-        if(choices.length === 1 || !this.currentPlayer.optionSettings.orderForcedAbilities) {
+        if(choices.length === 1 || !this.activePlayer.optionSettings.orderForcedAbilities) {
             this.resolveEffect(choices[0]);
         } else {
             this.promptBetweenChoices(choices);
@@ -28,7 +28,7 @@ class SimultaneousEffectWindow extends ForcedTriggeredAbilityWindow {
     }
 
     promptBetweenChoices(choices) {
-        this.game.promptWithHandlerMenu(this.currentPlayer, {
+        this.game.promptWithHandlerMenu(this.activePlayer, {
             source: 'Order Simultaneous effects',
             activePromptTitle: 'Choose an effect to be resolved',
             waitingPromptTitle: 'Waiting for opponent',

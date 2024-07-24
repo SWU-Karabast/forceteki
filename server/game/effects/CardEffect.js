@@ -1,19 +1,17 @@
 const Effect = require('./Effect.js');
-const { Locations, Players, CardTypes } = require('../Constants');
+const { Players, isArena, WildcardLocations } = require('../Constants');
 
 class CardEffect extends Effect {
     constructor(game, source, properties, effect) {
         if(!properties.match) {
             properties.match = (card, context) => card === context.source;
-            if(properties.location === Locations.Any) {
-                properties.targetLocation = Locations.Any;
-            } else if([CardTypes.Province, CardTypes.Stronghold, CardTypes.Holding].includes(source.type)) {
-                properties.targetLocation = Locations.Provinces;
+            if(properties.location === WildcardLocations.Any) {
+                properties.targetLocation = WildcardLocations.Any;
             }
         }
         super(game, source, properties, effect);
         this.targetController = properties.targetController || Players.Self;
-        this.targetLocation = properties.targetLocation || Locations.PlayArea;
+        this.targetLocation = properties.targetLocation || WildcardLocations.AnyArena;
     }
 
     isValidTarget(target) {
@@ -29,12 +27,9 @@ class CardEffect extends Effect {
     }
 
     getTargets() {
-        if(this.targetLocation === Locations.Any) {
+        if(this.targetLocation === WildcardLocations.Any) {
             return this.game.allCards.filter(card => this.match(card, this.context));
-        } else if(this.targetLocation === Locations.Provinces) {
-            let cards = this.game.allCards.filter(card => card.isInProvince());
-            return cards.filter(card => this.match(card, this.context));
-        } else if(this.targetLocation === Locations.PlayArea) {
+        } else if(isArena(this.targetLocation)) {
             return this.game.findAnyCardsInPlay(card => this.match(card, this.context));
         }
         return this.game.allCards.filter(card => this.match(card, this.context) && card.location === this.targetLocation);

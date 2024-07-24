@@ -1,4 +1,4 @@
-const CardSelector = require('../CardSelector.js');
+const CardSelector = require('../cardSelector/CardSelector.js');
 const { Stages, Players } = require('../Constants.js');
 
 class AbilityTargetAbility {

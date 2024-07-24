@@ -5,37 +5,37 @@ const GainAbility = require('./GainAbility');
 
 const binaryCardEffects = [
     EffectNames.Blank,
-    EffectNames.CanBeSeenWhenFacedown,
-    EffectNames.CannotParticipateAsAttacker,
-    EffectNames.CannotParticipateAsDefender,
+    // EffectNames.CanBeSeenWhenFacedown,
+    // EffectNames.CannotParticipateAsAttacker,
+    // EffectNames.CannotParticipateAsDefender,
     EffectNames.AbilityRestrictions,
-    EffectNames.DoesNotBow,
+    // EffectNames.DoesNotBow,
     EffectNames.DoesNotReady,
-    EffectNames.ShowTopConflictCard,
-    EffectNames.ShowTopDynastyCard
+    // EffectNames.ShowTopConflictCard,
+    // EffectNames.ShowTopDynastyCard
 ];
 
-const MilitaryModifiers = [
-    EffectNames.ModifyBaseMilitarySkillMultiplier,
-    EffectNames.ModifyMilitarySkill,
-    EffectNames.ModifyMilitarySkillMultiplier,
-    EffectNames.ModifyBothSkills,
-    EffectNames.AttachmentMilitarySkillModifier
-];
+// const MilitaryModifiers = [
+//     EffectNames.ModifyBaseMilitarySkillMultiplier,
+//     EffectNames.ModifyMilitarySkill,
+//     EffectNames.ModifyMilitarySkillMultiplier,
+//     EffectNames.ModifyBothSkills,
+//     EffectNames.AttachmentMilitarySkillModifier
+// ];
 
-const PoliticalModifiers = [
-    EffectNames.ModifyBasePoliticalSkillMultiplier,
-    EffectNames.ModifyPoliticalSkill,
-    EffectNames.ModifyPoliticalSkillMultiplier,
-    EffectNames.ModifyBothSkills,
-    EffectNames.AttachmentPoliticalSkillModifier
-];
+// const PoliticalModifiers = [
+//     EffectNames.ModifyBasePoliticalSkillMultiplier,
+//     EffectNames.ModifyPoliticalSkill,
+//     EffectNames.ModifyPoliticalSkillMultiplier,
+//     EffectNames.ModifyBothSkills,
+//     EffectNames.AttachmentPoliticalSkillModifier
+// ];
 
-const ProvinceStrengthModifiers = [
-    EffectNames.ModifyProvinceStrength,
-    EffectNames.ModifyProvinceStrengthMultiplier,
-    EffectNames.SetBaseProvinceStrength
-];
+// const ProvinceStrengthModifiers = [
+//     EffectNames.ModifyProvinceStrength,
+//     EffectNames.ModifyProvinceStrengthMultiplier,
+//     EffectNames.SetBaseProvinceStrength
+// ];
 
 const hasDash = {
     modifyBaseMilitarySkillMultiplier: (card) => card.hasDash('military'),
@@ -54,29 +54,29 @@ const hasDash = {
     setPoliticalSkill: (card) => card.hasDash('political')
 };
 
-const conflictingEffects = {
-    modifyBaseMilitarySkillMultiplier: (card) =>
-        card.effects.filter((effect) => effect.type === EffectNames.SetBaseMilitarySkill),
-    modifyBasePoliticalSkillMultiplier: (card) =>
-        card.effects.filter((effect) => effect.type === EffectNames.SetBasePoliticalSkill),
-    modifyGlory: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetGlory),
-    modifyMilitarySkill: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetMilitarySkill),
-    modifyMilitarySkillMultiplier: (card) =>
-        card.effects.filter((effect) => effect.type === EffectNames.SetMilitarySkill),
-    modifyPoliticalSkill: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetPoliticalSkill),
-    modifyPoliticalSkillMultiplier: (card) =>
-        card.effects.filter((effect) => effect.type === EffectNames.SetPoliticalSkill),
-    setBaseMilitarySkill: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetMilitarySkill),
-    setBasePoliticalSkill: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetPoliticalSkill),
-    setMaxConflicts: (player, value) =>
-        player.mostRecentEffect(EffectNames.SetMaxConflicts) === value
-            ? [_.last(player.effects.filter((effect) => effect.type === EffectNames.SetMaxConflicts))]
-            : [],
-    takeControl: (card, player) =>
-        card.mostRecentEffect(EffectNames.TakeControl) === player
-            ? [_.last(card.effects.filter((effect) => effect.type === EffectNames.TakeControl))]
-            : []
-};
+// const conflictingEffects = {
+//     modifyBaseMilitarySkillMultiplier: (card) =>
+//         card.effects.filter((effect) => effect.type === EffectNames.SetBaseMilitarySkill),
+//     modifyBasePoliticalSkillMultiplier: (card) =>
+//         card.effects.filter((effect) => effect.type === EffectNames.SetBasePoliticalSkill),
+//     modifyGlory: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetGlory),
+//     modifyMilitarySkill: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetMilitarySkill),
+//     modifyMilitarySkillMultiplier: (card) =>
+//         card.effects.filter((effect) => effect.type === EffectNames.SetMilitarySkill),
+//     modifyPoliticalSkill: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetPoliticalSkill),
+//     modifyPoliticalSkillMultiplier: (card) =>
+//         card.effects.filter((effect) => effect.type === EffectNames.SetPoliticalSkill),
+//     setBaseMilitarySkill: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetMilitarySkill),
+//     setBasePoliticalSkill: (card) => card.effects.filter((effect) => effect.type === EffectNames.SetPoliticalSkill),
+//     setMaxConflicts: (player, value) =>
+//         player.mostRecentEffect(EffectNames.SetMaxConflicts) === value
+//             ? [_.last(player.effects.filter((effect) => effect.type === EffectNames.SetMaxConflicts))]
+//             : [],
+//     takeControl: (card, player) =>
+//         card.mostRecentEffect(EffectNames.TakeControl) === player
+//             ? [_.last(card.effects.filter((effect) => effect.type === EffectNames.TakeControl))]
+//             : []
+// };
 
 class StaticEffect {
     constructor(type, value) {
@@ -123,68 +123,68 @@ class StaticEffect {
         this.value.setContext(context);
     }
 
-    canBeApplied(target) {
-        if (target.facedown && target.type !== CardTypes.Province) {
-            return false;
-        }
-        return !hasDash[this.type] || !hasDash[this.type](target, this.value);
-    }
+    // canBeApplied(target) {
+    //     if (target.facedown && target.type !== CardTypes.Province) {
+    //         return false;
+    //     }
+    //     return !hasDash[this.type] || !hasDash[this.type](target, this.value);
+    // }
 
-    isMilitaryModifier() {
-        return MilitaryModifiers.includes(this.type);
-    }
+    // isMilitaryModifier() {
+    //     return MilitaryModifiers.includes(this.type);
+    // }
 
-    isPoliticalModifier() {
-        return PoliticalModifiers.includes(this.type);
-    }
+    // isPoliticalModifier() {
+    //     return PoliticalModifiers.includes(this.type);
+    // }
 
-    isSkillModifier() {
-        return this.isMilitaryModifier() || this.isPoliticalModifier();
-    }
+    // isSkillModifier() {
+    //     return this.isMilitaryModifier() || this.isPoliticalModifier();
+    // }
 
-    isProvinceStrengthModifier() {
-        return ProvinceStrengthModifiers.includes(this.type);
-    }
+    // isProvinceStrengthModifier() {
+    //     return ProvinceStrengthModifiers.includes(this.type);
+    // }
 
-    checkConflictingEffects(type, target) {
-        if (binaryCardEffects.includes(type)) {
-            let matchingEffects = target.effects.filter((effect) => effect.type === type);
-            return matchingEffects.every((effect) => this.hasLongerDuration(effect) || effect.isConditional);
-        }
-        if (conflictingEffects[type]) {
-            let matchingEffects = conflictingEffects[type](target, this.getValue());
-            return matchingEffects.every((effect) => this.hasLongerDuration(effect) || effect.isConditional);
-        }
-        if (type === EffectNames.ModifyBothSkills) {
-            return (
-                this.checkConflictingEffects(EffectNames.ModifyMilitarySkill, target) ||
-                this.checkConflictingEffects(EffectNames.ModifyPoliticalSkill, target)
-            );
-        }
-        if (type === EffectNames.HonorStatusDoesNotModifySkill) {
-            return (
-                this.checkConflictingEffects(EffectNames.ModifyMilitarySkill, target) ||
-                this.checkConflictingEffects(EffectNames.ModifyPoliticalSkill, target)
-            );
-        }
-        if (type === EffectNames.HonorStatusReverseModifySkill) {
-            return (
-                this.checkConflictingEffects(EffectNames.ModifyMilitarySkill, target) ||
-                this.checkConflictingEffects(EffectNames.ModifyPoliticalSkill, target)
-            );
-        }
-        return true;
-    }
+    // checkConflictingEffects(type, target) {
+    //     if (binaryCardEffects.includes(type)) {
+    //         let matchingEffects = target.effects.filter((effect) => effect.type === type);
+    //         return matchingEffects.every((effect) => this.hasLongerDuration(effect) || effect.isConditional);
+    //     }
+    //     if (conflictingEffects[type]) {
+    //         let matchingEffects = conflictingEffects[type](target, this.getValue());
+    //         return matchingEffects.every((effect) => this.hasLongerDuration(effect) || effect.isConditional);
+    //     }
+    //     if (type === EffectNames.ModifyBothSkills) {
+    //         return (
+    //             this.checkConflictingEffects(EffectNames.ModifyMilitarySkill, target) ||
+    //             this.checkConflictingEffects(EffectNames.ModifyPoliticalSkill, target)
+    //         );
+    //     }
+    //     if (type === EffectNames.HonorStatusDoesNotModifySkill) {
+    //         return (
+    //             this.checkConflictingEffects(EffectNames.ModifyMilitarySkill, target) ||
+    //             this.checkConflictingEffects(EffectNames.ModifyPoliticalSkill, target)
+    //         );
+    //     }
+    //     if (type === EffectNames.HonorStatusReverseModifySkill) {
+    //         return (
+    //             this.checkConflictingEffects(EffectNames.ModifyMilitarySkill, target) ||
+    //             this.checkConflictingEffects(EffectNames.ModifyPoliticalSkill, target)
+    //         );
+    //     }
+    //     return true;
+    // }
 
-    hasLongerDuration(effect) {
-        let durations = [
-            Durations.UntilEndOfDuel,
-            Durations.UntilEndOfConflict,
-            Durations.UntilEndOfPhase,
-            Durations.UntilEndOfRound
-        ];
-        return durations.indexOf(this.duration) > durations.indexOf(effect.duration);
-    }
+    // hasLongerDuration(effect) {
+    //     let durations = [
+    //         Durations.UntilEndOfDuel,
+    //         Durations.UntilEndOfConflict,
+    //         Durations.UntilEndOfPhase,
+    //         Durations.UntilEndOfRound
+    //     ];
+    //     return durations.indexOf(this.duration) > durations.indexOf(effect.duration);
+    // }
 
     getDebugInfo() {
         return {

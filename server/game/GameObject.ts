@@ -2,18 +2,16 @@ import { v1 as uuidV1 } from 'uuid';
 
 import type { AbilityContext } from './AbilityContext';
 import { EffectNames, Stages } from './Constants';
-import type DrawCard from './drawcard';
-import type { CardEffect } from './Effects/types';
+import type { CardEffect } from './effects/types';
 import type Game from './game';
-import type { GameAction } from './GameActions/GameAction';
-import * as GameActions from './GameActions/GameActions';
+import type { GameAction } from './gameActions/GameAction';
+import * as GameActions from './gameActions/GameActions';
 import type Player from './player';
 
 export class GameObject {
     public uuid = uuidV1();
     protected id: string;
     protected printedType = '';
-    private facedown = false;
     private effects = [] as CardEffect[];
 
     public constructor(
@@ -75,10 +73,6 @@ export class GameObject {
         return this.printedType;
     }
 
-    public getPrintedFaction() {
-        return null;
-    }
-
     public hasKeyword() {
         return false;
     }
@@ -91,15 +85,15 @@ export class GameObject {
         return [];
     }
 
-    public isFaction() {
+    public hasAspect() {
         return false;
+    }
+
+    public getAspects() {
+        return [];
     }
 
     public hasToken() {
-        return false;
-    }
-
-    public isTemptationsMaho() {
         return false;
     }
 
@@ -108,65 +102,44 @@ export class GameObject {
             id: this.id,
             label: this.name,
             name: this.name,
-            facedown: this.isFacedown(),
             type: this.getType(),
             uuid: this.uuid
         };
     }
 
-    public canBeTargeted(context: AbilityContext, selectedCards: GameObject | GameObject[] = []) {
-        if (!this.checkRestrictions('target', context)) {
-            return false;
-        }
-        let targets = selectedCards;
-        if (!Array.isArray(targets)) {
-            targets = [targets];
-        }
+    // public canBeTargeted(context: AbilityContext, selectedCards: GameObject | GameObject[] = []) {
+    //     if (!this.checkRestrictions('target', context)) {
+    //         return false;
+    //     }
+    //     let targets = selectedCards;
+    //     if (!Array.isArray(targets)) {
+    //         targets = [targets];
+    //     }
 
-        targets = targets.concat(this);
-        let targetingCost = context.player.getTargetingCost(context.source, targets);
+    //     targets = targets.concat(this);
+    //     let targetingCost = context.player.getTargetingCost(context.source, targets);
 
-        if (context.stage === Stages.PreTarget || context.stage === Stages.Cost) {
-            //We haven't paid the cost yet, so figure out what it will cost to play this so we can know how much fate we'll have available for targeting
-            let fateCost = 0;
-            // @ts-ignore
-            if (context.ability.getReducedCost) {
-                //we only want to consider the ability cost, not the card cost
-                // @ts-ignore
-                fateCost = context.ability.getReducedCost(context);
-            }
-            let alternateFate = context.player.getAvailableAlternateFate(context.playType, context);
-            let availableFate = Math.max(context.player.fate - Math.max(fateCost - alternateFate, 0), 0);
+    //     if (context.stage === Stages.PreTarget || context.stage === Stages.Cost) {
+    //         //We haven't paid the cost yet, so figure out what it will cost to play this so we can know how much fate we'll have available for targeting
+    //         let resourceCost = 0;
+    //         // @ts-ignore
+    //         if (context.ability.getReducedCost) {
+    //             //we only want to consider the ability cost, not the card cost
+    //             // @ts-ignore
+    //             resourceCost = context.ability.getReducedCost(context);
+    //         }
 
-            return (
-                availableFate >= targetingCost &&
-                (targetingCost === 0 || context.player.checkRestrictions('spendFate', context))
-            );
-        } else if (context.stage === Stages.Target || context.stage === Stages.Effect) {
-            //We paid costs first, or targeting has to be done after costs have been paid
-            return (
-                context.player.fate >= targetingCost &&
-                (targetingCost === 0 || context.player.checkRestrictions('spendFate', context))
-            );
-        }
+    //         return (context.player.countSpendableResources() >= targetingCost);
+    //     } else if (context.stage === Stages.Target || context.stage === Stages.Effect) {
+    //         //We paid costs first, or targeting has to be done after costs have been paid
+    //         return (context.player.countSpendableResources() >= targetingCost);
+    //     }
 
-        return true;
-    }
+    //     return true;
+    // }
 
     public getShortSummaryForControls(activePlayer: Player) {
         return this.getShortSummary();
-    }
-
-    public isParticipating(card: DrawCard): boolean {
-        return this.game.currentConflict && this.game.currentConflict.isParticipating(this);
-    }
-
-    public isFacedown() {
-        return this.facedown;
-    }
-
-    public isFaceup() {
-        return !this.facedown;
     }
 
     public mostRecentEffect(type: EffectNames) {

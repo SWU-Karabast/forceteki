@@ -1,11 +1,9 @@
 import type { AbilityContext } from './AbilityContext';
 import CardAbility from './CardAbility';
 import { AbilityTypes, CardTypes, EffectNames, Phases } from './Constants';
-import { parseGameMode } from './GameMode';
 import type { ActionProps } from './Interfaces';
-import type BaseCard from './basecard.js';
+import type BaseCard from './card/basecard.js';
 import type Game from './game';
-import type { ProvinceCard } from './ProvinceCard';
 
 /**
  * Represents an action ability provided by card text.
@@ -38,8 +36,6 @@ export class CardAction extends CardAbility {
     abilityType = AbilityTypes.Action;
 
     anyPlayer: boolean;
-    canTriggerOutsideConflict: boolean;
-    conflictProvinceCondition: (province: ProvinceCard, context: AbilityContext) => boolean;
     doesNotTarget: boolean;
     phase: string;
     evenDuringDynasty: boolean;
@@ -54,30 +50,6 @@ export class CardAction extends CardAbility {
         this.anyPlayer = properties.anyPlayer ?? false;
         this.condition = properties.condition;
         this.doesNotTarget = (properties as any).doesNotTarget;
-        this.conflictProvinceCondition = properties.conflictProvinceCondition ?? ((province) => province === this.card);
-        this.canTriggerOutsideConflict = !!properties.canTriggerOutsideConflict;
-    }
-
-    #passDynastyPhaseRequirements() {
-        if (this.phase === Phases.Dynasty || this.evenDuringDynasty) {
-            return true;
-        }
-
-        const gameMode = parseGameMode(this.game.gameMode);
-        switch (this.card.type) {
-            case CardTypes.Holding:
-                return gameMode.dynastyPhaseActionsFromCardsInPlay;
-
-            case CardTypes.Event:
-                return gameMode.dynastyPhaseCanPlayConflictEvents(this);
-
-            case CardTypes.Character:
-            case CardTypes.Attachment:
-                return gameMode.dynastyPhaseActionsFromCardsInPlay;
-
-            default:
-                return false;
-        }
     }
 
     meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
@@ -85,19 +57,7 @@ export class CardAction extends CardAbility {
             return 'location';
         }
 
-        if (!ignoredRequirements.includes('province') && !this.checkProvinceCondition(context)) {
-            return 'province';
-        }
-
         if (!ignoredRequirements.includes('phase') && this.phase !== 'any' && this.phase !== this.game.currentPhase) {
-            return 'phase';
-        }
-
-        if (
-            !ignoredRequirements.includes('phase') &&
-            this.game.currentPhase === Phases.Dynasty &&
-            !this.#passDynastyPhaseRequirements()
-        ) {
             return 'phase';
         }
 
@@ -115,17 +75,6 @@ export class CardAction extends CardAbility {
         }
 
         return super.meetsRequirements(context, ignoredRequirements);
-    }
-
-    checkProvinceCondition(context: AbilityContext) {
-        return (
-            this.card.type !== CardTypes.Province ||
-            this.canTriggerOutsideConflict ||
-            (this.game.currentConflict &&
-                this.game.currentConflict
-                    .getConflictProvinces()
-                    .some((p) => this.conflictProvinceCondition(p, context)))
-        );
     }
 
     isAction() {

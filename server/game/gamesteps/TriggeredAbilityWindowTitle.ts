@@ -1,14 +1,8 @@
 import { AbilityTypes } from '../Constants';
 
 const EventToTitleFunc = {
-    onCardBowed(event: any) {
-        return `${event.card.name} being bowed`;
-    },
-    onCardDishonored(event: any) {
-        return `${event.card.name} being dishonored`;
-    },
-    onCardHonored(event: any) {
-        return `${event.card.name} being honored`;
+    onCardExhausted(event: any) {
+        return `${event.card.name} being exhausted`;
     },
     onCardLeavesPlay(event: any) {
         return `${event.card.name} leaving play`;
@@ -19,29 +13,14 @@ const EventToTitleFunc = {
     onCharacterEntersPlay(event: any) {
         return `${event.card.name} entering play`;
     },
-    onClaimRing(event: any) {
-        return `to the ${event.ring.element} ring being claimed`;
-    },
     onInitiateAbilityEffects(event: any) {
         return `the effects of ${event.card.name}`;
-    },
-    onMoveCharactersToConflict() {
-        return 'characters moving to the conflict';
-    },
-    onMoveFate(event: any) {
-        return `Fate being moved from ${event.origin ? event.origin.name : event.card ? event.card.name : 'somewhere'}`;
     },
     onPhaseEnded(event: any) {
         return `${event.phase} phase ending`;
     },
     onPhaseStarted(event: any) {
         return `${event.phase} phase starting`;
-    },
-    onRemovedFromChallenge(event: any) {
-        return `${event.card.name} being removed from the challenge`;
-    },
-    onReturnRing(event: any) {
-        return `returning the ${event.ring.element} ring`;
     },
     onSacrificed(event: any) {
         return `${event.card.name} being sacrificed`;

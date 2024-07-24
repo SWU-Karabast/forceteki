@@ -1,14 +1,11 @@
 import type { AbilityContext } from './AbilityContext';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
-import type { GameAction } from './GameActions/GameAction';
-import type Ring = require('./ring');
-import type BaseCard = require('./basecard');
-import type DrawCard = require('./drawcard');
-import type { ProvinceCard } from './ProvinceCard';
+import type { GameAction } from './gameActions/GameAction';
+import type BaseCard = require('./card/basecard');
+import type DeckCard = require('./card/deckcard');
 import type CardAbility = require('./CardAbility');
-import type { DuelProperties } from './GameActions/DuelAction';
 import type { Players, TargetModes, CardTypes, Locations, EventNames, Phases } from './Constants';
-import type { StatusToken } from './StatusToken';
+// import type { StatusToken } from './StatusToken';
 import type Player = require('./player');
 
 interface BaseTarget {
@@ -31,12 +28,6 @@ interface TargetSelect extends BaseTarget {
     targets?: boolean;
 }
 
-interface TargetRing extends BaseTarget {
-    mode: TargetModes.Ring;
-    optional?: boolean;
-    ringCondition: (ring: Ring, context?: AbilityContext) => boolean;
-}
-
 interface TargetAbility extends BaseTarget {
     mode: TargetModes.Ability;
     cardType?: CardTypes | CardTypes[];
@@ -44,21 +35,15 @@ interface TargetAbility extends BaseTarget {
     abilityCondition?: (ability: CardAbility) => boolean;
 }
 
-interface TargetToken extends BaseTarget {
-    mode: TargetModes.Token;
-    optional?: boolean;
-    location?: Locations | Locations[];
-    cardType?: CardTypes | CardTypes[];
-    singleToken?: boolean;
-    cardCondition?: (card: BaseCard, context?: AbilityContext) => boolean;
-    tokenCondition?: (token: StatusToken, context?: AbilityContext) => boolean;
-}
-
-interface TargetElementSymbol extends BaseTarget {
-    mode: TargetModes.ElementSymbol;
-    location?: Locations | Locations[];
-    cardType?: CardTypes | CardTypes[];
-}
+// interface TargetToken extends BaseTarget {
+//     mode: TargetModes.Token;
+//     optional?: boolean;
+//     location?: Locations | Locations[];
+//     cardType?: CardTypes | CardTypes[];
+//     singleToken?: boolean;
+//     cardCondition?: (card: BaseCard, context?: AbilityContext) => boolean;
+//     tokenCondition?: (token: StatusToken, context?: AbilityContext) => boolean;
+// }
 
 interface BaseTargetCard extends BaseTarget {
     cardType?: CardTypes | CardTypes[];
@@ -93,9 +78,8 @@ type TargetCard =
     | TargetCardExactlyUpToVariable
     | TargetCardMaxStat
     | TargetCardSingleUnlimited
-    | TargetAbility
-    | TargetToken
-    | TargetElementSymbol;
+    | TargetAbility;
+    // | TargetToken;
 
 interface SubTarget {
     dependsOn?: string;
@@ -105,31 +89,17 @@ interface ActionCardTarget {
     cardCondition?: (card: BaseCard, context?: AbilityContext) => boolean;
 }
 
-interface ActionRingTarget {
-    ringCondition?: (ring: Ring, context?: AbilityContext) => boolean;
-}
-
-type ActionTarget = (TargetCard & ActionCardTarget) | (TargetRing & ActionRingTarget) | TargetSelect | TargetAbility;
+type ActionTarget = (TargetCard & ActionCardTarget) | TargetSelect | TargetAbility;
 
 interface ActionTargets {
     [propName: string]: ActionTarget & SubTarget;
-}
-
-export interface InitiateDuel extends DuelProperties {
-    opponentChoosesDuelTarget?: boolean;
-    opponentChoosesChallenger?: boolean;
-    requiresConflict?: boolean;
-    challengerCondition?: (card: DrawCard, context: TriggeredAbilityContext) => boolean;
-    targetCondition?: (card: DrawCard, context: TriggeredAbilityContext) => boolean;
 }
 
 type EffectArg =
     | number
     | string
     | Player
-    | DrawCard
-    | ProvinceCard
-    | Ring
+    | DeckCard
     | { id: string; label: string; name: string; facedown: boolean; type: CardTypes }
     | EffectArg[];
 
@@ -141,7 +111,6 @@ interface AbilityProps<Context> {
     max?: any;
     target?: ActionTarget;
     targets?: ActionTargets;
-    initiateDuel?: InitiateDuel | ((context: AbilityContext) => InitiateDuel);
     cannotBeMirrored?: boolean;
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;
@@ -156,26 +125,18 @@ interface AbilityProps<Context> {
 export interface ActionProps<Source = any> extends AbilityProps<AbilityContext<Source>> {
     condition?: (context?: AbilityContext<Source>) => boolean;
     phase?: Phases | 'any';
-    emeraldWorksInDynsty?: boolean;
     /**
      * @deprecated
      */
     anyPlayer?: boolean;
-    conflictProvinceCondition?: (province: ProvinceCard, context: AbilityContext<Source>) => boolean;
-    canTriggerOutsideConflict?: boolean;
 }
 
 interface TriggeredAbilityCardTarget {
     cardCondition?: (card: BaseCard, context?: TriggeredAbilityContext) => boolean;
 }
 
-interface TriggeredAbilityRingTarget {
-    ringCondition?: (ring: Ring, context?: TriggeredAbilityContext) => boolean;
-}
-
 type TriggeredAbilityTarget =
     | (TargetCard & TriggeredAbilityCardTarget)
-    | (TargetRing & TriggeredAbilityRingTarget)
     | TargetSelect;
 
 interface TriggeredAbilityTargets {
@@ -232,16 +193,4 @@ export interface AttachmentConditionProps {
     cardCondition?: (card: BaseCard) => boolean;
 }
 
-interface HonoredToken {
-    honored: true;
-    card: DrawCard;
-    type: 'token';
-}
-
-interface DishonoredToken {
-    dishonored: true;
-    card: DrawCard;
-    type: 'token';
-}
-
-export type Token = HonoredToken | DishonoredToken;
+// export type Token = HonoredToken | DishonoredToken;

@@ -1,9 +1,8 @@
 import { GamePipeline } from '../GamePipeline';
 import { BaseStep } from './BaseStep';
 import type { Step } from './Step';
-import type BaseCard = require('../basecard');
+import type BaseCard = require('../card/basecard');
 import type Player = require('../player');
-import type Ring = require('../ring');
 
 export class BaseStepWithPipeline extends BaseStep implements Step {
     pipeline = new GamePipeline();
@@ -18,10 +17,6 @@ export class BaseStepWithPipeline extends BaseStep implements Step {
 
     onCardClicked(player: Player, card: BaseCard): boolean {
         return this.pipeline.handleCardClicked(player, card);
-    }
-
-    onRingClicked(player: Player, ring: Ring) {
-        return this.pipeline.handleRingClicked(player, ring);
     }
 
     onMenuCommand(player: Player, arg: string, uuid: string, method: string) {

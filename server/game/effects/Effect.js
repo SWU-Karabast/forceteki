@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const { Locations, Durations } = require('../Constants');
+const { Locations, Durations, isArena } = require('../Constants');
 
 /**
  * Represents a card based effect applied to one or more targets.
@@ -35,7 +35,7 @@ class Effect {
         this.duration = properties.duration;
         this.until = properties.until || {};
         this.condition = properties.condition || (() => true);
-        this.location = properties.location || Locations.PlayArea;
+        this.location = properties.location || isArena(properties.location);
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
         this.effect = effect;

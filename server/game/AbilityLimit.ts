@@ -144,14 +144,6 @@ export function repeatable(max: number, eventName: EventNames) {
     return new RepeatableAbilityLimit(max, new Set([eventName]));
 }
 
-export function perConflict(max: number) {
-    return new RepeatableAbilityLimit(max, new Set([EventNames.OnConflictFinished]));
-}
-
-export function perConflictOpportunity(max: number) {
-    return new RepeatableAbilityLimit(max, new Set([EventNames.OnConflictFinished, EventNames.OnConflictPass]));
-}
-
 export function perPhase(max: number) {
     return new RepeatableAbilityLimit(max, new Set([EventNames.OnPhaseEnded]));
 }
@@ -162,14 +154,6 @@ export function perRound(max: number) {
 
 export function perGame(max: number) {
     return new RepeatableAbilityLimit(max, new Set());
-}
-
-export function perDuel(max: number) {
-    return new RepeatableAbilityLimit(max, new Set([EventNames.OnDuelFinished]));
-}
-
-export function unlimitedPerConflict() {
-    return new RepeatableAbilityLimit(Infinity, new Set([EventNames.OnConflictFinished]));
 }
 
 export function unlimited() {

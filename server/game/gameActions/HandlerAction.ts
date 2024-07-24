@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../AbilityContext';
-import DrawCard from '../drawcard';
+import DeckCard from '../card/deckcard';
 import { GameAction, type GameActionProperties } from './GameAction';
 
 export interface HandlerProperties extends GameActionProperties {
@@ -17,7 +17,7 @@ export class HandlerAction extends GameAction {
         return true;
     }
 
-    canAffect(card: DrawCard, context: AbilityContext): boolean {
+    canAffect(card: DeckCard, context: AbilityContext): boolean {
         return true;
     }
 

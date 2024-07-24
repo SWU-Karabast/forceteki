@@ -5,7 +5,7 @@ const ForcedTriggeredAbilityWindow = require('../gamesteps/forcedtriggeredabilit
 const { SimpleStep } = require('../gamesteps/SimpleStep.js');
 const TriggeredAbilityWindow = require('../gamesteps/triggeredabilitywindow.js');
 const { AbilityTypes } = require('../Constants');
-const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
+// const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
 
 class EventWindow extends BaseStepWithPipeline {
     constructor(game, events) {
@@ -13,7 +13,6 @@ class EventWindow extends BaseStepWithPipeline {
 
         this.events = [];
         this.thenAbilities = [];
-        this.provincesToRefill = [];
         _.each(events, event => {
             if(!event.cancelled) {
                 this.addEvent(event);
@@ -31,15 +30,14 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.createContingentEvents()),
             new SimpleStep(this.game, () => this.openWindow(AbilityTypes.ForcedInterrupt)),
             new SimpleStep(this.game, () => this.openWindow(AbilityTypes.Interrupt)),
-            new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityTypes.KeywordInterrupt)),
+            // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityTypes.KeywordInterrupt)),
             new SimpleStep(this.game, () => this.checkForOtherEffects()),
             new SimpleStep(this.game, () => this.preResolutionEffects()),
             new SimpleStep(this.game, () => this.executeHandler()),
-            new SimpleStep(this.game, () => this.checkGameState()),
-            new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityTypes.KeywordReaction)),
-            new SimpleStep(this.game, () => this.checkThenAbilities()),
+            // new SimpleStep(this.game, () => this.checkGameState()),
+            // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityTypes.KeywordReaction)),
+            // new SimpleStep(this.game, () => this.checkThenAbilities()),
             new SimpleStep(this.game, () => this.openWindow(AbilityTypes.ForcedReaction)),
-            new SimpleStep(this.game, () => this.openWindow(AbilityTypes.DuelReaction)), // ONLY USE FOR DUEL CHALLENGE, FOCUS, AND STRIKE
             new SimpleStep(this.game, () => this.openWindow(AbilityTypes.Reaction)),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow())
         ]);
@@ -116,26 +114,26 @@ class EventWindow extends BaseStepWithPipeline {
         });
     }
 
-    checkGameState() {
-        this.eventsToExecute = this.eventsToExecute.filter(event => !event.cancelled);
-        this.game.checkGameState(_.any(this.eventsToExecute, event => event.handler), this.eventsToExecute);
-    }
+    // checkGameState() {
+    //     this.eventsToExecute = this.eventsToExecute.filter(event => !event.cancelled);
+    //     this.game.checkGameState(_.any(this.eventsToExecute, event => event.handler), this.eventsToExecute);
+    // }
 
-    checkKeywordAbilities(abilityType) {
-        if(_.isEmpty(this.events)) {
-            return;
-        }
+    // checkKeywordAbilities(abilityType) {
+    //     if(_.isEmpty(this.events)) {
+    //         return;
+    //     }
 
-        this.queueStep(new KeywordAbilityWindow(this.game, abilityType, this));
-    }
+    //     this.queueStep(new KeywordAbilityWindow(this.game, abilityType, this));
+    // }
 
-    checkThenAbilities() {
-        for(const thenAbility of this.thenAbilities) {
-            if(thenAbility.context.events.every(event => thenAbility.condition(event))) {
-                this.game.resolveAbility(thenAbility.ability.createContext(thenAbility.context.player));
-            }
-        }
-    }
+    // checkThenAbilities() {
+    //     for(const thenAbility of this.thenAbilities) {
+    //         if(thenAbility.context.events.every(event => thenAbility.condition(event))) {
+    //             this.game.resolveAbility(thenAbility.ability.createContext(thenAbility.context.player));
+    //         }
+    //     }
+    // }
 
     resetCurrentEventWindow() {
         if(this.previousEventWindow) {

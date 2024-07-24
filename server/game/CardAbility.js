@@ -1,15 +1,11 @@
 const AbilityLimit = require('./AbilityLimit');
 const AbilityDsl = require('./abilitydsl');
 const ThenAbility = require('./ThenAbility');
-const Costs = require('./Costs.js');
-const { Locations, CardTypes, EffectNames, Players } = require('./Constants');
-const { initiateDuel } = require('./DuelHelper');
+const Costs = require('./costs/Costs.js');
+const { Locations, CardTypes, EffectNames, WildcardLocations } = require('./Constants');
 
 class CardAbility extends ThenAbility {
     constructor(game, card, properties) {
-        if (properties.initiateDuel) {
-            initiateDuel(game, card, properties);
-        }
         super(game, card, properties);
 
         this.title = properties.title;
@@ -35,29 +31,19 @@ class CardAbility extends ThenAbility {
         }
 
         if (card.getType() === CardTypes.Event && !this.isKeywordAbility()) {
-            this.cost = this.cost.concat(Costs.payReduceableFateCost());
+            this.cost = this.cost.concat(Costs.payReduceableResourceCost());
         }
     }
 
     buildLocation(card, location) {
         const DefaultLocationForType = {
             event: Locations.Hand,
-            holding: Locations.Provinces,
-            province: Locations.Provinces,
-            role: Locations.Role,
-            stronghold: Locations.StrongholdProvince
+            leader: Locations.Leader,
+            base: Locations.Base,
         };
 
-        let defaultedLocation = location || DefaultLocationForType[card.getType()] || Locations.PlayArea;
-
-        if (!Array.isArray(defaultedLocation)) {
-            defaultedLocation = [defaultedLocation];
-        }
-
-        if (defaultedLocation.some((location) => location === Locations.Provinces)) {
-            defaultedLocation = defaultedLocation.filter((location) => location !== Locations.Provinces);
-            defaultedLocation = defaultedLocation.concat(this.game.getProvinceArray());
-        }
+        // TODO: make this not have to be an array (was this way for provinces)
+        let defaultedLocation = [location || DefaultLocationForType[card.getType()] || WildcardLocations.AnyArena];
 
         return defaultedLocation;
     }

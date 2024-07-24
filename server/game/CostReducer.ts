@@ -1,11 +1,12 @@
 import type { AbilityContext } from './AbilityContext';
 import type { AbilityLimit } from './AbilityLimit';
-import type BaseCard from './basecard';
-import type { CardTypes, PlayTypes } from './Constants';
+import type BaseCard from './card/basecard';
+import { CardTypes, PlayTypes, Aspects } from './Constants';
 import type Game from './game';
 import type Player from './player';
 
 export type CostReducerProps = {
+    penaltyAspect?: Aspects;
     cardType?: CardTypes;
     costFloor?: number;
     limit?: AbilityLimit;
@@ -28,7 +29,8 @@ export class CostReducer {
     constructor(
         private game: Game,
         private source: BaseCard,
-        properties: CostReducerProps
+        properties: CostReducerProps,
+        private penaltyAspect?: Aspects
     ) {
         this.amount = properties.amount || 1;
         this.costFloor = properties.costFloor || 0;
@@ -44,12 +46,14 @@ export class CostReducer {
         }
     }
 
-    public canReduce(playingType: PlayTypes, card: BaseCard, target?: BaseCard, ignoreType = false): boolean {
+    public canReduce(playingType: PlayTypes, card: BaseCard, target?: BaseCard, ignoreType = false, penaltyAspect?: Aspects): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (!ignoreType && this.cardType && card.getType() !== this.cardType) {
             return false;
         } else if (this.playingTypes && !this.playingTypes.includes(playingType)) {
+            return false;
+        } else if (this.penaltyAspect && this.penaltyAspect !== penaltyAspect) {
             return false;
         }
         const context = this.game.getFrameworkContext(card.controller);

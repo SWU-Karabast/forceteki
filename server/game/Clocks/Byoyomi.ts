@@ -2,6 +2,8 @@ import type Player from '../player';
 import { ChessClock } from './ChessClock';
 import type { ClockInterface } from './types';
 
+// TODO: fix capitalization on folder, files, classes
+
 export class Byoyomi extends ChessClock implements ClockInterface {
     name = 'Byoyomi';
 

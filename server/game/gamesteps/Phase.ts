@@ -1,3 +1,4 @@
+import { skip } from 'node:test';
 import { EventNames, Phases } from '../Constants';
 import type Game from '../game';
 import { BaseStepWithPipeline } from './BaseStepWithPipeline';
@@ -38,8 +39,10 @@ export class Phase extends BaseStepWithPipeline {
         });
     }
 
-    endPhase(): void {
-        this.game.raiseEvent(EventNames.OnPhaseEnded, { phase: this.name });
+    endPhase(skipEventWindow = false): void {
+        if (!skipEventWindow) {
+            this.game.raiseEvent(EventNames.OnPhaseEnded, { phase: this.name });
+        }
         this.game.currentPhase = '';
     }
 }

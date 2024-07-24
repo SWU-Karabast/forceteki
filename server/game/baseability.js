@@ -1,9 +1,7 @@
-const AbilityTargetAbility = require('./AbilityTargets/AbilityTargetAbility.js');
-const AbilityTargetCard = require('./AbilityTargets/AbilityTargetCard.js');
-const AbilityTargetRing = require('./AbilityTargets/AbilityTargetRing.js');
-const AbilityTargetSelect = require('./AbilityTargets/AbilityTargetSelect.js');
-const AbilityTargetToken = require('./AbilityTargets/AbilityTargetToken.js');
-const AbilityTargetElementSymbol = require('./AbilityTargets/AbilityTargetElementSymbol.js');
+const AbilityTargetAbility = require('./abilityTargets/AbilityTargetAbility.js');
+const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
+const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
+const AbilityTargetToken = require('./abilityTargets/AbilityTargetToken.js');
 const { Stages, TargetModes } = require('./Constants.js');
 
 /**
@@ -78,14 +76,10 @@ class BaseAbility {
         }
         if(properties.mode === TargetModes.Select) {
             return new AbilityTargetSelect(name, properties, this);
-        } else if(properties.mode === TargetModes.Ring) {
-            return new AbilityTargetRing(name, properties, this);
         } else if(properties.mode === TargetModes.Ability) {
             return new AbilityTargetAbility(name, properties, this);
         } else if(properties.mode === TargetModes.Token) {
             return new AbilityTargetToken(name, properties, this);
-        } else if(properties.mode === TargetModes.ElementSymbol) {
-            return new AbilityTargetElementSymbol(name, properties, this);
         }
         return new AbilityTargetCard(name, properties, this);
     }
@@ -127,7 +121,7 @@ class BaseAbility {
     // eslint-disable-next-line no-unused-vars
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = this.cost.map((a) => a);
-        if(context.ignoreFateCost) {
+        if(context.ignoreResourceCost) {
             costs = costs.filter((cost) => !cost.isPrintedFateCost);
         }
 

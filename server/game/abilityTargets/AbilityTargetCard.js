@@ -1,6 +1,6 @@
 const _ = require('underscore');
 
-const CardSelector = require('../CardSelector.js');
+const CardSelector = require('../cardSelector/CardSelector.js');
 const { Stages, Players, EffectNames, TargetModes } = require('../Constants.js');
 
 class AbilityTargetCard {
