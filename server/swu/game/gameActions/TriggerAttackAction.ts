@@ -9,8 +9,9 @@ import type Player from '../player.js';
 type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 
 export class TriggerAttackAction extends BaseAction {
-    public title = 'Attack with this unit';
+    public title = 'Attack';
 
+    // TODO: rename to "gameSystem" or "triggeredSystem" or something and centralize where it is created, since it's also emitted from executeHandler
     public constructor(card: DeckCard) {
         super(card, [exhaustSelf()], {
             gameAction: attack({
@@ -35,9 +36,6 @@ export class TriggerAttackAction extends BaseAction {
         // TODO: rename checkRestrictions to be clearer what the return value means
         if (!context.player.checkRestrictions('cannotAttack', context)) {
             return 'restriction';
-        }
-        if (context.source.exhausted) {
-            return 'exhausted';
         }
         return super.meetsRequirements(context);
     }

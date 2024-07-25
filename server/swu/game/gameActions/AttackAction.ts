@@ -3,7 +3,7 @@ import { CardTypes, Durations, EventNames, Locations, isArena } from '../Constan
 import type DeckCard from '../card/deckcard';
 import { Attack } from '../attack/Attack';
 import { EffectNames } from '../Constants'
-import { AttackFlow } from '../gamesteps/AttackFlow';
+import { AttackFlow } from '../attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../TriggeredAbilityContext';
 import { CardGameAction, type CardActionProperties } from './CardGameAction';
 import { type GameAction } from './GameAction';
@@ -19,12 +19,12 @@ export interface AttackProperties extends CardActionProperties {
 
 export class AttackAction extends CardGameAction {
     name = 'attack';
-    eventName = EventNames.OnAttackInitiated;
+    eventName = EventNames.OnAttackDeclared;
     targetType = [CardTypes.Unit, CardTypes.Base];  // TODO: leader?
 
-    defaultProperties: AttackProperties = {
-    };
+    defaultProperties: AttackProperties = {};
 
+    // TODO: maybe rename to "appendProperties" for clarity
     getProperties(context: AbilityContext, additionalProperties = {}): AttackProperties {
         const properties = super.getProperties(context, additionalProperties) as AttackProperties;
         if (!properties.attacker) {
@@ -73,6 +73,9 @@ export class AttackAction extends CardGameAction {
     // TODO: change this to resolve the damage (we don't have a similar concept to a "duel effect" gameAction)
     resolveAttack(duel: Attack, context: AbilityContext, additionalProperties = {}): void {
         const properties = this.getProperties(context, additionalProperties);
+
+        
+
         const gameAction =
             typeof properties.gameAction === 'function' ? properties.gameAction(duel, context) : properties.gameAction;
         if (gameAction && gameAction.hasLegalTarget(context)) {

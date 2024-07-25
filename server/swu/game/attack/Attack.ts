@@ -25,7 +25,7 @@ export class Attack extends GameObject {
     #modifiers = new WeakMap<Player, AttackAbilities>();
     loser?: DeckCard[];
     losingPlayer?: Player;
-    previousDuel?: Duel;
+    previousAttack?: Attack;
     winner?: DeckCard[];
     winningPlayer?: Player;
     finalDifference?: number;
@@ -67,8 +67,8 @@ export class Attack extends GameObject {
     }
 
     getTotalsForDisplay(): string {
-        const rawChallenger = this.#getStatsTotal(this.attacker, this.attackingPlayer);
-        const rawTarget = this.#getStatsTotal(this.target, this.attackingPlayer.opponent);
+        const rawChallenger = this.#getTotalPower(this.attacker, this.attackingPlayer);
+        const rawTarget = this.#getTotalPower(this.target, this.attackingPlayer.opponent);
         const [challengerTotal, targetTotal] = this.#getTotals(
             typeof rawChallenger === 'number' ? rawChallenger : 0,
             typeof rawTarget === 'number' ? rawTarget : 0
@@ -77,53 +77,45 @@ export class Attack extends GameObject {
     }
 
     determineResult(): void {
-        const challengerWins = this.attacker.mostRecentEffect(EffectNames.WinDuel) === this;
-        const challengerWinsTies = this.attacker.anyEffect(EffectNames.WinDuelTies);
-        const targetWinsTies = this.targets.filter((target) => target.anyEffect(EffectNames.WinDuelTies)).length > 0;
+        const attackerStats = this.#getTotalPower(this.attacker, this.attackingPlayer);
 
-        this.#setDuelDifference();
+        // TODO: logic for when the attack is against a base (there's no defender)
+        const defenderStats = this.#getTotalPower(this.target, this.attackingPlayer.opponent);
 
-        if (challengerWins) {
-            this.#setWinner(AttackParticipant.Challenger);
-            this.#setLoser(AttackParticipant.Target);
+        if (attackerStats === InvalidStats) {
+            if (defenderStats !== InvalidStats && defenderStats > 0) {
+                // Challenger dead, target alive
+                this.#setWinner(AttackParticipant.Target);
+            }
+            // Both dead
+        } else if (defenderStats === InvalidStats) {
+            // Challenger alive, target dead
+            if (attackerStats > 0) {
+                this.#setWinner(AttackParticipant.Challenger);
+            }
         } else {
-            const challengerStats = this.#getStatsTotal([this.attacker], this.attackingPlayer);
-            const targetStats = this.#getStatsTotal(this.targets, this.attackingPlayer.opponent);
-            if (challengerStats === InvalidStats) {
-                if (targetStats !== InvalidStats && targetStats > 0) {
-                    // Challenger dead, target alive
-                    this.#setWinner(AttackParticipant.Target);
-                }
-                // Both dead
-            } else if (targetStats === InvalidStats) {
-                // Challenger alive, target dead
-                if (challengerStats > 0) {
-                    this.#setWinner(AttackParticipant.Challenger);
-                }
-            } else {
-                const [challengerStats2, targetStats2] = this.#getTotals(challengerStats, targetStats);
+            const [challengerStats2, targetStats2] = this.#getTotals(attackerStats, defenderStats);
 
-                if (challengerStats2 > targetStats2) {
-                    // Both alive, challenger wins
-                    this.#setWinner(AttackParticipant.Challenger);
-                    this.#setLoser(AttackParticipant.Target);
-                } else if (challengerStats2 < targetStats2) {
-                    // Both alive, target wins
-                    this.#setWinner(AttackParticipant.Target);
-                    this.#setLoser(AttackParticipant.Challenger);
-                } else {
-                    // tie
-                    if (challengerWinsTies || targetWinsTies) {
-                        if (challengerWinsTies) {
-                            this.#setWinner(AttackParticipant.Challenger);
-                        } else {
-                            this.#setLoser(AttackParticipant.Challenger);
-                        }
-                        if (targetWinsTies) {
-                            this.#setWinner(AttackParticipant.Target);
-                        } else {
-                            this.#setLoser(AttackParticipant.Target);
-                        }
+            if (challengerStats2 > targetStats2) {
+                // Both alive, challenger wins
+                this.#setWinner(AttackParticipant.Challenger);
+                this.#setLoser(AttackParticipant.Target);
+            } else if (challengerStats2 < targetStats2) {
+                // Both alive, target wins
+                this.#setWinner(AttackParticipant.Target);
+                this.#setLoser(AttackParticipant.Challenger);
+            } else {
+                // tie
+                if (challengerWinsTies || targetWinsTies) {
+                    if (challengerWinsTies) {
+                        this.#setWinner(AttackParticipant.Challenger);
+                    } else {
+                        this.#setLoser(AttackParticipant.Challenger);
+                    }
+                    if (targetWinsTies) {
+                        this.#setWinner(AttackParticipant.Target);
+                    } else {
+                        this.#setLoser(AttackParticipant.Target);
                     }
                 }
             }
@@ -146,9 +138,7 @@ export class Attack extends GameObject {
         }
     }
 
-    #getStatsTotal(involvedUnit: DeckCard, player: Player): StatisticTotal {
-        let result = 0;
-
+    #getTotalPower(involvedUnit: DeckCard, player: Player): StatisticTotal {
         if (!isArena(involvedUnit.location)) {
             return InvalidStats;
         }
@@ -156,54 +146,18 @@ export class Attack extends GameObject {
         const rawEffects = involvedUnit.getRawEffects().filter((effect) => effect.type === EffectNames.ModifyPower);
         let effectModifier = 0;
 
+        let result = involvedUnit.getBasePower();
+
         rawEffects.forEach((effect) => {
             const props = effect.getValue();
-            if (props.attack === this) {        // TODO: is props.attack the right value?
+
+            // check that the effect is live for this attack (may be useful later if multiple attacks can happen at once)
+            if (props.attack === this) {
                 effectModifier += props.value;
             }
         });
 
         return result;
-    }
-
-    #deriveBaseStatistic(card: DeckCard): number {
-        switch (this.duelType) {
-            case DuelTypes.Military:
-                return this.gameModeOpts.duelRules === 'printedSkill'
-                    ? card.printedPower
-                    : card.getMilitarySkill();
-            case DuelTypes.Political:
-                return this.gameModeOpts.duelRules === 'printedSkill'
-                    ? card.printedPoliticalSkill
-                    : card.getPoliticalSkill();
-            case DuelTypes.Glory:
-                return this.gameModeOpts.duelRules === 'printedSkill' ? card.printedGlory : card.glory;
-        }
-    }
-
-    getSkillStatistic(card: DeckCard): number {
-        if (typeof this.statistic === 'function') {
-            return this.statistic(card, this.gameModeOpts.duelRules);
-        }
-
-        let baseStatistic = this.#deriveBaseStatistic(card);
-
-        // Some effects for the new duel framework
-        if (this.gameModeOpts.duelRules === 'printedSkill') {
-            let statusTokenBonus = 0;
-            const useStatusTokens = this.getEffects(EffectNames.ApplyStatusTokensToDuel).length > 0;
-            const ignorePrintedSkill = this.getEffects(EffectNames.DuelIgnorePrintedSkill).length > 0;
-
-            if (ignorePrintedSkill) {
-                baseStatistic = 0;
-            }
-            if (useStatusTokens) {
-                statusTokenBonus = card.getStatusTokenSkill();
-            }
-            return baseStatistic + statusTokenBonus;
-        }
-
-        return baseStatistic;
     }
 
     #getTotals(challengerStats: number, targetStats: number): [number, number] {
@@ -258,23 +212,6 @@ export class Attack extends GameObject {
                 return;
             }
         }
-    }
-
-    #setDuelDifference() {
-        const challengerStats = this.#getStatsTotal([this.attacker], this.attackingPlayer);
-        const targetStats = this.#getStatsTotal(this.targets, this.attackingPlayer.opponent);
-
-        const [challengerStats2, targetStats2] = this.#getTotals(
-            challengerStats === InvalidStats ? 0 : challengerStats,
-            targetStats === InvalidStats ? 0 : targetStats
-        );
-
-        const difference = Math.abs(
-            (challengerStats === InvalidStats ? 0 : challengerStats2) -
-                (targetStats === InvalidStats ? 0 : targetStats2)
-        );
-
-        this.finalDifference = difference;
     }
 
     #initializeDuelModifiers(challengingPlayer: Player) {

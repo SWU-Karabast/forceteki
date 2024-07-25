@@ -1,0 +1,55 @@
+import type { AbilityContext } from '../AbilityContext';
+import type BaseCard from '../card/basecard';
+import type DeckCard from '../card/deckcard';
+import { CardTypes, EventNames, isArena } from '../Constants';
+import { type CardActionProperties, CardGameAction } from './CardGameAction';
+
+export interface DamageProperties extends CardActionProperties {
+    amount?: number;
+    isCombatDamage?: boolean;
+}
+
+export class DamageAction extends CardGameAction {
+    name = 'damage';
+    eventName = EventNames.OnDamageDealt;
+    targetType = [CardTypes.Unit, CardTypes.Base];
+
+    getEffectMessage(context: AbilityContext): [string, any[]] {
+        const { amount, target, isCombatDamage } = this.getProperties(context) as DamageProperties;
+
+        if (isCombatDamage) {
+            return ['deal {1} combat damage to {0}', [amount, target]];
+        } else {
+            return ['deal {1} damage to {0}', [amount, target]];
+        }
+    }
+
+    canAffect(card: BaseCard, context: AbilityContext): boolean {
+        if (!this.targetType.includes(card.type)) {
+            return false;
+        }
+        if (card.type === CardTypes.Unit && isArena(card.location)) {
+            return false;
+        }
+        if (!card.checkRestrictions('receiveDamage', context)) {
+            return false;
+        }
+        return super.canAffect(card, context);
+    }
+
+    addPropertiesToEvent(event, card: DeckCard, context: AbilityContext, additionalProperties): void {
+        const { amount, isCombatDamage } = this.getProperties(context, additionalProperties) as DamageProperties;
+        event.damage = amount;
+        event.isCombatDamage = isCombatDamage;
+        event.context = context;
+        event.recipient = card;
+    }
+
+    eventHandler(event): void {
+        event.card.dealDamage(event.damage);    // UP NEXT: implement damage dealing (should be a method on player, can be called from card)
+        event.card.game.raiseEvent(this.eventName, {
+            card: event.card,
+            isCombatDamage: event.isCombatDamage,
+        });
+    }
+}

@@ -21,7 +21,7 @@ class DeckCard extends BaseCard {
         this.defaultController = owner;
         this.parent = null;
 
-        this.printedPower = this.getPrintedSkill('military');
+        this.printedPower = this.getPrintedSkill('power');
         this.printedHp = this.getPrintedSkill('health');
         this.printedCost = parseInt(this.cardData.cost);
 
@@ -70,12 +70,12 @@ class DeckCard extends BaseCard {
     }
 
     getPrintedStat(type) {
-        if (type === StatType.Damage) {
+        if (type === StatType.Power) {
             return this.cardData.damage === null || this.cardData.damage === undefined
                 ? NaN
-                : isNaN(parseInt(this.cardData.military))
+                : isNaN(parseInt(this.cardData.power))
                 ? 0
-                : parseInt(this.cardData.military);
+                : parseInt(this.cardData.power);
         } else if (type === StatType.Hp) {
             return this.cardData.political === null || this.cardData.political === undefined
                 ? NaN
@@ -214,15 +214,16 @@ class DeckCard extends BaseCard {
     // }
 
     /**
-     * Direct the skill query to the correct sub function.
-     * @param  {string} type - The type of the skill; military or political
-     * @return {number} The chosen skill value
+     * Direct the stat query to the correct sub function.
+     * @param  {string} type - The type of the stat; power or hp
+     * @return {number} The chosen stat value
      */
-    getSkill(type) {
-        if (type === 'military') {
-            return this.getMilitarySkill();
-        } else if (type === 'political') {
-            return this.getPoliticalSkill();
+    getStat(type) {
+        switch (type) {
+            case StatType.Power:
+                return this.getPower();
+            case StatType.Hp:
+                return this.getHp();
         }
     }
 
@@ -234,7 +235,6 @@ class DeckCard extends BaseCard {
             EffectNames.CopyCharacter,
             EffectNames.CalculatePrintedPower,
             EffectNames.SetBasePower,
-            EffectNames.SetBaseHp
         ];
 
         let baseEffects = this.getRawEffects().filter((effect) => baseModifierEffects.includes(effect.type));
@@ -300,17 +300,6 @@ class DeckCard extends BaseCard {
                             effect,
                             true,
                             `Base power set by ${StatModifier.getEffectName(effect)}`
-                        )
-                    );
-                    break;
-                case EffectNames.SetBaseHp:
-                    baseHp = effect.getValue(this);
-                    baseHpModifiers.push(
-                        StatModifier.fromEffect(
-                            baseHp,
-                            effect,
-                            true,
-                            `Base HP set by ${StatModifier.getEffectName(effect)}`
                         )
                     );
                     break;
@@ -562,7 +551,7 @@ class DeckCard extends BaseCard {
             rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
         }
 
-        // set effects
+        // set effects (i.e., "set power to X")
         let setEffects = rawEffects.filter(
             (effect) => effect.type === EffectNames.SetPower
         );
@@ -579,14 +568,16 @@ class DeckCard extends BaseCard {
             ];
         }
 
-        let modifiers = baseStatModifiers.baseMilitaryModifiers;
+        let modifiers = baseStatModifiers.basePowerModifiers;
 
-        // skill modifiers
+        // power modifiers
         // TODO: remove status tokens completely, upgrades completely cover that category
+        // TODO: does this work for resolving effects like Raid that depend on whether we're the attacker or not?
         let modifierEffects = rawEffects.filter(
             (effect) =>
                 effect.type === EffectNames.UpgradePowerModifier ||
-                effect.type === EffectNames.ModifyPower
+                effect.type === EffectNames.ModifyPower ||
+                effect.type === EffectNames.ModifyStats
         );
         modifierEffects.forEach((modifierEffect) => {
             const value = modifierEffect.getValue(this);
@@ -638,9 +629,9 @@ class DeckCard extends BaseCard {
             rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
         }
 
-        let modifiers = baseStatModifiers.baseMilitaryModifiers;
+        let modifiers = baseStatModifiers.baseHpModifiers;
 
-        // skill modifiers
+        // hp modifiers
         // TODO: remove status tokens completely, upgrades completely cover that category
         let modifierEffects = rawEffects.filter(
             (effect) =>

@@ -71,7 +71,7 @@ export enum EffectNames {
     Blank = 'blank',
     AddKeyword = 'addKeyword',
     LoseKeyword = 'loseKeyword',
-    CopyCharacter = 'copyCharacter',
+    CopyCharacter = 'copyCharacter',    // currently unused
     GainAbility = 'gainAbility',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     UnlessActionCost = 'unlessActionCost',
@@ -80,13 +80,13 @@ export enum EffectNames {
     AdditionalAction = 'additionalActions',
     AdditionalActionAfterWindowCompleted = 'additionalActionsAfterWindowCompleted',
     AdditionalTriggerCost = 'additionalTriggercost',
-    AdditionalPlayCost = 'additionalDlaycost',
-    ModifyPower = 'modifyPower',
-    SetBasePower = 'setBasePower',
-    SetPower = 'setPower',
-    CalculatePrintedPower = 'calculatePrintedDamge',
-    SetBaseHp = 'setBaseHp',
-    ModifyHp = 'modifyHp',
+    AdditionalPlayCost = 'additionalPlaycost',
+    ModifyStats = 'modifyStats',
+    ModifyPower = 'modifyPower',    // currently unused
+    SetBasePower = 'setBasePower',  // currently unused
+    SetPower = 'setPower',          // currently unused
+    CalculatePrintedPower = 'calculatePrintedPower',    // currently unused
+    ModifyHp = 'modifyHp',      // currently unused
     UpgradePowerModifier = 'upgradePowerModifier',
     UpgradeHpModifier = 'upgradeHpModifier',
     CanAttackGroundArenaFromSpaceArena = 'CanAttackGroundArenaFromSpaceArena',
@@ -173,7 +173,8 @@ export enum EventNames {
     Unnamed = 'unnamedEvent',
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
     OnSpendResources = 'onSpendResources',
-    OnAttackInitiated = 'onAttackInitiated'
+    OnAttackDeclared = 'onAttackDeclared',
+    OnDamageDealt = 'onDamageDealt',
 }
 
 export enum AbilityTypes {

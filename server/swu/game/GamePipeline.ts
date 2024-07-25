@@ -6,6 +6,7 @@ type StepFactory = () => Step;
 type StepItem = Step | StepFactory;
 
 export class GamePipeline {
+    // TODO: what is the difference between queue and pipeline?
     public pipeline: Array<StepItem> = [];
     public queue: Array<StepItem> = [];
 
@@ -29,6 +30,7 @@ export class GamePipeline {
         return step;
     }
 
+    // TODO: could we move away from nested pipelines and just have a centralized one?
     queueStep(step: Step) {
         if (this.pipeline.length === 0) {
             this.pipeline.unshift(step);

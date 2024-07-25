@@ -37,6 +37,7 @@ class ActionWindow extends UiPrompt {
             }
         }
         this.game.promptWithHandlerMenu(player, {
+            // TODO: add more specific logic for card location - e.g., smuggle prompt will be here
             activePromptTitle: (isArena(card.location) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
             source: card,
             choices: legalActions.map(action => action.title).concat('Cancel'),
@@ -55,13 +56,11 @@ class ActionWindow extends UiPrompt {
     }
 
     postResolutionUpdate(resolver) { // eslint-disable-line no-unused-vars
-        this.activePlayerConsecutiveActions += 1;
         this.prevPlayerPassed = false;
-        let allowableConsecutiveActions = this.getactivePlayerConsecutiveActions();
 
-        if(this.activePlayerConsecutiveActions > allowableConsecutiveActions) {
+        // TODO: is this right? need to investigate for e.g. Leia hero ability
+        if(this.activePlayerConsecutiveActions > 1) {
             this.markBonusActionsTaken();
-            this.nextPlayer();
         }
     }
 
@@ -123,7 +122,6 @@ class ActionWindow extends UiPrompt {
                 onSelect: (player, card) => {
                     this.game.addMessage('{0} uses {1}\'s ability', player, card);
                     this.prevPlayerPassed = false;
-                    this.nextPlayer();
                     return true;
                 }
             });
@@ -136,44 +134,23 @@ class ActionWindow extends UiPrompt {
         }
     }
 
-    getactivePlayerConsecutiveActions() {
-        let allowableConsecutiveActions = this.activePlayer.sumEffects(EffectNames.AdditionalAction); 
-        if (this.bonusActions) {
-            const bonusActions = this.bonusActions[this.activePlayer.uuid];
-            if (!bonusActions.actionsTaken && bonusActions.takingActions && bonusActions.actionCount > 0) {
-                allowableConsecutiveActions = allowableConsecutiveActions + (bonusActions?.actionCount - 1);
-            }
-        }
-        if (this.activePlayer.actionPhasePriority) {
-            if (allowableConsecutiveActions > 0) {
-                allowableConsecutiveActions--;
-            }
-        }
-        return allowableConsecutiveActions;
-    }
-
     markBonusActionsTaken() {
         if (this.bonusActions) {
             this.bonusActions[this.activePlayer.uuid].actionsTaken = true;
-            this.bonusActions[this.activePlayer.uuid].takingActions = false;
         }
     }
 
     pass() {
         this.game.addMessage('{0} passes', this.activePlayer);
 
-        if(this.prevPlayerPassed || !this.activePlayer.opponent) {
+        if(!this.activePlayer.opponent) {
             this.attemptComplete();
             return;
         }
 
-        this.activePlayerConsecutiveActions += 1;
-        let allowableConsecutiveActions = this.getactivePlayerConsecutiveActions();
-
-        if(this.activePlayerConsecutiveActions > allowableConsecutiveActions) {
+        // TODO: is this right? need to investigate for e.g. Leia hero ability
+        if(this.activePlayerConsecutiveActions > 1) {
             this.markBonusActionsTaken();
-            this.prevPlayerPassed = true;
-            this.nextPlayer();
         }
     }
 
@@ -209,7 +186,6 @@ class ActionWindow extends UiPrompt {
                 if (this.activePlayer !== player1) {
                     this.activePlayer = player1;
                 }
-                p1.takingActions = true;
                 return true;
             }
         }
@@ -217,11 +193,10 @@ class ActionWindow extends UiPrompt {
             if (!p2.actionsTaken) {
                 this.game.addMessage('{0} has a bonus action during resolution!', player2);
                 this.prevPlayerPassed = false;
-                // Set the current player to player1
+                // Set the current player to player2
                 if (this.activePlayer !== player2) {
                     this.activePlayer = player2;
                 }
-                p2.takingActions = true;
                 return true;
             }
         }
@@ -238,13 +213,11 @@ class ActionWindow extends UiPrompt {
         this.bonusActions = {
             [player1.uuid]: {
                 actionCount: p1ActionsPostWindow,
-                actionsTaken: false,
-                takingActions: false
+                actionsTaken: false
             },
             [player2.uuid]: {
                 actionCount: p2ActionsPostWindow,
-                actionsTaken: false,
-                takingActions: false
+                actionsTaken: false
             },
         }
 
@@ -258,24 +231,6 @@ class ActionWindow extends UiPrompt {
     complete() {
         this.teardownBonusActions();
         super.complete();
-    }
-
-    nextPlayer() {
-        let otherPlayer = this.game.getOtherPlayer(this.activePlayer);
-
-        this.activePlayer.actionPhasePriority = false;
-
-        if(otherPlayer) {
-            this.game.raiseEvent(
-                EventNames.OnPassActionPhasePriority,
-                { player: this.activePlayer, consecutiveActions: this.activePlayerConsecutiveActions, actionWindow: this },
-                () => {
-                    this.activePlayer = otherPlayer;
-                    this.opportunityCounter += 1;
-                    this.activePlayerConsecutiveActions = 0;
-                }
-            );
-        }
     }
 }
 

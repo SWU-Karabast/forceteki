@@ -54,8 +54,7 @@ class Game extends EventEmitter {
         this.currentAbilityWindow = null;
         this.currentActionWindow = null;
         this.currentEventWindow = null;
-        this.currentConflict = null;
-        this.currentDuel = null;
+        this.currentAttack = null;
         this.manualMode = false;
         this.gameMode = details.gameMode;
         this.currentPhase = '';
@@ -199,7 +198,13 @@ class Game extends EventEmitter {
      */
     rotateActivePlayer() {
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {
-            this.actionPhaseActivePlayer = this.actionPhaseActivePlayer.opponent;
+            this.raiseEvent(
+                EventNames.OnPassActionPhasePriority,
+                { player: this.actionPhaseActivePlayer, actionWindow: this },
+                () => {
+                    this.actionPhaseActivePlayer = this.actionPhaseActivePlayer.opponent;
+                }
+            );
         } else if (this.actionPhaseActivePlayer.passedActionPhase) {
             this.actionPhaseActivePlayer = null;
         }
@@ -813,6 +818,7 @@ class Game extends EventEmitter {
         this.queueStep(window);
     }
 
+    // TODO: this feels unnecessary
     getEvent(eventName, params, handler) {
         return new Event(eventName, params, handler);
     }
