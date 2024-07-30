@@ -1208,7 +1208,14 @@ class BaseCard extends EffectSource {
         }
 
         this.damage += amount;
-        // UP NEXT: add a check for if the card is destroyed
+        
+        if (this.damage >= this.hp) {
+            if (this === this.owner.base as BaseCard) {
+                this.game.recordWinner(this.owner.opponent, "base destroyed");
+            } else {
+                this.owner.defeatCard(this);
+            }
+        }
     }
 
     // TODO: type annotations for all of the hp stuff

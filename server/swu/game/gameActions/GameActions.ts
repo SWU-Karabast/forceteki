@@ -5,6 +5,7 @@ import { AttackAction, AttackProperties } from './AttackAction';
 // import { CancelAction, CancelActionProperties } from './CancelAction';
 import { CardGameAction } from './CardGameAction';
 import { DamageAction, DamageProperties } from './DamageAction';
+import { DefeatCardAction, DefeatCardProperties } from './DefeatCardAction';
 // import { CardMenuAction, CardMenuProperties } from './CardMenuAction';
 // import { ChooseActionProperties, ChooseGameAction } from './ChooseGameAction';
 // import { ChosenDiscardAction, ChosenDiscardProperties } from './ChosenDiscardAction';
@@ -79,6 +80,9 @@ export function damage(propertyFactory: PropsFactory<DamageProperties>): GameAct
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameAction {
 //     return new DetachAction(propertyFactory);
 // }
+export function defeat(propertyFactory: PropsFactory<DefeatCardProperties> = {}): CardGameAction {
+    return new DefeatCardAction(propertyFactory);
+}
 // export function discardCard(propertyFactory: PropsFactory<DiscardCardProperties> = {}): CardGameAction {
 //     return new DiscardCardAction(propertyFactory);
 // }

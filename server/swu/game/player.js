@@ -1115,6 +1115,19 @@ class Player extends GameObject {
     }
 
     /**
+     * Defeat the specified card
+     */
+    defeatCard(card) {
+        if (!card) {
+            return;
+        }
+
+        // TODO: event resolution is probably not working right. this will get resolved in its own separate window as part of combat,
+        // but actually all combat effects should be resolved in the same window with resolution order decided per rules
+        this.game.openEventWindow(GameActions.defeat().getEvent(card, this.game.getFrameworkContext()));
+    }
+
+    /**
      * Moves a card from one location to another. This involves removing in from the list it's currently in, calling BaseCard.move (which changes
      * its location property), and then adding it to the list it should now be in
      * @param card BaseCard

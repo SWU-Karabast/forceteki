@@ -155,7 +155,7 @@ export enum EventNames {
     OnCardReadied = 'onCardReadied',
     OnCardsDiscarded = 'onCardsDiscarded',
     OnCardsDiscardedFromHand = 'onCardsDiscardedFromHand',
-    OnCardLeavesPlay = 'onCardLeavesPlay',
+    OnCardDefeated = 'onCardDefeated',
     OnAddTokenToCard = 'onAddTokenToCard',
     OnCardPlayed = 'onCardPlayed',
     OnDeckShuffled = 'onDeckShuffled',

@@ -10,7 +10,7 @@ export interface ReturnToDeckProperties extends CardActionProperties {
 
 export class ReturnToDeckAction extends CardGameAction {
     name = 'returnToDeck';
-    eventName = EventNames.OnCardLeavesPlay;
+    eventName = EventNames.OnCardDefeated;
     targetType = [CardTypes.Unit, CardTypes.Upgrade, CardTypes.Event];
     defaultProperties: ReturnToDeckProperties = {
         bottom: false,
