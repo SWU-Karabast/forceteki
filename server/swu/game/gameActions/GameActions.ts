@@ -4,6 +4,7 @@ import { AbilityContext } from '../AbilityContext';
 import { AttackAction, AttackProperties } from './AttackAction';
 // import { CancelAction, CancelActionProperties } from './CancelAction';
 import { CardGameAction } from './CardGameAction';
+import { DamageAction, DamageProperties } from './DamageAction';
 // import { CardMenuAction, CardMenuProperties } from './CardMenuAction';
 // import { ChooseActionProperties, ChooseGameAction } from './ChooseGameAction';
 // import { ChosenDiscardAction, ChosenDiscardProperties } from './ChosenDiscardAction';
@@ -72,6 +73,9 @@ export function attack(propertyFactory: PropsFactory<AttackProperties>): GameAct
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameAction {
 //     return new CreateTokenAction(propertyFactory);
 // }
+export function damage(propertyFactory: PropsFactory<DamageProperties>): GameAction {
+    return new DamageAction(propertyFactory);
+}
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameAction {
 //     return new DetachAction(propertyFactory);
 // }

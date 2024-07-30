@@ -89,8 +89,8 @@ export enum EffectNames {
     ModifyHp = 'modifyHp',      // currently unused
     UpgradePowerModifier = 'upgradePowerModifier',
     UpgradeHpModifier = 'upgradeHpModifier',
-    CanAttackGroundArenaFromSpaceArena = 'CanAttackGroundArenaFromSpaceArena',
-    CanAttackSpaceArenaFromGroundArena = 'CanAttackSpaceArenaFromGroundArena'
+    CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
+    CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena'
 }
 
 export enum Durations {

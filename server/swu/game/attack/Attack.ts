@@ -22,12 +22,8 @@ type StatisticTotal = typeof InvalidStats | number;
 export class Attack extends GameObject {
     #bidFinished = false;
     #modifiers = new WeakMap<Player, AttackAbilities>();
-    loser?: BaseCard[];
-    losingPlayer?: Player;
-    previousAttack?: Attack;
-    winner?: BaseCard[];
-    winningPlayer?: Player;
-    finalDifference?: number;
+    attackerDamage: number;
+    targetDamage: number;
     private eventRegistrar?: EventRegistrar;
 
     constructor(

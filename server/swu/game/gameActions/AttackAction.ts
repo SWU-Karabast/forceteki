@@ -1,11 +1,13 @@
 import type { AbilityContext } from '../AbilityContext';
-import { CardTypes, Durations, EventNames, Locations, isArena } from '../Constants';
+import { CardTypes, EventNames, Locations, isArena } from '../Constants';
 import { Attack } from '../attack/Attack';
 import { EffectNames } from '../Constants'
 import { AttackFlow } from '../attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../TriggeredAbilityContext';
 import { CardGameAction, type CardActionProperties } from './CardGameAction';
-import { type GameAction } from './GameAction';
+import { damage } from './GameActions.js';
+import type BaseCard from '../card/basecard';       // TODO: is this the right import form?
+
 
 export interface AttackProperties extends CardActionProperties {
     attacker?: BaseCard;
@@ -69,23 +71,14 @@ export class AttackAction extends CardGameAction {
         );
     }
 
-    // TODO: change this to resolve the damage (we don't have a similar concept to a "duel effect" gameAction)
-    resolveAttack(duel: Attack, context: AbilityContext, additionalProperties = {}): void {
-        const properties = this.getProperties(context, additionalProperties);
+    resolveAttack(attack: Attack, context: AbilityContext): void {
+        let attackerDamageEvent = damage({ amount: attack.attackerDamage, isCombatDamage: true }).getEvent(attack.attacker, context);
+        let targetDamageEvent = damage({ amount: attack.targetDamage, isCombatDamage: true }).getEvent(attack.target, context);
 
-        
-
-        const gameAction =
-            typeof properties.gameAction === 'function' ? properties.gameAction(duel, context) : properties.gameAction;
-        if (gameAction && gameAction.hasLegalTarget(context)) {
-            const [message, messageArgs] = properties.message
-                ? [properties.message, properties.messageArgs ? [].concat(properties.messageArgs(duel, context)) : []]
-                : gameAction.getEffectMessage(context);
-            context.game.addMessage('Duel Effect: ' + message, ...messageArgs);
-            gameAction.resolve(null, context);
-        } else {
-            context.game.addMessage('The duel has no effect');
-        }
+        context.game.openEventWindow([
+            attackerDamageEvent,
+            targetDamageEvent
+        ]);
     }
 
     attackCosts(prompt, context: AbilityContext, additionalProperties = {}): void {
@@ -162,7 +155,7 @@ export class AttackAction extends CardGameAction {
             new AttackFlow(
                 context.game,
                 attack,
-                (attack) => this.resolveAttack(attack, event.context, additionalProperties),
+                (attack) => this.resolveAttack(attack, event.context),
                 properties.costHandler
                     ? (prompt) => this.attackCosts(prompt, event.context, additionalProperties)
                     : undefined

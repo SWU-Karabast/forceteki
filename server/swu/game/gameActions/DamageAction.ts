@@ -8,7 +8,7 @@ export interface DamageProperties extends CardActionProperties {
     isCombatDamage?: boolean;
 }
 
-export class DamageAction extends CardGameAction {
+export class DamageAction extends CardGameAction<DamageProperties> {
     name = 'damage';
     eventName = EventNames.OnDamageDealt;
     targetType = [CardTypes.Unit, CardTypes.Base];
@@ -45,10 +45,6 @@ export class DamageAction extends CardGameAction {
     }
 
     eventHandler(event): void {
-        event.card.dealDamage(event.damage);    // UP NEXT: implement damage dealing (should be a method on player, can be called from card)
-        event.card.game.raiseEvent(this.eventName, {
-            card: event.card,
-            isCombatDamage: event.isCombatDamage,
-        });
+        event.card.addDamage(event.damage);
     }
 }

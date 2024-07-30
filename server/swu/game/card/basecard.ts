@@ -147,6 +147,7 @@ class BaseCard extends EffectSource {
         this.printedPower = this.getPrintedStat(StatType.Power);
         this.printedCost = parseInt(this.cardData.cost);
         this.exhausted = false;
+        this.damage = 0;
 
         switch (cardData.arena) {
             case "space":
@@ -1187,7 +1188,7 @@ class BaseCard extends EffectSource {
     // this will be helpful if we ever get a card where a stat that is "X, where X is ..."
     getPrintedStat(type: StatType) {
         if (type === StatType.Power) {
-            return this.cardData.damage === null || this.cardData.damage === undefined
+            return this.cardData.power === null || this.cardData.power === undefined
                 ? NaN
                 : isNaN(parseInt(this.cardData.power))
                 ? 0
@@ -1202,9 +1203,12 @@ class BaseCard extends EffectSource {
     }
 
     addDamage(amount: number) {
-        if (isNaN(this.hp)) {
-            
+        if (isNaN(this.hp) || amount === 0) {
+            return;
         }
+
+        this.damage += amount;
+        // UP NEXT: add a check for if the card is destroyed
     }
 
     // TODO: type annotations for all of the hp stuff
@@ -1384,9 +1388,9 @@ class BaseCard extends EffectSource {
             switch (effect.type) {
                 // this case is for cards that don't have a default printed power but it is instead calculated
                 case EffectNames.CalculatePrintedPower: {
-                    let damageFunction = effect.getValue(this);
-                    let calculatedDamageValue = damageFunction(this);
-                    basePower = calculatedDamageValue;
+                    let powerFunction = effect.getValue(this);
+                    let calculatedPowerValue = powerFunction(this);
+                    basePower = calculatedPowerValue;
                     basePowerModifiers = basePowerModifiers.filter(
                         (mod) => !mod.name.startsWith('Printed power')
                     );
