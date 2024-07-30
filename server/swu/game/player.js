@@ -1096,7 +1096,7 @@ class Player extends GameObject {
 
     /**
      * Moves a card from its current location to the resource zone, optionally exhausting it
-     * @param card DeckCard
+     * @param card BaseCard
      * @param {boolean} exhaust
      */
     resourceCard(card, exhaust = false) {
@@ -1115,7 +1115,7 @@ class Player extends GameObject {
     }
 
     /**
-     * Moves a card from one location to another. This involves removing in from the list it's currently in, calling DeckCard.move (which changes
+     * Moves a card from one location to another. This involves removing in from the list it's currently in, calling BaseCard.move (which changes
      * its location property), and then adding it to the list it should now be in
      * @param card BaseCard
      * @param targetLocation

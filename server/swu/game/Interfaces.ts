@@ -2,7 +2,6 @@ import type { AbilityContext } from './AbilityContext';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { GameAction } from './gameActions/GameAction';
 import type BaseCard = require('./card/basecard');
-import type DeckCard = require('./card/deckcard');
 import type CardAbility = require('./CardTextAbility');
 import type { AttackProperties } from './gameActions/AttackAction';
 import type { Players, TargetModes, CardTypes, Locations, EventNames, Phases } from './Constants';
@@ -39,8 +38,8 @@ interface TargetAbility extends BaseTarget {
 export interface InitiateAttack extends AttackProperties {
     opponentChoosesAttackTarget?: boolean;
     opponentChoosesAttacker?: boolean;
-    attackerCondition?: (card: DeckCard, context: TriggeredAbilityContext) => boolean;
-    targetCondition?: (card: DeckCard, context: TriggeredAbilityContext) => boolean;
+    attackerCondition?: (card: BaseCard, context: TriggeredAbilityContext) => boolean;
+    targetCondition?: (card: BaseCard, context: TriggeredAbilityContext) => boolean;
 }
 
 // interface TargetToken extends BaseTarget {
@@ -107,7 +106,7 @@ type EffectArg =
     | number
     | string
     | Player
-    | DeckCard
+    | BaseCard
     | { id: string; label: string; name: string; facedown: boolean; type: CardTypes }
     | EffectArg[];
 

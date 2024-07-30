@@ -1,6 +1,5 @@
 import type { AbilityContext } from '../AbilityContext';
 import { CardTypes, EventNames, Locations, Players, isArena } from '../Constants';
-import type DeckCard from '../card/deckcard';
 import type Player from '../player';
 import { type CardActionProperties, CardGameAction } from './CardGameAction';
 
@@ -40,7 +39,7 @@ export class PutIntoPlayAction extends CardGameAction {
         return ['put {0} into play', [target]];
     }
 
-    canAffect(card: DeckCard, context: AbilityContext): boolean {
+    canAffect(card: BaseCard, context: AbilityContext): boolean {
         let properties = this.getProperties(context) as PutIntoPlayProperties;
         let contextCopy = context.copy({ source: card });
         let player = this.getPutIntoPlayPlayer(contextCopy);
@@ -60,7 +59,7 @@ export class PutIntoPlayAction extends CardGameAction {
         return true;
     }
 
-    addPropertiesToEvent(event, card: DeckCard, context: AbilityContext, additionalProperties): void {
+    addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
         let { controller, side, overrideLocation } = this.getProperties(
             context,
             additionalProperties

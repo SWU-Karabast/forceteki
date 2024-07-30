@@ -1,7 +1,6 @@
 import { GameObject } from '../GameObject';
 import { EffectNames, EventNames, Locations, isArena } from '../Constants';
 import { EventRegistrar } from '../EventRegistrar';
-import type DeckCard from '../card/deckcard';
 import type Game from '../game';
 import type Player from '../player';
 import { AbilityContext } from '../AbilityContext';
@@ -23,20 +22,20 @@ type StatisticTotal = typeof InvalidStats | number;
 export class Attack extends GameObject {
     #bidFinished = false;
     #modifiers = new WeakMap<Player, AttackAbilities>();
-    loser?: DeckCard[];
+    loser?: BaseCard[];
     losingPlayer?: Player;
     previousAttack?: Attack;
-    winner?: DeckCard[];
+    winner?: BaseCard[];
     winningPlayer?: Player;
     finalDifference?: number;
     private eventRegistrar?: EventRegistrar;
 
     constructor(
         public game: Game,
-        public attacker: DeckCard,
-        public target: DeckCard,
+        public attacker: BaseCard,
+        public target: BaseCard,
         public properties: {
-            targetCondition?: (card: DeckCard, context: AbilityContext) => boolean;
+            targetCondition?: (card: BaseCard, context: AbilityContext) => boolean;
         },
         public attackingPlayer = attacker.controller
     ) {
@@ -55,7 +54,7 @@ export class Attack extends GameObject {
         return this.loser?.[0].controller;
     }
 
-    get participants(): undefined | DeckCard[] {
+    get participants(): undefined | BaseCard[] {
         return [...[this.attacker], this.target];
     }
 
@@ -138,7 +137,7 @@ export class Attack extends GameObject {
         }
     }
 
-    #getTotalPower(involvedUnit: DeckCard, player: Player): StatisticTotal {
+    #getTotalPower(involvedUnit: BaseCard, player: Player): StatisticTotal {
         if (!isArena(involvedUnit.location)) {
             return InvalidStats;
         }

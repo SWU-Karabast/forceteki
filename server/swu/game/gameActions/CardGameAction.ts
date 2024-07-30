@@ -1,7 +1,6 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../card/basecard';
 import { CardTypes, EffectNames, Locations } from '../Constants';
-import type DeckCard from '../card/deckcard';
 import { GameAction, GameActionProperties } from './GameAction';
 // import { LoseFateAction } from './LoseFateAction';
 
@@ -151,7 +150,7 @@ export class CardGameAction<P extends CardActionProperties = CardActionPropertie
     //         let contingentEvents = [];
     //         // Add an imminent triggering condition for all attachments leaving play
 
-    //         for (const attachment of (event.card.attachments ?? []) as DeckCard[]) {
+    //         for (const attachment of (event.card.attachments ?? []) as BaseCard[]) {
     //             // we only need to add events for attachments that are in play.
     //             if (attachment.location === Locations.PlayArea) {
     //                 let attachmentEvent = context.game.actions

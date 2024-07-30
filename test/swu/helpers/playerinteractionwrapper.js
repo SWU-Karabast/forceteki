@@ -98,7 +98,7 @@ class PlayerInteractionWrapper {
 
     /**
      * Gets all cards in play for a player in the space arena
-     * @return {DeckCard[]} - List of player's cards currently in play in the space arena
+     * @return {BaseCard[]} - List of player's cards currently in play in the space arena
      */
     get inPlay() {
         return this.player.filterCardsInPlay(() => true);
@@ -106,7 +106,7 @@ class PlayerInteractionWrapper {
 
     /**
      * Gets all cards in play for a player in the space arena
-     * @return {DeckCard[]} - List of player's cards currently in play in the space arena
+     * @return {BaseCard[]} - List of player's cards currently in play in the space arena
      */
     get spaceArena() {
         return this.player.filterCardsInPlay((card) => card.location === 'space arena');
@@ -114,7 +114,7 @@ class PlayerInteractionWrapper {
 
     /**
      * Gets all cards in play for a player in the ground arena
-     * @return {DeckCard[]} - List of player's cards currently in play in the ground arena
+     * @return {BaseCard[]} - List of player's cards currently in play in the ground arena
      */
     get groundArena() {
         return this.player.filterCardsInPlay((card) => card.location === 'ground arena');

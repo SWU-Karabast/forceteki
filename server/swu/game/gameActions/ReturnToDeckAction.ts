@@ -1,6 +1,5 @@
 import type { AbilityContext } from '../AbilityContext';
 import { CardTypes, EventNames, TargetableLocations, Locations, WildcardLocations, cardLocationMatches } from '../Constants';
-import type DeckCard from '../card/deckcard';
 import { type CardActionProperties, CardGameAction } from './CardGameAction';
 
 export interface ReturnToDeckProperties extends CardActionProperties {
@@ -43,7 +42,7 @@ export class ReturnToDeckAction extends CardGameAction {
         ];
     }
 
-    canAffect(card: DeckCard, context: AbilityContext, additionalProperties = {}): boolean {
+    canAffect(card: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
         let properties = this.getProperties(context) as ReturnToDeckProperties;
         let location: TargetableLocations[];
         if (!Array.isArray(properties.location)) {
@@ -58,7 +57,7 @@ export class ReturnToDeckAction extends CardGameAction {
         );
     }
 
-    // updateEvent(event, card: DeckCard, context: AbilityContext, additionalProperties): void {
+    // updateEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
     //     let { shuffle, target, bottom } = this.getProperties(context, additionalProperties) as ReturnToDeckProperties;
     //     this.updateLeavesPlayEvent(event, card, context, additionalProperties);
     //     event.destination = Locations.Deck;

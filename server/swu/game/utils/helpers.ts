@@ -18,3 +18,18 @@ export type Derivable<T extends boolean | string | number | Array<any>, C> = T |
 export function derive<T extends boolean | string | number | Array<any>, C>(input: Derivable<T, C>, context: C): T {
     return typeof input === 'function' ? input(context) : input;
 }
+
+// convert a set of strings to map to an enum type, throw if any of them is not a legal value
+export function checkConvertToEnum<T>(values: string[], enumObj: T): Array<T[keyof T]> {
+    let result: Array<T[keyof T]> = [];
+
+    for (const value of values) {
+        if (Object.values(enumObj).indexOf(value.toLowerCase()) >= 0) {
+            result.push(value as T[keyof T]);
+        } else {
+            throw new Error(`Invalid value for enum: ${value}`);
+        }
+    }
+
+    return result;
+}

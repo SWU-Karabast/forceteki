@@ -14,7 +14,6 @@ import { GameActionCost } from './GameActionCost';
 import { MetaActionCost } from './MetaActionCost';
 import { ReduceableResourceCost } from '../costs/ReduceableResourceCost';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
-import DeckCard from '../card/deckcard';
 import Player from '../player';
 
 type SelectCostProperties = Omit<SelectCardProperties, 'gameAction'>;
@@ -117,7 +116,7 @@ export function shuffleIntoDeck(properties: SelectCostProperties): Cost {
 // /**
 //  * Cost that requires discarding a specific card.
 //  */
-// export function discardCardSpecific(cardFunc: (context: AbilityContext) => DeckCard): Cost {
+// export function discardCardSpecific(cardFunc: (context: AbilityContext) => BaseCard): Cost {
 //     return new GameActionCost(GameActions.discardCard((context) => ({ target: cardFunc(context) })));
 // }
 
@@ -148,7 +147,7 @@ export function discardTopCardsFromDeck(properties: { amount: number; }): Cost {
             context.costs.discardTopCardsFromDeck = context.player.deck.first(4);
         },
         pay: (context) => {
-            for (const card of context.costs.discardTopCardsFromDeck as DeckCard[]) {
+            for (const card of context.costs.discardTopCardsFromDeck as BaseCard[]) {
                 card.controller.moveCard(card, Locations.Deck);
             }
         }
@@ -175,7 +174,7 @@ export function discardTopCardsFromDeck(properties: { amount: number; }): Cost {
 //             Object.assign(
 //                 {
 //                     gameAction: GameActions.discardStatusToken(),
-//                     subActionProperties: (card: DeckCard) => ({ target: card.getStatusToken(CharacterStatus.Honored) })
+//                     subActionProperties: (card: BaseCard) => ({ target: card.getStatusToken(CharacterStatus.Honored) })
 //                 },
 //                 properties
 //             )

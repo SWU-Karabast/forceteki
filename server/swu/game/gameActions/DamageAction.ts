@@ -1,6 +1,5 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../card/basecard';
-import type DeckCard from '../card/deckcard';
 import { CardTypes, EventNames, isArena } from '../Constants';
 import { type CardActionProperties, CardGameAction } from './CardGameAction';
 
@@ -37,7 +36,7 @@ export class DamageAction extends CardGameAction {
         return super.canAffect(card, context);
     }
 
-    addPropertiesToEvent(event, card: DeckCard, context: AbilityContext, additionalProperties): void {
+    addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
         const { amount, isCombatDamage } = this.getProperties(context, additionalProperties) as DamageProperties;
         event.damage = amount;
         event.isCombatDamage = isCombatDamage;

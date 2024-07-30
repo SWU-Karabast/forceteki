@@ -1,13 +1,12 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../card/basecard';
 import { CardTypes, EffectNames, Locations, isArena } from '../Constants';
-import type DeckCard from '../card/deckcard';
 import { type CardActionProperties, CardGameAction } from './CardGameAction';
 
 export interface MoveCardProperties extends CardActionProperties {
     destination?: Locations;
     switch?: boolean;
-    switchTarget?: DeckCard;
+    switchTarget?: BaseCard;
     shuffle?: boolean;
     faceup?: boolean;
     bottom?: boolean;

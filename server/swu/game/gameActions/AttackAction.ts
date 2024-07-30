@@ -1,6 +1,5 @@
 import type { AbilityContext } from '../AbilityContext';
 import { CardTypes, Durations, EventNames, Locations, isArena } from '../Constants';
-import type DeckCard from '../card/deckcard';
 import { Attack } from '../attack/Attack';
 import { EffectNames } from '../Constants'
 import { AttackFlow } from '../attack/AttackFlow';
@@ -9,12 +8,12 @@ import { CardGameAction, type CardActionProperties } from './CardGameAction';
 import { type GameAction } from './GameAction';
 
 export interface AttackProperties extends CardActionProperties {
-    attacker?: DeckCard;
-    attackerCondition?: (card: DeckCard, context: TriggeredAbilityContext) => boolean;
+    attacker?: BaseCard;
+    attackerCondition?: (card: BaseCard, context: TriggeredAbilityContext) => boolean;
     message?: string;
     messageArgs?: (attack: Attack, context: AbilityContext) => any | any[];
     costHandler?: (context: AbilityContext, prompt: any) => void;
-    statistic?: (card: DeckCard) => number;
+    statistic?: (card: BaseCard) => number;
 }
 
 export class AttackAction extends CardGameAction {
@@ -41,7 +40,7 @@ export class AttackAction extends CardGameAction {
         ];
     }
 
-    canAffect(card: DeckCard, context: AbilityContext, additionalProperties = {}): boolean {
+    canAffect(card: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
         if (!context.player.opponent) {
             return false;
         }
@@ -101,7 +100,7 @@ export class AttackAction extends CardGameAction {
             additionalProperties
         );
 
-        const cards = (target as DeckCard[]).filter((card) => this.canAffect(card, context));
+        const cards = (target as BaseCard[]).filter((card) => this.canAffect(card, context));
         if (cards.length !== 1) {
             return;
         }
@@ -126,7 +125,7 @@ export class AttackAction extends CardGameAction {
         event.attacker = properties.attacker;
         event.target = properties.target;
 
-        const duel = new Attack(
+        event.attack = new Attack(
             context.game,
             properties.attacker,
             cards,
@@ -134,7 +133,6 @@ export class AttackAction extends CardGameAction {
             properties.statistic,
             context.player
         );
-        event.duel = duel;
     }
 
     eventHandler(event, additionalProperties): void {
