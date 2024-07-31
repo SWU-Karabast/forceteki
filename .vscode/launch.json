@@ -41,19 +41,29 @@
             "name": "Debug Tests",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/node_modules/jasmine/bin/jasmine.js",
+            "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "env": { "JASMINE_CONFIG_PATH": "./jasmine.json" },
-            "cwd": "${workspaceRoot}"
+            "args": ["--config=./jasmine.json"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "NODE_OPTIONS": "--enable-source-maps"
+            },
+            // "outFiles": ["${workspaceFolder}/build/**/*.js"]
         },
         {
+            "name": "Debug Open Jasmine Test", 
             "type": "node", 
             "request": "launch", 
-            "name": "Debug Open Jasmine Test (No Compile)", 
             "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "env": {
+                "NODE_OPTIONS": "--enable-source-maps"
+            },
             "args": ["--config=./jasmine.json", "${file}"],
             "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "internalConsoleOptions": "neverOpen",
+            // "outFiles": ["${workspaceFolder}/build/**/*.js"]
         }
     ]
 }
