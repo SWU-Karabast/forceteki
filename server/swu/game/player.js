@@ -1032,20 +1032,6 @@ class Player extends GameObject {
     //     this.game.queueStep(new AttachmentPrompt(this.game, this, card, playingType));
     // }
 
-    /**
-     * Returns true if there is a conflict underway and this player is attacking
-     */
-    isAttackingPlayer() {
-        return this.game.currentConflict && this.game.currentConflict.attackingPlayer === this;
-    }
-
-    /**
-     * Returns true if there is a conflict underway and this player is defending
-     */
-    isDefendingPlayer() {
-        return this.game.currentConflict && this.game.currentConflict.defendingPlayer === this;
-    }
-
     // get skillModifier() {
     //     return this.getEffects(EffectNames.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
     // }

@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../AbilityContext';
 import { GameAction, type GameActionProperties } from './GameAction';
+import BaseCard from '../card/basecard';
 
 export interface HandlerProperties extends GameActionProperties {
     handler: (context: AbilityContext) => void;

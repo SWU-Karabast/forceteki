@@ -2,6 +2,7 @@ import type { AbilityContext } from '../AbilityContext';
 import { CardTypes, EventNames, Locations, Players, isArena } from '../Constants';
 import type Player from '../player';
 import { type CardActionProperties, CardGameAction } from './CardGameAction';
+import BaseCard from '../card/basecard';
 
 export interface PutIntoPlayProperties extends CardActionProperties {
     controller?: Players;

@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../AbilityContext';
 import { CardTypes, EventNames, TargetableLocations, Locations, WildcardLocations, cardLocationMatches } from '../Constants';
 import { type CardActionProperties, CardGameAction } from './CardGameAction';
+import BaseCard from '../card/basecard';
 
 export interface ReturnToDeckProperties extends CardActionProperties {
     bottom?: boolean;

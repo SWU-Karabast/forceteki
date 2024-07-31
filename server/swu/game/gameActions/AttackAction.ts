@@ -167,9 +167,9 @@ export class AttackAction extends CardGameAction<AttackProperties> {
                 context.game,
                 attack,
                 (attack) => this.resolveAttack(attack, event.context),
-                properties.costHandler
-                    ? (prompt) => this.attackCosts(prompt, event.context, additionalProperties)
-                    : undefined
+                // properties.costHandler
+                //     ? (prompt) => this.attackCosts(prompt, event.context, additionalProperties)
+                //     : undefined
             )
         );
     }

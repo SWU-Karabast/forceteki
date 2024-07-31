@@ -192,7 +192,15 @@ class BaseCard extends EffectSource {
         return effects[effects.length - 1];
     }
 
-    #getActions(ignoreDynamicGains = false): CardTextAction[] {
+    getActions(): any[] {
+        return this.actions.slice();
+    }
+
+    get actions(): CardTextAction[] {
+        return this.#getActions();
+    }
+
+    #getActions(location = this.location, ignoreDynamicGains = false): CardTextAction[] {
         let actions = this.abilities.actions;
 
         const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectNames.CopyCharacter);
@@ -227,11 +235,16 @@ class BaseCard extends EffectSource {
         // if (lostAllNonKeywordsAbilities) {
         //     allAbilities = allAbilities.filter((a) => a.isKeywordAbility());
         // }
-        return allAbilities;
-    }
 
-    get actions(): CardTextAction[] {
-        return this.#getActions();
+        // if card is already in play or is an event, return the default actions
+        if (!isArena(location) && this.type !== CardTypes.Event) {
+            return allAbilities;
+        }
+
+        // TODO: add base / leader actions if this doesn't already cover them
+
+        // otherwise (i.e. card is in hand), return play card action(s) + other available card actions
+        return allAbilities.concat(this.getPlayCardActions());
     }
 
     // _getReactions(ignoreDynamicGains = false): TriggeredAbility[] {
@@ -542,21 +555,6 @@ class BaseCard extends EffectSource {
     //     }
     // }
 
-    leavesPlay(destination?: Locations): void {
-        this.tokens = {};
-        this.#resetLimits();
-        this.controller = this.owner;
-    }
-
-    #resetLimits() {
-        for (const action of this.abilities.actions) {
-            action.limit.reset();
-        }
-        for (const reaction of this.abilities.reactions) {
-            reaction.limit.reset();
-        }
-    }
-
     // updateAbilityEvents(from: Locations, to: Locations, reset: boolean = true) {
     //     if (reset) {
     //         this.#resetLimits();
@@ -705,22 +703,6 @@ class BaseCard extends EffectSource {
     //     return menu;
     // }
 
-    isAttacking(conflictType?: 'military' | 'political'): boolean {
-        return (
-            this.game.currentConflict?.isAttacking(this) && (!conflictType || this.game.isDuringConflict(conflictType))
-        );
-    }
-
-    isDefending(conflictType?: 'military' | 'political'): boolean {
-        return (
-            this.game.currentConflict?.isDefending(this) && (!conflictType || this.game.isDuringConflict(conflictType))
-        );
-    }
-
-    isParticipatingFor(player: Player): boolean {
-        return (this.isAttacking() && player.isAttackingPlayer()) || (this.isDefending() && player.isDefendingPlayer());
-    }
-
     isUnique(): boolean {
         return this.cardData.is_unique;
     }
@@ -735,11 +717,9 @@ class BaseCard extends EffectSource {
 
     checkRestrictions(actionType, context: AbilityContext): boolean {
         let player = (context && context.player) || this.controller;
-        let conflict = context && context.game && context.game.currentConflict;
         return (
             super.checkRestrictions(actionType, context) &&
-            player.checkRestrictions(actionType, context) &&
-            (!conflict || conflict.checkRestrictions(actionType, context))
+            player.checkRestrictions(actionType, context)
         );
     }
 
@@ -772,10 +752,6 @@ class BaseCard extends EffectSource {
         }
     }
 
-    getActions(): any[] {
-        return this.actions.slice();
-    }
-
     getReactions(): any[] {
         return this.reactions.slice();
     }
@@ -787,10 +763,6 @@ class BaseCard extends EffectSource {
     // hideWhenFacedown(): boolean {
     //     return !this.anyEffect(EffectNames.CanBeSeenWhenFacedown);
     // }
-
-    createSnapshot() {
-        return {};
-    }
 
     // TODO: would something like this be helpful for swu?
     parseKeywords(text: string) {
@@ -1045,7 +1017,8 @@ class BaseCard extends EffectSource {
     //     return true;
     // }
 
-    getPlayActions() {
+    getPlayCardActions() {
+        // events are a special case
         if (this.type === CardTypes.Event) {
             return this.getActions();
         }
@@ -1330,7 +1303,7 @@ class BaseCard extends EffectSource {
             (effect) => effect.type === EffectNames.SetPower
         );
         if (setEffects.length > 0) {
-            let latestSetEffect = _.last(setEffects);
+            let latestSetEffect = setEffects.at(-1);
             let setAmount = latestSetEffect.getValue(this);
             return [
                 StatModifier.fromEffect(
@@ -1457,13 +1430,13 @@ class BaseCard extends EffectSource {
 
         let overridingPowerModifiers = basePowerModifiers.filter((mod) => mod.overrides);
         if (overridingPowerModifiers.length > 0) {
-            let lastModifier = _.last(overridingPowerModifiers);
+            let lastModifier = overridingPowerModifiers.at(-1);
             basePowerModifiers = [lastModifier];
             basePower = lastModifier.amount;
         }
         let overridingHpModifiers = baseHpModifiers.filter((mod) => mod.overrides);
         if (overridingHpModifiers.length > 0) {
-            let lastModifier = _.last(overridingHpModifiers);
+            let lastModifier = overridingHpModifiers.at(-1);
             baseHpModifiers = [lastModifier];
             baseHp = lastModifier.amount;
         }
@@ -1537,13 +1510,13 @@ class BaseCard extends EffectSource {
 
         // clone.upgrades = _(this.upgrades.map((attachment) => attachment.createSnapshot()));
         clone.childCards = this.childCards.map((card) => card.createSnapshot());
-        clone.effects = _.clone(this.effects);
+        clone.effects = [...this.effects];
         clone.controller = this.controller;
         clone.exhausted = this.exhausted;
         // clone.statusTokens = [...this.statusTokens];
         clone.location = this.location;
         clone.parent = this.parent;
-        clone.aspects = _.clone(this.aspects);
+        clone.aspects = [...this.aspects];
         // clone.fate = this.fate;
         // clone.inConflict = this.inConflict;
         clone.traits = Array.from(this.getTraits());
@@ -1732,31 +1705,6 @@ class BaseCard extends EffectSource {
         return isArena(this.location) && this.type === CardTypes.Unit;
     }
 
-    get militarySkillSummary() {
-        if (!this.showStats) {
-            return {};
-        }
-        let modifiers = this.getPowerModifiers().map((modifier) => Object.assign({}, modifier));
-        let skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
-        return {
-            stat: isNaN(skill) ? '-' : Math.max(skill, 0).toString(),
-            modifiers: modifiers
-        };
-    }
-
-    get politicalSkillSummary() {
-        if (!this.showStats) {
-            return {};
-        }
-        let modifiers = this.getPoliticalModifiers().map((modifier) => Object.assign({}, modifier));
-        modifiers.forEach((modifier) => (modifier = Object.assign({}, modifier)));
-        let skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
-        return {
-            stat: isNaN(skill) ? '-' : Math.max(skill, 0).toString(),
-            modifiers: modifiers
-        };
-    }
-
     exhaust() {
         this.exhausted = true;
     }
@@ -1770,21 +1718,8 @@ class BaseCard extends EffectSource {
             this.checkRestrictions(type, context) &&
             context.player.checkRestrictions(type, context) &&
             this.checkRestrictions('play', context) &&
-            context.player.checkRestrictions('play', context) &&
-            (!this.hasPrintedKeyword('peaceful') || !this.game.currentConflict)
+            context.player.checkRestrictions('play', context)
         );
-    }
-
-    getActions(location = this.location) {
-        // if card is already in play or is an event, return the default actions
-        if (location === Locations.SpaceArena || location === Locations.GroundArena || this.type === CardTypes.Event) {
-            return super.getActions();
-        }
-
-        // TODO: add base / leader actions if this doesn't already cover them
-
-        // otherwise (i.e. card is in hand), return play card action(s) + other available card actions
-        return this.getPlayActions().concat(super.getActions());
     }
 
     /**
@@ -1813,9 +1748,8 @@ class BaseCard extends EffectSource {
             );
         }
 
-        if (this.isParticipating()) {
-            this.game.currentConflict.removeFromConflict(this);
-        }
+        this.tokens = {};
+        this.controller = this.owner;
 
         this.exhausted = false;
         this.new = false;

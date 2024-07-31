@@ -34,6 +34,7 @@ class CardAbility extends ThenAbility {
             this.card.owner.registerAbilityMax(this.maxIdentifier, this.max);
         }
 
+        // TODO: this is a weird way of handling abilities bound to event cards where we treat it like casting an ability but the "cost" is the cost of the card. consider changing it
         if (card.getType() === CardTypes.Event && !this.isKeywordAbility()) {
             this.cost = this.cost.concat(Costs.payReduceableFateCost());
         }
