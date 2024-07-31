@@ -4,6 +4,7 @@ import { EffectNames, EventNames, Locations, Phases, PlayTypes, isArena } from '
 import { exhaustSelf } from '../costs/Costs.js';
 import { attack } from './GameActions.js';
 import type Player from '../player.js';
+import BaseCard from '../card/basecard.js';
 
 type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 

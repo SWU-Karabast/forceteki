@@ -4,7 +4,7 @@
     "test": "tsc && npm run jasmine",
     "jasmine": "JASMINE_CONFIG_PATH=./jasmine.json jasmine",
     "lint": "eslint server/ test/server/ --ext=js",
-    "get-cards": "node ./bin/fetchdata.js prod"
+    "get-cards": "node ./bin/fetchdata_swu.js"
   },
   "dependencies": {
     "@types/jasmine": "^5.1.4",

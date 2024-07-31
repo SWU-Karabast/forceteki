@@ -823,6 +823,7 @@ class Game extends EventEmitter {
         return new Event(eventName, params, handler);
     }
 
+    // TODO: clearer naming here maybe
     /**
      * Creates a game Event, and opens a window for it.
      * @param {String} eventName
@@ -837,6 +838,11 @@ class Game extends EventEmitter {
         return event;
     }
 
+    /**
+     * Directly emits an event to all listeners (does NOT open an event window)
+     * @param {String} eventName
+     * @param {Object} params - parameters for this event
+     */
     emitEvent(eventName, params = {}) {
         let event = this.getEvent(eventName, params);
         this.emit(event.name, event);

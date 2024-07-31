@@ -11,43 +11,22 @@ export interface AttackAbilities {
 }
 
 enum AttackParticipant {
-    Challenger,
+    Attacker,
     Target
 }
 
-const InvalidStats = Symbol('Invalid stats');
-
-type StatisticTotal = typeof InvalidStats | number;
+type StatisticTotal = number;
 
 export class Attack extends GameObject {
-    #bidFinished = false;
     #modifiers = new WeakMap<Player, AttackAbilities>();
-    attackerDamage: number;
-    targetDamage: number;
-    private eventRegistrar?: EventRegistrar;
+    previousAttack: Attack;
 
     constructor(
         public game: Game,
         public attacker: BaseCard,
-        public target: BaseCard,
-        public properties: {
-            targetCondition?: (card: BaseCard, context: AbilityContext) => boolean;
-        },
-        public attackingPlayer = attacker.controller
+        public target: BaseCard
     ) {
         super(game, 'Attack');
-        this.#initializeDuelModifiers(attacker.controller);
-
-        this.eventRegistrar = new EventRegistrar(this.game, this);
-        this.eventRegistrar.register([EventNames.OnCardAbilityTriggered]);
-    }
-
-    get winnerController(): undefined | Player {
-        return this.winner?.[0].controller;
-    }
-
-    get loserController(): undefined | Player {
-        return this.loser?.[0].controller;
     }
 
     get participants(): undefined | BaseCard[] {
@@ -62,80 +41,28 @@ export class Attack extends GameObject {
     }
 
     getTotalsForDisplay(): string {
-        const rawChallenger = this.#getTotalPower(this.attacker, this.attackingPlayer);
-        const rawTarget = this.#getTotalPower(this.target, this.attackingPlayer.opponent);
-        const [challengerTotal, targetTotal] = this.#getTotals(
-            typeof rawChallenger === 'number' ? rawChallenger : 0,
-            typeof rawTarget === 'number' ? rawTarget : 0
-        );
-        return `${this.attacker.name}: ${challengerTotal} vs ${targetTotal}: ${this.target.name}`;
+        const rawAttacker = this.#getTotalPower(this.attacker);
+        const rawTarget = this.#getTotalPower(this.target);
+
+        return `${this.attacker.name}: ${typeof rawAttacker === 'number' ? rawAttacker : 0} vs ${typeof rawTarget === 'number' ? rawTarget : 0}: ${this.target.name}`;
     }
 
-    determineResult(): void {
-        const attackerStats = this.#getTotalPower(this.attacker, this.attackingPlayer);
-
-        // TODO: logic for when the attack is against a base (there's no defender)
-        const defenderStats = this.#getTotalPower(this.target, this.attackingPlayer.opponent);
-
-        if (attackerStats === InvalidStats) {
-            if (defenderStats !== InvalidStats && defenderStats > 0) {
-                // Challenger dead, target alive
-                this.#setWinner(AttackParticipant.Target);
-            }
-            // Both dead
-        } else if (defenderStats === InvalidStats) {
-            // Challenger alive, target dead
-            if (attackerStats > 0) {
-                this.#setWinner(AttackParticipant.Challenger);
-            }
-        } else {
-            const [challengerStats2, targetStats2] = this.#getTotals(attackerStats, defenderStats);
-
-            if (challengerStats2 > targetStats2) {
-                // Both alive, challenger wins
-                this.#setWinner(AttackParticipant.Challenger);
-                this.#setLoser(AttackParticipant.Target);
-            } else if (challengerStats2 < targetStats2) {
-                // Both alive, target wins
-                this.#setWinner(AttackParticipant.Target);
-                this.#setLoser(AttackParticipant.Challenger);
-            } else {
-                // tie
-                if (challengerWinsTies || targetWinsTies) {
-                    if (challengerWinsTies) {
-                        this.#setWinner(AttackParticipant.Challenger);
-                    } else {
-                        this.#setLoser(AttackParticipant.Challenger);
-                    }
-                    if (targetWinsTies) {
-                        this.#setWinner(AttackParticipant.Target);
-                    } else {
-                        this.#setLoser(AttackParticipant.Target);
-                    }
-                }
-            }
-        }
-
-        const losers =
-            this.loser?.filter((card) => card.checkRestrictions('loseDuels', card.game.getFrameworkContext())) ?? [];
-        if (losers.length > 0) {
-            this.loser = losers;
-        } else {
-            this.loser = undefined;
-            this.losingPlayer = undefined;
-        }
-
-        if ((this.winner?.length ?? 0) > 0) {
-            this.winner = this.winner;
-        } else {
-            this.winner = undefined;
-            this.winningPlayer = undefined;
-        }
+    get attackerTotalPower(): number | null {
+        return this.#getTotalPower(this.attacker)
     }
 
-    #getTotalPower(involvedUnit: BaseCard, player: Player): StatisticTotal {
+    get defenderTotalPower(): number | null {
+        return this.targetIsBase ? null : this.#getTotalPower(this.target);
+    }
+
+    get targetIsBase(): boolean {
+        return this.target.isBase;
+    }
+
+    // TODO: could we just use the get power already implemented on basecard?
+    #getTotalPower(involvedUnit: BaseCard): StatisticTotal {
         if (!isArena(involvedUnit.location)) {
-            return InvalidStats;
+            return null;
         }
 
         const rawEffects = involvedUnit.getRawEffects().filter((effect) => effect.type === EffectNames.ModifyPower);
@@ -153,107 +80,5 @@ export class Attack extends GameObject {
         });
 
         return result;
-    }
-
-    #getTotals(challengerStats: number, targetStats: number): [number, number] {
-        if (this.gameModeOpts.duelRules === 'skirmish') {
-            if (challengerStats > targetStats) {
-                challengerStats = 1;
-                targetStats = 0;
-            } else if (challengerStats < targetStats) {
-                challengerStats = 0;
-                targetStats = 1;
-            } else {
-                challengerStats = 0;
-                targetStats = 0;
-            }
-        }
-
-        if (this.#bidFinished) {
-            challengerStats += this.attackingPlayer.honorBid;
-            if (this.targets?.length > 0) {
-                targetStats += this.attackingPlayer.opponent.honorBid;
-            }
-        }
-
-        return [challengerStats, targetStats];
-    }
-
-    #setWinner(winner: AttackParticipant) {
-        switch (winner) {
-            case AttackParticipant.Challenger: {
-                this.winner = [this.attacker];
-                this.winningPlayer = this.attackingPlayer;
-                return;
-            }
-            case AttackParticipant.Target: {
-                this.winner = this.targets;
-                this.winningPlayer = this.attackingPlayer.opponent;
-                return;
-            }
-        }
-    }
-
-    #setLoser(loser: AttackParticipant) {
-        switch (loser) {
-            case AttackParticipant.Challenger: {
-                this.loser = [this.attacker];
-                this.losingPlayer = this.attackingPlayer;
-                return;
-            }
-            case AttackParticipant.Target: {
-                this.loser = this.targets;
-                this.losingPlayer = this.attackingPlayer.opponent;
-                return;
-            }
-        }
-    }
-
-    #initializeDuelModifiers(challengingPlayer: Player) {
-        this.#modifiers.set(challengingPlayer, {
-            challenge: false,
-            focus: false,
-            strike: false
-        });
-        if (challengingPlayer.opponent) {
-            this.#modifiers.set(challengingPlayer.opponent, {
-                challenge: false,
-                focus: false,
-                strike: false
-            });
-        }
-    }
-
-    cleanup() {
-        this.eventRegistrar.unregisterAll();
-    }
-
-    onCardAbilityTriggered({
-        context: { event, player }
-    }: {
-        context: { event?: { duel?: Duel; name: EventNames }; player: Player };
-    }): void {
-        if (event?.duel !== this) {
-            return;
-        }
-
-        const playersModifiers = this.#modifiers.get(player);
-        if (!playersModifiers) {
-            return;
-        }
-
-        switch (event.name) {
-            case EventNames.OnDuelChallenge:
-                playersModifiers.challenge = true;
-                break;
-
-            case EventNames.OnDuelFocus:
-                playersModifiers.focus = true;
-                break;
-
-            case EventNames.OnDuelStrike:
-                playersModifiers.strike = true;
-                break;
-        }
     }
 }

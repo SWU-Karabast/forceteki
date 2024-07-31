@@ -1282,6 +1282,7 @@ class BaseCard extends EffectSource {
         return modifiers;
     }
 
+    // TODO: consolidate these stat getter methods, make some of them private at least
     get power() {
         return this.getPower();
     }

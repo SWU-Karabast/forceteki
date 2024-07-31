@@ -7,6 +7,7 @@ import type { TriggeredAbilityContext } from '../TriggeredAbilityContext';
 import { CardGameAction, type CardActionProperties } from './CardGameAction';
 import { damage } from './GameActions.js';
 import type BaseCard from '../card/basecard';       // TODO: is this the right import form?
+import { isArray } from 'underscore';
 
 
 export interface AttackProperties extends CardActionProperties {
@@ -18,7 +19,7 @@ export interface AttackProperties extends CardActionProperties {
     statistic?: (card: BaseCard) => number;
 }
 
-export class AttackAction extends CardGameAction {
+export class AttackAction extends CardGameAction<AttackProperties> {
     name = 'attack';
     eventName = EventNames.OnAttackDeclared;
     targetType = [CardTypes.Unit, CardTypes.Base];  // TODO: leader?
@@ -72,13 +73,15 @@ export class AttackAction extends CardGameAction {
     }
 
     resolveAttack(attack: Attack, context: AbilityContext): void {
-        let attackerDamageEvent = damage({ amount: attack.attackerDamage, isCombatDamage: true }).getEvent(attack.attacker, context);
-        let targetDamageEvent = damage({ amount: attack.targetDamage, isCombatDamage: true }).getEvent(attack.target, context);
+        // event for damage dealt to target by attacker
+        let damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).getEvent(attack.target, context)];
 
-        context.game.openEventWindow([
-            attackerDamageEvent,
-            targetDamageEvent
-        ]);
+        // event for damage dealt to attacker by defender, if any
+        if (!attack.targetIsBase) {
+            damageEvents.push(damage({ amount: attack.defenderTotalPower, isCombatDamage: true }).getEvent(attack.attacker, context));
+        }
+
+        context.game.openEventWindow(damageEvents);
     }
 
     attackCosts(prompt, context: AbilityContext, additionalProperties = {}): void {
@@ -106,6 +109,18 @@ export class AttackAction extends CardGameAction {
 
     addPropertiesToEvent(event, cards, context: AbilityContext, additionalProperties): void {
         const properties = this.getProperties(context, additionalProperties);
+
+        if (isArray(properties.target)) {
+            if (properties.target.length !== 1) {
+                context.game.addMessage(`Attack requires exactly one target, cannot attack ${properties.target.length} targets`);
+                return;
+            }
+
+            event.target = properties.target[0];
+        } else {
+            event.target = properties.target;
+        }
+
         if (!cards) {
             cards = this.getProperties(context, additionalProperties).target;
         }
@@ -116,15 +131,11 @@ export class AttackAction extends CardGameAction {
         event.cards = cards;
         event.context = context;
         event.attacker = properties.attacker;
-        event.target = properties.target;
 
         event.attack = new Attack(
             context.game,
             properties.attacker,
-            cards,
-            properties,
-            properties.statistic,
-            context.player
+            event.target
         );
     }
 

@@ -175,6 +175,7 @@ export enum EventNames {
     OnSpendResources = 'onSpendResources',
     OnAttackDeclared = 'onAttackDeclared',
     OnDamageDealt = 'onDamageDealt',
+    OnAttackCompleted = 'onAttackCompleted',
 }
 
 export enum AbilityTypes {
