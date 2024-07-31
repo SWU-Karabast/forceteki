@@ -2,7 +2,7 @@
   "type": "commonjs",
   "scripts": {
     "test": "tsc && npm run jasmine",
-    "jasmine": "JASMINE_CONFIG_PATH=./jasmine.json jasmine",
+    "jasmine": "node --enable-source-maps node_modules/jasmine/bin/jasmine --config=./jasmine.json",
     "lint": "eslint server/ test/server/ --ext=js",
     "get-cards": "node ./bin/fetchdata_swu.js"
   },
