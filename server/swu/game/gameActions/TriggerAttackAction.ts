@@ -40,6 +40,11 @@ export class TriggerAttackAction extends BaseAction {
         return super.meetsRequirements(context);
     }
 
+    createContext(player: Player = this.card.controller) {
+        let context = super.createContext(player);
+        return context;
+    }
+
     // attack triggers as an event instead of a game step because it's part of the same action
     public executeHandler(context: ExecutionContext): void {
         context.game.openEventWindow([

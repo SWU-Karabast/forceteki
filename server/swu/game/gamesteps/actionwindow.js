@@ -66,18 +66,6 @@ class ActionWindow extends UiPrompt {
 
     // TODO: this is probably wrong
     continue() {
-        if (this.activePlayer.opponent) {
-            if (this.activePlayer.opponent.actionPhasePriority && this.activePlayer.actionPhasePriority) {
-                // Both players have action phase priority, don't do anything, it'll clear on its own
-            } else if (this.activePlayer.opponent.actionPhasePriority && !this.activePlayer.actionPhasePriority) {
-                this.activePlayer = this.activePlayer.opponent;
-            } else if (this.activePlayer.isDefendingPlayer()) {
-                this.activePlayer.actionPhasePriority = false;
-            }
-        } else {
-            this.activePlayer.actionPhasePriority = false;
-        }
-
         // TODO: do we need promptedActionWindows?
         if(!this.activePlayer.promptedActionWindows[this.windowName]) {
             this.pass();
@@ -93,6 +81,7 @@ class ActionWindow extends UiPrompt {
         return completed;
     }
 
+    // TODO: add claim initiative option here
     activePrompt() {
         let buttons = [
             { text: 'Pass', arg: 'pass' }

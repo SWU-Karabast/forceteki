@@ -72,10 +72,6 @@ class CardTextAbility extends ThenAbility {
             return 'max';
         }
 
-        if (this.isCardPlayed() && this.card.isLimited() && context.player.limitedPlayed >= context.player.maxLimited) {
-            return 'limited';
-        }
-
         if (
             !ignoredRequirements.includes('phase') &&
             !this.isKeywordAbility() &&

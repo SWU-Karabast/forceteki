@@ -14,14 +14,6 @@ class BaseAction extends BaseAbility {
         this.cannotBeCancelled = true;
     }
 
-    meetsRequirements(context) {
-        if(this.isCardPlayed() && this.card.isLimited() && context.player.limitedPlayed >= context.player.maxLimited) {
-            return 'limited';
-        }
-
-        return super.meetsRequirements(context);
-    }
-
     createContext(player = this.card.controller) {
         return new AbilityContext({
             ability: this,

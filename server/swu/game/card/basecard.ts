@@ -37,6 +37,7 @@ import type { CardEffect } from '../effects/types';
 // import type { GainAllAbilities } from './Effects/Library/gainAllAbilities';
 import { PlayUnitAction } from '../gameActions/PlayUnitAction.js';
 import { checkConvertToEnum } from '../utils/helpers';
+import { TriggerAttackAction } from '../gameActions/TriggerAttackAction';
 
 // TODO: convert enums to unions
 type PrintedKeyword =
@@ -121,7 +122,7 @@ class BaseCard extends EffectSource {
 
         this.printedTitle = cardData.title;
         this.printedSubtitle = cardData.subtitle;
-        this.internalName = cardData.internalname;
+        this.internalName = cardData.internalName;
         this.printedType = checkConvertToEnum([cardData.type], CardTypes)[0]; // TODO: does this work for leader consistently, since it has two types?
         this.traits = cardData.traits;  // TODO: enum for these
         this.aspects = checkConvertToEnum(cardData.aspects, Aspects);
@@ -130,10 +131,6 @@ class BaseCard extends EffectSource {
         this.setupCardAbilities(AbilityDsl);
         // this.parseKeywords(cardData.text ? cardData.text.replace(/<[^>]*>/g, '').toLowerCase() : '');
         // this.applyAttachmentBonus();
-
-        if (this.type === CardTypes.Unit) {
-            this.abilities.actions.push(AbilityDsl.attack());
-        }
 
 
 
@@ -236,8 +233,12 @@ class BaseCard extends EffectSource {
         //     allAbilities = allAbilities.filter((a) => a.isKeywordAbility());
         // }
 
+        if (this.type === CardTypes.Unit) {
+            allAbilities.push(new TriggerAttackAction(this));
+        }
+
         // if card is already in play or is an event, return the default actions
-        if (!isArena(location) && this.type !== CardTypes.Event) {
+        if (isArena(location) || this.type === CardTypes.Event) {
             return allAbilities;
         }
 
