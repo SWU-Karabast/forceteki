@@ -1186,6 +1186,10 @@ class Player extends GameObject {
             targetPile.push(card);
         }
 
+        if (!cardLocationMatches(targetLocation, [WildcardLocations.AnyArena, Locations.Resource, Locations.Leader])) {
+            card.exhausted = null;
+        }
+
         card.moveTo(targetLocation);
     }
 

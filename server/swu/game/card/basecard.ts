@@ -1729,32 +1729,33 @@ class BaseCard extends EffectSource {
      * which aren't actually in play themselves when their parent (which is in play) leaves play.
      */
     leavesPlay() {
-        // If this is an attachment and is attached to another card, we need to remove all links between them
-        if (this.parent && this.parent.attachments) {
-            this.parent.removeAttachment(this);
-            this.parent = null;
-        }
+        // // If this is an attachment and is attached to another card, we need to remove all links between them
+        // if (this.parent && this.parent.attachments) {
+        //     this.parent.removeAttachment(this);
+        //     this.parent = null;
+        // }
 
-        // Remove any cards underneath from the game
-        const cardsUnderneath = this.controller.getSourceListForPile(this.uuid).map((a) => a);
-        if (cardsUnderneath.length > 0) {
-            cardsUnderneath.forEach((card) => {
-                this.controller.moveCard(card, Locations.RemovedFromGame);
-            });
-            this.game.addMessage(
-                '{0} {1} removed from the game due to {2} leaving play',
-                cardsUnderneath,
-                cardsUnderneath.length === 1 ? 'is' : 'are',
-                this
-            );
-        }
+        // TODO: reuse this for capture logic
+        // // Remove any cards underneath from the game
+        // const cardsUnderneath = this.controller.getSourceListForPile(this.uuid).map((a) => a);
+        // if (cardsUnderneath.length > 0) {
+        //     cardsUnderneath.forEach((card) => {
+        //         this.controller.moveCard(card, Locations.RemovedFromGame);
+        //     });
+        //     this.game.addMessage(
+        //         '{0} {1} removed from the game due to {2} leaving play',
+        //         cardsUnderneath,
+        //         cardsUnderneath.length === 1 ? 'is' : 'are',
+        //         this
+        //     );
+        // }
 
         this.tokens = {};
         this.controller = this.owner;
 
-        this.exhausted = false;
+        // we don't touch exhausted status since that is still relevant if this is becoming a resource
+        this.damage = null;
         this.new = false;
-        super.leavesPlay();
     }
 
     // canDeclareAsAttacker(conflictType, ring, province, incomingAttackers = undefined) {

@@ -13,7 +13,8 @@ export class TriggerAttackAction extends BaseAction {
     public constructor(card: BaseCard) {
         super(card, [exhaustSelf()], { 
             gameAction: attack({ attacker: card }),
-            mode: TargetModes.AutoSingle
+            mode: TargetModes.AutoSingle,
+            activePromptTitle: 'Choose a target for attack'
         });
     }
 
