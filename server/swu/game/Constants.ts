@@ -15,7 +15,8 @@ export enum Locations {
 // TODO: make enum names singular
 export enum WildcardLocations {
     Any = 'any',
-    AnyArena = 'any arena'
+    AnyArena = 'any arena',
+    AnyAttackable = 'any attackable'
 }
 
 export type TargetableLocations = Locations | WildcardLocations;
@@ -26,6 +27,18 @@ export const isArena = (location: TargetableLocations) => {
         case Locations.GroundArena:
         case Locations.SpaceArena:
         case WildcardLocations.AnyArena:
+            return true;
+        default:
+            return false;
+    }
+}
+
+export const isAttackable = (location: TargetableLocations) => {
+    switch (location) {
+        case Locations.GroundArena:
+        case Locations.SpaceArena:
+        case WildcardLocations.AnyArena:
+        case Locations.Base:
             return true;
         default:
             return false;
@@ -44,6 +57,8 @@ export const cardLocationMatches = (cardLocation: Locations, allowedLocations: T
                 return true;
             case WildcardLocations.AnyArena:
                 return isArena(cardLocation);
+            case WildcardLocations.AnyAttackable:
+                return isAttackable(cardLocation);
             default:
                 return cardLocation === allowedLocation;
         }});

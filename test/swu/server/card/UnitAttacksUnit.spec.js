@@ -8,20 +8,22 @@ describe('Unit attacks unit', function() {
                     resources: ['atst', 'atst'],
                 },
                 player2: {
-                    groundArena: ['wampa'],
-                    resources: ['atst', 'atst']
+                    groundArena: ['frontier-atrt'],
+                    resources: ['atst', 'atst']     // TODO: allow resources to be optionally be as a number instead of naming specific cards (i.e., 2 resources)
                 }
             });
-            this.p1Wampa = this.player1.findCardByName('wampa');
-            this.p2Wampa = this.player2.findCardByName('wampa');
+            this.wampa = this.player1.findCardByName('wampa');
+            this.atrt = this.player2.findCardByName('frontier-atrt');
 
             this.noMoreActions();
         });
 
         it('basic case', function () {
-            this.player1.clickCard(this.p1Wampa);
+            this.player1.clickCard(this.wampa);
 
-            expect(this.p1Wampa.damage).toBe(4);
+            expect(this.wampa.damage).toBe(3);
+            expect(this.atrt.damage).toBe(4);
+            expect(this.wampa.exhausted).toBe(true);
         });
     });
 });

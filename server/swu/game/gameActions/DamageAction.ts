@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../card/basecard';
-import { CardTypes, EventNames, isArena } from '../Constants';
+import { CardTypes, EventNames, isArena, isAttackable } from '../Constants';
 import { type CardActionProperties, CardGameAction } from './CardGameAction';
 
 export interface DamageProperties extends CardActionProperties {
@@ -24,10 +24,7 @@ export class DamageAction extends CardGameAction<DamageProperties> {
     }
 
     canAffect(card: BaseCard, context: AbilityContext): boolean {
-        if (!this.targetType.includes(card.type)) {
-            return false;
-        }
-        if (card.type === CardTypes.Unit && isArena(card.location)) {
+        if (!isAttackable(card.location)) {
             return false;
         }
         if (!card.checkRestrictions('receiveDamage', context)) {
@@ -38,6 +35,7 @@ export class DamageAction extends CardGameAction<DamageProperties> {
 
     addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
         const { amount, isCombatDamage } = this.getProperties(context, additionalProperties) as DamageProperties;
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.damage = amount;
         event.isCombatDamage = isCombatDamage;
         event.context = context;

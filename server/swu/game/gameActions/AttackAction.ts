@@ -107,28 +107,20 @@ export class AttackAction extends CardGameAction<AttackProperties> {
         events.push(event);
     }
 
-    addPropertiesToEvent(event, cards, context: AbilityContext, additionalProperties): void {
+    addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
         const properties = this.getProperties(context, additionalProperties);
 
-        if (isArray(properties.target)) {
-            if (properties.target.length !== 1) {
+        if (isArray(target)) {
+            if (target.length !== 1) {
                 context.game.addMessage(`Attack requires exactly one target, cannot attack ${properties.target.length} targets`);
                 return;
             }
 
-            event.target = properties.target[0];
+            event.target = target[0];
         } else {
-            event.target = properties.target;
+            event.target = target;
         }
 
-        if (!cards) {
-            cards = this.getProperties(context, additionalProperties).target;
-        }
-        if (!Array.isArray(cards)) {
-            cards = [cards];
-        }
-
-        event.cards = cards;
         event.context = context;
         event.attacker = properties.attacker;
 
@@ -141,15 +133,7 @@ export class AttackAction extends CardGameAction<AttackProperties> {
 
     eventHandler(event, additionalProperties): void {
         const context = event.context;
-        const cards = event.cards;
-
-        if (cards.length > 1) {
-            context.game.addMessage(
-                'The attack cannot proceed with multiple targets'
-            );
-            return;
-        }
-        let target = cards[0];
+        const target = event.target;
 
         const properties = this.getProperties(context, additionalProperties);
         if (
@@ -174,7 +158,7 @@ export class AttackAction extends CardGameAction<AttackProperties> {
         );
     }
 
-    checkEventCondition(event, additionalProperties) {
-        return event.cards.some((card) => this.canAffect(card, event.context, additionalProperties));
+    checkEventCondition(event, additionalProperties): boolean {
+        return this.canAffect(event.target, event.context, additionalProperties);
     }
 }

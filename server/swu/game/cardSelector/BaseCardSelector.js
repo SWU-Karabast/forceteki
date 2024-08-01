@@ -1,4 +1,4 @@
-const { Locations, Players, WildcardLocations } = require('../Constants');
+const { Locations, Players, WildcardLocations, cardLocationMatches } = require('../Constants');
 const _ = require('underscore');
 
 class BaseCardSelector {
@@ -19,7 +19,10 @@ class BaseCardSelector {
     buildLocation(property) {
         // TODO: what is the point of the last OR here?
         // TODO: change this to not have to be an array
-        let location = [property] || [WildcardLocations.AnyArena] || [];
+        let location = property || WildcardLocations.AnyArena || [];
+        if(!Array.isArray(location)) {
+            location = [location];
+        }
         return location;
     }
 
@@ -37,38 +40,46 @@ class BaseCardSelector {
             }
             return context.game.allCards.toArray();
         }
-        let attachments = context.player.cardsInPlay.reduce((array, card) => array.concat(card.attachments), []);
+
+        let upgradesInPlay = context.player.getCardsInPlay().reduce((array, card) => array.concat(card.upgrades), []);
 
         if(context.player.opponent) {
-            attachments = attachments.concat(...context.player.opponent.cardsInPlay.map((card) => card.attachments));
+            upgradesInPlay = upgradesInPlay.concat(...context.player.opponent.getCardsInPlay().map((card) => card.upgrades));
         }
+
         let possibleCards = [];
         if(controllerProp !== Players.Opponent) {
-            possibleCards = this.location.reduce((array, location) => {
-                let cards = context.player.getSourceList(location).toArray();
-                if(location === WildcardLocations.AnyArena) {
-                    return array.concat(
-                        cards,
-                        attachments.filter((card) => card.controller === context.player)
-                    );
-                }
-                return array.concat(cards);
-            }, possibleCards);
+            possibleCards = this.location.reduce(
+                (array, location) => array.concat(this.getCardsForPlayerLocation(location, context.player, upgradesInPlay)), possibleCards
+            );
         }
         if(controllerProp !== Players.Self && context.player.opponent) {
-            possibleCards = this.location.reduce((array, location) => {
-                let cards = context.player.opponent.getSourceList(location).toArray();
-                if(location === WildcardLocations.AnyArena) {
-                    return array.concat(
-                        cards,
-                        attachments.filter((card) => card.controller === context.player.opponent)
-                    );
-                }
-                return array.concat(cards);
-            }, possibleCards);
+            possibleCards = this.location.reduce(
+                (array, location) => array.concat(this.getCardsForPlayerLocation(location, context.player.opponent, upgradesInPlay)), possibleCards
+            );
         }
         return possibleCards;
     }
+
+    getCardsForPlayerLocation(location, player, upgrades) {
+        if (location === WildcardLocations.AnyArena) {
+            var cards = player.getCardsInPlay().toArray();
+        } else {
+            var cards = player.getSourceListForPile(location).toArray();
+        }
+
+        // TODO: proper upgrade search within arena instead of across both arenas
+        // if(location === WildcardLocations.AnyArena) {
+        //     return array.concat(
+        //         cards,
+        //         upgrades.filter((card) => card.controller === context.player.opponent)
+        //     );
+        // }
+
+        return cards;
+    }
+
+
 
     canTarget(card, context, choosingPlayer, selectedCards = []) {
         let controllerProp = this.controller;
@@ -93,7 +104,7 @@ class BaseCardSelector {
         if(controllerProp === Players.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if(!this.location.includes(WildcardLocations.Any) && !this.location.includes(card.location)) {
+        if(!cardLocationMatches(card.location, this.location)) {
             return false;
         }
         if(card.location === Locations.Hand && card.controller !== choosingPlayer) {

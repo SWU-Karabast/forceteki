@@ -16,11 +16,20 @@ class DeckBuilder {
     loadCards(directory) {
         var cards = {};
 
+        if (!fs.existsSync(directory)) {
+            throw new Error(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
+        }
+
         var jsonCards = fs.readdirSync(directory).filter(file => file.endsWith('.json'));
         _.each(jsonCards, cardPath => {
             var card = require(path.join('../json/Card', cardPath))[0];
             cards[card.id] = card
         });
+
+        if (cards.length === 0) {
+            throw new Error(`No json card definitions found in ${directory}, please run 'npm run get-cards'`);
+        }
+
         return cards;
     }
 

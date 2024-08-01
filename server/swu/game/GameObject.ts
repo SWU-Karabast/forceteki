@@ -107,36 +107,36 @@ export class GameObject {
         };
     }
 
-    // public canBeTargeted(context: AbilityContext, selectedCards: GameObject | GameObject[] = []) {
-    //     if (!this.checkRestrictions('target', context)) {
-    //         return false;
-    //     }
-    //     let targets = selectedCards;
-    //     if (!Array.isArray(targets)) {
-    //         targets = [targets];
-    //     }
+    public canBeTargeted(context: AbilityContext, selectedCards: GameObject | GameObject[] = []) {
+        if (!this.checkRestrictions('target', context)) {
+            return false;
+        }
+        let targets = selectedCards;
+        if (!Array.isArray(targets)) {
+            targets = [targets];
+        }
 
-    //     targets = targets.concat(this);
-    //     let targetingCost = context.player.getTargetingCost(context.source, targets);
+        targets = targets.concat(this);
+        // let targetingCost = context.player.getTargetingCost(context.source, targets);
 
-    //     if (context.stage === Stages.PreTarget || context.stage === Stages.Cost) {
-    //         //We haven't paid the cost yet, so figure out what it will cost to play this so we can know how much fate we'll have available for targeting
-    //         let resourceCost = 0;
-    //         // @ts-ignore
-    //         if (context.ability.getReducedCost) {
-    //             //we only want to consider the ability cost, not the card cost
-    //             // @ts-ignore
-    //             resourceCost = context.ability.getReducedCost(context);
-    //         }
+        if (context.stage === Stages.PreTarget || context.stage === Stages.Cost) {
+            //We haven't paid the cost yet, so figure out what it will cost to play this so we can know how much fate we'll have available for targeting
+            let resourceCost = 0;
+            // @ts-ignore
+            if (context.ability.getReducedCost) {
+                //we only want to consider the ability cost, not the card cost
+                // @ts-ignore
+                resourceCost = context.ability.getReducedCost(context);
+            }
 
-    //         return (context.player.countSpendableResources() >= targetingCost);
-    //     } else if (context.stage === Stages.Target || context.stage === Stages.Effect) {
-    //         //We paid costs first, or targeting has to be done after costs have been paid
-    //         return (context.player.countSpendableResources() >= targetingCost);
-    //     }
+            // return (context.player.countSpendableResources() >= targetingCost);
+        } else if (context.stage === Stages.Target || context.stage === Stages.Effect) {
+            //We paid costs first, or targeting has to be done after costs have been paid
+            // return (context.player.countSpendableResources() >= targetingCost);
+        }
 
-    //     return true;
-    // }
+        return true;
+    }
 
     public getShortSummaryForControls(activePlayer: Player) {
         return this.getShortSummary();

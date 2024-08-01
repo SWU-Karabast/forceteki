@@ -71,6 +71,9 @@ class AbilityTargetCard {
             let legalTargets = this.selector.getAllLegalTargets(context, player);
             if(legalTargets.length === 1) {
                 context.targets[this.name] = legalTargets[0];
+                if(this.name === 'target') {
+                    context.target = legalTargets[0];
+                }
                 return;
             }
         }

@@ -897,8 +897,9 @@ class Player extends GameObject {
     //     this.showDeck = true;
     // }
 
+    // TODO: clearer name for this method
     /**
-     * Gets the appropriate list for the passed location pile (does not support base or leader locations)
+     * Gets the appropriate list for the passed location pile
      * @param {String} source
      */
     getSourceListForPile(source) {
