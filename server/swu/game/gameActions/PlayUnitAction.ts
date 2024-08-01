@@ -45,7 +45,7 @@ export class PlayUnitAction extends BaseAction {
 
     createContext(player: Player = this.card.controller) {
         let context = super.createContext(player);
-        context['costAspects'] = this.card.aspects;
+        context.costAspects = this.card.aspects;
         return context;
     }
 

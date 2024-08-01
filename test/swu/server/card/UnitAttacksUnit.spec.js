@@ -1,6 +1,6 @@
 describe('Basic attack', function() {
     integration(function() {
-        describe("When a unit attacks", function() {
+        describe('When a unit attacks', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
