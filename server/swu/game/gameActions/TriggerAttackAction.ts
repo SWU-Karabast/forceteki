@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../AbilityContext.js';
 import BaseAction from '../BaseAction.js';
-import { EffectNames, EventNames, Locations, Phases, PlayTypes, TargetModes, isArena } from '../Constants.js';
+import { EffectNames, EventNames, Locations, Phases, PlayTypes, TargetModes, WildcardLocations, isArena } from '../Constants.js';
 import { exhaustSelf } from '../costs/Costs.js';
 import { attack } from './GameActions.js';
 import type Player from '../player.js';
@@ -14,6 +14,7 @@ export class TriggerAttackAction extends BaseAction {
         super(card, [exhaustSelf()], { 
             gameAction: attack({ attacker: card }),
             mode: TargetModes.AutoSingle,
+            location: WildcardLocations.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });
     }

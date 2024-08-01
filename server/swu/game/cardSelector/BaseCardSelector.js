@@ -17,8 +17,6 @@ class BaseCardSelector {
     }
 
     buildLocation(property) {
-        // TODO: what is the point of the last OR here?
-        // TODO: change this to not have to be an array
         let location = property || WildcardLocations.AnyArena || [];
         if(!Array.isArray(location)) {
             location = [location];
@@ -62,10 +60,18 @@ class BaseCardSelector {
     }
 
     getCardsForPlayerLocation(location, player, upgrades) {
-        if (location === WildcardLocations.AnyArena) {
-            var cards = player.getCardsInPlay().toArray();
-        } else {
-            var cards = player.getSourceListForPile(location).toArray();
+        var cards;
+        switch (location) {
+            case WildcardLocations.AnyArena:
+                cards = player.getCardsInPlay().toArray();
+                break;
+            case WildcardLocations.AnyAttackable:
+                cards = player.getCardsInPlay().toArray();
+                cards = cards.concat(player.getSourceListForPile(Locations.Base).toArray());
+                break;
+            default:
+                cards = player.getSourceListForPile(location).toArray();
+                break;
         }
 
         // TODO: proper upgrade search within arena instead of across both arenas

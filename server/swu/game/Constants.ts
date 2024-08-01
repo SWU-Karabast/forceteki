@@ -33,7 +33,7 @@ export const isArena = (location: TargetableLocations) => {
     }
 }
 
-export const isAttackable = (location: TargetableLocations) => {
+export const isAttackableLocation = (location: TargetableLocations) => {
     switch (location) {
         case Locations.GroundArena:
         case Locations.SpaceArena:
@@ -58,7 +58,7 @@ export const cardLocationMatches = (cardLocation: Locations, allowedLocations: T
             case WildcardLocations.AnyArena:
                 return isArena(cardLocation);
             case WildcardLocations.AnyAttackable:
-                return isAttackable(cardLocation);
+                return isAttackableLocation(cardLocation);
             default:
                 return cardLocation === allowedLocation;
         }});

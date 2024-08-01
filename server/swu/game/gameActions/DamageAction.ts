@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../card/basecard';
-import { CardTypes, EventNames, isArena, isAttackable } from '../Constants';
+import { CardTypes, EventNames, isArena, isAttackableLocation } from '../Constants';
 import { type CardActionProperties, CardGameAction } from './CardGameAction';
 
 export interface DamageProperties extends CardActionProperties {
@@ -24,7 +24,7 @@ export class DamageAction extends CardGameAction<DamageProperties> {
     }
 
     canAffect(card: BaseCard, context: AbilityContext): boolean {
-        if (!isAttackable(card.location)) {
+        if (!isAttackableLocation(card.location)) {
             return false;
         }
         if (!card.checkRestrictions('receiveDamage', context)) {

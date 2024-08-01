@@ -97,6 +97,20 @@ class PlayerInteractionWrapper {
     }
 
     /**
+     * Gets the player's base card
+     */
+    get base() {
+        return this.player.base;
+    }
+    
+    /**
+     * Sets the player's base card
+     */
+    set base(newCard) {
+        this.player.base = newCard;
+    }
+
+    /**
      * Gets all cards in play for a player in the space arena
      * @return {BaseCard[]} - List of player's cards currently in play in the space arena
      */
@@ -111,6 +125,10 @@ class PlayerInteractionWrapper {
     get spaceArena() {
         return this.player.filterCardsInPlay((card) => card.location === 'space arena');
     }
+    
+    set spaceArena(newState = []) {
+        this.setArenaUnits('space arena', this.spaceArena, newState);
+    }
 
     /**
      * Gets all cards in play for a player in the ground arena
@@ -118,10 +136,6 @@ class PlayerInteractionWrapper {
      */
     get groundArena() {
         return this.player.filterCardsInPlay((card) => card.location === 'ground arena');
-    }
-
-    set spaceArena(newState = []) {
-        this.setArenaUnits('space arena', this.spaceArena, newState);
     }
 
     set groundArena(newState = []) {

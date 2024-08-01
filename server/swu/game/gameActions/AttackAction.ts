@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../AbilityContext';
-import { CardTypes, EventNames, Locations, isArena } from '../Constants';
+import { CardTypes, EventNames, Locations, isArena, isAttackableLocation as isAttackableLocation } from '../Constants';
 import { Attack } from '../attack/Attack';
 import { EffectNames } from '../Constants'
 import { AttackFlow } from '../attack/AttackFlow';
@@ -43,32 +43,34 @@ export class AttackAction extends CardGameAction<AttackProperties> {
         ];
     }
 
-    canAffect(card: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
+    canAffect(targetCard: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
         if (!context.player.opponent) {
             return false;
         }
 
         const properties = this.getProperties(context, additionalProperties);
-        if (!super.canAffect(card, context)) {
+        if (!super.canAffect(targetCard, context)) {
             return false;
         }
-        if (card === properties.attacker || card.controller === properties.attacker.controller) {
+        if (targetCard === properties.attacker || targetCard.controller === properties.attacker.controller) {
             return false; //cannot attack yourself or your controller's cards
         }
-        if (!card.checkRestrictions('beAttacked', context)) {
+        if (!targetCard.checkRestrictions('beAttacked', context)) {
             return false;
-        } 
+        }
+        // TODO: sentinel check will go here
         if (
-            card.location !== properties.attacker.location &&
-            !(card.location === Locations.SpaceArena && context.source.anyEffects(EffectNames.CanAttackGroundArenaFromSpaceArena)) &&
-            !(card.location === Locations.GroundArena && context.source.anyEffects(EffectNames.CanAttackSpaceArenaFromGroundArena))
+            targetCard.location !== properties.attacker.location &&
+            targetCard.location !== Locations.Base &&
+            !(targetCard.location === Locations.SpaceArena && context.source.anyEffect(EffectNames.CanAttackGroundArenaFromSpaceArena)) &&
+            !(targetCard.location === Locations.GroundArena && context.source.anyEffect(EffectNames.CanAttackSpaceArenaFromGroundArena))
         ) {
             return false;
         }
 
         return (
             properties.attacker &&
-            isArena(card.location)
+            isAttackableLocation(targetCard.location)
         );
     }
 
@@ -137,7 +139,7 @@ export class AttackAction extends CardGameAction<AttackProperties> {
 
         const properties = this.getProperties(context, additionalProperties);
         if (
-            !isArena(properties.attacker.location) || !isArena(target.location)
+            !isArena(properties.attacker.location) || !isAttackableLocation(target.location)
         ) {
             context.game.addMessage(
                 'The attack cannot proceed as the attacker or defender is no longer in play'

@@ -66,6 +66,7 @@ class BaseAbility {
         }
     }
 
+    // TODO: definition / interface for the properties object here
     getAbilityTarget(name, properties) {
         if(properties.gameAction) {
             if(!Array.isArray(properties.gameAction)) {
