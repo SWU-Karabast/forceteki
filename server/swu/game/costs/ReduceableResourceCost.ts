@@ -1,8 +1,8 @@
 import { AbilityContext } from '../AbilityContext';
-import { EventNames, Locations, Players } from '../Constants';
-import type { Cost, Result } from './Costs';
-import { Event } from '../events/Event';
-import BaseCard from '../card/basecard';
+import { EventNames, Locations, Players } from '../core/Constants';
+import type { Cost, Result } from './CostLibrary';
+import { Event } from '../core/event/Event';
+import BaseCard from '../core/card/basecard';
 
 const CANCELLED = 'CANCELLED';
 const STOP = 'STOP';

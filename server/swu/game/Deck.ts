@@ -1,10 +1,10 @@
 import { GameModes } from '../GameModes';
-import { CardTypes, Locations } from './Constants';
-import { BaseLocationCard } from './card/baseLocationCard';
-import { LeaderCard } from './card/leaderCard';
-import BaseCard from './card/basecard';
+import { CardTypes, Locations } from './core/Constants';
+import { BaseLocationCard } from './core/card/baseLocationCard';
+import { LeaderCard } from './core/card/leaderCard';
+import BaseCard from './core/card/basecard';
 import { cards } from './cards';
-import Player from './player';
+import Player from './core/player';
 
 export class Deck {
     constructor(public data: any) {}

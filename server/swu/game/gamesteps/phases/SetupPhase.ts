@@ -1,12 +1,12 @@
 import { GameModes } from '../../../GameModes';
-import { Locations } from '../../Constants';
-import { randomItem } from '../../utils/helpers';
-import type BaseCard from '../../card/basecard';
-import type Game from '../../game';
-import { Phase } from '../Phase';
+import { Locations } from '../../core/Constants';
+import { randomItem } from '../../core/utils/helpers';
+import type BaseCard from '../../core/card/basecard';
+import type Game from '../../core/game';
+import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
-import ResourcePrompt from '../basic_steps/resourceprompt';
-import Player from '../../player';
+import ResourcePrompt from '../resourceprompt';
+import Player from '../../core/player';
 
 export class SetupPhase extends Phase {
     constructor(game: Game) {

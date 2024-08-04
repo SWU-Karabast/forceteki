@@ -2,7 +2,7 @@ const _ = require('underscore');
 
 const { BaseStep } = require('./BaseStep');
 const { TriggeredAbilityWindowTitle } = require('./TriggeredAbilityWindowTitle');
-const { Locations, WildcardLocations } = require('../Constants');
+const { Locations, WildcardLocations } = require('../core/Constants');
 
 class ForcedTriggeredAbilityWindow extends BaseStep {
     constructor(game, abilityType, window, eventsToExclude = []) {

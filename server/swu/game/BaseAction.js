@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext');
 const BaseAbility = require('./baseability.js');
-const { Stages } = require('./Constants.js');
+const { Stages } = require('./core/Constants.js');
 
 class BaseAction extends BaseAbility {
     constructor(card, costs = [], target) {

@@ -1,4 +1,4 @@
-import { AbilityTypes } from '../Constants';
+import { AbilityTypes } from '../core/Constants';
 
 const EventToTitleFunc = {
     onCardExhausted(event: any) {

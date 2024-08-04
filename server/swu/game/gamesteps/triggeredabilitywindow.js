@@ -3,7 +3,7 @@ const _ = require('underscore');
 const ForcedTriggeredAbilityWindow = require('./forcedtriggeredabilitywindow.js');
 const { TriggeredAbilityWindowTitle } = require('./TriggeredAbilityWindowTitle');
 
-const { CardTypes, EventNames, AbilityTypes } = require('../Constants');
+const { CardTypes, EventNames, AbilityTypes } = require('../core/Constants.js');
 
 class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
     constructor(game, abilityType, window, eventsToExclude = []) {

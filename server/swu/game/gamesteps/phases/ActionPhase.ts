@@ -1,7 +1,7 @@
-import { Phases } from '../../Constants';
-import type Game from '../../game';
-import Player from '../../player';
-import { Phase } from '../Phase';
+import { Phases } from '../../core/Constants';
+import type Game from '../../core/game';
+import Player from '../../core/player';
+import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import ActionWindow from '../actionwindow';
 

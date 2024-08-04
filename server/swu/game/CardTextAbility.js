@@ -1,8 +1,8 @@
 const AbilityLimit = require('./AbilityLimit.js');
 const AbilityDsl = require('./abilitydsl.js');
 const ThenAbility = require('./ThenAbility.js');
-const Costs = require('./costs/Costs.js');
-const { Locations, CardTypes, EffectNames, WildcardLocations } = require('./Constants.js');
+const Costs = require('./costs/CostLibrary.js');
+const { Locations, CardTypes, EffectNames, WildcardLocations } = require('./core/Constants.js');
 
 class CardTextAbility extends ThenAbility {
     constructor(game, card, properties) {

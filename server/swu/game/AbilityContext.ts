@@ -1,10 +1,10 @@
 import BaseAbility from './baseability';
-import type BaseCard from './card/basecard';
-import { Aspects, Locations, PlayTypes, Stages } from './Constants';
-import EffectSource from './EffectSource';
-import type Game from './game';
-import type { GameAction } from './gameActions/GameAction';
-import type Player from './player';
+import type BaseCard from './core/card/basecard';
+import { Aspects, Locations, PlayTypes, Stages } from './core/Constants';
+import EffectSource from './core/effect/EffectSource';
+import type Game from './core/game';
+import type { GameSystem } from './gameSystems/GameSystem';
+import type Player from './core/player';
 // import type { StatusToken } from './StatusToken';
 
 export interface AbilityContextProperties {
@@ -40,7 +40,7 @@ export class AbilityContext<S = any> {
     // token: StatusToken;
     subResolution = false;
     choosingPlayerOverride: Player = null;
-    gameActionsResolutionChain: GameAction[] = [];
+    gameActionsResolutionChain: GameSystem[] = [];
     playType: PlayTypes;
     cardStateWhenInitiated: any = null;
 

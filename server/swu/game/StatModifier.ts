@@ -1,4 +1,4 @@
-import { CardTypes } from "./Constants";
+import { CardTypes } from "./core/Constants";
 
 class StatModifier {
     amount: number;

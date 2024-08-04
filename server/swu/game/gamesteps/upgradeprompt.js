@@ -1,7 +1,7 @@
 const { UiPrompt } = require('./UiPrompt.js');
-const GameActions = require('../gameActions/GameActions');
+const GameActions = require('../gameSystems/GameSystems.js');
 const { AbilityContext } = require('../AbilityContext');
-const { Players } = require('../Constants');
+const { Players } = require('../core/Constants.js');
 
 class UpgradePrompt extends UiPrompt {
     constructor(game, player, upgradeCard, playingType) {

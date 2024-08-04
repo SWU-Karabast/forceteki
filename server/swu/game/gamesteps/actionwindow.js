@@ -1,5 +1,5 @@
 const { UiPrompt } = require('./UiPrompt.js');
-const { EventNames, Locations, Players, EffectNames, isArena, WildcardLocations } = require('../Constants');
+const { EventNames, Locations, Players, EffectNames, isArena, WildcardLocations } = require('../core/Constants.js');
 
 class ActionWindow extends UiPrompt {
     constructor(game, title, windowName, activePlayer = null) {

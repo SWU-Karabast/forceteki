@@ -1,12 +1,12 @@
 import { GameModes } from '../../../GameModes';
-import { Phases } from '../../Constants';
-import { Locations } from '../../Constants';
-import { randomItem } from '../../utils/helpers';
-import type BaseCard from '../../card/basecard';
-import type Game from '../../game';
-import { Phase } from '../Phase';
+import { Phases } from '../../core/Constants';
+import { Locations } from '../../core/Constants';
+import { randomItem } from '../../core/utils/helpers';
+import type BaseCard from '../../core/card/basecard';
+import type Game from '../../core/game';
+import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
-import ResourcePrompt from '../basic_steps/resourceprompt';
+import ResourcePrompt from '../resourceprompt';
 
 export class RegroupPhase extends Phase {
     constructor(game: Game) {

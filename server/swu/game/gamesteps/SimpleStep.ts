@@ -1,4 +1,4 @@
-import type Game = require('../game');
+import type Game = require('../core/game');
 import { BaseStep } from './BaseStep';
 
 export class SimpleStep extends BaseStep {

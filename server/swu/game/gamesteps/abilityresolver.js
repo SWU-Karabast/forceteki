@@ -2,9 +2,9 @@ const _ = require('underscore');
 
 const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
-const InitiateCardAbilityEvent = require('../events/InitiateCardAbilityEvent');
-const InitiateAbilityEventWindow = require('../events/InitiateAbilityEventWindow');
-const { Locations, Stages, CardTypes, EventNames } = require('../Constants');
+const InitiateCardAbilityEvent = require('../core/event/InitiateCardAbilityEvent.js');
+const InitiateAbilityEventWindow = require('../core/event/InitiateAbilityEventWindow.js');
+const { Locations, Stages, CardTypes, EventNames } = require('../core/Constants.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
     constructor(game, context) {

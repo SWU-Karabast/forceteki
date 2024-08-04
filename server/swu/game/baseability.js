@@ -1,8 +1,8 @@
-const AbilityTargetAbility = require('./abilityTargets/AbilityTargetAbility.js');
-const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
-const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
-const AbilityTargetToken = require('./abilityTargets/AbilityTargetToken.js');
-const { Stages, TargetModes } = require('./Constants.js');
+const AbilityTargetAbility = require('./core/abilityTargets/AbilityTargetAbility.js');
+const AbilityTargetCard = require('./core/abilityTargets/AbilityTargetCard.js');
+const AbilityTargetSelect = require('./core/abilityTargets/AbilityTargetSelect.js');
+const AbilityTargetToken = require('./core/abilityTargets/AbilityTargetToken.js');
+const { Stages, TargetModes } = require('./core/Constants.js');
 
 /**
  * Base class representing an ability that can be done by the player. This

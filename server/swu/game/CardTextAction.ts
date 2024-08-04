@@ -1,9 +1,9 @@
 import type { AbilityContext } from './AbilityContext.js';
 import CardTextAbility from './CardTextAbility.js';
-import { AbilityTypes, CardTypes, EffectNames, Phases } from './Constants.js';
+import { AbilityTypes, CardTypes, EffectNames, Phases } from './core/Constants.js';
 import type { ActionProps } from './Interfaces.js';
-import type BaseCard from './card/basecard.js';
-import type Game from './game.js';
+import type BaseCard from './core/card/basecard.js';
+import type Game from './core/game.js';
 
 /**
  * Represents an action ability provided by card text.

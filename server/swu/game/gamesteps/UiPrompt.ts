@@ -1,5 +1,5 @@
 import { v1 as uuid } from 'uuid';
-import type Player from '../player';
+import type Player from '../core/player';
 import { BaseStep } from './BaseStep';
 
 type ActivePrompt = {

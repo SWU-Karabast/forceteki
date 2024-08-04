@@ -1,5 +1,5 @@
-import type BaseCard from './card/basecard';
-import type Player from './player';
+import type BaseCard from './core/card/basecard';
+import type Player from './core/player';
 
 export class PlayerPromptState {
     selectCard = false;
