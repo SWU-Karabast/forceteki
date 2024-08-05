@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardTypes, EventNames, TargetableLocations, Locations, WildcardLocations, cardLocationMatches } from '../core/Constants';
-import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Card from '../core/card/Card';
 
-export interface ReturnToDeckProperties extends CardTargetSystemProperties {
+export interface IReturnToDeckProperties extends ICardTargetSystemProperties {
     bottom?: boolean;
     shuffle?: boolean;
     location?: TargetableLocations | TargetableLocations[];
@@ -13,17 +13,17 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     name = 'returnToDeck';
     eventName = EventNames.OnCardDefeated;
     targetType = [CardTypes.Unit, CardTypes.Upgrade, CardTypes.Event];
-    defaultProperties: ReturnToDeckProperties = {
+    defaultProperties: IReturnToDeckProperties = {
         bottom: false,
         shuffle: false,
         location: WildcardLocations.AnyArena
     };
-    constructor(properties: ((context: AbilityContext) => ReturnToDeckProperties) | ReturnToDeckProperties) {
+    constructor(properties: ((context: AbilityContext) => IReturnToDeckProperties) | IReturnToDeckProperties) {
         super(properties);
     }
 
     getCostMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context) as ReturnToDeckProperties;
+        let properties = this.getProperties(context) as IReturnToDeckProperties;
         return [
             properties.shuffle
                 ? 'shuffling {0} into their deck'
@@ -33,7 +33,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context) as ReturnToDeckProperties;
+        let properties = this.getProperties(context) as IReturnToDeckProperties;
         if (properties.shuffle) {
             return ["shuffle {0} into its owner's deck", [properties.target]];
         }
@@ -44,7 +44,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        let properties = this.getProperties(context) as ReturnToDeckProperties;
+        let properties = this.getProperties(context) as IReturnToDeckProperties;
         let location: TargetableLocations[];
         if (!Array.isArray(properties.location)) {
             location = [properties.location];

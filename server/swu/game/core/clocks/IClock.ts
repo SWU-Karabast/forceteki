@@ -1,4 +1,4 @@
-export interface ClockInterface {
+export interface IClock {
     name: string;
     timeLeft: number;
     getState(): {

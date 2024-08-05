@@ -5,19 +5,19 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { ExecuteHandlerSystem } from '../core/gameSystem/ExecuteHandlerSystem';
-import { ReturnToDeckProperties } from '../gameSystems/ReturnToDeckSystem';
-import { SelectCardProperties } from '../gameSystems/SelectCardSystem';
+import { IReturnToDeckProperties } from '../gameSystems/ReturnToDeckSystem';
+import { ISelectCardProperties } from '../gameSystems/SelectCardSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Derivable, derive } from '../core/utils/Helpers';
 import Card from '../core/card/Card';
-import { Cost } from '../core/cost/Cost';
+import { ICost } from '../core/cost/ICost';
 import { GameActionCost } from '../core/cost/GameActionCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { ReduceableResourceCost } from './ReduceableResourceCost';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 import Player from '../core/Player';
 
-type SelectCostProperties = Omit<SelectCardProperties, 'gameSystem'>;
+type SelectCostProperties = Omit<ISelectCardProperties, 'gameSystem'>;
 
 function getSelectCost(
     action: CardTargetSystem,
@@ -33,7 +33,7 @@ function getSelectCost(
 /**
  * Cost that will bow the card that initiated the ability.
  */
-export function exhaustSelf(): Cost {
+export function exhaustSelf(): ICost {
     return new GameActionCost(GameSystems.exhaust());
 }
 
@@ -79,7 +79,7 @@ export function exhaustSelf(): Cost {
  * Cost that will shuffle a selected card into the relevant deck which matches the passed
  * condition.
  */
-export function shuffleIntoDeck(properties: SelectCostProperties): Cost {
+export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
     return getSelectCost(
         GameSystems.moveCard({ destination: Locations.Deck, shuffle: true }),
         properties,
@@ -112,7 +112,7 @@ export function shuffleIntoDeck(properties: SelectCostProperties): Cost {
 //     );
 // }
 
-export function discardTopCardsFromDeck(properties: { amount: number; }): Cost {
+export function discardTopCardsFromDeck(properties: { amount: number; }): ICost {
     return {
         getActionName: (context) => 'discardTopCardsFromDeck',
         getCostMessage: (context) => ['discarding {0}'],
@@ -167,7 +167,7 @@ export function discardTopCardsFromDeck(properties: { amount: number; }): Cost {
 /**
  * Cost that will put into play the card that initiated the ability
  */
-export function putSelfIntoPlay(): Cost {
+export function putSelfIntoPlay(): ICost {
     return new GameActionCost(GameSystems.putIntoPlay());
 }
 
@@ -214,7 +214,7 @@ export function putSelfIntoPlay(): Cost {
  * reducer effects the play has activated. Upon playing the card, all
  * matching reducer effects will expire, if applicable.
  */
-export function payReduceableResourceCost(ignoreType = false): Cost {
+export function payReduceableResourceCost(ignoreType = false): ICost {
     return new ReduceableResourceCost(ignoreType);
 }
 
@@ -404,7 +404,7 @@ export function payReduceableResourceCost(ignoreType = false): Cost {
 //     };
 // }
 
-export function optional(cost: Cost): Cost {
+export function optional(cost: ICost): ICost {
     const getActionName = (context: TriggeredAbilityContext) =>
         `optional${cost.getActionName(context).replace(/^./, (c) => c.toUpperCase())}`;
 
@@ -513,7 +513,7 @@ export function optional(cost: Cost): Cost {
 //     };
 // }
 
-export function nameCard(): Cost {
+export function nameCard(): ICost {
     return {
         selectCardName(player, cardName, context) {
             context.costs.nameCardCost = cardName;

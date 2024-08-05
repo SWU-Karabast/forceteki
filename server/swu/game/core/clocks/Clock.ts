@@ -1,9 +1,9 @@
 import type Player from '../Player';
-import type { ClockInterface } from './ClockInterface';
+import type { IClock } from './IClock';
 
 export type Mode = 'stop' | 'down' | 'up' | 'off';
 
-export class Clock implements ClockInterface {
+export class Clock implements IClock {
     mainTime: number;
     timeLeft: number;
     timerStart = 0;

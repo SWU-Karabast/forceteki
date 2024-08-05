@@ -3,7 +3,7 @@ import { CardTypes, Locations } from './core/Constants';
 import { BaseCard } from './core/card/BaseCard';
 import { LeaderCard } from './core/card/LeaderCard';
 import Card from './core/card/Card';
-import { cards } from './cards';
+import { cards } from './cardImplementations';
 import Player from './core/Player';
 
 export class Deck {

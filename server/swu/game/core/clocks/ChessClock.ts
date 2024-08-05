@@ -1,8 +1,8 @@
 import Player from '../Player';
 import { Clock, Mode } from './Clock';
-import type { ClockInterface } from './ClockInterface';
+import type { IClock } from './IClock';
 
-export class ChessClock extends Clock implements ClockInterface {
+export class ChessClock extends Clock implements IClock {
     mode: Mode = 'stop';
     name = 'Chess Clock';
 

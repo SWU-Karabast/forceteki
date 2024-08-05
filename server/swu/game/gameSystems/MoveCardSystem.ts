@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Card from '../core/card/Card';
 import { CardTypes, EffectNames, Locations, isArena } from '../core/Constants';
-import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
-export interface MoveCardProperties extends CardTargetSystemProperties {
+export interface IMoveCardProperties extends ICardTargetSystemProperties {
     destination?: Locations;
     switch?: boolean;
     switchTarget?: Card;
@@ -17,7 +17,7 @@ export interface MoveCardProperties extends CardTargetSystemProperties {
 export class MoveCardSystem extends CardTargetSystem {
     name = 'move';
     targetType = [CardTypes.Unit, CardTypes.Upgrade, CardTypes.Event];
-    defaultProperties: MoveCardProperties = {
+    defaultProperties: IMoveCardProperties = {
         destination: null,
         switch: false,
         switchTarget: null,
@@ -26,17 +26,17 @@ export class MoveCardSystem extends CardTargetSystem {
         bottom: false,
         changePlayer: false,
     };
-    constructor(properties: MoveCardProperties | ((context: AbilityContext) => MoveCardProperties)) {
+    constructor(properties: IMoveCardProperties | ((context: AbilityContext) => IMoveCardProperties)) {
         super(properties);
     }
 
     getCostMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context) as MoveCardProperties;
+        let properties = this.getProperties(context) as IMoveCardProperties;
         return ['shuffling {0} into their deck', [properties.target]];
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context) as MoveCardProperties;
+        let properties = this.getProperties(context) as IMoveCardProperties;
         let destinationController = Array.isArray(properties.target)
             ? properties.changePlayer
                 ? properties.target[0].controller.opponent
@@ -54,7 +54,7 @@ export class MoveCardSystem extends CardTargetSystem {
     }
 
     canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        const { changePlayer, destination } = this.getProperties(context, additionalProperties) as MoveCardProperties;
+        const { changePlayer, destination } = this.getProperties(context, additionalProperties) as IMoveCardProperties;
         return (
             (!changePlayer ||
                 (card.checkRestrictions(EffectNames.TakeControl, context) &&
@@ -69,7 +69,7 @@ export class MoveCardSystem extends CardTargetSystem {
         let context = event.context;
         let card = event.card;
         event.cardStateWhenMoved = card.createSnapshot();
-        let properties = this.getProperties(context, additionalProperties) as MoveCardProperties;
+        let properties = this.getProperties(context, additionalProperties) as IMoveCardProperties;
         if (properties.switch && properties.switchTarget) {
             let otherCard = properties.switchTarget;
             card.owner.moveCard(otherCard, card.location);

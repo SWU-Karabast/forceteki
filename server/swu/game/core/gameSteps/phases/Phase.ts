@@ -3,10 +3,10 @@ import { EventNames, Phases } from '../../Constants';
 import type Game from '../../Game';
 import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
 import { SimpleStep } from '../SimpleStep';
-import type { Step } from '../Step';
+import type { IStep } from '../IStep';
 
 export class Phase extends BaseStepWithPipeline {
-    public steps: Step[] = [];
+    public steps: IStep[] = [];
 
     constructor(
         game: Game,
@@ -15,7 +15,7 @@ export class Phase extends BaseStepWithPipeline {
         super(game);
     }
 
-    initialise(steps: Step[]): void {
+    initialise(steps: IStep[]): void {
         this.pipeline.initialise([new SimpleStep(this.game, () => this.createPhase())]);
         const startStep = new SimpleStep(this.game, () => this.startPhase());
         const endStep = new SimpleStep(this.game, () => this.endPhase());

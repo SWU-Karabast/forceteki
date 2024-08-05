@@ -3,7 +3,7 @@ const AbilityDsl = require('./abilitydsl');
 const CardAbilityStep = require('./CardAbilityStep');
 const Costs = require('./Costs.js');
 const { Locations, CardTypes, EffectNames, Players } = require('./Constants');
-import { InitiateAttack } from "../../Interfaces";
+import { IInitiateAttack } from "../../Interfaces";
 
 export const initiateAttack = (game, card, properties) => {
     if (properties.initiateAttack) {
@@ -82,7 +82,7 @@ const getBaselineAttackTargetProperties = (attacker, properties) => {
 }
 
 const getProperty = (properties, context, propName?) => {
-    let attackProperties: InitiateAttack;
+    let attackProperties: IInitiateAttack;
 
     if (typeof properties.initiateAttack === 'function') {
         attackProperties = properties.initiateAttack(context);

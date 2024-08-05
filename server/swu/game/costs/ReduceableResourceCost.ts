@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventNames, Locations, Players } from '../core/Constants';
-import type { Cost, Result } from '../core/cost/Cost';
+import type { ICost, Result } from '../core/cost/ICost';
 import { Event } from '../core/event/Event';
 import Card from '../core/card/Card';
 
@@ -16,7 +16,7 @@ type Props = {
     numberOfChoices?: number;
 };
 
-export class ReduceableResourceCost implements Cost {
+export class ReduceableResourceCost implements ICost {
     public isPlayCost = true;
     public isPrintedResourceCost = true;
     constructor(public ignoreType: boolean) {}

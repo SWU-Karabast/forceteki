@@ -1,6 +1,6 @@
 import type Game from "../Game";
 
-interface EventHandler {
+interface IEventHandler {
     name: string;
     handler: (event: any) => void;
 }
@@ -10,7 +10,7 @@ interface EventHandler {
  * a context object to bind handlers on.
  */
 export class EventRegistrar {
-    private events: EventHandler[];
+    private events: IEventHandler[];
 
     constructor(
         private game: Game,

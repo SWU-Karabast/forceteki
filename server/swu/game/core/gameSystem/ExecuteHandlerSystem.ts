@@ -1,15 +1,15 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { GameSystem, type GameSystemProperties } from './GameSystem';
+import { GameSystem, type IGameSystemProperties } from './GameSystem';
 import Card from '../card/Card';
 
-export interface ExecuteHandlerSystemProperties extends GameSystemProperties {
+export interface IExecuteHandlerSystemProperties extends IGameSystemProperties {
     handler: (context: AbilityContext) => void;
     hasTargetsChosenByInitiatingPlayer?: boolean;
 }
 
 // TODO: this is sometimes getting used as a no-op, see if we can add an explicit implementation for that
 export class ExecuteHandlerSystem extends GameSystem {
-    defaultProperties: ExecuteHandlerSystemProperties = {
+    defaultProperties: IExecuteHandlerSystemProperties = {
         handler: () => true,
         hasTargetsChosenByInitiatingPlayer: false
     };
@@ -27,7 +27,7 @@ export class ExecuteHandlerSystem extends GameSystem {
     }
 
     eventHandler(event, additionalProperties = {}): void {
-        const properties = this.getProperties(event.context, additionalProperties) as ExecuteHandlerSystemProperties;
+        const properties = this.getProperties(event.context, additionalProperties) as IExecuteHandlerSystemProperties;
         properties.handler(event.context);
     }
 
@@ -35,7 +35,7 @@ export class ExecuteHandlerSystem extends GameSystem {
         const { hasTargetsChosenByInitiatingPlayer } = this.getProperties(
             context,
             additionalProperties
-        ) as ExecuteHandlerSystemProperties;
+        ) as IExecuteHandlerSystemProperties;
         return hasTargetsChosenByInitiatingPlayer;
     }
 }

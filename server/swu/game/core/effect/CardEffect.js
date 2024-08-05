@@ -1,6 +1,7 @@
 const Effect = require('./Effect.js');
 const { Players, isArena, WildcardLocations } = require('../Constants.js');
 
+// TODO: confusingly, this is not an implementation of ICardEffect. what's the relationship supposed to be?
 class CardEffect extends Effect {
     constructor(game, source, properties, effect) {
         if(!properties.match) {

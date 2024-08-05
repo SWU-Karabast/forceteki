@@ -1,10 +1,10 @@
 import type Player from '../Player';
 import { ChessClock } from './ChessClock';
-import type { ClockInterface } from './ClockInterface';
+import type { IClock } from './IClock';
 
 // TODO: fix capitalization on folder, files, classes
 
-export class Byoyomi extends ChessClock implements ClockInterface {
+export class Byoyomi extends ChessClock implements IClock {
     name = 'Byoyomi';
 
     constructor(player: Player, time: number, private periods: number, private timePeriod: number) {

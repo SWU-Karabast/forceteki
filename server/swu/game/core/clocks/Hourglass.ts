@@ -1,7 +1,7 @@
 import { ChessClock } from './ChessClock';
-import type { ClockInterface } from './ClockInterface';
+import type { IClock } from './IClock';
 
-export class Hourglass extends ChessClock implements ClockInterface {
+export class Hourglass extends ChessClock implements IClock {
     name = 'Hourglass';
 
     opponentStart() {

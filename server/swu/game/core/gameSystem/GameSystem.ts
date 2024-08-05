@@ -6,14 +6,14 @@ import type Player from '../Player';
 
 type PlayerOrCard = Player | Card;
 
-export interface GameSystemProperties {
+export interface IGameSystemProperties {
     target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
-    parentAction?: GameSystem<GameSystemProperties>;
+    parentAction?: GameSystem<IGameSystemProperties>;
 }
 
-export class GameSystem<P extends GameSystemProperties = GameSystemProperties> {
+export class GameSystem<P extends IGameSystemProperties = IGameSystemProperties> {
     propertyFactory?: (context?: AbilityContext) => P;
     properties?: P;
     targetType: string[] = [];

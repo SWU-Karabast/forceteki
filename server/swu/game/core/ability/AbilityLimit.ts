@@ -3,10 +3,10 @@ import { EventNames } from '../Constants';
 import Player from '../Player';
 import type CardAbility from './CardAbility';
 
-export interface AbilityLimit {
+export interface IAbilityLimit {
     ability?: CardAbility;
     currentUser: null | string;
-    clone(): AbilityLimit;
+    clone(): IAbilityLimit;
     isRepeatable(): boolean;
     isAtMax(player: Player): boolean;
     increment(player: Player): void;
@@ -15,7 +15,7 @@ export interface AbilityLimit {
     unregisterEvents(eventEmitter: EventEmitter): void;
 }
 
-class UnlimitedAbilityLimit {
+class UnlimitedAbilityLimit implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
     #useCount = new Map<string, number>();
@@ -59,7 +59,7 @@ class UnlimitedAbilityLimit {
     }
 }
 
-class FixedAbilityLimit {
+class FixedAbilityLimit implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
     #useCount = new Map<string, number>();

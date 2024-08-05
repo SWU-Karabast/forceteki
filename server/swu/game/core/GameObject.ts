@@ -2,7 +2,7 @@ import { v1 as uuidV1 } from 'uuid';
 
 import type { AbilityContext } from './ability/AbilityContext';
 import { EffectNames, Stages } from './Constants';
-import type { CardEffect } from './effect/types';
+import type { ICardEffect } from './effect/ICardEffect';
 import type Game from './Game';
 import type { GameSystem } from './gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
@@ -12,7 +12,7 @@ export class GameObject {
     public uuid = uuidV1();
     protected id: string;
     protected printedType = '';
-    private effects = [] as CardEffect[];
+    private effects = [] as ICardEffect[];
 
     public constructor(
         public game: Game,
@@ -25,11 +25,11 @@ export class GameObject {
         return this.getType();
     }
 
-    public addEffect(effect: CardEffect) {
+    public addEffect(effect: ICardEffect) {
         this.effects.push(effect);
     }
 
-    public removeEffect(effect: CardEffect) {
+    public removeEffect(effect: ICardEffect) {
         this.effects = this.effects.filter((e) => e !== effect);
     }
 

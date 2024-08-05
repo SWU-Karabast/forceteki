@@ -6,7 +6,7 @@ import type Player from '../Player';
 import { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
 
-export interface AttackAbilities {
+export interface IAttackAbilities {
     saboteur: boolean;
 }
 
@@ -18,7 +18,7 @@ enum AttackParticipant {
 type StatisticTotal = number;
 
 export class Attack extends GameObject {
-    #modifiers = new WeakMap<Player, AttackAbilities>();
+    #modifiers = new WeakMap<Player, IAttackAbilities>();
     previousAttack: Attack;
 
     constructor(

@@ -1,10 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardTypes, EventNames, Locations, Players, isArena } from '../core/Constants';
 import type Player from '../core/Player';
-import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Card from '../core/card/Card';
 
-export interface PutIntoPlayProperties extends CardTargetSystemProperties {
+export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: Players;
     side?: Player;
     overrideLocation?: Locations;
@@ -15,14 +15,14 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     eventName = EventNames.OnUnitEntersPlay;
     cost = 'putting {0} into play';
     targetType = [CardTypes.Unit];
-    defaultProperties: PutIntoPlayProperties = {
+    defaultProperties: IPutIntoPlayProperties = {
         controller: Players.Self,
         side: null,
         overrideLocation: null
     };
 
     constructor(
-        properties: ((context: AbilityContext) => PutIntoPlayProperties) | PutIntoPlayProperties
+        properties: ((context: AbilityContext) => IPutIntoPlayProperties) | IPutIntoPlayProperties
     ) {
         super(properties);
     }
@@ -41,7 +41,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     }
 
     canAffect(card: Card, context: AbilityContext): boolean {
-        let properties = this.getProperties(context) as PutIntoPlayProperties;
+        let properties = this.getProperties(context) as IPutIntoPlayProperties;
         let contextCopy = context.copy({ source: card });
         let player = this.getPutIntoPlayPlayer(contextCopy);
         let targetSide = properties.side || this.getDefaultSide(contextCopy);
@@ -64,7 +64,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         let { controller, side, overrideLocation } = this.getProperties(
             context,
             additionalProperties
-        ) as PutIntoPlayProperties;
+        ) as IPutIntoPlayProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
         event.originalLocation = overrideLocation || card.location;

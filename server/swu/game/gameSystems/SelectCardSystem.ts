@@ -4,10 +4,10 @@ import CardSelector from '../core/cardSelector/CardSelector';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import { CardTypes, EffectNames, Locations, Players, TargetModes } from '../core/Constants';
 import type Player from '../core/Player';
-import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 
-export interface SelectCardProperties extends CardTargetSystemProperties {
+export interface ISelectCardProperties extends ICardTargetSystemProperties {
     activePromptTitle?: string;
     player?: Players;
     cardType?: CardTypes | CardTypes[];
@@ -17,7 +17,7 @@ export interface SelectCardProperties extends CardTargetSystemProperties {
     targets?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
-    messageArgs?: (card: Card, player: Player, properties: SelectCardProperties) => any[];
+    messageArgs?: (card: Card, player: Player, properties: ISelectCardProperties) => any[];
     gameSystem: GameSystem;
     selector?: BaseCardSelector;
     mode?: TargetModes;
@@ -30,7 +30,7 @@ export interface SelectCardProperties extends CardTargetSystemProperties {
 }
 
 export class SelectCardSystem extends CardTargetSystem {
-    defaultProperties: SelectCardProperties = {
+    defaultProperties: ISelectCardProperties = {
         cardCondition: () => true,
         gameSystem: null,
         subActionProperties: (card) => ({ target: card }),
@@ -39,20 +39,20 @@ export class SelectCardSystem extends CardTargetSystem {
         manuallyRaiseEvent: false
     };
 
-    constructor(properties: SelectCardProperties | ((context: AbilityContext) => SelectCardProperties)) {
+    constructor(properties: ISelectCardProperties | ((context: AbilityContext) => ISelectCardProperties)) {
         super(properties);
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let { target, effect, effectArgs } = this.getProperties(context) as SelectCardProperties;
+        let { target, effect, effectArgs } = this.getProperties(context) as ISelectCardProperties;
         if (effect) {
             return [effect, effectArgs(context) || []];
         }
         return ['choose a target for {0}', [target]];
     }
 
-    getProperties(context: AbilityContext, additionalProperties = {}): SelectCardProperties {
-        let properties = super.getProperties(context, additionalProperties) as SelectCardProperties;
+    getProperties(context: AbilityContext, additionalProperties = {}): ISelectCardProperties {
+        let properties = super.getProperties(context, additionalProperties) as ISelectCardProperties;
         properties.gameSystem.setDefaultTarget(() => properties.target);
         if (!properties.selector) {
             let cardCondition = (card, context) =>

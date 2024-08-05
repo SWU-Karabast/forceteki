@@ -7,7 +7,7 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';
 // import type { StatusToken } from './StatusToken';
 
-export interface AbilityContextProperties {
+export interface IAbilityContextProperties {
     game: Game;
     source?: any;
     player?: Player;
@@ -49,7 +49,7 @@ export class AbilityContext<S = any> {
     playType: PlayTypes;
     cardStateWhenInitiated: any = null;
 
-    constructor(properties: AbilityContextProperties) {
+    constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
         this.source = properties.source || new EffectSource(this.game);
         this.player = properties.player;
@@ -65,7 +65,7 @@ export class AbilityContext<S = any> {
         this.playType = this.player && this.player.findPlayType(this.source); //location && location.playingType;
     }
 
-    copy(newProps: Partial<AbilityContextProperties>): AbilityContext<this> {
+    copy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
         let copy = this.createCopy(newProps);
         copy.target = this.target;
         // copy.token = this.token;
@@ -78,11 +78,11 @@ export class AbilityContext<S = any> {
         return copy;
     }
 
-    createCopy(newProps: Partial<AbilityContextProperties>): AbilityContext<this> {
+    createCopy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
         return new AbilityContext(Object.assign(this.getProps(), newProps));
     }
 
-    getProps(): AbilityContextProperties {
+    getProps(): IAbilityContextProperties {
         return {
             game: this.game,
             source: this.source,

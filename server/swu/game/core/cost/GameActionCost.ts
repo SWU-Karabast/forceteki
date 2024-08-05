@@ -1,8 +1,8 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { Cost, Result } from './Cost';
+import type { ICost, Result } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 
-export class GameActionCost implements Cost {
+export class GameActionCost implements ICost {
     constructor(public action: GameSystem) {}
 
     getActionName(context: AbilityContext): string {

@@ -1,20 +1,20 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Card from '../core/card/Card';
 import { CardTypes, EventNames, isArena, isAttackableLocation } from '../core/Constants';
-import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
-export interface DamageProperties extends CardTargetSystemProperties {
+export interface IDamageProperties extends ICardTargetSystemProperties {
     amount?: number;
     isCombatDamage?: boolean;
 }
 
-export class DamageSystem extends CardTargetSystem<DamageProperties> {
+export class DamageSystem extends CardTargetSystem<IDamageProperties> {
     name = 'damage';
     eventName = EventNames.OnDamageDealt;
     targetType = [CardTypes.Unit, CardTypes.Base];
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        const { amount, target, isCombatDamage } = this.getProperties(context) as DamageProperties;
+        const { amount, target, isCombatDamage } = this.getProperties(context) as IDamageProperties;
 
         if (isCombatDamage) {
             return ['deal {1} combat damage to {0}', [amount, target]];
@@ -34,7 +34,7 @@ export class DamageSystem extends CardTargetSystem<DamageProperties> {
     }
 
     addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        const { amount, isCombatDamage } = this.getProperties(context, additionalProperties) as DamageProperties;
+        const { amount, isCombatDamage } = this.getProperties(context, additionalProperties) as IDamageProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.damage = amount;
         event.isCombatDamage = isCombatDamage;

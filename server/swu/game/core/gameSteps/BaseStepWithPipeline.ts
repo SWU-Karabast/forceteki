@@ -1,13 +1,13 @@
 import { GamePipeline } from '../GamePipeline';
 import { BaseStep } from './BaseStep';
-import type { Step } from './Step';
+import type { IStep } from './IStep';
 import type Card = require('../card/Card');
 import type Player = require('../Player');
 
-export class BaseStepWithPipeline extends BaseStep implements Step {
+export class BaseStepWithPipeline extends BaseStep implements IStep {
     pipeline = new GamePipeline();
 
-    queueStep(step: Step) {
+    queueStep(step: IStep) {
         this.pipeline.queueStep(step);
     }
 

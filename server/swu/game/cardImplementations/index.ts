@@ -12,7 +12,7 @@ function allJsFiles(path: string): string[] {
         const filepath = join(path, file);
         if (lstatSync(filepath).isDirectory()) {
             files.push(...allJsFiles(filepath));
-        } else if (file.endsWith('.js') && !path.endsWith(`${sep}cards`)) {
+        } else if (file.endsWith('.js') && !path.endsWith(`${sep}cardImplementations`)) {
             files.push(filepath);
         }
     }

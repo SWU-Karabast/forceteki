@@ -4,13 +4,13 @@ import { Attack } from '../core/attack/Attack';
 import { EffectNames } from '../core/Constants'
 import { AttackFlow } from '../core/attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { CardTargetSystem, type CardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { damage } from './GameSystemLibrary.js';
 import type Card from '../core/card/Card';       // TODO: is this the right import form?
 import { isArray } from 'underscore';
 
 
-export interface AttackProperties extends CardTargetSystemProperties {
+export interface IAttackProperties extends ICardTargetSystemProperties {
     attacker?: Card;
     attackerCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
     message?: string;
@@ -19,16 +19,16 @@ export interface AttackProperties extends CardTargetSystemProperties {
     statistic?: (card: Card) => number;
 }
 
-export class AttackSystem extends CardTargetSystem<AttackProperties> {
+export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     name = 'attack';
     eventName = EventNames.OnAttackDeclared;
     targetType = [CardTypes.Unit, CardTypes.Base];  // TODO: leader?
 
-    defaultProperties: AttackProperties = {};
+    defaultProperties: IAttackProperties = {};
 
     // TODO: maybe rename to "appendProperties" for clarity
-    getProperties(context: AbilityContext, additionalProperties = {}): AttackProperties {
-        const properties = super.getProperties(context, additionalProperties) as AttackProperties;
+    getProperties(context: AbilityContext, additionalProperties = {}): IAttackProperties {
+        const properties = super.getProperties(context, additionalProperties) as IAttackProperties;
         if (!properties.attacker) {
             properties.attacker = context.source;
         }

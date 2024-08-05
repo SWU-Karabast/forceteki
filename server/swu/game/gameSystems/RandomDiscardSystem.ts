@@ -1,23 +1,23 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventNames, Locations } from '../core/Constants';
 import type Player from '../core/Player';
-import { PlayerTargetSystem, type PlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 
-export interface RandomDiscardProperties extends PlayerTargetSystemProperties {
+export interface IRandomDiscardProperties extends IPlayerTargetSystemProperties {
     amount?: number;
 }
 
 export class RandomDiscardSystem extends PlayerTargetSystem {
-    defaultProperties: RandomDiscardProperties = { amount: 1 };
+    defaultProperties: IRandomDiscardProperties = { amount: 1 };
 
     name = 'discard';
     eventName = EventNames.OnCardsDiscardedFromHand;
-    constructor(propertyFactory: RandomDiscardProperties | ((context: AbilityContext) => RandomDiscardProperties)) {
+    constructor(propertyFactory: IRandomDiscardProperties | ((context: AbilityContext) => IRandomDiscardProperties)) {
         super(propertyFactory);
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties: RandomDiscardProperties = this.getProperties(context);
+        let properties: IRandomDiscardProperties = this.getProperties(context);
         return [
             'make {0} discard {1} {2} at random',
             [properties.target, properties.amount, properties.amount > 1 ? 'cards' : 'card']
@@ -25,12 +25,12 @@ export class RandomDiscardSystem extends PlayerTargetSystem {
     }
 
     canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
-        let properties: RandomDiscardProperties = this.getProperties(context, additionalProperties);
+        let properties: IRandomDiscardProperties = this.getProperties(context, additionalProperties);
         return properties.amount > 0 && player.hand.size() > 0 && super.canAffect(player, context);
     }
 
     addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties): void {
-        let { amount } = this.getProperties(context, additionalProperties) as RandomDiscardProperties;
+        let { amount } = this.getProperties(context, additionalProperties) as IRandomDiscardProperties;
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;
         event.discardedAtRandom = true;

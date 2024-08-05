@@ -23,17 +23,17 @@ import {
     StatType
 } from '../Constants.js';
 import {
-    ActionProps,
-    AttachmentConditionProps,
-    PersistentEffectProps,
-    TriggeredAbilityProps,
-    TriggeredAbilityWhenProps
+    IActionProps,
+    IAttachmentConditionProps,
+    IPersistentEffectProps,
+    ITriggeredAbilityProps,
+    ITriggeredAbilityWhenProps
 } from '../../Interfaces.js';
 // import { PlayAttachmentAction } from './PlayAttachmentAction.js';
 // import { StatusToken } from './StatusToken';
 import Player from '../Player.js';
 import StatModifier = require('./StatModifier.js');
-import type { CardEffect } from '../effect/types.js';
+import type { ICardEffect } from '../effect/ICardEffect.js';
 // import type { GainAllAbilities } from './Effects/Library/gainAllAbilities';
 import { PlayUnitAction } from '../../actions/PlayUnitAction.js';
 import { checkConvertToEnum } from '../utils/Helpers.js';
@@ -184,7 +184,7 @@ class Card extends EffectSource {
         this.printedTitle = name;
     }
 
-    #mostRecentEffect(predicate: (effect: CardEffect) => boolean): CardEffect | undefined {
+    #mostRecentEffect(predicate: (effect: ICardEffect) => boolean): ICardEffect | undefined {
         const effects = this.getRawEffects().filter(predicate);
         return effects[effects.length - 1];
     }
@@ -349,11 +349,11 @@ class Card extends EffectSource {
         // eslint-disable-line no-unused-vars
     }
 
-    action(properties: ActionProps<this>): void {
+    action(properties: IActionProps<this>): void {
         this.abilities.actions.push(this.createAction(properties));
     }
 
-    createAction(properties: ActionProps): CardActionAbility {
+    createAction(properties: IActionProps): CardActionAbility {
         return new CardActionAbility(this.game, this, properties);
     }
 

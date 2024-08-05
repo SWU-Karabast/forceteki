@@ -1,13 +1,13 @@
-import { AbilityContext, type AbilityContextProperties } from './AbilityContext';
+import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
 
-interface TriggeredAbilityContextProperties extends AbilityContextProperties {
+interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {
     event: any;
 }
 
 export class TriggeredAbilityContext<S = any> extends AbilityContext<S> {
     event: any;
 
-    constructor(properties: TriggeredAbilityContextProperties) {
+    constructor(properties: ITriggeredAbilityContextProperties) {
         super(properties);
         this.event = properties.event;
     }

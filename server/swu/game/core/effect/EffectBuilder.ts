@@ -3,7 +3,7 @@ import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type Card from '../card/Card';
 import type { Durations, EffectNames, Locations } from '../Constants';
 import type Game from '../Game';
-import type { GameSystem, GameSystemProperties } from '../gameSystem/GameSystem';
+import type { GameSystem, IGameSystemProperties } from '../gameSystem/GameSystem';
 import type { WhenType } from '../../Interfaces';
 import type Player from '../Player';
 // import type { StatusToken } from '../StatusToken';
@@ -27,7 +27,7 @@ type Props = {
     target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
-    parentAction?: GameSystem<GameSystemProperties>;
+    parentAction?: GameSystem<IGameSystemProperties>;
 };
 
 export const EffectBuilder = {

@@ -9,7 +9,7 @@ export type Result = {
     cancelled?: boolean;
 };
 
-export interface Cost {
+export interface ICost {
     canPay(context: AbilityContext): boolean;
 
     action?: GameSystem;

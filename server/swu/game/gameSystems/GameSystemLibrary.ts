@@ -1,11 +1,11 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 // import { AttachAction, AttachActionProperties } from './AttachAction';
-import { AttackSystem, AttackProperties } from './AttackSystem';
+import { AttackSystem, IAttackProperties } from './AttackSystem';
 // import { CancelAction, CancelActionProperties } from './CancelAction';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { DamageSystem, DamageProperties } from './DamageSystem';
-import { DefeatCardSystem, DefeatCardProperties } from './DefeatCardSystem';
+import { DamageSystem, IDamageProperties } from './DamageSystem';
+import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 // import { CardMenuAction, CardMenuProperties } from './CardMenuAction';
 // import { ChooseActionProperties, ChooseGameAction } from './ChooseGameAction';
 // import { ChosenDiscardAction, ChosenDiscardProperties } from './ChosenDiscardAction';
@@ -18,10 +18,10 @@ import { DefeatCardSystem, DefeatCardProperties } from './DefeatCardSystem';
 // import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
 // import { DiscardStatusAction, DiscardStatusProperties } from './DiscardStatusAction';
 // import { DrawAction, DrawProperties } from './DrawAction';
-import { ExhaustSystem, ExhaustSystemProperties } from './ExhaustSystem';
+import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
 // import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { ExecuteHandlerSystem, ExecuteHandlerSystemProperties } from '../core/gameSystem/ExecuteHandlerSystem';
+import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from '../core/gameSystem/ExecuteHandlerSystem';
 // import { IfAbleAction, IfAbleActionProperties } from './IfAbleAction';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
@@ -30,22 +30,22 @@ import { ExecuteHandlerSystem, ExecuteHandlerSystemProperties } from '../core/ga
 // import { LookAtAction, LookAtProperties } from './LookAtAction';
 // import { MatchingDiscardAction, MatchingDiscardProperties } from './MatchingDiscardAction';
 // import { MenuPromptAction, MenuPromptProperties } from './MenuPromptAction';
-import { MoveCardSystem, MoveCardProperties } from './MoveCardSystem';
+import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 // import { MoveTokenAction, MoveTokenProperties } from './MoveTokenAction';
 // import { MultipleContextActionProperties, MultipleContextGameAction } from './MultipleContextGameAction';
 // import { MultipleGameAction } from './MultipleGameAction';
 // import { OpponentPutIntoPlayAction, OpponentPutIntoPlayProperties } from './OpponentPutIntoPlayAction';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
 // import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
-import { PutIntoPlaySystem, PutIntoPlayProperties } from './PutIntoPlaySystem';
-import { RandomDiscardSystem, RandomDiscardProperties } from './RandomDiscardSystem';
+import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
+import { RandomDiscardSystem, IRandomDiscardProperties } from './RandomDiscardSystem';
 // import { ReadyAction, ReadyProperties } from './ReadyAction';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
-import { ReturnToDeckSystem, ReturnToDeckProperties } from './ReturnToDeckSystem';
+import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
 // import { ReturnToHandAction, ReturnToHandProperties } from './ReturnToHandAction';
 // import { RevealAction, RevealProperties } from './RevealAction';
-import { SelectCardSystem, SelectCardProperties } from './SelectCardSystem';
+import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
 // import { SequentialAction } from './SequentialAction';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
@@ -65,7 +65,7 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 // export function attach(propertyFactory: PropsFactory<AttachActionProperties> = {}): GameSystem {
 //     return new AttachAction(propertyFactory);
 // }
-export function attack(propertyFactory: PropsFactory<AttackProperties>): GameSystem {
+export function attack(propertyFactory: PropsFactory<IAttackProperties>): GameSystem {
     return new AttackSystem(propertyFactory);
 }
 // export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameSystem {
@@ -74,13 +74,13 @@ export function attack(propertyFactory: PropsFactory<AttackProperties>): GameSys
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);
 // }
-export function damage(propertyFactory: PropsFactory<DamageProperties>): GameSystem {
+export function damage(propertyFactory: PropsFactory<IDamageProperties>): GameSystem {
     return new DamageSystem(propertyFactory);
 }
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
 // }
-export function defeat(propertyFactory: PropsFactory<DefeatCardProperties> = {}): CardTargetSystem {
+export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}): CardTargetSystem {
     return new DefeatCardSystem(propertyFactory);
 }
 // export function discardCard(propertyFactory: PropsFactory<DiscardCardProperties> = {}): CardGameAction {
@@ -89,7 +89,7 @@ export function defeat(propertyFactory: PropsFactory<DefeatCardProperties> = {})
 // export function discardFromPlay(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): GameSystem {
 //     return new DiscardFromPlayAction(propertyFactory);
 // }
-export function exhaust(propertyFactory: PropsFactory<ExhaustSystemProperties> = {}): CardTargetSystem {
+export function exhaust(propertyFactory: PropsFactory<IExhaustSystemProperties> = {}): CardTargetSystem {
     return new ExhaustSystem(propertyFactory);
 }
 // export function lookAt(propertyFactory: PropsFactory<LookAtProperties> = {}): GameSystem {
@@ -100,7 +100,7 @@ export function exhaust(propertyFactory: PropsFactory<ExhaustSystemProperties> =
  * default shuffle = false
  * default faceup = false
  */
-export function moveCard(propertyFactory: PropsFactory<MoveCardProperties>): CardTargetSystem {
+export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): CardTargetSystem {
     return new MoveCardSystem(propertyFactory);
 }
 // /**
@@ -113,7 +113,7 @@ export function moveCard(propertyFactory: PropsFactory<MoveCardProperties>): Car
  * default fate = 0
  * default status = ordinary
  */
-export function putIntoPlay(propertyFactory: PropsFactory<PutIntoPlayProperties> = {}): GameSystem {
+export function putIntoPlay(propertyFactory: PropsFactory<IPutIntoPlayProperties> = {}): GameSystem {
     return new PutIntoPlaySystem(propertyFactory);
 }
 // /**
@@ -195,7 +195,7 @@ export function putIntoPlay(propertyFactory: PropsFactory<PutIntoPlayProperties>
 /**
  * default amount = 1
  */
-export function discardAtRandom(propertyFactory: PropsFactory<RandomDiscardProperties> = {}): GameSystem {
+export function discardAtRandom(propertyFactory: PropsFactory<IRandomDiscardProperties> = {}): GameSystem {
     return new RandomDiscardSystem(propertyFactory);
 }
 // /**
@@ -237,7 +237,7 @@ export function discardAtRandom(propertyFactory: PropsFactory<RandomDiscardPrope
 // export function cancel(propertyFactory: PropsFactory<CancelActionProperties> = {}): GameSystem {
 //     return new CancelAction(propertyFactory);
 // }
-export function handler(propertyFactory: PropsFactory<ExecuteHandlerSystemProperties>): GameSystem {
+export function handler(propertyFactory: PropsFactory<IExecuteHandlerSystemProperties>): GameSystem {
     return new ExecuteHandlerSystem(propertyFactory);
 }
 export function noAction(): GameSystem {
@@ -284,7 +284,7 @@ export function immediatelyResolveConflict(): GameSystem {
 // export function menuPrompt(propertyFactory: PropsFactory<MenuPromptProperties>): GameSystem {
 //     return new MenuPromptAction(propertyFactory);
 // }
-export function selectCard(propertyFactory: PropsFactory<SelectCardProperties>): GameSystem {
+export function selectCard(propertyFactory: PropsFactory<ISelectCardProperties>): GameSystem {
     return new SelectCardSystem(propertyFactory);
 }
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameSystem {

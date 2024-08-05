@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { AbilityLimit } from '../ability/AbilityLimit';
+import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type Card from '../card/Card';
 import { CardTypes, PlayTypes, Aspects } from '../Constants';
 import type Game from '../Game';
@@ -9,7 +9,7 @@ export type CostReducerProps = {
     penaltyAspect?: Aspects;
     cardType?: CardTypes;
     costFloor?: number;
-    limit?: AbilityLimit;
+    limit?: IAbilityLimit;
     playingTypes?: PlayTypes;
     amount?: number | ((card: Card, player: Player) => number);
     match?: (card: Card, source: Card) => boolean;
@@ -23,7 +23,7 @@ export class CostReducer {
     private match?: (card: Card, source: Card) => boolean;
     private cardType?: CardTypes;
     private targetCondition?: (target: Card, source: Card, context: AbilityContext<any>) => boolean;
-    private limit?: AbilityLimit;
+    private limit?: IAbilityLimit;
     private playingTypes?: Array<PlayTypes>;
 
     constructor(

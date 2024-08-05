@@ -1,9 +1,9 @@
 import type Player = require('./Player');
 import type Card = require('./card/Card');
-import type { Step } from './gameSteps/Step';
+import type { IStep } from './gameSteps/IStep';
 
-type StepFactory = () => Step;
-type StepItem = Step | StepFactory;
+type StepFactory = () => IStep;
+type StepItem = IStep | StepFactory;
 
 export class GamePipeline {
     // TODO: what is the difference between queue and pipeline?
@@ -18,7 +18,7 @@ export class GamePipeline {
         return this.pipeline.length;
     }
 
-    getCurrentStep(): Step {
+    getCurrentStep(): IStep {
         const step = this.pipeline[0];
 
         if (typeof step === 'function') {
@@ -31,7 +31,7 @@ export class GamePipeline {
     }
 
     // TODO: could we move away from nested pipelines and just have a centralized one?
-    queueStep(step: Step) {
+    queueStep(step: IStep) {
         if (this.pipeline.length === 0) {
             this.pipeline.unshift(step);
         } else {

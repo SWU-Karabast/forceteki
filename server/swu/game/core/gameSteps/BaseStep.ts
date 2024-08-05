@@ -1,9 +1,9 @@
 import type Card = require('../card/Card');
 import type Game = require('../Game');
 import type Player = require('../Player');
-import type { Step } from './Step';
+import type { IStep } from './IStep';
 
-export class BaseStep implements Step {
+export class BaseStep implements IStep {
     constructor(public game: Game) {}
 
     public continue(): undefined | boolean {
