@@ -1,5 +1,5 @@
-import type { AbilityContext } from '../AbilityContext';
-import type BaseCard from '../core/card/basecard';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type Card from '../core/card/Card';
 import { CardTypes, EventNames, isArena } from '../core/Constants';
 import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
@@ -12,7 +12,7 @@ export class ExhaustSystem extends CardTargetSystem<ExhaustSystemProperties> {
     effect = 'exhaust {0}';
     targetType = [CardTypes.Unit];
 
-    canAffect(card: BaseCard, context: AbilityContext): boolean {
+    canAffect(card: Card, context: AbilityContext): boolean {
         if (!isArena(card.location) || card.exhausted) {
             return false;
         }

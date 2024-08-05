@@ -1,4 +1,4 @@
-import { AbilityContext } from '../AbilityContext';
+import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventNames, Locations, Players, TargetModes } from '../core/Constants';
 import { Event } from '../core/event/Event';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -9,7 +9,7 @@ import { ReturnToDeckProperties } from '../gameSystems/ReturnToDeckSystem';
 import { SelectCardProperties } from '../gameSystems/SelectCardSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Derivable, derive } from '../core/utils/Helpers';
-import BaseCard from '../core/card/basecard';
+import Card from '../core/card/Card';
 import { GameActionCost } from '../core/cost/GameActionCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { ReduceableResourceCost } from './ReduceableResourceCost';
@@ -147,7 +147,7 @@ export function discardTopCardsFromDeck(properties: { amount: number; }): Cost {
             context.costs.discardTopCardsFromDeck = context.player.deck.first(4);
         },
         pay: (context) => {
-            for (const card of context.costs.discardTopCardsFromDeck as BaseCard[]) {
+            for (const card of context.costs.discardTopCardsFromDeck as Card[]) {
                 card.controller.moveCard(card, Locations.Deck);
             }
         }

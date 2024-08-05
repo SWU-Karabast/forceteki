@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../../AbilityContext';
+import type { AbilityContext } from '../ability/AbilityContext';
 import type { Cost, Result } from '../../costs/CostLibrary';
 import type { GameSystem } from '../gameSystem/GameSystem';
 

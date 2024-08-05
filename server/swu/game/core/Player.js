@@ -2,14 +2,14 @@ const _ = require('underscore');
 
 const { GameObject } = require('./GameObject');
 const { Deck } = require('../Deck.js');
-const UpgradePrompt = require('../gamesteps/upgradeprompt.js');
+const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
 const { CostReducer } = require('./cost/CostReducer');
 const GameSystems = require('../gameSystems/GameSystemLibrary');
 const { PlayableLocation } = require('./PlayableLocation');
-const { PlayerPromptState } = require('../PlayerPromptState.js');
-const { BaseLocationCard } = require('./card/baseLocationCard');
-const { LeaderCard } = require('./card/leaderCard');
+const { PlayerPromptState } = require('./PlayerPromptState.js');
+const { BaseCard } = require('./card/BaseCard');
+const { LeaderCard } = require('./card/LeaderCard');
 
 const {
     AbilityTypes,
@@ -610,10 +610,10 @@ class Player extends GameObject {
     prepareDecks() {
         var deck = new Deck(this.deck);
         var preparedDeck = deck.prepare(this);
-        if (preparedDeck.base instanceof BaseLocationCard) {
+        if (preparedDeck.base instanceof BaseCard) {
             this.base = preparedDeck.base;
         }
-        if (preparedDeck.leader instanceof BaseLocationCard) {
+        if (preparedDeck.leader instanceof BaseCard) {
             this.leader = preparedDeck.leader;
         }
         this.deck = _(preparedDeck.deckCards);
@@ -1060,7 +1060,7 @@ class Player extends GameObject {
         this.deck = deck;
         this.deck.selected = true;
         if (deck.base.length > 0) {
-            this.base = new BaseLocationCard(this, deck.base[0].card);
+            this.base = new BaseCard(this, deck.base[0].card);
         }
         if (deck.leader.length > 0) {
             this.leader = new LeaderCard(this, deck.leader[0].card);

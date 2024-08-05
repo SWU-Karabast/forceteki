@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../../AbilityContext';
+import type { AbilityContext } from '../ability/AbilityContext';
 import { EventNames } from '../Constants';
 
 type Params = {

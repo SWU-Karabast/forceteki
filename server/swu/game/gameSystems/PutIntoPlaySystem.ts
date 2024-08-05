@@ -1,8 +1,8 @@
-import type { AbilityContext } from '../AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardTypes, EventNames, Locations, Players, isArena } from '../core/Constants';
 import type Player from '../core/Player';
 import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import BaseCard from '../core/card/basecard';
+import Card from '../core/card/Card';
 
 export interface PutIntoPlayProperties extends CardTargetSystemProperties {
     controller?: Players;
@@ -40,7 +40,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         return ['put {0} into play', [target]];
     }
 
-    canAffect(card: BaseCard, context: AbilityContext): boolean {
+    canAffect(card: Card, context: AbilityContext): boolean {
         let properties = this.getProperties(context) as PutIntoPlayProperties;
         let contextCopy = context.copy({ source: card });
         let player = this.getPutIntoPlayPlayer(contextCopy);
@@ -60,7 +60,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         return true;
     }
 
-    addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
+    addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         let { controller, side, overrideLocation } = this.getProperties(
             context,
             additionalProperties

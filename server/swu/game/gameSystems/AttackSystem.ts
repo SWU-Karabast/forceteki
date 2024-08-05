@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardTypes, EventNames, Locations, isArena, isAttackableLocation as isAttackableLocation } from '../core/Constants';
 import { Attack } from '../core/attack/Attack';
 import { EffectNames } from '../core/Constants'
@@ -6,17 +6,17 @@ import { AttackFlow } from '../core/attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, type CardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { damage } from './GameSystemLibrary.js';
-import type BaseCard from '../core/card/basecard';       // TODO: is this the right import form?
+import type Card from '../core/card/Card';       // TODO: is this the right import form?
 import { isArray } from 'underscore';
 
 
 export interface AttackProperties extends CardTargetSystemProperties {
-    attacker?: BaseCard;
-    attackerCondition?: (card: BaseCard, context: TriggeredAbilityContext) => boolean;
+    attacker?: Card;
+    attackerCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
     message?: string;
     messageArgs?: (attack: Attack, context: AbilityContext) => any | any[];
     costHandler?: (context: AbilityContext, prompt: any) => void;
-    statistic?: (card: BaseCard) => number;
+    statistic?: (card: Card) => number;
 }
 
 export class AttackSystem extends CardTargetSystem<AttackProperties> {
@@ -43,7 +43,7 @@ export class AttackSystem extends CardTargetSystem<AttackProperties> {
         ];
     }
 
-    canAffect(targetCard: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
+    canAffect(targetCard: Card, context: AbilityContext, additionalProperties = {}): boolean {
         if (!context.player.opponent) {
             return false;
         }
@@ -98,7 +98,7 @@ export class AttackSystem extends CardTargetSystem<AttackProperties> {
             additionalProperties
         );
 
-        const cards = (target as BaseCard[]).filter((card) => this.canAffect(card, context));
+        const cards = (target as Card[]).filter((card) => this.canAffect(card, context));
         if (cards.length !== 1) {
             return;
         }

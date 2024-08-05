@@ -1,5 +1,5 @@
-import type { AbilityContext } from '../AbilityContext';
-import type BaseCard from '../core/card/basecard';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type Card from '../core/card/Card';
 import { CardTypes, EventNames, isArena, isAttackableLocation } from '../core/Constants';
 import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
@@ -23,7 +23,7 @@ export class DamageSystem extends CardTargetSystem<DamageProperties> {
         }
     }
 
-    canAffect(card: BaseCard, context: AbilityContext): boolean {
+    canAffect(card: Card, context: AbilityContext): boolean {
         if (!isAttackableLocation(card.location)) {
             return false;
         }
@@ -33,7 +33,7 @@ export class DamageSystem extends CardTargetSystem<DamageProperties> {
         return super.canAffect(card, context);
     }
 
-    addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
+    addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const { amount, isCombatDamage } = this.getProperties(context, additionalProperties) as DamageProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.damage = amount;

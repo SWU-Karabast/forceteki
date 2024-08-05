@@ -1,6 +1,6 @@
 import type Player = require('./Player');
-import type BaseCard = require('./card/basecard');
-import type { Step } from '../gamesteps/Step';
+import type Card = require('./card/Card');
+import type { Step } from './gameSteps/Step';
 
 type StepFactory = () => Step;
 type StepItem = Step | StepFactory;
@@ -61,7 +61,7 @@ export class GamePipeline {
         this.pipeline.shift();
     }
 
-    handleCardClicked(player: Player, card: BaseCard) {
+    handleCardClicked(player: Player, card: Card) {
         if (this.pipeline.length > 0) {
             var step = this.getCurrentStep();
             if (step.onCardClicked(player, card) !== false) {

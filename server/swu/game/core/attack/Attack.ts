@@ -3,8 +3,8 @@ import { EffectNames, EventNames, Locations, isArena } from '../Constants';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
 import type Player from '../Player';
-import { AbilityContext } from '../../AbilityContext';
-import type BaseCard from '../card/basecard';
+import { AbilityContext } from '../ability/AbilityContext';
+import type Card from '../card/Card';
 
 export interface AttackAbilities {
     saboteur: boolean;
@@ -23,20 +23,20 @@ export class Attack extends GameObject {
 
     constructor(
         public game: Game,
-        public attacker: BaseCard,
-        public target: BaseCard
+        public attacker: Card,
+        public target: Card
     ) {
         super(game, 'Attack');
     }
 
-    get participants(): undefined | BaseCard[] {
+    get participants(): undefined | Card[] {
         return [...[this.attacker], this.target];
     }
 
-    isInvolved(card: BaseCard): boolean {
+    isInvolved(card: Card): boolean {
         return (
             isArena(card.location) &&
-            ([this.attacker as BaseCard, this.target as BaseCard].includes(card))
+            ([this.attacker as Card, this.target as Card].includes(card))
         );
     }
 
@@ -60,7 +60,7 @@ export class Attack extends GameObject {
     }
 
     // TODO: could we just use the get power already implemented on basecard?
-    #getTotalPower(involvedUnit: BaseCard): StatisticTotal {
+    #getTotalPower(involvedUnit: Card): StatisticTotal {
         if (!isArena(involvedUnit.location)) {
             return null;
         }

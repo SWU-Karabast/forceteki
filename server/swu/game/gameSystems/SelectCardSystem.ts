@@ -1,5 +1,5 @@
-import type { AbilityContext } from '../AbilityContext';
-import type BaseCard from '../core/card/basecard';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type Card from '../core/card/Card';
 import CardSelector from '../core/cardSelector/CardSelector';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import { CardTypes, EffectNames, Locations, Players, TargetModes } from '../core/Constants';
@@ -13,17 +13,17 @@ export interface SelectCardProperties extends CardTargetSystemProperties {
     cardType?: CardTypes | CardTypes[];
     controller?: Players;
     location?: Locations | Locations[];
-    cardCondition?: (card: BaseCard, context: AbilityContext) => boolean;
+    cardCondition?: (card: Card, context: AbilityContext) => boolean;
     targets?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
-    messageArgs?: (card: BaseCard, player: Player, properties: SelectCardProperties) => any[];
+    messageArgs?: (card: Card, player: Player, properties: SelectCardProperties) => any[];
     gameSystem: GameSystem;
     selector?: BaseCardSelector;
     mode?: TargetModes;
     numCards?: number;
     hidePromptIfSingleCard?: boolean;
-    subActionProperties?: (card: BaseCard) => any;
+    subActionProperties?: (card: Card) => any;
     cancelHandler?: () => void;
     effect?: string;
     effectArgs?: (context) => string[];
@@ -65,7 +65,7 @@ export class SelectCardSystem extends CardTargetSystem {
         return properties;
     }
 
-    canAffect(card: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
+    canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         let properties = this.getProperties(context, additionalProperties);
         let player =
             (properties.targets && context.choosingPlayerOverride) ||

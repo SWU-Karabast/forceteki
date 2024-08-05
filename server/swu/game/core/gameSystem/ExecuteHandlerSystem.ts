@@ -1,6 +1,6 @@
-import type { AbilityContext } from '../../AbilityContext';
+import type { AbilityContext } from '../ability/AbilityContext';
 import { GameSystem, type GameSystemProperties } from './GameSystem';
-import BaseCard from '../card/basecard';
+import Card from '../card/Card';
 
 export interface ExecuteHandlerSystemProperties extends GameSystemProperties {
     handler: (context: AbilityContext) => void;
@@ -18,7 +18,7 @@ export class ExecuteHandlerSystem extends GameSystem {
         return true;
     }
 
-    canAffect(card: BaseCard, context: AbilityContext): boolean {
+    canAffect(card: Card, context: AbilityContext): boolean {
         return true;
     }
 

@@ -1,7 +1,7 @@
-import type { AbilityContext } from './AbilityContext';
+import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
-import type BaseCard = require('./core/card/basecard');
+import type Card = require('./core/card/Card');
 import type CardAbility = require('./core/ability/CardAbility');
 import type { AttackProperties } from './gameSystems/AttackSystem';
 import type { Players, TargetModes, CardTypes, Locations, EventNames, Phases } from './core/Constants';
@@ -31,15 +31,15 @@ interface TargetSelect extends BaseTarget {
 interface TargetAbility extends BaseTarget {
     mode: TargetModes.Ability;
     cardType?: CardTypes | CardTypes[];
-    cardCondition?: (card: BaseCard, context?: AbilityContext) => boolean;
+    cardCondition?: (card: Card, context?: AbilityContext) => boolean;
     abilityCondition?: (ability: CardAbility) => boolean;
 }
 
 export interface InitiateAttack extends AttackProperties {
     opponentChoosesAttackTarget?: boolean;
     opponentChoosesAttacker?: boolean;
-    attackerCondition?: (card: BaseCard, context: TriggeredAbilityContext) => boolean;
-    targetCondition?: (card: BaseCard, context: TriggeredAbilityContext) => boolean;
+    attackerCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
+    targetCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
 }
 
 // interface TargetToken extends BaseTarget {
@@ -72,7 +72,7 @@ interface TargetCardExactlyUpToVariable extends BaseTargetCard {
 interface TargetCardMaxStat extends BaseTargetCard {
     mode: TargetModes.MaxStat;
     numCards: number;
-    cardStat: (card: BaseCard) => number;
+    cardStat: (card: Card) => number;
     maxStat: () => number;
 }
 
@@ -93,7 +93,7 @@ interface SubTarget {
 }
 
 interface ActionCardTarget {
-    cardCondition?: (card: BaseCard, context?: AbilityContext) => boolean;
+    cardCondition?: (card: Card, context?: AbilityContext) => boolean;
 }
 
 type ActionTarget = (TargetCard & ActionCardTarget) | TargetSelect | TargetAbility;
@@ -106,7 +106,7 @@ type EffectArg =
     | number
     | string
     | Player
-    | BaseCard
+    | Card
     | { id: string; label: string; name: string; facedown: boolean; type: CardTypes }
     | EffectArg[];
 
@@ -139,7 +139,7 @@ export interface ActionProps<Source = any> extends AbilityProps<AbilityContext<S
 }
 
 interface TriggeredAbilityCardTarget {
-    cardCondition?: (card: BaseCard, context?: TriggeredAbilityContext) => boolean;
+    cardCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean;
 }
 
 type TriggeredAbilityTarget =
@@ -178,7 +178,7 @@ export type TriggeredAbilityProps = TriggeredAbilityWhenProps | TriggeredAbility
 export interface PersistentEffectProps<Source = any> {
     location?: Locations | Locations[];
     condition?: (context: AbilityContext<Source>) => boolean;
-    match?: (card: BaseCard, context?: AbilityContext<Source>) => boolean;
+    match?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: Players;
     targetLocation?: Locations;
     effect: Function | Function[];
@@ -197,7 +197,7 @@ export interface AttachmentConditionProps {
     faction?: string | string[];
     trait?: string | string[];
     limitTrait?: traitLimit | traitLimit[];
-    cardCondition?: (card: BaseCard) => boolean;
+    cardCondition?: (card: Card) => boolean;
 }
 
 // export type Token = HonoredToken | DishonoredToken;

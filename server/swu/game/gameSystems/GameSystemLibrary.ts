@@ -1,4 +1,4 @@
-import { AbilityContext } from '../AbilityContext';
+import { AbilityContext } from '../core/ability/AbilityContext';
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 // import { AttachAction, AttachActionProperties } from './AttachAction';
 import { AttackSystem, AttackProperties } from './AttackSystem';

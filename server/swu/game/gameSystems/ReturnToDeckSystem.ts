@@ -1,7 +1,7 @@
-import type { AbilityContext } from '../AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardTypes, EventNames, TargetableLocations, Locations, WildcardLocations, cardLocationMatches } from '../core/Constants';
 import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import BaseCard from '../core/card/basecard';
+import Card from '../core/card/Card';
 
 export interface ReturnToDeckProperties extends CardTargetSystemProperties {
     bottom?: boolean;
@@ -43,7 +43,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
         ];
     }
 
-    canAffect(card: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
+    canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         let properties = this.getProperties(context) as ReturnToDeckProperties;
         let location: TargetableLocations[];
         if (!Array.isArray(properties.location)) {

@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../../AbilityContext';
+import type { AbilityContext } from '../ability/AbilityContext';
 import type Player from '../Player';
 import { GameSystem, type GameSystemProperties } from './GameSystem';
 

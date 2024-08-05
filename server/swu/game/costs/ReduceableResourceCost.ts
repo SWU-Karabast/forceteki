@@ -1,13 +1,13 @@
-import { AbilityContext } from '../AbilityContext';
+import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventNames, Locations, Players } from '../core/Constants';
 import type { Cost, Result } from './CostLibrary';
 import { Event } from '../core/event/Event';
-import BaseCard from '../core/card/basecard';
+import Card from '../core/card/Card';
 
 const CANCELLED = 'CANCELLED';
 const STOP = 'STOP';
 
-type PoolOption = BaseCard | typeof CANCELLED | typeof STOP;
+type PoolOption = Card | typeof CANCELLED | typeof STOP;
 type Props = {
     reducedCost: number;
     minFate?: number;

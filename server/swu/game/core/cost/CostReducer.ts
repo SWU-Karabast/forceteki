@@ -1,6 +1,6 @@
-import type { AbilityContext } from '../../AbilityContext';
-import type { AbilityLimit } from '../../AbilityLimit';
-import type BaseCard from '../card/basecard';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type { AbilityLimit } from '../ability/AbilityLimit';
+import type Card from '../card/Card';
 import { CardTypes, PlayTypes, Aspects } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
@@ -11,24 +11,24 @@ export type CostReducerProps = {
     costFloor?: number;
     limit?: AbilityLimit;
     playingTypes?: PlayTypes;
-    amount?: number | ((card: BaseCard, player: Player) => number);
-    match?: (card: BaseCard, source: BaseCard) => boolean;
-    targetCondition?: (target: BaseCard, source: BaseCard, context: AbilityContext) => boolean;
+    amount?: number | ((card: Card, player: Player) => number);
+    match?: (card: Card, source: Card) => boolean;
+    targetCondition?: (target: Card, source: Card, context: AbilityContext) => boolean;
 };
 
 export class CostReducer {
     private uses = 0;
-    private amount: number | ((card: BaseCard, player: Player) => number);
+    private amount: number | ((card: Card, player: Player) => number);
     private costFloor: number;
-    private match?: (card: BaseCard, source: BaseCard) => boolean;
+    private match?: (card: Card, source: Card) => boolean;
     private cardType?: CardTypes;
-    private targetCondition?: (target: BaseCard, source: BaseCard, context: AbilityContext<any>) => boolean;
+    private targetCondition?: (target: Card, source: Card, context: AbilityContext<any>) => boolean;
     private limit?: AbilityLimit;
     private playingTypes?: Array<PlayTypes>;
 
     constructor(
         private game: Game,
-        private source: BaseCard,
+        private source: Card,
         properties: CostReducerProps,
         private penaltyAspect?: Aspects
     ) {
@@ -46,7 +46,7 @@ export class CostReducer {
         }
     }
 
-    public canReduce(playingType: PlayTypes, card: BaseCard, target?: BaseCard, ignoreType = false, penaltyAspect?: Aspects): boolean {
+    public canReduce(playingType: PlayTypes, card: Card, target?: Card, ignoreType = false, penaltyAspect?: Aspects): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (!ignoreType && this.cardType && card.getType() !== this.cardType) {
@@ -60,7 +60,7 @@ export class CostReducer {
         return this.checkMatch(card) && this.checkTargetCondition(context, target);
     }
 
-    public getAmount(card: BaseCard, player: Player): number {
+    public getAmount(card: Card, player: Player): number {
         return typeof this.amount === 'function' ? this.amount(card, player) : this.amount;
     }
 
@@ -76,11 +76,11 @@ export class CostReducer {
         this.limit?.unregisterEvents(this.game);
     }
 
-    private checkMatch(card: BaseCard) {
+    private checkMatch(card: Card) {
         return !this.match || this.match(card, this.source);
     }
 
-    private checkTargetCondition(context: AbilityContext, target?: BaseCard) {
+    private checkTargetCondition(context: AbilityContext, target?: Card) {
         return !this.targetCondition || (target && this.targetCondition(target, this.source, context));
     }
 }

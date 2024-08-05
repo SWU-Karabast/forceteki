@@ -1,0 +1,26 @@
+import { GameModes } from '../../../../GameModes';
+import { Phases } from '../../Constants';
+import { Locations } from '../../Constants';
+import { randomItem } from '../../utils/Helpers';
+import type Card from '../../card/Card';
+import type Game from '../../Game';
+import { Phase } from './Phase';
+import { SimpleStep } from '../SimpleStep';
+import ResourcePrompt from '../prompts/ResourcePrompt';
+
+export class RegroupPhase extends Phase {
+    constructor(game: Game) {
+        super(game, Phases.Regroup);
+        this.pipeline.initialise([
+            new SimpleStep(game, () => this.drawTwo()),
+            new ResourcePrompt(game, 0, 1),
+            new SimpleStep(game, () => this.endPhase())
+        ]);
+    }
+    
+    drawTwo() {
+        for (const player of this.game.getPlayers()) {
+            player.drawCardsToHand(2);
+        }
+    }
+}

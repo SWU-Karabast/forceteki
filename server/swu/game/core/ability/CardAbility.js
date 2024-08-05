@@ -1,4 +1,4 @@
-const AbilityLimit = require('../../AbilityLimit.js');
+const AbilityLimit = require('./AbilityLimit.js');
 const AbilityDsl = require('../../AbilityDsl.js');
 const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');

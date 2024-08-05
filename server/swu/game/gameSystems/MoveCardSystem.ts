@@ -1,12 +1,12 @@
-import type { AbilityContext } from '../AbilityContext';
-import type BaseCard from '../core/card/basecard';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type Card from '../core/card/Card';
 import { CardTypes, EffectNames, Locations, isArena } from '../core/Constants';
 import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
 export interface MoveCardProperties extends CardTargetSystemProperties {
     destination?: Locations;
     switch?: boolean;
-    switchTarget?: BaseCard;
+    switchTarget?: Card;
     shuffle?: boolean;
     faceup?: boolean;
     bottom?: boolean;
@@ -53,7 +53,7 @@ export class MoveCardSystem extends CardTargetSystem {
         ];
     }
 
-    canAffect(card: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
+    canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         const { changePlayer, destination } = this.getProperties(context, additionalProperties) as MoveCardProperties;
         return (
             (!changePlayer ||

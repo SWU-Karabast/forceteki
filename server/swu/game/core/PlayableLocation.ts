@@ -1,16 +1,16 @@
 import type { Locations, PlayTypes } from './Constants';
 import type Player from './Player';
-import BaseCard from './card/basecard';
+import Card from './card/Card';
 
 export class PlayableLocation {
     public constructor(
         public playingType: PlayTypes,
         private player: Player,
         private location: Locations,
-        public cards = new Set<BaseCard>()
+        public cards = new Set<Card>()
     ) {}
 
-    public contains(card: BaseCard) {
+    public contains(card: Card) {
         if (this.cards.size > 0 && !this.cards.has(card)) {
             return false;
         }

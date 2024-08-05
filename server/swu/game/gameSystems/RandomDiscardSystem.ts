@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventNames, Locations } from '../core/Constants';
 import type Player from '../core/Player';
 import { PlayerTargetSystem, type PlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';

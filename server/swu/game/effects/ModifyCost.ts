@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EffectNames } from '../core/Constants';
 import type { CostReducer, CostReducerProps } from '../core/cost/CostReducer';
 import type Player from '../core/Player';

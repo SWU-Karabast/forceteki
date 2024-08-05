@@ -1,6 +1,6 @@
-import type { AbilityContext } from '../../AbilityContext';
+import type { AbilityContext } from '../ability/AbilityContext';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import type BaseCard from '../card/basecard';
+import type Card from '../card/Card';
 import type { Durations, EffectNames, Locations } from '../Constants';
 import type Game from '../Game';
 import type { GameSystem, GameSystemProperties } from '../gameSystem/GameSystem';
@@ -15,7 +15,7 @@ import PlayerEffect from './PlayerEffect';
 import StaticEffect from './StaticEffect';
 
 // type PlayerOrCardOrToken = Player | BaseCard | StatusToken;
-type PlayerOrCardOrToken = Player | BaseCard;
+type PlayerOrCardOrToken = Player | Card;
 
 type Props = {
     targetLocation?: Locations | Locations[];
@@ -33,11 +33,11 @@ type Props = {
 
 export const EffectBuilder = {
     card: {
-        static: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+        static: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
             new CardEffect(game, source, props, new StaticEffect(type, value)),
-        dynamic: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+        dynamic: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
             new CardEffect(game, source, props, new DynamicEffect(type, value)),
-        detached: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+        detached: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
             new CardEffect(game, source, props, new DetachedEffect(type, value.apply, value.unapply)),
         flexible: (type: EffectNames, value?: unknown) =>
             typeof value === 'function'
@@ -45,11 +45,11 @@ export const EffectBuilder = {
                 : EffectBuilder.card.static(type, value)
     },
     player: {
-        static: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+        static: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
             new PlayerEffect(game, source, props, new StaticEffect(type, value)),
-        dynamic: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+        dynamic: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
             new PlayerEffect(game, source, props, new DynamicEffect(type, value)),
-        detached: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+        detached: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
             new PlayerEffect(game, source, props, new DetachedEffect(type, value.apply, value.unapply)),
         flexible: (type: EffectNames, value) =>
             typeof value === 'function'

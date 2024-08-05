@@ -1,10 +1,10 @@
-import type { AbilityContext } from '../../AbilityContext';
-import type BaseCard from '../card/basecard';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type Card from '../card/Card';
 import { CardTypes, EventNames, Stages } from '../Constants';
 import { Event } from '../event/Event';
 import type Player from '../Player';
 
-type PlayerOrCard = Player | BaseCard;
+type PlayerOrCard = Player | Card;
 
 export interface GameSystemProperties {
     target?: PlayerOrCard | PlayerOrCard[];

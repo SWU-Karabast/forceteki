@@ -1,11 +1,11 @@
-import type { AbilityContext } from '../../AbilityContext';
-import type BaseCard from '../card/basecard';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type Card from '../card/Card';
 import { CardTypes, EffectNames, Locations } from '../Constants';
 import { GameSystem as GameSystem, GameSystemProperties as GameSystemProperties } from './GameSystem';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface CardTargetSystemProperties extends GameSystemProperties {
-    target?: BaseCard | BaseCard[];
+    target?: Card | Card[];
 }
 
 export class CardTargetSystem<P extends CardTargetSystemProperties = CardTargetSystemProperties> extends GameSystem<P> {
@@ -17,7 +17,7 @@ export class CardTargetSystem<P extends CardTargetSystemProperties = CardTargetS
         CardTypes.Base,
     ];
 
-    defaultTargets(context: AbilityContext): BaseCard[] {
+    defaultTargets(context: AbilityContext): Card[] {
         return [context.source];
     }
 
@@ -25,13 +25,13 @@ export class CardTargetSystem<P extends CardTargetSystemProperties = CardTargetS
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
-    canAffect(target: BaseCard, context: AbilityContext, additionalProperties = {}): boolean {
+    canAffect(target: Card, context: AbilityContext, additionalProperties = {}): boolean {
         return super.canAffect(target, context, additionalProperties);
     }
 
     addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.getProperties(context, additionalProperties);
-        for (const card of target as BaseCard[]) {
+        for (const card of target as Card[]) {
             let allCostsPaid = true;
             const additionalCosts = card
                 .getEffects(EffectNames.UnlessActionCost)
@@ -120,16 +120,16 @@ export class CardTargetSystem<P extends CardTargetSystemProperties = CardTargetS
         }
     }
 
-    addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties = {}): void {
+    addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }
 
-    isEventFullyResolved(event, card: BaseCard, context: AbilityContext, additionalProperties): boolean {
+    isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
         return event.card === card && super.isEventFullyResolved(event, card, context, additionalProperties);
     }
 
-    updateLeavesPlayEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
+    updateLeavesPlayEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         let properties = this.getProperties(context, additionalProperties) as any;
         super.updateEvent(event, card, context, additionalProperties);
         event.destination = Locations.Discard;

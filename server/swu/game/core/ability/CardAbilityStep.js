@@ -1,4 +1,4 @@
-const { AbilityContext } = require('../../AbilityContext.js');
+const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stages } = require('../Constants.js');
 
