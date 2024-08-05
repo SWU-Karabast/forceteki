@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const { EffectValue } = require('./EffectValue');
-const { CardTypes, EffectNames, Durations, AbilityTypes } = require('../Constants');
+const { CardTypes, EffectNames, Durations, AbilityTypes } = require('../../Constants');
 const GainAbility = require('./GainAbility');
 
 const binaryCardEffects = [
@@ -37,23 +37,6 @@ const binaryCardEffects = [
 //     EffectNames.SetBaseProvinceStrength
 // ];
 
-const hasDash = {
-    modifyBaseMilitarySkillMultiplier: (card) => card.hasDash('military'),
-    modifyBasePoliticalSkillMultiplier: (card) => card.hasDash('political'),
-    modifyBothSkills: (card) => card.hasDash('military') && card.hasDash('political'),
-    modifyMilitarySkill: (card) => card.hasDash('military'),
-    attachmentMilitarySkillModifier: (card) => card.hasDash('military'),
-    modifyMilitarySkillMultiplier: (card) => card.hasDash('military'),
-    modifyPoliticalSkill: (card) => card.hasDash('political'),
-    attachmentPoliticalSkillModifier: (card) => card.hasDash('political'),
-    modifyPoliticalSkillMultiplier: (card) => card.hasDash('political'),
-    setBaseMilitarySkill: (card) => card.hasDash('military'),
-    setBasePoliticalSkill: (card) => card.hasDash('political'),
-    setDash: (card, type) => type && card.hasDash(type),
-    setMilitarySkill: (card) => card.hasDash('military'),
-    setPoliticalSkill: (card) => card.hasDash('political')
-};
-
 // const conflictingEffects = {
 //     modifyBaseMilitarySkillMultiplier: (card) =>
 //         card.effects.filter((effect) => effect.type === EffectNames.SetBaseMilitarySkill),
@@ -78,7 +61,7 @@ const hasDash = {
 //             : []
 // };
 
-class StaticEffect {
+class StaticEffectDetails {
     constructor(type, value) {
         this.type = type;
         if (value instanceof EffectValue) {
@@ -194,4 +177,4 @@ class StaticEffect {
     }
 }
 
-module.exports = StaticEffect;
+module.exports = StaticEffectDetails;

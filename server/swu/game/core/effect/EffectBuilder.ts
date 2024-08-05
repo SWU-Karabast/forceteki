@@ -9,13 +9,12 @@ import type Player from '../Player';
 // import type { StatusToken } from '../StatusToken';
 import CardEffect from './CardEffect';
 // import ConflictEffect from './ConflictEffect';
-import DetachedEffect from './DetachedEffect';
-import DynamicEffect from './DynamicEffect';
-import PlayerEffect from './PlayerEffect';
-import StaticEffect from './StaticEffect';
+import DetachedEffectDetails from './effectDetails/DetachedEffectDetails';
+import DynamicEffectDetails from './effectDetails/DynamicEffectDetails';
+import PlayerEffectDetails from './PlayerEffect';
+import StaticEffectDetails from './effectDetails/StaticEffectDetails';
 
-// type PlayerOrCardOrToken = Player | BaseCard | StatusToken;
-type PlayerOrCardOrToken = Player | Card;
+type PlayerOrCard = Player | Card;
 
 type Props = {
     targetLocation?: Locations | Locations[];
@@ -25,7 +24,7 @@ type Props = {
     condition?: (context: AbilityContext) => boolean;
     until?: WhenType;
     ability?: PlayerOrCardAbility;
-    target?: PlayerOrCardOrToken | PlayerOrCardOrToken[];
+    target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
     parentAction?: GameSystem<GameSystemProperties>;
@@ -34,11 +33,11 @@ type Props = {
 export const EffectBuilder = {
     card: {
         static: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
-            new CardEffect(game, source, props, new StaticEffect(type, value)),
+            new CardEffect(game, source, props, new StaticEffectDetails(type, value)),
         dynamic: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
-            new CardEffect(game, source, props, new DynamicEffect(type, value)),
+            new CardEffect(game, source, props, new DynamicEffectDetails(type, value)),
         detached: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
-            new CardEffect(game, source, props, new DetachedEffect(type, value.apply, value.unapply)),
+            new CardEffect(game, source, props, new DetachedEffectDetails(type, value.apply, value.unapply)),
         flexible: (type: EffectNames, value?: unknown) =>
             typeof value === 'function'
                 ? EffectBuilder.card.dynamic(type, value)
@@ -46,11 +45,11 @@ export const EffectBuilder = {
     },
     player: {
         static: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
-            new PlayerEffect(game, source, props, new StaticEffect(type, value)),
+            new PlayerEffectDetails(game, source, props, new StaticEffectDetails(type, value)),
         dynamic: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
-            new PlayerEffect(game, source, props, new DynamicEffect(type, value)),
+            new PlayerEffectDetails(game, source, props, new DynamicEffectDetails(type, value)),
         detached: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
-            new PlayerEffect(game, source, props, new DetachedEffect(type, value.apply, value.unapply)),
+            new PlayerEffectDetails(game, source, props, new DetachedEffectDetails(type, value.apply, value.unapply)),
         flexible: (type: EffectNames, value) =>
             typeof value === 'function'
                 ? EffectBuilder.player.dynamic(type, value)

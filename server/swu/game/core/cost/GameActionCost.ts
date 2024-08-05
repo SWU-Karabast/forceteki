@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { Cost, Result } from '../../costs/CostLibrary';
+import type { Cost, Result } from './Cost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 
 export class GameActionCost implements Cost {

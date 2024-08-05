@@ -25,10 +25,11 @@ const { Locations, Durations, isArena } = require('../Constants');
  *                    'province', or a specific location (e.g. 'stronghold province'
  *                    or 'hand'). This has no effect if a specific card is passed
  *                    to match.  Card effects only.
- * effect           - object representing the effect to be applied.
+ * effectDetails    - object with details of effect to be applied. Includes duration
+ *                   and the numerical value of the effect, if any.
  */
 class Effect {
-    constructor(game, source, properties, effect) {
+    constructor(game, source, properties, effectDetails) {
         this.game = game;
         this.source = source;
         this.match = properties.match || (() => true);
@@ -38,12 +39,12 @@ class Effect {
         this.location = properties.location || isArena(properties.location);
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
-        this.effect = effect;
+        this.effectDetails = effectDetails;
         this.ability = properties.ability;
         this.targets = [];
         this.refreshContext();
-        this.effect.duration = this.duration;
-        this.effect.isConditional = !!properties.condition;
+        this.effectDetails.duration = this.duration;
+        this.effectDetails.isConditional = !!properties.condition;
     }
 
     refreshContext() {
@@ -52,7 +53,7 @@ class Effect {
         if(this.ability) {
             this.context.ability = this.ability;
         }
-        this.effect.setContext(this.context);
+        this.effectDetails.setContext(this.context);
     }
 
     isValidTarget(target) { // eslint-disable-line no-unused-vars
@@ -69,7 +70,7 @@ class Effect {
 
     addTarget(target) {
         this.targets.push(target);
-        this.effect.apply(target);
+        this.effectDetails.apply(target);
     }
 
     removeTarget(target) {
@@ -77,7 +78,7 @@ class Effect {
     }
 
     removeTargets(targets) {
-        targets.forEach(target => this.effect.unapply(target));
+        targets.forEach(target => this.effectDetails.unapply(target));
         this.targets = _.difference(this.targets, targets);
     }
 
@@ -86,7 +87,7 @@ class Effect {
     }
 
     cancel() {
-        _.each(this.targets, target => this.effect.unapply(target));
+        _.each(this.targets, target => this.effectDetails.unapply(target));
         this.targets = [];
     }
 
@@ -110,7 +111,7 @@ class Effect {
             this.removeTargets(invalidTargets);
             stateChanged = stateChanged || invalidTargets.length > 0;
             // Recalculate the effect for valid targets
-            _.each(this.targets, target => stateChanged = this.effect.recalculate(target) || stateChanged);
+            _.each(this.targets, target => stateChanged = this.effectDetails.recalculate(target) || stateChanged);
             // Check for new targets
             let newTargets = _.filter(this.getTargets(), target => !this.targets.includes(target) && this.isValidTarget(target));
             // Apply the effect to new targets
@@ -121,7 +122,7 @@ class Effect {
                 this.cancel();
                 return true;
             }
-            return this.effect.recalculate(this.match) || stateChanged;
+            return this.effectDetails.recalculate(this.match) || stateChanged;
         } else if(!this.targets.includes(this.match) && this.isValidTarget(this.match)) {
             this.addTarget(this.match);
             return true;
@@ -135,7 +136,7 @@ class Effect {
             targets: _.map(this.targets, target => target.name).join(','),
             active: this.isEffectActive(),
             condition: this.condition(this.context),
-            effect: this.effect.getDebugInfo()
+            effect: this.effectDetails.getDebugInfo()
         };
     }
 }

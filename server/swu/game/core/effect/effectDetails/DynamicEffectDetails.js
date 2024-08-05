@@ -1,6 +1,6 @@
-const StaticEffect = require('./StaticEffect');
+const StaticEffectDetails = require('./StaticEffectDetails');
 
-class DynamicEffect extends StaticEffect {
+class DynamicEffectDetails extends StaticEffectDetails {
     constructor(type, calculate) {
         super(type);
         this.values = {};
@@ -36,4 +36,4 @@ class DynamicEffect extends StaticEffect {
     }
 }
 
-module.exports = DynamicEffect;
+module.exports = DynamicEffectDetails;

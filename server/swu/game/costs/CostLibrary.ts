@@ -10,6 +10,7 @@ import { SelectCardProperties } from '../gameSystems/SelectCardSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Derivable, derive } from '../core/utils/Helpers';
 import Card from '../core/card/Card';
+import { Cost } from '../core/cost/Cost';
 import { GameActionCost } from '../core/cost/GameActionCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { ReduceableResourceCost } from './ReduceableResourceCost';
@@ -27,33 +28,6 @@ function getSelectCost(
         GameSystems.selectCard(Object.assign({ gameSystem: action }, properties)),
         activePromptTitle
     );
-}
-
-export type Result = {
-    canCancel?: boolean;
-    cancelled?: boolean;
-};
-
-export interface Cost {
-    canPay(context: AbilityContext): boolean;
-
-    action?: GameSystem;
-    activePromptTitle?: string;
-
-    selectCardName?(player: Player, cardName: string, context: AbilityContext): boolean;
-    promptsPlayer?: boolean;
-    dependsOn?: string;
-    isPrintedFateCost?: boolean;
-    isPlayCost?: boolean;
-    canIgnoreForTargeting?: boolean;
-
-    getActionName?(context: AbilityContext): string;
-    getCostMessage?(context: AbilityContext): unknown[];
-    hasTargetsChosenByInitiatingPlayer?(context: AbilityContext): boolean;
-    addEventsToArray?(events: any[], context: AbilityContext, result?: Result): void;
-    resolve?(context: AbilityContext, result: Result): void;
-    payEvent?(context: TriggeredAbilityContext): Event | Event[];
-    pay?(context: TriggeredAbilityContext): void;
 }
 
 /**

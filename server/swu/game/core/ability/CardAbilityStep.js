@@ -4,7 +4,7 @@ const { Stages } = require('../Constants.js');
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a 
- * full card ability, since it is assumed the ability is already resolving (see CardAbility.js).
+ * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
 class CardAbilityStep extends PlayerOrCardAbility {
     constructor(game, card, properties) {

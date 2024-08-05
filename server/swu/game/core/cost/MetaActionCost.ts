@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { WildcardLocations, Players } from '../Constants';
-import type { Cost, Result } from '../../costs/CostLibrary';
+import type { Cost, Result } from './Cost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { SelectCardProperties } from '../../gameSystems/SelectCardSystem';
 import { randomItem } from '../utils/Helpers';

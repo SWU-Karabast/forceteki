@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventNames, Locations, Players } from '../core/Constants';
-import type { Cost, Result } from './CostLibrary';
+import type { Cost, Result } from '../core/cost/Cost';
 import { Event } from '../core/event/Event';
 import Card from '../core/card/Card';
 

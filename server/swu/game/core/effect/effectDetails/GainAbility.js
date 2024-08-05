@@ -1,5 +1,5 @@
 const { EffectValue } = require('./EffectValue');
-const { AbilityTypes, Locations, WildcardLocations } = require('../Constants');
+const { AbilityTypes, Locations, WildcardLocations } = require('../../Constants');
 
 class GainAbility extends EffectValue {
     constructor(abilityType, ability) {

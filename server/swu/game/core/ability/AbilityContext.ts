@@ -22,6 +22,11 @@ export interface AbilityContextProperties {
     targetAbility?: any;
 }
 
+/** 
+ * Data class that wraps relevant game state for the execution of a PlayerOrCardAbility.
+ * While the structure will vary from inheriting classes, it is guaranteed to have at least the `game` object, the
+ * `player` that is executing the action, and the `source` card object that the ability is generated from.
+ */
 export class AbilityContext<S = any> {
     game: Game;
     source: S;
