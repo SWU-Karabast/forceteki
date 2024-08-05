@@ -1,6 +1,6 @@
 import type { GamePipeline } from '../core/GamePipeline';
 import type BaseCard = require('../core/card/basecard');
-import type Player = require('../core/player');
+import type Player = require('../core/Player');
 
 export interface Step {
     continue(): undefined | boolean;

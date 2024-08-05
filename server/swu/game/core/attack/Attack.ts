@@ -1,8 +1,8 @@
 import { GameObject } from '../GameObject';
 import { EffectNames, EventNames, Locations, isArena } from '../Constants';
 import { EventRegistrar } from '../event/EventRegistrar';
-import type Game from '../game';
-import type Player from '../player';
+import type Game from '../Game';
+import type Player from '../Player';
 import { AbilityContext } from '../../AbilityContext';
 import type BaseCard from '../card/basecard';
 

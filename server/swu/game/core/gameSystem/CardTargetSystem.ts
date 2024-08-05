@@ -1,14 +1,14 @@
-import type { AbilityContext } from '../AbilityContext';
-import type BaseCard from '../core/card/basecard';
-import { CardTypes, EffectNames, Locations } from '../core/Constants';
+import type { AbilityContext } from '../../AbilityContext';
+import type BaseCard from '../card/basecard';
+import { CardTypes, EffectNames, Locations } from '../Constants';
 import { GameSystem as GameSystem, GameSystemProperties as GameSystemProperties } from './GameSystem';
 // import { LoseFateAction } from './LoseFateAction';
 
-export interface CardSystemProperties extends GameSystemProperties {
+export interface CardTargetSystemProperties extends GameSystemProperties {
     target?: BaseCard | BaseCard[];
 }
 
-export class CardGameSystem<P extends CardSystemProperties = CardSystemProperties> extends GameSystem<P> {
+export class CardTargetSystem<P extends CardTargetSystemProperties = CardTargetSystemProperties> extends GameSystem<P> {
     targetType = [
         CardTypes.Unit,
         CardTypes.Upgrade,

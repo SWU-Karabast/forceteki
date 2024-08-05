@@ -1,8 +1,8 @@
-const { AbilityContext } = require('./AbilityContext');
-const BaseAbility = require('./baseability.js');
-const { Stages } = require('./core/Constants.js');
+const { AbilityContext } = require('../../AbilityContext.js');
+const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
+const { Stages } = require('../Constants.js');
 
-class BaseAction extends BaseAbility {
+class PlayerAction extends PlayerOrCardAbility {
     constructor(card, costs = [], target) {
         let properties = { cost: costs };
         if(target) {
@@ -35,5 +35,5 @@ class BaseAction extends BaseAbility {
     }
 }
 
-module.exports = BaseAction;
+module.exports = PlayerAction;
 

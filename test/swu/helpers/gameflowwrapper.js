@@ -1,7 +1,7 @@
 /* global jasmine */
 
 const _ = require('underscore');
-const Game = require('../../../build/game/game.js');
+const Game = require('../../../build/game/core/game.js');
 const PlayerInteractionWrapper = require('./playerinteractionwrapper.js');
 const Settings = require('../../../build/settings.js');
 

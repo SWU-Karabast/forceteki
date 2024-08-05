@@ -1,5 +1,5 @@
-const CardSelector = require('../cardSelector/CardSelector.js');
-const { Stages, Players } = require('../Constants.js');
+const CardSelector = require('../../cardSelector/CardSelector.js');
+const { Stages, Players } = require('../../Constants.js');
 
 class AbilityTargetAbility {
     constructor(name, properties, ability) {
@@ -26,7 +26,7 @@ class AbilityTargetAbility {
                 }
                 return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
                        (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                       properties.gameAction.some(gameAction => gameAction.hasLegalTarget(contextCopy));
+                       properties.gameSystem.some(gameSystem => gameSystem.hasLegalTarget(contextCopy));
             });
         };
         return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: false }));
@@ -45,7 +45,7 @@ class AbilityTargetAbility {
     }
 
     getGameAction(context) {
-        return this.properties.gameAction.filter(gameAction => gameAction.hasLegalTarget(context));
+        return this.properties.gameSystem.filter(gameSystem => gameSystem.hasLegalTarget(context));
     }
 
     resolve(context, targetResults) {
@@ -125,7 +125,7 @@ class AbilityTargetAbility {
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {
-        if(this.properties.gameAction.some(action => action.hasTargetsChosenByInitiatingPlayer(context))) {
+        if(this.properties.gameSystem.some(action => action.hasTargetsChosenByInitiatingPlayer(context))) {
             return true;
         }
         return this.getChoosingPlayer(context) === context.player;

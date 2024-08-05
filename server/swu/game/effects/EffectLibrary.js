@@ -1,10 +1,10 @@
 const _ = require('underscore');
 
-const AbilityLimit = require('../../AbilityLimit.js')
+const AbilityLimit = require('../AbilityLimit.js')
 // const GainAllAbiliitesDynamic = require('./Effects/GainAllAbilitiesDynamic.js');
 // const Restriction = require('./Effects/restriction.js');
 // const { SuppressEffect } = require('./Effects/SuppressEffect');
-const { EffectBuilder } = require('./EffectBuilder');
+const { EffectBuilder } = require('../core/effect/EffectBuilder.js');
 // const { attachmentMilitarySkillModifier } = require('./Effects/Library/attachmentMilitarySkillModifier');
 // const { attachmentPoliticalSkillModifier } = require('./Effects/Library/attachmentPoliticalSkillModifier');
 // const { canPlayFromOwn } = require('./Effects/Library/canPlayFromOwn');
@@ -13,9 +13,9 @@ const { EffectBuilder } = require('./EffectBuilder');
 // const { gainAllAbilities } = require('./Effects/Library/gainAllAbilities');
 // const { gainAbility } = require('./Effects/Library/gainAbility');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
-const { modifyCost } = require('../../effects/modifyCost.js');
+const { modifyCost } = require('./ModifyCost.js');
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-const { EffectNames, PlayTypes, CardTypes, Players } = require('../Constants.js');
+const { EffectNames, PlayTypes, CardTypes, Players } = require('../core/Constants.js');
 
 /* Types of effect
     1. Static effects - do something for a period

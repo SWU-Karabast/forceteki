@@ -5,8 +5,8 @@ const { Deck } = require('../Deck.js');
 const UpgradePrompt = require('../gamesteps/upgradeprompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
 const { CostReducer } = require('./cost/CostReducer');
-const GameActions = require('../gameSystems/GameSystems');
-const { PlayableLocation } = require('../PlayableLocation');
+const GameSystems = require('../gameSystems/GameSystemLibrary');
+const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('../PlayerPromptState.js');
 const { BaseLocationCard } = require('./card/baseLocationCard');
 const { LeaderCard } = require('./card/leaderCard');
@@ -531,7 +531,7 @@ class Player extends GameObject {
     //  */
     // deckRanOutOfCards(deck) {
     //     let discardPile = this.getSourceListForPile(deck + ' discard pile');
-    //     let action = GameActions.loseHonor({ amount: this.game.gameMode === GameModes.Skirmish ? 3 : 5 });
+    //     let action = GameSystems.loseHonor({ amount: this.game.gameMode === GameModes.Skirmish ? 3 : 5 });
     //     if (action.canAffect(this, this.game.getFrameworkContext())) {
     //         this.game.addMessage(
     //             "{0}'s {1} deck has run out of cards, so they lose {2} honor",
@@ -1111,7 +1111,7 @@ class Player extends GameObject {
 
         // TODO: event resolution is probably not working right. this will get resolved in its own separate window as part of combat,
         // but actually all combat effects should be resolved in the same window with resolution order decided per rules
-        this.game.openEventWindow(GameActions.defeat().getEvent(card, this.game.getFrameworkContext()));
+        this.game.openEventWindow(GameSystems.defeat().getEvent(card, this.game.getFrameworkContext()));
     }
 
     /**

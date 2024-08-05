@@ -1,15 +1,15 @@
 import type { AbilityContext } from '../AbilityContext';
 import { CardTypes, EventNames, TargetableLocations, Locations, WildcardLocations, cardLocationMatches } from '../core/Constants';
-import { type CardSystemProperties, CardGameSystem } from './CardGameSystem';
+import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import BaseCard from '../core/card/basecard';
 
-export interface ReturnToDeckProperties extends CardSystemProperties {
+export interface ReturnToDeckProperties extends CardTargetSystemProperties {
     bottom?: boolean;
     shuffle?: boolean;
     location?: TargetableLocations | TargetableLocations[];
 }
 
-export class ReturnToDeckSystem extends CardGameSystem {
+export class ReturnToDeckSystem extends CardTargetSystem {
     name = 'returnToDeck';
     eventName = EventNames.OnCardDefeated;
     targetType = [CardTypes.Unit, CardTypes.Upgrade, CardTypes.Event];

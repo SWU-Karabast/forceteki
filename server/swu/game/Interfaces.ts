@@ -1,12 +1,12 @@
 import type { AbilityContext } from './AbilityContext';
-import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
-import type { GameSystem } from './gameSystems/GameSystem';
+import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
+import type { GameSystem } from './core/gameSystem/GameSystem';
 import type BaseCard = require('./core/card/basecard');
-import type CardAbility = require('./CardTextAbility');
+import type CardAbility = require('./core/ability/CardAbility');
 import type { AttackProperties } from './gameSystems/AttackSystem';
 import type { Players, TargetModes, CardTypes, Locations, EventNames, Phases } from './core/Constants';
 // import type { StatusToken } from './StatusToken';
-import type Player = require('./core/player');
+import type Player = require('./core/Player');
 
 interface BaseTarget {
     activePromptTitle?: string;
@@ -14,7 +14,7 @@ interface BaseTarget {
     controller?: ((context: AbilityContext) => Players) | Players;
     player?: ((context: AbilityContext) => Players) | Players;
     hideIfNoLegalTargets?: boolean;
-    gameAction?: GameSystem | GameSystem[];
+    gameSystem?: GameSystem | GameSystem[];
 }
 
 interface ChoicesInterface {
@@ -124,7 +124,7 @@ interface AbilityProps<Context> {
     effect?: string;
     evenDuringDynasty?: boolean;
     effectArgs?: EffectArg | ((context: Context) => EffectArg);
-    gameAction?: GameSystem | GameSystem[];
+    gameSystem?: GameSystem | GameSystem[];
     handler?: (context?: Context) => void;
     then?: ((context?: AbilityContext) => object) | object;
 }

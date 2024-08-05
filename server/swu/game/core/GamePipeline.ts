@@ -1,4 +1,4 @@
-import type Player = require('./player');
+import type Player = require('./Player');
 import type BaseCard = require('./card/basecard');
 import type { Step } from '../gamesteps/Step';
 

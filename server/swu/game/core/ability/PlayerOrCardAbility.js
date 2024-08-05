@@ -1,20 +1,21 @@
-const AbilityTargetAbility = require('./core/abilityTargets/AbilityTargetAbility.js');
-const AbilityTargetCard = require('./core/abilityTargets/AbilityTargetCard.js');
-const AbilityTargetSelect = require('./core/abilityTargets/AbilityTargetSelect.js');
-const AbilityTargetToken = require('./core/abilityTargets/AbilityTargetToken.js');
-const { Stages, TargetModes } = require('./core/Constants.js');
+const AbilityTargetAbility = require('./abilityTargets/AbilityTargetAbility.js');
+const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
+const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
+const AbilityTargetToken = require('./abilityTargets/AbilityTargetToken.js');
+const { Stages, TargetModes } = require('../Constants.js');
 
+// TODO: convert to TS and make this abstract
 /**
- * Base class representing an ability that can be done by the player. This
- * includes card actions, reactions, interrupts, playing a card, marshaling a
- * card.
+ * Base class representing an ability that can be done by the player 
+ * or triggered by card text. This includes card actions, reactions, 
+ * interrupts, playing a card.
  *
  * Most of the methods take a context object. While the structure will vary from
  * inheriting classes, it is guaranteed to have at least the `game` object, the
  * `player` that is executing the action, and the `source` card object that the
  * ability is generated from.
  */
-class BaseAbility {
+class PlayerOrCardAbility {
     /**
      * Creates an ability.
      *
@@ -24,13 +25,13 @@ class BaseAbility {
      * objects.
      * @param {Object} [properties.target] - optional property that specifies
      * the target of the ability.
-     * @param [properties.gameAction] - GameAction[] optional array of game actions
+     * @param {Array} [properties.gameSystem] - GameSystem[] optional array of game actions
      */
     constructor(properties) {
         this.abilityType = 'action';
-        this.gameAction = properties.gameAction || [];
-        if(!Array.isArray(this.gameAction)) {
-            this.gameAction = [this.gameAction];
+        this.gameSystem = properties.gameSystem || [];
+        if(!Array.isArray(this.gameSystem)) {
+            this.gameSystem = [this.gameSystem];
         }
         this.buildTargets(properties);
         this.cost = this.buildCost(properties.cost);
@@ -68,12 +69,12 @@ class BaseAbility {
 
     // TODO: definition / interface for the properties object here
     getAbilityTarget(name, properties) {
-        if(properties.gameAction) {
-            if(!Array.isArray(properties.gameAction)) {
-                properties.gameAction = [properties.gameAction];
+        if(properties.gameSystem) {
+            if(!Array.isArray(properties.gameSystem)) {
+                properties.gameSystem = [properties.gameSystem];
             }
         } else {
-            properties.gameAction = [];
+            properties.gameSystem = [];
         }
         if(properties.mode === TargetModes.Select) {
             return new AbilityTargetSelect(name, properties, this);
@@ -97,7 +98,7 @@ class BaseAbility {
             return 'cost';
         }
         if(this.targets.length === 0) {
-            if(this.gameAction.length > 0 && !this.checkGameActionsForPotential(context)) {
+            if(this.gameSystem.length > 0 && !this.checkGameActionsForPotential(context)) {
                 return 'condition';
             }
             return '';
@@ -106,7 +107,7 @@ class BaseAbility {
     }
 
     checkGameActionsForPotential(context) {
-        return this.gameAction.some((gameAction) => gameAction.hasLegalTarget(context));
+        return this.gameSystem.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
     /**
@@ -212,7 +213,7 @@ class BaseAbility {
     hasTargetsChosenByInitiatingPlayer(context) {
         return (
             this.targets.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
-            this.gameAction.some((action) => action.hasTargetsChosenByInitiatingPlayer(context)) ||
+            this.gameSystem.some((action) => action.hasTargetsChosenByInitiatingPlayer(context)) ||
             this.cost.some(
                 (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByInitiatingPlayer(context)
             )
@@ -251,4 +252,4 @@ class BaseAbility {
     }
 }
 
-module.exports = BaseAbility;
+module.exports = PlayerOrCardAbility;

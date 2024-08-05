@@ -3,7 +3,7 @@ import { AbilityContext } from '../AbilityContext';
 // import { AttachAction, AttachActionProperties } from './AttachAction';
 import { AttackSystem, AttackProperties } from './AttackSystem';
 // import { CancelAction, CancelActionProperties } from './CancelAction';
-import { CardGameSystem } from './CardGameSystem';
+import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { DamageSystem, DamageProperties } from './DamageSystem';
 import { DefeatCardSystem, DefeatCardProperties } from './DefeatCardSystem';
 // import { CardMenuAction, CardMenuProperties } from './CardMenuAction';
@@ -20,8 +20,8 @@ import { DefeatCardSystem, DefeatCardProperties } from './DefeatCardSystem';
 // import { DrawAction, DrawProperties } from './DrawAction';
 import { ExhaustSystem, ExhaustSystemProperties } from './ExhaustSystem';
 // import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
-import { GameSystem } from './GameSystem';
-import { HandlerAction, HandlerProperties } from './HandlerSystem';
+import { GameSystem } from '../core/gameSystem/GameSystem';
+import { ExecuteHandlerSystem, ExecuteHandlerSystemProperties } from '../core/gameSystem/ExecuteHandlerSystem';
 // import { IfAbleAction, IfAbleActionProperties } from './IfAbleAction';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
@@ -59,40 +59,40 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 //////////////
 // CARD
 //////////////
-// export function addToken(propertyFactory: PropsFactory<AddTokenProperties> = {}): GameAction {
+// export function addToken(propertyFactory: PropsFactory<AddTokenProperties> = {}): GameSystem {
 //     return new AddTokenAction(propertyFactory);
 // }
-// export function attach(propertyFactory: PropsFactory<AttachActionProperties> = {}): GameAction {
+// export function attach(propertyFactory: PropsFactory<AttachActionProperties> = {}): GameSystem {
 //     return new AttachAction(propertyFactory);
 // }
 export function attack(propertyFactory: PropsFactory<AttackProperties>): GameSystem {
     return new AttackSystem(propertyFactory);
 }
-// export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameAction {
+// export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameSystem {
 //     return new LastingEffectCardAction(propertyFactory);
 // }
-// export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameAction {
+// export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);
 // }
 export function damage(propertyFactory: PropsFactory<DamageProperties>): GameSystem {
     return new DamageSystem(propertyFactory);
 }
-// export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameAction {
+// export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
 // }
-export function defeat(propertyFactory: PropsFactory<DefeatCardProperties> = {}): CardGameSystem {
+export function defeat(propertyFactory: PropsFactory<DefeatCardProperties> = {}): CardTargetSystem {
     return new DefeatCardSystem(propertyFactory);
 }
 // export function discardCard(propertyFactory: PropsFactory<DiscardCardProperties> = {}): CardGameAction {
 //     return new DiscardCardAction(propertyFactory);
 // }
-// export function discardFromPlay(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): GameAction {
+// export function discardFromPlay(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): GameSystem {
 //     return new DiscardFromPlayAction(propertyFactory);
 // }
-export function exhaust(propertyFactory: PropsFactory<ExhaustSystemProperties> = {}): CardGameSystem {
+export function exhaust(propertyFactory: PropsFactory<ExhaustSystemProperties> = {}): CardTargetSystem {
     return new ExhaustSystem(propertyFactory);
 }
-// export function lookAt(propertyFactory: PropsFactory<LookAtProperties> = {}): GameAction {
+// export function lookAt(propertyFactory: PropsFactory<LookAtProperties> = {}): GameSystem {
 //     return new LookAtAction(propertyFactory);
 // }
 /**
@@ -100,13 +100,13 @@ export function exhaust(propertyFactory: PropsFactory<ExhaustSystemProperties> =
  * default shuffle = false
  * default faceup = false
  */
-export function moveCard(propertyFactory: PropsFactory<MoveCardProperties>): CardGameSystem {
+export function moveCard(propertyFactory: PropsFactory<MoveCardProperties>): CardTargetSystem {
     return new MoveCardSystem(propertyFactory);
 }
 // /**
 //  * default resetOnCancel = false
 //  */
-// export function playCard(propertyFactory: PropsFactory<PlayCardProperties> = {}): GameAction {
+// export function playCard(propertyFactory: PropsFactory<PlayCardProperties> = {}): GameSystem {
 //     return new PlayCardAction(propertyFactory);
 // }
 /**
@@ -120,16 +120,16 @@ export function putIntoPlay(propertyFactory: PropsFactory<PutIntoPlayProperties>
 //  * default fate = 0
 //  * default status = ordinary
 //  */
-// export function opponentPutIntoPlay(propertyFactory: PropsFactory<OpponentPutIntoPlayProperties> = {}): GameAction {
+// export function opponentPutIntoPlay(propertyFactory: PropsFactory<OpponentPutIntoPlayProperties> = {}): GameSystem {
 //     return new OpponentPutIntoPlayAction(propertyFactory, false);
 // }
-// export function ready(propertyFactory: PropsFactory<ReadyProperties> = {}): GameAction {
+// export function ready(propertyFactory: PropsFactory<ReadyProperties> = {}): GameSystem {
 //     return new ReadyAction(propertyFactory);
 // }
 // export function removeFromGame(propertyFactory: PropsFactory<RemoveFromGameProperties> = {}): CardGameAction {
 //     return new RemoveFromGameAction(propertyFactory);
 // }
-// export function resolveAbility(propertyFactory: PropsFactory<ResolveAbilityProperties>): GameAction {
+// export function resolveAbility(propertyFactory: PropsFactory<ResolveAbilityProperties>): GameSystem {
 //     return new ResolveAbilityAction(propertyFactory);
 // }
 // /**
@@ -150,22 +150,22 @@ export function putIntoPlay(propertyFactory: PropsFactory<PutIntoPlayProperties>
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): CardGameAction {
 //     return new DiscardFromPlayAction(propertyFactory, true);
 // }
-// export function takeControl(propertyFactory: PropsFactory<TakeControlProperties> = {}): GameAction {
+// export function takeControl(propertyFactory: PropsFactory<TakeControlProperties> = {}): GameSystem {
 //     return new TakeControlAction(propertyFactory);
 // }
-// export function triggerAbility(propertyFactory: PropsFactory<TriggerAbilityProperties>): GameAction {
+// export function triggerAbility(propertyFactory: PropsFactory<TriggerAbilityProperties>): GameSystem {
 //     return new TriggerAbilityAction(propertyFactory);
 // }
-// export function turnFacedown(propertyFactory: PropsFactory<TurnCardFacedownProperties> = {}): GameAction {
+// export function turnFacedown(propertyFactory: PropsFactory<TurnCardFacedownProperties> = {}): GameSystem {
 //     return new TurnCardFacedownAction(propertyFactory);
 // }
-// export function gainStatusToken(propertyFactory: PropsFactory<GainStatusTokenProperties> = {}): GameAction {
+// export function gainStatusToken(propertyFactory: PropsFactory<GainStatusTokenProperties> = {}): GameSystem {
 //     return new GainStatusTokenAction(propertyFactory);
 // }
 // /**
 //  * default hideWhenFaceup = true
 //  */
-// export function placeCardUnderneath(propertyFactory: PropsFactory<PlaceCardUnderneathProperties>): GameAction {
+// export function placeCardUnderneath(propertyFactory: PropsFactory<PlaceCardUnderneathProperties>): GameSystem {
 //     return new PlaceCardUnderneathAction(propertyFactory);
 // }
 
@@ -175,13 +175,13 @@ export function putIntoPlay(propertyFactory: PropsFactory<PutIntoPlayProperties>
 // /**
 //  * default amount = 1
 //  */
-// export function chosenDiscard(propertyFactory: PropsFactory<ChosenDiscardProperties> = {}): GameAction {
+// export function chosenDiscard(propertyFactory: PropsFactory<ChosenDiscardProperties> = {}): GameSystem {
 //     return new ChosenDiscardAction(propertyFactory);
 // }
 // /**
 //  * default amount = 1
 //  */
-// export function chosenReturnToDeck(propertyFactory: PropsFactory<ChosenReturnToDeckProperties> = {}): GameAction {
+// export function chosenReturnToDeck(propertyFactory: PropsFactory<ChosenReturnToDeckProperties> = {}): GameSystem {
 //     return new ChosenReturnToDeckAction(propertyFactory);
 // }
 // /**
@@ -189,7 +189,7 @@ export function putIntoPlay(propertyFactory: PropsFactory<PutIntoPlayProperties>
 //  * default reveal = true
 //  * default cardCondition = always true
 //  */
-// export function deckSearch(propertyFactory: PropsFactory<DeckSearchProperties>): GameAction {
+// export function deckSearch(propertyFactory: PropsFactory<DeckSearchProperties>): GameSystem {
 //     return new DeckSearchAction(propertyFactory);
 // }
 /**
@@ -201,98 +201,98 @@ export function discardAtRandom(propertyFactory: PropsFactory<RandomDiscardPrope
 // /**
 //  * default amount = 1
 //  */
-// export function discardMatching(propertyFactory: PropsFactory<MatchingDiscardProperties> = {}): GameAction {
+// export function discardMatching(propertyFactory: PropsFactory<MatchingDiscardProperties> = {}): GameSystem {
 //     return new MatchingDiscardAction(propertyFactory);
 // }
 // /**
 //  * default amount = 1
 //  */
-// export function draw(propertyFactory: PropsFactory<DrawProperties> = {}): GameAction {
+// export function draw(propertyFactory: PropsFactory<DrawProperties> = {}): GameSystem {
 //     return new DrawAction(propertyFactory);
 // }
-// export function playerLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameAction {
+// export function playerLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
 //     return new LastingEffectAction(propertyFactory);
 // } // duration = 'untilEndOfConflict', effect, targetController, condition, until
 
 // //////////////
 // // RING
 // //////////////
-// export function ringLastingEffect(propertyFactory: PropsFactory<LastingEffectRingProperties>): GameAction {
+// export function ringLastingEffect(propertyFactory: PropsFactory<LastingEffectRingProperties>): GameSystem {
 //     return new LastingEffectRingAction(propertyFactory);
 // } // duration = 'untilEndOfConflict', effect, condition, until
 
 // //////////////
 // // STATUS TOKEN
 // //////////////
-// export function discardStatusToken(propertyFactory: PropsFactory<DiscardStatusProperties> = {}): GameAction {
+// export function discardStatusToken(propertyFactory: PropsFactory<DiscardStatusProperties> = {}): GameSystem {
 //     return new DiscardStatusAction(propertyFactory);
 // }
-// export function moveStatusToken(propertyFactory: PropsFactory<MoveTokenProperties>): GameAction {
+// export function moveStatusToken(propertyFactory: PropsFactory<MoveTokenProperties>): GameSystem {
 //     return new MoveTokenAction(propertyFactory);
 // }
 
 // //////////////
 // // GENERIC
 // //////////////
-// export function cancel(propertyFactory: PropsFactory<CancelActionProperties> = {}): GameAction {
+// export function cancel(propertyFactory: PropsFactory<CancelActionProperties> = {}): GameSystem {
 //     return new CancelAction(propertyFactory);
 // }
-export function handler(propertyFactory: PropsFactory<HandlerProperties>): GameSystem {
-    return new HandlerAction(propertyFactory);
+export function handler(propertyFactory: PropsFactory<ExecuteHandlerSystemProperties>): GameSystem {
+    return new ExecuteHandlerSystem(propertyFactory);
 }
 export function noAction(): GameSystem {
-    return new HandlerAction({});
+    return new ExecuteHandlerSystem({});
 }
 
 //////////////
 // CONFLICT
 //////////////
-// export function conflictLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameAction {
+// export function conflictLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
 //     return new LastingEffectAction(propertyFactory);
 // } // duration = 'untilEndOfConflict', effect, targetController, condition, until
 export function immediatelyResolveConflict(): GameSystem {
-    return new HandlerAction({});
+    return new ExecuteHandlerSystem({});
 }
 
 // //////////////
 // // META
 // //////////////
-// export function cardMenu(propertyFactory: PropsFactory<CardMenuProperties>): GameAction {
+// export function cardMenu(propertyFactory: PropsFactory<CardMenuProperties>): GameSystem {
 //     return new CardMenuAction(propertyFactory);
 // }
-// export function chooseAction(propertyFactory: PropsFactory<ChooseActionProperties>): GameAction {
+// export function chooseAction(propertyFactory: PropsFactory<ChooseActionProperties>): GameSystem {
 //     return new ChooseGameAction(propertyFactory);
 // } // choices, activePromptTitle = 'Select one'
-// export function conditional(propertyFactory: PropsFactory<ConditionalActionProperties>): GameAction {
+// export function conditional(propertyFactory: PropsFactory<ConditionalActionProperties>): GameSystem {
 //     return new ConditionalAction(propertyFactory);
 // }
-// export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>): GameAction {
+// export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>): GameSystem {
 //     return new AffinityAction(propertyFactory);
 // }
-// export function ifAble(propertyFactory: PropsFactory<IfAbleActionProperties>): GameAction {
+// export function ifAble(propertyFactory: PropsFactory<IfAbleActionProperties>): GameSystem {
 //     return new IfAbleAction(propertyFactory);
 // }
-// export function joint(gameActions: GameAction[]): GameAction {
+// export function joint(gameActions: GameSystem[]): GameSystem {
 //     return new JointGameAction(gameActions);
 // } // takes an array of gameActions, not a propertyFactory
-// export function multiple(gameActions: GameAction[]): GameAction {
+// export function multiple(gameActions: GameSystem[]): GameSystem {
 //     return new MultipleGameAction(gameActions);
 // } // takes an array of gameActions, not a propertyFactory
-// export function multipleContext(propertyFactory: PropsFactory<MultipleContextActionProperties>): GameAction {
+// export function multipleContext(propertyFactory: PropsFactory<MultipleContextActionProperties>): GameSystem {
 //     return new MultipleContextGameAction(propertyFactory);
 // }
-// export function menuPrompt(propertyFactory: PropsFactory<MenuPromptProperties>): GameAction {
+// export function menuPrompt(propertyFactory: PropsFactory<MenuPromptProperties>): GameSystem {
 //     return new MenuPromptAction(propertyFactory);
 // }
 export function selectCard(propertyFactory: PropsFactory<SelectCardProperties>): GameSystem {
     return new SelectCardSystem(propertyFactory);
 }
-// export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameAction {
+// export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameSystem {
 //     return new SelectTokenAction(propertyFactory);
 // }
-// export function sequential(gameActions: GameAction[]): GameAction {
+// export function sequential(gameActions: GameSystem[]): GameSystem {
 //     return new SequentialAction(gameActions);
 // } // takes an array of gameActions, not a propertyFactory
-// export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameAction {
+// export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }

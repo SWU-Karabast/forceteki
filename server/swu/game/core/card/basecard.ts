@@ -1,13 +1,13 @@
-const AbilityDsl = require('../abilitydsl.js');
-const Effects = require('../effects/effects');
-const EffectSource = require('../EffectSource.js');
-import CardAbility = require('../../CardTextAbility');
+const AbilityDsl = require('../../abilitydsl.js');
+const Effects = require('../../effects/effectLibrary.js');
+const EffectSource = require('../effect/EffectSource.js');
+import CardAbility = require('../ability/CardAbility');
 // import TriggeredAbility = require('./triggeredability');
-import Game = require('../game.js');
+import Game = require('../Game.js');
 
 import { GameModes } from '../../../GameModes.js';
 import { AbilityContext } from '../../AbilityContext.js';
-import { CardTextAction } from '../../CardTextAction.js';
+import { CardActionAbility } from '../ability/CardActionAbility';
 import { AttackSystem } from '../../gameSystems/AttackSystem';
 import {
     AbilityTypes,
@@ -31,12 +31,12 @@ import {
 } from '../../Interfaces';
 // import { PlayAttachmentAction } from './PlayAttachmentAction.js';
 // import { StatusToken } from './StatusToken';
-import Player from '../player.js';
+import Player from '../Player.js';
 import StatModifier = require('../../StatModifier');
 import type { CardEffect } from '../effect/types';
 // import type { GainAllAbilities } from './Effects/Library/gainAllAbilities';
 import { PlayUnitAction } from '../../actions/PlayUnitAction.js';
-import { checkConvertToEnum } from '../utils/helpers';
+import { checkConvertToEnum } from '../utils/Helpers';
 import { TriggerAttackAction } from '../../actions/TriggerAttackAction';
 
 // TODO: convert enums to unions
@@ -193,11 +193,11 @@ class BaseCard extends EffectSource {
         return this.actions.slice();
     }
 
-    get actions(): CardTextAction[] {
+    get actions(): CardActionAbility[] {
         return this.#getActions();
     }
 
-    #getActions(location = this.location, ignoreDynamicGains = false): CardTextAction[] {
+    #getActions(location = this.location, ignoreDynamicGains = false): CardActionAbility[] {
         let actions = this.abilities.actions;
 
         const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectNames.CopyCharacter);
@@ -353,8 +353,8 @@ class BaseCard extends EffectSource {
         this.abilities.actions.push(this.createAction(properties));
     }
 
-    createAction(properties: ActionProps): CardTextAction {
-        return new CardTextAction(this.game, this, properties);
+    createAction(properties: ActionProps): CardActionAbility {
+        return new CardActionAbility(this.game, this, properties);
     }
 
     // triggeredAbility(abilityType: AbilityTypes, properties: TriggeredAbilityProps): void {

@@ -1,9 +1,9 @@
-import type { AbilityContext } from './AbilityContext.js';
-import CardTextAbility from './CardTextAbility.js';
-import { AbilityTypes, CardTypes, EffectNames, Phases } from './core/Constants.js';
-import type { ActionProps } from './Interfaces.js';
-import type BaseCard from './core/card/basecard.js';
-import type Game from './core/game.js';
+import type { AbilityContext } from '../../AbilityContext.js';
+import CardAbility from './CardAbility.js';
+import { AbilityTypes, CardTypes, EffectNames, Phases } from '../Constants.js';
+import type { ActionProps } from '../../Interfaces.js';
+import type BaseCard from '../card/basecard.js';
+import type Game from '../Game.js';
 
 /**
  * Represents an action ability provided by card text.
@@ -32,7 +32,7 @@ import type Game from './core/game.js';
  * clickToActivate - boolean that indicates the action should be activated when
  *                   the card is clicked.
  */
-export class CardTextAction extends CardTextAbility {
+export class CardActionAbility extends CardAbility {
     abilityType = AbilityTypes.Action;
 
     anyPlayer: boolean;

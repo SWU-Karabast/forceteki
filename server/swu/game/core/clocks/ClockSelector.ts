@@ -1,10 +1,10 @@
-import type Player from '../player';
+import type Player from '../Player';
 import { Byoyomi } from './Byoyomi';
 import { ChessClock } from './ChessClock';
 import { Clock } from './Clock';
 import { Hourglass } from './Hourglass';
 import { Timer } from './Timer';
-import type { ClockInterface } from './types';
+import type { ClockInterface } from './ClockInterface';
 
 export enum ClockType {
     NONE = 'none',

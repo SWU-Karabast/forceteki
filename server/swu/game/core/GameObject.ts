@@ -3,10 +3,10 @@ import { v1 as uuidV1 } from 'uuid';
 import type { AbilityContext } from '../AbilityContext';
 import { EffectNames, Stages } from './Constants';
 import type { CardEffect } from './effect/types';
-import type Game from './game';
-import type { GameSystem } from '../gameSystems/GameSystem';
-import * as GameActions from '../gameSystems/GameSystems';
-import type Player from './player';
+import type Game from './Game';
+import type { GameSystem } from './gameSystem/GameSystem';
+import * as GameSystems from '../gameSystems/GameSystemLibrary';
+import type Player from './Player';
 
 export class GameObject {
     public uuid = uuidV1();
@@ -48,10 +48,10 @@ export class GameObject {
     }
 
     public allowGameAction(actionType: string, context = this.game.getFrameworkContext()) {
-        const gameActionFactory = GameActions[actionType];
+        const gameActionFactory = GameSystems[actionType];
         if (gameActionFactory) {
-            const gameAction: GameSystem = gameActionFactory();
-            return gameAction.canAffect(this, context);
+            const gameSystem: GameSystem = gameActionFactory();
+            return gameSystem.canAffect(this, context);
         }
         return this.checkRestrictions(actionType, context);
     }

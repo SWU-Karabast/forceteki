@@ -1,13 +1,13 @@
 const AbilityLimit = require('./AbilityLimit');
-const Effects = require('./core/effect/effects.js');
+const Effects = require('./effects/EffectLibrary.js');
 const Costs = require('./costs/CostLibrary.js');
-const GameActions = require('./gameSystems/GameSystems');
+const GameSystems = require('./gameSystems/GameSystemLibrary');
 
 const AbilityDsl = {
     limit: AbilityLimit,
-    effects: Effects,
+    ongoingEffects: Effects,
     costs: Costs,
-    actions: GameActions
+    immediateEffects: GameSystems
 };
 
 module.exports = AbilityDsl;

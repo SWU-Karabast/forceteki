@@ -1,6 +1,6 @@
-import type Player from '../player';
+import type Player from '../Player';
 import { ChessClock } from './ChessClock';
-import type { ClockInterface } from './types';
+import type { ClockInterface } from './ClockInterface';
 
 // TODO: fix capitalization on folder, files, classes
 

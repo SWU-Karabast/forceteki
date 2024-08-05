@@ -2,7 +2,7 @@ import { GamePipeline } from '../core/GamePipeline';
 import { BaseStep } from './BaseStep';
 import type { Step } from './Step';
 import type BaseCard = require('../core/card/basecard');
-import type Player = require('../core/player');
+import type Player = require('../core/Player');
 
 export class BaseStepWithPipeline extends BaseStep implements Step {
     pipeline = new GamePipeline();

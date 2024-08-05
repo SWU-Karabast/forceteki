@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const { SelectChoice } = require('./SelectChoice.js');
-const { Stages, Players } = require('../Constants.js');
+const { Stages, Players } = require('../../Constants.js');
 
 class AbilityTargetSelect {
     constructor(name, properties, ability) {

@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../core/card/basecard';
 import { CardTypes, EffectNames, Locations, isArena } from '../core/Constants';
-import { type CardSystemProperties, CardGameSystem } from './CardGameSystem';
+import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
-export interface MoveCardProperties extends CardSystemProperties {
+export interface MoveCardProperties extends CardTargetSystemProperties {
     destination?: Locations;
     switch?: boolean;
     switchTarget?: BaseCard;
@@ -14,7 +14,7 @@ export interface MoveCardProperties extends CardSystemProperties {
     discardDestinationCards?: boolean;
 }
 
-export class MoveCardSystem extends CardGameSystem {
+export class MoveCardSystem extends CardTargetSystem {
     name = 'move';
     targetType = [CardTypes.Unit, CardTypes.Upgrade, CardTypes.Event];
     defaultProperties: MoveCardProperties = {

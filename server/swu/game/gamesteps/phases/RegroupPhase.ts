@@ -1,9 +1,9 @@
 import { GameModes } from '../../../GameModes';
 import { Phases } from '../../core/Constants';
 import { Locations } from '../../core/Constants';
-import { randomItem } from '../../core/utils/helpers';
+import { randomItem } from '../../core/utils/Helpers';
 import type BaseCard from '../../core/card/basecard';
-import type Game from '../../core/game';
+import type Game from '../../core/Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import ResourcePrompt from '../resourceprompt';

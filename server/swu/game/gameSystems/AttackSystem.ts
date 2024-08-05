@@ -3,14 +3,14 @@ import { CardTypes, EventNames, Locations, isArena, isAttackableLocation as isAt
 import { Attack } from '../core/attack/Attack';
 import { EffectNames } from '../core/Constants'
 import { AttackFlow } from '../core/attack/AttackFlow';
-import type { TriggeredAbilityContext } from '../TriggeredAbilityContext';
-import { CardGameSystem, type CardSystemProperties } from './CardGameSystem';
-import { damage } from './GameSystems.js';
+import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import { CardTargetSystem, type CardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { damage } from './GameSystemLibrary.js';
 import type BaseCard from '../core/card/basecard';       // TODO: is this the right import form?
 import { isArray } from 'underscore';
 
 
-export interface AttackProperties extends CardSystemProperties {
+export interface AttackProperties extends CardTargetSystemProperties {
     attacker?: BaseCard;
     attackerCondition?: (card: BaseCard, context: TriggeredAbilityContext) => boolean;
     message?: string;
@@ -19,7 +19,7 @@ export interface AttackProperties extends CardSystemProperties {
     statistic?: (card: BaseCard) => number;
 }
 
-export class AttackSystem extends CardGameSystem<AttackProperties> {
+export class AttackSystem extends CardTargetSystem<AttackProperties> {
     name = 'attack';
     eventName = EventNames.OnAttackDeclared;
     targetType = [CardTypes.Unit, CardTypes.Base];  // TODO: leader?

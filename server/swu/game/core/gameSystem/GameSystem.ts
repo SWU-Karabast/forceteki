@@ -1,15 +1,13 @@
-import type { AbilityContext } from '../AbilityContext';
-import type BaseCard from '../core/card/basecard';
-import { CardTypes, EventNames, Stages } from '../core/Constants';
-import { Event } from '../core/event/Event';
-import type Player from '../core/player';
-// import type { StatusToken } from '../StatusToken';
+import type { AbilityContext } from '../../AbilityContext';
+import type BaseCard from '../card/basecard';
+import { CardTypes, EventNames, Stages } from '../Constants';
+import { Event } from '../event/Event';
+import type Player from '../Player';
 
-// type PlayerOrCardOrToken = Player | BaseCard | StatusToken;
-type PlayerOrCardOrToken = Player | BaseCard;
+type PlayerOrCard = Player | BaseCard;
 
 export interface GameSystemProperties {
-    target?: PlayerOrCardOrToken | PlayerOrCardOrToken[];
+    target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
     parentAction?: GameSystem<GameSystemProperties>;
@@ -75,7 +73,7 @@ export class GameSystem<P extends GameSystemProperties = GameSystemProperties> {
     }
 
     #targets(context: AbilityContext, additionalProperties = {}) {
-        return this.getProperties(context, additionalProperties).target as PlayerOrCardOrToken[];
+        return this.getProperties(context, additionalProperties).target as PlayerOrCard[];
     }
 
     hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
@@ -126,7 +124,7 @@ export class GameSystem<P extends GameSystemProperties = GameSystemProperties> {
     }
 
     resolve(
-        target: undefined | PlayerOrCardOrToken | PlayerOrCardOrToken[],
+        target: undefined | PlayerOrCard | PlayerOrCard[],
         context: AbilityContext
     ): void {
         if (target) {

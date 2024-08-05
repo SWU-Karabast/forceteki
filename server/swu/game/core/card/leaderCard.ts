@@ -1,5 +1,5 @@
 import BaseCard from './basecard';
-import type Player from '../player';
+import type Player from '../Player';
 
 export class LeaderCard extends BaseCard {
     isLeader = true;

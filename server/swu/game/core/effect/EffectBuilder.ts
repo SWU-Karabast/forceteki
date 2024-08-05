@@ -1,11 +1,11 @@
 import type { AbilityContext } from '../../AbilityContext';
-import type BaseAbility from '../../baseability';
+import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type BaseCard from '../card/basecard';
 import type { Durations, EffectNames, Locations } from '../Constants';
-import type Game from '../game';
-import type { GameSystem, GameSystemProperties } from '../../gameSystems/GameSystem';
+import type Game from '../Game';
+import type { GameSystem, GameSystemProperties } from '../gameSystem/GameSystem';
 import type { WhenType } from '../../Interfaces';
-import type Player from '../player';
+import type Player from '../Player';
 // import type { StatusToken } from '../StatusToken';
 import CardEffect from './CardEffect';
 // import ConflictEffect from './ConflictEffect';
@@ -24,7 +24,7 @@ type Props = {
     duration?: Durations;
     condition?: (context: AbilityContext) => boolean;
     until?: WhenType;
-    ability?: BaseAbility;
+    ability?: PlayerOrCardAbility;
     target?: PlayerOrCardOrToken | PlayerOrCardOrToken[];
     cannotBeCancelled?: boolean;
     optional?: boolean;

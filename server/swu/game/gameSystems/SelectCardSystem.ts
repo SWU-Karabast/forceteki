@@ -3,11 +3,11 @@ import type BaseCard from '../core/card/basecard';
 import CardSelector from '../core/cardSelector/CardSelector';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import { CardTypes, EffectNames, Locations, Players, TargetModes } from '../core/Constants';
-import type Player from '../core/player';
-import { type CardSystemProperties, CardGameSystem } from './CardGameSystem';
-import type { GameSystem } from './GameSystem';
+import type Player from '../core/Player';
+import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 
-export interface SelectCardProperties extends CardSystemProperties {
+export interface SelectCardProperties extends CardTargetSystemProperties {
     activePromptTitle?: string;
     player?: Players;
     cardType?: CardTypes | CardTypes[];
@@ -18,7 +18,7 @@ export interface SelectCardProperties extends CardSystemProperties {
     message?: string;
     manuallyRaiseEvent?: boolean;
     messageArgs?: (card: BaseCard, player: Player, properties: SelectCardProperties) => any[];
-    gameAction: GameSystem;
+    gameSystem: GameSystem;
     selector?: BaseCardSelector;
     mode?: TargetModes;
     numCards?: number;
@@ -29,10 +29,10 @@ export interface SelectCardProperties extends CardSystemProperties {
     effectArgs?: (context) => string[];
 }
 
-export class SelectCardSystem extends CardGameSystem {
+export class SelectCardSystem extends CardTargetSystem {
     defaultProperties: SelectCardProperties = {
         cardCondition: () => true,
-        gameAction: null,
+        gameSystem: null,
         subActionProperties: (card) => ({ target: card }),
         targets: false,
         hidePromptIfSingleCard: false,
@@ -53,10 +53,10 @@ export class SelectCardSystem extends CardGameSystem {
 
     getProperties(context: AbilityContext, additionalProperties = {}): SelectCardProperties {
         let properties = super.getProperties(context, additionalProperties) as SelectCardProperties;
-        properties.gameAction.setDefaultTarget(() => properties.target);
+        properties.gameSystem.setDefaultTarget(() => properties.target);
         if (!properties.selector) {
             let cardCondition = (card, context) =>
-                properties.gameAction.allTargetsLegal(
+                properties.gameSystem.allTargetsLegal(
                     context,
                     Object.assign({}, additionalProperties, properties.subActionProperties(card))
                 ) && properties.cardCondition(card, context);
@@ -113,7 +113,7 @@ export class SelectCardSystem extends CardGameSystem {
                 if (properties.message) {
                     context.game.addMessage(properties.message, ...properties.messageArgs(cards, player, properties));
                 }
-                properties.gameAction.addEventsToArray(
+                properties.gameSystem.addEventsToArray(
                     events,
                     context,
                     Object.assign({ parentAction: this }, additionalProperties, properties.subActionProperties(cards))

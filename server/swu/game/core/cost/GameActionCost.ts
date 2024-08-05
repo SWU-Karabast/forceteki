@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../../AbilityContext';
 import type { Cost, Result } from '../../costs/CostLibrary';
-import type { GameSystem } from '../../gameSystems/GameSystem';
+import type { GameSystem } from '../gameSystem/GameSystem';
 
 export class GameActionCost implements Cost {
     constructor(public action: GameSystem) {}

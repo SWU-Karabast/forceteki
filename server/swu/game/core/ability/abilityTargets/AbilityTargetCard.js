@@ -1,15 +1,15 @@
 const _ = require('underscore');
 
-const CardSelector = require('../cardSelector/CardSelector.js');
-const { Stages, Players, EffectNames, TargetModes } = require('../Constants.js');
+const CardSelector = require('../../cardSelector/CardSelector.js');
+const { Stages, Players, EffectNames, TargetModes } = require('../../Constants.js');
 
 class AbilityTargetCard {
     constructor(name, properties, ability) {
         this.name = name;
         this.properties = properties;
-        for(let gameAction of this.properties.gameAction) {
+        for(let gameSystem of this.properties.gameSystem) {
             // TODO: is this ever actually used? need to consolidate how targeting is done
-            gameAction.setDefaultTarget(context => context.targets[name]);
+            gameSystem.setDefaultTarget(context => context.targets[name]);
         }
         this.selector = this.getSelector(properties);
         this.dependentTarget = null;
@@ -28,7 +28,7 @@ class AbilityTargetCard {
             }
             return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
                    (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                   (properties.gameAction.length === 0 || properties.gameAction.some(gameAction => gameAction.hasLegalTarget(contextCopy)));
+                   (properties.gameSystem.length === 0 || properties.gameSystem.some(gameSystem => gameSystem.hasLegalTarget(contextCopy)));
         };
         return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
@@ -52,7 +52,7 @@ class AbilityTargetCard {
     }
 
     getGameAction(context) {
-        return this.properties.gameAction.filter(gameAction => gameAction.hasLegalTarget(context));
+        return this.properties.gameSystem.filter(gameSystem => gameSystem.hasLegalTarget(context));
     }
 
     getAllLegalTargets(context) {
@@ -156,7 +156,7 @@ class AbilityTargetCard {
     checkGameActionsForTargetsChosenByInitiatingPlayer(context) {
         return this.getAllLegalTargets(context).some(card => {
             let contextCopy = this.getContextCopy(card, context);
-            if(this.properties.gameAction.some(action => action.hasTargetsChosenByInitiatingPlayer(contextCopy))) {
+            if(this.properties.gameSystem.some(action => action.hasTargetsChosenByInitiatingPlayer(contextCopy))) {
                 return true;
             } else if(this.dependentTarget) {
                 return this.dependentTarget.checkGameActionsForTargetsChosenByInitiatingPlayer(contextCopy);

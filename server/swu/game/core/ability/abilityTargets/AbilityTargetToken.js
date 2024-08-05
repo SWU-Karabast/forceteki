@@ -1,5 +1,5 @@
-const CardSelector = require('../cardSelector/CardSelector.js');
-const { CardTypes, Stages, Players, Locations, WildcardLocations } = require('../Constants.js');
+const CardSelector = require('../../cardSelector/CardSelector.js');
+const { CardTypes, Stages, Players, Locations, WildcardLocations } = require('../../Constants.js');
 
 class AbilityTargetToken {
     constructor(name, properties, ability) {
@@ -8,8 +8,8 @@ class AbilityTargetToken {
         this.properties.location = this.properties.location || WildcardLocations.AnyArena;
         this.selector = this.getSelector(properties);
         this.properties.singleToken = this.properties.singleToken || true;
-        for(let gameAction of this.properties.gameAction) {
-            gameAction.setDefaultTarget(context => context.tokens[name]);
+        for(let gameSystem of this.properties.gameSystem) {
+            gameSystem.setDefaultTarget(context => context.tokens[name]);
         }
         this.dependentTarget = null;
         this.dependentCost = null;
@@ -44,7 +44,7 @@ class AbilityTargetToken {
             }
 
             return (tokensValid && cardValid) && (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                    (properties.gameAction.length === 0 || properties.gameAction.some(gameAction => gameAction.hasLegalTarget(contextCopy)));
+                    (properties.gameSystem.length === 0 || properties.gameSystem.some(gameSystem => gameSystem.hasLegalTarget(contextCopy)));
         };
         let cardType = properties.cardType || [CardTypes.Upgrade, CardTypes.Unit, CardTypes.Event, CardTypes.Leader, CardTypes.Base];
         return CardSelector.for(Object.assign({}, properties, { cardType: cardType, cardCondition: cardCondition, targets: false }));
@@ -63,7 +63,7 @@ class AbilityTargetToken {
     }
 
     getGameAction(context) {
-        return this.properties.gameAction.filter(gameAction => gameAction.hasLegalTarget(context));
+        return this.properties.gameSystem.filter(gameSystem => gameSystem.hasLegalTarget(context));
     }
 
     resolve(context, targetResults) {
@@ -95,7 +95,7 @@ class AbilityTargetToken {
                     return true;
                 }
 
-                let validTokens = card.statusTokens.filter(token => (!this.properties.tokenCondition || this.properties.tokenCondition(token, context)) && (this.properties.gameAction.length === 0 || this.properties.gameAction.some(action => action.canAffect(token, context))));
+                let validTokens = card.statusTokens.filter(token => (!this.properties.tokenCondition || this.properties.tokenCondition(token, context)) && (this.properties.gameSystem.length === 0 || this.properties.gameSystem.some(action => action.canAffect(token, context))));
                 if(this.properties.singleToken && validTokens.length > 1) {
                     const choices = validTokens.map(token => token.name);
                     const handlers = validTokens.map(token => {
@@ -151,7 +151,7 @@ class AbilityTargetToken {
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {
-        if(this.properties.gameAction.some(action => action.hasTargetsChosenByInitiatingPlayer(context))) {
+        if(this.properties.gameSystem.some(action => action.hasTargetsChosenByInitiatingPlayer(context))) {
             return true;
         }
         return this.getChoosingPlayer(context) === context.player;

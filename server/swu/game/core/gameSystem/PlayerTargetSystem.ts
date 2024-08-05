@@ -1,10 +1,10 @@
-import type { AbilityContext } from '../AbilityContext';
-import type Player from '../core/player';
+import type { AbilityContext } from '../../AbilityContext';
+import type Player from '../Player';
 import { GameSystem, type GameSystemProperties } from './GameSystem';
 
-export interface PlayerSystemProperties extends GameSystemProperties {}
+export interface PlayerTargetSystemProperties extends GameSystemProperties {}
 
-export class PlayerSystem<P extends PlayerSystemProperties = PlayerSystemProperties> extends GameSystem<P> {
+export class PlayerTargetSystem<P extends PlayerTargetSystemProperties = PlayerTargetSystemProperties> extends GameSystem<P> {
     targetType = ['player'];
 
     defaultTargets(context: AbilityContext): Player[] {

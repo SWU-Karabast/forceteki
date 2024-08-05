@@ -1,8 +1,12 @@
-const { AbilityContext } = require('./AbilityContext.js');
-const BaseAbility = require('./baseability.js');
-const { Stages } = require('./core/Constants.js');
+const { AbilityContext } = require('../../AbilityContext.js');
+const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
+const { Stages } = require('../Constants.js');
 
-class ThenAbility extends BaseAbility {
+/**
+ * Represents one step from a card's text ability. Checks are simpler than for a 
+ * full card ability, since it is assumed the ability is already resolving (see CardAbility.js).
+ */
+class CardAbilityStep extends PlayerOrCardAbility {
     constructor(game, card, properties) {
         super(properties);
 
@@ -26,11 +30,11 @@ class ThenAbility extends BaseAbility {
     checkGameActionsForPotential(context) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
-        } else if (this.gameAction.every((gameAction) => gameAction.isOptional(context)) && this.properties.then) {
+        } else if (this.gameSystem.every((gameSystem) => gameSystem.isOptional(context)) && this.properties.then) {
             const then =
                 typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
-            const thenAbility = new ThenAbility(this.game, this.card, then);
-            return thenAbility.meetsRequirements(thenAbility.createContext(context.player)) === '';
+            const cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
+            return cardAbilityStep.meetsRequirements(cardAbilityStep.createContext(context.player)) === '';
         }
         return false;
     }
@@ -56,8 +60,8 @@ class ThenAbility extends BaseAbility {
     getGameActions(context) {
         // if there are any targets, look for gameActions attached to them
         let actions = this.targets.reduce((array, target) => array.concat(target.getGameAction(context)), []);
-        // look for a gameAction on the ability itself, on an attachment execute that action on its parent, otherwise on the card itself
-        return actions.concat(this.gameAction);
+        // look for a gameSystem on the ability itself, on an attachment execute that action on its parent, otherwise on the card itself
+        return actions.concat(this.gameSystem);
     }
 
     executeHandler(context) {
@@ -82,11 +86,11 @@ class ThenAbility extends BaseAbility {
             if (eventsToResolve.length > 0) {
                 let window = this.openEventWindow(eventsToResolve);
                 if (then) {
-                    window.addThenAbility(new ThenAbility(this.game, this.card, then), context, then.thenCondition);
+                    window.addCardAbilityStep(new CardAbilityStep(this.game, this.card, then), context, then.thenCondition);
                 }
             } else if (then && then.thenCondition && then.thenCondition(context)) {
-                let thenAbility = new ThenAbility(this.game, this.card, then);
-                this.game.resolveAbility(thenAbility.createContext(context.player));
+                let cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
+                this.game.resolveAbility(cardAbilityStep.createContext(context.player));
             }
         });
     }
@@ -100,4 +104,4 @@ class ThenAbility extends BaseAbility {
     }
 }
 
-module.exports = ThenAbility;
+module.exports = CardAbilityStep;

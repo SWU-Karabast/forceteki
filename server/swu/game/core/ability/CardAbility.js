@@ -1,10 +1,10 @@
-const AbilityLimit = require('./AbilityLimit.js');
-const AbilityDsl = require('./abilitydsl.js');
-const ThenAbility = require('./ThenAbility.js');
-const Costs = require('./costs/CostLibrary.js');
-const { Locations, CardTypes, EffectNames, WildcardLocations } = require('./core/Constants.js');
+const AbilityLimit = require('../../AbilityLimit.js');
+const AbilityDsl = require('../../AbilityDsl.js');
+const CardAbilityStep = require('./CardAbilityStep.js');
+const Costs = require('../../costs/CostLibrary.js');
+const { Locations, CardTypes, EffectNames, WildcardLocations } = require('../Constants.js');
 
-class CardTextAbility extends ThenAbility {
+class CardAbility extends CardAbilityStep {
     constructor(game, card, properties) {
         super(game, card, properties);
 
@@ -191,7 +191,7 @@ class CardTextAbility extends ThenAbility {
         let effectArgs = [];
         let extraArgs = null;
         if (!effectMessage) {
-            let gameActions = this.getGameActions(context).filter((gameAction) => gameAction.hasLegalTarget(context));
+            let gameActions = this.getGameActions(context).filter((gameSystem) => gameSystem.hasLegalTarget(context));
             if (gameActions.length > 0) {
                 // effects with multiple game actions really need their own effect message
                 [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);
@@ -226,4 +226,4 @@ class CardTextAbility extends ThenAbility {
     }
 }
 
-module.exports = CardTextAbility;
+module.exports = CardAbility;

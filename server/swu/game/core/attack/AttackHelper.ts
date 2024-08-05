@@ -1,6 +1,6 @@
 const AbilityLimit = require('./AbilityLimit');
 const AbilityDsl = require('./abilitydsl');
-const ThenAbility = require('./ThenAbility');
+const CardAbilityStep = require('./CardAbilityStep');
 const Costs = require('./Costs.js');
 const { Locations, CardTypes, EffectNames, Players } = require('./Constants');
 import { InitiateAttack } from "../../Interfaces";
@@ -30,7 +30,7 @@ const initiateAttackFromUnit = (game, card, properties) => {
     }
     properties.target = {
         ...getBaselineAttackTargetProperties(card, properties),
-        gameAction: AbilityDsl.actions.duel((context) => {
+        gameSystem: AbilityDsl.actions.duel((context) => {
             const attackProperties = getProperty(properties, context);
             return Object.assign({ attacker: context.source }, attackProperties);
         })
@@ -51,7 +51,7 @@ const initiateAttackFromOther = (game, card, properties) => {
         duelTarget: {
             dependsOn: 'attacker',
             ...getBaselineAttackTargetProperties(undefined, properties),
-            gameAction: AbilityDsl.actions.duel((context) => {
+            gameSystem: AbilityDsl.actions.duel((context) => {
                 const attackProperties = getProperty(properties, context);
                 return Object.assign({ attacker: context.targets.attacker }, attackProperties);
             })

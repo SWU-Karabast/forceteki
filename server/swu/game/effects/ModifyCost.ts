@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../AbilityContext';
 import { EffectNames } from '../core/Constants';
 import type { CostReducer, CostReducerProps } from '../core/cost/CostReducer';
-import type Player from '../core/player';
+import type Player from '../core/Player';
 import { EffectBuilder } from '../core/effect/EffectBuilder';
 
 // TODO: rename "ReduceCost" everywhere to "ModifyCost"

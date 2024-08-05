@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../../AbilityContext';
 import { WildcardLocations, Players } from '../Constants';
 import type { Cost, Result } from '../../costs/CostLibrary';
-import type { GameSystem } from '../../gameSystems/GameSystem';
+import type { GameSystem } from '../gameSystem/GameSystem';
 import type { SelectCardProperties } from '../../gameSystems/SelectCardSystem';
-import { randomItem } from '../utils/helpers';
+import { randomItem } from '../utils/Helpers';
 import { GameActionCost } from './GameActionCost';
 
 export class MetaActionCost extends GameActionCost implements Cost {
@@ -15,8 +15,8 @@ export class MetaActionCost extends GameActionCost implements Cost {
     }
 
     getActionName(context: AbilityContext): string {
-        const { gameAction } = this.action.getProperties(context) as SelectCardProperties;
-        return gameAction.name;
+        const { gameSystem } = this.action.getProperties(context) as SelectCardProperties;
+        return gameSystem.name;
     }
 
     canPay(context: AbilityContext): boolean {
@@ -31,13 +31,13 @@ export class MetaActionCost extends GameActionCost implements Cost {
     addEventsToArray(events: any[], context: AbilityContext, result: Result): void {
         const properties = this.action.getProperties(context) as SelectCardProperties;
         if (properties.targets && context.choosingPlayerOverride) {
-            context.costs[properties.gameAction.name] = randomItem(
+            context.costs[properties.gameSystem.name] = randomItem(
                 properties.selector.getAllLegalTargets(context, context.player)
             );
-            context.costs[properties.gameAction.name + 'StateWhenChosen'] =
-                context.costs[properties.gameAction.name].createSnapshot();
-            return properties.gameAction.addEventsToArray(events, context, {
-                target: context.costs[properties.gameAction.name]
+            context.costs[properties.gameSystem.name + 'StateWhenChosen'] =
+                context.costs[properties.gameSystem.name].createSnapshot();
+            return properties.gameSystem.addEventsToArray(events, context, {
+                target: context.costs[properties.gameSystem.name]
             });
         }
 
@@ -47,9 +47,9 @@ export class MetaActionCost extends GameActionCost implements Cost {
             controller: Players.Self,
             cancelHandler: !result.canCancel ? null : () => (result.cancelled = true),
             subActionProperties: (target: any) => {
-                context.costs[properties.gameAction.name] = target;
+                context.costs[properties.gameSystem.name] = target;
                 if (target.createSnapshot) {
-                    context.costs[properties.gameAction.name + 'StateWhenChosen'] = target.createSnapshot();
+                    context.costs[properties.gameSystem.name + 'StateWhenChosen'] = target.createSnapshot();
                 }
                 return properties.subActionProperties ? properties.subActionProperties(target) : {};
             }
@@ -63,6 +63,6 @@ export class MetaActionCost extends GameActionCost implements Cost {
 
     getCostMessage(context: AbilityContext): [string, any[]] {
         const properties = this.action.getProperties(context) as SelectCardProperties;
-        return properties.gameAction.getCostMessage(context);
+        return properties.gameSystem.getCostMessage(context);
     }
 }

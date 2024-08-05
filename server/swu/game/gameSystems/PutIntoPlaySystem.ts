@@ -1,16 +1,16 @@
 import type { AbilityContext } from '../AbilityContext';
 import { CardTypes, EventNames, Locations, Players, isArena } from '../core/Constants';
-import type Player from '../core/player';
-import { type CardSystemProperties, CardGameSystem } from './CardGameSystem';
+import type Player from '../core/Player';
+import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import BaseCard from '../core/card/basecard';
 
-export interface PutIntoPlayProperties extends CardSystemProperties {
+export interface PutIntoPlayProperties extends CardTargetSystemProperties {
     controller?: Players;
     side?: Player;
     overrideLocation?: Locations;
 }
 
-export class PutIntoPlaySystem extends CardGameSystem {
+export class PutIntoPlaySystem extends CardTargetSystem {
     name = 'putIntoPlay';
     eventName = EventNames.OnUnitEntersPlay;
     cost = 'putting {0} into play';

@@ -1,12 +1,12 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../core/card/basecard';
 import { CardTypes, EventNames, Locations } from '../core/Constants';
-import { type CardSystemProperties, CardGameSystem } from './CardGameSystem';
+import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { isArena } from '../core/Constants';
 
-export interface DefeatCardProperties extends CardSystemProperties {}
+export interface DefeatCardProperties extends CardTargetSystemProperties {}
 
-export class DefeatCardSystem extends CardGameSystem<DefeatCardProperties> {
+export class DefeatCardSystem extends CardTargetSystem<DefeatCardProperties> {
     name = 'defeat';
     eventName = EventNames.OnCardDefeated;
     cost = 'defeating {0}';

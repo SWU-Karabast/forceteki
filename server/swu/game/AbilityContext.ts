@@ -1,17 +1,17 @@
-import BaseAbility from './baseability';
+import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import type BaseCard from './core/card/basecard';
 import { Aspects, Locations, PlayTypes, Stages } from './core/Constants';
 import EffectSource from './core/effect/EffectSource';
-import type Game from './core/game';
-import type { GameSystem } from './gameSystems/GameSystem';
-import type Player from './core/player';
+import type Game from './core/Game';
+import type { GameSystem } from './core/gameSystem/GameSystem';
+import type Player from './core/Player';
 // import type { StatusToken } from './StatusToken';
 
 export interface AbilityContextProperties {
     game: Game;
     source?: any;
     player?: Player;
-    ability?: BaseAbility;
+    ability?: PlayerOrCardAbility;
     costs?: any;
     costAspects?: Aspects[];
     targets?: any;
@@ -26,7 +26,7 @@ export class AbilityContext<S = any> {
     game: Game;
     source: S;
     player: Player;
-    ability: BaseAbility;
+    ability: PlayerOrCardAbility;
     costs: any;
     costAspects: Array<Aspects>;
     targets: any;
@@ -48,7 +48,7 @@ export class AbilityContext<S = any> {
         this.game = properties.game;
         this.source = properties.source || new EffectSource(this.game);
         this.player = properties.player;
-        this.ability = properties.ability || new BaseAbility({});
+        this.ability = properties.ability || new PlayerOrCardAbility({});
         this.costs = properties.costs || {};
         this.costAspects = properties.costAspects || [];
         this.targets = properties.targets || {};

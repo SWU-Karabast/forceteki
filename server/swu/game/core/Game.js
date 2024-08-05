@@ -1,10 +1,10 @@
 const _ = require('underscore');
 const EventEmitter = require('events');
 
-const ChatCommands = require('./chat/chatcommands.js');
+const ChatCommands = require('./chat/ChatCommands.js');
 const { GameChat } = require('./chat/GameChat.js');
 // const { EffectEngine } = require('./EffectEngine.js');
-const Player = require('./player.js');
+const Player = require('./Player.js');
 const { Spectator } = require('../../Spectator.js');
 const { AnonymousSpectator } = require('../../AnonymousSpectator.js');
 const { GamePipeline } = require('./GamePipeline.js');
@@ -16,7 +16,7 @@ const MenuPrompt = require('../gamesteps/menuprompt.js');
 const HandlerMenuPrompt = require('../gamesteps/handlermenuprompt.js');
 const SelectCardPrompt = require('../gamesteps/selectcardprompt.js');
 const GameWonPrompt = require('../gamesteps/GameWonPrompt.js');
-const GameActions = require('../gameSystems/GameSystems.js');
+const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { Event } = require('./event/Event.js');
 const InitiateCardAbilityEvent = require('./event/InitiateCardAbilityEvent.js');
 const EventWindow = require('./event/EventWindow.js');
@@ -285,7 +285,7 @@ class Game extends EventEmitter {
     // }
 
     get actions() {
-        return GameActions;
+        return GameSystems;
     }
 
     // recordConflict(conflict) {
@@ -893,10 +893,10 @@ class Game extends EventEmitter {
     //     let actionPairs = Object.entries(actions);
     //     let events = actionPairs.reduce((array, [action, cards]) => {
     //         action = action === 'break' ? 'breakProvince' : action;
-    //         const gameActionFactory = GameActions[action];
+    //         const gameActionFactory = GameSystems[action];
     //         if (typeof gameActionFactory === 'function') {
-    //             const gameAction = gameActionFactory({ target: cards });
-    //             gameAction.addEventsToArray(array, context);
+    //             const gameSystem = gameActionFactory({ target: cards });
+    //             gameSystem.addEventsToArray(array, context);
     //         }
     //         return array;
     //     }, []);

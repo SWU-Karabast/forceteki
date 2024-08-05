@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const GameActions = require('../../gameSystems/GameSystems');
+const GameSystems = require('../../gameSystems/GameSystemLibrary');
 const { Locations, CardTypes, Players, WildcardLocations, isArena } = require('../Constants.js');
 
 class ChatCommands {
@@ -64,7 +64,7 @@ class ChatCommands {
 
         this.game.addMessage('{0} uses the /discard command to discard {1} card{2} at random', player, num, num > 1 ? 's' : '');
 
-        GameActions.discardAtRandom({ amount: num }).resolve(player, this.game.getFrameworkContext());
+        GameSystems.discardAtRandom({ amount: num }).resolve(player, this.game.getFrameworkContext());
     }
 
     moveCardToDeckBottom(player) {
@@ -75,7 +75,7 @@ class ChatCommands {
             controller: Players.Self,
             onSelect: (p, card) => {
                 const cardInitialLocation = card.location;
-                GameActions.moveCard({ target: card, bottom: true, destination: Locations.Deck }).resolve(player, this.game.getFrameworkContext());
+                GameSystems.moveCard({ target: card, bottom: true, destination: Locations.Deck }).resolve(player, this.game.getFrameworkContext());
                 this.game.addMessage('{0} uses a command to move {1} from their {2} to the bottom of their {3}.', player, card, cardInitialLocation);
                 return true;
             }
@@ -113,7 +113,7 @@ class ChatCommands {
     //         controller: Players.Self,
     //         cardCondition: card => card.isFacedown(),
     //         onSelect: (player, card) => {
-    //             GameActions.reveal({ target: card }).resolve(player, this.game.getFrameworkContext());
+    //             GameSystems.reveal({ target: card }).resolve(player, this.game.getFrameworkContext());
     //             this.game.addMessage('{0} reveals {1}', player, card);
     //             return true;
     //         }

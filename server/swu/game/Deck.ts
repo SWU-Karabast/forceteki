@@ -4,7 +4,7 @@ import { BaseLocationCard } from './core/card/baseLocationCard';
 import { LeaderCard } from './core/card/leaderCard';
 import BaseCard from './core/card/basecard';
 import { cards } from './cards';
-import Player from './core/player';
+import Player from './core/Player';
 
 export class Deck {
     constructor(public data: any) {}

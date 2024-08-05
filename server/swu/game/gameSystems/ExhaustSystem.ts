@@ -1,11 +1,11 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../core/card/basecard';
 import { CardTypes, EventNames, isArena } from '../core/Constants';
-import { type CardSystemProperties, CardGameSystem } from './CardGameSystem';
+import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
-export interface ExhaustSystemProperties extends CardSystemProperties {}
+export interface ExhaustSystemProperties extends CardTargetSystemProperties {}
 
-export class ExhaustSystem extends CardGameSystem<ExhaustSystemProperties> {
+export class ExhaustSystem extends CardTargetSystem<ExhaustSystemProperties> {
     name = 'exhaust';
     eventName = EventNames.OnCardExhausted;
     cost = 'exhausting {0}';

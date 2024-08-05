@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../../AbilityContext';
 import { EffectNames, EventNames } from '../Constants';
 import type { Attack } from './Attack';
-import type Game from '../game';
+import type Game from '../Game';
 import { BaseStepWithPipeline } from '../../gamesteps/BaseStepWithPipeline';
 import { SimpleStep } from '../../gamesteps/SimpleStep';
 

@@ -1,13 +1,13 @@
 import type { AbilityContext } from '../AbilityContext';
 import { EventNames, Locations } from '../core/Constants';
-import type Player from '../core/player';
-import { PlayerSystem, type PlayerSystemProperties } from './PlayerSystem';
+import type Player from '../core/Player';
+import { PlayerTargetSystem, type PlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 
-export interface RandomDiscardProperties extends PlayerSystemProperties {
+export interface RandomDiscardProperties extends PlayerTargetSystemProperties {
     amount?: number;
 }
 
-export class RandomDiscardSystem extends PlayerSystem {
+export class RandomDiscardSystem extends PlayerTargetSystem {
     defaultProperties: RandomDiscardProperties = { amount: 1 };
 
     name = 'discard';

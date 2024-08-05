@@ -12,7 +12,7 @@ class EventWindow extends BaseStepWithPipeline {
         super(game);
 
         this.events = [];
-        this.thenAbilities = [];
+        this.additionalAbilitySteps = [];
         _.each(events, event => {
             if(!event.cancelled) {
                 this.addEvent(event);
@@ -36,7 +36,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.executeHandler()),
             // new SimpleStep(this.game, () => this.checkGameState()),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityTypes.KeywordReaction)),
-            // new SimpleStep(this.game, () => this.checkThenAbilities()),
+            // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps()),
             new SimpleStep(this.game, () => this.openWindow(AbilityTypes.ForcedReaction)),
             new SimpleStep(this.game, () => this.openWindow(AbilityTypes.Reaction)),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow())
@@ -54,8 +54,8 @@ class EventWindow extends BaseStepWithPipeline {
         return event;
     }
 
-    addThenAbility(ability, context, condition = event => event.isFullyResolved(event)) {
-        this.thenAbilities.push({ ability, context, condition });
+    addCardAbilityStep(ability, context, condition = event => event.isFullyResolved(event)) {
+        this.additionalAbilitySteps.push({ ability, context, condition });
     }
 
     setCurrentEventWindow() {
@@ -128,10 +128,10 @@ class EventWindow extends BaseStepWithPipeline {
     // }
 
     // TODO: what's up with "then" abilities
-    // checkThenAbilities() {
-    //     for(const thenAbility of this.thenAbilities) {
-    //         if(thenAbility.context.events.every(event => thenAbility.condition(event))) {
-    //             this.game.resolveAbility(thenAbility.ability.createContext(thenAbility.context.player));
+    // checkAdditionalAbilitySteps() {
+    //     for(const cardAbilityStep of this.additionalAbilitySteps) {
+    //         if(cardAbilityStep.context.events.every(event => cardAbilityStep.condition(event))) {
+    //             this.game.resolveAbility(cardAbilityStep.ability.createContext(cardAbilityStep.context.player));
     //         }
     //     }
     // }

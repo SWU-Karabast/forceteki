@@ -1,10 +1,10 @@
 import type { AbilityContext } from '../AbilityContext.js';
-import BaseAction from '../BaseAction.js';
+import BaseAction from '../core/ability/PlayerAction.js';
 import { EffectNames, EventNames, Locations, Phases, PlayTypes, Players } from '../core/Constants.js';
 import { payReduceableResourceCost } from '../costs/CostLibrary.js';
-import { putIntoPlay } from '../gameSystems/GameSystems.js';
+import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
 import type BaseCard from '../core/card/basecard.js';
-import type Player from '../core/player.js';
+import type Player from '../core/Player.js';
 
 type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 

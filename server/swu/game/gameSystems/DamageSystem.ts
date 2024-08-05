@@ -1,14 +1,14 @@
 import type { AbilityContext } from '../AbilityContext';
 import type BaseCard from '../core/card/basecard';
 import { CardTypes, EventNames, isArena, isAttackableLocation } from '../core/Constants';
-import { type CardSystemProperties, CardGameSystem } from './CardGameSystem';
+import { type CardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
-export interface DamageProperties extends CardSystemProperties {
+export interface DamageProperties extends CardTargetSystemProperties {
     amount?: number;
     isCombatDamage?: boolean;
 }
 
-export class DamageSystem extends CardGameSystem<DamageProperties> {
+export class DamageSystem extends CardTargetSystem<DamageProperties> {
     name = 'damage';
     eventName = EventNames.OnDamageDealt;
     targetType = [CardTypes.Unit, CardTypes.Base];

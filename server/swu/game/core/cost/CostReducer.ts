@@ -2,8 +2,8 @@ import type { AbilityContext } from '../../AbilityContext';
 import type { AbilityLimit } from '../../AbilityLimit';
 import type BaseCard from '../card/basecard';
 import { CardTypes, PlayTypes, Aspects } from '../Constants';
-import type Game from '../game';
-import type Player from '../player';
+import type Game from '../Game';
+import type Player from '../Player';
 
 export type CostReducerProps = {
     penaltyAspect?: Aspects;

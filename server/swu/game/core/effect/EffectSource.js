@@ -1,6 +1,6 @@
 const _ = require('underscore');
 
-const AbilityDsl = require('../../abilitydsl.js');
+const AbilityDsl = require('../../AbilityDsl.js');
 const { GameObject } = require('../GameObject.js');
 
 const { Durations, WildcardLocations } = require('../Constants.js');

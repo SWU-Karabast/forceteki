@@ -1,4 +1,4 @@
-import { TargetModes } from '../Constants';
+import { TargetModes } from '../../Constants';
 
 export class SelectChoice {
     constructor(public choice: string) {}

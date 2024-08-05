@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../AbilityContext.js';
-import BaseAction from '../BaseAction.js';
+import BaseAction from '../core/ability/PlayerAction.js';
 import { EffectNames, EventNames, Locations, Phases, PlayTypes, TargetModes, WildcardLocations, isArena } from '../core/Constants.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
-import { attack } from '../gameSystems/GameSystems.js';
-import type Player from '../core/player.js';
+import { attack } from '../gameSystems/GameSystemLibrary.js';
+import type Player from '../core/Player.js';
 import BaseCard from '../core/card/basecard.js';
 
 export class TriggerAttackAction extends BaseAction {
@@ -12,7 +12,7 @@ export class TriggerAttackAction extends BaseAction {
     // TODO: rename to "gameSystem" or "triggeredSystem" or something and centralize where it is created, since it's also emitted from executeHandler
     public constructor(card: BaseCard) {
         super(card, [exhaustSelf()], { 
-            gameAction: attack({ attacker: card }),
+            gameSystem: attack({ attacker: card }),
             mode: TargetModes.AutoSingle,
             location: WildcardLocations.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'

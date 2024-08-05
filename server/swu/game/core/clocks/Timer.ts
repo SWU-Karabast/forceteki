@@ -1,5 +1,5 @@
 import { Clock, Mode } from './Clock';
-import type { ClockInterface } from './types';
+import type { ClockInterface } from './ClockInterface';
 
 export class Timer extends Clock implements ClockInterface {
     mode: Mode = 'down';
