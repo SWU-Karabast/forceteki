@@ -2,9 +2,9 @@
 
 const util = require('util');
 
-const BaseCard = require('../../../build/game/core/card/Card.js');
-const Game = require('../../../build/game/core/Game.js');
-const Player = require('../../../build/game/core/Player.js');
+const BaseCard = require('../../build/game/core/card/Card.js');
+const Game = require('../../build/game/core/Game.js');
+const Player = require('../../build/game/core/Player.js');
 
 // Add custom toString methods for better Jasmine output
 function formatObject(keys) {

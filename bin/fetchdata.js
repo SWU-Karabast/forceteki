@@ -5,7 +5,7 @@ const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
 
-const pathToJSON = path.join(__dirname, '../test/swu/json/');
+const pathToJSON = path.join(__dirname, '../test/json/');
 
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
