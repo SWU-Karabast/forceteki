@@ -1,11 +1,8 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 // import { AttachAction, AttachActionProperties } from './AttachAction';
-import { AttackSystem, IAttackProperties } from './AttackSystem';
 // import { CancelAction, CancelActionProperties } from './CancelAction';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { DamageSystem, IDamageProperties } from './DamageSystem';
-import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 // import { CardMenuAction, CardMenuProperties } from './CardMenuAction';
 // import { ChooseActionProperties, ChooseGameAction } from './ChooseGameAction';
 // import { ChosenDiscardAction, ChosenDiscardProperties } from './ChosenDiscardAction';
@@ -18,7 +15,6 @@ import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 // import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
 // import { DiscardStatusAction, DiscardStatusProperties } from './DiscardStatusAction';
 // import { DrawAction, DrawProperties } from './DrawAction';
-import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
 // import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from '../core/gameSystem/ExecuteHandlerSystem';
@@ -37,7 +33,6 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 // import { OpponentPutIntoPlayAction, OpponentPutIntoPlayProperties } from './OpponentPutIntoPlayAction';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
 // import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
-import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { RandomDiscardSystem, IRandomDiscardProperties } from './RandomDiscardSystem';
 // import { ReadyAction, ReadyProperties } from './ReadyAction';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
@@ -65,33 +60,21 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 // export function attach(propertyFactory: PropsFactory<AttachActionProperties> = {}): GameSystem {
 //     return new AttachAction(propertyFactory);
 // }
-export function attack(propertyFactory: PropsFactory<IAttackProperties>): GameSystem {
-    return new AttackSystem(propertyFactory);
-}
 // export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameSystem {
 //     return new LastingEffectCardAction(propertyFactory);
 // }
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);
 // }
-export function damage(propertyFactory: PropsFactory<IDamageProperties>): GameSystem {
-    return new DamageSystem(propertyFactory);
-}
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
 // }
-export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}): CardTargetSystem {
-    return new DefeatCardSystem(propertyFactory);
-}
 // export function discardCard(propertyFactory: PropsFactory<DiscardCardProperties> = {}): CardGameAction {
 //     return new DiscardCardAction(propertyFactory);
 // }
 // export function discardFromPlay(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): GameSystem {
 //     return new DiscardFromPlayAction(propertyFactory);
 // }
-export function exhaust(propertyFactory: PropsFactory<IExhaustSystemProperties> = {}): CardTargetSystem {
-    return new ExhaustSystem(propertyFactory);
-}
 // export function lookAt(propertyFactory: PropsFactory<LookAtProperties> = {}): GameSystem {
 //     return new LookAtAction(propertyFactory);
 // }
@@ -113,9 +96,6 @@ export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): Ca
  * default fate = 0
  * default status = ordinary
  */
-export function putIntoPlay(propertyFactory: PropsFactory<IPutIntoPlayProperties> = {}): GameSystem {
-    return new PutIntoPlaySystem(propertyFactory);
-}
 // /**
 //  * default fate = 0
 //  * default status = ordinary
