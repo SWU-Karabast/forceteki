@@ -1,9 +1,9 @@
 const EventWindow = require('./EventWindow.js');
-const { AbilityTypes } = require('../Constants.js');
+const { AbilityType } = require('../Constants.js');
 
 class ThenEventWindow extends EventWindow {
     openWindow(abilityType) {
-        if(abilityType !== AbilityTypes.ForcedReaction && abilityType !== AbilityTypes.Reaction) {
+        if(abilityType !== AbilityType.ForcedReaction && abilityType !== AbilityType.Reaction) {
             super.openWindow(abilityType);
         }
     }

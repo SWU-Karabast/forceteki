@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const GameSystems = require('../../gameSystems/GameSystemLibrary');
-const { Locations, CardTypes, Players, WildcardLocations, isArena } = require('../Constants.js');
+const { Location, CardType, RelativePlayer, WildcardLocation } = require('../Constants.js');
 
 class ChatCommands {
     constructor(game) {
@@ -71,11 +71,11 @@ class ChatCommands {
         this.game.promptForSelect(player, {
             activePromptTitle: 'Select a card to send to the bottom of one of their decks',
             waitingPromptTitle: 'Waiting for opponent to send a card to the bottom of one of their decks',
-            location: WildcardLocations.Any,
-            controller: Players.Self,
+            location: WildcardLocation.Any,
+            controller: RelativePlayer.Self,
             onSelect: (p, card) => {
                 const cardInitialLocation = card.location;
-                GameSystems.moveCard({ target: card, bottom: true, destination: Locations.Deck }).resolve(player, this.game.getFrameworkContext());
+                GameSystems.moveCard({ target: card, bottom: true, destination: Location.Deck }).resolve(player, this.game.getFrameworkContext());
                 this.game.addMessage('{0} uses a command to move {1} from their {2} to the bottom of their {3}.', player, card, cardInitialLocation);
                 return true;
             }
@@ -109,8 +109,8 @@ class ChatCommands {
     //     this.game.promptForSelect(player, {
     //         activePromptTitle: 'Select a card to reveal',
     //         waitingPromptTitle: 'Waiting for opponent to reveal a facedown card',
-    //         location: Locations.Provinces,
-    //         controller: Players.Self,
+    //         location: Location.Provinces,
+    //         controller: RelativePlayer.Self,
     //         cardCondition: card => card.isFacedown(),
     //         onSelect: (player, card) => {
     //             GameSystems.reveal({ target: card }).resolve(player, this.game.getFrameworkContext());

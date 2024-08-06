@@ -1,18 +1,19 @@
 const Effect = require('./Effect.js');
-const { Players, isArena, WildcardLocations } = require('../Constants.js');
+const { RelativePlayer, WildcardLocation } = require('../Constants.js');
+const { isArena } = require('../utils/EnumHelpers.js');
 
 // TODO: confusingly, this is not an implementation of ICardEffect. what's the relationship supposed to be?
 class CardEffect extends Effect {
     constructor(game, source, properties, effect) {
         if(!properties.match) {
             properties.match = (card, context) => card === context.source;
-            if(properties.location === WildcardLocations.Any) {
-                properties.targetLocation = WildcardLocations.Any;
+            if(properties.location === WildcardLocation.Any) {
+                properties.targetLocation = WildcardLocation.Any;
             }
         }
         super(game, source, properties, effect);
-        this.targetController = properties.targetController || Players.Self;
-        this.targetLocation = properties.targetLocation || WildcardLocations.AnyArena;
+        this.targetController = properties.targetController || RelativePlayer.Self;
+        this.targetLocation = properties.targetLocation || WildcardLocation.AnyArena;
     }
 
     isValidTarget(target) {
@@ -22,13 +23,13 @@ class CardEffect extends Effect {
         }
         return (
             target.allowGameAction('applyEffect', this.context) &&
-            (this.targetController !== Players.Self || target.controller === this.source.controller) &&
-            (this.targetController !== Players.Opponent || target.controller !== this.source.controller)
+            (this.targetController !== RelativePlayer.Self || target.controller === this.source.controller) &&
+            (this.targetController !== RelativePlayer.Opponent || target.controller !== this.source.controller)
         );
     }
 
     getTargets() {
-        if(this.targetLocation === WildcardLocations.Any) {
+        if(this.targetLocation === WildcardLocation.Any) {
             return this.game.allCards.filter(card => this.match(card, this.context));
         } else if(isArena(this.targetLocation)) {
             return this.game.findAnyCardsInPlay(card => this.match(card, this.context));

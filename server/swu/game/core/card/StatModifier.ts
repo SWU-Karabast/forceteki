@@ -1,13 +1,13 @@
-import { CardTypes } from "../Constants";
+import { CardType } from "../Constants";
 
 class StatModifier {
     amount: number;
     name: string;
     countsAsBase: boolean;
-    type: CardTypes;
+    type: CardType;
     overrides: boolean;
 
-    constructor(amount: number, name: string, overrides: boolean, type: CardTypes) {
+    constructor(amount: number, name: string, overrides: boolean, type: CardType) {
         this.amount = amount;
         this.name = name;
         this.overrides = overrides;

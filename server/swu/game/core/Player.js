@@ -12,19 +12,18 @@ const { BaseCard } = require('./card/BaseCard');
 const { LeaderCard } = require('./card/LeaderCard');
 
 const {
-    AbilityTypes,
-    CardTypes,
-    EffectNames,
-    EventNames,
-    Locations,
-    Players,
-    Aspects,
-    WildcardLocations,
-    cardLocationMatches,
-    isArena,
-    PlayTypes
+    AbilityType,
+    CardType,
+    EffectName,
+    EventName,
+    Location,
+    RelativePlayer,
+    Aspect,
+    WildcardLocation,
+    PlayType
 } = require('./Constants');
-const { GameModes } = require('../../GameModes');
+
+const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockdetails) {
@@ -58,7 +57,7 @@ class Player extends GameObject {
         this.clock = clockFor(this, clockdetails);
 
         this.playableLocations = [
-            new PlayableLocation(PlayTypes.PlayFromHand, this, Locations.Hand),
+            new PlayableLocation(PlayType.PlayFromHand, this, Location.Hand),
         ];
 
         this.limitedPlayed = 0;
@@ -297,11 +296,11 @@ class Player extends GameObject {
     // }
 
     // getConflictOpportunities() {
-    //     const setConflictDeclarationType = this.mostRecentEffect(EffectNames.SetConflictDeclarationType);
-    //     const forceConflictDeclarationType = this.mostRecentEffect(EffectNames.ForceConflictDeclarationType);
-    //     const provideConflictDeclarationType = this.mostRecentEffect(EffectNames.ProvideConflictDeclarationType);
-    //     const maxConflicts = this.mostRecentEffect(EffectNames.SetMaxConflicts);
-    //     const skirmishModeRRGLimit = this.game.gameMode === GameModes.Skirmish ? 1 : 0;
+    //     const setConflictDeclarationType = this.mostRecentEffect(EffectName.SetConflictDeclarationType);
+    //     const forceConflictDeclarationType = this.mostRecentEffect(EffectName.ForceConflictDeclarationType);
+    //     const provideConflictDeclarationType = this.mostRecentEffect(EffectName.ProvideConflictDeclarationType);
+    //     const maxConflicts = this.mostRecentEffect(EffectName.SetMaxConflicts);
+    //     const skirmishModeRRGLimit = this.game.gameMode === GameMode.Skirmish ? 1 : 0;
     //     if (maxConflicts) {
     //         return this.getConflictsWhenMaxIsSet(maxConflicts);
     //     }
@@ -357,7 +356,7 @@ class Player extends GameObject {
     //             (type) =>
     //                 types.includes(type) &&
     //                 this.getConflictOpportunities() > 0 &&
-    //                 !this.getEffects(EffectNames.CannotDeclareConflictsOfType).includes(type)
+    //                 !this.getEffects(EffectName.CannotDeclareConflictsOfType).includes(type)
     //         );
     //     }
 
@@ -368,7 +367,7 @@ class Player extends GameObject {
     //     return types.filter(
     //         (type) =>
     //             this.getRemainingConflictOpportunitiesForType(type) > 0 &&
-    //             !this.getEffects(EffectNames.CannotDeclareConflictsOfType).includes(type)
+    //             !this.getEffects(EffectName.CannotDeclareConflictsOfType).includes(type)
     //     );
     // }
 
@@ -377,10 +376,10 @@ class Player extends GameObject {
     // }
 
     // getMaxConflictOpportunitiesForPlayerByType(type) {
-    //     let setConflictType = this.mostRecentEffect(EffectNames.SetConflictDeclarationType);
-    //     let forceConflictType = this.mostRecentEffect(EffectNames.ForceConflictDeclarationType);
-    //     const provideConflictDeclarationType = this.mostRecentEffect(EffectNames.ProvideConflictDeclarationType);
-    //     const additionalConflictEffects = this.getEffects(EffectNames.AdditionalConflict);
+    //     let setConflictType = this.mostRecentEffect(EffectName.SetConflictDeclarationType);
+    //     let forceConflictType = this.mostRecentEffect(EffectName.ForceConflictDeclarationType);
+    //     const provideConflictDeclarationType = this.mostRecentEffect(EffectName.ProvideConflictDeclarationType);
+    //     const additionalConflictEffects = this.getEffects(EffectName.AdditionalConflict);
     //     const additionalConflictsForType = additionalConflictEffects.filter((x) => x === type).length;
     //     let baselineAvailableConflicts =
     //         this.defaultAllowedConflicts[ConflictTypes.Military] +
@@ -392,7 +391,7 @@ class Player extends GameObject {
     //         forceConflictType = undefined;
     //     }
 
-    //     if (this.game.gameMode === GameModes.Skirmish) {
+    //     if (this.game.gameMode === GameMode.Skirmish) {
     //         baselineAvailableConflicts = 1;
     //     }
 
@@ -427,7 +426,7 @@ class Player extends GameObject {
     //         }
     //         const availableAll =
     //             baselineAvailableConflicts +
-    //             this.getEffects(EffectNames.AdditionalConflict).length -
+    //             this.getEffects(EffectName.AdditionalConflict).length -
     //             declaredConflictsOfOtherType;
     //         if (type === provideConflictDeclarationType) {
     //             return availableAll;
@@ -460,7 +459,7 @@ class Player extends GameObject {
      */
     isCardInPlayableLocation(card, playingType = null) {
         // use an effect check to see if this card is in an out of play location but can still be played from
-        if (card.getEffects(EffectNames.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
+        if (card.getEffects(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
             return true;
         }
 
@@ -471,9 +470,9 @@ class Player extends GameObject {
     }
 
     findPlayType(card) {
-        if (card.getEffects(EffectNames.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            let effects = card.getEffects(EffectNames.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
-            return effects[effects.length - 1].playType || PlayTypes.PlayFromHand;
+        if (card.getEffects(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
+            let effects = card.getEffects(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
+            return effects[effects.length - 1].playType || PlayType.PlayFromHand;
         }
 
         let location = this.playableLocations.find((location) => location.contains(card));
@@ -511,7 +510,7 @@ class Player extends GameObject {
             // this.deckRanOutOfCards('conflict');
             // this.game.queueSimpleStep(() => {
             //     for (let card of cards) {
-            //         this.moveCard(card, Locations.Hand);
+            //         this.moveCard(card, Location.Hand);
             //     }
             // });
             // this.game.queueSimpleStep(() => this.drawCardsToHand(remainingCards));
@@ -520,7 +519,7 @@ class Player extends GameObject {
             throw new Error('Deck ran out of cards');
         } else {
             for (let card of this.deck.toArray().slice(0, numCards)) {
-                this.moveCard(card, Locations.Hand);
+                this.moveCard(card, Location.Hand);
             }
         }
     }
@@ -531,13 +530,13 @@ class Player extends GameObject {
     //  */
     // deckRanOutOfCards(deck) {
     //     let discardPile = this.getSourceListForPile(deck + ' discard pile');
-    //     let action = GameSystems.loseHonor({ amount: this.game.gameMode === GameModes.Skirmish ? 3 : 5 });
+    //     let action = GameSystems.loseHonor({ amount: this.game.gameMode === GameMode.Skirmish ? 3 : 5 });
     //     if (action.canAffect(this, this.game.getFrameworkContext())) {
     //         this.game.addMessage(
     //             "{0}'s {1} deck has run out of cards, so they lose {2} honor",
     //             this,
     //             deck,
-    //             this.game.gameMode === GameModes.Skirmish ? 3 : 5
+    //             this.game.gameMode === GameMode.Skirmish ? 3 : 5
     //         );
     //     } else {
     //         this.game.addMessage("{0}'s {1} deck has run out of cards", this, deck);
@@ -569,7 +568,7 @@ class Player extends GameObject {
     //     } else {
     //         let refillAmount = 1;
     //         if (province) {
-    //             let amount = province.mostRecentEffect(EffectNames.RefillProvinceTo);
+    //             let amount = province.mostRecentEffect(EffectName.RefillProvinceTo);
     //             if (amount) {
     //                 refillAmount = amount;
     //             }
@@ -600,7 +599,7 @@ class Player extends GameObject {
         if (this.name !== 'Dummy Player') {
             this.game.addMessage('{0} is shuffling their dynasty deck', this);
         }
-        this.game.emitEvent(EventNames.OnDeckShuffled, { player: this });
+        this.game.emitEvent(EventName.OnDeckShuffled, { player: this });
         this.deck = _(this.deck.shuffle());
     }
 
@@ -620,7 +619,7 @@ class Player extends GameObject {
         this.preparedDeck = preparedDeck;
         this.deck.each((card) => {
             // register event reactions in case event-in-deck bluff window is enabled
-            if (card.type === CardTypes.Event) {
+            if (card.type === CardType.Event) {
                 for (let reaction of card.abilities.reactions) {
                     reaction.registerEvents();
                 }
@@ -706,7 +705,7 @@ class Player extends GameObject {
 
     /**
      * Checks to see what the minimum possible resource cost for an action is, accounting for aspects and available cost reducers
-     * @param {PlayTypes} playingType
+     * @param {PlayType} playingType
      * @param card DrawCard
      * @param target BaseCard
      */
@@ -715,15 +714,15 @@ class Player extends GameObject {
         let reducedCost = this.getReducedCost(playingType, card, target, ignoreType, context.costAspects);
         let triggeredCostReducers = 0;
         let fakeWindow = { addChoice: () => triggeredCostReducers++ };
-        let fakeEvent = this.game.getEvent(EventNames.OnCardPlayed, { card: card, player: this, context: context });
-        this.game.emit(EventNames.OnCardPlayed + ':' + AbilityTypes.Interrupt, fakeEvent, fakeWindow);
-        let fakeResolverEvent = this.game.getEvent(EventNames.OnAbilityResolverInitiated, {
+        let fakeEvent = this.game.getEvent(EventName.OnCardPlayed, { card: card, player: this, context: context });
+        this.game.emit(EventName.OnCardPlayed + ':' + AbilityType.Interrupt, fakeEvent, fakeWindow);
+        let fakeResolverEvent = this.game.getEvent(EventName.OnAbilityResolverInitiated, {
             card: card,
             player: this,
             context: context
         });
         this.game.emit(
-            EventNames.OnAbilityResolverInitiated + ':' + AbilityTypes.Interrupt,
+            EventName.OnAbilityResolverInitiated + ':' + AbilityType.Interrupt,
             fakeResolverEvent,
             fakeWindow
         );
@@ -733,7 +732,7 @@ class Player extends GameObject {
     /**
      * Checks if any Cost Reducers on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
-     * @param {PlayTypes} playingType
+     * @param {PlayType} playingType
      * @param card DrawCard
      * @param target BaseCard
      */
@@ -751,7 +750,7 @@ class Player extends GameObject {
 
     /**
      * Runs the Reducers for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param {PlayTypes} playingType
+     * @param {PlayType} playingType
      * @param card DrawCard
      * @param target BaseCard
      */
@@ -790,12 +789,12 @@ class Player extends GameObject {
     //     }
 
     //     const playerCostToTargetEffects = abilitySource.controller
-    //         ? abilitySource.controller.getEffects(EffectNames.PlayerFateCostToTargetCard)
+    //         ? abilitySource.controller.getEffects(EffectName.PlayerFateCostToTargetCard)
     //         : [];
 
     //     let targetCost = 0;
     //     for (const target of targets) {
-    //         for (const cardCostToTarget of target.getEffects(EffectNames.FateCostToTarget)) {
+    //         for (const cardCostToTarget of target.getEffects(EffectName.FateCostToTarget)) {
     //             if (
     //                 // no card type restriction
     //                 (!cardCostToTarget.cardType ||
@@ -805,7 +804,7 @@ class Player extends GameObject {
     //                 (!cardCostToTarget.targetPlayer ||
     //                     // or match player restriction
     //                     abilitySource.controller ===
-    //                         (cardCostToTarget.targetPlayer === Players.Self
+    //                         (cardCostToTarget.targetPlayer === RelativePlayer.Self
     //                             ? target.controller
     //                             : target.controller.opponent))
     //             ) {
@@ -904,23 +903,23 @@ class Player extends GameObject {
      */
     getSourceListForPile(source) {
         switch (source) {
-            case Locations.Hand:
+            case Location.Hand:
                 return this.hand;
-            case Locations.Deck:
+            case Location.Deck:
                 return this.deck;
-            case Locations.Discard:
+            case Location.Discard:
                 return this.discard;
-            case Locations.Resource:
+            case Location.Resource:
                 return this.resources;
-            case Locations.RemovedFromGame:
+            case Location.RemovedFromGame:
                 return this.removedFromGame;
-            case Locations.SpaceArena:
+            case Location.SpaceArena:
                 return this.spaceArena;
-            case Locations.GroundArena:
+            case Location.GroundArena:
                 return this.groundArena;
-            case Locations.Base:
+            case Location.Base:
                 return this.baseZone;
-            case Locations.Leader:
+            case Location.Leader:
                 return this.leaderZone;
             default:
                 if (source) {
@@ -959,7 +958,7 @@ class Player extends GameObject {
     //     // Don't allow two province cards in one province
     //     if (
     //         card.isProvince &&
-    //         target !== Locations.ProvinceDeck &&
+    //         target !== Location.ProvinceDeck &&
     //         this.getSourceListForPile(target).any((card) => card.isProvince)
     //     ) {
     //         return;
@@ -967,12 +966,12 @@ class Player extends GameObject {
 
     //     let display = 'a card';
     //     if (
-    //         (card.isFaceup() && source !== Locations.Hand) ||
+    //         (card.isFaceup() && source !== Location.Hand) ||
     //         [
-    //             Locations.PlayArea,
-    //             Locations.DynastyDiscardPile,
-    //             Locations.ConflictDiscardPile,
-    //             Locations.RemovedFromGame
+    //             Location.PlayArea,
+    //             Location.DynastyDiscardPile,
+    //             Location.ConflictDiscardPile,
+    //             Location.RemovedFromGame
     //         ].includes(target)
     //     ) {
     //         display = card;
@@ -986,7 +985,7 @@ class Player extends GameObject {
     /**
      * Checks whether card.type is consistent with location
      * @param card BaseCard
-     * @param {Locations} location
+     * @param {Location} location
      */
     isLegalLocationForCard(card, location) {
         if (!card) {
@@ -999,24 +998,24 @@ class Player extends GameObject {
         }
 
         const deckCardLocations = [
-            Locations.Hand,
-            Locations.Deck,
-            Locations.Discard,
-            Locations.RemovedFromGame,
-            Locations.SpaceArena,
-            Locations.GroundArena,
-            Locations.Resource
+            Location.Hand,
+            Location.Deck,
+            Location.Discard,
+            Location.RemovedFromGame,
+            Location.SpaceArena,
+            Location.GroundArena,
+            Location.Resource
         ];
         const legalLocations = {
-            base: [Locations.Base],
-            leader: [WildcardLocations.AnyArena, Locations.Leader],
+            base: [Location.Base],
+            leader: [WildcardLocation.AnyArena, Location.Leader],
             unit: [...deckCardLocations],
-            event: [...deckCardLocations, Locations.BeingPlayed],
+            event: [...deckCardLocations, Location.BeingPlayed],
             attachment: [...deckCardLocations]
         };
 
         let type = card.type;
-        if (location === Locations.Discard) {
+        if (location === Location.Discard) {
             type = card.printedType || card.type; //fallback to type if printedType doesn't exist (mock cards, token cards)
         }
 
@@ -1034,7 +1033,7 @@ class Player extends GameObject {
     // }
 
     // get skillModifier() {
-    //     return this.getEffects(EffectNames.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
+    //     return this.getEffects(EffectName.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
     // }
 
     // hasAffinity(trait, context) {
@@ -1042,13 +1041,13 @@ class Player extends GameObject {
     //         return false;
     //     }
 
-    //     for (const cheatedAffinities of this.getEffects(EffectNames.SatisfyAffinity)) {
+    //     for (const cheatedAffinities of this.getEffects(EffectName.SatisfyAffinity)) {
     //         if (cheatedAffinities.includes(trait)) {
     //             return true;
     //         }
     //     }
 
-    //     return this.cardsInPlay.some((card) => card.type === CardTypes.Character && card.hasTrait(trait));
+    //     return this.cardsInPlay.some((card) => card.type === CardType.Character && card.hasTrait(trait));
     // }
 
     /**
@@ -1087,7 +1086,7 @@ class Player extends GameObject {
      * @param {boolean} exhaust
      */
     resourceCard(card, exhaust = false) {
-        this.moveCard(card, Locations.Resource);
+        this.moveCard(card, Location.Resource);
         card.exhausted = !exhaust
     }
 
@@ -1147,7 +1146,7 @@ class Player extends GameObject {
             // This won't trigger any leaves play effects
             for (const upgrade of card.upgrades) {
                 upgrade.leavesPlay(targetLocation);
-                upgrade.owner.moveCard(upgrade, Locations.Discard);
+                upgrade.owner.moveCard(upgrade, Location.Discard);
             }
 
             card.leavesPlay(targetLocation);
@@ -1156,29 +1155,29 @@ class Player extends GameObject {
             card.setDefaultController(this);
             card.controller = this;
             // // This should only be called when an upgrade is dragged into play
-            // if (card.type === CardTypes.Upgrade) {
+            // if (card.type === CardType.Upgrade) {
             //     this.promptForUpgrade(card);
             //     return;
             // }
-        } else if (currentLocation === Locations.BeingPlayed && card.owner !== this) {
+        } else if (currentLocation === Location.BeingPlayed && card.owner !== this) {
             card.owner.moveCard(card, targetLocation, options);
             return;
         } else {
             card.controller = card.owner;
         }
 
-        if (currentLocation === Locations.Resource && targetLocation !== Locations.Resource) {
+        if (currentLocation === Location.Resource && targetLocation !== Location.Resource) {
             card.resourced = false;
         }
 
-        if (targetLocation === Locations.Resource) {
+        if (targetLocation === Location.Resource) {
             card.facedown = true;
             card.resourced = true;
             targetPile.push(card);
-        } else if (targetLocation === Locations.Deck && !options.bottom) {
+        } else if (targetLocation === Location.Deck && !options.bottom) {
             targetPile.unshift(card);
         } else if (
-            [Locations.Discard, Locations.RemovedFromGame].includes(targetLocation)
+            [Location.Discard, Location.RemovedFromGame].includes(targetLocation)
         ) {
             // new cards go on the top of the discard pile
             targetPile.unshift(card);
@@ -1186,7 +1185,7 @@ class Player extends GameObject {
             targetPile.push(card);
         }
 
-        if (!cardLocationMatches(targetLocation, [WildcardLocations.AnyArena, Locations.Resource, Locations.Leader])) {
+        if (!cardLocationMatches(targetLocation, [WildcardLocation.AnyArena, Location.Resource, Location.Leader])) {
             card.exhausted = null;
         }
 
@@ -1210,16 +1209,16 @@ class Player extends GameObject {
             let updatedPile = this.removeCardByUuid(originalPile, card.uuid);
 
             switch (originalLocation) {
-                case Locations.Hand:
+                case Location.Hand:
                     this.hand = updatedPile;
                     break;
-                case Locations.Deck:
+                case Location.Deck:
                     this.deck = updatedPile;
                     break;
-                case Locations.Discard:
+                case Location.Discard:
                     this.discard = updatedPile;
                     break;
-                case Locations.RemovedFromGame:
+                case Location.RemovedFromGame:
                     this.removedFromGame = updatedPile;
                     break;
                 default:
@@ -1314,19 +1313,19 @@ class Player extends GameObject {
 
         if (activePlayer === this) {
             return (
-                this.getEffects(EffectNames.ShowTopCard).includes(Players.Any) ||
-                this.getEffects(EffectNames.ShowTopCard).includes(Players.Self)
+                this.getEffects(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+                this.getEffects(EffectName.ShowTopCard).includes(RelativePlayer.Self)
             );
         }
 
         return (
-            this.getEffects(EffectNames.ShowTopCard).includes(Players.Any) ||
-            this.getEffects(EffectNames.ShowTopCard).includes(Players.Opponent)
+            this.getEffects(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+            this.getEffects(EffectName.ShowTopCard).includes(RelativePlayer.Opponent)
         );
     }
 
     // eventsCannotBeCancelled() {
-    //     return this.anyEffect(EffectNames.EventsCannotBeCancelled);
+    //     return this.anyEffect(EffectName.EventsCannotBeCancelled);
     // }
 
     // // TODO: what stats are we interested in?

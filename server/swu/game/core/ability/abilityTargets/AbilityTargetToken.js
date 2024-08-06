@@ -1,11 +1,11 @@
 const CardSelector = require('../../cardSelector/CardSelector.js');
-const { CardTypes, Stages, Players, Locations, WildcardLocations } = require('../../Constants.js');
+const { CardType, Stage, RelativePlayer, Location, WildcardLocation } = require('../../Constants.js');
 
 class AbilityTargetToken {
     constructor(name, properties, ability) {
         this.name = name;
         this.properties = properties;
-        this.properties.location = this.properties.location || WildcardLocations.AnyArena;
+        this.properties.location = this.properties.location || WildcardLocation.AnyArena;
         this.selector = this.getSelector(properties);
         this.properties.singleToken = this.properties.singleToken || true;
         for(let gameSystem of this.properties.gameSystem) {
@@ -30,7 +30,7 @@ class AbilityTargetToken {
             if(this.name === 'target') {
                 contextCopy.token = tokens;
             }
-            if(context.stage === Stages.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
+            if(context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
 
@@ -46,7 +46,7 @@ class AbilityTargetToken {
             return (tokensValid && cardValid) && (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
                     (properties.gameSystem.length === 0 || properties.gameSystem.some(gameSystem => gameSystem.hasLegalTarget(contextCopy)));
         };
-        let cardType = properties.cardType || [CardTypes.Upgrade, CardTypes.Unit, CardTypes.Event, CardTypes.Leader, CardTypes.Base];
+        let cardType = properties.cardType || [CardType.Upgrade, CardType.Unit, CardType.Event, CardType.Leader, CardType.Base];
         return CardSelector.for(Object.assign({}, properties, { cardType: cardType, cardCondition: cardCondition, targets: false }));
     }
 
@@ -71,13 +71,13 @@ class AbilityTargetToken {
             return;
         }
         let player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
-        if(player === context.player.opponent && context.stage === Stages.PreTarget) {
+        if(player === context.player.opponent && context.stage === Stage.PreTarget) {
             targetResults.delayTargeting = this;
             return;
         }
         let buttons = [];
         let waitingPromptTitle = '';
-        if(context.stage === Stages.PreTarget) {
+        if(context.stage === Stage.PreTarget) {
             buttons.push({ text: 'Cancel', arg: 'cancel' });
             if(context.ability.abilityType === 'action') {
                 waitingPromptTitle = 'Waiting for opponent to take an action or pass';
@@ -147,7 +147,7 @@ class AbilityTargetToken {
         if(typeof playerProp === 'function') {
             playerProp = playerProp(context);
         }
-        return playerProp === Players.Opponent ? context.player.opponent : context.player;
+        return playerProp === RelativePlayer.Opponent ? context.player.opponent : context.player;
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {

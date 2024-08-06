@@ -1,5 +1,5 @@
 import { skip } from 'node:test';
-import { EventNames, Phases } from '../../Constants';
+import { EventName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
 import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
 import { SimpleStep } from '../SimpleStep';
@@ -10,7 +10,7 @@ export class Phase extends BaseStepWithPipeline {
 
     constructor(
         game: Game,
-        private name: Phases | 'setup'
+        private name: PhaseName | 'setup'
     ) {
         super(game);
     }
@@ -23,7 +23,7 @@ export class Phase extends BaseStepWithPipeline {
     }
 
     createPhase(): void {
-        this.game.raiseEvent(EventNames.OnPhaseCreated, { phase: this.name }, () => {
+        this.game.raiseEvent(EventName.OnPhaseCreated, { phase: this.name }, () => {
             for (const step of this.steps) {
                 this.game.queueStep(step);
             }
@@ -31,7 +31,7 @@ export class Phase extends BaseStepWithPipeline {
     }
 
     startPhase(): void {
-        this.game.raiseEvent(EventNames.OnPhaseStarted, { phase: this.name }, () => {
+        this.game.raiseEvent(EventName.OnPhaseStarted, { phase: this.name }, () => {
             this.game.currentPhase = this.name;
             if (this.name !== 'setup') {
                 this.game.addAlert('endofround', 'turn: {0} - {1} phase', this.game.roundNumber, this.name);
@@ -41,7 +41,7 @@ export class Phase extends BaseStepWithPipeline {
 
     endPhase(skipEventWindow = false): void {
         if (!skipEventWindow) {
-            this.game.raiseEvent(EventNames.OnPhaseEnded, { phase: this.name });
+            this.game.raiseEvent(EventName.OnPhaseEnded, { phase: this.name });
         }
         this.game.currentPhase = '';
     }

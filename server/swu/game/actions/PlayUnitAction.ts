@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import BaseAction from '../core/ability/PlayerAction.js';
-import { EffectNames, EventNames, Locations, Phases, PlayTypes, Players } from '../core/Constants.js';
+import { EffectName, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { payReduceableResourceCost } from '../costs/CostLibrary.js';
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
 import type Card from '../core/card/Card.js';
@@ -18,19 +18,19 @@ export class PlayUnitAction extends BaseAction {
     public meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
             !ignoredRequirements.includes('phase') &&
-            context.game.currentPhase !== Phases.Action
+            context.game.currentPhase !== PhaseName.Action
         ) {
             return 'phase';
         }
         if (
             !ignoredRequirements.includes('location') &&
-            !context.player.isCardInPlayableLocation(context.source, PlayTypes.PlayFromHand)
+            !context.player.isCardInPlayableLocation(context.source, PlayType.PlayFromHand)
         ) {
             return 'location';
         }
         if (
             !ignoredRequirements.includes('cannotTrigger') &&
-            !context.source.canPlay(context, PlayTypes.PlayFromHand)
+            !context.source.canPlay(context, PlayType.PlayFromHand)
         ) {
             return 'cannotTrigger';
         }
@@ -43,14 +43,14 @@ export class PlayUnitAction extends BaseAction {
         return super.meetsRequirements(context);
     }
 
-    createContext(player: Player = this.card.controller) {
+    createContext(player: RelativePlayer = this.card.controller) {
         let context = super.createContext(player);
         context.costAspects = this.card.aspects;
         return context;
     }
 
     public executeHandler(context: ExecutionContext): void {
-        const cardPlayedEvent = context.game.getEvent(EventNames.OnCardPlayed, {
+        const cardPlayedEvent = context.game.getEvent(EventName.OnCardPlayed, {
             player: context.player,
             card: context.source,
             context: context,
@@ -58,7 +58,7 @@ export class PlayUnitAction extends BaseAction {
             originallyOnTopOfDeck:
                 context.player && context.player.deck && context.player.deck.first() === context.source,
             onPlayCardSource: context.onPlayCardSource,
-            playType: PlayTypes.PlayFromHand
+            playType: PlayType.PlayFromHand
         });
 
         context.game.addMessage(
@@ -66,12 +66,12 @@ export class PlayUnitAction extends BaseAction {
             context.player,
             context.source,
         );
-        const effect = context.source.getEffects(EffectNames.EntersPlayForOpponent);
-        const player = effect.length > 0 ? Players.Opponent : Players.Self;
+        const effect = context.source.getEffects(EffectName.EntersPlayForOpponent);
+        const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
         context.game.openEventWindow([
             putIntoPlay({
                 controller: player,
-                overrideLocation: Locations.Hand        // TODO: should we be doing this?
+                overrideLocation: Location.Hand        // TODO: should we be doing this?
             }).getEvent(context.source, context),
             cardPlayedEvent
         ]);

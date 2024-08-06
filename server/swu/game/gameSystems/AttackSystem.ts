@@ -1,7 +1,8 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { CardTypes, EventNames, Locations, isArena, isAttackableLocation as isAttackableLocation } from '../core/Constants';
+import { CardType, EventName, Location } from '../core/Constants';
+import { isAttackableLocation, isArena } from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
-import { EffectNames } from '../core/Constants'
+import { EffectName } from '../core/Constants'
 import { AttackFlow } from '../core/attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
@@ -21,8 +22,8 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
 
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     name = 'attack';
-    eventName = EventNames.OnAttackDeclared;
-    targetType = [CardTypes.Unit, CardTypes.Base];  // TODO: leader?
+    eventName = EventName.OnAttackDeclared;
+    targetType = [CardType.Unit, CardType.Base];  // TODO: leader?
 
     defaultProperties: IAttackProperties = {};
 
@@ -61,9 +62,9 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         // TODO: sentinel check will go here
         if (
             targetCard.location !== properties.attacker.location &&
-            targetCard.location !== Locations.Base &&
-            !(targetCard.location === Locations.SpaceArena && context.source.anyEffect(EffectNames.CanAttackGroundArenaFromSpaceArena)) &&
-            !(targetCard.location === Locations.GroundArena && context.source.anyEffect(EffectNames.CanAttackSpaceArenaFromGroundArena))
+            targetCard.location !== Location.Base &&
+            !(targetCard.location === Location.SpaceArena && context.source.anyEffect(EffectName.CanAttackGroundArenaFromSpaceArena)) &&
+            !(targetCard.location === Location.GroundArena && context.source.anyEffect(EffectName.CanAttackSpaceArenaFromGroundArena))
         ) {
             return false;
         }

@@ -1,7 +1,7 @@
 import { v1 as uuidV1 } from 'uuid';
 
 import type { AbilityContext } from './ability/AbilityContext';
-import { EffectNames, Stages } from './Constants';
+import { EffectName, Stage } from './Constants';
 import type { ICardEffect } from './effect/ICardEffect';
 import type Game from './Game';
 import type { GameSystem } from './gameSystem/GameSystem';
@@ -33,17 +33,17 @@ export class GameObject {
         this.effects = this.effects.filter((e) => e !== effect);
     }
 
-    public getEffects<V = any>(type: EffectNames): V[] {
+    public getEffects<V = any>(type: EffectName): V[] {
         let filteredEffects = this.getRawEffects().filter((effect) => effect.type === type);
         return filteredEffects.map((effect) => effect.getValue(this));
     }
 
-    public sumEffects(type: EffectNames) {
+    public sumEffects(type: EffectName) {
         let filteredEffects = this.getEffects(type);
         return filteredEffects.reduce((total, effect) => total + effect, 0);
     }
 
-    public anyEffect(type: EffectNames) {
+    public anyEffect(type: EffectName) {
         return this.getEffects(type).length > 0;
     }
 
@@ -57,7 +57,7 @@ export class GameObject {
     }
 
     public checkRestrictions(actionType: string, context?: AbilityContext) {
-        return !this.getEffects(EffectNames.AbilityRestrictions).some((restriction) =>
+        return !this.getEffects(EffectName.AbilityRestrictions).some((restriction) =>
             restriction.isMatch(actionType, context, this)
         );
     }
@@ -67,8 +67,8 @@ export class GameObject {
     }
 
     public getType() {
-        if (this.anyEffect(EffectNames.ChangeType)) {
-            return this.mostRecentEffect(EffectNames.ChangeType);
+        if (this.anyEffect(EffectName.ChangeType)) {
+            return this.mostRecentEffect(EffectName.ChangeType);
         }
         return this.printedType;
     }
@@ -119,18 +119,18 @@ export class GameObject {
         targets = targets.concat(this);
         // let targetingCost = context.player.getTargetingCost(context.source, targets);
 
-        if (context.stage === Stages.PreTarget || context.stage === Stages.Cost) {
+        if (context.stage === Stage.PreTarget || context.stage === Stage.Cost) {
             //We haven't paid the cost yet, so figure out what it will cost to play this so we can know how much fate we'll have available for targeting
             let resourceCost = 0;
-            // @ts-ignore
+            // @ts-expect-error
             if (context.ability.getReducedCost) {
                 //we only want to consider the ability cost, not the card cost
-                // @ts-ignore
+                // @ts-expect-error
                 resourceCost = context.ability.getReducedCost(context);
             }
 
             // return (context.player.countSpendableResources() >= targetingCost);
-        } else if (context.stage === Stages.Target || context.stage === Stages.Effect) {
+        } else if (context.stage === Stage.Target || context.stage === Stage.Effect) {
             //We paid costs first, or targeting has to be done after costs have been paid
             // return (context.player.countSpendableResources() >= targetingCost);
         }
@@ -142,13 +142,13 @@ export class GameObject {
         return this.getShortSummary();
     }
 
-    public mostRecentEffect(type: EffectNames) {
+    public mostRecentEffect(type: EffectName) {
         const effects = this.getEffects(type);
         return effects[effects.length - 1];
     }
 
     protected getRawEffects() {
-        const suppressEffects = this.effects.filter((effect) => effect.type === EffectNames.SuppressEffects);
+        const suppressEffects = this.effects.filter((effect) => effect.type === EffectName.SuppressEffects);
         const suppressedEffects = suppressEffects.reduce((array, effect) => array.concat(effect.getValue(this)), []);
         return this.effects.filter((effect) => !suppressedEffects.includes(effect));
     }

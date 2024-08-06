@@ -4,15 +4,15 @@ import type { GameSystem } from './core/gameSystem/GameSystem';
 import type Card = require('./core/card/Card');
 import type CardAbility = require('./core/ability/CardAbility');
 import type { IAttackProperties } from './gameSystems/AttackSystem';
-import type { Players, TargetModes, CardTypes, Locations, EventNames, Phases } from './core/Constants';
+import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName } from './core/Constants';
 // import type { StatusToken } from './StatusToken';
 import type Player = require('./core/Player');
 
 interface IBaseTarget {
     activePromptTitle?: string;
-    location?: Locations | Locations[];
-    controller?: ((context: AbilityContext) => Players) | Players;
-    player?: ((context: AbilityContext) => Players) | Players;
+    location?: Location | Location[];
+    controller?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
+    player?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
     gameSystem?: GameSystem | GameSystem[];
 }
@@ -22,15 +22,15 @@ interface IChoicesInterface {
 }
 
 interface ITargetSelect extends IBaseTarget {
-    mode: TargetModes.Select;
-    choices: (IChoicesInterface | {}) | ((context: AbilityContext) => IChoicesInterface | {});
+    mode: TargetMode.Select;
+    choices: (IChoicesInterface | object) | ((context: AbilityContext) => IChoicesInterface | object);
     condition?: (context: AbilityContext) => boolean;
     targets?: boolean;
 }
 
 interface ITargetAbility extends IBaseTarget {
-    mode: TargetModes.Ability;
-    cardType?: CardTypes | CardTypes[];
+    mode: TargetMode.Ability;
+    cardType?: CardType | CardType[];
     cardCondition?: (card: Card, context?: AbilityContext) => boolean;
     abilityCondition?: (ability: CardAbility) => boolean;
 }
@@ -43,41 +43,41 @@ export interface IInitiateAttack extends IAttackProperties {
 }
 
 // interface TargetToken extends BaseTarget {
-//     mode: TargetModes.Token;
+//     mode: TargetMode.Token;
 //     optional?: boolean;
-//     location?: Locations | Locations[];
-//     cardType?: CardTypes | CardTypes[];
+//     location?: Location | Location[];
+//     cardType?: CardType | CardType[];
 //     singleToken?: boolean;
 //     cardCondition?: (card: BaseCard, context?: AbilityContext) => boolean;
 //     tokenCondition?: (token: StatusToken, context?: AbilityContext) => boolean;
 // }
 
 interface IBaseTargetCard extends IBaseTarget {
-    cardType?: CardTypes | CardTypes[];
-    location?: Locations | Locations[];
+    cardType?: CardType | CardType[];
+    location?: Location | Location[];
     optional?: boolean;
 }
 
 interface ITargetCardExactlyUpTo extends IBaseTargetCard {
-    mode: TargetModes.Exactly | TargetModes.UpTo;
+    mode: TargetMode.Exactly | TargetMode.UpTo;
     numCards: number;
     sameDiscardPile?: boolean;
 }
 
 interface ITargetCardExactlyUpToVariable extends IBaseTargetCard {
-    mode: TargetModes.ExactlyVariable | TargetModes.UpToVariable;
+    mode: TargetMode.ExactlyVariable | TargetMode.UpToVariable;
     numCardsFunc: (context: AbilityContext) => number;
 }
 
 interface ITargetCardMaxStat extends IBaseTargetCard {
-    mode: TargetModes.MaxStat;
+    mode: TargetMode.MaxStat;
     numCards: number;
     cardStat: (card: Card) => number;
     maxStat: () => number;
 }
 
 interface TargetCardSingleUnlimited extends IBaseTargetCard {
-    mode?: TargetModes.Single | TargetModes.Unlimited;
+    mode?: TargetMode.Single | TargetMode.Unlimited;
 }
 
 type ITargetCard =
@@ -105,14 +105,14 @@ interface IActionTargets {
 type EffectArg =
     | number
     | string
-    | Player
+    | RelativePlayer
     | Card
-    | { id: string; label: string; name: string; facedown: boolean; type: CardTypes }
+    | { id: string; label: string; name: string; facedown: boolean; type: CardType }
     | EffectArg[];
 
 interface IAbilityProps<Context> {
     title: string;
-    location?: Locations | Locations[];
+    location?: Location | Location[];
     cost?: any;
     limit?: any;
     max?: any;
@@ -131,7 +131,7 @@ interface IAbilityProps<Context> {
 
 export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
     condition?: (context?: AbilityContext<Source>) => boolean;
-    phase?: Phases | 'any';
+    phase?: PhaseName | 'any';
     /**
      * @deprecated
      */
@@ -151,7 +151,7 @@ interface ITriggeredAbilityTargets {
 }
 
 export type WhenType = {
-    [EventName in EventNames]?: (event: any, context?: TriggeredAbilityContext) => boolean;
+    [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext) => boolean;
 };
 
 export interface ITriggeredAbilityWhenProps extends IAbilityProps<TriggeredAbilityContext> {
@@ -176,11 +176,11 @@ export interface ITriggeredAbilityAggregateWhenProps extends IAbilityProps<Trigg
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;
 
 export interface IPersistentEffectProps<Source = any> {
-    location?: Locations | Locations[];
+    location?: Location | Location[];
     condition?: (context: AbilityContext<Source>) => boolean;
     match?: (card: Card, context?: AbilityContext<Source>) => boolean;
-    targetController?: Players;
-    targetLocation?: Locations;
+    targetController?: RelativePlayer;
+    targetLocation?: Location;
     effect: Function | Function[];
     createCopies?: boolean;
 }

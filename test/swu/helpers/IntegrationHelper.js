@@ -2,7 +2,7 @@
 /* eslint camelcase: 0, no-invalid-this: 0 */
 
 const _ = require('underscore');
-const { GameModes } = require('../../../build/GameModes.js');
+const { GameMode } = require('../../../build/GameMode.js');
 
 require('./ObjectFormatters.js');
 
@@ -152,7 +152,7 @@ global.integration = function (definitions) {
                 if (!options.player2) {
                     options.player2 = {};
                 }
-                this.game.gameMode = GameModes.Premier;
+                this.game.gameMode = GameMode.Premier;
 
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
                 this.player1.selectDeck(deckBuilder.customDeck(options.player1));

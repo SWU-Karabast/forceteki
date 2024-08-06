@@ -1,7 +1,7 @@
 const _ = require('underscore');
 
 const CardSelector = require('../../cardSelector/CardSelector.js');
-const { Stages, Players, EffectNames, TargetModes } = require('../../Constants.js');
+const { Stage, RelativePlayer, EffectName, TargetMode } = require('../../Constants.js');
 
 class AbilityTargetCard {
     constructor(name, properties, ability) {
@@ -23,7 +23,7 @@ class AbilityTargetCard {
     getSelector(properties) {
         let cardCondition = (card, context) => {
             let contextCopy = this.getContextCopy(card, context);
-            if(context.stage === Stages.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
+            if(context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
             return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
@@ -64,11 +64,11 @@ class AbilityTargetCard {
             return;
         }
         let player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
-        if(player === context.player.opponent && context.stage === Stages.PreTarget) {
+        if(player === context.player.opponent && context.stage === Stage.PreTarget) {
             targetResults.delayTargeting = this;
             return;
         }
-        if(this.properties.mode === TargetModes.AutoSingle) {
+        if(this.properties.mode === TargetMode.AutoSingle) {
             let legalTargets = this.selector.getAllLegalTargets(context, player);
             if(legalTargets.length === 1) {
                 context.targets[this.name] = legalTargets[0];
@@ -82,7 +82,7 @@ class AbilityTargetCard {
 
         let buttons = [];
         let waitingPromptTitle = '';
-        if(context.stage === Stages.PreTarget) {
+        if(context.stage === Stage.PreTarget) {
             if(!targetResults.noCostsFirstButton) {
                 buttons.push({ text: 'Pay costs first', arg: 'costsFirst' });
             }
@@ -94,7 +94,7 @@ class AbilityTargetCard {
             }
         }
         let mustSelect = this.selector.getAllLegalTargets(context, player).filter(card =>
-            card.getEffects(EffectNames.MustBeChosen).some(restriction => restriction.isMatch('target', context))
+            card.getEffects(EffectName.MustBeChosen).some(restriction => restriction.isMatch('target', context))
         );
         let promptProperties = {
             waitingPromptTitle: waitingPromptTitle,
@@ -143,7 +143,7 @@ class AbilityTargetCard {
         if(typeof playerProp === 'function') {
             playerProp = playerProp(context);
         }
-        return playerProp === Players.Opponent ? context.player.opponent : context.player;
+        return playerProp === RelativePlayer.Opponent ? context.player.opponent : context.player;
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {

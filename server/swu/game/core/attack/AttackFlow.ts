@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { EffectNames, EventNames } from '../Constants';
+import { EffectName, EventName } from '../Constants';
 import type { Attack } from './Attack';
 import type Game from '../Game';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
@@ -47,7 +47,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     #completeAttack() {
-        this.game.raiseEvent(EventNames.OnAttackCompleted, { attack: this.attack });
+        this.game.raiseEvent(EventName.OnAttackCompleted, { attack: this.attack });
     }
 
     #cleanUpAttack() {

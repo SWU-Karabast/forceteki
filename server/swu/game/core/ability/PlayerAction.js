@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stages } = require('../Constants.js');
+const { Stage } = require('../Constants.js');
 
 class PlayerAction extends PlayerOrCardAbility {
     constructor(card, costs = [], target) {
@@ -20,7 +20,7 @@ class PlayerAction extends PlayerOrCardAbility {
             game: this.card.game,
             player: player,
             source: this.card,
-            stage: Stages.PreTarget
+            stage: Stage.PreTarget
         });
     }
 

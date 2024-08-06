@@ -1,5 +1,4 @@
-import { GameModes } from '../../../../GameModes';
-import { Locations } from '../../Constants';
+import { Location } from '../../Constants';
 import { randomItem } from '../../utils/Helpers';
 import type Card from '../../card/Card';
 import type Game from '../../Game';
@@ -28,14 +27,14 @@ export class SetupPhase extends Phase {
 
     putBaseInPlay() {
         for (const player of this.game.getPlayers()) {
-            player.moveCard(player.base, Locations.Base);
+            player.moveCard(player.base, Location.Base);
             player.damageToBase = 0;
         }
     }
 
     putLeaderInPlay() {
         for (const player of this.game.getPlayers()) {
-            player.moveCard(player.leader, Locations.Leader);
+            player.moveCard(player.leader, Location.Leader);
         }
     }
 

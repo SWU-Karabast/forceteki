@@ -2,12 +2,12 @@ const AbilityLimit = require('./AbilityLimit');
 const AbilityDsl = require('./abilitydsl');
 const CardAbilityStep = require('./CardAbilityStep');
 const Costs = require('./Costs.js');
-const { Locations, CardTypes, EffectNames, Players } = require('./Constants');
+const { Location, CardType, EffectName, RelativePlayer } = require('./Constants');
 import { IInitiateAttack } from "../../Interfaces";
 
 export const initiateAttack = (game, card, properties) => {
     if (properties.initiateAttack) {
-        if (card.type === CardTypes.Unit) {
+        if (card.type === CardType.Unit) {
             initiateAttackFromUnit(game, card, properties);
         } else {
             initiateAttackFromOther(game, card, properties);
@@ -40,12 +40,12 @@ const initiateAttackFromUnit = (game, card, properties) => {
 const initiateAttackFromOther = (game, card, properties) => {
     properties.targets = {
         attacker: {
-            cardType: CardTypes.Character,
+            cardType: CardType.Character,
             player: (context) => {
                 const opponentChoosesAttacker = getProperty(properties, context, 'opponentChoosesAttacker');
-                return opponentChoosesAttacker ? Players.Opponent : Players.Self;
+                return opponentChoosesAttacker ? RelativePlayer.Opponent : RelativePlayer.Self;
             },
-            controller: Players.Self,
+            controller: RelativePlayer.Self,
             cardCondition: (card, context) => checkAttackerCondition(card, context, properties)
         },
         duelTarget: {
@@ -61,12 +61,12 @@ const initiateAttackFromOther = (game, card, properties) => {
 
 const getBaselineAttackTargetProperties = (attacker, properties) => {
     const props = {
-        cardType: CardTypes.Unit,
+        cardType: CardType.Unit,
         player: (context) => {
             const opponentChoosesAttackTarget = getProperty(properties, context, 'opponentChoosesAttackTarget');
-            return opponentChoosesAttackTarget ? Players.Opponent : Players.Self;
+            return opponentChoosesAttackTarget ? RelativePlayer.Opponent : RelativePlayer.Self;
         },
-        controller: Players.Opponent,
+        controller: RelativePlayer.Opponent,
         cardCondition: (card, context) => {
             const attackerCard = attacker ?? context.targets.attacker;
 

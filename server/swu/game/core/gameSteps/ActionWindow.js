@@ -1,5 +1,6 @@
 const { UiPrompt } = require('./prompts/UiPrompt.js');
-const { EventNames, Locations, Players, EffectNames, isArena, WildcardLocations } = require('../Constants.js');
+const { EventName, Location, RelativePlayer, EffectName, WildcardLocation } = require('../Constants.js');
+const { isArena } = require('../utils/EnumHelpers.js');
 
 class ActionWindow extends UiPrompt {
     constructor(game, title, windowName, activePlayer = null) {
@@ -30,7 +31,7 @@ class ActionWindow extends UiPrompt {
             return false;
         } else if(legalActions.length === 1) {
             let action = legalActions[0];
-            let targetPrompts = action.targets.some(target => target.properties.player !== Players.Opponent);
+            let targetPrompts = action.targets.some(target => target.properties.player !== RelativePlayer.Opponent);
             if(!this.activePlayer.optionSettings.confirmOneClick || action.cost.some(cost => cost.promptsPlayer) || targetPrompts) {
                 this.resolveAbility(action.createContext(player));
                 return true;
@@ -105,8 +106,8 @@ class ActionWindow extends UiPrompt {
             this.game.promptForSelect(this.activePlayer, {
                 source: 'Manual Action',
                 activePrompt: 'Which ability are you using?',
-                location: WildcardLocations.Any,
-                controller: Players.Self,
+                location: WildcardLocation.Any,
+                controller: RelativePlayer.Self,
                 cardCondition: card => card.isFaceup() || card.canBeSmuggled(),
                 onSelect: (player, card) => {
                     this.game.addMessage('{0} uses {1}\'s ability', player, card);
@@ -196,8 +197,8 @@ class ActionWindow extends UiPrompt {
     setupBonusActions() {
         const player1 = this.game.initiativePlayer;
         const player2 = player1.opponent;
-        let p1ActionsPostWindow = player1.sumEffects(EffectNames.AdditionalActionAfterWindowCompleted);
-        let p2ActionsPostWindow = player2.sumEffects(EffectNames.AdditionalActionAfterWindowCompleted);
+        let p1ActionsPostWindow = player1.sumEffects(EffectName.AdditionalActionAfterWindowCompleted);
+        let p2ActionsPostWindow = player2.sumEffects(EffectName.AdditionalActionAfterWindowCompleted);
 
         this.bonusActions = {
             [player1.uuid]: {

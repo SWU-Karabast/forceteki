@@ -5,23 +5,21 @@ import CardAbility = require('../ability/CardAbility.js');
 // import TriggeredAbility = require('./triggeredability');
 import Game = require('../Game.js');
 
-import { GameModes } from '../../../GameModes.js';
 import { AbilityContext } from '../ability/AbilityContext.js';
 import { CardActionAbility } from '../ability/CardActionAbility.js';
 import { AttackSystem } from '../../gameSystems/AttackSystem.js';
 import {
-    AbilityTypes,
-    CardTypes,
-    Durations,
-    EffectNames,
-    EventNames,
-    Locations,
-    isArena,
-    Aspects,
-    cardLocationMatches,
-    WildcardLocations,
+    AbilityType,
+    CardType,
+    Duration,
+    EffectName,
+    EventName,
+    Location,
+    Aspect,
+    WildcardLocation,
     StatType
 } from '../Constants.js';
+import { isArena, cardLocationMatches, checkConvertToEnum } from '../utils/EnumHelpers.js';
 import {
     IActionProps,
     IAttachmentConditionProps,
@@ -36,7 +34,6 @@ import StatModifier = require('./StatModifier.js');
 import type { ICardEffect } from '../effect/ICardEffect.js';
 // import type { GainAllAbilities } from './Effects/Library/gainAllAbilities';
 import { PlayUnitAction } from '../../actions/PlayUnitAction.js';
-import { checkConvertToEnum } from '../utils/Helpers.js';
 import { TriggerAttackAction } from '../../actions/TriggerAttackAction.js';
 
 // TODO: convert enums to unions
@@ -81,7 +78,7 @@ class Card extends EffectSource {
     printedTitle: string;
     printedSubtitle: string;
     internalName: string;
-    type: CardTypes;
+    type: CardType;
     facedown: boolean;
     resourced: boolean;
 
@@ -98,7 +95,7 @@ class Card extends EffectSource {
     abilities: any = { actions: [], reactions: [], persistentEffects: [], playActions: [] };
     traits: string[];
     printedFaction: string;
-    location: Locations;
+    location: Location;
 
     isBase: boolean = false;
     isLeader: boolean = false;
@@ -108,7 +105,7 @@ class Card extends EffectSource {
     // statusTokens = [] as StatusToken[];
     allowedAttachmentTraits = [] as string[];
     printedKeywords: Array<string> = [];
-    aspects: Array<Aspects> = [];
+    aspects: Array<Aspect> = [];
 
     constructor(
         public owner: Player,
@@ -123,9 +120,9 @@ class Card extends EffectSource {
         this.printedTitle = cardData.title;
         this.printedSubtitle = cardData.subtitle;
         this.internalName = cardData.internalName;
-        this.printedType = checkConvertToEnum([cardData.type], CardTypes)[0]; // TODO: does this work for leader consistently, since it has two types?
+        this.printedType = checkConvertToEnum([cardData.type], CardType)[0]; // TODO: does this work for leader consistently, since it has two types?
         this.traits = cardData.traits;  // TODO: enum for these
-        this.aspects = checkConvertToEnum(cardData.aspects, Aspects);
+        this.aspects = checkConvertToEnum(cardData.aspects, Aspect);
         this.printedKeywords = cardData.keywords;   // TODO: enum for these
 
         this.setupCardAbilities(AbilityDsl);
@@ -148,27 +145,27 @@ class Card extends EffectSource {
 
         switch (cardData.arena) {
             case "space":
-                this.defaultArena = Locations.SpaceArena;
+                this.defaultArena = Location.SpaceArena;
                 break;
             case "ground":
-                this.defaultArena = Locations.GroundArena;
+                this.defaultArena = Location.GroundArena;
                 break;
             default:
                 this.defaultArena = null;
         }
 
-        // if (cardData.type === CardTypes.Character) {
+        // if (cardData.type === CardType.Character) {
         //     this.abilities.reactions.push(new CourtesyAbility(this.game, this));
         //     this.abilities.reactions.push(new PrideAbility(this.game, this));
         //     this.abilities.reactions.push(new SincerityAbility(this.game, this));
         // }
-        // if (cardData.type === CardTypes.Attachment) {
+        // if (cardData.type === CardType.Attachment) {
         //     this.abilities.reactions.push(new CourtesyAbility(this.game, this));
         //     this.abilities.reactions.push(new SincerityAbility(this.game, this));
         // }
-        // if (cardData.type === CardTypes.Event && this.hasEphemeral()) {
+        // if (cardData.type === CardType.Event && this.hasEphemeral()) {
         //     this.eventRegistrarForEphemeral = new EventRegistrar(this.game, this);
-        //     this.eventRegistrarForEphemeral.register([{ [EventNames.OnCardPlayed]: 'handleEphemeral' }]);
+        //     this.eventRegistrarForEphemeral.register([{ [EventName.OnCardPlayed]: 'handleEphemeral' }]);
         // }
         // if (this.isDynasty) {
         //     this.abilities.reactions.push(new RallyAbility(this.game, this));
@@ -176,7 +173,7 @@ class Card extends EffectSource {
     }
 
     get name(): string {
-        let copyEffect = this.mostRecentEffect(EffectNames.CopyCharacter);
+        let copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
         return copyEffect ? copyEffect.printedName : this.printedTitle;
     }
 
@@ -200,25 +197,25 @@ class Card extends EffectSource {
     #getActions(location = this.location, ignoreDynamicGains = false): CardActionAbility[] {
         let actions = this.abilities.actions;
 
-        const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectNames.CopyCharacter);
+        const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectName.CopyCharacter);
         if (mostRecentEffect) {
             actions = mostRecentEffect.value.getActions(this);
         }
         
-        const effectActions = this.getEffects(EffectNames.GainAbility).filter(
-            (ability) => ability.abilityType === AbilityTypes.Action
+        const effectActions = this.getEffects(EffectName.GainAbility).filter(
+            (ability) => ability.abilityType === AbilityType.Action
         );
 
         // for (const effect of this.getRawEffects()) {
-        //     if (effect.type === EffectNames.GainAllAbilities) {
+        //     if (effect.type === EffectName.GainAllAbilities) {
         //         actions = actions.concat((effect.value as GainAllAbilities).getActions(this));
         //     }
         // }
         // if (!ignoreDynamicGains) {
-        //     if (this.anyEffect(EffectNames.GainAllAbilitiesDynamic)) {
+        //     if (this.anyEffect(EffectName.GainAllAbilitiesDynamic)) {
         //         const context = this.game.getFrameworkContext(this.controller);
         //         const effects = this.getRawEffects().filter(
-        //             (effect) => effect.type === EffectNames.GainAllAbilitiesDynamic
+        //             (effect) => effect.type === EffectName.GainAllAbilitiesDynamic
         //         );
         //         effects.forEach((effect) => {
         //             effect.value.calculate(this, context); //fetch new abilities
@@ -227,18 +224,18 @@ class Card extends EffectSource {
         //     }
         // }
 
-        // const lostAllNonKeywordsAbilities = this.anyEffect(EffectNames.LoseAllNonKeywordAbilities);
+        // const lostAllNonKeywordsAbilities = this.anyEffect(EffectName.LoseAllNonKeywordAbilities);
         let allAbilities = actions.concat(effectActions);
         // if (lostAllNonKeywordsAbilities) {
         //     allAbilities = allAbilities.filter((a) => a.isKeywordAbility());
         // }
 
-        if (this.type === CardTypes.Unit) {
+        if (this.type === CardType.Unit) {
             allAbilities.push(new TriggerAttackAction(this));
         }
 
         // if card is already in play or is an event, return the default actions
-        if (isArena(location) || this.type === CardTypes.Event) {
+        if (isArena(location) || this.type === CardType.Event) {
             return allAbilities;
         }
 
@@ -250,29 +247,29 @@ class Card extends EffectSource {
 
     // _getReactions(ignoreDynamicGains = false): TriggeredAbility[] {
     //     const TriggeredAbilityTypes = [
-    //         AbilityTypes.ForcedInterrupt,
-    //         AbilityTypes.ForcedReaction,
-    //         AbilityTypes.Interrupt,
-    //         AbilityTypes.Reaction,
-    //         AbilityTypes.WouldInterrupt
+    //         AbilityType.ForcedInterrupt,
+    //         AbilityType.ForcedReaction,
+    //         AbilityType.Interrupt,
+    //         AbilityType.Reaction,
+    //         AbilityType.WouldInterrupt
     //     ];
     //     let reactions = this.abilities.reactions;
-    //     const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectNames.CopyCharacter);
+    //     const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectName.CopyCharacter);
     //     if (mostRecentEffect) {
     //         reactions = mostRecentEffect.value.getReactions(this);
     //     }
-    //     const effectReactions = this.getEffects(EffectNames.GainAbility).filter((ability) =>
+    //     const effectReactions = this.getEffects(EffectName.GainAbility).filter((ability) =>
     //         TriggeredAbilityTypes.includes(ability.abilityType)
     //     );
     //     for (const effect of this.getRawEffects()) {
-    //         if (effect.type === EffectNames.GainAllAbilities) {
+    //         if (effect.type === EffectName.GainAllAbilities) {
     //             reactions = reactions.concat((effect.value as GainAllAbilities).getReactions(this));
     //         }
     //     }
     //     if (!ignoreDynamicGains) {
-    //         if (this.anyEffect(EffectNames.GainAllAbilitiesDynamic)) {
+    //         if (this.anyEffect(EffectName.GainAllAbilitiesDynamic)) {
     //             const effects = this.getRawEffects().filter(
-    //                 (effect) => effect.type === EffectNames.GainAllAbilitiesDynamic
+    //                 (effect) => effect.type === EffectName.GainAllAbilitiesDynamic
     //             );
     //             const context = this.game.getFrameworkContext(this.controller);
     //             effects.forEach((effect) => {
@@ -282,7 +279,7 @@ class Card extends EffectSource {
     //         }
     //     }
 
-    //     const lostAllNonKeywordsAbilities = this.anyEffect(EffectNames.LoseAllNonKeywordAbilities);
+    //     const lostAllNonKeywordsAbilities = this.anyEffect(EffectName.LoseAllNonKeywordAbilities);
     //     let allAbilities = reactions.concat(effectReactions);
     //     if (lostAllNonKeywordsAbilities) {
     //         allAbilities = allAbilities.filter((a) => a.isKeywordAbility());
@@ -295,16 +292,16 @@ class Card extends EffectSource {
     // }
 
     // _getPersistentEffects(ignoreDynamicGains = false): any[] {
-    //     let gainedPersistentEffects = this.getEffects(EffectNames.GainAbility).filter(
-    //         (ability) => ability.abilityType === AbilityTypes.Persistent
+    //     let gainedPersistentEffects = this.getEffects(EffectName.GainAbility).filter(
+    //         (ability) => ability.abilityType === AbilityType.Persistent
     //     );
 
-    //     const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectNames.CopyCharacter);
+    //     const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectName.CopyCharacter);
     //     if (mostRecentEffect) {
     //         return gainedPersistentEffects.concat(mostRecentEffect.value.getPersistentEffects());
     //     }
     //     for (const effect of this.getRawEffects()) {
-    //         if (effect.type === EffectNames.GainAllAbilities) {
+    //         if (effect.type === EffectName.GainAllAbilities) {
     //             gainedPersistentEffects = gainedPersistentEffects.concat(
     //                 (effect.value as GainAllAbilities).getPersistentEffects()
     //             );
@@ -314,9 +311,9 @@ class Card extends EffectSource {
     //         // This is needed even though there are no dynamic persistent effects
     //         // Because the effect itself is persistent and to ensure we pick up all reactions/interrupts, we need this check to happen
     //         // As the game state is applying the effect
-    //         if (this.anyEffect(EffectNames.GainAllAbilitiesDynamic)) {
+    //         if (this.anyEffect(EffectName.GainAllAbilitiesDynamic)) {
     //             const effects = this.getRawEffects().filter(
-    //                 (effect) => effect.type === EffectNames.GainAllAbilitiesDynamic
+    //                 (effect) => effect.type === EffectName.GainAllAbilitiesDynamic
     //             );
     //             const context = this.game.getFrameworkContext(this.controller);
     //             effects.forEach((effect) => {
@@ -326,10 +323,10 @@ class Card extends EffectSource {
     //         }
     //     }
 
-    //     const lostAllNonKeywordsAbilities = this.anyEffect(EffectNames.LoseAllNonKeywordAbilities);
+    //     const lostAllNonKeywordsAbilities = this.anyEffect(EffectName.LoseAllNonKeywordAbilities);
     //     if (lostAllNonKeywordsAbilities) {
     //         let allAbilities = this.abilities.persistentEffects.concat(gainedPersistentEffects);
-    //         allAbilities = allAbilities.filter((a) => a.isKeywordEffect || a.type === EffectNames.AddKeyword);
+    //         allAbilities = allAbilities.filter((a) => a.isKeywordEffect || a.type === EffectName.AddKeyword);
     //         return allAbilities;
     //     }
     //     return this.isBlank()
@@ -357,32 +354,32 @@ class Card extends EffectSource {
         return new CardActionAbility(this.game, this, properties);
     }
 
-    // triggeredAbility(abilityType: AbilityTypes, properties: TriggeredAbilityProps): void {
+    // triggeredAbility(abilityType: AbilityType, properties: TriggeredAbilityProps): void {
     //     this.abilities.reactions.push(this.createTriggeredAbility(abilityType, properties));
     // }
 
-    // createTriggeredAbility(abilityType: AbilityTypes, properties: TriggeredAbilityProps): TriggeredAbility {
+    // createTriggeredAbility(abilityType: AbilityType, properties: TriggeredAbilityProps): TriggeredAbility {
     //     return new TriggeredAbility(this.game, this, abilityType, properties);
     // }
 
     // reaction(properties: TriggeredAbilityProps): void {
-    //     this.triggeredAbility(AbilityTypes.Reaction, properties);
+    //     this.triggeredAbility(AbilityType.Reaction, properties);
     // }
 
     // forcedReaction(properties: TriggeredAbilityProps): void {
-    //     this.triggeredAbility(AbilityTypes.ForcedReaction, properties);
+    //     this.triggeredAbility(AbilityType.ForcedReaction, properties);
     // }
 
     // wouldInterrupt(properties: TriggeredAbilityProps): void {
-    //     this.triggeredAbility(AbilityTypes.WouldInterrupt, properties);
+    //     this.triggeredAbility(AbilityType.WouldInterrupt, properties);
     // }
 
     // interrupt(properties: TriggeredAbilityProps): void {
-    //     this.triggeredAbility(AbilityTypes.Interrupt, properties);
+    //     this.triggeredAbility(AbilityType.Interrupt, properties);
     // }
 
     // forcedInterrupt(properties: TriggeredAbilityProps): void {
-    //     this.triggeredAbility(AbilityTypes.ForcedInterrupt, properties);
+    //     this.triggeredAbility(AbilityType.ForcedInterrupt, properties);
     // }
 
     // /**
@@ -391,22 +388,22 @@ class Card extends EffectSource {
     //  */
     // persistentEffect(properties: PersistentEffectProps<this>): void {
     //     const allowedLocations = [
-    //         Locations.Any,
-    //         Locations.ConflictDiscardPile,
-    //         Locations.PlayArea,
-    //         Locations.Provinces
+    //         Location.Any,
+    //         Location.ConflictDiscardPile,
+    //         Location.PlayArea,
+    //         Location.Provinces
     //     ];
     //     const defaultLocationForType = {
-    //         province: Locations.Provinces,
-    //         holding: Locations.Provinces,
-    //         stronghold: Locations.Provinces
+    //         province: Location.Provinces,
+    //         holding: Location.Provinces,
+    //         stronghold: Location.Provinces
     //     };
 
     //     let location = properties.location || defaultLocationForType[this.getType()] || isArena(properties.location);
     //     if (!allowedLocations.includes(location)) {
     //         throw new Error(`'${location}' is not a supported effect location.`);
     //     }
-    //     this.abilities.persistentEffects.push({ duration: Durations.Persistent, location, ...properties });
+    //     this.abilities.persistentEffects.push({ duration: Duration.Persistent, location, ...properties });
     // }
 
     // attachmentConditions(properties: AttachmentConditionProps): void {
@@ -443,7 +440,7 @@ class Card extends EffectSource {
     //     }
     //     if (effects.length > 0) {
     //         this.persistentEffect({
-    //             location: Locations.Any,
+    //             location: Location.Any,
     //             effect: effects
     //         });
     //     }
@@ -452,10 +449,10 @@ class Card extends EffectSource {
     hasKeyword(keyword: string): boolean {
         const targetKeyword = keyword.toLowerCase();
 
-        const addKeywordEffects = this.getEffects(EffectNames.AddKeyword).filter(
+        const addKeywordEffects = this.getEffects(EffectName.AddKeyword).filter(
             (effectValue: string) => effectValue === targetKeyword
         );
-        const loseKeywordEffects = this.getEffects(EffectNames.LoseKeyword).filter(
+        const loseKeywordEffects = this.getEffects(EffectName.LoseKeyword).filter(
             (effectValue: string) => effectValue === targetKeyword
         );
 
@@ -510,19 +507,19 @@ class Card extends EffectSource {
     }
 
     // getTraitSet(): Set<string> {
-    //     const copyEffect = this.mostRecentEffect(EffectNames.CopyCharacter);
+    //     const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
     //     const set = new Set(
     //         copyEffect
     //             ? (copyEffect.traits as string[])
-    //             : this.getEffects(EffectNames.Blank).some((blankTraits: boolean) => blankTraits)
+    //             : this.getEffects(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
     //             ? []
     //             : this.traits
     //     );
 
-    //     for (const gainedTrait of this.getEffects(EffectNames.AddTrait)) {
+    //     for (const gainedTrait of this.getEffects(EffectName.AddTrait)) {
     //         set.add(gainedTrait);
     //     }
-    //     for (const lostTrait of this.getEffects(EffectNames.LoseTrait)) {
+    //     for (const lostTrait of this.getEffects(EffectName.LoseTrait)) {
     //         set.delete(lostTrait);
     //     }
 
@@ -530,40 +527,40 @@ class Card extends EffectSource {
     // }
 
     // isFaction(faction: Faction): boolean {
-    //     const copyEffect = this.mostRecentEffect(EffectNames.CopyCharacter);
+    //     const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
     //     const cardFaction = copyEffect ? copyEffect.printedFaction : this.printedFaction;
     //     if (faction === 'neutral') {
-    //         return cardFaction === faction && !this.anyEffect(EffectNames.AddFaction);
+    //         return cardFaction === faction && !this.anyEffect(EffectName.AddFaction);
     //     }
-    //     return cardFaction === faction || this.getEffects(EffectNames.AddFaction).includes(faction);
+    //     return cardFaction === faction || this.getEffects(EffectName.AddFaction).includes(faction);
     // }
 
     // isInPlay(): boolean {
     //     if (this.isFacedown()) {
     //         return false;
     //     }
-    //     if ([CardTypes.Holding, CardTypes.Province, CardTypes.Stronghold].includes(this.type)) {
+    //     if ([CardType.Holding, CardType.Province, CardType.Stronghold].includes(this.type)) {
     //         return this.isInProvince();
     //     }
-    //     return this.location === Locations.PlayArea;
+    //     return this.location === Location.PlayArea;
     // }
 
     // applyAnyLocationPersistentEffects(): void {
     //     for (const effect of this.persistentEffects) {
-    //         if (effect.location === Locations.Any) {
+    //         if (effect.location === Location.Any) {
     //             effect.ref = this.addEffectToEngine(effect);
     //         }
     //     }
     // }
 
-    // updateAbilityEvents(from: Locations, to: Locations, reset: boolean = true) {
+    // updateAbilityEvents(from: Location, to: Location, reset: boolean = true) {
     //     if (reset) {
     //         this.#resetLimits();
     //     }
     //     for (const reaction of this.reactions) {
-    //         if (this.type === CardTypes.Event) {
+    //         if (this.type === CardType.Event) {
     //             if (
-    //                 to === Locations.ConflictDeck ||
+    //                 to === Location.ConflictDeck ||
     //                 this.controller.isCardInPlayableLocation(this) ||
     //                 (this.controller.opponent && this.controller.opponent.isCardInPlayableLocation(this))
     //             ) {
@@ -579,21 +576,21 @@ class Card extends EffectSource {
     //     }
     // }
 
-    // updateEffects(from: Locations, to: Locations) {
+    // updateEffects(from: Location, to: Location) {
     //     const activeLocations = {
-    //         'conflict discard pile': [Locations.ConflictDiscardPile],
-    //         'play area': [Locations.PlayArea],
+    //         'conflict discard pile': [Location.ConflictDiscardPile],
+    //         'play area': [Location.PlayArea],
     //         province: this.game.getProvinceArray()
     //     };
     //     if (
-    //         !activeLocations[Locations.Provinces].includes(from) ||
-    //         !activeLocations[Locations.Provinces].includes(to)
+    //         !activeLocations[Location.Provinces].includes(from) ||
+    //         !activeLocations[Location.Provinces].includes(to)
     //     ) {
     //         this.removeLastingEffects();
     //     }
     //     this.updateStatusTokenEffects();
     //     for (const effect of this.persistentEffects) {
-    //         if (effect.location === Locations.Any) {
+    //         if (effect.location === Location.Any) {
     //             continue;
     //         }
     //         if (activeLocations[effect.location].includes(to) && !activeLocations[effect.location].includes(from)) {
@@ -618,7 +615,7 @@ class Card extends EffectSource {
         }
     }
 
-    moveTo(targetLocation: Locations) {
+    moveTo(targetLocation: Location) {
         let originalLocation = this.location;
         let sameLocation = false;
 
@@ -627,7 +624,7 @@ class Card extends EffectSource {
         if (
             cardLocationMatches(
                 targetLocation,
-                [WildcardLocations.AnyArena, Locations.Discard, Locations.Hand]
+                [WildcardLocation.AnyArena, Location.Discard, Location.Hand]
             )
         ) {
             this.facedown = false;
@@ -636,7 +633,7 @@ class Card extends EffectSource {
         if (originalLocation !== targetLocation) {
             // this.updateAbilityEvents(originalLocation, targetLocation, !sameLocation);
             // this.updateEffects(originalLocation, targetLocation);
-            this.game.emitEvent(EventNames.OnCardMoved, {
+            this.game.emitEvent(EventName.OnCardMoved, {
                 card: this,
                 originalLocation: originalLocation,
                 newLocation: targetLocation
@@ -657,7 +654,7 @@ class Card extends EffectSource {
     }
 
     // getModifiedLimitMax(player: Player, ability: CardAbility, max: number): number {
-    //     const effects = this.getRawEffects().filter((effect) => effect.type === EffectNames.IncreaseLimitOnAbilities);
+    //     const effects = this.getRawEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
     //     let total = max;
     //     effects.forEach((effect) => {
     //         const value = effect.getValue(this);
@@ -669,7 +666,7 @@ class Card extends EffectSource {
     //     });
 
     //     const printedEffects = this.getRawEffects().filter(
-    //         (effect) => effect.type === EffectNames.IncreaseLimitOnPrintedAbilities
+    //         (effect) => effect.type === EffectName.IncreaseLimitOnPrintedAbilities
     //     );
     //     printedEffects.forEach((effect) => {
     //         const value = effect.getValue(this);
@@ -685,7 +682,7 @@ class Card extends EffectSource {
     //     if (
     //         this.menu.length === 0 ||
     //         !this.game.manualMode ||
-    //         ![...this.game.getProvinceArray(), Locations.PlayArea].includes(this.location)
+    //         ![...this.game.getProvinceArray(), Location.PlayArea].includes(this.location)
     //     ) {
     //         return undefined;
     //     }
@@ -698,7 +695,7 @@ class Card extends EffectSource {
     //     }
 
     //     const menu = [{ command: 'click', text: 'Select Card' }];
-    //     if (this.location === Locations.PlayArea || this.isProvince || this.isBase) {
+    //     if (this.location === Location.PlayArea || this.isProvince || this.isBase) {
     //         menu.push(...this.menu);
     //     }
     //     return menu;
@@ -709,7 +706,7 @@ class Card extends EffectSource {
     }
 
     isBlank(): boolean {
-        return this.anyEffect(EffectNames.Blank);
+        return this.anyEffect(EffectName.Blank);
     }
 
     getPrintedFaction(): string {
@@ -758,11 +755,11 @@ class Card extends EffectSource {
     }
 
     readiesDuringReadyPhase(): boolean {
-        return !this.anyEffect(EffectNames.DoesNotReady);
+        return !this.anyEffect(EffectName.DoesNotReady);
     }
 
     // hideWhenFacedown(): boolean {
-    //     return !this.anyEffect(EffectNames.CanBeSeenWhenFacedown);
+    //     return !this.anyEffect(EffectName.CanBeSeenWhenFacedown);
     // }
 
     // TODO: would something like this be helpful for swu?
@@ -796,7 +793,7 @@ class Card extends EffectSource {
     }
 
     // isAttachmentBonusModifierSwitchActive() {
-    //     const switches = this.getEffects(EffectNames.SwitchAttachmentSkillModifiers).filter(Boolean);
+    //     const switches = this.getEffects(EffectName.SwitchAttachmentSkillModifiers).filter(Boolean);
     //     // each pair of switches cancels each other. Need an odd number of switches to be active
     //     return switches.length % 2 === 1;
     // }
@@ -807,7 +804,7 @@ class Card extends EffectSource {
     //     if (!isNaN(militaryBonus)) {
     //         this.persistentEffect({
     //             match: (card) => card === this.parent,
-    //             targetController: Players.Any,
+    //             targetController: RelativePlayer.Any,
     //             effect: AbilityDsl.effects.attachmentMilitarySkillModifier(() =>
     //                 this.isAttachmentBonusModifierSwitchActive() ? politicalBonus : militaryBonus
     //             )
@@ -816,7 +813,7 @@ class Card extends EffectSource {
     //     if (!isNaN(politicalBonus)) {
     //         this.persistentEffect({
     //             match: (card) => card === this.parent,
-    //             targetController: Players.Any,
+    //             targetController: RelativePlayer.Any,
     //             effect: AbilityDsl.effects.attachmentPoliticalSkillModifier(() =>
     //                 this.isAttachmentBonusModifierSwitchActive() ? militaryBonus : politicalBonus
     //             )
@@ -829,7 +826,7 @@ class Card extends EffectSource {
     //     const illegalAttachments = new Set(
     //         this.upgrades.filter((attachment) => !this.allowAttachment(attachment) || !attachment.canAttach(this))
     //     );
-    //     for (const effectCard of this.getEffects(EffectNames.CannotHaveOtherRestrictedAttachments)) {
+    //     for (const effectCard of this.getEffects(EffectName.CannotHaveOtherRestrictedAttachments)) {
     //         for (const card of this.upgrades) {
     //             if (card.isRestricted() && card !== effectCard) {
     //                 illegalAttachments.add(card);
@@ -837,9 +834,9 @@ class Card extends EffectSource {
     //         }
     //     }
 
-    //     const attachmentLimits = this.upgrades.filter((card) => card.anyEffect(EffectNames.AttachmentLimit));
+    //     const attachmentLimits = this.upgrades.filter((card) => card.anyEffect(EffectName.AttachmentLimit));
     //     for (const card of attachmentLimits) {
-    //         let limit = Math.max(...card.getEffects(EffectNames.AttachmentLimit));
+    //         let limit = Math.max(...card.getEffects(EffectName.AttachmentLimit));
     //         const matchingAttachments = this.upgrades.filter((attachment) => attachment.id === card.id);
     //         for (const card of matchingAttachments.slice(0, -limit)) {
     //             illegalAttachments.add(card);
@@ -847,7 +844,7 @@ class Card extends EffectSource {
     //     }
 
     //     const frameworkLimitsAttachmentsWithRepeatedNames =
-    //         this.game.gameMode === GameModes.Emerald || this.game.gameMode === GameModes.Obsidian;
+    //         this.game.gameMode === GameMode.Emerald || this.game.gameMode === GameMode.Obsidian;
     //     if (frameworkLimitsAttachmentsWithRepeatedNames) {
     //         for (const card of this.upgrades) {
     //             const matchingAttachments = this.upgrades.filter(
@@ -863,7 +860,7 @@ class Card extends EffectSource {
     //     }
 
     //     for (const object of this.upgrades.reduce(
-    //         (array, card) => array.concat(card.getEffects(EffectNames.AttachmentRestrictTraitAmount)),
+    //         (array, card) => array.concat(card.getEffects(EffectName.AttachmentRestrictTraitAmount)),
     //         []
     //     )) {
     //         for (const trait of Object.keys(object)) {
@@ -873,7 +870,7 @@ class Card extends EffectSource {
     //             }
     //         }
     //     }
-    //     let maximumRestricted = 2 + this.sumEffects(EffectNames.ModifyRestrictedAttachmentAmount);
+    //     let maximumRestricted = 2 + this.sumEffects(EffectName.ModifyRestrictedAttachmentAmount);
     //     if (this.upgrades.filter((card) => card.isRestricted()).length > maximumRestricted) {
     //         this.game.promptForSelect(this.controller, {
     //             activePromptTitle: 'Choose an attachment to discard',
@@ -950,7 +947,7 @@ class Card extends EffectSource {
     //     this.persistentEffect({
     //         condition: properties.condition || (() => true),
     //         match: (card, context) => card === this.parent && (!properties.match || properties.match(card, context)),
-    //         targetController: Players.Any,
+    //         targetController: RelativePlayer.Any,
     //         effect: properties.effect
     //     });
     // }
@@ -965,8 +962,8 @@ class Card extends EffectSource {
     //     }
 
     //     if (
-    //         parent.getType() !== CardTypes.Character ||
-    //         (!properties.ignoreType && this.getType() !== CardTypes.Attachment)
+    //         parent.getType() !== CardType.Character ||
+    //         (!properties.ignoreType && this.getType() !== CardType.Attachment)
     //     ) {
     //         return false;
     //     }
@@ -974,39 +971,39 @@ class Card extends EffectSource {
     //     const attachmentController = properties.controller ?? this.controller;
     //     for (const effect of this.getRawEffects() as CardEffect[]) {
     //         switch (effect.type) {
-    //             case EffectNames.AttachmentMyControlOnly: {
+    //             case EffectName.AttachmentMyControlOnly: {
     //                 if (attachmentController !== parent.controller) {
     //                     return false;
     //                 }
     //                 break;
     //             }
-    //             case EffectNames.AttachmentOpponentControlOnly: {
+    //             case EffectName.AttachmentOpponentControlOnly: {
     //                 if (attachmentController === parent.controller) {
     //                     return false;
     //                 }
     //                 break;
     //             }
-    //             case EffectNames.AttachmentUniqueRestriction: {
+    //             case EffectName.AttachmentUniqueRestriction: {
     //                 if (!parent.isUnique()) {
     //                     return false;
     //                 }
     //                 break;
     //             }
-    //             case EffectNames.AttachmentFactionRestriction: {
+    //             case EffectName.AttachmentFactionRestriction: {
     //                 const factions = effect.getValue<Faction[]>(this as any);
     //                 if (!factions.some((faction) => parent.isFaction(faction))) {
     //                     return false;
     //                 }
     //                 break;
     //             }
-    //             case EffectNames.AttachmentTraitRestriction: {
+    //             case EffectName.AttachmentTraitRestriction: {
     //                 const traits = effect.getValue<string[]>(this as any);
     //                 if (!traits.some((trait) => parent.hasTrait(trait))) {
     //                     return false;
     //                 }
     //                 break;
     //             }
-    //             case EffectNames.AttachmentCardCondition: {
+    //             case EffectName.AttachmentCardCondition: {
     //                 const cardCondition = effect.getValue<(card: BaseCard) => boolean>(this as any);
     //                 if (!cardCondition(parent)) {
     //                     return false;
@@ -1020,14 +1017,14 @@ class Card extends EffectSource {
 
     getPlayCardActions() {
         // events are a special case
-        if (this.type === CardTypes.Event) {
+        if (this.type === CardType.Event) {
             return this.getActions();
         }
         let actions = this.abilities.playActions.slice();
-        if (this.type === CardTypes.Unit) {
+        if (this.type === CardType.Unit) {
             actions.push(new PlayUnitAction(this));
         } 
-        // else if (this.type === CardTypes.Upgrade) {
+        // else if (this.type === CardType.Upgrade) {
         //     actions.push(new PlayAttachmentAction(this));
         // }
         return actions;
@@ -1123,7 +1120,7 @@ class Card extends EffectSource {
     //     if (
     //         isActivePlayer
     //             ? this.isFacedown() && this.hideWhenFacedown()
-    //             : this.isFacedown() || hideWhenFaceup || this.anyEffect(EffectNames.HideWhenFaceUp)
+    //             : this.isFacedown() || hideWhenFaceup || this.anyEffect(EffectName.HideWhenFaceUp)
     //     ) {
     //         let state = {
     //             controller: this.controller.getShortSummary(),
@@ -1245,8 +1242,8 @@ class Card extends EffectSource {
         // TODO: remove status tokens completely, upgrades completely cover that category
         let modifierEffects = rawEffects.filter(
             (effect) =>
-                effect.type === EffectNames.UpgradeHpModifier ||
-                effect.type === EffectNames.ModifyHp
+                effect.type === EffectName.UpgradeHpModifier ||
+                effect.type === EffectName.ModifyHp
         );
         modifierEffects.forEach((modifierEffect) => {
             const value = modifierEffect.getValue(this);
@@ -1301,7 +1298,7 @@ class Card extends EffectSource {
 
         // set effects (i.e., "set power to X")
         let setEffects = rawEffects.filter(
-            (effect) => effect.type === EffectNames.SetPower
+            (effect) => effect.type === EffectName.SetPower
         );
         if (setEffects.length > 0) {
             let latestSetEffect = setEffects.at(-1);
@@ -1323,9 +1320,9 @@ class Card extends EffectSource {
         // TODO: does this work for resolving effects like Raid that depend on whether we're the attacker or not?
         let modifierEffects = rawEffects.filter(
             (effect) =>
-                effect.type === EffectNames.UpgradePowerModifier ||
-                effect.type === EffectNames.ModifyPower ||
-                effect.type === EffectNames.ModifyStats
+                effect.type === EffectName.UpgradePowerModifier ||
+                effect.type === EffectName.ModifyPower ||
+                effect.type === EffectName.ModifyStats
         );
         modifierEffects.forEach((modifierEffect) => {
             const value = modifierEffect.getValue(this);
@@ -1355,9 +1352,9 @@ class Card extends EffectSource {
      */ 
     getBaseStatModifiers() {
         const baseModifierEffects = [
-            EffectNames.CopyCharacter,
-            EffectNames.CalculatePrintedPower,
-            EffectNames.SetBasePower,
+            EffectName.CopyCharacter,
+            EffectName.CalculatePrintedPower,
+            EffectName.SetBasePower,
         ];
 
         let baseEffects = this.getRawEffects().filter((effect) => baseModifierEffects.includes(effect.type));
@@ -1369,7 +1366,7 @@ class Card extends EffectSource {
         baseEffects.forEach((effect) => {
             switch (effect.type) {
                 // this case is for cards that don't have a default printed power but it is instead calculated
-                case EffectNames.CalculatePrintedPower: {
+                case EffectName.CalculatePrintedPower: {
                     let powerFunction = effect.getValue(this);
                     let calculatedPowerValue = powerFunction(this);
                     basePower = calculatedPowerValue;
@@ -1386,7 +1383,7 @@ class Card extends EffectSource {
                     );
                     break;
                 }
-                case EffectNames.CopyCharacter: {
+                case EffectName.CopyCharacter: {
                     let copiedCard = effect.getValue(this);
                     basePower = copiedCard.getPrintedStat(StatType.Power);
                     baseHp = copiedCard.getPrintedStat(StatType.Hp);
@@ -1415,7 +1412,7 @@ class Card extends EffectSource {
                     );
                     break;
                 }
-                case EffectNames.SetBasePower:
+                case EffectName.SetBasePower:
                     basePower = effect.getValue(this);
                     basePowerModifiers.push(
                         StatModifier.fromEffect(
@@ -1471,7 +1468,7 @@ class Card extends EffectSource {
     // *******************************************************************************************************
 
     getCost() {
-        let copyEffect = this.mostRecentEffect(EffectNames.CopyCharacter);
+        let copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
         return copyEffect ? copyEffect.printedCost : this.printedCost;
     }
 
@@ -1526,7 +1523,7 @@ class Card extends EffectSource {
     }
 
     // hasDash(type = '') {
-    //     if (type === 'glory' || this.printedType !== CardTypes.Character) {
+    //     if (type === 'glory' || this.printedType !== CardType.Character) {
     //         return false;
     //     }
 
@@ -1542,7 +1539,7 @@ class Card extends EffectSource {
     // }
 
     // getContributionToConflict(type) {
-    //     let skillFunction = this.mostRecentEffect(EffectNames.ChangeContributionFunction);
+    //     let skillFunction = this.mostRecentEffect(EffectName.ChangeContributionFunction);
     //     if (skillFunction) {
     //         return skillFunction(this);
     //     }
@@ -1560,7 +1557,7 @@ class Card extends EffectSource {
 
     // getStatusTokenModifiers() {
     //     let modifiers = [];
-    //     let modifierEffects = this.getRawEffects().filter((effect) => effect.type === EffectNames.ModifyBothSkills);
+    //     let modifierEffects = this.getRawEffects().filter((effect) => effect.type === EffectName.ModifyBothSkills);
 
     //     // skill modifiers
     //     modifierEffects.forEach((modifierEffect) => {
@@ -1593,11 +1590,11 @@ class Card extends EffectSource {
 
     //     // set effects
     //     let setEffects = rawEffects.filter(
-    //         (effect) => effect.type === EffectNames.SetMilitarySkill || effect.type === EffectNames.SetDash
+    //         (effect) => effect.type === EffectName.SetMilitarySkill || effect.type === EffectName.SetDash
     //     );
     //     if (setEffects.length > 0) {
     //         let latestSetEffect = _.last(setEffects);
-    //         let setAmount = latestSetEffect.type === EffectNames.SetDash ? undefined : latestSetEffect.getValue(this);
+    //         let setAmount = latestSetEffect.type === EffectName.SetDash ? undefined : latestSetEffect.getValue(this);
     //         return [
     //             StatModifier.fromEffect(
     //                 setAmount,
@@ -1613,9 +1610,9 @@ class Card extends EffectSource {
     //     // skill modifiers
     //     let modifierEffects = rawEffects.filter(
     //         (effect) =>
-    //             effect.type === EffectNames.AttachmentMilitarySkillModifier ||
-    //             effect.type === EffectNames.ModifyMilitarySkill ||
-    //             effect.type === EffectNames.ModifyBothSkills
+    //             effect.type === EffectName.AttachmentMilitarySkillModifier ||
+    //             effect.type === EffectName.ModifyMilitarySkill ||
+    //             effect.type === EffectName.ModifyBothSkills
     //     );
     //     modifierEffects.forEach((modifierEffect) => {
     //         const value = modifierEffect.getValue(this);
@@ -1627,7 +1624,7 @@ class Card extends EffectSource {
 
     //     // multipliers
     //     let multiplierEffects = rawEffects.filter(
-    //         (effect) => effect.type === EffectNames.ModifyMilitarySkillMultiplier
+    //         (effect) => effect.type === EffectName.ModifyMilitarySkillMultiplier
     //     );
     //     multiplierEffects.forEach((multiplierEffect) => {
     //         let multiplier = multiplierEffect.getValue(this);
@@ -1657,7 +1654,7 @@ class Card extends EffectSource {
     //     }
 
     //     // set effects
-    //     let setEffects = rawEffects.filter((effect) => effect.type === EffectNames.SetPoliticalSkill);
+    //     let setEffects = rawEffects.filter((effect) => effect.type === EffectName.SetPoliticalSkill);
     //     if (setEffects.length > 0) {
     //         let latestSetEffect = _.last(setEffects);
     //         let setAmount = latestSetEffect.getValue(this);
@@ -1676,9 +1673,9 @@ class Card extends EffectSource {
     //     // skill modifiers
     //     let modifierEffects = rawEffects.filter(
     //         (effect) =>
-    //             effect.type === EffectNames.AttachmentPoliticalSkillModifier ||
-    //             effect.type === EffectNames.ModifyPoliticalSkill ||
-    //             effect.type === EffectNames.ModifyBothSkills
+    //             effect.type === EffectName.AttachmentPoliticalSkillModifier ||
+    //             effect.type === EffectName.ModifyPoliticalSkill ||
+    //             effect.type === EffectName.ModifyBothSkills
     //     );
     //     modifierEffects.forEach((modifierEffect) => {
     //         const value = modifierEffect.getValue(this);
@@ -1690,7 +1687,7 @@ class Card extends EffectSource {
 
     //     // multipliers
     //     let multiplierEffects = rawEffects.filter(
-    //         (effect) => effect.type === EffectNames.ModifyPoliticalSkillMultiplier
+    //         (effect) => effect.type === EffectName.ModifyPoliticalSkillMultiplier
     //     );
     //     multiplierEffects.forEach((multiplierEffect) => {
     //         let multiplier = multiplierEffect.getValue(this);
@@ -1703,7 +1700,7 @@ class Card extends EffectSource {
     // }
 
     get showStats() {
-        return isArena(this.location) && this.type === CardTypes.Unit;
+        return isArena(this.location) && this.type === CardType.Unit;
     }
 
     exhaust() {
@@ -1740,7 +1737,7 @@ class Card extends EffectSource {
         // const cardsUnderneath = this.controller.getSourceListForPile(this.uuid).map((a) => a);
         // if (cardsUnderneath.length > 0) {
         //     cardsUnderneath.forEach((card) => {
-        //         this.controller.moveCard(card, Locations.RemovedFromGame);
+        //         this.controller.moveCard(card, Location.RemovedFromGame);
         //     });
         //     this.game.addMessage(
         //         '{0} {1} removed from the game due to {2} leaving play',
@@ -1784,14 +1781,14 @@ class Card extends EffectSource {
 
     //     // Check if I add an element that I can\'t attack with
     //     const elementsAdded = this.upgrades.reduce(
-    //         (array, attachment) => array.concat(attachment.getEffects(EffectNames.AddElementAsAttacker)),
-    //         this.getEffects(EffectNames.AddElementAsAttacker)
+    //         (array, attachment) => array.concat(attachment.getEffects(EffectName.AddElementAsAttacker)),
+    //         this.getEffects(EffectName.AddElementAsAttacker)
     //     );
 
     //     if (
     //         elementsAdded.some((element) =>
     //             this.game.rings[element]
-    //                 .getEffects(EffectNames.CannotDeclareRing)
+    //                 .getEffects(EffectName.CannotDeclareRing)
     //                 .some((match) => match(this.controller))
     //         )
     //     ) {
@@ -1800,7 +1797,7 @@ class Card extends EffectSource {
 
     //     if (
     //         conflictType === ConflictTypes.Military &&
-    //         attackers.reduce((total, card) => total + card.sumEffects(EffectNames.CardCostToAttackMilitary), 0) >
+    //         attackers.reduce((total, card) => total + card.sumEffects(EffectName.CardCostToAttackMilitary), 0) >
     //             this.controller.hand.size()
     //     ) {
     //         return false;
@@ -1808,22 +1805,22 @@ class Card extends EffectSource {
 
     //     let fateCostToAttackProvince = province ? province.getFateCostToAttack() : 0;
     //     if (
-    //         attackers.reduce((total, card) => total + card.sumEffects(EffectNames.FateCostToAttack), 0) +
+    //         attackers.reduce((total, card) => total + card.sumEffects(EffectName.FateCostToAttack), 0) +
     //             fateCostToAttackProvince >
     //         this.controller.fate
     //     ) {
     //         return false;
     //     }
-    //     if (this.anyEffect(EffectNames.CanOnlyBeDeclaredAsAttackerWithElement)) {
-    //         for (let element of this.getEffects(EffectNames.CanOnlyBeDeclaredAsAttackerWithElement)) {
+    //     if (this.anyEffect(EffectName.CanOnlyBeDeclaredAsAttackerWithElement)) {
+    //         for (let element of this.getEffects(EffectName.CanOnlyBeDeclaredAsAttackerWithElement)) {
     //             if (!ring.hasElement(element) && !elementsAdded.includes(element)) {
     //                 return false;
     //             }
     //         }
     //     }
 
-    //     if (this.controller.anyEffect(EffectNames.LimitLegalAttackers)) {
-    //         const checks = this.controller.getEffects(EffectNames.LimitLegalAttackers);
+    //     if (this.controller.anyEffect(EffectName.LimitLegalAttackers)) {
+    //         const checks = this.controller.getEffects(EffectName.LimitLegalAttackers);
     //         let valid = true;
     //         checks.forEach((check) => {
     //             if (typeof check === 'function') {
@@ -1838,7 +1835,7 @@ class Card extends EffectSource {
     //     return (
     //         this.checkRestrictions('declareAsAttacker', this.game.getFrameworkContext()) &&
     //         this.canParticipateAsAttacker(conflictType) &&
-    //         this.location === Locations.PlayArea &&
+    //         this.location === Location.PlayArea &&
     //         !this.exhausted
     //     );
     // }
@@ -1847,26 +1844,26 @@ class Card extends EffectSource {
     //     return (
     //         this.checkRestrictions('declareAsDefender', this.game.getFrameworkContext()) &&
     //         this.canParticipateAsDefender(conflictType) &&
-    //         this.location === Locations.PlayArea &&
+    //         this.location === Location.PlayArea &&
     //         !this.exhausted &&
     //         !this.covert
     //     );
     // }
 
     // canParticipateAsAttacker(conflictType = this.game.currentConflict.conflictType) {
-    //     let effects = this.getEffects(EffectNames.CannotParticipateAsAttacker);
+    //     let effects = this.getEffects(EffectName.CannotParticipateAsAttacker);
     //     return !effects.some((value) => value === 'both' || value === conflictType) && !this.hasDash(conflictType);
     // }
 
     // canParticipateAsDefender(conflictType = this.game.currentConflict.conflictType) {
-    //     let effects = this.getEffects(EffectNames.CannotParticipateAsDefender);
+    //     let effects = this.getEffects(EffectName.CannotParticipateAsDefender);
     //     let hasDash = conflictType ? this.hasDash(conflictType) : false;
 
     //     return !effects.some((value) => value === 'both' || value === conflictType) && !hasDash;
     // }
 
     // bowsOnReturnHome() {
-    //     return !this.anyEffect(EffectNames.DoesNotBow);
+    //     return !this.anyEffect(EffectName.DoesNotBow);
     // }
 
     setDefaultController(player) {
@@ -1875,10 +1872,10 @@ class Card extends EffectSource {
 
     // getModifiedController() {
     //     if (
-    //         this.location === Locations.PlayArea ||
-    //         (this.type === CardTypes.Holding && this.location.includes('province'))
+    //         this.location === Location.PlayArea ||
+    //         (this.type === CardType.Holding && this.location.includes('province'))
     //     ) {
-    //         return this.mostRecentEffect(EffectNames.TakeControl) || this.defaultController;
+    //         return this.mostRecentEffect(EffectName.TakeControl) || this.defaultController;
     //     }
     //     return this.owner;
     // }
@@ -1910,11 +1907,11 @@ class Card extends EffectSource {
     //         inConflict: this.inConflict,
     //         isConflict: this.isConflict,
     //         isDynasty: this.isDynasty,
-    //         isPlayableByMe: this.isConflict && this.controller.isCardInPlayableLocation(this, PlayTypes.PlayFromHand),
+    //         isPlayableByMe: this.isConflict && this.controller.isCardInPlayableLocation(this, PlayType.PlayFromHand),
     //         isPlayableByOpponent:
     //             this.isConflict &&
     //             this.controller.opponent &&
-    //             this.controller.opponent.isCardInPlayableLocation(this, PlayTypes.PlayFromHand),
+    //             this.controller.opponent.isCardInPlayableLocation(this, PlayType.PlayFromHand),
     //         bowed: this.exhausted,
     //         fate: this.fate,
     //         new: this.new,

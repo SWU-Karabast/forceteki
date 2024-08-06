@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { WildcardLocations, Players } from '../Constants';
+import { WildcardLocation, RelativePlayer } from '../Constants';
 import type { ICost, Result } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
@@ -22,8 +22,8 @@ export class MetaActionCost extends GameActionCost implements ICost {
     canPay(context: AbilityContext): boolean {
         const properties = this.action.getProperties(context) as ISelectCardProperties;
         let additionalProps = {
-            controller: Players.Self,
-            location: properties.location || WildcardLocations.Any
+            controller: RelativePlayer.Self,
+            location: properties.location || WildcardLocation.Any
         };
         return this.action.hasLegalTarget(context, additionalProps);
     }
@@ -43,8 +43,8 @@ export class MetaActionCost extends GameActionCost implements ICost {
 
         const additionalProps = {
             activePromptTitle: this.activePromptTitle,
-            location: properties.location || WildcardLocations.Any,
-            controller: Players.Self,
+            location: properties.location || WildcardLocation.Any,
+            controller: RelativePlayer.Self,
             cancelHandler: !result.canCancel ? null : () => (result.cancelled = true),
             subActionProperties: (target: any) => {
                 context.costs[properties.gameSystem.name] = target;

@@ -29,8 +29,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
 // const MenuCommands = require('./MenuCommands');
 
-const { EffectNames, EventNames, Locations } = require('./Constants.js');
-const { GameModes } = require('../../GameModes.js');
+const { EffectName, EventName, Location } = require('./Constants.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -199,7 +198,7 @@ class Game extends EventEmitter {
     rotateActivePlayer() {
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {
             this.raiseEvent(
-                EventNames.OnPassActionPhasePriority,
+                EventName.OnPassActionPhasePriority,
                 { player: this.actionPhaseActivePlayer, actionWindow: this },
                 () => {
                     this.actionPhaseActivePlayer = this.actionPhaseActivePlayer.opponent;
@@ -438,7 +437,7 @@ class Game extends EventEmitter {
     //  * function doesn't check to see if a conquest victory has been achieved)
     //  */
     // checkWinCondition() {
-    //     let honorRequiredToWin = this.gameMode === GameModes.Skirmish ? 12 : 25;
+    //     let honorRequiredToWin = this.gameMode === GameMode.Skirmish ? 12 : 25;
     //     for (const player of this.getPlayersInFirstPlayerOrder()) {
     //         if (player.honor >= honorRequiredToWin) {
     //             this.recordWinner(player, 'honor');
@@ -689,7 +688,7 @@ class Game extends EventEmitter {
 
         for (let player of this.getPlayers()) {
             player.initialise();
-            // if (this.gameMode !== GameModes.Skirmish && !player.stronghold) {
+            // if (this.gameMode !== GameMode.Skirmish && !player.stronghold) {
             //     playerWithNoStronghold = player;
             // }
         }
@@ -705,7 +704,7 @@ class Game extends EventEmitter {
         );
         this.provinceCards = this.allCards.filter((card) => card.isProvince);
 
-        // if (this.gameMode !== GameModes.Skirmish) {
+        // if (this.gameMode !== GameMode.Skirmish) {
         //     if (playerWithNoStronghold) {
         //         this.queueSimpleStep(() => {
         //             this.addMessage(
@@ -746,7 +745,7 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.raiseEvent(EventNames.OnBeginRound);
+        this.raiseEvent(EventName.OnBeginRound);
         this.queueStep(new ActionPhase(this));
         this.queueStep(new RegroupPhase(this));
         this.queueStep(new SimpleStep(this, () => this.roundEnded()));
@@ -754,7 +753,7 @@ class Game extends EventEmitter {
     }
 
     roundEnded() {
-        this.raiseEvent(EventNames.OnRoundEnded);
+        this.raiseEvent(EventName.OnRoundEnded);
     }
 
     /*
@@ -937,7 +936,7 @@ class Game extends EventEmitter {
     takeControl(player, card) {
         // if (
         //     card.controller === player ||
-        //     !card.checkRestrictions(EffectNames.TakeControl, this.getFrameworkContext())
+        //     !card.checkRestrictions(EffectName.TakeControl, this.getFrameworkContext())
         // ) {
         //     return;
         // }

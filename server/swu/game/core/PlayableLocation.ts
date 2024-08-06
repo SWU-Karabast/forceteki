@@ -1,12 +1,12 @@
-import type { Locations, PlayTypes } from './Constants';
+import type { Location, PlayType } from './Constants';
 import type Player from './Player';
 import Card from './card/Card';
 
 export class PlayableLocation {
     public constructor(
-        public playingType: PlayTypes,
+        public playingType: PlayType,
         private player: Player,
-        private location: Locations,
+        private location: Location,
         public cards = new Set<Card>()
     ) {}
 

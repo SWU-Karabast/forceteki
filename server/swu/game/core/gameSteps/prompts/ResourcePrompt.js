@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const { Locations } = require('../../Constants.js');
+const { Location } = require('../../Constants.js');
 const { AllPlayerPrompt } = require('./AllPlayerPrompt.js');
 
 class ResourcePrompt extends AllPlayerPrompt {

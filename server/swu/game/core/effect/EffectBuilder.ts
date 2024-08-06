@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type Card from '../card/Card';
-import type { Durations, EffectNames, Locations } from '../Constants';
+import type { Duration, EffectName, Location } from '../Constants';
 import type Game from '../Game';
 import type { GameSystem, IGameSystemProperties } from '../gameSystem/GameSystem';
 import type { WhenType } from '../../Interfaces';
@@ -17,10 +17,10 @@ import StaticEffectDetails from './effectDetails/StaticEffectDetails';
 type PlayerOrCard = Player | Card;
 
 type Props = {
-    targetLocation?: Locations | Locations[];
+    targetLocation?: Location | Location[];
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
-    duration?: Durations;
+    duration?: Duration;
     condition?: (context: AbilityContext) => boolean;
     until?: WhenType;
     ability?: PlayerOrCardAbility;
@@ -32,38 +32,38 @@ type Props = {
 
 export const EffectBuilder = {
     card: {
-        static: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
+        static: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new CardEffect(game, source, props, new StaticEffectDetails(type, value)),
-        dynamic: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
+        dynamic: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new CardEffect(game, source, props, new DynamicEffectDetails(type, value)),
-        detached: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
+        detached: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new CardEffect(game, source, props, new DetachedEffectDetails(type, value.apply, value.unapply)),
-        flexible: (type: EffectNames, value?: unknown) =>
+        flexible: (type: EffectName, value?: unknown) =>
             typeof value === 'function'
                 ? EffectBuilder.card.dynamic(type, value)
                 : EffectBuilder.card.static(type, value)
     },
     player: {
-        static: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
+        static: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new PlayerEffectDetails(game, source, props, new StaticEffectDetails(type, value)),
-        dynamic: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
+        dynamic: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new PlayerEffectDetails(game, source, props, new DynamicEffectDetails(type, value)),
-        detached: (type: EffectNames, value) => (game: Game, source: Card, props: Props) =>
+        detached: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new PlayerEffectDetails(game, source, props, new DetachedEffectDetails(type, value.apply, value.unapply)),
-        flexible: (type: EffectNames, value) =>
+        flexible: (type: EffectName, value) =>
             typeof value === 'function'
                 ? EffectBuilder.player.dynamic(type, value)
                 : EffectBuilder.player.static(type, value)
     },
     // // TODO: change this to combat
     // conflict: {
-    //     static: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+    //     static: (type: EffectName, value) => (game: Game, source: BaseCard, props: Props) =>
     //         new ConflictEffect(game, source, props, new StaticEffect(type, value)),
-    //     dynamic: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+    //     dynamic: (type: EffectName, value) => (game: Game, source: BaseCard, props: Props) =>
     //         new ConflictEffect(game, source, props, new DynamicEffect(type, value)),
-    //     detached: (type: EffectNames, value) => (game: Game, source: BaseCard, props: Props) =>
+    //     detached: (type: EffectName, value) => (game: Game, source: BaseCard, props: Props) =>
     //         new ConflictEffect(game, source, props, new DetachedEffect(type, value.apply, value.unapply)),
-    //     flexible: (type: EffectNames, value) =>
+    //     flexible: (type: EffectName, value) =>
     //         typeof value === 'function'
     //             ? EffectBuilder.conflict.dynamic(type, value)
     //             : EffectBuilder.conflict.static(type, value)

@@ -5,13 +5,13 @@ const SingleCardSelector = require('./SingleCardSelector');
 const UnlimitedCardSelector = require('./UnlimitedCardSelector');
 const UpToXCardSelector = require('./UpToXCardSelector');
 const UpToVariableXCardSelector = require('./UpToVariableXCardSelector');
-const { TargetModes, CardTypes } = require('../Constants');
+const { TargetMode, CardType } = require('../Constants');
 
 const defaultProperties = {
     numCards: 1,
     cardCondition: () => true,
     numCardsFunc: () => 1,
-    cardType: [CardTypes.Upgrade, CardTypes.Unit, CardTypes.Event, CardTypes.Leader, CardTypes.Base],
+    cardType: [CardType.Upgrade, CardType.Unit, CardType.Event, CardType.Leader, CardType.Base],
     multiSelect: false,
     sameDiscardPile: false
 };
@@ -50,13 +50,13 @@ class CardSelector {
         }
 
         if(properties.maxStat) {
-            properties.mode = TargetModes.MaxStat;
+            properties.mode = TargetMode.MaxStat;
         } else if(properties.numCards === 1 && !properties.multiSelect) {
-            properties.mode = TargetModes.Single;
+            properties.mode = TargetMode.Single;
         } else if(properties.numCards === 0) {
-            properties.mode = TargetModes.Unlimited;
+            properties.mode = TargetMode.Unlimited;
         } else {
-            properties.mode = TargetModes.UpTo;
+            properties.mode = TargetMode.UpTo;
         }
 
         return properties;

@@ -1,7 +1,7 @@
 const { UiPrompt } = require('./UiPrompt.js');
 const GameSystems = require('../../../gameSystems/GameSystemLibrary.js');
 const { AbilityContext } = require('../../ability/AbilityContext.js');
-const { Players } = require('../../Constants.js');
+const { RelativePlayer } = require('../../Constants.js');
 
 class UpgradePrompt extends UiPrompt {
     constructor(game, player, upgradeCard, playingType) {
@@ -15,7 +15,7 @@ class UpgradePrompt extends UiPrompt {
     //     this.game.promptForSelect(this.player, {
     //         source: 'Play Upgrade',
     //         activePromptTitle: 'Select target for upgrade',
-    //         controller: Players.Self,
+    //         controller: RelativePlayer.Self,
     //         gameSystem: GameSystems.attach({ upgrade: this.upgradeCard }),
     //         onSelect: (player, card) => {
     //             GameSystems.attach({ upgrade: this.upgradeCard }).resolve(card, new AbilityContext({ game: this.game, player: this.player, source: card }));

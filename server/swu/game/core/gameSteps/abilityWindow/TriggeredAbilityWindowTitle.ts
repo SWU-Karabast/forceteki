@@ -1,4 +1,4 @@
-import { AbilityTypes } from '../../Constants';
+import { AbilityType } from '../../Constants';
 
 const EventToTitleFunc = {
     onCardExhausted(event: any) {
@@ -64,7 +64,7 @@ export const TriggeredAbilityWindowTitle = {
             })
             .filter(Boolean);
 
-        if (abilityType === AbilityTypes.ForcedReaction || abilityType === AbilityTypes.ForcedInterrupt) {
+        if (abilityType === AbilityType.ForcedReaction || abilityType === AbilityType.ForcedInterrupt) {
             return titles.length > 0
                 ? `Choose ${abilityWord} order for ${FormatTitles(titles)}`
                 : `Choose ${abilityWord} order`;

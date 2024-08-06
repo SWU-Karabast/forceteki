@@ -2,7 +2,7 @@ const AbilityLimit = require('./AbilityLimit.js');
 const AbilityDsl = require('../../AbilityDsl.js');
 const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
-const { Locations, CardTypes, EffectNames, WildcardLocations } = require('../Constants.js');
+const { Location, CardType, EffectName, WildcardLocation } = require('../Constants.js');
 
 class CardAbility extends CardAbilityStep {
     constructor(game, card, properties) {
@@ -30,20 +30,20 @@ class CardAbility extends CardAbilityStep {
             this.card.owner.registerAbilityMax(this.maxIdentifier, this.max);
         }
 
-        if (card.getType() === CardTypes.Event && !this.isKeywordAbility()) {
+        if (card.getType() === CardType.Event && !this.isKeywordAbility()) {
             this.cost = this.cost.concat(Costs.payReduceableResourceCost());
         }
     }
 
     buildLocation(card, location) {
         const DefaultLocationForType = {
-            event: Locations.Hand,
-            leader: Locations.Leader,
-            base: Locations.Base,
+            event: Location.Hand,
+            leader: Location.Leader,
+            base: Location.Base,
         };
 
         // TODO: make this not have to be an array (was this way for provinces)
-        let defaultedLocation = [location || DefaultLocationForType[card.getType()] || WildcardLocations.AnyArena];
+        let defaultedLocation = [location || DefaultLocationForType[card.getType()] || WildcardLocation.AnyArena];
 
         return defaultedLocation;
     }
@@ -55,7 +55,7 @@ class CardAbility extends CardAbilityStep {
 
         if (
             (this.isTriggeredAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
-            (this.card.type === CardTypes.Event && !this.card.canPlay(context, context.playType))
+            (this.card.type === CardType.Event && !this.card.canPlay(context, context.playType))
         ) {
             return 'cannotTrigger';
         }
@@ -76,7 +76,7 @@ class CardAbility extends CardAbilityStep {
             !ignoredRequirements.includes('phase') &&
             !this.isKeywordAbility() &&
             this.card.isDynasty &&
-            this.card.type === CardTypes.Event &&
+            this.card.type === CardType.Event &&
             context.game.currentPhase !== 'dynasty'
         ) {
             return 'phase';
@@ -87,21 +87,21 @@ class CardAbility extends CardAbilityStep {
 
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = super.getCosts(context, playCosts);
-        if (!context.subResolution && triggerCosts && context.player.anyEffect(EffectNames.AdditionalTriggerCost)) {
+        if (!context.subResolution && triggerCosts && context.player.anyEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.player
-                .getEffects(EffectNames.AdditionalTriggerCost)
+                .getEffects(EffectName.AdditionalTriggerCost)
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
-        if (!context.subResolution && triggerCosts && context.source.anyEffect(EffectNames.AdditionalTriggerCost)) {
+        if (!context.subResolution && triggerCosts && context.source.anyEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.source
-                .getEffects(EffectNames.AdditionalTriggerCost)
+                .getEffects(EffectName.AdditionalTriggerCost)
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
-        if (!context.subResolution && playCosts && context.player.anyEffect(EffectNames.AdditionalPlayCost)) {
+        if (!context.subResolution && playCosts && context.player.anyEffect(EffectName.AdditionalPlayCost)) {
             const additionalPlayCosts = context.player
-                .getEffects(EffectNames.AdditionalPlayCost)
+                .getEffects(EffectName.AdditionalPlayCost)
                 .map((effect) => effect(context));
             return costs.concat(...additionalPlayCosts);
         }
@@ -114,7 +114,7 @@ class CardAbility extends CardAbilityStep {
     }
 
     isInValidLocation(context) {
-        return this.card.type === CardTypes.Event
+        return this.card.type === CardType.Event
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
             : this.location.includes(this.card.location);
     }
@@ -131,12 +131,12 @@ class CardAbility extends CardAbilityStep {
         return location;
     }
 
-    displayMessage(context, messageVerb = context.source.type === CardTypes.Event ? 'plays' : 'uses') {
+    displayMessage(context, messageVerb = context.source.type === CardType.Event ? 'plays' : 'uses') {
         if (
-            context.source.type === CardTypes.Event &&
+            context.source.type === CardType.Event &&
             context.source.isConflict &&
-            context.source.location !== Locations.Hand &&
-            context.source.location !== Locations.BeingPlayed
+            context.source.location !== Location.Hand &&
+            context.source.location !== Location.BeingPlayed
         ) {
             this.game.addMessage(
                 '{0} plays {1} from {2} {3}',
@@ -218,7 +218,7 @@ class CardAbility extends CardAbilityStep {
     }
 
     isCardPlayed() {
-        return !this.isKeywordAbility() && this.card.getType() === CardTypes.Event;
+        return !this.isKeywordAbility() && this.card.getType() === CardType.Event;
     }
 
     isTriggeredAbility() {

@@ -1,10 +1,10 @@
 const _ = require('underscore');
 const { Event } = require('./Event.js');
-const { EventNames } = require('../Constants.js');
+const { EventName } = require('../Constants.js');
 
 class InitiateCardAbilityEvent extends Event {
     constructor(params, handler) {
-        super(EventNames.OnInitiateAbilityEffects, params, handler);
+        super(EventName.OnInitiateAbilityEffects, params, handler);
         if(!this.context.ability.doesNotTarget) {
             this.cardTargets = _.flatten(_.values(this.context.targets));
             this.selectTargets = _.flatten(_.values(this.context.selects));

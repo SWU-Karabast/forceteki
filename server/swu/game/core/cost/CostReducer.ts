@@ -1,16 +1,16 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type Card from '../card/Card';
-import { CardTypes, PlayTypes, Aspects } from '../Constants';
+import { CardType, PlayType, Aspect } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 
 export type CostReducerProps = {
-    penaltyAspect?: Aspects;
-    cardType?: CardTypes;
+    penaltyAspect?: Aspect;
+    cardType?: CardType;
     costFloor?: number;
     limit?: IAbilityLimit;
-    playingTypes?: PlayTypes;
+    playingTypes?: PlayType;
     amount?: number | ((card: Card, player: Player) => number);
     match?: (card: Card, source: Card) => boolean;
     targetCondition?: (target: Card, source: Card, context: AbilityContext) => boolean;
@@ -21,16 +21,16 @@ export class CostReducer {
     private amount: number | ((card: Card, player: Player) => number);
     private costFloor: number;
     private match?: (card: Card, source: Card) => boolean;
-    private cardType?: CardTypes;
+    private cardType?: CardType;
     private targetCondition?: (target: Card, source: Card, context: AbilityContext<any>) => boolean;
     private limit?: IAbilityLimit;
-    private playingTypes?: Array<PlayTypes>;
+    private playingTypes?: Array<PlayType>;
 
     constructor(
         private game: Game,
         private source: Card,
         properties: CostReducerProps,
-        private penaltyAspect?: Aspects
+        private penaltyAspect?: Aspect
     ) {
         this.amount = properties.amount || 1;
         this.costFloor = properties.costFloor || 0;
@@ -46,7 +46,7 @@ export class CostReducer {
         }
     }
 
-    public canReduce(playingType: PlayTypes, card: Card, target?: Card, ignoreType = false, penaltyAspect?: Aspects): boolean {
+    public canReduce(playingType: PlayType, card: Card, target?: Card, ignoreType = false, penaltyAspect?: Aspect): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (!ignoreType && this.cardType && card.getType() !== this.cardType) {

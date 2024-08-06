@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import { EventNames } from '../Constants';
+import { EventName } from '../Constants';
 import Player from '../Player';
 import type CardAbility from './CardAbility';
 
@@ -110,7 +110,7 @@ class FixedAbilityLimit implements IAbilityLimit {
 class RepeatableAbilityLimit extends FixedAbilityLimit {
     constructor(
         max: number,
-        private eventName: Set<EventNames>
+        private eventName: Set<EventName>
     ) {
         super(max);
     }
@@ -140,16 +140,16 @@ export function fixed(max: number) {
     return new FixedAbilityLimit(max);
 }
 
-export function repeatable(max: number, eventName: EventNames) {
+export function repeatable(max: number, eventName: EventName) {
     return new RepeatableAbilityLimit(max, new Set([eventName]));
 }
 
 export function perPhase(max: number) {
-    return new RepeatableAbilityLimit(max, new Set([EventNames.OnPhaseEnded]));
+    return new RepeatableAbilityLimit(max, new Set([EventName.OnPhaseEnded]));
 }
 
 export function perRound(max: number) {
-    return new RepeatableAbilityLimit(max, new Set([EventNames.OnRoundEnded]));
+    return new RepeatableAbilityLimit(max, new Set([EventName.OnRoundEnded]));
 }
 
 export function perGame(max: number) {

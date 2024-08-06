@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import BaseAction from '../core/ability/PlayerAction.js';
-import { EffectNames, EventNames, Locations, Phases, PlayTypes, TargetModes, WildcardLocations, isArena } from '../core/Constants.js';
+import { EffectName, EventName, Location, PhaseName, PlayType, TargetMode, WildcardLocation } from '../core/Constants.js';
+import { isArena } from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import { attack } from '../gameSystems/GameSystemLibrary.js';
 import type Player from '../core/Player.js';
@@ -13,15 +14,15 @@ export class TriggerAttackAction extends BaseAction {
     public constructor(card: Card) {
         super(card, [exhaustSelf()], { 
             gameSystem: attack({ attacker: card }),
-            mode: TargetModes.AutoSingle,
-            location: WildcardLocations.AnyAttackable,
+            mode: TargetMode.AutoSingle,
+            location: WildcardLocation.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });
     }
 
     public meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
-            context.game.currentPhase !== Phases.Action &&
+            context.game.currentPhase !== PhaseName.Action &&
             !ignoredRequirements.includes('phase')
         ) {
             return 'phase';

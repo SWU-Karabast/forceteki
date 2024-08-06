@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventNames, Locations, Players } from '../core/Constants';
+import { EventName, Location, RelativePlayer } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { Event } from '../core/event/Event';
 import Card from '../core/card/Card';
@@ -57,7 +57,7 @@ export class ReduceableResourceCost implements ICost {
     public payEvent(context: AbilityContext): Event {
         const amount = this.getReducedCost(context);
         context.costs.resources = amount;
-        return new Event(EventNames.OnSpendResources, { amount, context }, (event) => {
+        return new Event(EventName.OnSpendResources, { amount, context }, (event) => {
             event.context.player.markUsedReducers(context.playType, event.context.source);
             event.context.player.exhaustResources(amount);
             this.afterPayHook(event);

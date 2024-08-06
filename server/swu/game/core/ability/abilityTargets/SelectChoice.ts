@@ -1,4 +1,4 @@
-import { TargetModes } from '../../Constants';
+import { TargetMode } from '../../Constants';
 
 export class SelectChoice {
     constructor(public choice: string) {}
@@ -8,7 +8,7 @@ export class SelectChoice {
             id: this.choice,
             label: this.choice,
             name: this.choice,
-            type: TargetModes.Select
+            type: TargetMode.Select
         };
     }
 }

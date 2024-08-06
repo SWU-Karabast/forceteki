@@ -1,5 +1,6 @@
 import { GameObject } from '../GameObject';
-import { EffectNames, EventNames, Locations, isArena } from '../Constants';
+import { EffectName, EventName, Location } from '../Constants';
+import { isArena } from '../utils/EnumHelpers';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
 import type Player from '../Player';
@@ -65,7 +66,7 @@ export class Attack extends GameObject {
             return null;
         }
 
-        const rawEffects = involvedUnit.getRawEffects().filter((effect) => effect.type === EffectNames.ModifyPower);
+        const rawEffects = involvedUnit.getRawEffects().filter((effect) => effect.type === EffectName.ModifyPower);
         let effectModifier = 0;
 
         let result = involvedUnit.getBasePower();

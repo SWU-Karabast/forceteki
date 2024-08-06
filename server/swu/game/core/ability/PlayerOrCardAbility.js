@@ -2,7 +2,7 @@ const AbilityTargetAbility = require('./abilityTargets/AbilityTargetAbility.js')
 const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
 const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
 const AbilityTargetToken = require('./abilityTargets/AbilityTargetToken.js');
-const { Stages, TargetModes } = require('../Constants.js');
+const { Stage, TargetMode } = require('../Constants.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -76,11 +76,11 @@ class PlayerOrCardAbility {
         } else {
             properties.gameSystem = [];
         }
-        if(properties.mode === TargetModes.Select) {
+        if(properties.mode === TargetMode.Select) {
             return new AbilityTargetSelect(name, properties, this);
-        } else if(properties.mode === TargetModes.Ability) {
+        } else if(properties.mode === TargetMode.Ability) {
             return new AbilityTargetAbility(name, properties, this);
-        } else if(properties.mode === TargetModes.Token) {
+        } else if(properties.mode === TargetMode.Token) {
             return new AbilityTargetToken(name, properties, this);
         }
         return new AbilityTargetCard(name, properties, this);
@@ -116,7 +116,7 @@ class PlayerOrCardAbility {
      * @returns {Boolean}
      */
     canPayCosts(context) {
-        let contextCopy = context.copy({ stage: Stages.Cost });
+        let contextCopy = context.copy({ stage: Stage.Cost });
         return this.getCosts(context).every((cost) => cost.canPay(contextCopy));
     }
 
@@ -178,7 +178,7 @@ class PlayerOrCardAbility {
     resolveTargets(context) {
         let targetResults = {
             canIgnoreAllCosts:
-                context.stage === Stages.PreTarget ? this.cost.every((cost) => cost.canIgnoreForTargeting) : false,
+                context.stage === Stage.PreTarget ? this.cost.every((cost) => cost.canIgnoreForTargeting) : false,
             cancelled: false,
             payCostsFirst: false,
             delayTargeting: null

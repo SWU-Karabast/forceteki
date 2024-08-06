@@ -4,7 +4,7 @@ const { BaseStepWithPipeline } = require('../gameSteps/BaseStepWithPipeline.js')
 const ForcedTriggeredAbilityWindow = require('../gameSteps/abilityWindow/ForcedTriggeredAbilityWindow.js');
 const { SimpleStep } = require('../gameSteps/SimpleStep.js');
 const TriggeredAbilityWindow = require('../gameSteps/abilityWindow/TriggeredAbilityWindow.js');
-const { AbilityTypes } = require('../Constants.js');
+const { AbilityType } = require('../Constants.js');
 // const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
 
 class EventWindow extends BaseStepWithPipeline {
@@ -26,19 +26,19 @@ class EventWindow extends BaseStepWithPipeline {
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.setCurrentEventWindow()),
             new SimpleStep(this.game, () => this.checkEventCondition()),
-            new SimpleStep(this.game, () => this.openWindow(AbilityTypes.WouldInterrupt)),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.WouldInterrupt)),
             new SimpleStep(this.game, () => this.createContingentEvents()),
-            new SimpleStep(this.game, () => this.openWindow(AbilityTypes.ForcedInterrupt)),
-            new SimpleStep(this.game, () => this.openWindow(AbilityTypes.Interrupt)),
-            // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityTypes.KeywordInterrupt)),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.ForcedInterrupt)),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.Interrupt)),
+            // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordInterrupt)),
             new SimpleStep(this.game, () => this.checkForOtherEffects()),
             new SimpleStep(this.game, () => this.preResolutionEffects()),
             new SimpleStep(this.game, () => this.executeHandler()),
             // new SimpleStep(this.game, () => this.checkGameState()),
-            // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityTypes.KeywordReaction)),
+            // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordReaction)),
             // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps()),
-            new SimpleStep(this.game, () => this.openWindow(AbilityTypes.ForcedReaction)),
-            new SimpleStep(this.game, () => this.openWindow(AbilityTypes.Reaction)),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.ForcedReaction)),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.Reaction)),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow())
         ]);
     }
@@ -72,7 +72,7 @@ class EventWindow extends BaseStepWithPipeline {
             return;
         }
 
-        if([AbilityTypes.ForcedReaction, AbilityTypes.ForcedInterrupt].includes(abilityType)) {
+        if([AbilityType.ForcedReaction, AbilityType.ForcedInterrupt].includes(abilityType)) {
             this.queueStep(new ForcedTriggeredAbilityWindow(this.game, abilityType, this));
         } else {
             this.queueStep(new TriggeredAbilityWindow(this.game, abilityType, this));
@@ -87,14 +87,14 @@ class EventWindow extends BaseStepWithPipeline {
         });
         if(contingentEvents.length > 0) {
             // Exclude current events from the new window, we just want to give players opportunities to respond to the contingent events
-            this.queueStep(new TriggeredAbilityWindow(this.game, AbilityTypes.WouldInterrupt, this, this.events.slice(0)));
+            this.queueStep(new TriggeredAbilityWindow(this.game, AbilityType.WouldInterrupt, this, this.events.slice(0)));
             _.each(contingentEvents, event => this.addEvent(event));
         }
     }
 
     // This catches any persistent/delayed effect cancels
     checkForOtherEffects() {
-        _.each(this.events, event => this.game.emit(event.name + ':' + AbilityTypes.OtherEffects, event));
+        _.each(this.events, event => this.game.emit(event.name + ':' + AbilityType.OtherEffects, event));
     }
 
     preResolutionEffects() {

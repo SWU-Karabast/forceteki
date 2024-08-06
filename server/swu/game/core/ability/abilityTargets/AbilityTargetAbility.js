@@ -1,5 +1,5 @@
 const CardSelector = require('../../cardSelector/CardSelector.js');
-const { Stages, Players } = require('../../Constants.js');
+const { Stage, RelativePlayer } = require('../../Constants.js');
 
 class AbilityTargetAbility {
     constructor(name, properties, ability) {
@@ -21,7 +21,7 @@ class AbilityTargetAbility {
             return abilities.some(ability => {
                 let contextCopy = context.copy();
                 contextCopy.targetAbility = ability;
-                if(context.stage === Stages.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
+                if(context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                     return false;
                 }
                 return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
@@ -53,13 +53,13 @@ class AbilityTargetAbility {
             return;
         }
         let player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
-        if(player === context.player.opponent && context.stage === Stages.PreTarget) {
+        if(player === context.player.opponent && context.stage === Stage.PreTarget) {
             targetResults.delayTargeting = this;
             return;
         }
         let buttons = [];
         let waitingPromptTitle = '';
-        if(context.stage === Stages.PreTarget) {
+        if(context.stage === Stage.PreTarget) {
             buttons.push({ text: 'Cancel', arg: 'cancel' });
             if(context.ability.abilityType === 'action') {
                 waitingPromptTitle = 'Waiting for opponent to take an action or pass';
@@ -121,7 +121,7 @@ class AbilityTargetAbility {
         if(typeof playerProp === 'function') {
             playerProp = playerProp(context);
         }
-        return playerProp === Players.Opponent ? context.player.opponent : context.player;
+        return playerProp === RelativePlayer.Opponent ? context.player.opponent : context.player;
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {

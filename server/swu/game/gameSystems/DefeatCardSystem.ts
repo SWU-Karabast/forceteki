@@ -1,16 +1,16 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Card from '../core/card/Card';
-import { CardTypes, EventNames, Locations } from '../core/Constants';
+import { CardType, EventName, Location } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { isArena } from '../core/Constants';
+import { isArena } from '../core/utils/EnumHelpers';
 
 export interface IDefeatCardProperties extends ICardTargetSystemProperties {}
 
 export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
     name = 'defeat';
-    eventName = EventNames.OnCardDefeated;
+    eventName = EventName.OnCardDefeated;
     cost = 'defeating {0}';
-    targetType = [CardTypes.Unit, CardTypes.Upgrade];
+    targetType = [CardType.Unit, CardType.Upgrade];
 
     constructor(propertyFactory) {
         super(propertyFactory);

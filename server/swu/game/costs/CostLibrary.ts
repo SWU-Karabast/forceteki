@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventNames, Locations, Players, TargetModes } from '../core/Constants';
+import { EventName, Location, RelativePlayer, TargetMode } from '../core/Constants';
 import { Event } from '../core/event/Event';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
@@ -81,7 +81,7 @@ export function exhaustSelf(): ICost {
  */
 export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
     return getSelectCost(
-        GameSystems.moveCard({ destination: Locations.Deck, shuffle: true }),
+        GameSystems.moveCard({ destination: Location.Deck, shuffle: true }),
         properties,
         'Select card to shuffle into deck'
     );
@@ -107,7 +107,7 @@ export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
 // export function discardCard(properties?: SelectCostProperties): Cost {
 //     return getSelectCost(
 //         GameSystems.discardCard(),
-//         Object.assign({ location: Locations.Hand, mode: TargetModes.Exactly }, properties),
+//         Object.assign({ location: Location.Hand, mode: TargetMode.Exactly }, properties),
 //         (properties?.numCards ?? 0) > 1 ? `Select ${properties.numCards} cards to discard` : 'Select card to discard'
 //     );
 // }
@@ -122,7 +122,7 @@ export function discardTopCardsFromDeck(properties: { amount: number; }): ICost 
         },
         pay: (context) => {
             for (const card of context.costs.discardTopCardsFromDeck as Card[]) {
-                card.controller.moveCard(card, Locations.Deck);
+                card.controller.moveCard(card, Location.Deck);
             }
         }
     };
@@ -138,7 +138,7 @@ export function discardTopCardsFromDeck(properties: { amount: number; }): ICost 
 // /**
 //  * Cost that requires removing a card selected by the player from the game.
 //  */
-// export function removeSelfFromGame(properties?: { location: Array<Locations> }): Cost {
+// export function removeSelfFromGame(properties?: { location: Array<Location> }): Cost {
 //     return new GameActionCost(GameSystems.removeFromGame(properties));
 // }
 
@@ -201,7 +201,7 @@ export function putSelfIntoPlay(): ICost {
 //         payEvent(context: TriggeredAbilityContext) {
 //             const amount = context.source.getCost();
 //             return new Event(
-//                 EventNames.OnSpendFate,
+//                 EventName.OnSpendFate,
 //                 { amount, context },
 //                 (event) => (event.context.player.fate -= event.amount)
 //             );
@@ -288,7 +288,7 @@ export function payReduceableResourceCost(ignoreType = false): ICost {
 //             if ((context as any).ignoreResourceCost) {
 //                 return true;
 //             }
-//             const costModifiers = context.player.getTotalCostModifiers(PlayTypes.PlayFromHand, context.source);
+//             const costModifiers = context.player.getTotalCostModifiers(PlayType.PlayFromHand, context.source);
 //             return (
 //                 costModifiers < 0 ||
 //                 (context.player.fate >= deriveMinAmount(context) + costModifiers &&
@@ -298,7 +298,7 @@ export function payReduceableResourceCost(ignoreType = false): ICost {
 //         resolve(context: TriggeredAbilityContext, result) {
 //             const costModifiers = (context as any).ignoreResourceCost
 //                 ? -1000
-//                 : context.player.getTotalCostModifiers(PlayTypes.PlayFromHand, context.source);
+//                 : context.player.getTotalCostModifiers(PlayType.PlayFromHand, context.source);
 
 //             const maxAmount = deriveMaxAmount(context);
 //             const min = deriveMinAmount(context);
@@ -335,7 +335,7 @@ export function payReduceableResourceCost(ignoreType = false): ICost {
 //                 return payZeroFate.getEvent(context.player, context);
 //             }
 
-//             const costModifiers = context.player.getTotalCostModifiers(PlayTypes.PlayFromHand, context.source);
+//             const costModifiers = context.player.getTotalCostModifiers(PlayType.PlayFromHand, context.source);
 //             const cost = context.costs.variableFateCost + Math.min(0, costModifiers); //+ve cost modifiers are applied by the engine
 //             if (cost > 0) {
 //                 const action = context.game.actions.loseFate({ amount: cost });
@@ -361,11 +361,11 @@ export function payReduceableResourceCost(ignoreType = false): ICost {
 //             context.game.promptForSelect(context.player, {
 //                 activePromptTitle: 'Choose ' + amount + ' card' + (amount === 1 ? '' : 's') + ' to discard',
 //                 context: context,
-//                 mode: TargetModes.Exactly,
+//                 mode: TargetMode.Exactly,
 //                 numCards: amount,
 //                 ordered: false,
-//                 location: Locations.Hand,
-//                 controller: Players.Self,
+//                 location: Location.Hand,
+//                 controller: RelativePlayer.Self,
 //                 onSelect: (player, cards) => {
 //                     if (cards.length === 0) {
 //                         context.costs.discardCardsExactlyVariableX = [];

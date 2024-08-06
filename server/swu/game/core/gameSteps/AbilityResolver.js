@@ -4,7 +4,7 @@ const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
 const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js');
 const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
-const { Locations, Stages, CardTypes, EventNames } = require('../Constants.js');
+const { Location, Stage, CardType, EventName } = require('../Constants.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
     constructor(game, context) {
@@ -31,7 +31,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     createSnapshot() {
-        if([CardTypes.Unit, CardTypes.Base, CardTypes.Leader, CardTypes.Upgrade].includes(this.context.source.getType())) {
+        if([CardType.Unit, CardType.Base, CardType.Leader, CardType.Upgrade].includes(this.context.source.getType())) {
             this.context.cardStateWhenInitiated = this.context.source.createSnapshot();
         }
     }
@@ -40,19 +40,19 @@ class AbilityResolver extends BaseStepWithPipeline {
         if(this.cancelled) {
             return;
         }
-        let eventName = EventNames.OnAbilityResolverInitiated;
+        let eventName = EventName.OnAbilityResolverInitiated;
         let eventProps = {
             context: this.context
         };
         if(this.context.ability.isCardAbility()) {
-            eventName = EventNames.OnCardAbilityInitiated;
+            eventName = EventName.OnCardAbilityInitiated;
             eventProps = {
                 card: this.context.source,
                 ability: this.context.ability,
                 context: this.context
             };
             if(this.context.ability.isCardPlayed()) {
-                this.events.push(this.game.getEvent(EventNames.OnCardPlayed, {
+                this.events.push(this.game.getEvent(EventName.OnCardPlayed, {
                     player: this.context.player,
                     card: this.context.source,
                     context: this.context,
@@ -64,7 +64,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                 }));
             }
             if(this.context.ability.isTriggeredAbility()) {
-                this.events.push(this.game.getEvent(EventNames.OnCardAbilityTriggered, {
+                this.events.push(this.game.getEvent(EventName.OnCardAbilityTriggered, {
                     player: this.context.player,
                     card: this.context.source,
                     context: this.context
@@ -87,7 +87,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     resolveEarlyTargets() {
-        this.context.stage = Stages.PreTarget;
+        this.context.stage = Stage.PreTarget;
         if(!this.context.ability.cannotTargetFirst) {
             this.targetResults = this.context.ability.resolveTargets(this.context);
         }
@@ -106,7 +106,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
         this.costResults.canCancel = this.canCancel;
-        this.context.stage = Stages.Cost;
+        this.context.stage = Stage.Cost;
         this.context.ability.resolveCosts(this.context, this.costResults);
     }
 
@@ -147,7 +147,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         if(this.cancelled) {
             return;
         }
-        this.context.stage = Stages.Target;
+        this.context.stage = Stage.Target;
 
         if(!this.context.ability.hasLegalTargets(this.context)) {
             // Ability cannot resolve, so display a message and cancel it
@@ -171,7 +171,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         // Increment limits (limits aren't used up on cards in hand)
-        if(this.context.ability.limit && this.context.source.location !== Locations.Hand &&
+        if(this.context.ability.limit && this.context.source.location !== Location.Hand &&
            (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.location === this.context.source.location)) {
             this.context.ability.limit.increment(this.context.player);
         }
@@ -183,7 +183,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         if(this.context.ability.isTriggeredAbility()) {
             // If this is an event, move it to 'being played', and queue a step to send it to the discard pile after it resolves
             if(this.context.ability.isCardPlayed()) {
-                this.game.actions.moveCard({ destination: Locations.BeingPlayed }).resolve(this.context.source, this.context);
+                this.game.actions.moveCard({ destination: Location.BeingPlayed }).resolve(this.context.source, this.context);
             }
             this.game.openThenEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
         } else {
@@ -195,13 +195,13 @@ class AbilityResolver extends BaseStepWithPipeline {
         if(this.cancelled || !this.initiateAbility) {
             return;
         }
-        this.context.stage = Stages.Effect;
+        this.context.stage = Stage.Effect;
         this.context.ability.executeHandler(this.context);
     }
 
     moveEventCardToDiscard() {
-        if(this.context.source.location === Locations.BeingPlayed) {
-            this.context.player.moveCard(this.context.source, Locations.Discard);
+        if(this.context.source.location === Location.BeingPlayed) {
+            this.context.player.moveCard(this.context.source, Location.Discard);
         }
     }
 }

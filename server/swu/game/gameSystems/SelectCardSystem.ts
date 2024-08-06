@@ -2,25 +2,25 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Card from '../core/card/Card';
 import CardSelector from '../core/cardSelector/CardSelector';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { CardTypes, EffectNames, Locations, Players, TargetModes } from '../core/Constants';
+import { CardType, EffectName, Location, RelativePlayer, TargetMode } from '../core/Constants';
 import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 
 export interface ISelectCardProperties extends ICardTargetSystemProperties {
     activePromptTitle?: string;
-    player?: Players;
-    cardType?: CardTypes | CardTypes[];
-    controller?: Players;
-    location?: Locations | Locations[];
+    player?: RelativePlayer;
+    cardType?: CardType | CardType[];
+    controller?: RelativePlayer;
+    location?: Location | Location[];
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
     targets?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
-    messageArgs?: (card: Card, player: Player, properties: ISelectCardProperties) => any[];
+    messageArgs?: (card: Card, player: RelativePlayer, properties: ISelectCardProperties) => any[];
     gameSystem: GameSystem;
     selector?: BaseCardSelector;
-    mode?: TargetModes;
+    mode?: TargetMode;
     numCards?: number;
     hidePromptIfSingleCard?: boolean;
     subActionProperties?: (card: Card) => any;
@@ -69,7 +69,7 @@ export class SelectCardSystem extends CardTargetSystem {
         let properties = this.getProperties(context, additionalProperties);
         let player =
             (properties.targets && context.choosingPlayerOverride) ||
-            (properties.player === Players.Opponent && context.player.opponent) ||
+            (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
             context.player;
         return properties.selector.canTarget(card, context, player);
     }
@@ -78,17 +78,17 @@ export class SelectCardSystem extends CardTargetSystem {
         let properties = this.getProperties(context, additionalProperties);
         let player =
             (properties.targets && context.choosingPlayerOverride) ||
-            (properties.player === Players.Opponent && context.player.opponent) ||
+            (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
             context.player;
         return properties.selector.hasEnoughTargets(context, player);
     }
 
     addEventsToArray(events, context: AbilityContext, additionalProperties = {}): void {
         let properties = this.getProperties(context, additionalProperties);
-        if (properties.player === Players.Opponent && !context.player.opponent) {
+        if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
             return;
         }
-        let player = properties.player === Players.Opponent ? context.player.opponent : context.player;
+        let player = properties.player === RelativePlayer.Opponent ? context.player.opponent : context.player;
         let mustSelect = [];
         if (properties.targets) {
             player = context.choosingPlayerOverride || player;
@@ -96,7 +96,7 @@ export class SelectCardSystem extends CardTargetSystem {
                 .getAllLegalTargets(context, player)
                 .filter((card) =>
                     card
-                        .getEffects(EffectNames.MustBeChosen)
+                        .getEffects(EffectName.MustBeChosen)
                         .some((restriction) => restriction.isMatch('target', context))
                 );
         }
@@ -137,6 +137,6 @@ export class SelectCardSystem extends CardTargetSystem {
 
     hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {
         let properties = this.getProperties(context, additionalProperties);
-        return properties.targets && properties.player !== Players.Opponent;
+        return properties.targets && properties.player !== RelativePlayer.Opponent;
     }
 }

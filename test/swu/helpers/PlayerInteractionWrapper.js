@@ -1,7 +1,7 @@
 const _ = require('underscore');
 
 const { detectBinary } = require('../../../build/util.js');
-const { GameModes } = require('../../../build/GameModes.js');
+const { GameMode } = require('../../../build/GameMode.js');
 
 class PlayerInteractionWrapper {
     constructor(game, player) {
@@ -350,7 +350,7 @@ class PlayerInteractionWrapper {
                 side
             );
         } catch (e) {
-            throw new Error(`Name: ${name}, Locations: ${locations}. Error thrown: ${e}`);
+            throw new Error(`Name: ${name}, Location: ${locations}. Error thrown: ${e}`);
         }
         return cards;
     }
@@ -544,7 +544,7 @@ class PlayerInteractionWrapper {
     }
 
     /**
-     * Moves cards between Locations
+     * Moves cards between Location
      * @param {String|DrawCard} card - card to be moved
      * @param {String} targetLocation - location where the card should be moved
      * @param {String | String[]} searchLocations - locations where to find the
@@ -614,7 +614,7 @@ class PlayerInteractionWrapper {
      * @param {!String} card - the province to select
      */
     selectStrongholdProvince(card) {
-        if (this.game.gameMode === GameModes.Skirmish) {
+        if (this.game.gameMode === GameMode.Skirmish) {
             return;
         }
         if (!this.hasPrompt('Select stronghold province')) {

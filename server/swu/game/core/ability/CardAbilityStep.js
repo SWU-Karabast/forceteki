@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stages } = require('../Constants.js');
+const { Stage } = require('../Constants.js');
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a 
@@ -23,7 +23,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             game: this.game,
             player: player,
             source: this.card,
-            stage: Stages.PreTarget
+            stage: Stage.PreTarget
         });
     }
 

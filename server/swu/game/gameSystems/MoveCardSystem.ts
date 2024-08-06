@@ -1,10 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Card from '../core/card/Card';
-import { CardTypes, EffectNames, Locations, isArena } from '../core/Constants';
+import { CardType, EffectName, Location } from '../core/Constants';
+import { isArena } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Locations;
+    destination?: Location;
     switch?: boolean;
     switchTarget?: Card;
     shuffle?: boolean;
@@ -16,7 +17,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 
 export class MoveCardSystem extends CardTargetSystem {
     name = 'move';
-    targetType = [CardTypes.Unit, CardTypes.Upgrade, CardTypes.Event];
+    targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
     defaultProperties: IMoveCardProperties = {
         destination: null,
         switch: false,
@@ -57,7 +58,7 @@ export class MoveCardSystem extends CardTargetSystem {
         const { changePlayer, destination } = this.getProperties(context, additionalProperties) as IMoveCardProperties;
         return (
             (!changePlayer ||
-                (card.checkRestrictions(EffectNames.TakeControl, context) &&
+                (card.checkRestrictions(EffectName.TakeControl, context) &&
                     !card.anotherUniqueInPlay(context.player))) &&
             (!destination || context.player.isLegalLocationForCard(card, destination)) &&
             !isArena(card.location) &&

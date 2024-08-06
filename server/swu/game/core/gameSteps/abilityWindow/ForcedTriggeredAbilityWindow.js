@@ -2,7 +2,7 @@ const _ = require('underscore');
 
 const { BaseStep } = require('../BaseStep');
 const { TriggeredAbilityWindowTitle } = require('./TriggeredAbilityWindowTitle');
-const { Locations, WildcardLocations } = require('../../Constants');
+const { Location, WildcardLocation } = require('../../Constants');
 
 class ForcedTriggeredAbilityWindow extends BaseStep {
     constructor(game, abilityType, window, eventsToExclude = []) {
@@ -65,7 +65,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
     }
 
     getPromptForSelectProperties() {
-        return Object.assign({ location: WildcardLocations.Any }, this.getPromptProperties());
+        return Object.assign({ location: WildcardLocation.Any }, this.getPromptProperties());
     }
 
     getPromptProperties() {

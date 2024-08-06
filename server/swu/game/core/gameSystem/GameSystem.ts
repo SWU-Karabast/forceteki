@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
-import { CardTypes, EventNames, Stages } from '../Constants';
+import { CardType, EventName, Stage } from '../Constants';
 import { Event } from '../event/Event';
 import type Player from '../Player';
 
@@ -17,7 +17,7 @@ export class GameSystem<P extends IGameSystemProperties = IGameSystemProperties>
     propertyFactory?: (context?: AbilityContext) => P;
     properties?: P;
     targetType: string[] = [];
-    eventName = EventNames.Unnamed;
+    eventName = EventName.Unnamed;
     name = '';
     cost = '';
     effect = '';
@@ -68,7 +68,7 @@ export class GameSystem<P extends IGameSystemProperties = IGameSystemProperties>
         return (
             this.targetType.includes(target.type) &&
             !context.gameActionsResolutionChain.includes(this) &&
-            ((context.stage === Stages.Effect && cannotBeCancelled) || target.checkRestrictions(this.name, context))
+            ((context.stage === Stage.Effect && cannotBeCancelled) || target.checkRestrictions(this.name, context))
         );
     }
 
@@ -117,7 +117,7 @@ export class GameSystem<P extends IGameSystemProperties = IGameSystemProperties>
 
     createEvent(target: any, context: AbilityContext, additionalProperties): Event {
         const { cannotBeCancelled } = this.getProperties(context, additionalProperties);
-        const event = new Event(EventNames.Unnamed, { cannotBeCancelled });
+        const event = new Event(EventName.Unnamed, { cannotBeCancelled });
         event.checkFullyResolved = (eventAtResolution) =>
             this.isEventFullyResolved(eventAtResolution, target, context, additionalProperties);
         return event;

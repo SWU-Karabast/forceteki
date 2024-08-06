@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { EventNames, Locations } from '../core/Constants';
+import { EventName, Location } from '../core/Constants';
 import type Player from '../core/Player';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 
@@ -11,7 +11,7 @@ export class RandomDiscardSystem extends PlayerTargetSystem {
     defaultProperties: IRandomDiscardProperties = { amount: 1 };
 
     name = 'discard';
-    eventName = EventNames.OnCardsDiscardedFromHand;
+    eventName = EventName.OnCardsDiscardedFromHand;
     constructor(propertyFactory: IRandomDiscardProperties | ((context: AbilityContext) => IRandomDiscardProperties)) {
         super(propertyFactory);
     }
@@ -48,7 +48,7 @@ export class RandomDiscardSystem extends PlayerTargetSystem {
         player.game.addMessage('{0} discards {1} at random', player, cardsToDiscard);
 
         for (const card of cardsToDiscard) {
-            player.moveCard(card, Locations.Discard);
+            player.moveCard(card, Location.Discard);
         }
     }
 }

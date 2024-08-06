@@ -1,12 +1,12 @@
 const _ = require('underscore');
 const EventWindow = require('../../event/EventWindow.js');
 const TriggeredAbilityWindow = require('./TriggeredAbilityWindow.js');
-const { EventNames, AbilityTypes } = require('../../Constants.js');
+const { EventName, AbilityType } = require('../../Constants.js');
 
 class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     constructor(game, abilityType, eventWindow) {
         super(game, abilityType, eventWindow);
-        this.playEvent = eventWindow.events.find(event => event.name === EventNames.OnCardPlayed);
+        this.playEvent = eventWindow.events.find(event => event.name === EventName.OnCardPlayed);
     }
 
     getPromptForSelectProperties() {
@@ -47,7 +47,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
 
 class InitiateAbilityEventWindow extends EventWindow {
     openWindow(abilityType) {
-        if(this.events.length && abilityType === AbilityTypes.Interrupt) {
+        if(this.events.length && abilityType === AbilityType.Interrupt) {
             this.queueStep(new InitiateAbilityInterruptWindow(this.game, abilityType, this));
         } else {
             super.openWindow(abilityType);

@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { EventNames } from '../Constants';
+import { EventName } from '../Constants';
 
 type Params = {
     amount: number;
@@ -48,7 +48,7 @@ export class Event {
     }
 
     checkCondition() {
-        if (this.cancelled || this.resolved || this.name === EventNames.Unnamed) {
+        if (this.cancelled || this.resolved || this.name === EventName.Unnamed) {
             return;
         }
         if (!this.condition(this)) {

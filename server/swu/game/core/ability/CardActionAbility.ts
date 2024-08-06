@@ -1,6 +1,6 @@
 import type { AbilityContext } from './AbilityContext.js';
 import CardAbility from './CardAbility.js';
-import { AbilityTypes, CardTypes, EffectNames, Phases } from '../Constants.js';
+import { AbilityType, CardType, EffectName, PhaseName } from '../Constants.js';
 import type { IActionProps } from '../../Interfaces.js';
 import type Card from '../card/Card.js';
 import type Game from '../Game.js';
@@ -33,7 +33,7 @@ import type Game from '../Game.js';
  *                   the card is clicked.
  */
 export class CardActionAbility extends CardAbility {
-    abilityType = AbilityTypes.Action;
+    abilityType = AbilityType.Action;
 
     anyPlayer: boolean;
     doesNotTarget: boolean;
@@ -62,11 +62,11 @@ export class CardActionAbility extends CardAbility {
         }
 
         const canOpponentTrigger =
-            this.card.anyEffect(EffectNames.CanBeTriggeredByOpponent) &&
-            this.abilityType !== AbilityTypes.ForcedInterrupt &&
-            this.abilityType !== AbilityTypes.ForcedReaction;
+            this.card.anyEffect(EffectName.CanBeTriggeredByOpponent) &&
+            this.abilityType !== AbilityType.ForcedInterrupt &&
+            this.abilityType !== AbilityType.ForcedReaction;
         const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
-        if (!ignoredRequirements.includes('player') && this.card.type !== CardTypes.Event && !canPlayerTrigger) {
+        if (!ignoredRequirements.includes('player') && this.card.type !== CardType.Event && !canPlayerTrigger) {
             return 'player';
         }
 

@@ -3,7 +3,7 @@ const _ = require('underscore');
 const AbilityDsl = require('../../AbilityDsl.js');
 const { GameObject } = require('../GameObject.js');
 
-const { Durations, WildcardLocations } = require('../Constants.js');
+const { Duration, WildcardLocation } = require('../Constants.js');
 
 // This class is inherited by Ring and BaseCard and also represents Framework effects
 
@@ -17,7 +17,7 @@ class EffectSource extends GameObject {
     //  */
     // untilEndOfPhase(propertyFactory) {
     //     var properties = propertyFactory(AbilityDsl);
-    //     this.addEffectToEngine(Object.assign({ duration: Durations.UntilEndOfPhase, location: WildcardLocations.Any }, properties));
+    //     this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, location: WildcardLocation.Any }, properties));
     // }
 
     // /**
@@ -25,7 +25,7 @@ class EffectSource extends GameObject {
     //  */
     // untilEndOfRound(propertyFactory) {
     //     var properties = propertyFactory(AbilityDsl);
-    //     this.addEffectToEngine(Object.assign({ duration: Durations.UntilEndOfRound, location: WildcardLocations.Any }, properties));
+    //     this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, location: WildcardLocation.Any }, properties));
     // }
 
     // /**
@@ -34,7 +34,7 @@ class EffectSource extends GameObject {
     //  */
     // lastingEffect(propertyFactory) {
     //     let properties = propertyFactory(AbilityDsl);
-    //     this.addEffectToEngine(Object.assign({ duration: Durations.Custom, location: WildcardLocations.Any }, properties));
+    //     this.addEffectToEngine(Object.assign({ duration: Duration.Custom, location: WildcardLocation.Any }, properties));
     // }
 
     // /*

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
-import { CardTypes, EffectNames, Locations } from '../Constants';
+import { CardType, EffectName, Location } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 // import { LoseFateAction } from './LoseFateAction';
 
@@ -10,11 +10,11 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
 
 export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<P> {
     targetType = [
-        CardTypes.Unit,
-        CardTypes.Upgrade,
-        CardTypes.Event,
-        CardTypes.Leader,
-        CardTypes.Base,
+        CardType.Unit,
+        CardType.Upgrade,
+        CardType.Event,
+        CardType.Leader,
+        CardType.Base,
     ];
 
     defaultTargets(context: AbilityContext): Card[] {
@@ -34,7 +34,7 @@ export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTarge
         for (const card of target as Card[]) {
             let allCostsPaid = true;
             const additionalCosts = card
-                .getEffects(EffectNames.UnlessActionCost)
+                .getEffects(EffectName.UnlessActionCost)
                 .filter((properties) => properties.actionName === this.name);
 
             if (context.player && context.ability && context.ability.targets && context.ability.targets.length > 0) {
@@ -132,11 +132,11 @@ export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTarge
     updateLeavesPlayEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         let properties = this.getProperties(context, additionalProperties) as any;
         super.updateEvent(event, card, context, additionalProperties);
-        event.destination = Locations.Discard;
+        event.destination = Location.Discard;
         // event.preResolutionEffect = () => {
         //     event.cardStateWhenLeftPlay = event.card.createSnapshot();
         //     if (event.card.isAncestral() && event.isContingent) {
-        //         event.destination = Locations.Hand;
+        //         event.destination = Location.Hand;
         //         context.game.addMessage(
         //             "{0} returns to {1}'s hand due to its Ancestral keyword",
         //             event.card,
@@ -150,7 +150,7 @@ export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTarge
 
             // for (const attachment of (event.card.attachments ?? []) as BaseCard[]) {
             //     // we only need to add events for attachments that are in play.
-            //     if (attachment.location === Locations.PlayArea) {
+            //     if (attachment.location === Location.PlayArea) {
             //         let attachmentEvent = context.game.actions
             //             .discardFromPlay()
             //             .getEvent(attachment, context.game.getFrameworkContext());
@@ -174,7 +174,7 @@ export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTarge
                 event.destination,
                 event.card
             );
-            event.destination = Locations.Deck;
+            event.destination = Location.Deck;
         }
         event.card.owner.moveCard(event.card, event.destination, event.options || {});
     }

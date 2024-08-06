@@ -1,5 +1,6 @@
 const _ = require('underscore');
-const { Locations, Durations, isArena } = require('../Constants');
+const { Location, Duration } = require('../Constants');
+const { isArena } = require('../utils/EnumHelpers');
 
 /**
  * Represents a card based effect applied to one or more targets.
@@ -92,7 +93,7 @@ class Effect {
     }
 
     isEffectActive() {
-        if(this.duration !== Durations.Persistent) {
+        if(this.duration !== Duration.Persistent) {
             return true;
         }
         let effectOnSource = this.source.persistentEffects.some(effect => effect.ref && effect.ref.includes(this));

@@ -3,7 +3,7 @@ const _ = require('underscore');
 const ForcedTriggeredAbilityWindow = require('./ForcedTriggeredAbilityWindow.js');
 const { TriggeredAbilityWindowTitle } = require('./TriggeredAbilityWindowTitle.js');
 
-const { CardTypes, EventNames, AbilityTypes } = require('../../Constants.js');
+const { CardType, EventName, AbilityType } = require('../../Constants.js');
 
 class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
     constructor(game, abilityType, window, eventsToExclude = []) {
@@ -19,9 +19,9 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
             return true;
         }
         // Show a bluff prompt if we're in Step 6, the player has the approriate setting, and there's an event for the other player
-        return this.abilityType === AbilityTypes.WouldInterrupt && player.timerSettings.events && _.any(this.events, event => (
-            event.name === EventNames.OnInitiateAbilityEffects &&
-            event.card.type === CardTypes.Event && event.context.player !== player
+        return this.abilityType === AbilityType.WouldInterrupt && player.timerSettings.events && _.any(this.events, event => (
+            event.name === EventName.OnInitiateAbilityEffects &&
+            event.card.type === CardType.Event && event.context.player !== player
         ));
     }
 
@@ -63,10 +63,10 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
             return true;
         }
         // remove any choices which involve the current player canceling their own abilities
-        if(this.abilityType === AbilityTypes.WouldInterrupt && !this.activePlayer.optionSettings.cancelOwnAbilities) {
+        if(this.abilityType === AbilityType.WouldInterrupt && !this.activePlayer.optionSettings.cancelOwnAbilities) {
             this.choices = this.choices.filter(context => !(
                 context.player === this.activePlayer &&
-                context.event.name === EventNames.OnInitiateAbilityEffects &&
+                context.event.name === EventName.OnInitiateAbilityEffects &&
                 context.event.context.player === this.activePlayer
             ));
         }

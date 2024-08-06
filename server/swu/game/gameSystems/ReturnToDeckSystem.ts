@@ -1,22 +1,23 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { CardTypes, EventNames, TargetableLocations, Locations, WildcardLocations, cardLocationMatches } from '../core/Constants';
+import { CardType, EventName, TargetableLocation, Location, WildcardLocation } from '../core/Constants';
+import { cardLocationMatches } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Card from '../core/card/Card';
 
 export interface IReturnToDeckProperties extends ICardTargetSystemProperties {
     bottom?: boolean;
     shuffle?: boolean;
-    location?: TargetableLocations | TargetableLocations[];
+    location?: TargetableLocation | TargetableLocation[];
 }
 
 export class ReturnToDeckSystem extends CardTargetSystem {
     name = 'returnToDeck';
-    eventName = EventNames.OnCardDefeated;
-    targetType = [CardTypes.Unit, CardTypes.Upgrade, CardTypes.Event];
+    eventName = EventName.OnCardDefeated;
+    targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
     defaultProperties: IReturnToDeckProperties = {
         bottom: false,
         shuffle: false,
-        location: WildcardLocations.AnyArena
+        location: WildcardLocation.AnyArena
     };
     constructor(properties: ((context: AbilityContext) => IReturnToDeckProperties) | IReturnToDeckProperties) {
         super(properties);
@@ -45,7 +46,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
 
     canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         let properties = this.getProperties(context) as IReturnToDeckProperties;
-        let location: TargetableLocations[];
+        let location: TargetableLocation[];
         if (!Array.isArray(properties.location)) {
             location = [properties.location];
         } else {
@@ -61,7 +62,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     // updateEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
     //     let { shuffle, target, bottom } = this.getProperties(context, additionalProperties) as ReturnToDeckProperties;
     //     this.updateLeavesPlayEvent(event, card, context, additionalProperties);
-    //     event.destination = Locations.Deck;
+    //     event.destination = Location.Deck;
     //     event.options = { bottom };
     //     if (shuffle && (target.length === 0 || card === target[target.length - 1])) {
     //         event.shuffle = true;

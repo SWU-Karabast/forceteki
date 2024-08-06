@@ -1,5 +1,4 @@
-import { GameModes } from '../GameModes';
-import { CardTypes, Locations } from './core/Constants';
+import { CardType, Location } from './core/Constants';
 import { BaseCard } from './core/card/BaseCard';
 import { LeaderCard } from './core/card/LeaderCard';
 import Card from './core/card/Card';
@@ -25,7 +24,7 @@ export class Deck {
                 const CardConstructor = cards.get(card.id) ?? Card;
                 // @ts-ignore
                 const deckCard: Card = new CardConstructor(player, card);
-                deckCard.location = Locations.Deck;
+                deckCard.location = Location.Deck;
                 result.deckCards.push(deckCard);
             }
         }
@@ -33,7 +32,7 @@ export class Deck {
         //leader & base
         for (const { count, card } of this.data.base ?? []) {
             for (let i = 0; i < count; i++) {
-                if (card?.type === CardTypes.Base) {
+                if (card?.type === CardType.Base) {
                     const CardConstructor = cards.get(card.id) ?? BaseCard;
                     // @ts-ignore
                     const baseCard: BaseCard = new CardConstructor(player, card);
@@ -44,7 +43,7 @@ export class Deck {
         }
         for (const { count, card } of this.data.leader ?? []) {
             for (let i = 0; i < count; i++) {
-                if (card?.type === CardTypes.Leader) {
+                if (card?.type === CardType.Leader) {
                     const CardConstructor = cards.get(card.id) ?? LeaderCard;
                     // @ts-ignore
                     const leaderCard: LeaderCard = new CardConstructor(player, card);
@@ -57,7 +56,7 @@ export class Deck {
             const CardConstructor = cards.get(cardData.id) ?? Card;
             // @ts-ignore
             const card: Card = new CardConstructor(player, cardData);
-            card.location = Locations.OutsideTheGame;
+            card.location = Location.OutsideTheGame;
             result.outsideTheGameCards.push(card);
         }
 

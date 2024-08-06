@@ -1,22 +1,23 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { CardTypes, EventNames, Locations, Players, isArena } from '../core/Constants';
+import { CardType, EventName, Location, RelativePlayer } from '../core/Constants';
+import { isArena } from '../core/utils/EnumHelpers';
 import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Card from '../core/card/Card';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
-    controller?: Players;
-    side?: Player;
-    overrideLocation?: Locations;
+    controller?: RelativePlayer;
+    side?: RelativePlayer;
+    overrideLocation?: Location;
 }
 
 export class PutIntoPlaySystem extends CardTargetSystem {
     name = 'putIntoPlay';
-    eventName = EventNames.OnUnitEntersPlay;
+    eventName = EventName.OnUnitEntersPlay;
     cost = 'putting {0} into play';
-    targetType = [CardTypes.Unit];
+    targetType = [CardType.Unit];
     defaultProperties: IPutIntoPlayProperties = {
-        controller: Players.Self,
+        controller: RelativePlayer.Self,
         side: null,
         overrideLocation: null
     };
@@ -79,7 +80,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         }
 
         let finalController = event.context.player;
-        if (event.controller === Players.Opponent) {
+        if (event.controller === RelativePlayer.Opponent) {
             finalController = finalController.opponent;
         }
 

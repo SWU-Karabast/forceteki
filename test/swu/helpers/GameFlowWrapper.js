@@ -84,7 +84,7 @@ class GameFlowWrapper {
      */
     noMoreActions() {
         // if(this.game.currentPhase === 'dynasty') {
-        //     // Players that have already passed aren't prompted again in dynasty
+        //     // RelativePlayer that have already passed aren't prompted again in dynasty
         //     this.eachPlayerStartingWithPrompted(player => {
         //         if(!player.player.passedDynasty) {
         //             player.clickPrompt('Pass');

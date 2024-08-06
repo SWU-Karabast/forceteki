@@ -1,4 +1,4 @@
-export enum Locations {
+export enum Location {
     Hand = 'hand',
     Deck = 'deck',
     Discard = 'discard',
@@ -12,59 +12,15 @@ export enum Locations {
     BeingPlayed = 'being played',
 }
 
-// TODO: make enum names singular
-export enum WildcardLocations {
+export enum WildcardLocation {
     Any = 'any',
     AnyArena = 'any arena',
     AnyAttackable = 'any attackable'
 }
 
-export type TargetableLocations = Locations | WildcardLocations;
+export type TargetableLocation = Location | WildcardLocation;
 
-// TODO: where to put these helpers?
-export const isArena = (location: TargetableLocations) => {
-    switch (location) {
-        case Locations.GroundArena:
-        case Locations.SpaceArena:
-        case WildcardLocations.AnyArena:
-            return true;
-        default:
-            return false;
-    }
-}
-
-export const isAttackableLocation = (location: TargetableLocations) => {
-    switch (location) {
-        case Locations.GroundArena:
-        case Locations.SpaceArena:
-        case WildcardLocations.AnyArena:
-        case Locations.Base:
-            return true;
-        default:
-            return false;
-    }
-}
-
-// return true if the location matches one of the allowed location filters
-export const cardLocationMatches = (cardLocation: Locations, allowedLocations: TargetableLocations | TargetableLocations[]) => {
-    if (!Array.isArray(allowedLocations)) {
-        allowedLocations = [allowedLocations];
-    }
-
-    return allowedLocations.some((allowedLocation) => {
-        switch (allowedLocation) {
-            case WildcardLocations.Any:
-                return true;
-            case WildcardLocations.AnyArena:
-                return isArena(cardLocation);
-            case WildcardLocations.AnyAttackable:
-                return isAttackableLocation(cardLocation);
-            default:
-                return cardLocation === allowedLocation;
-        }});
-}
-
-export enum PlayTypes {
+export enum PlayType {
     PlayFromHand = 'playFromHand',
     Smuggle = 'smuggle'
 }
@@ -74,7 +30,7 @@ export enum StatType {
     Hp = 'hp'
 }
 
-export enum EffectNames {
+export enum EffectName {
     AbilityRestrictions = 'abilityRestrictions',
     ChangeType = 'changeType',
     SuppressEffects = 'suppressEffects',
@@ -108,27 +64,27 @@ export enum EffectNames {
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena'
 }
 
-export enum Durations {
+export enum Duration {
     UntilEndOfPhase = 'untilendofphase',
     UntilEndOfRound = 'untilendofround',
     Persistent = 'persistent',
     Custom = 'custom'
 }
 
-export enum Stages {
+export enum Stage {
     Cost = 'cost',
     Effect = 'effect',
     PreTarget = 'pretarget',
     Target = 'target'
 }
 
-export enum Players {
+export enum RelativePlayer {
     Self = 'self',
     Opponent = 'opponent',
     Any = 'any'
 }
 
-export enum TargetModes {
+export enum TargetMode {
     Select = 'select',
     Ability = 'ability',
     Token = 'token',
@@ -142,12 +98,12 @@ export enum TargetModes {
     UpToVariable = 'upToVariable'
 }
 
-export enum Phases {
+export enum PhaseName {
     Action = 'action',
     Regroup = 'regroup'
 }
 
-export enum CardTypes {
+export enum CardType {
     Unit = 'unit',
     Leader = 'leader',
     Base = 'base',
@@ -156,7 +112,7 @@ export enum CardTypes {
     Token = 'token'
 }
 
-export enum EventNames {
+export enum EventName {
     OnBeginRound = 'onBeginRound',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
@@ -193,23 +149,20 @@ export enum EventNames {
     OnAttackCompleted = 'onAttackCompleted',
 }
 
-export enum AbilityTypes {
+export enum AbilityType {
     Action = 'action',
-    WouldInterrupt = 'cancelinterrupt',
-    ForcedInterrupt = 'forcedinterrupt',
-    KeywordInterrupt = 'forcedinterrupt',
+    WouldInterrupt = 'cancelInterrupt',
+    ForcedInterrupt = 'forcedInterrupt',
+    KeywordInterrupt = 'keywordInterrupt',
     Interrupt = 'interrupt',
-    KeywordReaction = 'forcedreaction',
-    ForcedReaction = 'forcedreaction',
+    KeywordReaction = 'keywordReaction',
+    ForcedReaction = 'forcedReaction',
     Reaction = 'reaction',
     Persistent = 'persistent',
-    OtherEffects = 'OtherEffects'
+    OtherEffects = 'otherEffects'
 }
 
-export enum TokenTypes {
-}
-
-export enum Aspects {
+export enum Aspect {
     Heroism = 'heroism',
     Villainy = 'villainy',
     Aggression = 'aggression',

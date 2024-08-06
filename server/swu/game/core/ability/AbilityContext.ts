@@ -1,6 +1,6 @@
 import PlayerOrCardAbility from './PlayerOrCardAbility';
 import type Card from '../card/Card';
-import { Aspects, Locations, PlayTypes, Stages } from '../Constants';
+import { Aspect, Location, PlayType, Stage } from '../Constants';
 import EffectSource from '../effect/EffectSource';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
@@ -13,12 +13,12 @@ export interface IAbilityContextProperties {
     player?: Player;
     ability?: PlayerOrCardAbility;
     costs?: any;
-    costAspects?: Aspects[];
+    costAspects?: Aspect[];
     targets?: any;
     selects?: any;
     tokens?: any;
     events?: any[];
-    stage?: Stages;
+    stage?: Stage;
     targetAbility?: any;
 }
 
@@ -33,12 +33,12 @@ export class AbilityContext<S = any> {
     player: Player;
     ability: PlayerOrCardAbility;
     costs: any;
-    costAspects: Array<Aspects>;
+    costAspects: Array<Aspect>;
     targets: any;
     selects: any;
     tokens: any;
     events: any[] = [];
-    stage: Stages;
+    stage: Stage;
     targetAbility: any;
     target: any;
     select: string;
@@ -46,7 +46,7 @@ export class AbilityContext<S = any> {
     subResolution = false;
     choosingPlayerOverride: Player = null;
     gameActionsResolutionChain: GameSystem[] = [];
-    playType: PlayTypes;
+    playType: PlayType;
     cardStateWhenInitiated: any = null;
 
     constructor(properties: IAbilityContextProperties) {
@@ -59,7 +59,7 @@ export class AbilityContext<S = any> {
         this.targets = properties.targets || {};
         this.selects = properties.selects || {};
         this.tokens = properties.tokens || {};
-        this.stage = properties.stage || Stages.Effect;
+        this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
         // const location = this.player && this.player.playableLocations.find(location => location.contains(this.source));
         this.playType = this.player && this.player.findPlayType(this.source); //location && location.playingType;

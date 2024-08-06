@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Card from '../core/card/Card';
-import { CardTypes, EventNames, isArena, isAttackableLocation } from '../core/Constants';
+import { CardType, EventName } from '../core/Constants';
+import { isArena, isAttackableLocation } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
 export interface IDamageProperties extends ICardTargetSystemProperties {
@@ -10,8 +11,8 @@ export interface IDamageProperties extends ICardTargetSystemProperties {
 
 export class DamageSystem extends CardTargetSystem<IDamageProperties> {
     name = 'damage';
-    eventName = EventNames.OnDamageDealt;
-    targetType = [CardTypes.Unit, CardTypes.Base];
+    eventName = EventName.OnDamageDealt;
+    targetType = [CardType.Unit, CardType.Base];
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
         const { amount, target, isCombatDamage } = this.getProperties(context) as IDamageProperties;

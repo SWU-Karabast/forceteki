@@ -1,4 +1,4 @@
-import { Phases } from '../../Constants';
+import { PhaseName } from '../../Constants';
 import type Game from '../../Game';
 import Player from '../../Player';
 import { Phase } from './Phase';
@@ -26,7 +26,7 @@ export class ActionPhase extends Phase {
     activePlayer?: Player;
 
     constructor(game: Game) {
-        super(game, Phases.Action);
+        super(game, PhaseName.Action);
         this.initialise([
             new SimpleStep(this.game, () => this.#queueNextAction())
         ]);

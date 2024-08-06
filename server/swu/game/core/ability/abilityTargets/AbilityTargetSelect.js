@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const { SelectChoice } = require('./SelectChoice.js');
-const { Stages, Players } = require('../../Constants.js');
+const { Stage, RelativePlayer } = require('../../Constants.js');
 
 class AbilityTargetSelect {
     constructor(name, properties, ability) {
@@ -36,7 +36,7 @@ class AbilityTargetSelect {
         if (this.name === 'target') {
             contextCopy.select = key;
         }
-        if (context.stage === Stages.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
+        if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
             return false;
         }
         if (this.dependentTarget && !this.dependentTarget.hasLegalTarget(contextCopy)) {
@@ -73,7 +73,7 @@ class AbilityTargetSelect {
         }
 
         let player = (this.properties.targets && context.choosingPlayerOverride) || this.getChoosingPlayer(context);
-        if (player === context.player.opponent && context.stage === Stages.PreTarget) {
+        if (player === context.player.opponent && context.stage === Stage.PreTarget) {
             targetResults.delayTargeting = this;
             return;
         }
@@ -87,7 +87,7 @@ class AbilityTargetSelect {
                 }
             };
         });
-        if (player !== context.player.opponent && context.stage === Stages.PreTarget) {
+        if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
             if (!targetResults.noCostsFirstButton) {
                 choices.push('Pay costs first');
                 handlers.push(() => (targetResults.payCostsFirst = true));
@@ -99,7 +99,7 @@ class AbilityTargetSelect {
             handlers[0]();
         } else if (handlers.length > 1) {
             let waitingPromptTitle = '';
-            if (context.stage === Stages.PreTarget) {
+            if (context.stage === Stage.PreTarget) {
                 if (context.ability.abilityType === 'action') {
                     waitingPromptTitle = 'Waiting for opponent to take an action or pass';
                 } else {
@@ -133,7 +133,7 @@ class AbilityTargetSelect {
         if (typeof playerProp === 'function') {
             playerProp = playerProp(context);
         }
-        return playerProp === Players.Opponent ? context.player.opponent : context.player;
+        return playerProp === RelativePlayer.Opponent ? context.player.opponent : context.player;
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {
