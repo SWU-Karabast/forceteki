@@ -10,6 +10,7 @@ const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
 const { BaseCard } = require('./card/BaseCard');
 const { LeaderCard } = require('./card/LeaderCard');
+const Contract = require('./utils/Contract');
 
 const {
     AbilityType,
@@ -26,8 +27,15 @@ const {
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 
 class Player extends GameObject {
-    constructor(id, user, owner, game, clockdetails) {
+    constructor(id, user, owner, game, clockDetails) {
         super(game, user.username);
+
+        Contract.assertNotNullLike(id);
+        Contract.assertNotNullLike(user);
+        Contract.assertNotNullLike(owner);
+        Contract.assertNotNullLike(game);
+        // clockDetails is optional
+
         this.user = user;
         this.emailHash = this.user.emailHash;
         this.id = id;
@@ -38,23 +46,26 @@ class Player extends GameObject {
         this.left = false;
         this.lobbyId = null;
 
+        // TODO: add a Zone class for managing these
         this.deck = _([]);
         this.hand = _([]);
         this.resources = _([]);
         this.spaceArena = _([]);
         this.groundArena = _([]);
-        this.baseZone = _([]);
-        this.leaderZone = _([]);
         this.discard = _([]);
         this.removedFromGame = _([]);
         this.additionalPiles = {};
         this.canTakeActionsThisPhase = null;
 
+        // TODO: per the rules, leader and base are both in the same "base zone"
+        this.baseZone = _([]);
+        this.leaderZone = _([]);
+
         this.leader = null;
         this.base = null;
         this.damageToBase = null;
 
-        this.clock = clockFor(this, clockdetails);
+        this.clock = clockFor(this, clockDetails);
 
         this.playableLocations = [
             new PlayableLocation(PlayType.PlayFromHand, this, Location.Hand),
@@ -1145,11 +1156,9 @@ class Player extends GameObject {
             // In normal play, all upgrades should already have been removed, but in manual play we may need to remove them.
             // This won't trigger any leaves play effects
             for (const upgrade of card.upgrades) {
-                upgrade.leavesPlay(targetLocation);
                 upgrade.owner.moveCard(upgrade, Location.Discard);
             }
 
-            card.leavesPlay(targetLocation);
             card.controller = this;
         } else if (isArena(targetLocation)) {
             card.setDefaultController(this);
@@ -1166,15 +1175,7 @@ class Player extends GameObject {
             card.controller = card.owner;
         }
 
-        if (currentLocation === Location.Resource && targetLocation !== Location.Resource) {
-            card.resourced = false;
-        }
-
-        if (targetLocation === Location.Resource) {
-            card.facedown = true;
-            card.resourced = true;
-            targetPile.push(card);
-        } else if (targetLocation === Location.Deck && !options.bottom) {
+        if (targetLocation === Location.Deck && !options.bottom) {
             targetPile.unshift(card);
         } else if (
             [Location.Discard, Location.RemovedFromGame].includes(targetLocation)
@@ -1183,10 +1184,6 @@ class Player extends GameObject {
             targetPile.unshift(card);
         } else if (targetPile) {
             targetPile.push(card);
-        }
-
-        if (!cardLocationMatches(targetLocation, [WildcardLocation.AnyArena, Location.Resource, Location.Leader])) {
-            card.exhausted = null;
         }
 
         card.moveTo(targetLocation);

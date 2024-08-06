@@ -92,6 +92,10 @@ export function assertNotNullLike(val: object): void {
     }
 }
 
+export function fail(message: string): void {
+    contractCheckImpl.fail(message);
+}
+
 const Contract = {
     AssertMode,
     configureAssertMode,
@@ -99,6 +103,7 @@ const Contract = {
     assertEqual,
     assertNotNull,
     assertNotNullLike,
+    fail
 };
 
 export default Contract;

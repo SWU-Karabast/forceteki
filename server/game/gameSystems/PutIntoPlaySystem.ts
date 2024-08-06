@@ -84,8 +84,6 @@ export class PutIntoPlaySystem extends CardTargetSystem {
             finalController = finalController.opponent;
         }
 
-        let targetSide = event.side;
-
         player.moveCard(event.card, event.card.defaultArena);
 
         if (event.status === 'ready') {

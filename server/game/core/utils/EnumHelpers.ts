@@ -15,7 +15,6 @@ export function checkConvertToEnum<T>(values: string[], enumObj: T): Array<T[key
     return result;
 }
 
-// TODO: where to put these helpers?
 export const isArena = (location: TargetableLocation) => {
     switch (location) {
         case Location.GroundArena:

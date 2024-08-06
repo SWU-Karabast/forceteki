@@ -4,6 +4,7 @@ const EffectSource = require('../effect/EffectSource.js');
 import CardAbility = require('../ability/CardAbility.js');
 // import TriggeredAbility = require('./triggeredability');
 import Game = require('../Game.js');
+import Contract from '../utils/Contract';
 
 import { AbilityContext } from '../ability/AbilityContext.js';
 import { CardActionAbility } from '../ability/CardActionAbility.js';
@@ -107,14 +108,28 @@ class Card extends EffectSource {
     printedKeywords: Array<string> = [];
     aspects: Array<Aspect> = [];
 
+
+    defaultController: Player;
+    parent: Card | null;
+    printedHp: number | null;
+    printedPower: number | null;
+    printedCost: number | null;
+    exhausted: boolean | null;
+    damage: number | null;
+    hiddenForOwner: boolean;
+    hiddenForOpponent: boolean;
+
     constructor(
         public owner: Player,
         public cardData: any
     ) {
         super(owner.game);
+
+        this.#validateCardData(cardData);
+
         this.controller = owner;
 
-        this.id = cardData.cardId;
+        this.id = cardData.id;
         this.unique = cardData.unique;
 
         this.printedTitle = cardData.title;
@@ -140,8 +155,9 @@ class Card extends EffectSource {
         this.printedHp = this.getPrintedStat(StatType.Hp);
         this.printedPower = this.getPrintedStat(StatType.Power);
         this.printedCost = parseInt(this.cardData.cost);
-        this.exhausted = false;
-        this.damage = 0;
+        this.exhausted = null;
+        this.damage = null;
+        this.hiddenForOwner = true;
 
         switch (cardData.arena) {
             case "space":
@@ -170,6 +186,17 @@ class Card extends EffectSource {
         // if (this.isDynasty) {
         //     this.abilities.reactions.push(new RallyAbility(this.game, this));
         // }
+    }
+
+    #validateCardData(cardData: any) {
+        Contract.assertNotNullLike(cardData);
+        Contract.assertNotNullLike(cardData.id);
+        Contract.assertNotNullLike(cardData.title);
+        Contract.assertNotNullLike(cardData.type);
+        Contract.assertNotNullLike(cardData.traits);
+        Contract.assertNotNullLike(cardData.aspects);
+        Contract.assertNotNullLike(cardData.keywords);
+        Contract.assertNotNullLike(cardData.unique);
     }
 
     get name(): string {
@@ -617,18 +644,13 @@ class Card extends EffectSource {
 
     moveTo(targetLocation: Location) {
         let originalLocation = this.location;
-        let sameLocation = false;
+
+        if (originalLocation === targetLocation) {
+            return;   
+        }
 
         this.location = targetLocation;
-
-        if (
-            cardLocationMatches(
-                targetLocation,
-                [WildcardLocation.AnyArena, Location.Discard, Location.Hand]
-            )
-        ) {
-            this.facedown = false;
-        }
+        this.#setDefaultStatusForLocation(targetLocation);
 
         if (originalLocation !== targetLocation) {
             // this.updateAbilityEvents(originalLocation, targetLocation, !sameLocation);
@@ -764,27 +786,27 @@ class Card extends EffectSource {
 
     // TODO: would something like this be helpful for swu?
     parseKeywords(text: string) {
-        const potentialKeywords = [];
-        for (const line of text.split('\n')) {
-            for (const k of line.slice(0, -1).split('.')) {
-                potentialKeywords.push(k.trim());
-            }
-        }
+        // const potentialKeywords = [];
+        // for (const line of text.split('\n')) {
+        //     for (const k of line.slice(0, -1).split('.')) {
+        //         potentialKeywords.push(k.trim());
+        //     }
+        // }
 
-        for (const keyword of potentialKeywords) {
-            if (ValidKeywords.has(keyword)) {
-                this.printedKeywords.push(keyword);
-            } else if (keyword.startsWith('disguised ')) {
-                this.disguisedKeywordTraits.push(keyword.replace('disguised ', ''));
-            } else if (keyword.startsWith('no attachments except')) {
-                var traits = keyword.replace('no attachments except ', '');
-                this.allowedAttachmentTraits = traits.split(' or ');
-            } else if (keyword.startsWith('no attachments,')) {
-                //catch all for statements that are to hard to parse automatically
-            } else if (keyword.startsWith('no attachments')) {
-                this.allowedAttachmentTraits = ['none'];
-            }
-        }
+        // for (const keyword of potentialKeywords) {
+        //     if (ValidKeywords.has(keyword)) {
+        //         this.printedKeywords.push(keyword);
+        //     } else if (keyword.startsWith('disguised ')) {
+        //         this.disguisedKeywordTraits.push(keyword.replace('disguised ', ''));
+        //     } else if (keyword.startsWith('no attachments except')) {
+        //         var traits = keyword.replace('no attachments except ', '');
+        //         this.allowedAttachmentTraits = traits.split(' or ');
+        //     } else if (keyword.startsWith('no attachments,')) {
+        //         //catch all for statements that are to hard to parse automatically
+        //     } else if (keyword.startsWith('no attachments')) {
+        //         this.allowedAttachmentTraits = ['none'];
+        //     }
+        // }
 
         // TODO: uncomment
         // for (const keyword of this.printedKeywords) {
@@ -1108,7 +1130,7 @@ class Card extends EffectSource {
     }
 
     public isResource() {
-        return this.resourced;
+        return this.location === Location.Resource;
     }
 
     // getSummary(activePlayer, hideWhenFaceup) {
@@ -1724,6 +1746,8 @@ class Card extends EffectSource {
      * Deals with the engine effects of leaving play, making sure all statuses are removed. Anything which changes
      * the state of the card should be here. This is also called in some strange corner cases e.g. for attachments
      * which aren't actually in play themselves when their parent (which is in play) leaves play.
+     * 
+     * Note that a card becoming a resource is _not_ leaving play.
      */
     leavesPlay() {
         // // If this is an attachment and is attached to another card, we need to remove all links between them
@@ -1746,13 +1770,83 @@ class Card extends EffectSource {
         //         this
         //     );
         // }
+    }
 
-        this.tokens = {};
-        this.controller = this.owner;
+    /**
+     * Deals with the engine effects of entering a new location, making sure all statuses are set with legal values.
+     * If a card should have a different status on entry (e.g., readied instead of exhausted), call this method first
+     * and then update the card state(s) as needed.
+     */
+    #setDefaultStatusForLocation(location: Location) {
+        switch (location) {
+            case Location.SpaceArena:
+            case Location.GroundArena:
+                this.controller = this.owner;
+                this.exhausted = this.type === CardType.Unit ? true : null;
+                this.damage = this.type === CardType.Unit ? 0 : null;
+                this.new = false;
+                this.facedown = false;
+                this.hiddenForOwner = false;
+                this.hiddenForOpponent = false;
+                break;
 
-        // we don't touch exhausted status since that is still relevant if this is becoming a resource
-        this.damage = null;
-        this.new = false;
+            case Location.Base:
+            case Location.Leader:
+                this.controller = this.owner;
+                this.exhausted = this.type === CardType.Leader ? false : null;
+                this.damage = this.type === CardType.Base ? 0 : null;
+                this.new = false;
+                this.facedown = false;
+                this.hiddenForOwner = false;
+                this.hiddenForOpponent = false;
+                break;
+
+            case Location.Resource:
+                this.controller = this.owner;
+                this.exhausted = false;
+                this.damage = null;
+                this.new = false;
+                this.facedown = true;
+                this.hiddenForOwner = false;
+                this.hiddenForOpponent = true;
+                break;
+
+            case Location.Deck:
+                this.controller = this.owner;
+                this.exhausted = null;
+                this.damage = null;
+                this.new = false;
+                this.facedown = true;
+                this.hiddenForOwner = true;
+                this.hiddenForOpponent = true;
+                break;
+
+            case Location.Hand:
+                this.controller = this.owner;
+                this.exhausted = null;
+                this.damage = null;
+                this.new = false;
+                this.facedown = false;
+                this.hiddenForOwner = false;
+                this.hiddenForOpponent = true;
+                break;
+
+            case Location.Discard:
+            case Location.RemovedFromGame:
+            case Location.OutsideTheGame:
+            case Location.BeingPlayed:
+                this.controller = this.owner;
+                this.exhausted = null;
+                this.damage = null;
+                this.new = false;
+                this.facedown = false;
+                this.hiddenForOwner = false;
+                this.hiddenForOpponent = false;
+                break;
+            
+            default:
+                Contract.fail(`Unknown location enum value: ${location}`);
+        }
     }
 
     // canDeclareAsAttacker(conflictType, ring, province, incomingAttackers = undefined) {
