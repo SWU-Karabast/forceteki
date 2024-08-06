@@ -1,4 +1,4 @@
-const InitateConflictPrompt = require('../../../build/game/gamesteps/conflict/initiateconflictprompt.js');
+const InitateConflictPrompt = require('../../build/game/gamesteps/conflict/initiateconflictprompt.js');
 
 describe('InitateConflictPrompt: ', function() {
     beforeEach(function() {

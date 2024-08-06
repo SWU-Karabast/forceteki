@@ -1,4 +1,4 @@
-const Costs = require('../../../build/game/Costs.js');
+const Costs = require('../../build/game/Costs.js');
 
 describe('Costs.payReduceableFateCost', function () {
     beforeEach(function () {

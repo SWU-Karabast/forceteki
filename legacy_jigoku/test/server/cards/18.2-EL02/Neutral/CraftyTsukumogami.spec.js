@@ -1,4 +1,4 @@
-const { GameModes } = require('../../../../../build/GameModes');
+const { GameModes } = require('../../../../build/GameModes');
 
 describe('Crafty Tsukumogami', function() {
     integration(function() {

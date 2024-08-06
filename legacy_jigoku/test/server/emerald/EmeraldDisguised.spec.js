@@ -1,4 +1,4 @@
-const { GameModes } = require('../../../build/GameModes');
+const { GameModes } = require('../../build/GameModes');
 
 describe('Disguised - Emerald', function() {
     integration(function() {

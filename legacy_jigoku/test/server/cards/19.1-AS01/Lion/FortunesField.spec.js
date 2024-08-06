@@ -1,4 +1,4 @@
-const { GameModes } = require('../../../../../build/GameModes');
+const { GameModes } = require('../../../../build/GameModes');
 
 describe('Fortunes Field', function () {
     integration(function () {

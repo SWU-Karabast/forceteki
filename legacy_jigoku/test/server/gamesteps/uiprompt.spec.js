@@ -1,4 +1,4 @@
-const { UiPrompt } = require('../../../build/game/gamesteps/UiPrompt.js');
+const { UiPrompt } = require('../../build/game/gamesteps/UiPrompt.js');
 
 describe('the UiPrompt', function() {
     beforeEach(function() {

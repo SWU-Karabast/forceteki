@@ -1,4 +1,4 @@
-const TriggeredAbility = require('../../../build/game/triggeredability.js');
+const TriggeredAbility = require('../../build/game/triggeredability.js');
 
 describe('TriggeredAbility', function () {
     beforeEach(function () {

@@ -1,4 +1,4 @@
-const { GameModes } = require('../../../../../build/GameModes');
+const { GameModes } = require('../../../../build/GameModes');
 
 describe('Bitting Steel', function () {
     integration(function () {

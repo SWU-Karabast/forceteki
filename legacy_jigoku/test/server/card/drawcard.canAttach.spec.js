@@ -1,4 +1,4 @@
-const DrawCard = require('../../../build/game/drawcard.js');
+const DrawCard = require('../../build/game/drawcard.js');
 
 describe('DrawCard', function () {
     beforeEach(function () {

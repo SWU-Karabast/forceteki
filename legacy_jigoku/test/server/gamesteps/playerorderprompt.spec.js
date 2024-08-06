@@ -1,4 +1,4 @@
-const { PlayerOrderPrompt } = require('../../../build/game/gamesteps/PlayerOrderPrompt.js');
+const { PlayerOrderPrompt } = require('../../build/game/gamesteps/PlayerOrderPrompt.js');
 
 describe('the PlayerOrderPrompt', function() {
     beforeEach(function() {

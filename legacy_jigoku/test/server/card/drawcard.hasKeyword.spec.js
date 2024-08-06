@@ -1,4 +1,4 @@
-const DrawCard = require('../../../build/game/drawcard.js');
+const DrawCard = require('../../build/game/drawcard.js');
 
 describe('the DrawCard', function () {
     describe('the hasKeyword() function', function () {
@@ -43,8 +43,8 @@ describe('the DrawCard', function () {
     describe('integration', function () {
         const _ = require('underscore');
 
-        const Game = require('../../../build/game/game.js');
-        const Player = require('../../../build/game/player.js');
+        const Game = require('../../build/game/game.js');
+        const Player = require('../../build/game/player.js');
 
         beforeEach(function () {
             this.gameService = jasmine.createSpyObj('gameService', ['save']);

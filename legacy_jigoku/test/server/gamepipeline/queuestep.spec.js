@@ -1,4 +1,4 @@
-const { GamePipeline } = require('../../../build/game/GamePipeline.js');
+const { GamePipeline } = require('../../build/game/GamePipeline.js');
 
 describe('the GamePipeline', function() {
     beforeEach(function() {
