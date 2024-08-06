@@ -8,6 +8,9 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
 }
 
+/**
+ * A `GameSystem` which targets a card or cards for its effect
+ */
 export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<P> {
     targetType = [
         CardType.Unit,

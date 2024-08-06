@@ -4,6 +4,9 @@ import { GameSystem, type IGameSystemProperties } from './GameSystem';
 
 export interface IPlayerTargetSystemProperties extends IGameSystemProperties {}
 
+/**
+ * A `GameSystem` which targets a player for its effect
+ */
 export class PlayerTargetSystem<P extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends GameSystem<P> {
     targetType = ['player'];
 

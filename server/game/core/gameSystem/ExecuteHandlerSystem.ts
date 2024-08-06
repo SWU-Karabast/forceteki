@@ -8,6 +8,9 @@ export interface IExecuteHandlerSystemProperties extends IGameSystemProperties {
 }
 
 // TODO: this is sometimes getting used as a no-op, see if we can add an explicit implementation for that
+/**
+ * A `GameSystem` which executes a handler function
+ */
 export class ExecuteHandlerSystem extends GameSystem {
     defaultProperties: IExecuteHandlerSystemProperties = {
         handler: () => true,

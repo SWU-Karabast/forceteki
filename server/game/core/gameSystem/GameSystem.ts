@@ -13,6 +13,11 @@ export interface IGameSystemProperties {
     parentAction?: GameSystem<IGameSystemProperties>;
 }
 
+// TODO: see which base classes can be made abstract
+/**
+ * Base class for making structured changes to game state. Almost all effects, actions,
+ * costs, etc. should use a `GameSystem` object to impact the game.
+ */
 export class GameSystem<P extends IGameSystemProperties = IGameSystemProperties> {
     propertyFactory?: (context?: AbilityContext) => P;
     properties?: P;
