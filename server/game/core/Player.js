@@ -4,7 +4,7 @@ const { GameObject } = require('./GameObject');
 const { Deck } = require('../Deck.js');
 const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
-const { CostReducer } = require('./cost/CostReducer');
+const { CostAdjuster } = require('./cost/CostAdjuster');
 const GameSystems = require('../gameSystems/GameSystemLibrary');
 const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
@@ -62,7 +62,7 @@ class Player extends GameObject {
 
         this.limitedPlayed = 0;
         this.deck = {};
-        this.costReducers = [];
+        this.costAdjusters = [];
         this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
             // these flags represent phase settings
@@ -641,25 +641,25 @@ class Player extends GameObject {
     }
 
     /**
-     * Adds the passed Cost Reducer to this Player
-     * @param source = EffectSource source of the reducer
+     * Adds the passed Cost Adjuster to this Player
+     * @param source = EffectSource source of the adjuster
      * @param {Object} properties
-     * @returns {CostReducer}
+     * @returns {CostAdjuster}
      */
-    addCostReducer(source, properties) {
-        let reducer = new CostReducer(this.game, source, properties);
-        this.costReducers.push(reducer);
-        return reducer;
+    addCostAdjuster(source, properties) {
+        let adjuster = new CostAdjuster(this.game, source, properties);
+        this.costAdjusters.push(adjuster);
+        return adjuster;
     }
 
     /**
-     * Unregisters and removes the passed Cost Reducer from this Player
-     * @param {CostReducer} reducer
+     * Unregisters and removes the passed Cost Adjusters from this Player
+     * @param {CostAdjuster} adjuster
      */
-    removeCostReducer(reducer) {
-        if (_.contains(this.costReducers, reducer)) {
-            reducer.unregisterEvents();
-            this.costReducers = _.reject(this.costReducers, (r) => r === reducer);
+    removeCostAdjuster(adjuster) {
+        if (_.contains(this.costAdjusters, adjuster)) {
+            adjuster.unregisterEvents();
+            this.costAdjusters = _.reject(this.costAdjusters, (r) => r === adjuster);
         }
     }
 
@@ -704,16 +704,16 @@ class Player extends GameObject {
     }
 
     /**
-     * Checks to see what the minimum possible resource cost for an action is, accounting for aspects and available cost reducers
+     * Checks to see what the minimum possible resource cost for an action is, accounting for aspects and available cost adjusters
      * @param {PlayType} playingType
      * @param card DrawCard
      * @param target BaseCard
      */
     getMinimumPossibleCost(playingType, context, target, ignoreType = false) {
         const card = context.source;
-        let reducedCost = this.getReducedCost(playingType, card, target, ignoreType, context.costAspects);
-        let triggeredCostReducers = 0;
-        let fakeWindow = { addChoice: () => triggeredCostReducers++ };
+        let adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType, context.costAspects);
+        let triggeredCostAdjusters = 0;
+        let fakeWindow = { addChoice: () => triggeredCostAdjusters++ };
         let fakeEvent = this.game.getEvent(EventName.OnCardPlayed, { card: card, player: this, context: context });
         this.game.emit(EventName.OnCardPlayed + ':' + AbilityType.Interrupt, fakeEvent, fakeWindow);
         let fakeResolverEvent = this.game.getEvent(EventName.OnAbilityResolverInitiated, {
@@ -726,58 +726,58 @@ class Player extends GameObject {
             fakeResolverEvent,
             fakeWindow
         );
-        return Math.max(reducedCost - triggeredCostReducers, 0);
+        return Math.max(adjustedCost - triggeredCostAdjusters, 0);
     }
 
     /**
-     * Checks if any Cost Reducers on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
+     * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
      * @param {PlayType} playingType
      * @param card DrawCard
      * @param target BaseCard
      */
-    getReducedCost(playingType, card, target, ignoreType = false, aspects = null) {
+    getAdjustedCost(playingType, card, target, ignoreType = false, aspects = null) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runReducersForCostType(playingType, 2, card, target, ignoreType, aspect);
+            aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
         }
         
         let penalizedCost = card.getCost() + aspectPenaltiesTotal;
-        return this.runReducersForCostType(playingType, penalizedCost, card, target, ignoreType);
+        return this.runAdjustersForCostType(playingType, penalizedCost, card, target, ignoreType);
     }
 
     /**
-     * Runs the Reducers for a specific cost type - either base cost or an aspect penalty - and returns the modified result
+     * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
      * @param {PlayType} playingType
      * @param card DrawCard
      * @param target BaseCard
      */
-    runReducersForCostType(playingType, baseCost, card, target, ignoreType = false, penaltyAspect = null) {
-        var matchingReducers = this.costReducers.filter((reducer) =>
-            reducer.canReduce(playingType, card, target, ignoreType, penaltyAspect)
+    runAdjustersForCostType(playingType, baseCost, card, target, ignoreType = false, penaltyAspect = null) {
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
+            adjuster.canAdjust(playingType, card, target, ignoreType, penaltyAspect)
         );
-        var costIncreases = matchingReducers
+        var costIncreases = matchingAdjusters
             .filter((a) => a.getAmount(card, this) < 0)
-            .reduce((cost, reducer) => cost - reducer.getAmount(card, this), 0);
-        var costDecreases = matchingReducers
+            .reduce((cost, adjuster) => cost - adjuster.getAmount(card, this), 0);
+        var costDecreases = matchingAdjusters
             .filter((a) => a.getAmount(card, this) > 0)
-            .reduce((cost, reducer) => cost + reducer.getAmount(card, this), 0);
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
 
         baseCost += costIncreases;
         var reducedCost = baseCost - costDecreases;
 
-        var costFloor = Math.min(baseCost, Math.max(...matchingReducers.map((a) => a.costFloor)));
+        var costFloor = Math.min(baseCost, Math.max(...matchingAdjusters.map((a) => a.costFloor)));
         return Math.max(reducedCost, costFloor);
     }
 
     getTotalCostModifiers(playingType, card, target, ignoreType = false) {
         var baseCost = 0;
-        var matchingReducers = _.filter(this.costReducers, (reducer) =>
-            reducer.canReduce(playingType, card, target, ignoreType)
+        var matchingAdjusters = _.filter(this.costAdjusters, (adjuster) =>
+            adjuster.canAdjust(playingType, card, target, ignoreType)
         );
-        var reducedCost = _.reduce(matchingReducers, (cost, reducer) => cost - reducer.getAmount(card, this), baseCost);
+        var reducedCost = _.reduce(matchingAdjusters, (cost, adjuster) => cost - adjuster.getAmount(card, this), baseCost);
         return reducedCost;
     }
 
@@ -823,17 +823,17 @@ class Player extends GameObject {
     // }
 
     /**
-     * Mark all cost reducers which are valid for this card/target/playingType as used, and remove them if they have no uses remaining
+     * Mark all cost adjusters which are valid for this card/target/playingType as used, and remove them if they have no uses remaining
      * @param {String} playingType
      * @param card DrawCard
      * @param target BaseCard
      */
-    markUsedReducers(playingType, card, target = null, aspects = null) {
-        var matchingReducers = _.filter(this.costReducers, (reducer) => reducer.canReduce(playingType, card, target, null, aspects));
-        _.each(matchingReducers, (reducer) => {
-            reducer.markUsed();
-            if (reducer.isExpired()) {
-                this.removeCostReducer(reducer);
+    markUsedAdjusters(playingType, card, target = null, aspects = null) {
+        var matchingAdjusters = _.filter(this.costAdjusters, (adjuster) => adjuster.canAdjust(playingType, card, target, null, aspects));
+        _.each(matchingAdjusters, (adjuster) => {
+            adjuster.markUsed();
+            if (adjuster.isExpired()) {
+                this.removeCostAdjuster(adjuster);
             }
         });
     }

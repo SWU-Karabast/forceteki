@@ -5,7 +5,7 @@ import { CardType, PlayType, Aspect } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 
-export type CostReducerProps = {
+export type CostAdjusterProperties = {
     penaltyAspect?: Aspect;
     cardType?: CardType;
     costFloor?: number;
@@ -16,7 +16,7 @@ export type CostReducerProps = {
     targetCondition?: (target: Card, source: Card, context: AbilityContext) => boolean;
 };
 
-export class CostReducer {
+export class CostAdjuster {
     private uses = 0;
     private amount: number | ((card: Card, player: Player) => number);
     private costFloor: number;
@@ -29,7 +29,7 @@ export class CostReducer {
     constructor(
         private game: Game,
         private source: Card,
-        properties: CostReducerProps,
+        properties: CostAdjusterProperties,
         private penaltyAspect?: Aspect
     ) {
         this.amount = properties.amount || 1;
@@ -46,7 +46,7 @@ export class CostReducer {
         }
     }
 
-    public canReduce(playingType: PlayType, card: Card, target?: Card, ignoreType = false, penaltyAspect?: Aspect): boolean {
+    public canAdjust(playingType: PlayType, card: Card, target?: Card, ignoreType = false, penaltyAspect?: Aspect): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (!ignoreType && this.cardType && card.getType() !== this.cardType) {

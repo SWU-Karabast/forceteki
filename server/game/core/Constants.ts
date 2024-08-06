@@ -36,7 +36,7 @@ export enum EffectName {
     SuppressEffects = 'suppressEffects',
     ShowTopCard = 'showTopCard',
     EntersPlayForOpponent = 'entersPlayForOpponent',
-    CostReducer = 'costReducer',
+    CostAdjuster = 'costAdjuster',
     CanPlayFromOutOfPlay = 'canPlayFromOutOfPlay',
     DoesNotReady = 'doesNotReady',
     Blank = 'blank',

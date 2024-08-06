@@ -16,7 +16,7 @@ type Props = {
     numberOfChoices?: number;
 };
 
-export class ReduceableResourceCost implements ICost {
+export class AdjustableResourceCost implements ICost {
     public isPlayCost = true;
     public isPrintedResourceCost = true;
     constructor(public ignoreType: boolean) {}
@@ -46,7 +46,7 @@ export class ReduceableResourceCost implements ICost {
     }
 
     protected getReducedCost(context: AbilityContext): number {
-        return context.player.getReducedCost(context.playType, context.source, null, this.ignoreType, context.costAspects);
+        return context.player.getAdjustedCost(context.playType, context.source, null, this.ignoreType, context.costAspects);
     }
 
     /**
@@ -58,7 +58,7 @@ export class ReduceableResourceCost implements ICost {
         const amount = this.getReducedCost(context);
         context.costs.resources = amount;
         return new Event(EventName.OnSpendResources, { amount, context }, (event) => {
-            event.context.player.markUsedReducers(context.playType, event.context.source);
+            event.context.player.markUsedAdjusters(context.playType, event.context.source);
             event.context.player.exhaustResources(amount);
             this.afterPayHook(event);
         });

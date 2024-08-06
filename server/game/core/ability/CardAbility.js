@@ -31,7 +31,7 @@ class CardAbility extends CardAbilityStep {
         }
 
         if (card.getType() === CardType.Event && !this.isKeywordAbility()) {
-            this.cost = this.cost.concat(Costs.payReduceableResourceCost());
+            this.cost = this.cost.concat(Costs.payAdjustableResourceCost());
         }
     }
 
