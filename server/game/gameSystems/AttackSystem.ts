@@ -28,8 +28,8 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     defaultProperties: IAttackProperties = {};
 
     // TODO: maybe rename to "appendProperties" for clarity
-    getProperties(context: AbilityContext, additionalProperties = {}): IAttackProperties {
-        const properties = super.getProperties(context, additionalProperties) as IAttackProperties;
+    generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IAttackProperties {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties) as IAttackProperties;
         if (!properties.attacker) {
             properties.attacker = context.source;
         }
@@ -37,7 +37,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        const properties = this.getProperties(context);
+        const properties = this.generatePropertiesFromContext(context);
         return [
             '{0} initiates attack against {1}',
             [properties.attacker, properties.target]
@@ -49,7 +49,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             return false;
         }
 
-        const properties = this.getProperties(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (!super.canAffect(targetCard, context)) {
             return false;
         }
@@ -88,13 +88,13 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     }
 
     attackCosts(prompt, context: AbilityContext, additionalProperties = {}): void {
-        const properties = this.getProperties(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         properties.costHandler(context, prompt);
     }
 
     // TODO: change form from this to "generateEvents" for clarity
     addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
-        const { target } = this.getProperties(
+        const { target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         );
@@ -111,7 +111,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     }
 
     addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
-        const properties = this.getProperties(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (isArray(target)) {
             if (target.length !== 1) {
@@ -138,7 +138,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         const context = event.context;
         const target = event.target;
 
-        const properties = this.getProperties(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (
             !isArena(properties.attacker.location) || !isAttackableLocation(target.location)
         ) {

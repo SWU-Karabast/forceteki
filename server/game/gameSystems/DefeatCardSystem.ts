@@ -17,7 +17,7 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context);
+        let properties = this.generatePropertiesFromContext(context);
         return ['defeat {0}', [properties.target]];
     }
 

@@ -14,7 +14,7 @@ export class GameActionCost implements ICost {
     }
 
     addEventsToArray(events: any[], context: AbilityContext, result: Result): void {
-        context.costs[this.action.name] = this.action.getProperties(context).target;
+        context.costs[this.action.name] = this.action.generatePropertiesFromContext(context).target;
         this.action.addEventsToArray(events, context);
     }
 

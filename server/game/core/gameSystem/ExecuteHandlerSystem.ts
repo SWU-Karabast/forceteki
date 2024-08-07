@@ -30,12 +30,12 @@ export class ExecuteHandlerSystem extends GameSystem {
     }
 
     eventHandler(event, additionalProperties = {}): void {
-        const properties = this.getProperties(event.context, additionalProperties) as IExecuteHandlerSystemProperties;
+        const properties = this.generatePropertiesFromContext(event.context, additionalProperties) as IExecuteHandlerSystemProperties;
         properties.handler(event.context);
     }
 
     hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}) {
-        const { hasTargetsChosenByInitiatingPlayer } = this.getProperties(
+        const { hasTargetsChosenByInitiatingPlayer } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IExecuteHandlerSystemProperties;

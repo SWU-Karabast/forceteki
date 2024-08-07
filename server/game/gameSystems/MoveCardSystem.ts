@@ -32,12 +32,12 @@ export class MoveCardSystem extends CardTargetSystem {
     }
 
     getCostMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context) as IMoveCardProperties;
+        let properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         return ['shuffling {0} into their deck', [properties.target]];
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context) as IMoveCardProperties;
+        let properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         let destinationController = Array.isArray(properties.target)
             ? properties.changePlayer
                 ? properties.target[0].controller.opponent
@@ -55,7 +55,7 @@ export class MoveCardSystem extends CardTargetSystem {
     }
 
     canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        const { changePlayer, destination } = this.getProperties(context, additionalProperties) as IMoveCardProperties;
+        const { changePlayer, destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         return (
             (!changePlayer ||
                 (card.checkRestrictions(EffectName.TakeControl, context) &&
@@ -70,7 +70,7 @@ export class MoveCardSystem extends CardTargetSystem {
         let context = event.context;
         let card = event.card;
         event.cardStateWhenMoved = card.createSnapshot();
-        let properties = this.getProperties(context, additionalProperties) as IMoveCardProperties;
+        let properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         if (properties.switch && properties.switchTarget) {
             let otherCard = properties.switchTarget;
             card.owner.moveCard(otherCard, card.location);

@@ -15,12 +15,12 @@ export class MetaActionCost extends GameActionCost implements ICost {
     }
 
     getActionName(context: AbilityContext): string {
-        const { gameSystem } = this.action.getProperties(context) as ISelectCardProperties;
+        const { gameSystem } = this.action.generatePropertiesFromContext(context) as ISelectCardProperties;
         return gameSystem.name;
     }
 
     canPay(context: AbilityContext): boolean {
-        const properties = this.action.getProperties(context) as ISelectCardProperties;
+        const properties = this.action.generatePropertiesFromContext(context) as ISelectCardProperties;
         let additionalProps = {
             controller: RelativePlayer.Self,
             location: properties.location || WildcardLocation.Any
@@ -29,7 +29,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
     }
 
     addEventsToArray(events: any[], context: AbilityContext, result: Result): void {
-        const properties = this.action.getProperties(context) as ISelectCardProperties;
+        const properties = this.action.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.targets && context.choosingPlayerOverride) {
             context.costs[properties.gameSystem.name] = randomItem(
                 properties.selector.getAllLegalTargets(context, context.player)
@@ -62,7 +62,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
     }
 
     getCostMessage(context: AbilityContext): [string, any[]] {
-        const properties = this.action.getProperties(context) as ISelectCardProperties;
+        const properties = this.action.generatePropertiesFromContext(context) as ISelectCardProperties;
         return properties.gameSystem.getCostMessage(context);
     }
 }

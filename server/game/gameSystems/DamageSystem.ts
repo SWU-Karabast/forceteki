@@ -15,7 +15,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
     targetType = [CardType.Unit, CardType.Base];
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        const { amount, target, isCombatDamage } = this.getProperties(context) as IDamageProperties;
+        const { amount, target, isCombatDamage } = this.generatePropertiesFromContext(context) as IDamageProperties;
 
         if (isCombatDamage) {
             return ['deal {1} combat damage to {0}', [amount, target]];
@@ -35,7 +35,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
     }
 
     addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        const { amount, isCombatDamage } = this.getProperties(context, additionalProperties) as IDamageProperties;
+        const { amount, isCombatDamage } = this.generatePropertiesFromContext(context, additionalProperties) as IDamageProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.damage = amount;
         event.isCombatDamage = isCombatDamage;

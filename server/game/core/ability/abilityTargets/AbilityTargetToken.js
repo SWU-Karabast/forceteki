@@ -9,7 +9,7 @@ class AbilityTargetToken {
         this.selector = this.getSelector(properties);
         this.properties.singleToken = this.properties.singleToken || true;
         for(let gameSystem of this.properties.gameSystem) {
-            gameSystem.setDefaultTarget(context => context.tokens[name]);
+            gameSystem.setDefaultTargetEvaluator(context => context.tokens[name]);
         }
         this.dependentTarget = null;
         this.dependentCost = null;

@@ -27,7 +27,7 @@ type Props = {
     target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
-    parentAction?: GameSystem<IGameSystemProperties>;
+    parentAction?: GameSystem;
 };
 
 export const EffectBuilder = {

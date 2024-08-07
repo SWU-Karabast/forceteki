@@ -17,7 +17,7 @@ export class RandomDiscardSystem extends PlayerTargetSystem {
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties: IRandomDiscardProperties = this.getProperties(context);
+        let properties: IRandomDiscardProperties = this.generatePropertiesFromContext(context);
         return [
             'make {0} discard {1} {2} at random',
             [properties.target, properties.amount, properties.amount > 1 ? 'cards' : 'card']
@@ -25,12 +25,12 @@ export class RandomDiscardSystem extends PlayerTargetSystem {
     }
 
     canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
-        let properties: IRandomDiscardProperties = this.getProperties(context, additionalProperties);
+        let properties: IRandomDiscardProperties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.amount > 0 && player.hand.size() > 0 && super.canAffect(player, context);
     }
 
     addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties): void {
-        let { amount } = this.getProperties(context, additionalProperties) as IRandomDiscardProperties;
+        let { amount } = this.generatePropertiesFromContext(context, additionalProperties) as IRandomDiscardProperties;
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;
         event.discardedAtRandom = true;

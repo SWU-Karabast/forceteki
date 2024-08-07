@@ -24,7 +24,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     getCostMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context) as IReturnToDeckProperties;
+        let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         return [
             properties.shuffle
                 ? 'shuffling {0} into their deck'
@@ -34,7 +34,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.getProperties(context) as IReturnToDeckProperties;
+        let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         if (properties.shuffle) {
             return ["shuffle {0} into its owner's deck", [properties.target]];
         }
@@ -45,7 +45,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        let properties = this.getProperties(context) as IReturnToDeckProperties;
+        let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         let location: TargetableLocation[];
         if (!Array.isArray(properties.location)) {
             location = [properties.location];
@@ -60,7 +60,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     // updateEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
-    //     let { shuffle, target, bottom } = this.getProperties(context, additionalProperties) as ReturnToDeckProperties;
+    //     let { shuffle, target, bottom } = this.generatePropertiesFromContext(context, additionalProperties) as ReturnToDeckProperties;
     //     this.updateLeavesPlayEvent(event, card, context, additionalProperties);
     //     event.destination = Location.Deck;
     //     event.options = { bottom };

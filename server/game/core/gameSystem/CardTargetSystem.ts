@@ -33,7 +33,7 @@ export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTarge
     }
 
     addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
-        const { target } = this.getProperties(context, additionalProperties);
+        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         for (const card of target as Card[]) {
             let allCostsPaid = true;
             const additionalCosts = card
@@ -133,7 +133,7 @@ export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTarge
     }
 
     updateLeavesPlayEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        let properties = this.getProperties(context, additionalProperties) as any;
+        let properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
         super.updateEvent(event, card, context, additionalProperties);
         event.destination = Location.Discard;
         // event.preResolutionEffect = () => {

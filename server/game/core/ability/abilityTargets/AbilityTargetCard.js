@@ -9,7 +9,7 @@ class AbilityTargetCard {
         this.properties = properties;
         for(let gameSystem of this.properties.gameSystem) {
             // TODO: is this ever actually used? need to consolidate how targeting is done
-            gameSystem.setDefaultTarget(context => context.targets[name]);
+            gameSystem.setDefaultTargetEvaluator(context => context.targets[name]);
         }
         this.selector = this.getSelector(properties);
         this.dependentTarget = null;

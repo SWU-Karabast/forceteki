@@ -37,12 +37,12 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     }
 
     getEffectMessage(context: AbilityContext): [string, any[]] {
-        let { target } = this.getProperties(context);
+        let { target } = this.generatePropertiesFromContext(context);
         return ['put {0} into play', [target]];
     }
 
     canAffect(card: Card, context: AbilityContext): boolean {
-        let properties = this.getProperties(context) as IPutIntoPlayProperties;
+        let properties = this.generatePropertiesFromContext(context) as IPutIntoPlayProperties;
         let contextCopy = context.copy({ source: card });
         let player = this.getPutIntoPlayPlayer(contextCopy);
         let targetSide = properties.side || this.getDefaultSide(contextCopy);
@@ -62,7 +62,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     }
 
     addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        let { controller, side, overrideLocation } = this.getProperties(
+        let { controller, side, overrideLocation } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IPutIntoPlayProperties;
