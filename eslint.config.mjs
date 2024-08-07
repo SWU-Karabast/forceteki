@@ -76,7 +76,6 @@ export default tseslint.config(
             "allowClassEnd": true,
         }],
 
-        quotes: ["error", "single"],
         "global-strict": 0,
         "brace-style": ["error", "1tbs"],
         "no-sparse-arrays": ["warn"],
@@ -89,24 +88,6 @@ export default tseslint.config(
         "no-useless-concat": ["warn"],
         "no-useless-constructor": ["warn"],
         "array-bracket-spacing": ["error", "never"],
-        "block-spacing": ["error", "always"],
-
-        camelcase: ["error", {
-            properties: "always",
-        }],
-
-        "comma-dangle": ["warn"],
-        "space-before-blocks": ["error"],
-        "space-in-parens": ["error", "never"],
-        "space-infix-ops": ["error"],
-        "no-multiple-empty-lines": ["error"],
-        semi: ["error"],
-        "no-unused-vars": ["warn", {
-            "vars": "local",
-            "args": "none"
-        }],
-
-        "no-trailing-spaces": ["error"],
     },
   },
   {
