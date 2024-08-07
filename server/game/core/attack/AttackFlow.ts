@@ -27,29 +27,29 @@ export class AttackFlow extends BaseStepWithPipeline {
     ) {
         super(game);
         this.pipeline.initialise([
-            new SimpleStep(this.game, () => this.#setCurrentAttack()),
-            new SimpleStep(this.game, () => this.#dealDamage()),
-            new SimpleStep(this.game, () => this.#completeAttack()),
-            new SimpleStep(this.game, () => this.#cleanUpAttack()),
+            new SimpleStep(this.game, () => this.setCurrentAttack()),
+            new SimpleStep(this.game, () => this.dealDamage()),
+            new SimpleStep(this.game, () => this.completeAttack()),
+            new SimpleStep(this.game, () => this.cleanUpAttack()),
             // new SimpleStep(this.game, () => this.game.checkGameState(true))
         ]);
     }
 
-    #setCurrentAttack() {
+    private setCurrentAttack() {
         this.attack.previousAttack = this.game.currentAttack;
         this.game.currentAttack = this.attack;
         // this.game.checkGameState(true);
     }
 
-    #dealDamage() {
+    private dealDamage() {
         this.damageHandler(this.attack);
     }
 
-    #completeAttack() {
+    private completeAttack() {
         this.game.raiseEvent(EventName.OnAttackCompleted, { attack: this.attack });
     }
 
-    #cleanUpAttack() {
+    private cleanUpAttack() {
         this.game.currentAttack = this.attack.previousAttack;
     }
 }

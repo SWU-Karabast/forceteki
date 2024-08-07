@@ -114,7 +114,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         if (isArray(target)) {
             if (target.length !== 1) {
-                context.game.addMessage(`Attack requires exactly one target, cannot attack ${properties.target.length} targets`);
+                context.game.addMessage(`Attack requires exactly one target, cannot attack ${target.length} targets`);
                 return;
             }
 

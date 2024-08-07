@@ -96,7 +96,7 @@ export function assertEqual(val1: object, val2: object, message?: string): boole
 
 export function assertNotNull(val: object, message?: string): boolean {
     if (val === null) {
-        contractCheckImpl.fail(message ?? "Null object value");
+        contractCheckImpl.fail(message ?? 'Null object value');
         return false;
     }
     return true;
@@ -111,8 +111,18 @@ export function assertNotNullLike(val: object, message?: string): boolean {
 }
 
 export function assertHasProperty(obj: object, propertyName: string, message?: string): boolean {
-    if (obj == null || !(propertyName in obj)) {
+    assertNotNullLike(obj);    
+    if (!(propertyName in obj)) {
         contractCheckImpl.fail(message ?? `Object does not have property '${propertyName}'`);
+        return false;
+    }
+    return true;
+}
+
+export function assertArraySize(ara: object[], expectedSize: number, message?: string): boolean {
+    assertNotNullLike(ara);
+    if (ara.length !== expectedSize) {
+        contractCheckImpl.fail(message ?? `Array size ${ara.length} does not match expected size ${expectedSize}`);
         return false;
     }
     return true;
@@ -126,9 +136,12 @@ const Contract = {
     AssertMode,
     configureAssertMode,
     assertTrue,
+    assertFalse,
     assertEqual,
     assertNotNull,
     assertNotNullLike,
+    assertHasProperty,
+    assertArraySize,
     fail
 };
 

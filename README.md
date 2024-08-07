@@ -17,10 +17,10 @@ Use the following instructions to install dependencies and run the unit tests.
 npm install
 
 # run once to download card definition files
-npm get-cards
+npm run get-cards
 
 # run this to transpile (build) the code. the 'npm test' command will automatically run this as well.
-tsc
+npx tsc
 
 # runs tsc and executes tests
 npm test

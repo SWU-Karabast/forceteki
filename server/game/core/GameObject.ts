@@ -8,21 +8,27 @@ import type { GameSystem } from './gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import type Player from './Player';
 
-export class GameObject {
+export abstract class GameObject {
     public uuid = uuidV1();
     protected id: string;
     protected printedType = '';
     private effects = [] as ICardEffect[];
+    private nameField: string;
 
     public constructor(
         public game: Game,
-        public name: string
+        name: string
     ) {
         this.id = name;
+        this.nameField = name;
     }
 
     public get type() {
         return this.getType();
+    }
+
+    public get name() {
+        return this.nameField;
     }
 
     public addEffect(effect: ICardEffect) {
@@ -62,39 +68,11 @@ export class GameObject {
         );
     }
 
-    public isUnique() {
-        return false;
-    }
-
     public getType() {
         if (this.anyEffect(EffectName.ChangeType)) {
             return this.mostRecentEffect(EffectName.ChangeType);
         }
         return this.printedType;
-    }
-
-    public hasKeyword() {
-        return false;
-    }
-
-    public hasTrait() {
-        return false;
-    }
-
-    public getTraits() {
-        return [];
-    }
-
-    public hasAspect() {
-        return false;
-    }
-
-    public getAspects() {
-        return [];
-    }
-
-    public hasToken() {
-        return false;
     }
 
     public getShortSummary() {
@@ -138,7 +116,7 @@ export class GameObject {
         return true;
     }
 
-    public getShortSummaryForControls(activePlayer: Player) {
+    public getShortSummaryForControls(activePlayer: Player): any {
         return this.getShortSummary();
     }
 

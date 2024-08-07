@@ -61,7 +61,9 @@ export enum EffectName {
     UpgradePowerModifier = 'upgradePowerModifier',
     UpgradeHpModifier = 'upgradeHpModifier',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
-    CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena'
+    CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
+    AddTrait = 'addTrait',
+    LoseTrait = 'loseTrait'
 }
 
 export enum Duration {

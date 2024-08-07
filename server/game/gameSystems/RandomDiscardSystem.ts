@@ -7,6 +7,7 @@ export interface IRandomDiscardProperties extends IPlayerTargetSystemProperties 
     amount?: number;
 }
 
+// TODO: this system has not been used or tested
 export class RandomDiscardSystem extends PlayerTargetSystem {
     override defaultProperties: IRandomDiscardProperties = { amount: 1 };
 

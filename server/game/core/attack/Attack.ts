@@ -6,6 +6,7 @@ import type Game from '../Game';
 import type Player from '../Player';
 import { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
+import Contract from '../utils/Contract';
 
 export interface IAttackAbilities {
     saboteur: boolean;
@@ -42,44 +43,30 @@ export class Attack extends GameObject {
     }
 
     getTotalsForDisplay(): string {
-        const rawAttacker = this.#getTotalPower(this.attacker);
-        const rawTarget = this.#getTotalPower(this.target);
+        const rawAttacker = this.getTotalPower(this.attacker);
+        const rawTarget = this.getTotalPower(this.target);
 
         return `${this.attacker.name}: ${typeof rawAttacker === 'number' ? rawAttacker : 0} vs ${typeof rawTarget === 'number' ? rawTarget : 0}: ${this.target.name}`;
     }
 
     get attackerTotalPower(): number | null {
-        return this.#getTotalPower(this.attacker)
+        return this.getTotalPower(this.attacker)
     }
 
     get defenderTotalPower(): number | null {
-        return this.targetIsBase ? null : this.#getTotalPower(this.target);
+        return this.targetIsBase ? null : this.getTotalPower(this.target);
     }
 
     get targetIsBase(): boolean {
         return this.target.isBase;
     }
 
-    // TODO: could we just use the get power already implemented on basecard?
-    #getTotalPower(involvedUnit: Card): StatisticTotal {
-        if (!isArena(involvedUnit.location)) {
+    // TODO: implement power modifiers (use Card.getPowerModifiers()), making sure to check if they are live for this specific attack
+    private getTotalPower(involvedUnit: Card): StatisticTotal {
+        if (!Contract.assertTrue(isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
             return null;
         }
 
-        const rawEffects = involvedUnit.getRawEffects().filter((effect) => effect.type === EffectName.ModifyPower);
-        let effectModifier = 0;
-
-        const result = involvedUnit.getBasePower();
-
-        rawEffects.forEach((effect) => {
-            const props = effect.getValue();
-
-            // check that the effect is live for this attack (may be useful later if multiple attacks can happen at once)
-            if (props.attack === this) {
-                effectModifier += props.value;
-            }
-        });
-
-        return result;
+        return involvedUnit.getBasePower();
     }
 }

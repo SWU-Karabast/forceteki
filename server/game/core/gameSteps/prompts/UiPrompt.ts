@@ -33,7 +33,7 @@ export abstract class UiPrompt extends BaseStep {
     setPrompt(): void {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
-                player.setPrompt(this.#addDefaultCommandToButtons(this.activePrompt(player)));
+                player.setPrompt(this.addDefaultCommandToButtons(this.activePrompt(player)));
                 player.startClock();
             } else {
                 player.setPrompt(this.waitingPrompt());
@@ -46,7 +46,7 @@ export abstract class UiPrompt extends BaseStep {
         return true;
     }
 
-    #addDefaultCommandToButtons(original?: ActivePrompt) {
+    private addDefaultCommandToButtons(original?: ActivePrompt) {
         if (!Contract.assertNotNullLike(original)) {
             return null;
         }

@@ -50,7 +50,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         if (!context || !super.canAffect(card, context)) {
             return false;
         // TODO: smuggle impl here
-        } else if (isArena(card.location) || card.isFacedown()) {
+        } else if (isArena(card.location) || card.facedown) {
             return false;
         // TODO: enums for restrictions instead of raw strings
         } else if (!card.checkRestrictions('putIntoPlay', context)) {

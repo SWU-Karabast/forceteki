@@ -75,13 +75,14 @@ class Card extends EffectSource {
     controller: Player;
     override game: Game;
 
-    override id: string;
-    printedTitle: string;
-    printedSubtitle: string;
-    internalName: string;
-    type: CardType;
-    facedown: boolean;
-    resourced: boolean;
+    // TODO: readonly pass on class properties throughout the repo
+    override readonly id: string;
+    readonly printedTitle: string;
+    readonly printedSubtitle: string;
+    readonly internalName: string;
+    readonly defaultArena: Location | null;
+    readonly unique: boolean;
+    private readonly typeField: CardType;
 
     menu = [
         { command: 'exhaust', text: 'Exhaust/Ready' },
@@ -108,7 +109,6 @@ class Card extends EffectSource {
     printedKeywords: string[] = [];
     aspects: Aspect[] = [];
 
-
     defaultController: Player;
     parent: Card | null;
     printedHp: number | null;
@@ -116,8 +116,11 @@ class Card extends EffectSource {
     printedCost: number | null;
     exhausted: boolean | null;
     damage: number | null;
-    hiddenForOwner: boolean;
+    hiddenForController: boolean;
     hiddenForOpponent: boolean;
+    playedThisTurn: boolean;
+    facedown: boolean;
+    resourced: boolean;
 
     constructor(
         public owner: Player,
@@ -125,7 +128,7 @@ class Card extends EffectSource {
     ) {
         super(owner.game);
 
-        this.#validateCardData(cardData);
+        this.validateCardData(cardData);
 
         this.controller = owner;
 
@@ -157,7 +160,7 @@ class Card extends EffectSource {
         this.printedCost = parseInt(this.cardData.cost);
         this.exhausted = null;
         this.damage = null;
-        this.hiddenForOwner = true;
+        this.hiddenForController = true;
 
         switch (cardData.arena) {
             case "space":
@@ -188,7 +191,7 @@ class Card extends EffectSource {
         // }
     }
 
-    #validateCardData(cardData: any) {
+    private validateCardData(cardData: any) {
         Contract.assertNotNullLike(cardData);
         Contract.assertNotNullLike(cardData.id);
         Contract.assertNotNullLike(cardData.title);
@@ -199,32 +202,29 @@ class Card extends EffectSource {
         Contract.assertNotNullLike(cardData.unique);
     }
 
-    get name(): string {
+    override get name(): string {
         const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
         return copyEffect ? copyEffect.printedName : this.printedTitle;
     }
 
-    set name(name: string) {
-        this.printedTitle = name;
+    override get type(): CardType {
+        return this.typeField;
     }
 
-    #mostRecentEffect(predicate: (effect: ICardEffect) => boolean): ICardEffect | undefined {
+    // TODO: do we need to have this when super.mostRecentEffect is available?
+    private mostRecentCardEffect(predicate: (effect: ICardEffect) => boolean): ICardEffect | undefined {
         const effects = this.getRawEffects().filter(predicate);
         return effects[effects.length - 1];
     }
 
-    getActions(): any[] {
-        return this.actions.slice();
-    }
-
     get actions(): CardActionAbility[] {
-        return this.#getActions();
+        return this.getActions();
     }
 
-    #getActions(location = this.location, ignoreDynamicGains = false): CardActionAbility[] {
+    getActions(location = this.location, ignoreDynamicGains = false): CardActionAbility[] {
         let actions = this.abilities.actions;
 
-        const mostRecentEffect = this.#mostRecentEffect((effect) => effect.type === EffectName.CopyCharacter);
+        const mostRecentEffect = this.mostRecentCardEffect((effect) => effect.type === EffectName.CopyCharacter);
         if (mostRecentEffect) {
             actions = mostRecentEffect.value.getActions(this);
         }
@@ -361,9 +361,9 @@ class Card extends EffectSource {
     //         : this.abilities.persistentEffects.concat(gainedPersistentEffects);
     // }
 
-    get persistentEffects(): any[] {
-        return this._getPersistentEffects();
-    }
+    // get persistentEffects(): any[] {
+    //     return this._getPersistentEffects();
+    // }
 
     // TODO: should this class be abstract?
     /**
@@ -530,29 +530,28 @@ class Card extends EffectSource {
     }
 
     getTraits(): Set<string> {
-        // return this.getTraitSet();
-        return new Set();
+        return this.getTraitSet();
     }
 
-    // getTraitSet(): Set<string> {
-    //     const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
-    //     const set = new Set(
-    //         copyEffect
-    //             ? (copyEffect.traits as string[])
-    //             : this.getEffects(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
-    //             ? []
-    //             : this.traits
-    //     );
+    getTraitSet(): Set<string> {
+        const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
+        const set = new Set(
+            copyEffect
+                ? (copyEffect.traits as string[])
+                : this.getEffects(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
+                ? []
+                : this.traits
+        );
 
-    //     for (const gainedTrait of this.getEffects(EffectName.AddTrait)) {
-    //         set.add(gainedTrait);
-    //     }
-    //     for (const lostTrait of this.getEffects(EffectName.LoseTrait)) {
-    //         set.delete(lostTrait);
-    //     }
+        for (const gainedTrait of this.getEffects(EffectName.AddTrait)) {
+            set.add(gainedTrait);
+        }
+        for (const lostTrait of this.getEffects(EffectName.LoseTrait)) {
+            set.delete(lostTrait);
+        }
 
-    //     return set;
-    // }
+        return set;
+    }
 
     // isFaction(faction: Faction): boolean {
     //     const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
@@ -633,15 +632,15 @@ class Card extends EffectSource {
     //     }
     // }
 
-    updateEffectContexts() {
-        for (const effect of this.persistentEffects) {
-            if (effect.ref) {
-                for (const e of effect.ref) {
-                    e.refreshContext();
-                }
-            }
-        }
-    }
+    // updateEffectContexts() {
+    //     for (const effect of this.persistentEffects) {
+    //         if (effect.ref) {
+    //             for (const e of effect.ref) {
+    //                 e.refreshContext();
+    //             }
+    //         }
+    //     }
+    // }
 
     moveTo(targetLocation: Location) {
         const originalLocation = this.location;
@@ -651,7 +650,7 @@ class Card extends EffectSource {
         }
 
         this.location = targetLocation;
-        this.#setDefaultStatusForLocation(targetLocation);
+        this.setDefaultStatusForLocation(targetLocation);
 
         if (originalLocation !== targetLocation) {
             // this.updateAbilityEvents(originalLocation, targetLocation, !sameLocation);
@@ -666,14 +665,14 @@ class Card extends EffectSource {
 
     canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
         return (
-            this.isFaceup() &&
+            !this.facedown &&
             (ignoredRequirements.includes('triggeringRestrictions') ||
                 this.checkRestrictions('triggerAbilities', context))
         );
     }
 
     canInitiateKeywords(context: AbilityContext): boolean {
-        return this.isFaceup() && this.checkRestrictions('initiateKeywords', context);
+        return !this.facedown && this.checkRestrictions('initiateKeywords', context);
     }
 
     // getModifiedLimitMax(player: Player, ability: CardAbility, max: number): number {
@@ -724,16 +723,8 @@ class Card extends EffectSource {
     //     return menu;
     // }
 
-    override isUnique(): boolean {
-        return this.cardData.is_unique;
-    }
-
     isBlank(): boolean {
         return this.anyEffect(EffectName.Blank);
-    }
-
-    getPrintedFaction(): string {
-        return this.cardData.clan || this.cardData.faction;
     }
 
     override checkRestrictions(actionType, context: AbilityContext): boolean {
@@ -744,9 +735,9 @@ class Card extends EffectSource {
         );
     }
 
-    getReactions(): any[] {
-        return this.reactions.slice();
-    }
+    // getReactions(): any[] {
+    //     return this.reactions.slice();
+    // }
 
     readiesDuringReadyPhase(): boolean {
         return !this.anyEffect(EffectName.DoesNotReady);
@@ -1064,45 +1055,28 @@ class Card extends EffectSource {
     //     }
     // }
 
-    removeStatusToken(tokenType) {
-        tokenType = tokenType.grantedStatus || tokenType;
-        const index = this.statusTokens.findIndex((a) => a.grantedStatus === tokenType);
-        if (index > -1) {
-            const realToken = this.statusTokens[index];
-            realToken.setCard(null);
-            this.statusTokens.splice(index, 1);
-        }
-    }
-
-    getStatusToken(tokenType) {
-        return this.statusTokens.find((a) => a.grantedStatus === tokenType);
-    }
-
-    get hasStatusTokens() {
-        return !!this.statusTokens && this.statusTokens.length > 0;
-    }
-
-    hasStatusToken(type) {
-        return !!this.statusTokens && this.statusTokens.some((a) => a.grantedStatus === type);
-    }
-
-    public getShortSummaryForControls(activePlayer: Player) {
-        if (this.isFacedown() && (activePlayer !== this.controller || this.hideWhenFacedown())) {
-            return { facedown: true, isDynasty: this.isDynasty, isConflict: this.isConflict };
+    // TODO: is this correct handling of hidden cards? not sure how this integrates with the client
+    public override getShortSummaryForControls(activePlayer: Player): any {
+        if (!this.isHiddenForPlayer(activePlayer)) {
+            return { hidden: true };
         }
         return super.getShortSummaryForControls(activePlayer);
     }
 
-    public isFacedown() {
-        return this.facedown;
-    }
-
-    public isFaceup() {
-        return !this.facedown;
-    }
-
     public isResource() {
         return this.location === Location.Resource;
+    }
+
+    public isHiddenForPlayer(player: Player) {
+        switch (player) {
+            case this.controller:
+                return this.hiddenForController;
+            case this.controller.opponent:
+                return this.hiddenForOpponent;
+            default:
+                Contract.fail(`Unknown player: ${player}`);
+                return false;
+        }
     }
 
     // getSummary(activePlayer, hideWhenFaceup) {
@@ -1480,7 +1454,7 @@ class Card extends EffectSource {
 
     anotherUniqueInPlay(player) {
         return (
-            this.isUnique() &&
+            this.unique &&
             this.game.allCards.any(
                 (card) =>
                     card.isInPlay() &&
@@ -1493,7 +1467,7 @@ class Card extends EffectSource {
 
     anotherUniqueInPlayControlledBy(player) {
         return (
-            this.isUnique() &&
+            this.unique &&
             this.game.allCards.any(
                 (card) =>
                     card.isInPlay() &&
@@ -1547,14 +1521,15 @@ class Card extends EffectSource {
     //     return this.getSkill(type);
     // }
 
-    getStatusTokenSkill() {
-        const modifiers = this.getStatusTokenModifiers();
-        const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
-        if (isNaN(skill)) {
-            return 0;
-        }
-        return skill;
-    }
+    // TODO: these status token modifier methods could be reused for attachments
+    // getStatusTokenSkill() {
+    //     const modifiers = this.getStatusTokenModifiers();
+    //     const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
+    //     if (isNaN(skill)) {
+    //         return 0;
+    //     }
+    //     return skill;
+    // }
 
     // getStatusTokenModifiers() {
     //     let modifiers = [];
@@ -1756,16 +1731,16 @@ class Card extends EffectSource {
      * If a card should have a different status on entry (e.g., readied instead of exhausted), call this method first
      * and then update the card state(s) as needed.
      */
-    #setDefaultStatusForLocation(location: Location) {
+    private setDefaultStatusForLocation(location: Location) {
         switch (location) {
             case Location.SpaceArena:
             case Location.GroundArena:
                 this.controller = this.owner;
                 this.exhausted = this.type === CardType.Unit ? true : null;
                 this.damage = this.type === CardType.Unit ? 0 : null;
-                this.new = false;
+                this.playedThisTurn = false;
                 this.facedown = false;
-                this.hiddenForOwner = false;
+                this.hiddenForController = false;
                 this.hiddenForOpponent = false;
                 break;
 
@@ -1774,9 +1749,9 @@ class Card extends EffectSource {
                 this.controller = this.owner;
                 this.exhausted = this.type === CardType.Leader ? false : null;
                 this.damage = this.type === CardType.Base ? 0 : null;
-                this.new = false;
+                this.playedThisTurn = false;
                 this.facedown = false;
-                this.hiddenForOwner = false;
+                this.hiddenForController = false;
                 this.hiddenForOpponent = false;
                 break;
 
@@ -1784,9 +1759,9 @@ class Card extends EffectSource {
                 this.controller = this.owner;
                 this.exhausted = false;
                 this.damage = null;
-                this.new = false;
+                this.playedThisTurn = false;
                 this.facedown = true;
-                this.hiddenForOwner = false;
+                this.hiddenForController = false;
                 this.hiddenForOpponent = true;
                 break;
 
@@ -1794,9 +1769,9 @@ class Card extends EffectSource {
                 this.controller = this.owner;
                 this.exhausted = null;
                 this.damage = null;
-                this.new = false;
+                this.playedThisTurn = false;
                 this.facedown = true;
-                this.hiddenForOwner = true;
+                this.hiddenForController = true;
                 this.hiddenForOpponent = true;
                 break;
 
@@ -1804,9 +1779,9 @@ class Card extends EffectSource {
                 this.controller = this.owner;
                 this.exhausted = null;
                 this.damage = null;
-                this.new = false;
+                this.playedThisTurn = false;
                 this.facedown = false;
-                this.hiddenForOwner = false;
+                this.hiddenForController = false;
                 this.hiddenForOpponent = true;
                 break;
 
@@ -1817,9 +1792,9 @@ class Card extends EffectSource {
                 this.controller = this.owner;
                 this.exhausted = null;
                 this.damage = null;
-                this.new = false;
+                this.playedThisTurn = false;
                 this.facedown = false;
-                this.hiddenForOwner = false;
+                this.hiddenForController = false;
                 this.hiddenForOpponent = false;
                 break;
             

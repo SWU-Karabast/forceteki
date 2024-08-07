@@ -30,6 +30,7 @@ export interface ISelectCardProperties extends ICardTargetSystemProperties {
 }
 
 // TODO: figure out how this is supposed to work since it has an empty event handler method
+// TODO: this system has not been used or tested
 export class SelectCardSystem extends CardTargetSystem {
     override defaultProperties: ISelectCardProperties = {
         cardCondition: () => true,

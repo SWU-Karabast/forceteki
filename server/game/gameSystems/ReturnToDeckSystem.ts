@@ -10,6 +10,7 @@ export interface IReturnToDeckProperties extends ICardTargetSystemProperties {
     location?: TargetableLocation | TargetableLocation[];
 }
 
+// TODO: this system has not been used or tested
 export class ReturnToDeckSystem extends CardTargetSystem {
     override name = 'returnToDeck';
     override eventName = EventName.OnCardDefeated;

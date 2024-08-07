@@ -30,7 +30,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
     name = '';  // TODO: should these be abstract?
     costDescription = '';
     effectDescription = '';
-    defaultProperties = { cannotBeCancelled: false, optional: false };
+    defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
     getDefaultTargets: (context: AbilityContext) => any = (context) => this.defaultTargets(context);
 
     /**
@@ -131,7 +131,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
      * @param additionalProperties Any additional properties to extend the default ones with
      * @returns The default target(s) of this {@link GameSystem}
      */
-    #targets(context: AbilityContext, additionalProperties = {}) {
+    private targets(context: AbilityContext, additionalProperties = {}) {
         return this.generatePropertiesFromContext(context, additionalProperties).target as PlayerOrCard[];
     }
 
@@ -143,7 +143,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
      * @returns True if any of the candidate targets are legal, false otherwise
      */
     hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
-        for (const candidateTarget of this.#targets(context, additionalProperties)) {
+        for (const candidateTarget of this.targets(context, additionalProperties)) {
             if (this.canAffect(candidateTarget, context, additionalProperties)) {
                 return true;
             }
@@ -160,7 +160,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
      * @returns True if all of the candidate targets are legal, false otherwise
      */
     allTargetsLegal(context: AbilityContext, additionalProperties = {}): boolean {
-        for (const candidateTarget of this.#targets(context, additionalProperties)) {
+        for (const candidateTarget of this.targets(context, additionalProperties)) {
             if (!this.canAffect(candidateTarget, context, additionalProperties)) {
                 return false;
             }
@@ -169,7 +169,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
     }
 
     addEventsToArray(events: Event[], context: AbilityContext, additionalProperties = {}): void {
-        for (const target of this.#targets(context, additionalProperties)) {
+        for (const target of this.targets(context, additionalProperties)) {
             if (this.canAffect(target, context, additionalProperties)) {
                 events.push(this.getEvent(target, context, additionalProperties));
             }

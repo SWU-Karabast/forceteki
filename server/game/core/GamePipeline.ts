@@ -81,7 +81,7 @@ export class GamePipeline {
     }
 
     continue() {
-        this.#queueIntoPipeline();
+        this.queueIntoPipeline();
 
         while (this.pipeline.length > 0) {
             const currentStep = this.getCurrentStep();
@@ -96,12 +96,12 @@ export class GamePipeline {
                 this.pipeline = this.pipeline.slice(1);
             }
 
-            this.#queueIntoPipeline();
+            this.queueIntoPipeline();
         }
         return true;
     }
 
-    #queueIntoPipeline() {
+    private queueIntoPipeline() {
         this.pipeline.unshift(...this.queue);
         this.queue = [];
     }

@@ -3,6 +3,7 @@ import type Card from '../core/card/Card';
 import { CardType, EffectName, Location } from '../core/Constants';
 import { isArena } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import Contract from '../core/utils/Contract';
 
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
     destination?: Location;
@@ -15,6 +16,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     discardDestinationCards?: boolean;
 }
 
+// TODO: this system has not been used or tested
 export class MoveCardSystem extends CardTargetSystem {
     override name = 'move';
     override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
@@ -77,10 +79,20 @@ export class MoveCardSystem extends CardTargetSystem {
         }
         const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
         player.moveCard(card, properties.destination, { bottom: !!properties.bottom });
-        const target = properties.target;
-        if (properties.shuffle && (target.length === 0 || card === target[target.length - 1])) {
+        
+        let target = properties.target;
+        if (Array.isArray(target)) {
+            // TODO: should we allow this to move multiple cards at once?
+            if (!Contract.assertArraySize(target, 1)) {
+                return;
+            }
+
+            target = target[0];
+        }
+
+        if (properties.shuffle) {
             card.owner.shuffleDeck();
-        } else if (properties.faceup) {
+        } else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
             card.facedown = false;
         }
         card.checkForIllegalAttachments();
