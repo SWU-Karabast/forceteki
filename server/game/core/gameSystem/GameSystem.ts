@@ -38,7 +38,6 @@ export class GameSystem<GameSystemProperties extends IGameSystemProperties = IGa
      * 2. A function for generating properties from an {@link AbilityContext} provided at system resolution time, 
      * which represents the context of the {@link PlayerOrCardAbility} that is executing this system. 
      * This is set as {@link GameSystem.propertyFactory}.
-     * @param propertyFactory.
      */
     constructor(propertyFactory: GameSystemProperties | ((context?: AbilityContext) => GameSystemProperties)) {
         if (typeof propertyFactory === 'function') {
@@ -94,7 +93,7 @@ export class GameSystem<GameSystemProperties extends IGameSystemProperties = IGa
 
     /**
      * Overrides the default {@link GameSystem.getDefaultTargets} method used by the {@link GameSystem} to extract 
-     * default targets from an {@link AbilityContext} if an explicit target is not provided at execution time
+     * default targets from an {@link AbilityContext} if an explicit target is not provided at system execution time
      */
     setDefaultTargetEvaluator(func: (context: AbilityContext) => any): void {
         this.getDefaultTargets = func;
