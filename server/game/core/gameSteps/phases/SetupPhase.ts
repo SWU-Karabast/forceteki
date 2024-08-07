@@ -65,7 +65,7 @@ export class SetupPhase extends Phase {
                 choices: ['Yes', 'No'],
                 handlers: [
                     () => {
-                        for(const card of player.hand) {
+                        for (const card of player.hand) {
                             player.moveCard(card, 'deck bottom');
                         }
 

@@ -38,21 +38,21 @@ class AbilityResolver extends BaseStepWithPipeline {
     // }
 
     openInitiateAbilityEventWindow() {
-        if(this.cancelled) {
+        if (this.cancelled) {
             return;
         }
         let eventName = EventName.OnAbilityResolverInitiated;
         let eventProps = {
             context: this.context
         };
-        if(this.context.ability.isCardAbility()) {
+        if (this.context.ability.isCardAbility()) {
             eventName = EventName.OnCardAbilityInitiated;
             eventProps = {
                 card: this.context.source,
                 ability: this.context.ability,
                 context: this.context
             };
-            if(this.context.ability.isCardPlayed()) {
+            if (this.context.ability.isCardPlayed()) {
                 this.events.push(this.game.getEvent(EventName.OnCardPlayed, {
                     player: this.context.player,
                     card: this.context.source,
@@ -64,7 +64,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                     resolver: this
                 }));
             }
-            if(this.context.ability.isTriggeredAbility()) {
+            if (this.context.ability.isTriggeredAbility()) {
                 this.events.push(this.game.getEvent(EventName.OnCardAbilityTriggered, {
                     player: this.context.player,
                     card: this.context.source,
@@ -89,13 +89,13 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     resolveEarlyTargets() {
         this.context.stage = Stage.PreTarget;
-        if(!this.context.ability.cannotTargetFirst) {
+        if (!this.context.ability.cannotTargetFirst) {
             this.targetResults = this.context.ability.resolveTargets(this.context);
         }
     }
 
     checkForCancel() {
-        if(this.cancelled) {
+        if (this.cancelled) {
             return;
         }
 
@@ -103,7 +103,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     resolveCosts() {
-        if(this.cancelled) {
+        if (this.cancelled) {
             return;
         }
         this.costResults.canCancel = this.canCancel;
@@ -122,68 +122,68 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     payCosts() {
-        if(this.cancelled) {
+        if (this.cancelled) {
             return;
-        } else if(this.costResults.cancelled) {
+        } else if (this.costResults.cancelled) {
             this.cancelled = true;
             return;
         }
         this.passPriority = true;
-        if(this.costResults.events.length > 0) {
+        if (this.costResults.events.length > 0) {
             this.game.openEventWindow(this.costResults.events);
         }
     }
 
     checkCostsWerePaid() {
-        if(this.cancelled) {
+        if (this.cancelled) {
             return;
         }
-        this.cancelled = _.any(this.costResults.events, event => event.getResolutionEvent().cancelled);
-        if(this.cancelled) {
+        this.cancelled = _.any(this.costResults.events, (event) => event.getResolutionEvent().cancelled);
+        if (this.cancelled) {
             this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
         }
     }
 
     resolveTargets() {
-        if(this.cancelled) {
+        if (this.cancelled) {
             return;
         }
         this.context.stage = Stage.Target;
 
-        if(!this.context.ability.hasLegalTargets(this.context)) {
+        if (!this.context.ability.hasLegalTargets(this.context)) {
             // Ability cannot resolve, so display a message and cancel it
             this.game.addMessage('{0} attempted to use {1}, but there are insufficient legal targets', this.context.player, this.context.source);
             this.cancelled = true;
-        } else if(this.targetResults.delayTargeting) {
+        } else if (this.targetResults.delayTargeting) {
             // Targeting was delayed due to an opponent needing to choose targets (which shouldn't happen until costs have been paid), so continue
             this.targetResults = this.context.ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting);
-        } else if(this.targetResults.payCostsFirst || !this.context.ability.checkAllTargets(this.context)) {
+        } else if (this.targetResults.payCostsFirst || !this.context.ability.checkAllTargets(this.context)) {
             // Targeting was stopped by the player choosing to pay costs first, or one of the chosen targets is no longer legal. Retarget from scratch
             this.targetResults = this.context.ability.resolveTargets(this.context);
         }
     }
 
     initiateAbilityEffects() {
-        if(this.cancelled) {
-            for(const event of this.events) {
+        if (this.cancelled) {
+            for (const event of this.events) {
                 event.cancel();
             }
             return;
         }
 
         // Increment limits (limits aren't used up on cards in hand)
-        if(this.context.ability.limit && this.context.source.location !== Location.Hand &&
+        if (this.context.ability.limit && this.context.source.location !== Location.Hand &&
            (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.location === this.context.source.location)) {
             this.context.ability.limit.increment(this.context.player);
         }
-        if(this.context.ability.max) {
+        if (this.context.ability.max) {
             this.context.player.incrementAbilityMax(this.context.ability.maxIdentifier);
         }
         this.context.ability.displayMessage(this.context);
 
-        if(this.context.ability.isTriggeredAbility()) {
+        if (this.context.ability.isTriggeredAbility()) {
             // If this is an event, move it to 'being played', and queue a step to send it to the discard pile after it resolves
-            if(this.context.ability.isCardPlayed()) {
+            if (this.context.ability.isCardPlayed()) {
                 this.game.actions.moveCard({ destination: Location.BeingPlayed }).resolve(this.context.source, this.context);
             }
             this.game.openAdditionalAbilityStepEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
@@ -193,7 +193,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     executeHandler() {
-        if(this.cancelled || !this.initiateAbility) {
+        if (this.cancelled || !this.initiateAbility) {
             return;
         }
         this.context.stage = Stage.Effect;
@@ -201,7 +201,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     moveEventCardToDiscard() {
-        if(this.context.source.location === Location.BeingPlayed) {
+        if (this.context.source.location === Location.BeingPlayed) {
             this.context.player.moveCard(this.context.source, Location.Discard);
         }
     }

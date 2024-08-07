@@ -25,14 +25,14 @@ class HandlerMenuPrompt extends UiPrompt {
     constructor(game, player, properties) {
         super(game);
         this.player = player;
-        if(_.isString(properties.source)) {
+        if (_.isString(properties.source)) {
             properties.source = new EffectSource(game, properties.source);
-        } else if(properties.context && properties.context.source) {
+        } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
         }
-        if(properties.source && !properties.waitingPromptTitle) {
+        if (properties.source && !properties.waitingPromptTitle) {
             properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
-        } else if(!properties.source) {
+        } else if (!properties.source) {
             properties.source = new EffectSource(game);
         }
         this.properties = properties;
@@ -48,28 +48,28 @@ class HandlerMenuPrompt extends UiPrompt {
     /** @override */
     activePrompt() {
         let buttons = [];
-        if(this.properties.cards) {
+        if (this.properties.cards) {
             let cardQuantities = {};
-            _.each(this.properties.cards, card => {
-                if(cardQuantities[card.id]) {
+            _.each(this.properties.cards, (card) => {
+                if (cardQuantities[card.id]) {
                     cardQuantities[card.id] += 1;
                 } else {
                     cardQuantities[card.id] = 1;
                 }
             });
-            let cards = _.uniq(this.properties.cards, card => card.id);
-            buttons = _.map(cards, card => {
+            let cards = _.uniq(this.properties.cards, (card) => card.id);
+            buttons = _.map(cards, (card) => {
                 let text = card.name;
-                if(cardQuantities[card.id] > 1) {
+                if (cardQuantities[card.id] > 1) {
                     text = text + ' (' + cardQuantities[card.id].toString() + ')';
                 }
-                return {text: text, arg: card.id, card: card, disabled: !this.cardCondition(card, this.context) };
+                return { text: text, arg: card.id, card: card, disabled: !this.cardCondition(card, this.context) };
             });
         }
         buttons = buttons.concat(_.map(this.properties.choices, (choice, index) => {
             return { text: choice, arg: index };
         }));
-        if(this.game.manualMode && (!this.properties.choices || this.properties.choices.every(choice => choice !== 'Cancel'))) {
+        if (this.game.manualMode && (!this.properties.choices || this.properties.choices.every((choice) => choice !== 'Cancel'))) {
             buttons = buttons.concat({ text: 'Cancel Prompt', arg: 'cancel' });
         }
         return {
@@ -81,28 +81,28 @@ class HandlerMenuPrompt extends UiPrompt {
     }
 
     getAdditionalPromptControls() {
-        if(this.properties.controls && this.properties.controls.type === 'targeting') {
+        if (this.properties.controls && this.properties.controls.type === 'targeting') {
             return [{
                 type: 'targeting',
                 source: this.properties.source.getShortSummary(),
-                targets: this.properties.controls.targets.map(target => target.getShortSummaryForControls(this.player))
+                targets: this.properties.controls.targets.map((target) => target.getShortSummaryForControls(this.player))
             }];
         }
-        if(this.context.source.type === '') {
+        if (this.context.source.type === '') {
             return [];
         }
         let targets = this.context.targets ? Object.values(this.context.targets) : [];
         targets = targets.reduce((array, target) => array.concat(target), []);
-        if(this.properties.target) {
+        if (this.properties.target) {
             targets = Array.isArray(this.properties.target) ? this.properties.target : [this.properties.target];
         }
-        if(targets.length === 0 && this.context.event && this.context.event.card) {
+        if (targets.length === 0 && this.context.event && this.context.event.card) {
             targets = [this.context.event.card];
         }
         return [{
             type: 'targeting',
             source: this.context.source.getShortSummary(),
-            targets: targets.map(target => target.getShortSummaryForControls(this.player))
+            targets: targets.map((target) => target.getShortSummaryForControls(this.player))
         }];
     }
 
@@ -113,13 +113,13 @@ class HandlerMenuPrompt extends UiPrompt {
 
     /** @override */
     menuCommand(player, arg) {
-        if(_.isString(arg)) {
-            if(arg === 'cancel') {
+        if (_.isString(arg)) {
+            if (arg === 'cancel') {
                 this.complete();
                 return true;
             }
-            let card = _.find(this.properties.cards, card => card.id === arg);
-            if(card && this.properties.cardHandler) {
+            let card = _.find(this.properties.cards, (card) => card.id === arg);
+            if (card && this.properties.cardHandler) {
                 this.properties.cardHandler(card);
                 this.complete();
                 return true;
@@ -127,13 +127,13 @@ class HandlerMenuPrompt extends UiPrompt {
             return false;
         }
 
-        if(this.properties.choiceHandler) {
+        if (this.properties.choiceHandler) {
             this.properties.choiceHandler(this.properties.choices[arg]);
             this.complete();
             return true;
         }
 
-        if(!this.properties.handlers[arg]) {
+        if (!this.properties.handlers[arg]) {
             return false;
         }
 

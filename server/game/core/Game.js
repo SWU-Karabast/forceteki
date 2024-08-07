@@ -84,6 +84,8 @@ class Game extends EventEmitter {
 
         this.router = options.router;
     }
+
+
     /*
      * Reports errors from the game engine back to the router
      * @param {type} e

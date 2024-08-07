@@ -20,8 +20,8 @@ class DeckBuilder {
             throw new Error(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
         }
 
-        var jsonCards = fs.readdirSync(directory).filter(file => file.endsWith('.json'));
-        _.each(jsonCards, cardPath => {
+        var jsonCards = fs.readdirSync(directory).filter((file) => file.endsWith('.json'));
+        _.each(jsonCards, (cardPath) => {
             var card = require(path.join('../json/Card', cardPath))[0];
             cards[card.id] = card;
         });
@@ -43,10 +43,10 @@ class DeckBuilder {
         let deckSize = deckBufferSize;
         let inPlayCards = [];
 
-        if(playerCards.leader) {
+        if (playerCards.leader) {
             leader = playerCards.leader;
         }
-        if(playerCards.base) {
+        if (playerCards.base) {
             base = playerCards.base;
         }
 
@@ -55,24 +55,24 @@ class DeckBuilder {
          * hand and discard
          */
         let initialDeckSize = 0;
-        if(playerCards.deckSize) {   // allow override in case some card has adjusted this
+        if (playerCards.deckSize) {   // allow override in case some card has adjusted this
             deckSize = playerCards.deckSize;
         }
-        if(playerCards.deck) {
+        if (playerCards.deck) {
             allCards.push(...playerCards.deck);
             initialDeckSize = playerCards.deck.length;
         }
-        if(playerCards.discard) {
+        if (playerCards.discard) {
             allCards.push(...playerCards.discard);
         }
-        if(playerCards.hand) {
+        if (playerCards.hand) {
             allCards.push(...playerCards.hand);
         }
-        if(playerCards.resources) {
+        if (playerCards.resources) {
             allCards.push(...playerCards.resources);
         }
         //Add cards to prevent reshuffling due to running out of cards
-        for(let i = initialDeckSize; i < deckSize; i++) {
+        for (let i = initialDeckSize; i < deckSize; i++) {
             allCards.push(deckFillerCard);
         }
 
@@ -80,7 +80,8 @@ class DeckBuilder {
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
 
         //Collect all the cards together
-        allCards = allCards.concat(inPlayCards).concat(leader).concat(base);
+        allCards = allCards.concat(inPlayCards).concat(leader)
+            .concat(base);
 
         return this.buildDeck(allCards);
     }
@@ -92,13 +93,13 @@ class DeckBuilder {
 
         let inPlayCards = [];
         for (const card of arenaList) {
-            if(_.isString(card)) {
+            if (_.isString(card)) {
                 inPlayCards.push(card);
             } else {
                 //Add the card itself
                 inPlayCards.push(card.card);
                 //Add any attachments
-                if(card.attachments) {
+                if (card.attachments) {
                     inPlayCards.push(...card.attachments);
                 }
             }
@@ -109,9 +110,9 @@ class DeckBuilder {
 
     buildDeck(cardInternalNames) {
         var cardCounts = {};
-        _.each(cardInternalNames, internalName => {
+        _.each(cardInternalNames, (internalName) => {
             var cardData = this.getCard(internalName);
-            if(cardCounts[cardData.id]) {
+            if (cardCounts[cardData.id]) {
                 cardCounts[cardData.id].count++;
             } else {
                 cardCounts[cardData.id] = {
@@ -122,25 +123,25 @@ class DeckBuilder {
         });
 
         return {
-            leader: _.filter(cardCounts, count => count.card.type === 'leader'),
-            base: _.filter(cardCounts, count => count.card.type === 'base'),
-            deckCards: _.filter(cardCounts, count => count.card.type !== 'leader' && count.card.type !== 'base')
+            leader: _.filter(cardCounts, (count) => count.card.type === 'leader'),
+            base: _.filter(cardCounts, (count) => count.card.type === 'base'),
+            deckCards: _.filter(cardCounts, (count) => count.card.type !== 'leader' && count.card.type !== 'base')
         };
     }
 
     getCard(internalName) {
-        if(this.cards[internalName]) {
+        if (this.cards[internalName]) {
             return this.cards[internalName];
         }
 
-        var cardsByName = _.filter(this.cards, card => card.internalName === internalName);
+        var cardsByName = _.filter(this.cards, (card) => card.internalName === internalName);
 
-        if(cardsByName.length === 0) {
+        if (cardsByName.length === 0) {
             throw new Error(`Unable to find any card matching ${internalName}`);
         }
 
-        if(cardsByName.length > 1) {
-            var matchingLabels = _.map(cardsByName, card => card.name).join('\n');
+        if (cardsByName.length > 1) {
+            var matchingLabels = _.map(cardsByName, (card) => card.name).join('\n');
             throw new Error(`Multiple cards match the name ${internalName}. Use one of these instead:\n${matchingLabels}`);
         }
 

@@ -9,24 +9,24 @@ class AbilityTargetAbility {
         this.selector = this.getSelector(properties);
         this.dependentTarget = null;
         this.dependentCost = null;
-        if(this.properties.dependsOn) {
-            let dependsOnTarget = ability.targets.find(target => target.name === this.properties.dependsOn);
+        if (this.properties.dependsOn) {
+            let dependsOnTarget = ability.targets.find((target) => target.name === this.properties.dependsOn);
             dependsOnTarget.dependentTarget = this;
         }
     }
 
     getSelector(properties) {
         let cardCondition = (card, context) => {
-            let abilities = card.actions.concat(card.reactions).filter(ability => ability.isTriggeredAbility() && this.abilityCondition(ability));
-            return abilities.some(ability => {
+            let abilities = card.actions.concat(card.reactions).filter((ability) => ability.isTriggeredAbility() && this.abilityCondition(ability));
+            return abilities.some((ability) => {
                 let contextCopy = context.copy();
                 contextCopy.targetAbility = ability;
-                if(context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
+                if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                     return false;
                 }
                 return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
                        (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                       properties.gameSystem.some(gameSystem => gameSystem.hasLegalTarget(contextCopy));
+                       properties.gameSystem.some((gameSystem) => gameSystem.hasLegalTarget(contextCopy));
             });
         };
         return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: false }));
@@ -45,23 +45,23 @@ class AbilityTargetAbility {
     }
 
     getGameAction(context) {
-        return this.properties.gameSystem.filter(gameSystem => gameSystem.hasLegalTarget(context));
+        return this.properties.gameSystem.filter((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
     resolve(context, targetResults) {
-        if(targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
+        if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;
         }
         let player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
-        if(player === context.player.opponent && context.stage === Stage.PreTarget) {
+        if (player === context.player.opponent && context.stage === Stage.PreTarget) {
             targetResults.delayTargeting = this;
             return;
         }
         let buttons = [];
         let waitingPromptTitle = '';
-        if(context.stage === Stage.PreTarget) {
+        if (context.stage === Stage.PreTarget) {
             buttons.push({ text: 'Cancel', arg: 'cancel' });
-            if(context.ability.abilityType === 'action') {
+            if (context.ability.abilityType === 'action') {
                 waitingPromptTitle = 'Waiting for opponent to take an action or pass';
             } else {
                 waitingPromptTitle = 'Waiting for opponent';
@@ -73,19 +73,19 @@ class AbilityTargetAbility {
             context: context,
             selector: this.selector,
             onSelect: (player, card) => {
-                let abilities = card.actions.concat(card.reactions).filter(ability => ability.isTriggeredAbility() && this.abilityCondition(ability));
-                if(abilities.length === 1) {
+                let abilities = card.actions.concat(card.reactions).filter((ability) => ability.isTriggeredAbility() && this.abilityCondition(ability));
+                if (abilities.length === 1) {
                     context.targetAbility = abilities[0];
-                } else if(abilities.length > 1) {
+                } else if (abilities.length > 1) {
                     context.game.promptWithHandlerMenu(player, {
                         activePromptTitle: 'Choose an ability',
                         context: context,
-                        choices: abilities.map(ability => ability.title).concat('Back'),
-                        choiceHandler: choice => {
-                            if(choice === 'Back') {
+                        choices: abilities.map((ability) => ability.title).concat('Back'),
+                        choiceHandler: (choice) => {
+                            if (choice === 'Back') {
                                 context.game.queueSimpleStep(() => this.resolve(context, targetResults));
                             } else {
-                                context.targetAbility = abilities.find(ability => ability.title === choice);
+                                context.targetAbility = abilities.find((ability) => ability.title === choice);
                             }
                         }
                     });
@@ -97,7 +97,7 @@ class AbilityTargetAbility {
                 return true;
             },
             onMenuCommand: (player, arg) => {
-                if(arg === 'costsFirst') {
+                if (arg === 'costsFirst') {
                     targetResults.costsFirst = true;
                     return true;
                 }
@@ -108,7 +108,7 @@ class AbilityTargetAbility {
     }
 
     checkTarget(context) {
-        if(!context.targetAbility || context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
+        if (!context.targetAbility || context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
             return false;
         }
         return this.properties.cardType === context.targetAbility.card.type &&
@@ -118,14 +118,14 @@ class AbilityTargetAbility {
 
     getChoosingPlayer(context) {
         let playerProp = this.properties.player;
-        if(typeof playerProp === 'function') {
+        if (typeof playerProp === 'function') {
             playerProp = playerProp(context);
         }
         return playerProp === RelativePlayer.Opponent ? context.player.opponent : context.player;
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {
-        if(this.properties.gameSystem.some(action => action.hasTargetsChosenByInitiatingPlayer(context))) {
+        if (this.properties.gameSystem.some((action) => action.hasTargetsChosenByInitiatingPlayer(context))) {
             return true;
         }
         return this.getChoosingPlayer(context) === context.player;

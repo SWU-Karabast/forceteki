@@ -18,7 +18,7 @@ class MenuPrompt extends UiPrompt {
         super(game);
         this.player = player;
         this.context = context;
-        if(properties.source && !properties.waitingPromptTitle) {
+        if (properties.source && !properties.waitingPromptTitle) {
             properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
         }
         this.properties = properties;
@@ -42,11 +42,11 @@ class MenuPrompt extends UiPrompt {
 
     /** @override */
     menuCommand(player, arg, method) {
-        if(!this.context[method]) {
+        if (!this.context[method]) {
             return false;
         }
 
-        if(this.context[method](player, arg, this.properties.context)) {
+        if (this.context[method](player, arg, this.properties.context)) {
             this.complete();
         }
 
@@ -54,7 +54,7 @@ class MenuPrompt extends UiPrompt {
     }
 
     hasMethodButton(method) {
-        return _.any(this.properties.activePrompt.buttons, button => button.method === method);
+        return _.any(this.properties.activePrompt.buttons, (button) => button.method === method);
     }
 }
 

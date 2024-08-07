@@ -517,6 +517,8 @@ class PlayerInteractionWrapper {
         this.game.checkGameState(true);
         this.game.continue();
     }
+
+
     /**
      * Lists the rings claimed by the player as strings
      * @return {String[]} list of ring elements claimed by the player

@@ -29,6 +29,7 @@ export class MoveCardSystem extends CardTargetSystem {
         bottom: false,
         changePlayer: false,
     };
+
     public constructor(properties: IMoveCardProperties | ((context: AbilityContext) => IMoveCardProperties)) {
         super(properties);
     }

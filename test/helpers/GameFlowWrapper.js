@@ -32,13 +32,13 @@ class GameFlowWrapper {
     }
 
     get firstPlayer() {
-        return _.find(this.allPlayers, player => player.initiativePlayer);
+        return _.find(this.allPlayers, (player) => player.initiativePlayer);
     }
 
     eachPlayerInInitiativeOrder(handler) {
-        var playersInOrder = _.sortBy(this.allPlayers, player => !player.initiativePlayer);
+        var playersInOrder = _.sortBy(this.allPlayers, (player) => !player.initiativePlayer);
 
-        _.each(playersInOrder, player => handler(player));
+        _.each(playersInOrder, (player) => handler(player));
     }
 
     /**
@@ -46,8 +46,8 @@ class GameFlowWrapper {
      * @param {Function} handler - function of a player to be executed
      */
     eachPlayerStartingWithPrompted(handler) {
-        var playersInPromptedOrder = _.sortBy(this.allPlayers, player => player.hasPrompt('Waiting for opponent to take an action or pass'));
-        _.each(playersInPromptedOrder, player => handler(player));
+        var playersInPromptedOrder = _.sortBy(this.allPlayers, (player) => player.hasPrompt('Waiting for opponent to take an action or pass'));
+        _.each(playersInPromptedOrder, (player) => handler(player));
     }
 
     /**
@@ -55,7 +55,7 @@ class GameFlowWrapper {
      */
     resourceAnyTwo() {
         this.guardCurrentPhase('setup');
-        _.each(this.allPlayers, player => player.clickAnyOfSelectableCards(2));
+        _.each(this.allPlayers, (player) => player.clickAnyOfSelectableCards(2));
         this.game.continue();
     }
 
@@ -68,8 +68,10 @@ class GameFlowWrapper {
      */
     keepStartingHand() {
         this.guardCurrentPhase('setup');
-        this.eachPlayerInInitiativeOrder(player => player.clickPrompt('No'));
+        this.eachPlayerInInitiativeOrder((player) => player.clickPrompt('No'));
     }
+
+
     /**
      * Skips setup phase with defaults
      */
@@ -100,21 +102,21 @@ class GameFlowWrapper {
      */
     finishConflictPhase() {
         this.guardCurrentPhase('conflict');
-        while(this.player1.player.getConflictOpportunities() > 0 ||
+        while (this.player1.player.getConflictOpportunities() > 0 ||
             this.player2.player.getConflictOpportunities() > 0) {
             try {
                 this.noMoreActions();
-            } catch(e) {
+            } catch (e) {
                 // Case: handle skipping a player's conflict
-                var playersInPromptedOrder = _.sortBy(this.allPlayers, player => player.hasPrompt('Waiting for opponent to declare conflict'));
+                var playersInPromptedOrder = _.sortBy(this.allPlayers, (player) => player.hasPrompt('Waiting for opponent to declare conflict'));
                 playersInPromptedOrder[0].clickPrompt('Pass Conflict');
                 playersInPromptedOrder[0].clickPrompt('yes');
             }
         }
         this.noMoreActions();
         // Resolve claiming imperial favor, if any
-        var claimingPlayer = _.find(this.allPlayers, player => player.hasPrompt('Which side of the Imperial Favor would you like to claim?'));
-        if(claimingPlayer) {
+        var claimingPlayer = _.find(this.allPlayers, (player) => player.hasPrompt('Which side of the Imperial Favor would you like to claim?'));
+        if (claimingPlayer) {
             claimingPlayer.clickPrompt('military');
         }
         // this.guardCurrentPhase('fate');
@@ -125,11 +127,11 @@ class GameFlowWrapper {
      */
     finishRegroupPhase() {
         this.guardCurrentPhase('regroup');
-        var playersInPromptedOrder = _.sortBy(this.allPlayers, player => player.hasPrompt('Waiting for opponent to discard dynasty cards'));
-        _.each(playersInPromptedOrder, player => player.clickPrompt('Done'));
+        var playersInPromptedOrder = _.sortBy(this.allPlayers, (player) => player.hasPrompt('Waiting for opponent to discard dynasty cards'));
+        _.each(playersInPromptedOrder, (player) => player.clickPrompt('Done'));
         // End the round
-        var promptedToEnd = _.sortBy(this.allPlayers, player => player.hasPrompt('Waiting for opponent to end the round'));
-        _.each(promptedToEnd, player => player.clickPrompt('End Round'));
+        var promptedToEnd = _.sortBy(this.allPlayers, (player) => player.hasPrompt('Waiting for opponent to end the round'));
+        _.each(promptedToEnd, (player) => player.clickPrompt('End Round'));
         this.guardCurrentPhase('dynasty');
     }
 
@@ -141,7 +143,7 @@ class GameFlowWrapper {
      */
     nextPhase() {
         var phaseChange = 0;
-        switch(this.game.currentPhase) {
+        switch (this.game.currentPhase) {
             case 'setup':
                 this.skipSetupPhase();
                 break;
@@ -164,11 +166,11 @@ class GameFlowWrapper {
      * @param {String} endphase - phase in which to end
      */
     advancePhases(endphase) {
-        if(!endphase) {
+        if (!endphase) {
             return;
         }
 
-        while(this.game.currentPhase !== endphase) {
+        while (this.game.currentPhase !== endphase) {
             this.nextPhase();
         }
     }
@@ -182,9 +184,9 @@ class GameFlowWrapper {
         this.guardCurrentPhase('draw');
         this.player1.bidHonor(player1amt);
         this.player2.bidHonor(player2amt);
-        if(this.game.currentPhase === 'draw') {
-            this.eachPlayerInInitiativeOrder(player => {
-                if(player.hasPrompt('Triggered Abilities')) {
+        if (this.game.currentPhase === 'draw') {
+            this.eachPlayerInInitiativeOrder((player) => {
+                if (player.hasPrompt('Triggered Abilities')) {
                     player.pass();
                 }
             });
@@ -196,16 +198,16 @@ class GameFlowWrapper {
      * Asserts that the game is in the expected phase
      */
     guardCurrentPhase(phase) {
-        if(this.game.currentPhase !== phase) {
+        if (this.game.currentPhase !== phase) {
             throw new Error(`Expected to be in the ${phase} phase but actually was ${this.game.currentPhase}`);
         }
     }
 
     getPromptedPlayer(title) {
-        var promptedPlayer = this.allPlayers.find(p => p.hasPrompt(title));
+        var promptedPlayer = this.allPlayers.find((p) => p.hasPrompt(title));
 
-        if(!promptedPlayer) {
-            var promptString = _.map(this.allPlayers, player => player.name + ': ' + player.formatPrompt()).join('\n\n');
+        if (!promptedPlayer) {
+            var promptString = _.map(this.allPlayers, (player) => player.name + ': ' + player.formatPrompt()).join('\n\n');
             throw new Error(`No players are being prompted with "${title}". Current prompts are:\n\n${promptString}`);
         }
 
@@ -214,7 +216,7 @@ class GameFlowWrapper {
 
     selectInitiativePlayer(player) {
         var promptedPlayer = this.getPromptedPlayer('You won the flip. Do you want to start with initiative:');
-        if(player === promptedPlayer) {
+        if (player === promptedPlayer) {
             promptedPlayer.clickPrompt('Yes');
         } else {
             promptedPlayer.clickPrompt('No');
@@ -228,10 +230,10 @@ class GameFlowWrapper {
      */
     getChatLogs(numBack = 1, reverse = true) {
         let results = [];
-        for(let i = 0; i < this.game.messages.length && i < numBack; i++) {
+        for (let i = 0; i < this.game.messages.length && i < numBack; i++) {
             let result = '';
             let chatMessage = this.game.messages[this.game.messages.length - i - 1];
-            for(let j = 0; j < chatMessage.message.length; j++) {
+            for (let j = 0; j < chatMessage.message.length; j++) {
                 result += getChatString(chatMessage.message[j]);
             }
             results.push(result);
@@ -240,12 +242,12 @@ class GameFlowWrapper {
         return reverse ? results.reverse() : results;
 
         function getChatString(item) {
-            if(Array.isArray(item)) {
-                return item.map(arrItem => getChatString(arrItem)).join('');
-            } else if(item instanceof Object) {
-                if(item.name) {
+            if (Array.isArray(item)) {
+                return item.map((arrItem) => getChatString(arrItem)).join('');
+            } else if (item instanceof Object) {
+                if (item.name) {
                     return item.name;
-                } else if(item.message) {
+                } else if (item.message) {
                     return getChatString(item.message);
                 }
             }

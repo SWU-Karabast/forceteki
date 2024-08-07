@@ -127,6 +127,7 @@ interface IAbilityProps<Context> {
 export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
     condition?: (context?: AbilityContext<Source>) => boolean;
     phase?: PhaseName | 'any';
+
     /**
      * @deprecated
      */

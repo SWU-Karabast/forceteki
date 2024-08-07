@@ -51,7 +51,7 @@ class Effect {
     refreshContext() {
         this.context = this.game.getFrameworkContext(this.source.controller);
         this.context.source = this.source;
-        if(this.ability) {
+        if (this.ability) {
             this.context.ability = this.ability;
         }
         this.effectDetails.setContext(this.context);
@@ -79,7 +79,7 @@ class Effect {
     }
 
     removeTargets(targets) {
-        targets.forEach(target => this.effectDetails.unapply(target));
+        targets.forEach((target) => this.effectDetails.unapply(target));
         this.targets = _.difference(this.targets, targets);
     }
 
@@ -88,43 +88,43 @@ class Effect {
     }
 
     cancel() {
-        _.each(this.targets, target => this.effectDetails.unapply(target));
+        _.each(this.targets, (target) => this.effectDetails.unapply(target));
         this.targets = [];
     }
 
     isEffectActive() {
-        if(this.duration !== Duration.Persistent) {
+        if (this.duration !== Duration.Persistent) {
             return true;
         }
-        let effectOnSource = this.source.persistentEffects.some(effect => effect.ref && effect.ref.includes(this));
+        let effectOnSource = this.source.persistentEffects.some((effect) => effect.ref && effect.ref.includes(this));
         return !this.source.facedown && effectOnSource;
     }
 
     checkCondition(stateChanged) {
-        if(!this.condition(this.context) || !this.isEffectActive()) {
+        if (!this.condition(this.context) || !this.isEffectActive()) {
             stateChanged = this.targets.length > 0 || stateChanged;
             this.cancel();
             return stateChanged;
-        } else if(_.isFunction(this.match)) {
+        } else if (_.isFunction(this.match)) {
             // Get any targets which are no longer valid
-            let invalidTargets = _.filter(this.targets, target => !this.match(target, this.context) || !this.isValidTarget(target));
+            let invalidTargets = _.filter(this.targets, (target) => !this.match(target, this.context) || !this.isValidTarget(target));
             // Remove invalid targets
             this.removeTargets(invalidTargets);
             stateChanged = stateChanged || invalidTargets.length > 0;
             // Recalculate the effect for valid targets
-            _.each(this.targets, target => stateChanged = this.effectDetails.recalculate(target) || stateChanged);
+            _.each(this.targets, (target) => stateChanged = this.effectDetails.recalculate(target) || stateChanged);
             // Check for new targets
-            let newTargets = _.filter(this.getTargets(), target => !this.targets.includes(target) && this.isValidTarget(target));
+            let newTargets = _.filter(this.getTargets(), (target) => !this.targets.includes(target) && this.isValidTarget(target));
             // Apply the effect to new targets
-            _.each(newTargets, target => this.addTarget(target));
+            _.each(newTargets, (target) => this.addTarget(target));
             return stateChanged || newTargets.length > 0;
-        } else if(this.targets.includes(this.match)) {
-            if(!this.isValidTarget(this.match)) {
+        } else if (this.targets.includes(this.match)) {
+            if (!this.isValidTarget(this.match)) {
                 this.cancel();
                 return true;
             }
             return this.effectDetails.recalculate(this.match) || stateChanged;
-        } else if(!this.targets.includes(this.match) && this.isValidTarget(this.match)) {
+        } else if (!this.targets.includes(this.match) && this.isValidTarget(this.match)) {
             this.addTarget(this.match);
             return true;
         }
@@ -134,7 +134,7 @@ class Effect {
     getDebugInfo() {
         return {
             source: this.source.name,
-            targets: _.map(this.targets, target => target.name).join(','),
+            targets: _.map(this.targets, (target) => target.name).join(','),
             active: this.isEffectActive(),
             condition: this.condition(this.context),
             effect: this.effectDetails.getDebugInfo()

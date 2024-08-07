@@ -13,8 +13,8 @@ class EventWindow extends BaseStepWithPipeline {
 
         this.events = [];
         this.additionalAbilitySteps = [];
-        _.each(events, event => {
-            if(!event.cancelled) {
+        _.each(events, (event) => {
+            if (!event.cancelled) {
                 this.addEvent(event);
             }
         });
@@ -50,11 +50,11 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     removeEvent(event) {
-        this.events = _.reject(this.events, e => e === event);
+        this.events = _.reject(this.events, (e) => e === event);
         return event;
     }
 
-    addCardAbilityStep(ability, context, condition = event => event.isFullyResolved(event)) {
+    addCardAbilityStep(ability, context, condition = (event) => event.isFullyResolved(event)) {
         this.additionalAbilitySteps.push({ ability, context, condition });
     }
 
@@ -64,15 +64,15 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     checkEventCondition() {
-        _.each(this.events, event => event.checkCondition());
+        _.each(this.events, (event) => event.checkCondition());
     }
 
     openWindow(abilityType) {
-        if(_.isEmpty(this.events)) {
+        if (_.isEmpty(this.events)) {
             return;
         }
 
-        if([AbilityType.ForcedReaction, AbilityType.ForcedInterrupt].includes(abilityType)) {
+        if ([AbilityType.ForcedReaction, AbilityType.ForcedInterrupt].includes(abilityType)) {
             this.queueStep(new ForcedTriggeredAbilityWindow(this.game, abilityType, this));
         } else {
             this.queueStep(new TriggeredAbilityWindow(this.game, abilityType, this));
@@ -82,32 +82,32 @@ class EventWindow extends BaseStepWithPipeline {
     // This is primarily for LeavesPlayEvents
     createContingentEvents() {
         let contingentEvents = [];
-        _.each(this.events, event => {
+        _.each(this.events, (event) => {
             contingentEvents = contingentEvents.concat(event.createContingentEvents());
         });
-        if(contingentEvents.length > 0) {
+        if (contingentEvents.length > 0) {
             // Exclude current events from the new window, we just want to give players opportunities to respond to the contingent events
             this.queueStep(new TriggeredAbilityWindow(this.game, AbilityType.WouldInterrupt, this, this.events.slice(0)));
-            _.each(contingentEvents, event => this.addEvent(event));
+            _.each(contingentEvents, (event) => this.addEvent(event));
         }
     }
 
     // This catches any persistent/delayed effect cancels
     checkForOtherEffects() {
-        _.each(this.events, event => this.game.emit(event.name + ':' + AbilityType.OtherEffects, event));
+        _.each(this.events, (event) => this.game.emit(event.name + ':' + AbilityType.OtherEffects, event));
     }
 
     preResolutionEffects() {
-        _.each(this.events, event => event.preResolutionEffect());
+        _.each(this.events, (event) => event.preResolutionEffect());
     }
 
     executeHandler() {
         this.eventsToExecute = _.sortBy(this.events, 'order');
 
-        _.each(this.eventsToExecute, event => {
+        _.each(this.eventsToExecute, (event) => {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
             event.checkCondition();
-            if(!event.cancelled) {
+            if (!event.cancelled) {
                 event.executeHandler();
                 this.game.emit(event.name, event);
             }
@@ -137,7 +137,7 @@ class EventWindow extends BaseStepWithPipeline {
     // }
 
     resetCurrentEventWindow() {
-        if(this.previousEventWindow) {
+        if (this.previousEventWindow) {
             this.previousEventWindow.checkEventCondition();
             this.game.currentEventWindow = this.previousEventWindow;
         } else {

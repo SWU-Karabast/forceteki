@@ -6,16 +6,16 @@ const { EventName, AbilityType } = require('../../Constants.js');
 class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     constructor(game, abilityType, eventWindow) {
         super(game, abilityType, eventWindow);
-        this.playEvent = eventWindow.events.find(event => event.name === EventName.OnCardPlayed);
+        this.playEvent = eventWindow.events.find((event) => event.name === EventName.OnCardPlayed);
     }
 
     /** @override */
     getPromptForSelectProperties() {
         let buttons = [];
-        if(this.playEvent && this.activePlayer === this.playEvent.player && this.playEvent.resolver.canCancel) {
+        if (this.playEvent && this.activePlayer === this.playEvent.player && this.playEvent.resolver.canCancel) {
             buttons.push({ text: 'Cancel', arg: 'cancel' });
         }
-        if(this.getMinCostReduction() === 0) {
+        if (this.getMinCostReduction() === 0) {
             buttons.push({ text: 'Pass', arg: 'pass' });
         }
         return Object.assign(super.getPromptForSelectProperties(), {
@@ -28,7 +28,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     }
 
     getMinCostReduction() {
-        if(this.playEvent) {
+        if (this.playEvent) {
             const context = this.playEvent.context;
             const alternatePools = context.player.getAlternateFatePools(this.playEvent.playType, context.source, context);
             const alternatePoolTotal = alternatePools.reduce((total, pool) => total + pool.fate, 0);
@@ -40,7 +40,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
 
     /** @override */
     resolveAbility(context) {
-        if(this.playEvent) {
+        if (this.playEvent) {
             this.playEvent.resolver.canCancel = false;
         }
         return super.resolveAbility(context);
@@ -50,7 +50,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
 class InitiateAbilityEventWindow extends EventWindow {
     /** @override */
     openWindow(abilityType) {
-        if(this.events.length && abilityType === AbilityType.Interrupt) {
+        if (this.events.length && abilityType === AbilityType.Interrupt) {
             this.queueStep(new InitiateAbilityInterruptWindow(this.game, abilityType, this));
         } else {
             super.openWindow(abilityType);
@@ -61,9 +61,9 @@ class InitiateAbilityEventWindow extends EventWindow {
     executeHandler() {
         this.eventsToExecute = _.sortBy(this.events, 'order');
 
-        _.each(this.eventsToExecute, event => {
+        _.each(this.eventsToExecute, (event) => {
             event.checkCondition();
-            if(!event.cancelled) {
+            if (!event.cancelled) {
                 event.executeHandler();
             }
         });
@@ -74,8 +74,8 @@ class InitiateAbilityEventWindow extends EventWindow {
     }
 
     emitEvents() {
-        this.eventsToExecute = this.eventsToExecute.filter(event => !event.cancelled);
-        _.each(this.eventsToExecute, event => this.game.emit(event.name, event));
+        this.eventsToExecute = this.eventsToExecute.filter((event) => !event.cancelled);
+        _.each(this.eventsToExecute, (event) => this.game.emit(event.name, event));
     }
 }
 

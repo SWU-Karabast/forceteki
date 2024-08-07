@@ -30,13 +30,13 @@ class PlayerOrCardAbility {
     constructor(properties) {
         this.abilityType = 'action';
         this.gameSystem = properties.gameSystem || [];
-        if(!Array.isArray(this.gameSystem)) {
+        if (!Array.isArray(this.gameSystem)) {
             this.gameSystem = [this.gameSystem];
         }
         this.buildTargets(properties);
         this.cost = this.buildCost(properties.cost);
-        for(const cost of this.cost) {
-            if(cost.dependsOn) {
+        for (const cost of this.cost) {
+            if (cost.dependsOn) {
                 let dependsOnTarget = this.targets.find((target) => target.name === cost.dependsOn);
                 dependsOnTarget.dependentCost = cost;
             }
@@ -45,11 +45,11 @@ class PlayerOrCardAbility {
     }
 
     buildCost(cost) {
-        if(!cost) {
+        if (!cost) {
             return [];
         }
 
-        if(!Array.isArray(cost)) {
+        if (!Array.isArray(cost)) {
             return [cost];
         }
 
@@ -58,10 +58,10 @@ class PlayerOrCardAbility {
 
     buildTargets(properties) {
         this.targets = [];
-        if(properties.target) {
+        if (properties.target) {
             this.targets.push(this.getAbilityTarget('target', properties.target));
-        } else if(properties.targets) {
-            for(const key of Object.keys(properties.targets)) {
+        } else if (properties.targets) {
+            for (const key of Object.keys(properties.targets)) {
                 this.targets.push(this.getAbilityTarget(key, properties.targets[key]));
             }
         }
@@ -69,18 +69,18 @@ class PlayerOrCardAbility {
 
     // TODO: definition / interface for the properties object here
     getAbilityTarget(name, properties) {
-        if(properties.gameSystem) {
-            if(!Array.isArray(properties.gameSystem)) {
+        if (properties.gameSystem) {
+            if (!Array.isArray(properties.gameSystem)) {
                 properties.gameSystem = [properties.gameSystem];
             }
         } else {
             properties.gameSystem = [];
         }
-        if(properties.mode === TargetMode.Select) {
+        if (properties.mode === TargetMode.Select) {
             return new AbilityTargetSelect(name, properties, this);
-        } else if(properties.mode === TargetMode.Ability) {
+        } else if (properties.mode === TargetMode.Ability) {
             return new AbilityTargetAbility(name, properties, this);
-        } else if(properties.mode === TargetMode.Token) {
+        } else if (properties.mode === TargetMode.Token) {
             return new AbilityTargetToken(name, properties, this);
         }
         return new AbilityTargetCard(name, properties, this);
@@ -94,11 +94,11 @@ class PlayerOrCardAbility {
         // check legal targets exist
         // check costs can be paid
         // check for potential to change game state
-        if(!this.canPayCosts(context) && !ignoredRequirements.includes('cost')) {
+        if (!this.canPayCosts(context) && !ignoredRequirements.includes('cost')) {
             return 'cost';
         }
-        if(this.targets.length === 0) {
-            if(this.gameSystem.length > 0 && !this.checkGameActionsForPotential(context)) {
+        if (this.targets.length === 0) {
+            if (this.gameSystem.length > 0 && !this.checkGameActionsForPotential(context)) {
                 return 'condition';
             }
             return '';
@@ -123,33 +123,33 @@ class PlayerOrCardAbility {
     // eslint-disable-next-line no-unused-vars
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = this.cost.map((a) => a);
-        if(context.ignoreResourceCost) {
+        if (context.ignoreResourceCost) {
             costs = costs.filter((cost) => !cost.isPrintedFateCost);
         }
 
-        if(!playCosts) {
+        if (!playCosts) {
             costs = costs.filter((cost) => !cost.isPlayCost);
         }
         return costs;
     }
 
     resolveCosts(context, results) {
-        for(let cost of this.getCosts(context, results.playCosts, results.triggerCosts)) {
+        for (let cost of this.getCosts(context, results.playCosts, results.triggerCosts)) {
             context.game.queueSimpleStep(() => {
-                if(!results.cancelled) {
-                    if(cost.addEventsToArray) {
+                if (!results.cancelled) {
+                    if (cost.addEventsToArray) {
                         cost.addEventsToArray(results.events, context, results);
                     } else {
-                        if(cost.resolve) {
+                        if (cost.resolve) {
                             cost.resolve(context, results);
                         }
                         context.game.queueSimpleStep(() => {
-                            if(!results.cancelled) {
+                            if (!results.cancelled) {
                                 let newEvents = cost.payEvent
                                     ? cost.payEvent(context)
                                     : context.game.getEvent('payCost', {}, () => cost.pay(context));
-                                if(Array.isArray(newEvents)) {
-                                    for(let event of newEvents) {
+                                if (Array.isArray(newEvents)) {
+                                    for (let event of newEvents) {
                                         results.events.push(event);
                                     }
                                 } else {
@@ -183,7 +183,7 @@ class PlayerOrCardAbility {
             payCostsFirst: false,
             delayTargeting: null
         };
-        for(let target of this.targets) {
+        for (let target of this.targets) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults));
         }
         return targetResults;
@@ -192,11 +192,11 @@ class PlayerOrCardAbility {
     resolveRemainingTargets(context, nextTarget) {
         const index = this.targets.indexOf(nextTarget);
         let targets = this.targets.slice();
-        if(targets.slice(0, index).every((target) => target.checkTarget(context))) {
+        if (targets.slice(0, index).every((target) => target.checkTarget(context))) {
             targets = targets.slice(index);
         }
         let targetResults = {};
-        for(const target of targets) {
+        for (const target of targets) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults));
         }
         return targetResults;

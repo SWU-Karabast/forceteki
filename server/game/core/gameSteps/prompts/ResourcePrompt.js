@@ -10,7 +10,7 @@ class ResourcePrompt extends AllPlayerPrompt {
         this.selectableCards = {};
         this.minCardsToResource = minCardsToResource;
         this.maxCardsToResource = maxCardsToResource;
-        _.each(game.getPlayers(), player => this.selectedCards[player.name] = []);
+        _.each(game.getPlayers(), (player) => this.selectedCards[player.name] = []);
     }
 
     /** @override */
@@ -21,7 +21,7 @@ class ResourcePrompt extends AllPlayerPrompt {
 
     /** @override */
     continue() {
-        if(!this.isComplete()) {
+        if (!this.isComplete()) {
             this.highlightSelectableCards();
         }
 
@@ -29,9 +29,9 @@ class ResourcePrompt extends AllPlayerPrompt {
     }
 
     highlightSelectableCards() {
-        _.each(this.game.getPlayers(), player => {
+        _.each(this.game.getPlayers(), (player) => {
             // cards are only selectable until we've selected as many as allowed
-            if(!this.selectableCards[player.name] && this.selectedCards[player.name].length < this.maxCardsToResource) {
+            if (!this.selectableCards[player.name] && this.selectedCards[player.name].length < this.maxCardsToResource) {
                 this.selectableCards[player.name] = player.hand.toArray();
             } else {
                 this.selectableCards[player.name] = [];
@@ -69,14 +69,14 @@ class ResourcePrompt extends AllPlayerPrompt {
             return false;
         }
 
-        if(!this.activeCondition(player)) {
+        if (!this.activeCondition(player)) {
             return false;
         }
 
-        if(!this.selectedCards[player.name].includes(card)) {
+        if (!this.selectedCards[player.name].includes(card)) {
             this.selectedCards[player.name].push(card);
         } else {
-            this.selectedCards[player.name] = this.selectedCards[player.name].filter(c => c !== card);
+            this.selectedCards[player.name] = this.selectedCards[player.name].filter((c) => c !== card);
         }
 
         player.setSelectedCards(this.selectedCards[player.name]);
@@ -92,13 +92,13 @@ class ResourcePrompt extends AllPlayerPrompt {
 
     /** @override */
     menuCommand(player, arg) {
-        if(arg === 'done') {
+        if (arg === 'done') {
             if (!this.completionCondition(player)) {
                 return false;
             }
 
-            if(this.selectedCards[player.name].length > 0) {
-                for(const card of this.selectedCards[player.name]) {
+            if (this.selectedCards[player.name].length > 0) {
+                for (const card of this.selectedCards[player.name]) {
                     player.resourceCard(card);
                 }
                 this.game.addMessage('{0} has resourced {1} cards from hand', player, this.selectedCards[player.name].length);

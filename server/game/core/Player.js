@@ -1105,7 +1105,7 @@ class Player extends GameObject {
      * Exhaust the specified number of resources
      */
     exhaustResources(count) {
-        let readyResources = this.resources.filter(card => !card.exhausted);
+        let readyResources = this.resources.filter((card) => !card.exhausted);
         for (let i = 0; i < Math.min(count, readyResources.length); i++) {
             readyResources[i].exhausted = true;
         }

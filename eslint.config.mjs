@@ -9,10 +9,12 @@ export default tseslint.config(
     ignores: ["build/**", "legacy_jigoku/**", "node_modules/**"],
   },
   {
-    files: ["**/*.js"],
-    // ignores: ["build/**", "legacy_jigoku/**"],
-    ...eslint.configs.recommended,
+    files: ["**/*.js", "**/*.ts"],
     ...jasmine.configs.recommended,
+    ...eslint.configs.recommended,
+    extends: [
+        stylisticJs.configs['all-flat']
+    ],
     plugins: {
         jasmine,
         '@stylistic/js': stylisticJs,
@@ -39,6 +41,27 @@ export default tseslint.config(
             SwitchCase: 1,
         }],
 
+        "@stylistic/js/function-call-spacing": ["error", "never"],
+        "@stylistic/js/padded-blocks": ["error", "never"],
+        "@stylistic/js/object-curly-spacing": ["error", "always"],
+        "@stylistic/js/function-paren-newline": ["off"],
+        "@stylistic/js/function-call-argument-newline": ["off"],
+        "@stylistic/js/object-property-newline": ["off"],
+        "@stylistic/js/space-before-function-paren": ["off"],
+        "@stylistic/js/lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+        "@stylistic/js/quote-props": ["error", "as-needed"],
+        "@stylistic/js/array-element-newline": ["off"],
+        "@stylistic/js/multiline-ternary": ["off"],
+        "@stylistic/js/array-bracket-newline": ["off"],
+        "@stylistic/js/implicit-arrow-linebreak": ["off"],
+        "@stylistic/js/no-multi-spaces": ["error", { "ignoreEOLComments": true }],
+        "@stylistic/js/multiline-comment-style": ["off"],
+        "@stylistic/js/spaced-comment": ["off"],
+        "@stylistic/js/dot-location": ["error", "property"],
+        "@stylistic/js/no-extra-parens": ["off"],
+        "@stylistic/js/comma-dangle": ["error", "only-multiline"],
+        "@stylistic/js/eol-last": ["off"],
+
         quotes: ["error", "single"],
         "global-strict": 0,
         "brace-style": ["error", "1tbs"],
@@ -47,14 +70,12 @@ export default tseslint.config(
         "no-else-return": ["error"],
         "no-extra-bind": ["error"],
         curly: ["error", "all"],
-        "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
         "no-invalid-this": ["error"],
         "no-useless-escape": ["warn"],
         "no-useless-concat": ["warn"],
         "no-useless-constructor": ["warn"],
         "array-bracket-spacing": ["error", "never"],
         "block-spacing": ["error", "always"],
-        "eol-last": ["off"],
 
         camelcase: ["error", {
             properties: "always",

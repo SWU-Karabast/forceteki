@@ -11,8 +11,8 @@ class SingleCardSelector extends BaseCardSelector {
 
     /** @override */
     defaultActivePromptTitle() {
-        if(this.cardType.length === 1) {
-            if(this.cardType[0] === CardType.Upgrade) {
+        if (this.cardType.length === 1) {
+            if (this.cardType[0] === CardType.Upgrade) {
                 return 'Choose an upgrade';
             }
             return 'Choose a ' + this.cardType[0];

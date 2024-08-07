@@ -46,7 +46,8 @@ function filterValues(card) {
     if (filteredObj.subtitle) {
         internalName += '#' + filteredObj.subtitle;
     }
-    filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '').replace(/\s/g, '-');
+    filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '')
+        .replace(/\s/g, '-');
 
     // keep original card for debug logging, will be removed before card is written to file
     delete card.attributes.variants;
@@ -57,7 +58,7 @@ function filterValues(card) {
 
 function getCardData(page, progressBar) {
     return axios.get('https://admin.starwarsunlimited.com/api/cards?pagination[page]=' + page)
-        .then(res => res.data.data)
+        .then((res) => res.data.data)
         .then((cards) => {
             mkdirp.sync(pathToJSON);
             mkdirp.sync(path.join(pathToJSON, 'Card'));
@@ -74,13 +75,13 @@ async function main() {
     let totalPageCount = pageData.data.meta.pagination.pageCount;
 
     console.log('downloading card definitions');
-    const downloadProgressBar = new cliProgress.SingleBar({format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}'});
+    const downloadProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     downloadProgressBar.start(totalPageCount, 0);
 
     let cards = (await Promise.all([...Array(totalPageCount).keys()]
-        .map(pageNumber => getCardData(pageNumber + 1, downloadProgressBar))))
+        .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
-        .filter(n => n); // remove nulls
+        .filter((n) => n); // remove nulls
 
     downloadProgressBar.stop();
 
@@ -91,8 +92,8 @@ async function main() {
     for (const card of cards) {
         if (seenNames.includes(card.internalName)) {
             if (duplicatesWithSetCode[card.internalName] === null) {
-                duplicatesWithSetCode[card.internalName] = cards.filter(c => c.internalName === card.internalName)
-                    .map(c => c.debugObject.attributes.expansion.data.attributes.code);
+                duplicatesWithSetCode[card.internalName] = cards.filter((c) => c.internalName === card.internalName)
+                    .map((c) => c.debugObject.attributes.expansion.data.attributes.code);
             }
             continue;
         }
@@ -102,10 +103,10 @@ async function main() {
         uniqueCards.push(card);
     }
 
-    cards.map(card => delete card.debugObject);
+    cards.map((card) => delete card.debugObject);
 
     console.log('\nwriting card definition files');
-    const fileWriteProgressBar = new cliProgress.SingleBar({format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}'});
+    const fileWriteProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}'});
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
     await Promise.all(uniqueCards.map(async (card) => {

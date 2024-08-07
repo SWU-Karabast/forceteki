@@ -21,7 +21,7 @@ class ChatCommands {
     }
 
     executeCommand(player, command, args) {
-        if(!player || !this.commands[command]) {
+        if (!player || !this.commands[command]) {
             return false;
         }
 
@@ -30,12 +30,12 @@ class ChatCommands {
 
     startClocks(player) {
         this.game.addMessage('{0} restarts the timers', player);
-        _.each(this.game.getPlayers(), player => player.clock.manuallyResume());
+        _.each(this.game.getPlayers(), (player) => player.clock.manuallyResume());
     }
 
     stopClocks(player) {
         this.game.addMessage('{0} stops the timers', player);
-        _.each(this.game.getPlayers(), player => player.clock.manuallyPause());
+        _.each(this.game.getPlayers(), (player) => player.clock.manuallyPause());
     }
 
     modifyClock(player, args) {
@@ -46,7 +46,7 @@ class ChatCommands {
 
     random(player, args) {
         let num = this.getNumberOrDefault(args[1], 4);
-        if(num > 1) {
+        if (num > 1) {
             this.game.addMessage('{0} rolls a d{1}: {2}', player, num, Math.floor(Math.random() * num) + 1);
         }
     }
@@ -127,7 +127,7 @@ class ChatCommands {
     }
 
     manual(player) {
-        if(this.game.manualMode) {
+        if (this.game.manualMode) {
             this.game.manualMode = false;
             this.game.addMessage('{0} switches manual mode off', player);
         } else {
@@ -139,11 +139,11 @@ class ChatCommands {
     getNumberOrDefault(string, defaultNumber) {
         var num = parseInt(string);
 
-        if(isNaN(num)) {
+        if (isNaN(num)) {
             num = defaultNumber;
         }
 
-        if(num < 0) {
+        if (num < 0) {
             num = defaultNumber;
         }
 
@@ -151,7 +151,7 @@ class ChatCommands {
     }
 
     isValidIcon(icon) {
-        if(!icon) {
+        if (!icon) {
             return false;
         }
 

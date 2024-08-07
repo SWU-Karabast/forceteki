@@ -15,11 +15,11 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
 
     showBluffPrompt(player) {
         // Show a bluff prompt if the player has an event which could trigger (but isn't in their hand) and that setting
-        if(player.timerSettings.eventsInDeck && this.choices.some(context => context.player === player)) {
+        if (player.timerSettings.eventsInDeck && this.choices.some((context) => context.player === player)) {
             return true;
         }
         // Show a bluff prompt if we're in Step 6, the player has the approriate setting, and there's an event for the other player
-        return this.abilityType === AbilityType.WouldInterrupt && player.timerSettings.events && _.any(this.events, event => (
+        return this.abilityType === AbilityType.WouldInterrupt && player.timerSettings.events && _.any(this.events, (event) => (
             event.name === EventName.OnInitiateAbilityEffects &&
             event.card.type === CardType.Event && event.context.player !== player
         ));
@@ -43,11 +43,11 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
     }
 
     pass(player, arg) {
-        if(arg === 'pauseRound') {
+        if (arg === 'pauseRound') {
             player.noTimer = true;
             player.resetTimerAtEndOfRound = true;
         }
-        if(this.prevPlayerPassed || !this.activePlayer.opponent) {
+        if (this.prevPlayerPassed || !this.activePlayer.opponent) {
             this.complete = true;
         } else {
             this.activePlayer = this.activePlayer.opponent;
@@ -60,12 +60,12 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
     /** @override */
     filterChoices() {
         // If both players have passed, close the window
-        if(this.complete) {
+        if (this.complete) {
             return true;
         }
         // remove any choices which involve the current player canceling their own abilities
-        if(this.abilityType === AbilityType.WouldInterrupt && !this.activePlayer.optionSettings.cancelOwnAbilities) {
-            this.choices = this.choices.filter(context => !(
+        if (this.abilityType === AbilityType.WouldInterrupt && !this.activePlayer.optionSettings.cancelOwnAbilities) {
+            this.choices = this.choices.filter((context) => !(
                 context.player === this.activePlayer &&
                 context.event.name === EventName.OnInitiateAbilityEffects &&
                 context.event.context.player === this.activePlayer
@@ -73,8 +73,8 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
         }
 
         // if the current player has no available choices in this window, check to see if they should get a bluff prompt
-        if(!_.any(this.choices, context => context.player === this.activePlayer && context.ability.isInValidLocation(context))) {
-            if(this.showBluffPrompt(this.activePlayer)) {
+        if (!_.any(this.choices, (context) => context.player === this.activePlayer && context.ability.isInValidLocation(context))) {
+            if (this.showBluffPrompt(this.activePlayer)) {
                 this.promptWithBluffPrompt(this.activePlayer);
                 return false;
             }
@@ -84,7 +84,7 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
         }
 
         // Filter choices for current player, and prompt
-        this.choices = _.filter(this.choices, context => context.player === this.activePlayer && context.ability.isInValidLocation(context));
+        this.choices = _.filter(this.choices, (context) => context.player === this.activePlayer && context.ability.isInValidLocation(context));
         this.promptBetweenSources(this.choices);
         return false;
     }
@@ -92,7 +92,7 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
     /** @override */
     postResolutionUpdate(resolver) {
         super.postResolutionUpdate(resolver);
-        if(!this.resolvedAbilitiesPerPlayer[resolver.context.player.uuid]) {
+        if (!this.resolvedAbilitiesPerPlayer[resolver.context.player.uuid]) {
             this.resolvedAbilitiesPerPlayer[resolver.context.player.uuid] = [];
         }
         this.resolvedAbilitiesPerPlayer[resolver.context.player.uuid].push({ ability: resolver.context.ability, event: resolver.context.event });
@@ -116,8 +116,8 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
     /** @override */
     hasAbilityBeenTriggered(context) {
         let alreadyResolved = false;
-        if(Array.isArray(this.resolvedAbilitiesPerPlayer[context.player.uuid])) {
-            alreadyResolved = this.resolvedAbilitiesPerPlayer[context.player.uuid].some(resolved => resolved.ability === context.ability && (context.ability.collectiveTrigger || resolved.event === context.event));
+        if (Array.isArray(this.resolvedAbilitiesPerPlayer[context.player.uuid])) {
+            alreadyResolved = this.resolvedAbilitiesPerPlayer[context.player.uuid].some((resolved) => resolved.ability === context.ability && (context.ability.collectiveTrigger || resolved.event === context.event));
         }
         return alreadyResolved;
     }

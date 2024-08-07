@@ -17,10 +17,10 @@ class DynamicEffectDetails extends StaticEffectDetails {
     recalculate(target) {
         let oldValue = this.getValue(target);
         let newValue = this.setValue(target, this.calculate(target, this.context));
-        if(typeof oldValue === 'function' && typeof newValue === 'function') {
+        if (typeof oldValue === 'function' && typeof newValue === 'function') {
             return oldValue.toString() !== newValue.toString();
         }
-        if(Array.isArray(oldValue) && Array.isArray(newValue)) {
+        if (Array.isArray(oldValue) && Array.isArray(newValue)) {
             return JSON.stringify(oldValue) !== JSON.stringify(newValue);
         }
         return oldValue !== newValue;
@@ -28,7 +28,7 @@ class DynamicEffectDetails extends StaticEffectDetails {
 
     /** @override */
     getValue(target) {
-        if(target) {
+        if (target) {
             return this.values[target.uuid];
         }
     }

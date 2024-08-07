@@ -5,7 +5,7 @@ const { Stage } = require('../Constants.js');
 class PlayerAction extends PlayerOrCardAbility {
     constructor(card, costs = [], target) {
         let properties = { cost: costs };
-        if(target) {
+        if (target) {
             properties.target = target;
         }
         super(properties);
@@ -26,7 +26,7 @@ class PlayerAction extends PlayerOrCardAbility {
 
     // TODO: replace 'fate' with 'resource' everywhere
     getReducedCost(context) {
-        let fateCost = this.cost.find(cost => cost.getReducedCost);
+        let fateCost = this.cost.find((cost) => cost.getReducedCost);
         return fateCost ? fateCost.getReducedCost(context) : 0;
     }
 

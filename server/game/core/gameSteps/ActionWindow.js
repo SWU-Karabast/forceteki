@@ -22,20 +22,20 @@ class ActionWindow extends UiPrompt {
 
     /** @override */
     onCardClicked(player, card) {
-        if(player !== this.activePlayer) {
+        if (player !== this.activePlayer) {
             return false;
         }
 
         let actions = card.getActions();
 
-        let legalActions = actions.filter(action => action.meetsRequirements(action.createContext(player)) === '');
+        let legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
 
-        if(legalActions.length === 0) {
+        if (legalActions.length === 0) {
             return false;
-        } else if(legalActions.length === 1) {
+        } else if (legalActions.length === 1) {
             let action = legalActions[0];
-            let targetPrompts = action.targets.some(target => target.properties.player !== RelativePlayer.Opponent);
-            if(!this.activePlayer.optionSettings.confirmOneClick || action.cost.some(cost => cost.promptsPlayer) || targetPrompts) {
+            let targetPrompts = action.targets.some((target) => target.properties.player !== RelativePlayer.Opponent);
+            if (!this.activePlayer.optionSettings.confirmOneClick || action.cost.some((cost) => cost.promptsPlayer) || targetPrompts) {
                 this.resolveAbility(action.createContext(player));
                 return true;
             }
@@ -44,8 +44,8 @@ class ActionWindow extends UiPrompt {
             // TODO: add more specific logic for card location - e.g., smuggle prompt will be here
             activePromptTitle: (isArena(card.location) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
             source: card,
-            choices: legalActions.map(action => action.title).concat('Cancel'),
-            handlers: legalActions.map(action => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)
+            choices: legalActions.map((action) => action.title).concat('Cancel'),
+            handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)
         });
         return true;
     }
@@ -53,7 +53,7 @@ class ActionWindow extends UiPrompt {
     resolveAbility(context) {
         const resolver = this.game.resolveAbility(context);
         this.game.queueSimpleStep(() => {
-            if(resolver.passPriority) {
+            if (resolver.passPriority) {
                 this.postResolutionUpdate(resolver);
             }
         });
@@ -63,7 +63,7 @@ class ActionWindow extends UiPrompt {
         this.prevPlayerPassed = false;
 
         // TODO: is this right? need to investigate for e.g. Leia hero ability
-        if(this.activePlayerConsecutiveActions > 1) {
+        if (this.activePlayerConsecutiveActions > 1) {
             this.markBonusActionsTaken();
         }
     }
@@ -72,13 +72,13 @@ class ActionWindow extends UiPrompt {
     /** @override */
     continue() {
         // TODO: do we need promptedActionWindows?
-        if(!this.activePlayer.promptedActionWindows[this.windowName]) {
+        if (!this.activePlayer.promptedActionWindows[this.windowName]) {
             this.pass();
         }
 
         let completed = super.continue();
 
-        if(!completed) {
+        if (!completed) {
             this.game.currentActionWindow = this;
         } else {
             this.game.currentActionWindow = null;
@@ -92,7 +92,7 @@ class ActionWindow extends UiPrompt {
         let buttons = [
             { text: 'Pass', arg: 'pass' }
         ];
-        if(this.game.manualMode) {
+        if (this.game.manualMode) {
             buttons.unshift({ text: 'Manual Action', arg: 'manual'});
         }
         return {
@@ -116,7 +116,7 @@ class ActionWindow extends UiPrompt {
                     activePrompt: 'Which ability are you using?',
                     location: WildcardLocation.Any,
                     controller: RelativePlayer.Self,
-                    cardCondition: card => card.isFaceup() || card.canBeSmuggled(),
+                    cardCondition: (card) => card.isFaceup() || card.canBeSmuggled(),
                     onSelect: (player, card) => {
                         this.game.addMessage('{0} uses {1}\'s ability', player, card);
                         this.prevPlayerPassed = false;
@@ -144,13 +144,13 @@ class ActionWindow extends UiPrompt {
     pass() {
         this.game.addMessage('{0} passes', this.activePlayer);
 
-        if(!this.activePlayer.opponent) {
+        if (!this.activePlayer.opponent) {
             this.attemptComplete();
             return;
         }
 
         // TODO: is this right? need to investigate for e.g. Leia hero ability
-        if(this.activePlayerConsecutiveActions > 1) {
+        if (this.activePlayerConsecutiveActions > 1) {
             this.markBonusActionsTaken();
         }
     }

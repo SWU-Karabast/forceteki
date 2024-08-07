@@ -39,9 +39,9 @@ export const EffectBuilder = {
         detached: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new CardEffect(game, source, props, new DetachedEffectDetails(type, value.apply, value.unapply)),
         flexible: (type: EffectName, value?: unknown) =>
-            typeof value === 'function'
+            (typeof value === "function"
                 ? EffectBuilder.card.dynamic(type, value)
-                : EffectBuilder.card.static(type, value)
+                : EffectBuilder.card.static(type, value))
     },
     player: {
         static: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
@@ -51,9 +51,9 @@ export const EffectBuilder = {
         detached: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new PlayerEffectDetails(game, source, props, new DetachedEffectDetails(type, value.apply, value.unapply)),
         flexible: (type: EffectName, value) =>
-            typeof value === 'function'
+            (typeof value === "function"
                 ? EffectBuilder.player.dynamic(type, value)
-                : EffectBuilder.player.static(type, value)
+                : EffectBuilder.player.static(type, value))
     },
     // // TODO: change this to combat
     // conflict: {

@@ -13,14 +13,14 @@ class BaseCardSelector {
         this.checkTarget = !!properties.targets;
         this.sameDiscardPile = !!properties.sameDiscardPile;
 
-        if(!Array.isArray(properties.cardType)) {
+        if (!Array.isArray(properties.cardType)) {
             this.cardType = [properties.cardType];
         }
     }
 
     buildLocation(property) {
         let location = property || WildcardLocation.AnyArena || [];
-        if(!Array.isArray(location)) {
+        if (!Array.isArray(location)) {
             location = [location];
         }
         return location;
@@ -28,14 +28,14 @@ class BaseCardSelector {
 
     findPossibleCards(context) {
         let controllerProp = this.controller;
-        if(typeof controllerProp === 'function') {
+        if (typeof controllerProp === 'function') {
             controllerProp = controllerProp(context);
         }
 
-        if(this.location.includes(WildcardLocation.Any)) {
-            if(controllerProp === RelativePlayer.Self) {
+        if (this.location.includes(WildcardLocation.Any)) {
+            if (controllerProp === RelativePlayer.Self) {
                 return context.game.allCards.filter((card) => card.controller === context.player);
-            } else if(controllerProp === RelativePlayer.Opponent) {
+            } else if (controllerProp === RelativePlayer.Opponent) {
                 return context.game.allCards.filter((card) => card.controller === context.player.opponent);
             }
             return context.game.allCards.toArray();
@@ -43,17 +43,17 @@ class BaseCardSelector {
 
         let upgradesInPlay = context.player.getCardsInPlay().reduce((array, card) => array.concat(card.upgrades), []);
 
-        if(context.player.opponent) {
+        if (context.player.opponent) {
             upgradesInPlay = upgradesInPlay.concat(...context.player.opponent.getCardsInPlay().map((card) => card.upgrades));
         }
 
         let possibleCards = [];
-        if(controllerProp !== RelativePlayer.Opponent) {
+        if (controllerProp !== RelativePlayer.Opponent) {
             possibleCards = this.location.reduce(
                 (array, location) => array.concat(this.getCardsForPlayerLocation(location, context.player, upgradesInPlay)), possibleCards
             );
         }
-        if(controllerProp !== RelativePlayer.Self && context.player.opponent) {
+        if (controllerProp !== RelativePlayer.Self && context.player.opponent) {
             possibleCards = this.location.reduce(
                 (array, location) => array.concat(this.getCardsForPlayerLocation(location, context.player.opponent, upgradesInPlay)), possibleCards
             );
@@ -90,31 +90,31 @@ class BaseCardSelector {
 
     canTarget(card, context, choosingPlayer, selectedCards = []) {
         let controllerProp = this.controller;
-        if(typeof controllerProp === 'function') {
+        if (typeof controllerProp === 'function') {
             controllerProp = controllerProp(context);
         }
 
-        if(!card) {
+        if (!card) {
             return false;
         }
 
-        if(this.sameDiscardPile && selectedCards.length > 0) {
+        if (this.sameDiscardPile && selectedCards.length > 0) {
             return card.location === selectedCards[0].location && card.owner === selectedCards[0].owner;
         }
 
-        if(this.checkTarget && !card.canBeTargeted(context, selectedCards)) {
+        if (this.checkTarget && !card.canBeTargeted(context, selectedCards)) {
             return false;
         }
-        if(controllerProp === RelativePlayer.Self && card.controller !== context.player) {
+        if (controllerProp === RelativePlayer.Self && card.controller !== context.player) {
             return false;
         }
-        if(controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
+        if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if(!cardLocationMatches(card.location, this.location)) {
+        if (!cardLocationMatches(card.location, this.location)) {
             return false;
         }
-        if(card.location === Location.Hand && card.controller !== choosingPlayer) {
+        if (card.location === Location.Hand && card.controller !== choosingPlayer) {
             return false;
         }
         return this.cardType.includes(card.getType()) && this.cardCondition(card, context);

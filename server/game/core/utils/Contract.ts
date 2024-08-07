@@ -4,11 +4,11 @@ import process from 'process';
 export enum AssertMode {
     Assert,
     Log,
-};
+}
 
 interface IContractCheckImpl {
     fail(message: string): void;
-};
+}
 
 class LoggingContractCheckImpl implements IContractCheckImpl {
     constructor(private readonly breakpoint: boolean) {

@@ -412,7 +412,7 @@ export function optional(cost: ICost): ICost {
         promptsPlayer: true,
         canPay: () => true,
         getCostMessage: (context: TriggeredAbilityContext) =>
-            context.costs[getActionName(context)] ? cost.getCostMessage(context) : undefined,
+            (context.costs[getActionName(context)] ? cost.getCostMessage(context) : undefined),
         getActionName: getActionName,
         resolve: (context: TriggeredAbilityContext, result) => {
             if (!cost.canPay(context)) {

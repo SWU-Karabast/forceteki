@@ -9,7 +9,7 @@ class SelectSelector extends BaseCardSelector {
 
     /** @override */
     hasEnoughTargets(context) {
-        return _.any(this.choices, condition => condition(context));
+        return _.any(this.choices, (condition) => condition(context));
     }
 
     /** @override */

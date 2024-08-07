@@ -17,17 +17,17 @@ const defaultProperties = {
 };
 
 const ModeToSelector = {
-    ability: p => new SingleCardSelector(p),
-    autoSingle: p => new SingleCardSelector(p),
-    exactly: p => new ExactlyXCardSelector(p.numCards, p),
-    exactlyVariable: p => new ExactlyVariableXCardSelector(p.numCardsFunc, p),
-    maxStat: p => new MaxStatCardSelector(p),
-    single: p => new SingleCardSelector(p),
-    token: p => new SingleCardSelector(p),
-    elementSymbol: p => new SingleCardSelector(p),
-    unlimited: p => new UnlimitedCardSelector(p),
-    upTo: p => new UpToXCardSelector(p.numCards, p),
-    upToVariable: p => new UpToVariableXCardSelector(p.numCardsFunc, p)
+    ability: (p) => new SingleCardSelector(p),
+    autoSingle: (p) => new SingleCardSelector(p),
+    exactly: (p) => new ExactlyXCardSelector(p.numCards, p),
+    exactlyVariable: (p) => new ExactlyVariableXCardSelector(p.numCardsFunc, p),
+    maxStat: (p) => new MaxStatCardSelector(p),
+    single: (p) => new SingleCardSelector(p),
+    token: (p) => new SingleCardSelector(p),
+    elementSymbol: (p) => new SingleCardSelector(p),
+    unlimited: (p) => new UnlimitedCardSelector(p),
+    upTo: (p) => new UpToXCardSelector(p.numCards, p),
+    upToVariable: (p) => new UpToVariableXCardSelector(p.numCardsFunc, p)
 };
 
 class CardSelector {
@@ -36,7 +36,7 @@ class CardSelector {
 
         let factory = ModeToSelector[properties.mode];
 
-        if(!factory) {
+        if (!factory) {
             throw new Error(`Unknown card selector mode of ${properties.mode}`);
         }
 
@@ -45,15 +45,15 @@ class CardSelector {
 
     static getDefaultedProperties(properties) {
         properties = Object.assign({}, defaultProperties, properties);
-        if(properties.mode) {
+        if (properties.mode) {
             return properties;
         }
 
-        if(properties.maxStat) {
+        if (properties.maxStat) {
             properties.mode = TargetMode.MaxStat;
-        } else if(properties.numCards === 1 && !properties.multiSelect) {
+        } else if (properties.numCards === 1 && !properties.multiSelect) {
             properties.mode = TargetMode.Single;
-        } else if(properties.numCards === 0) {
+        } else if (properties.numCards === 0) {
             properties.mode = TargetMode.Unlimited;
         } else {
             properties.mode = TargetMode.UpTo;

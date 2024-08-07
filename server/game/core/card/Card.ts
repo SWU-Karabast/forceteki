@@ -903,7 +903,6 @@ class Card extends EffectSource {
      * used by cards inheriting this class
      */
     canPlayOn(card) {
-
         return true;
     }
 
@@ -1338,7 +1337,7 @@ class Card extends EffectSource {
 
         baseEffects.forEach((effect) => {
             switch (effect.type) {
-                // this case is for cards that don't have a default printed power but it is instead calculated
+            // this case is for cards that don't have a default printed power but it is instead calculated
                 case EffectName.CalculatePrintedPower: {
                     const powerFunction = effect.getValue(this);
                     const calculatedPowerValue = powerFunction(this);

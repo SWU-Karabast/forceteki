@@ -15,21 +15,21 @@ class StatModifier {
     }
 
     static getEffectName(effect) {
-        if(effect && effect.context && effect.context.source) {
+        if (effect && effect.context && effect.context.source) {
             return effect.context.source.name;
         }
         return 'Unknown';
     }
 
     static getEffectType(effect) {
-        if(effect && effect.context && effect.context.source) {
+        if (effect && effect.context && effect.context.source) {
             return effect.context.source.type;
         }
         return;
     }
 
     static getCardType(card) {
-        if(card) {
+        if (card) {
             return card.type;
         }
         return;
