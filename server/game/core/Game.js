@@ -99,7 +99,7 @@ class Game extends EventEmitter {
      * @param {Array} args to match the references in @string
      */
     addMessage() {
-        // @ts-ignore
+        // @ts-expect-error
         this.gameChat.addMessage(...arguments);
     }
 
@@ -110,7 +110,7 @@ class Game extends EventEmitter {
      * @param {Array} args to match the references in @string
      */
     addAlert() {
-        // @ts-ignore
+        // @ts-expect-error
         this.gameChat.addAlert(...arguments);
     }
 

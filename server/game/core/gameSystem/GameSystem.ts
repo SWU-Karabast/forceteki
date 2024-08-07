@@ -3,7 +3,7 @@ import type Card from '../card/Card';
 import { CardType, EventName, Stage } from '../Constants';
 import { Event } from '../event/Event';
 import type Player from '../Player';
-import type PlayerOrCardAbility = require('../ability/PlayerOrCardAbility');
+import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 
 type PlayerOrCard = Player | Card;
 
@@ -17,19 +17,20 @@ export interface IGameSystemProperties {
 // TODO: see which base classes can be made abstract
 /**
  * Base class for making structured changes to game state. Almost all effects, actions,
- * costs, etc. should use a {@link GameSystem} object to impact the game.
+ * costs, etc. should use a {@link GameSystem} object to impact the game state.
  * 
- * @template GameSystemProperties Property class to use for configuring the behavior of the system's execution
+ * @template TGameSystemProperties Property class to use for configuring the behavior of the system's execution
  */
-export abstract class GameSystem<GameSystemProperties extends IGameSystemProperties = IGameSystemProperties> {
-    propertyFactory?: (context?: AbilityContext) => GameSystemProperties;
-    properties?: GameSystemProperties;
+// TODO: convert all template parameter names in the repo to use T prefix
+export abstract class GameSystem<TGameSystemProperties extends IGameSystemProperties = IGameSystemProperties> {
+    propertyFactory?: (context?: AbilityContext) => TGameSystemProperties;
+    properties?: TGameSystemProperties;
     targetType: string[] = [];
     eventName = EventName.Unnamed;
-    name = '';
-    cost = '';
-    effect = '';
-    defaultProperties: GameSystemProperties = { cannotBeCancelled: false, optional: false } as GameSystemProperties;
+    name = '';  // TODO: should these be abstract?
+    costDescription = '';
+    effectDescription = '';
+    defaultProperties = { cannotBeCancelled: false, optional: false };
     getDefaultTargets: (context: AbilityContext) => any = (context) => this.defaultTargets(context);
 
     /**
@@ -39,11 +40,11 @@ export abstract class GameSystem<GameSystemProperties extends IGameSystemPropert
      * which represents the context of the {@link PlayerOrCardAbility} that is executing this system. 
      * This is set as {@link GameSystem.propertyFactory}.
      */
-    constructor(propertyFactory: GameSystemProperties | ((context?: AbilityContext) => GameSystemProperties)) {
-        if (typeof propertyFactory === 'function') {
-            this.propertyFactory = propertyFactory;
+    constructor(propertiesOrPropertyFactory: TGameSystemProperties | ((context?: AbilityContext) => TGameSystemProperties)) {
+        if (typeof propertiesOrPropertyFactory === 'function') {
+            this.propertyFactory = propertiesOrPropertyFactory;
         } else {
-            this.properties = propertyFactory;
+            this.properties = propertiesOrPropertyFactory;
         }
     }
 
@@ -75,12 +76,12 @@ export abstract class GameSystem<GameSystemProperties extends IGameSystemPropert
      * @param additionalProperties Any additional properties on top of the default ones
      * @returns An object of the `GameSystemProperties` template type
      */
-    generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): GameSystemProperties {
+    generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): TGameSystemProperties {
         const properties = Object.assign(
             { target: this.getDefaultTargets(context) },
             this.defaultProperties,
             additionalProperties,
-            this.properties ?? this.propertyFactory?.(context) ?? {}
+            this.properties ?? this.propertyFactory?.(context) // ?? {} // TODO: remove this comment once we're sure it's not needed
         );
         if (!Array.isArray(properties.target)) {
             properties.target = [properties.target];
@@ -90,12 +91,12 @@ export abstract class GameSystem<GameSystemProperties extends IGameSystemPropert
     }
 
     getCostMessage(context: AbilityContext): undefined | [string, any[]] {
-        return [this.cost, []];
+        return [this.costDescription, []];
     }
 
     getEffectMessage(context: AbilityContext, additionalProperties = {}): [string, any[]] {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
-        return [this.effect, [target]];
+        return [this.effectDescription, [target]];
     }
 
     /**

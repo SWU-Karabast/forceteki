@@ -36,6 +36,7 @@ export class ChessClock extends BasicClock implements IClock {
         this.mode = 'stop';
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override opponentStart() {}
 
     protected override timeRanOut() {

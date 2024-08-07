@@ -12,7 +12,7 @@ export class RandomDiscardSystem extends PlayerTargetSystem {
 
     override name = 'discard';
     override eventName = EventName.OnCardsDiscardedFromHand;
-    constructor(propertyFactory: IRandomDiscardProperties | ((context: AbilityContext) => IRandomDiscardProperties)) {
+    public constructor(propertyFactory: IRandomDiscardProperties | ((context: AbilityContext) => IRandomDiscardProperties)) {
         super(propertyFactory);
     }
 

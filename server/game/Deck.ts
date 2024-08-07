@@ -22,7 +22,7 @@ export class Deck {
         for (const { count, card } of this.data.deckCards ?? []) {
             for (let i = 0; i < count; i++) {
                 const CardConstructor = cards.get(card.id) ?? Card;
-                // @ts-ignore
+                // @ts-expect-error
                 const deckCard: Card = new CardConstructor(player, card);
                 deckCard.location = Location.Deck;
                 result.deckCards.push(deckCard);
@@ -34,7 +34,7 @@ export class Deck {
             for (let i = 0; i < count; i++) {
                 if (card?.type === CardType.Base) {
                     const CardConstructor = cards.get(card.id) ?? BaseCard;
-                    // @ts-ignore
+                    // @ts-expect-error
                     const baseCard: BaseCard = new CardConstructor(player, card);
                     baseCard.location = '' as any;
                     result.base = baseCard;
@@ -45,7 +45,7 @@ export class Deck {
             for (let i = 0; i < count; i++) {
                 if (card?.type === CardType.Leader) {
                     const CardConstructor = cards.get(card.id) ?? LeaderCard;
-                    // @ts-ignore
+                    // @ts-expect-error
                     const leaderCard: LeaderCard = new CardConstructor(player, card);
                     result.leader = leaderCard;
                 }
@@ -54,7 +54,7 @@ export class Deck {
 
         for (const cardData of this.data.outsideTheGameCards ?? []) {
             const CardConstructor = cards.get(cardData.id) ?? Card;
-            // @ts-ignore
+            // @ts-expect-error
             const card: Card = new CardConstructor(player, cardData);
             card.location = Location.OutsideTheGame;
             result.outsideTheGameCards.push(card);

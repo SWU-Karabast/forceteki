@@ -2,7 +2,7 @@ import { AbilityContext } from '../ability/AbilityContext';
 import { GameSystem } from '../gameSystem/GameSystem';
 import { TriggeredAbilityContext } from '../ability/TriggeredAbilityContext';
 import { Event } from '../event/Event';
-import Player = require('../Player.js');
+import Player from '../Player.js';
 
 export interface Result {
     canCancel?: boolean;

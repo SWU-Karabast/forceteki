@@ -1,9 +1,9 @@
-const AbilityDsl = require('../../AbilityDsl.js');
-const Effects = require('../../effects/EffectLibrary.js');
-const EffectSource = require('../effect/EffectSource.js');
-import CardAbility = require('../ability/CardAbility.js');
-// import TriggeredAbility = require('./triggeredability');
-import Game = require('../Game.js');
+import AbilityDsl from '../../AbilityDsl.js';
+import Effects from '../../effects/EffectLibrary.js';
+import EffectSource from '../effect/EffectSource.js';
+import CardAbility from '../ability/CardAbility.js';
+// import TriggeredAbility from './triggeredability';
+import Game from '../Game.js';
 import Contract from '../utils/Contract';
 
 import { AbilityContext } from '../ability/AbilityContext.js';
@@ -31,7 +31,7 @@ import {
 // import { PlayAttachmentAction } from './PlayAttachmentAction.js';
 // import { StatusToken } from './StatusToken';
 import Player from '../Player.js';
-import StatModifier = require('./StatModifier.js');
+import StatModifier from './StatModifier.js';
 import type { ICardEffect } from '../effect/ICardEffect.js';
 // import type { GainAllAbilities } from './Effects/Library/gainAllAbilities';
 import { PlayUnitAction } from '../../actions/PlayUnitAction.js';
@@ -73,9 +73,9 @@ const ValidKeywords = new Set<PrintedKeyword>([
 // TODO: switch to using mixins for the different card types
 class Card extends EffectSource {
     controller: Player;
-    game: Game;
+    override game: Game;
 
-    id: string;
+    override id: string;
     printedTitle: string;
     printedSubtitle: string;
     internalName: string;
@@ -365,12 +365,13 @@ class Card extends EffectSource {
         return this._getPersistentEffects();
     }
 
+    // TODO: should this class be abstract?
     /**
      * Create card abilities by calling subsequent methods with appropriate properties
      * @param {Object} ability - AbilityDsl object containing limits, costs, effects, and game actions
      */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     setupCardAbilities(ability) {
-         
     }
 
     action(properties: IActionProps<this>): void {
@@ -723,7 +724,7 @@ class Card extends EffectSource {
     //     return menu;
     // }
 
-    isUnique(): boolean {
+    override isUnique(): boolean {
         return this.cardData.is_unique;
     }
 
@@ -735,41 +736,12 @@ class Card extends EffectSource {
         return this.cardData.clan || this.cardData.faction;
     }
 
-    checkRestrictions(actionType, context: AbilityContext): boolean {
+    override checkRestrictions(actionType, context: AbilityContext): boolean {
         const player = (context && context.player) || this.controller;
         return (
             super.checkRestrictions(actionType, context) &&
             player.checkRestrictions(actionType, context)
         );
-    }
-
-    getTokenCount(type: string): number {
-        return this.tokens[type] ?? 0;
-    }
-
-    addToken(type: string, number: number = 1): void {
-        this.tokens[type] = this.getTokenCount(type) + number;
-    }
-
-    hasToken(type: string): boolean {
-        return this.getTokenCount(type) > 0;
-    }
-
-    removeAllTokens(): void {
-        const keys = Object.keys(this.tokens);
-        keys.forEach((key) => this.removeToken(key, this.tokens[key]));
-    }
-
-    removeToken(type: string, number: number): void {
-        this.tokens[type] -= number;
-
-        if (this.tokens[type] < 0) {
-            this.tokens[type] = 0;
-        }
-
-        if (this.tokens[type] === 0) {
-            delete this.tokens[type];
-        }
     }
 
     getReactions(): any[] {
@@ -1532,24 +1504,24 @@ class Card extends EffectSource {
         );
     }
 
-    createSnapshot() {
-        const clone = new Card(this.owner, this.cardData);
+    // createSnapshot() {
+    //     const clone = new Card(this.owner, this.cardData);
 
-        // clone.upgrades = _(this.upgrades.map((attachment) => attachment.createSnapshot()));
-        clone.childCards = this.childCards.map((card) => card.createSnapshot());
-        clone.effects = [...this.effects];
-        clone.controller = this.controller;
-        clone.exhausted = this.exhausted;
-        // clone.statusTokens = [...this.statusTokens];
-        clone.location = this.location;
-        clone.parent = this.parent;
-        clone.aspects = [...this.aspects];
-        // clone.fate = this.fate;
-        // clone.inConflict = this.inConflict;
-        clone.traits = Array.from(this.getTraits());
-        clone.uuid = this.uuid;
-        return clone;
-    }
+    //     // clone.upgrades = _(this.upgrades.map((attachment) => attachment.createSnapshot()));
+    //     clone.childCards = this.childCards.map((card) => card.createSnapshot());
+    //     clone.effects = [...this.effects];
+    //     clone.controller = this.controller;
+    //     clone.exhausted = this.exhausted;
+    //     // clone.statusTokens = [...this.statusTokens];
+    //     clone.location = this.location;
+    //     clone.parent = this.parent;
+    //     clone.aspects = [...this.aspects];
+    //     // clone.fate = this.fate;
+    //     // clone.inConflict = this.inConflict;
+    //     clone.traits = Array.from(this.getTraits());
+    //     clone.uuid = this.uuid;
+    //     return clone;
+    // }
 
     // hasDash(type = '') {
     //     if (type === 'glory' || this.printedType !== CardType.Character) {

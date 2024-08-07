@@ -26,7 +26,7 @@ export class Event {
         private handler?: (event: Event & Partial<Params>) => void
     ) {
         for (const key in params) {
-            if (params.hasOwnProperty(key)) {
+            if (key in params) {
                 this[key] = params[key];
             }
         }

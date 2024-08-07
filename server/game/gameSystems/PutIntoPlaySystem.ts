@@ -14,7 +14,7 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
 export class PutIntoPlaySystem extends CardTargetSystem {
     override name = 'putIntoPlay';
     override eventName = EventName.OnUnitEntersPlay;
-    override cost = 'putting {0} into play';
+    override costDescription = 'putting {0} into play';
     override targetType = [CardType.Unit];
     override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
@@ -22,7 +22,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         overrideLocation: null
     };
 
-    constructor(
+    public constructor(
         properties: ((context: AbilityContext) => IPutIntoPlayProperties) | IPutIntoPlayProperties
     ) {
         super(properties);

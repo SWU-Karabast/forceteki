@@ -19,7 +19,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
         shuffle: false,
         location: WildcardLocation.AnyArena
     };
-    constructor(properties: ((context: AbilityContext) => IReturnToDeckProperties) | IReturnToDeckProperties) {
+    public constructor(properties: ((context: AbilityContext) => IReturnToDeckProperties) | IReturnToDeckProperties) {
         super(properties);
     }
 

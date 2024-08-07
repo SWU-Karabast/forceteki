@@ -35,6 +35,7 @@ export class BasicClock implements IClock {
         this.updateStateId();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public reset() {}
 
     public start() {

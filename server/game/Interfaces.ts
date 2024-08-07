@@ -1,12 +1,11 @@
 import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
-import type Card = require('./core/card/Card');
-import type CardAbility = require('./core/ability/CardAbility');
+import type Card from './core/card/Card';
+import type CardAbility from './core/ability/CardAbility';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName } from './core/Constants';
 // import type { StatusToken } from './StatusToken';
-import type Player = require('./core/Player');
 
 interface IBaseTarget {
     activePromptTitle?: string;
@@ -175,7 +174,11 @@ export interface IPersistentEffectProps<Source = any> {
     match?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: RelativePlayer;
     targetLocation?: Location;
+
+    // TODO: can we get a real signature here
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     effect: Function | Function[];
+
     createCopies?: boolean;
 }
 

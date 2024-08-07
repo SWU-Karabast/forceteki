@@ -2,6 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type Player from '../Player';
 import { GameSystem, type IGameSystemProperties } from './GameSystem';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IPlayerTargetSystemProperties extends IGameSystemProperties {}
 
 /**

@@ -40,7 +40,7 @@ export class SelectCardSystem extends CardTargetSystem {
         manuallyRaiseEvent: false
     };
 
-    constructor(properties: ISelectCardProperties | ((context: AbilityContext) => ISelectCardProperties)) {
+    public constructor(properties: ISelectCardProperties | ((context: AbilityContext) => ISelectCardProperties)) {
         super(properties);
     }
 
@@ -141,5 +141,6 @@ export class SelectCardSystem extends CardTargetSystem {
         return properties.targets && properties.player !== RelativePlayer.Opponent;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     override eventHandler(event): void {}
 }

@@ -42,7 +42,7 @@ import { RandomDiscardSystem, IRandomDiscardProperties } from './RandomDiscardSy
 // import { ReadyAction, ReadyProperties } from './ReadyAction';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
-import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
+// import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
 // import { ReturnToHandAction, ReturnToHandProperties } from './ReturnToHandAction';
 // import { RevealAction, RevealProperties } from './RevealAction';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';

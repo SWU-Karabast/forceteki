@@ -425,6 +425,7 @@ export function optional(cost: ICost): ICost {
                 () => {
                     context.costs[actionName] = true;
                 },
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
                 () => {}
             ];
 
@@ -546,6 +547,7 @@ export function nameCard(): ICost {
                 }
             });
         },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         pay() {}
     };
 }

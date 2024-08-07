@@ -16,6 +16,7 @@ class LoggingContractCheckImpl implements IContractCheckImpl {
 
     fail(message: string): void {
         if (this.breakpoint) {
+            // eslint-disable-next-line no-debugger
             debugger;
         }
 
@@ -29,6 +30,7 @@ class AssertContractCheckImpl implements IContractCheckImpl {
 
     fail(message: string): void {
         if (this.breakpoint) {
+            // eslint-disable-next-line no-debugger
             debugger;
         }
 

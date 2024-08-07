@@ -39,10 +39,7 @@ export class SetupPhase extends Phase {
     }
 
     chooseFirstPlayer() {
-        const coinTossWinner = randomItem(this.game.getPlayers());
-        if (coinTossWinner) {
-            var firstPlayer = coinTossWinner;
-        }
+        const firstPlayer = randomItem(this.game.getPlayers());
 
         this.game.promptWithHandlerMenu(firstPlayer, {
             activePromptTitle: 'You won the flip. Do you want to start with initiative:',

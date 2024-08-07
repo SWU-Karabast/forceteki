@@ -1,6 +1,6 @@
-import type Card = require('../card/Card');
-import type Game = require('../Game');
-import type Player = require('../Player');
+import type Card from '../card/Card';
+import type Game from '../Game';
+import type Player from '../Player';
 import type { IStep } from './IStep';
 
 export abstract class BaseStep implements IStep {

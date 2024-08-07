@@ -35,6 +35,8 @@ export default tseslint.config(
             "assertionStyle": "as",
             "objectLiteralTypeAssertions": "never"
         }],
+        "@typescript-eslint/ban-ts-comment": ["warn"],
+        "@typescript-eslint/no-unused-vars": ["warn"]
     }
   }
 );

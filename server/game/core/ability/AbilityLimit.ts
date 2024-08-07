@@ -20,8 +20,6 @@ class UnlimitedAbilityLimit implements IAbilityLimit {
     public currentUser: null | string = null;
     #useCount = new Map<string, number>();
 
-    constructor() {}
-
     public clone() {
         return new UnlimitedAbilityLimit();
     }
@@ -43,8 +41,10 @@ class UnlimitedAbilityLimit implements IAbilityLimit {
         this.#useCount.clear();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public registerEvents(eventEmitter: EventEmitter): void {}
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public unregisterEvents(eventEmitter: EventEmitter): void {}
 
     public currentForPlayer(player: Player) {
@@ -87,8 +87,10 @@ class FixedAbilityLimit implements IAbilityLimit {
         this.#useCount.clear();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public registerEvents(eventEmitter: EventEmitter): void {}
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public unregisterEvents(eventEmitter: EventEmitter): void {}
 
     public currentForPlayer(player: Player) {

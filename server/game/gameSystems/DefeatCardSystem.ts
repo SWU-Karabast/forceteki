@@ -4,15 +4,16 @@ import { CardType, EventName, Location } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { isArena } from '../core/utils/EnumHelpers';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDefeatCardProperties extends ICardTargetSystemProperties {}
 
 export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
     override name = 'defeat';
     override eventName = EventName.OnCardDefeated;
-    override cost = 'defeating {0}';
+    override costDescription = 'defeating {0}';
     override targetType = [CardType.Unit, CardType.Upgrade];
 
-    constructor(propertyFactory) {
+    public constructor(propertyFactory) {
         super(propertyFactory);
     }
 
