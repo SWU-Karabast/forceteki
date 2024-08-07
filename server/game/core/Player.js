@@ -1142,6 +1142,7 @@ class Player extends GameObject {
         var targetPile = this.getSourceListForPile(targetLocation);
 
         if (!this.isLegalLocationForCard(card, targetLocation) || (targetPile && targetPile.contains(card))) {
+            Contract.fail(`Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
             return;
         }
 

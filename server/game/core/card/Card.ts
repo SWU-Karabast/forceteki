@@ -134,6 +134,7 @@ class Card extends EffectSource {
 
         this.id = cardData.id;
         this.unique = cardData.unique;
+        this.typeField = cardData.type;
 
         this.printedTitle = cardData.title;
         this.printedSubtitle = cardData.subtitle;

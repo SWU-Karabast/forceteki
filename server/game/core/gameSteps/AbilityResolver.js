@@ -23,18 +23,19 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     initialise() {
         this.pipeline.initialise([
-            new SimpleStep(this.game, () => this.createSnapshot()),
+            // new SimpleStep(this.game, () => this.createSnapshot()),
             new SimpleStep(this.game, () => this.resolveEarlyTargets()),
             new SimpleStep(this.game, () => this.checkForCancel()),
             new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow()),
         ]);
     }
 
-    createSnapshot() {
-        if([CardType.Unit, CardType.Base, CardType.Leader, CardType.Upgrade].includes(this.context.source.getType())) {
-            this.context.cardStateWhenInitiated = this.context.source.createSnapshot();
-        }
-    }
+    // TODO: figure out our story for snapshots
+    // createSnapshot() {
+    //     if([CardType.Unit, CardType.Base, CardType.Leader, CardType.Upgrade].includes(this.context.source.getType())) {
+    //         this.context.cardStateWhenInitiated = this.context.source.createSnapshot();
+    //     }
+    // }
 
     openInitiateAbilityEventWindow() {
         if(this.cancelled) {
