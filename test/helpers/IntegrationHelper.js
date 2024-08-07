@@ -7,8 +7,8 @@ const Contract = require('../../build/game/core/utils/Contract.js');
 
 require('./ObjectFormatters.js');
 
-const DeckBuilder = require('./deckbuilder.js');
-const GameFlowWrapper = require('./gameflowwrapper.js');
+const DeckBuilder = require('./DeckBuilder.js');
+const GameFlowWrapper = require('./GameFlowWrapper.js');
 
 const deckBuilder = new DeckBuilder();
 
