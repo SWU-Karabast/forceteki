@@ -47,9 +47,9 @@ function FormatTitles(titles: string[]) {
     }, '');
 }
 
-type Event = {
+interface Event {
     name: string;
-};
+}
 
 export const TriggeredAbilityWindowTitle = {
     getTitle(abilityType: string, eventsaa: Event[] | Event) {
@@ -57,7 +57,7 @@ export const TriggeredAbilityWindowTitle = {
         const abilityWord = AbilityTypeToWord.get(abilityType) ?? abilityType;
         const titles = events
             .map((event) => {
-                let func = EventToTitleFunc[event.name];
+                const func = EventToTitleFunc[event.name];
                 if (func) {
                     return func(event);
                 }
@@ -77,7 +77,7 @@ export const TriggeredAbilityWindowTitle = {
         return `Any ${abilityWord}s?`;
     },
     getAction(event: Event) {
-        let func = EventToTitleFunc[event.name];
+        const func = EventToTitleFunc[event.name];
         if (func) {
             return func(event);
         }

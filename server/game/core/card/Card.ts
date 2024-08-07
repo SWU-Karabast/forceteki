@@ -91,22 +91,22 @@ class Card extends EffectSource {
     tokens: object = {};
     // menu: { command: string; text: string }[] = [];
 
-    showPopup: boolean = false;
-    popupMenuText: string = '';
+    showPopup = false;
+    popupMenuText = '';
     abilities: any = { actions: [], reactions: [], persistentEffects: [], playActions: [] };
     traits: string[];
     printedFaction: string;
     location: Location;
 
-    isBase: boolean = false;
-    isLeader: boolean = false;
+    isBase = false;
+    isLeader = false;
 
     upgrades = [] as Card[];
     childCards = [] as Card[];
     // statusTokens = [] as StatusToken[];
     allowedAttachmentTraits = [] as string[];
-    printedKeywords: Array<string> = [];
-    aspects: Array<Aspect> = [];
+    printedKeywords: string[] = [];
+    aspects: Aspect[] = [];
 
 
     defaultController: Player;
@@ -200,7 +200,7 @@ class Card extends EffectSource {
     }
 
     get name(): string {
-        let copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
+        const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
         return copyEffect ? copyEffect.printedName : this.printedTitle;
     }
 
@@ -252,7 +252,7 @@ class Card extends EffectSource {
         // }
 
         // const lostAllNonKeywordsAbilities = this.anyEffect(EffectName.LoseAllNonKeywordAbilities);
-        let allAbilities = actions.concat(effectActions);
+        const allAbilities = actions.concat(effectActions);
         // if (lostAllNonKeywordsAbilities) {
         //     allAbilities = allAbilities.filter((a) => a.isKeywordAbility());
         // }
@@ -370,7 +370,7 @@ class Card extends EffectSource {
      * @param {Object} ability - AbilityDsl object containing limits, costs, effects, and game actions
      */
     setupCardAbilities(ability) {
-        // eslint-disable-line no-unused-vars
+         
     }
 
     action(properties: IActionProps<this>): void {
@@ -635,7 +635,7 @@ class Card extends EffectSource {
     updateEffectContexts() {
         for (const effect of this.persistentEffects) {
             if (effect.ref) {
-                for (let e of effect.ref) {
+                for (const e of effect.ref) {
                     e.refreshContext();
                 }
             }
@@ -643,7 +643,7 @@ class Card extends EffectSource {
     }
 
     moveTo(targetLocation: Location) {
-        let originalLocation = this.location;
+        const originalLocation = this.location;
 
         if (originalLocation === targetLocation) {
             return;   
@@ -736,7 +736,7 @@ class Card extends EffectSource {
     }
 
     checkRestrictions(actionType, context: AbilityContext): boolean {
-        let player = (context && context.player) || this.controller;
+        const player = (context && context.player) || this.controller;
         return (
             super.checkRestrictions(actionType, context) &&
             player.checkRestrictions(actionType, context)
@@ -756,7 +756,7 @@ class Card extends EffectSource {
     }
 
     removeAllTokens(): void {
-        let keys = Object.keys(this.tokens);
+        const keys = Object.keys(this.tokens);
         keys.forEach((key) => this.removeToken(key, this.tokens[key]));
     }
 
@@ -942,7 +942,7 @@ class Card extends EffectSource {
      * used by cards inheriting this class
      */
     canPlayOn(card) {
-        // eslint-disable-line no-unused-vars
+         
         return true;
     }
 
@@ -1042,7 +1042,7 @@ class Card extends EffectSource {
         if (this.type === CardType.Event) {
             return this.getActions();
         }
-        let actions = this.abilities.playActions.slice();
+        const actions = this.abilities.playActions.slice();
         if (this.type === CardType.Unit) {
             actions.push(new PlayUnitAction(this));
         } 
@@ -1225,8 +1225,8 @@ class Card extends EffectSource {
             return null;
         }
 
-        let modifiers = this.getHpModifiers(excludeModifiers);
-        let skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
+        const modifiers = this.getHpModifiers(excludeModifiers);
+        const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
         if (isNaN(skill)) {
             return 0;
         }
@@ -1238,7 +1238,7 @@ class Card extends EffectSource {
     }
 
     getBaseHp(): number {
-        let skill = this.getBaseStatModifiers().baseHp;
+        const skill = this.getBaseStatModifiers().baseHp;
         if (isNaN(skill)) {
             return 0;
         }
@@ -1246,7 +1246,7 @@ class Card extends EffectSource {
     }
 
     getHpModifiers(exclusions) {
-        let baseStatModifiers = this.getBaseStatModifiers();
+        const baseStatModifiers = this.getBaseStatModifiers();
         if (isNaN(baseStatModifiers.baseHp)) {
             return baseStatModifiers.baseHpModifiers;
         }
@@ -1262,11 +1262,11 @@ class Card extends EffectSource {
             rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
         }
 
-        let modifiers = baseStatModifiers.baseHpModifiers;
+        const modifiers = baseStatModifiers.baseHpModifiers;
 
         // hp modifiers
         // TODO: remove status tokens completely, upgrades completely cover that category
-        let modifierEffects = rawEffects.filter(
+        const modifierEffects = rawEffects.filter(
             (effect) =>
                 effect.type === EffectName.UpgradeHpModifier ||
                 effect.type === EffectName.ModifyHp
@@ -1285,8 +1285,8 @@ class Card extends EffectSource {
     }
 
     getPower(floor = true, excludeModifiers = []) {
-        let modifiers = this.getPowerModifiers(excludeModifiers);
-        let skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
+        const modifiers = this.getPowerModifiers(excludeModifiers);
+        const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
         if (isNaN(skill)) {
             return 0;
         }
@@ -1298,7 +1298,7 @@ class Card extends EffectSource {
     }
 
     getBasePower() {
-        let skill = this.getBaseStatModifiers().basePower;
+        const skill = this.getBaseStatModifiers().basePower;
         if (isNaN(skill)) {
             return 0;
         }
@@ -1306,7 +1306,7 @@ class Card extends EffectSource {
     }
 
     getPowerModifiers(exclusions) {
-        let baseStatModifiers = this.getBaseStatModifiers();
+        const baseStatModifiers = this.getBaseStatModifiers();
         if (isNaN(baseStatModifiers.basePower)) {
             return baseStatModifiers.basePowerModifiers;
         }
@@ -1323,12 +1323,12 @@ class Card extends EffectSource {
         }
 
         // set effects (i.e., "set power to X")
-        let setEffects = rawEffects.filter(
+        const setEffects = rawEffects.filter(
             (effect) => effect.type === EffectName.SetPower
         );
         if (setEffects.length > 0) {
-            let latestSetEffect = setEffects.at(-1);
-            let setAmount = latestSetEffect.getValue(this);
+            const latestSetEffect = setEffects.at(-1);
+            const setAmount = latestSetEffect.getValue(this);
             return [
                 StatModifier.fromEffect(
                     setAmount,
@@ -1339,12 +1339,12 @@ class Card extends EffectSource {
             ];
         }
 
-        let modifiers = baseStatModifiers.basePowerModifiers;
+        const modifiers = baseStatModifiers.basePowerModifiers;
 
         // power modifiers
         // TODO: remove status tokens completely, upgrades completely cover that category
         // TODO: does this work for resolving effects like Raid that depend on whether we're the attacker or not?
-        let modifierEffects = rawEffects.filter(
+        const modifierEffects = rawEffects.filter(
             (effect) =>
                 effect.type === EffectName.UpgradePowerModifier ||
                 effect.type === EffectName.ModifyPower ||
@@ -1386,7 +1386,7 @@ class Card extends EffectSource {
             EffectName.SetBasePower,
         ];
 
-        let baseEffects = this.getRawEffects().filter((effect) => baseModifierEffects.includes(effect.type));
+        const baseEffects = this.getRawEffects().filter((effect) => baseModifierEffects.includes(effect.type));
         let basePowerModifiers = [StatModifier.fromCard(this.printedPower, this, 'Printed power', false)];
         let baseHpModifiers = [StatModifier.fromCard(this.printedHp, this, 'Printed hp', false)];
         let basePower = this.printedPower;
@@ -1396,8 +1396,8 @@ class Card extends EffectSource {
             switch (effect.type) {
                 // this case is for cards that don't have a default printed power but it is instead calculated
                 case EffectName.CalculatePrintedPower: {
-                    let powerFunction = effect.getValue(this);
-                    let calculatedPowerValue = powerFunction(this);
+                    const powerFunction = effect.getValue(this);
+                    const calculatedPowerValue = powerFunction(this);
                     basePower = calculatedPowerValue;
                     basePowerModifiers = basePowerModifiers.filter(
                         (mod) => !mod.name.startsWith('Printed power')
@@ -1413,7 +1413,7 @@ class Card extends EffectSource {
                     break;
                 }
                 case EffectName.CopyCharacter: {
-                    let copiedCard = effect.getValue(this);
+                    const copiedCard = effect.getValue(this);
                     basePower = copiedCard.getPrintedStat(StatType.Power);
                     baseHp = copiedCard.getPrintedStat(StatType.Hp);
                     // replace existing base or copied modifier
@@ -1455,15 +1455,15 @@ class Card extends EffectSource {
             }
         });
 
-        let overridingPowerModifiers = basePowerModifiers.filter((mod) => mod.overrides);
+        const overridingPowerModifiers = basePowerModifiers.filter((mod) => mod.overrides);
         if (overridingPowerModifiers.length > 0) {
-            let lastModifier = overridingPowerModifiers.at(-1);
+            const lastModifier = overridingPowerModifiers.at(-1);
             basePowerModifiers = [lastModifier];
             basePower = lastModifier.amount;
         }
-        let overridingHpModifiers = baseHpModifiers.filter((mod) => mod.overrides);
+        const overridingHpModifiers = baseHpModifiers.filter((mod) => mod.overrides);
         if (overridingHpModifiers.length > 0) {
-            let lastModifier = overridingHpModifiers.at(-1);
+            const lastModifier = overridingHpModifiers.at(-1);
             baseHpModifiers = [lastModifier];
             baseHp = lastModifier.amount;
         }
@@ -1497,12 +1497,12 @@ class Card extends EffectSource {
     // *******************************************************************************************************
 
     getCost() {
-        let copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
+        const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
         return copyEffect ? copyEffect.printedCost : this.printedCost;
     }
 
     costLessThan(num) {
-        let cost = this.printedCost;
+        const cost = this.printedCost;
         return num && (cost || cost === 0) && cost < num;
     }
 
@@ -1533,7 +1533,7 @@ class Card extends EffectSource {
     }
 
     createSnapshot() {
-        let clone = new Card(this.owner, this.cardData);
+        const clone = new Card(this.owner, this.cardData);
 
         // clone.upgrades = _(this.upgrades.map((attachment) => attachment.createSnapshot()));
         clone.childCards = this.childCards.map((card) => card.createSnapshot());
@@ -1576,8 +1576,8 @@ class Card extends EffectSource {
     // }
 
     getStatusTokenSkill() {
-        let modifiers = this.getStatusTokenModifiers();
-        let skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
+        const modifiers = this.getStatusTokenModifiers();
+        const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
         if (isNaN(skill)) {
             return 0;
         }

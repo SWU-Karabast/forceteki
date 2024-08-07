@@ -24,7 +24,7 @@ const checkAttackerCondition = (card, context, properties) => {
 }
 
 const initiateAttackFromUnit = (game, card, properties) => {
-    let prevCondition = properties.condition;
+    const prevCondition = properties.condition;
     properties.condition = (context) => {
         const abilityCondition = (!prevCondition || prevCondition(context));
         const attackerCondition = checkAttackerCondition(card, context, properties);

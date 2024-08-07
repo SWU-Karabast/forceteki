@@ -28,7 +28,7 @@ const defaultTimerSettings = {
     eventsInDeck: false
 };
 
-type User = {
+interface User {
     username: string;
     email: string;
     emailHash: string;
@@ -62,7 +62,7 @@ type User = {
             eventsInDeck: boolean;
         }>;
     }>;
-};
+}
 
 export function getUserWithDefaultsSet(user?: Partial<User> & Pick<User, 'username'>) {
     if (!user) {

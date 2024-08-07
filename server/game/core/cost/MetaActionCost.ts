@@ -21,7 +21,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
 
     override canPay(context: AbilityContext): boolean {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
-        let additionalProps = {
+        const additionalProps = {
             controller: RelativePlayer.Self,
             location: properties.location || WildcardLocation.Any
         };

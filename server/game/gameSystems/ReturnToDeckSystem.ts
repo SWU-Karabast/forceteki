@@ -24,7 +24,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     override getCostMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
+        const properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         return [
             properties.shuffle
                 ? 'shuffling {0} into their deck'
@@ -34,7 +34,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     override getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
+        const properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         if (properties.shuffle) {
             return ["shuffle {0} into its owner's deck", [properties.target]];
         }
@@ -45,7 +45,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     }
 
     override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
+        const properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         let location: TargetableLocation[];
         if (!Array.isArray(properties.location)) {
             location = [properties.location];

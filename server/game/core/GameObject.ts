@@ -34,12 +34,12 @@ export class GameObject {
     }
 
     public getEffects<V = any>(type: EffectName): V[] {
-        let filteredEffects = this.getRawEffects().filter((effect) => effect.type === type);
+        const filteredEffects = this.getRawEffects().filter((effect) => effect.type === type);
         return filteredEffects.map((effect) => effect.getValue(this));
     }
 
     public sumEffects(type: EffectName) {
-        let filteredEffects = this.getEffects(type);
+        const filteredEffects = this.getEffects(type);
         return filteredEffects.reduce((total, effect) => total + effect, 0);
     }
 

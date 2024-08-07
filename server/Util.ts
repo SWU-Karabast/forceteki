@@ -34,7 +34,7 @@ export function wrapAsync(fn: any): any {
     };
 }
 
-export function detectBinary(state: unknown, path = '', results = []): Array<{ path: string; type: string }> {
+export function detectBinary(state: unknown, path = '', results = []): { path: string; type: string }[] {
     if (!state) {
         return results;
     }
@@ -52,11 +52,11 @@ export function detectBinary(state: unknown, path = '', results = []): Array<{ p
     }
 
     if (type === 'Object') {
-        for (let key in state as object) {
+        for (const key in state as object) {
             detectBinary(state[key], `${path}.${key}`, results);
         }
     } else if (type === 'Array') {
-        for (let i = 0; i < (state as Array<unknown>).length; ++i) {
+        for (let i = 0; i < (state as unknown[]).length; ++i) {
             detectBinary(state[i], `${path}[${i}]`, results);
         }
     }

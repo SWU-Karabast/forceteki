@@ -39,7 +39,7 @@ class AssertContractCheckImpl implements IContractCheckImpl {
 let contractCheckImpl: IContractCheckImpl;
 
 // we check env var first and default to logging mode if not set
-let debugEnvSetting = process.env.FORCETEKI_DEBUG?.toLowerCase();
+const debugEnvSetting = process.env.FORCETEKI_DEBUG?.toLowerCase();
 if (['true', '1'].includes(debugEnvSetting)) {
     contractCheckImpl = new AssertContractCheckImpl(false);
 } else {

@@ -32,13 +32,13 @@ export class MoveCardSystem extends CardTargetSystem {
     }
 
     override getCostMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
+        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         return ['shuffling {0} into their deck', [properties.target]];
     }
 
     override getEffectMessage(context: AbilityContext): [string, any[]] {
-        let properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
-        let destinationController = Array.isArray(properties.target)
+        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
+        const destinationController = Array.isArray(properties.target)
             ? properties.changePlayer
                 ? properties.target[0].controller.opponent
                 : properties.target[0].controller
@@ -67,17 +67,17 @@ export class MoveCardSystem extends CardTargetSystem {
     }
 
     eventHandler(event, additionalProperties = {}): void {
-        let context = event.context;
-        let card = event.card;
+        const context = event.context;
+        const card = event.card;
         event.cardStateWhenMoved = card.createSnapshot();
-        let properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         if (properties.switch && properties.switchTarget) {
-            let otherCard = properties.switchTarget;
+            const otherCard = properties.switchTarget;
             card.owner.moveCard(otherCard, card.location);
         }
         const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
         player.moveCard(card, properties.destination, { bottom: !!properties.bottom });
-        let target = properties.target;
+        const target = properties.target;
         if (properties.shuffle && (target.length === 0 || card === target[target.length - 1])) {
             card.owner.shuffleDeck();
         } else if (properties.faceup) {

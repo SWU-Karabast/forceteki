@@ -16,7 +16,7 @@ import StaticEffectDetails from './effectDetails/StaticEffectDetails';
 
 type PlayerOrCard = Player | Card;
 
-type Props = {
+interface Props {
     targetLocation?: Location | Location[];
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
@@ -28,7 +28,7 @@ type Props = {
     cannotBeCancelled?: boolean;
     optional?: boolean;
     parentAction?: GameSystem;
-};
+}
 
 export const EffectBuilder = {
     card: {

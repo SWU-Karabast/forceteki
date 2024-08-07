@@ -1,8 +1,8 @@
 import { Location, TargetableLocation, WildcardLocation } from "../Constants";
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
-export function checkConvertToEnum<T>(values: string[], enumObj: T): Array<T[keyof T]> {
-    let result: Array<T[keyof T]> = [];
+export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
+    const result: T[keyof T][] = [];
 
     for (const value of values) {
         if (Object.values(enumObj).indexOf(value.toLowerCase()) >= 0) {

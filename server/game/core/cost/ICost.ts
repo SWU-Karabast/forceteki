@@ -4,10 +4,10 @@ import { TriggeredAbilityContext } from '../ability/TriggeredAbilityContext';
 import { Event } from '../event/Event';
 import Player = require('../Player.js');
 
-export type Result = {
+export interface Result {
     canCancel?: boolean;
     cancelled?: boolean;
-};
+}
 
 export interface ICost {
     canPay(context: AbilityContext): boolean;

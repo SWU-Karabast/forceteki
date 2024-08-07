@@ -1,11 +1,11 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { EventName } from '../Constants';
 
-type Params = {
+interface Params {
     amount: number;
     context: AbilityContext;
     cannotBeCancelled: boolean;
-};
+}
 
 export class Event {
     cancelled = false;

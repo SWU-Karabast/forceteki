@@ -7,8 +7,8 @@ type StepItem = IStep | StepFactory;
 
 export class GamePipeline {
     // TODO: clearer name for queue
-    public pipeline: Array<StepItem> = [];
-    public queue: Array<StepItem> = [];
+    public pipeline: StepItem[] = [];
+    public queue: StepItem[] = [];
 
     initialise(steps: StepItem[]): void {
         this.pipeline = steps;
@@ -34,7 +34,7 @@ export class GamePipeline {
         if (this.pipeline.length === 0) {
             this.pipeline.unshift(step);
         } else {
-            var currentStep = this.getCurrentStep();
+            const currentStep = this.getCurrentStep();
             if (currentStep.queueStep) {
                 currentStep.queueStep(step);
             } else {
@@ -48,7 +48,7 @@ export class GamePipeline {
             return;
         }
 
-        var step = this.getCurrentStep();
+        const step = this.getCurrentStep();
 
         if (step.cancelStep && step.isComplete) {
             step.cancelStep();
@@ -62,7 +62,7 @@ export class GamePipeline {
 
     handleCardClicked(player: Player, card: Card) {
         if (this.pipeline.length > 0) {
-            var step = this.getCurrentStep();
+            const step = this.getCurrentStep();
             if (step.onCardClicked(player, card) !== false) {
                 return true;
             }
@@ -118,9 +118,9 @@ export class GamePipeline {
             return step.toString();
         }
 
-        let name = step.constructor.name;
+        const name = step.constructor.name;
         if (step.pipeline) {
-            let result = {};
+            const result = {};
             result[name] = step.pipeline.getDebugInfo();
             return result;
         }

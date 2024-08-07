@@ -33,7 +33,7 @@ export class AbilityContext<S = any> {
     player: Player;
     ability: PlayerOrCardAbility;
     costs: any;
-    costAspects: Array<Aspect>;
+    costAspects: Aspect[];
     targets: any;
     selects: any;
     tokens: any;
@@ -66,7 +66,7 @@ export class AbilityContext<S = any> {
     }
 
     copy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
-        let copy = this.createCopy(newProps);
+        const copy = this.createCopy(newProps);
         copy.target = this.target;
         // copy.token = this.token;
         copy.costAspects = this.costAspects;

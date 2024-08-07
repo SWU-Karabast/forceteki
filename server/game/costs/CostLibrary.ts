@@ -529,7 +529,7 @@ export function nameCard(): ICost {
             return true;
         },
         resolve(context: TriggeredAbilityContext) {
-            let dummyObject = {
+            const dummyObject = {
                 selectCardName: (player, cardName, context) => {
                     context.costs.nameCardCost = cardName;
                     return true;

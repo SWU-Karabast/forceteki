@@ -17,9 +17,7 @@ interface IBaseTarget {
     gameSystem?: GameSystem | GameSystem[];
 }
 
-interface IChoicesInterface {
-    [propName: string]: ((context: AbilityContext) => boolean) | GameSystem | GameSystem[];
-}
+type IChoicesInterface = Record<string, ((context: AbilityContext) => boolean) | GameSystem | GameSystem[]>;
 
 interface ITargetSelect extends IBaseTarget {
     mode: TargetMode.Select;
@@ -98,9 +96,7 @@ interface IActionCardTarget {
 
 type IActionTarget = (ITargetCard & IActionCardTarget) | ITargetSelect | ITargetAbility;
 
-interface IActionTargets {
-    [propName: string]: IActionTarget & ISubTarget;
-}
+type IActionTargets = Record<string, IActionTarget & ISubTarget>;
 
 type EffectArg =
     | number
@@ -146,9 +142,7 @@ type TriggeredAbilityTarget =
     | (ITargetCard & ITriggeredAbilityCardTarget)
     | ITargetSelect;
 
-interface ITriggeredAbilityTargets {
-    [propName: string]: TriggeredAbilityTarget & ISubTarget & TriggeredAbilityTarget;
-}
+type ITriggeredAbilityTargets = Record<string, TriggeredAbilityTarget & ISubTarget & TriggeredAbilityTarget>;
 
 export type WhenType = {
     [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext) => boolean;
@@ -185,9 +179,7 @@ export interface IPersistentEffectProps<Source = any> {
     createCopies?: boolean;
 }
 
-export type traitLimit = {
-    [trait: string]: number;
-};
+export type traitLimit = Record<string, number>;
 
 export interface IAttachmentConditionProps {
     limit?: number;

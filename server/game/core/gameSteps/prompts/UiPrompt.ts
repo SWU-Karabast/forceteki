@@ -3,16 +3,16 @@ import type Player from '../../Player';
 import { BaseStep } from '../BaseStep';
 import Contract from '../../utils/Contract';
 
-type ActivePrompt = {
-    buttons: Array<{ text: string; arg?: string; command?: string }>;
+interface ActivePrompt {
+    buttons: { text: string; arg?: string; command?: string }[];
     menuTitle: string;
     promptTitle?: string;
 
-    controls?: Array<{ type: string; source: any; targets: any }>;
+    controls?: { type: string; source: any; targets: any }[];
     selectCard?: boolean;
     selectOrder?: unknown;
     selectRing?: boolean;
-};
+}
 
 export abstract class UiPrompt extends BaseStep {
     public completed = false;

@@ -1,4 +1,4 @@
-type Player = {
+interface Player {
     user: {
         username: string;
         emailHash: string;
@@ -6,17 +6,17 @@ type Player = {
             disableGravatar: boolean;
         };
     };
-};
+}
 
 type MsgArg = string | { name: string } | { getShortSummary: () => string };
 
-type MessageText = string | Array<string | number>;
+type MessageText = string | (string | number)[];
 
 export class GameChat {
-    messages: Array<{
+    messages: {
         date: Date;
-        message: MessageText | { alert: { type: string; message: string | Array<string> } };
-    }> = [];
+        message: MessageText | { alert: { type: string; message: string | string[] } };
+    }[] = [];
 
     addChatMessage(player: Player, message: any): void {
         const playerArg = {
@@ -28,26 +28,26 @@ export class GameChat {
         this.addMessage('{0} {1}', playerArg, message);
     }
 
-    addMessage(message: string, ...args: Array<MsgArg>): void {
+    addMessage(message: string, ...args: MsgArg[]): void {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: formattedMessage });
     }
 
-    addAlert(type: string, message: string, ...args: Array<MsgArg>): void {
+    addAlert(type: string, message: string, ...args: MsgArg[]): void {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: { alert: { type: type, message: formattedMessage } } });
     }
 
-    formatMessage(format: string, args: Array<MsgArg>): string | Array<string> {
+    formatMessage(format: string, args: MsgArg[]): string | string[] {
         if (!format) {
             return '';
         }
 
-        let fragments = format.split(/(\{\d+\})/);
+        const fragments = format.split(/(\{\d+\})/);
         return fragments.reduce((output, fragment) => {
-            let argMatch = fragment.match(/\{(\d+)\}/);
+            const argMatch = fragment.match(/\{(\d+)\}/);
             if (argMatch && args) {
-                let arg = args[argMatch[1]];
+                const arg = args[argMatch[1]];
                 if (arg || arg === 0) {
                     if (arg.message) {
                         return output.concat(arg.message);
@@ -62,8 +62,8 @@ export class GameChat {
                     return output.concat(arg);
                 }
             } else if (!argMatch && fragment) {
-                let splitFragment = fragment.split(' ');
-                let lastWord = splitFragment.pop();
+                const splitFragment = fragment.split(' ');
+                const lastWord = splitFragment.pop();
                 return splitFragment
                     .reduce((output, word) => {
                         return output.concat(word || [], ' ');
@@ -74,7 +74,7 @@ export class GameChat {
         }, []);
     }
 
-    formatArray(array: Array<MsgArg>): string | Array<string> {
+    formatArray(array: MsgArg[]): string | string[] {
         if (array.length === 0) {
             return [];
         }

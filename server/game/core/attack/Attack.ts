@@ -69,7 +69,7 @@ export class Attack extends GameObject {
         const rawEffects = involvedUnit.getRawEffects().filter((effect) => effect.type === EffectName.ModifyPower);
         let effectModifier = 0;
 
-        let result = involvedUnit.getBasePower();
+        const result = involvedUnit.getBasePower();
 
         rawEffects.forEach((effect) => {
             const props = effect.getValue();

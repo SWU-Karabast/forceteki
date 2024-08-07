@@ -8,13 +8,13 @@ const CANCELLED = 'CANCELLED';
 const STOP = 'STOP';
 
 type PoolOption = Card | typeof CANCELLED | typeof STOP;
-type Props = {
+interface Props {
     reducedCost: number;
     minFate?: number;
     maxFate?: number;
     pool?: PoolOption;
     numberOfChoices?: number;
-};
+}
 
 export class AdjustableResourceCost implements ICost {
     public isPlayCost = true;
@@ -37,7 +37,7 @@ export class AdjustableResourceCost implements ICost {
     }
 
     public resolve(context: AbilityContext, result: Result): void {
-        let availableResources = context.player.countSpendableResources();
+        const availableResources = context.player.countSpendableResources();
         const reducedCost = this.getReducedCost(context);
         if (reducedCost > availableResources) {
             result.cancelled = true;

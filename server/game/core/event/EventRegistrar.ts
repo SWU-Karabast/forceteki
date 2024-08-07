@@ -36,7 +36,7 @@ export class EventRegistrar {
      * @param {Array} events - A list containing a mix of event names and
      * event-to-method mappings.
      */
-    public register(events: Array<string | Record<string, string>>) {
+    public register(events: (string | Record<string, string>)[]) {
         for (const event of events) {
             if (typeof event === 'string') {
                 this.registerEvent(event);

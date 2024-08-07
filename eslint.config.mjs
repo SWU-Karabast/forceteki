@@ -20,7 +20,7 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   {
-    ignores: ["**/*.js", "**/*.mjs", "server/jigoku/**", "test/helpers/**", "test/server/**"],
+    ignores: ["**/*.js", "**/*.mjs", "legacy_jigoku/**", "test/helpers/**", "test/server/**"],
   },
   {
     rules: {
@@ -28,6 +28,13 @@ export default tseslint.config(
             "vars": "local",
         }],
         "@typescript-eslint/no-explicit-any": ["warn"],
+        "@typescript-eslint/no-inferrable-types": ["error", {
+            "ignoreParameters": true
+        }],
+        "@typescript-eslint/consistent-type-assertions": ["error", {
+            "assertionStyle": "as",
+            "objectLiteralTypeAssertions": "never"
+        }],
     }
   }
 );

@@ -76,7 +76,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
     resolveAttack(attack: Attack, context: AbilityContext): void {
         // event for damage dealt to target by attacker
-        let damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).getEvent(attack.target, context)];
+        const damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).getEvent(attack.target, context)];
 
         // event for damage dealt to attacker by defender, if any
         if (!attack.targetIsBase) {

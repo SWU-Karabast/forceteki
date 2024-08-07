@@ -37,15 +37,15 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     }
 
     override getEffectMessage(context: AbilityContext): [string, any[]] {
-        let { target } = this.generatePropertiesFromContext(context);
+        const { target } = this.generatePropertiesFromContext(context);
         return ['put {0} into play', [target]];
     }
 
     override canAffect(card: Card, context: AbilityContext): boolean {
-        let properties = this.generatePropertiesFromContext(context) as IPutIntoPlayProperties;
-        let contextCopy = context.copy({ source: card });
-        let player = this.getPutIntoPlayPlayer(contextCopy);
-        let targetSide = properties.side || this.getDefaultSide(contextCopy);
+        const properties = this.generatePropertiesFromContext(context) as IPutIntoPlayProperties;
+        const contextCopy = context.copy({ source: card });
+        const player = this.getPutIntoPlayPlayer(contextCopy);
+        const targetSide = properties.side || this.getDefaultSide(contextCopy);
 
         if (!context || !super.canAffect(card, context)) {
             return false;
@@ -62,7 +62,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     }
 
     override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        let { controller, side, overrideLocation } = this.generatePropertiesFromContext(
+        const { controller, side, overrideLocation } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IPutIntoPlayProperties;
@@ -73,7 +73,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     }
 
     eventHandler(event, additionalProperties = {}): void {
-        let player = this.getPutIntoPlayPlayer(event.context);
+        const player = this.getPutIntoPlayPlayer(event.context);
         event.card.new = true;
         if (event.fate) {
             event.card.fate = event.fate;

@@ -5,7 +5,7 @@ import { CardType, PlayType, Aspect } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 
-export type CostAdjusterProperties = {
+export interface CostAdjusterProperties {
     penaltyAspect?: Aspect;
     cardType?: CardType;
     costFloor?: number;
@@ -14,7 +14,7 @@ export type CostAdjusterProperties = {
     amount?: number | ((card: Card, player: Player) => number);
     match?: (card: Card, source: Card) => boolean;
     targetCondition?: (target: Card, source: Card, context: AbilityContext) => boolean;
-};
+}
 
 export class CostAdjuster {
     private uses = 0;       // TODO: is this needed?
@@ -24,7 +24,7 @@ export class CostAdjuster {
     private cardType?: CardType;
     private targetCondition?: (target: Card, source: Card, context: AbilityContext<any>) => boolean;
     private limit?: IAbilityLimit;
-    private playingTypes?: Array<PlayType>;
+    private playingTypes?: PlayType[];
 
     constructor(
         private game: Game,

@@ -45,7 +45,7 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     override getEffectMessage(context: AbilityContext): [string, any[]] {
-        let { target, effect, effectArgs } = this.generatePropertiesFromContext(context) as ISelectCardProperties;
+        const { target, effect, effectArgs } = this.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (effect) {
             return [effect, effectArgs(context) || []];
         }
@@ -53,10 +53,10 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ISelectCardProperties {
-        let properties = super.generatePropertiesFromContext(context, additionalProperties) as ISelectCardProperties;
+        const properties = super.generatePropertiesFromContext(context, additionalProperties) as ISelectCardProperties;
         properties.gameSystem.setDefaultTargetEvaluator(() => properties.target);
         if (!properties.selector) {
-            let cardCondition = (card, context) =>
+            const cardCondition = (card, context) =>
                 properties.gameSystem.allTargetsLegal(
                     context,
                     Object.assign({}, additionalProperties, properties.subActionProperties(card))
@@ -67,8 +67,8 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        let properties = this.generatePropertiesFromContext(context, additionalProperties);
-        let player =
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const player =
             (properties.targets && context.choosingPlayerOverride) ||
             (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
             context.player;
@@ -76,8 +76,8 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
-        let properties = this.generatePropertiesFromContext(context, additionalProperties);
-        let player =
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const player =
             (properties.targets && context.choosingPlayerOverride) ||
             (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
             context.player;
@@ -85,7 +85,7 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     override addEventsToArray(events, context: AbilityContext, additionalProperties = {}): void {
-        let properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
             return;
         }
@@ -104,7 +104,7 @@ export class SelectCardSystem extends CardTargetSystem {
         if (!properties.selector.hasEnoughTargets(context, player)) {
             return;
         }
-        let defaultProperties = {
+        const defaultProperties = {
             context: context,
             selector: properties.selector,
             mustSelect: mustSelect,
@@ -137,7 +137,7 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {
-        let properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.targets && properties.player !== RelativePlayer.Opponent;
     }
 

@@ -44,7 +44,7 @@ export class PlayUnitAction extends BaseAction {
     }
 
     override createContext(player: RelativePlayer = this.card.controller) {
-        let context = super.createContext(player);
+        const context = super.createContext(player);
         context.costAspects = this.card.aspects;
         return context;
     }

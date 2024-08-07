@@ -94,7 +94,7 @@ export abstract class GameSystem<GameSystemProperties extends IGameSystemPropert
     }
 
     getEffectMessage(context: AbilityContext, additionalProperties = {}): [string, any[]] {
-        let { target } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         return [this.effect, [target]];
     }
 

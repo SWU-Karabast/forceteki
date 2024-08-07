@@ -13,8 +13,8 @@ export function randomItem<T>(array: T[]): undefined | T {
     return array[j];
 }
 
-export type Derivable<T extends boolean | string | number | Array<any>, C> = T | ((context: C) => T);
+export type Derivable<T extends boolean | string | number | any[], C> = T | ((context: C) => T);
 
-export function derive<T extends boolean | string | number | Array<any>, C>(input: Derivable<T, C>, context: C): T {
+export function derive<T extends boolean | string | number | any[], C>(input: Derivable<T, C>, context: C): T {
     return typeof input === 'function' ? input(context) : input;
 }

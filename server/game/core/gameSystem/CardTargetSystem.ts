@@ -133,7 +133,7 @@ export abstract class CardTargetSystem<P extends ICardTargetSystemProperties = I
     }
 
     updateLeavesPlayEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        let properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
         super.updateEvent(event, card, context, additionalProperties);
         event.destination = Location.Discard;
         // event.preResolutionEffect = () => {
@@ -148,7 +148,7 @@ export abstract class CardTargetSystem<P extends ICardTargetSystemProperties = I
         //     }
         // };
         event.createContingentEvents = () => {
-            let contingentEvents = [];
+            const contingentEvents = [];
             // Add an imminent triggering condition for all attachments leaving play
 
             // for (const attachment of (event.card.attachments ?? []) as BaseCard[]) {

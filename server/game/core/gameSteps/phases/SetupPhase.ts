@@ -60,7 +60,7 @@ export class SetupPhase extends Phase {
     }
 
     chooseMulligan() {
-        let playersByInitiative = [this.game.initiativePlayer, this.game.initiativePlayer.opponent];
+        const playersByInitiative = [this.game.initiativePlayer, this.game.initiativePlayer.opponent];
         for (const player of playersByInitiative) {
             this.game.promptWithHandlerMenu(player, {
                 activePromptTitle: 'Do you want to mulligan your hand?',
