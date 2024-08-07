@@ -79,7 +79,7 @@ export default tseslint.config(
         "global-strict": 0,
         "brace-style": ["error", "1tbs"],
         "no-sparse-arrays": ["warn"],
-        eqeqeq: ["error", "smart"],
+        eqeqeq: ["error", "always", {"null": "ignore"}],
         "no-else-return": ["error"],
         "no-extra-bind": ["error"],
         curly: ["error", "all"],
