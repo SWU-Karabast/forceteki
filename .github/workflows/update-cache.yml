@@ -1,0 +1,30 @@
+# this task just creates a data cache on the main branch which can then be reused by the github actions for pull request branches
+# should save us a lot of actions time on downloading dependencies and card definitions
+name: update-cache
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build-cache:
+    name: Build Cache
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: '22.x'
+            cache: 'npm'
+        - run: npm install
+
+        - name: cache card data json files
+          id: cache-card-data
+          uses: actions/cache@v3
+          with:
+            path: ./test/json
+            key: sor-shd-manual
+
+        - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
+          run: npm run get-cards
