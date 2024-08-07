@@ -50,7 +50,7 @@ export class Attack extends GameObject {
     }
 
     get attackerTotalPower(): number | null {
-        return this.getTotalPower(this.attacker)
+        return this.getTotalPower(this.attacker);
     }
 
     get defenderTotalPower(): number | null {

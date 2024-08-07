@@ -13,7 +13,7 @@ export class Event {
     context = null;
     window = null;
     replacementEvent = null;
-    condition = (event) => true; 
+    condition = (event) => true;
     order = 0;
     isContingent = false;
     checkFullyResolved = (event) => !event.cancelled;

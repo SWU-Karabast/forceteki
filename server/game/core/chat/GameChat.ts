@@ -83,10 +83,10 @@ export class GameChat {
             array.length === 1
                 ? '{0}'
                 : array.length === 2
-                ? '{0} and {1}'
-                : Array.from({ length: array.length - 1 })
-                      .map((_, idx) => `{${idx}}`)
-                      .join(', ') + ` and {${array.length - 1}}`;
+                    ? '{0} and {1}'
+                    : Array.from({ length: array.length - 1 })
+                        .map((_, idx) => `{${idx}}`)
+                        .join(', ') + ` and {${array.length - 1}}`;
 
         return this.formatMessage(format, array);
     }

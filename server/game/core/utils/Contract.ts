@@ -1,5 +1,5 @@
-import assert from "assert";
-import process from "process";
+import assert from 'assert';
+import process from 'process';
 
 export enum AssertMode {
     Assert,
@@ -50,10 +50,10 @@ if (['true', '1'].includes(debugEnvSetting)) {
 
 /**
  * Configure the behavior of the Contract.assert* functions.
- * 
+ *
  * `AssertMode.Assert` - will trigger an assertion error when a contract check fails
  * `AssertMode.Log` - will log a message with stack trace when a contract check fails
- * 
+ *
  * @param mode assertion mode
  * @param breakpoint if true, will trigger a debugger breakpoint when a contract check fails
  */
@@ -72,7 +72,7 @@ export function configureAssertMode(mode: AssertMode, breakpoint = false): void 
 
 export function assertTrue(cond: boolean, message?: string): boolean {
     if (!cond) {
-        contractCheckImpl.fail(message ?? "False condition");
+        contractCheckImpl.fail(message ?? 'False condition');
         return false;
     }
     return true;
@@ -80,7 +80,7 @@ export function assertTrue(cond: boolean, message?: string): boolean {
 
 export function assertFalse(cond: boolean, message?: string): boolean {
     if (cond) {
-        contractCheckImpl.fail(message ?? "True condition");
+        contractCheckImpl.fail(message ?? 'True condition');
         return false;
     }
     return true;
@@ -111,7 +111,7 @@ export function assertNotNullLike(val: object, message?: string): boolean {
 }
 
 export function assertHasProperty(obj: object, propertyName: string, message?: string): boolean {
-    assertNotNullLike(obj);    
+    assertNotNullLike(obj);
     if (!(propertyName in obj)) {
         contractCheckImpl.fail(message ?? `Object does not have property '${propertyName}'`);
         return false;

@@ -1,4 +1,4 @@
-import { CardType } from "../Constants";
+import { CardType } from '../Constants';
 
 class StatModifier {
     amount: number;
@@ -41,7 +41,7 @@ class StatModifier {
             name,
             overrides,
             this.getEffectType(effect)
-        )
+        );
     }
 
     static fromCard(amount: number, card: any, name, overrides = false) {
@@ -50,7 +50,7 @@ class StatModifier {
             name,
             overrides,
             this.getCardType(card)
-        )
+        );
     }
 
     static fromStatusToken(amount: number, name, overrides = false) {
@@ -59,7 +59,7 @@ class StatModifier {
             name,
             overrides,
             undefined
-        )
+        );
     }
 }
 

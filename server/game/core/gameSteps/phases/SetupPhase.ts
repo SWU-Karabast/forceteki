@@ -77,10 +77,10 @@ export class SetupPhase extends Phase {
                         this.game.addMessage('{0} has not mulliganed', player);
                     }
                 ]
-            })
+            });
         }
     }
-    
+
     drawStartingHands() {
         for (const player of this.game.getPlayers()) {
             player.shuffleDeck();

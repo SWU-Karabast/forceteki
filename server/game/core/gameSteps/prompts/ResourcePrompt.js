@@ -33,8 +33,7 @@ class ResourcePrompt extends AllPlayerPrompt {
             // cards are only selectable until we've selected as many as allowed
             if(!this.selectableCards[player.name] && this.selectedCards[player.name].length < this.maxCardsToResource) {
                 this.selectableCards[player.name] = player.hand.toArray();
-            }
-            else {
+            } else {
                 this.selectableCards[player.name] = [];
             }
             player.setSelectableCards(this.selectableCards[player.name]);
@@ -44,12 +43,12 @@ class ResourcePrompt extends AllPlayerPrompt {
     /** @override */
     activePrompt() {
         let promptText = null;
-        if (this.minCardsToResource != this.maxCardsToResource) {
-            promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`
-        } else if (this.minCardsToResource != 1) {
-            promptText = `Select ${this.minCardsToResource} cards to resource`
+        if (this.minCardsToResource !== this.maxCardsToResource) {
+            promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`;
+        } else if (this.minCardsToResource !== 1) {
+            promptText = `Select ${this.minCardsToResource} cards to resource`;
         } else {
-            promptText = 'Select 1 card to resource'
+            promptText = 'Select 1 card to resource';
         }
 
         return {
@@ -100,7 +99,7 @@ class ResourcePrompt extends AllPlayerPrompt {
 
             if(this.selectedCards[player.name].length > 0) {
                 for(const card of this.selectedCards[player.name]) {
-                    player.resourceCard(card)
+                    player.resourceCard(card);
                 }
                 this.game.addMessage('{0} has resourced {1} cards from hand', player, this.selectedCards[player.name].length);
             } else {

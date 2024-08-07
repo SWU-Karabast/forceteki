@@ -1,5 +1,5 @@
-import type Player from "../../Player";
-import { UiPrompt } from "./UiPrompt";
+import type Player from '../../Player';
+import { UiPrompt } from './UiPrompt';
 
 export abstract class AllPlayerPrompt extends UiPrompt {
     override activeCondition(player: Player) {
@@ -9,6 +9,6 @@ export abstract class AllPlayerPrompt extends UiPrompt {
     abstract completionCondition(player: Player): boolean;
 
     override isComplete() {
-        return this.game.getPlayers().every(player => this.completionCondition(player))
+        return this.game.getPlayers().every(player => this.completionCondition(player));
     }
 }

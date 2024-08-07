@@ -6,8 +6,8 @@ const { Stage, TargetMode } = require('../Constants.js');
 
 // TODO: convert to TS and make this abstract
 /**
- * Base class representing an ability that can be done by the player 
- * or triggered by card text. This includes card actions, reactions, 
+ * Base class representing an ability that can be done by the player
+ * or triggered by card text. This includes card actions, reactions,
  * interrupts, playing a card.
  *
  * Most of the methods take a context object. While the structure will vary from

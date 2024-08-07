@@ -49,16 +49,16 @@ export class PlayerPromptState {
         this.buttons = !prompt.buttons
             ? []
             : prompt.buttons.map((button) => {
-                  if (button.card) {
-                      const { card, ...properties } = button;
-                      return Object.assign(
-                          { text: card.name, arg: card.uuid, card: card.getShortSummary() },
-                          properties
-                      );
-                  }
+                if (button.card) {
+                    const { card, ...properties } = button;
+                    return Object.assign(
+                        { text: card.name, arg: card.uuid, card: card.getShortSummary() },
+                        properties
+                    );
+                }
 
-                  return button;
-              });
+                return button;
+            });
     }
 
     cancelPrompt() {

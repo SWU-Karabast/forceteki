@@ -17,9 +17,9 @@ export interface CostAdjusterProperties {
 }
 
 export class CostAdjuster {
-    private uses = 0;       // TODO: is this needed?
+    private uses = 0; // TODO: is this needed?
     private amount: number | ((card: Card, player: Player) => number);
-    private costFloor: number;  // TODO: is this needed?
+    private costFloor: number; // TODO: is this needed?
     private match?: (card: Card, source: Card) => boolean;
     private cardType?: CardType;
     private targetCondition?: (target: Card, source: Card, context: AbilityContext<any>) => boolean;

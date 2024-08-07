@@ -19,9 +19,9 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
 
         if (isCombatDamage) {
             return ['deal {1} combat damage to {0}', [amount, target]];
-        } else {
-            return ['deal {1} damage to {0}', [amount, target]];
         }
+        return ['deal {1} damage to {0}', [amount, target]];
+
     }
 
     override canAffect(card: Card, context: AbilityContext): boolean {

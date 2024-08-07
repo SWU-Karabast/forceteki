@@ -71,7 +71,7 @@ export class PlayUnitAction extends BaseAction {
         context.game.openEventWindow([
             putIntoPlay({
                 controller: player,
-                overrideLocation: Location.Hand        // TODO: should we be doing this?
+                overrideLocation: Location.Hand // TODO: should we be doing this?
             }).getEvent(context.source, context),
             cardPlayedEvent
         ]);

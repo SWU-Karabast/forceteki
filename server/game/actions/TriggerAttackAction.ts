@@ -12,7 +12,7 @@ export class TriggerAttackAction extends BaseAction {
 
     // TODO: rename to "gameSystem" or "triggeredSystem" or something and centralize where it is created, since it's also emitted from executeHandler
     public constructor(card: Card) {
-        super(card, [exhaustSelf()], { 
+        super(card, [exhaustSelf()], {
             gameSystem: attack({ attacker: card }),
             mode: TargetMode.AutoSingle,
             location: WildcardLocation.AnyAttackable,

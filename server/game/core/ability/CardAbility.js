@@ -145,7 +145,7 @@ class CardAbility extends CardAbilityStep {
                 '{0} plays {1} from {2} {3}',
                 context.player,
                 context.source,
-                context.source.controller === context.player ? 'their' : "their opponent's",
+                context.source.controller === context.player ? 'their' : 'their opponent\'s',
                 this.getLocationMessage(context.source.location, context)
             );
         }
@@ -169,7 +169,7 @@ class CardAbility extends CardAbilityStep {
         }
 
         // Player1 plays Assassination
-        let gainedAbility = origin ? "'s gained ability from " : '';
+        let gainedAbility = origin ? '\'s gained ability from ' : '';
         let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, origin];
         let costMessages = this.cost
             .map((cost) => {

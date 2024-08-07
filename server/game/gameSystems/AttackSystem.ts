@@ -2,12 +2,12 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardType, EventName, Location } from '../core/Constants';
 import { isAttackableLocation, isArena } from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
-import { EffectName } from '../core/Constants'
+import { EffectName } from '../core/Constants';
 import { AttackFlow } from '../core/attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { damage } from './GameSystemLibrary.js';
-import type Card from '../core/card/Card';       // TODO: is this the right import form?
+import type Card from '../core/card/Card'; // TODO: is this the right import form?
 import { isArray } from 'underscore';
 
 
@@ -23,7 +23,7 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     override name = 'attack';
     override eventName = EventName.OnAttackDeclared;
-    override targetType = [CardType.Unit, CardType.Base];  // TODO: leader?
+    override targetType = [CardType.Unit, CardType.Base]; // TODO: leader?
 
     override defaultProperties: IAttackProperties = {};
 
@@ -146,7 +146,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             );
             return;
         }
-        
+
         const attack = event.attack;
         context.game.queueStep(
             new AttackFlow(

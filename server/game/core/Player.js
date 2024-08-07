@@ -754,7 +754,7 @@ class Player extends GameObject {
         for (const aspect of penaltyAspects) {
             aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
         }
-        
+
         let penalizedCost = card.getCost() + aspectPenaltiesTotal;
         return this.runAdjustersForCostType(playingType, penalizedCost, card, target, ignoreType);
     }
@@ -1081,14 +1081,14 @@ class Player extends GameObject {
      * Returns the number of resources available to spend
      */
     countSpendableResources() {
-        return this.resources.value().reduce((count, card) => count += !card.exhausted, 0)
+        return this.resources.value().reduce((count, card) => count += !card.exhausted, 0);
     }
 
     /**
      * Returns the number of resources available to spend
      */
     countExhaustedResources() {
-        return this.resources.value().reduce((count, card) => count += card.exhausted, 0)
+        return this.resources.value().reduce((count, card) => count += card.exhausted, 0);
     }
 
     /**
@@ -1098,7 +1098,7 @@ class Player extends GameObject {
      */
     resourceCard(card, exhaust = false) {
         this.moveCard(card, Location.Resource);
-        card.exhausted = !exhaust
+        card.exhausted = !exhaust;
     }
 
     /**

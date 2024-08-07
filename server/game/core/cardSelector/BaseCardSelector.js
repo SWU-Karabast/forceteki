@@ -88,7 +88,6 @@ class BaseCardSelector {
     }
 
 
-
     canTarget(card, context, choosingPlayer, selectedCards = []) {
         let controllerProp = this.controller;
         if(typeof controllerProp === 'function') {

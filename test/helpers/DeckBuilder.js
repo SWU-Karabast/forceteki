@@ -23,7 +23,7 @@ class DeckBuilder {
         var jsonCards = fs.readdirSync(directory).filter(file => file.endsWith('.json'));
         _.each(jsonCards, cardPath => {
             var card = require(path.join('../json/Card', cardPath))[0];
-            cards[card.id] = card
+            cards[card.id] = card;
         });
 
         if (cards.length === 0) {
@@ -40,7 +40,7 @@ class DeckBuilder {
         let leader = defaultLeader;
         let base = defaultBase;
         let allCards = [];
-        let deckSize = deckBufferSize; 
+        let deckSize = deckBufferSize;
         let inPlayCards = [];
 
         if(playerCards.leader) {

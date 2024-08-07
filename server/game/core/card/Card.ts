@@ -140,16 +140,13 @@ class Card extends EffectSource {
         this.printedSubtitle = cardData.subtitle;
         this.internalName = cardData.internalName;
         this.printedType = checkConvertToEnum([cardData.type], CardType)[0]; // TODO: does this work for leader consistently, since it has two types?
-        this.traits = cardData.traits;  // TODO: enum for these
+        this.traits = cardData.traits; // TODO: enum for these
         this.aspects = checkConvertToEnum(cardData.aspects, Aspect);
-        this.printedKeywords = cardData.keywords;   // TODO: enum for these
+        this.printedKeywords = cardData.keywords; // TODO: enum for these
 
         this.setupCardAbilities(AbilityDsl);
         // this.parseKeywords(cardData.text ? cardData.text.replace(/<[^>]*>/g, '').toLowerCase() : '');
         // this.applyAttachmentBonus();
-
-
-
 
 
         // *************************** DECKCARD.JS CONSTRUCTOR ******************************
@@ -164,10 +161,10 @@ class Card extends EffectSource {
         this.hiddenForController = true;
 
         switch (cardData.arena) {
-            case "space":
+            case 'space':
                 this.defaultArena = Location.SpaceArena;
                 break;
-            case "ground":
+            case 'ground':
                 this.defaultArena = Location.GroundArena;
                 break;
             default:
@@ -229,7 +226,7 @@ class Card extends EffectSource {
         if (mostRecentEffect) {
             actions = mostRecentEffect.value.getActions(this);
         }
-        
+
         const effectActions = this.getEffects(EffectName.GainAbility).filter(
             (ability) => ability.abilityType === AbilityType.Action
         );
@@ -540,8 +537,8 @@ class Card extends EffectSource {
             copyEffect
                 ? (copyEffect.traits as string[])
                 : this.getEffects(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
-                ? []
-                : this.traits
+                    ? []
+                    : this.traits
         );
 
         for (const gainedTrait of this.getEffects(EffectName.AddTrait)) {
@@ -647,7 +644,7 @@ class Card extends EffectSource {
         const originalLocation = this.location;
 
         if (originalLocation === targetLocation) {
-            return;   
+            return;
         }
 
         this.location = targetLocation;
@@ -906,7 +903,7 @@ class Card extends EffectSource {
      * used by cards inheriting this class
      */
     canPlayOn(card) {
-         
+
         return true;
     }
 
@@ -1009,7 +1006,7 @@ class Card extends EffectSource {
         const actions = this.abilities.playActions.slice();
         if (this.type === CardType.Unit) {
             actions.push(new PlayUnitAction(this));
-        } 
+        }
         // else if (this.type === CardType.Upgrade) {
         //     actions.push(new PlayAttachmentAction(this));
         // }
@@ -1132,14 +1129,14 @@ class Card extends EffectSource {
                 return this.cardData.power === null || this.cardData.power === undefined
                     ? NaN
                     : isNaN(parseInt(this.cardData.power))
-                    ? 0
-                    : parseInt(this.cardData.power);
+                        ? 0
+                        : parseInt(this.cardData.power);
             case StatType.Hp:
                 return this.cardData.hp === null || this.cardData.hp === undefined
                     ? NaN
                     : isNaN(parseInt(this.cardData.hp))
-                    ? 0
-                    : parseInt(this.cardData.hp);
+                        ? 0
+                        : parseInt(this.cardData.hp);
             default:
                 Contract.fail(`Unknown stat enum value: ${type}`);
                 return null;
@@ -1152,10 +1149,10 @@ class Card extends EffectSource {
         }
 
         this.damage += amount;
-        
+
         if (this.damage >= this.hp) {
             if (this === this.owner.base as Card) {
-                this.game.recordWinner(this.owner.opponent, "base destroyed");
+                this.game.recordWinner(this.owner.opponent, 'base destroyed');
             } else {
                 this.owner.defeatCard(this);
             }
@@ -1325,7 +1322,7 @@ class Card extends EffectSource {
     // TODO: rename this to something clearer
     /**
      * Apply any modifiers that explicitly say they change the base skill value
-     */ 
+     */
     getBaseStatModifiers() {
         const baseModifierEffects = [
             EffectName.CopyCharacter,
@@ -1424,21 +1421,6 @@ class Card extends EffectSource {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // *******************************************************************************************************
     // ************************************** DECKCARD.JS ****************************************************
     // *******************************************************************************************************
@@ -1459,7 +1441,7 @@ class Card extends EffectSource {
             this.game.allCards.any(
                 (card) =>
                     card.isInPlay() &&
-                    card.printedName === this.printedTitle &&   // TODO: also check subtitle
+                    card.printedName === this.printedTitle && // TODO: also check subtitle
                     card !== this &&
                     (card.owner === player || card.controller === player || card.owner === this.owner)
             )
@@ -1701,7 +1683,7 @@ class Card extends EffectSource {
      * Deals with the engine effects of leaving play, making sure all statuses are removed. Anything which changes
      * the state of the card should be here. This is also called in some strange corner cases e.g. for attachments
      * which aren't actually in play themselves when their parent (which is in play) leaves play.
-     * 
+     *
      * Note that a card becoming a resource is _not_ leaving play.
      */
     leavesPlay() {
@@ -1798,7 +1780,7 @@ class Card extends EffectSource {
                 this.hiddenForController = false;
                 this.hiddenForOpponent = false;
                 break;
-            
+
             default:
                 Contract.fail(`Unknown location enum value: ${location}`);
         }

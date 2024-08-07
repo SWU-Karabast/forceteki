@@ -11,15 +11,15 @@ const pathToJSON = path.join(__dirname, '../test/json/');
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
         return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
-    } else {
-        return attributeList.data.attributes.name.toLowerCase();
     }
+
+    return attributeList.data.attributes.name.toLowerCase();
 }
 
 function filterValues(card) {
     // just filter out variants for now
     // TODO: add some map for variants
-    if (card.attributes.variantOf.data != null) {
+    if (card.attributes.variantOf.data !== null) {
         return null;
     }
 
@@ -28,10 +28,11 @@ function filterValues(card) {
         return null;
     }
 
-    filteredObj = (
-        ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules }) => 
-            ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules }))
-        (card.attributes);
+    // hacky way to strip the object down to just the attributes we want
+    const filterAttributes = ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules }) =>
+        ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules });
+
+    let filteredObj = filterAttributes(card.attributes);
 
     filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
 
@@ -40,12 +41,12 @@ function filterValues(card) {
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);
-    
+
     let internalName = filteredObj.title;
     if (filteredObj.subtitle) {
-        internalName += "#" + filteredObj.subtitle;
+        internalName += '#' + filteredObj.subtitle;
     }
-    filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, "").replace(/\s/g, "-");
+    filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '').replace(/\s/g, '-');
 
     // keep original card for debug logging, will be removed before card is written to file
     delete card.attributes.variants;
@@ -69,17 +70,17 @@ function getCardData(page, progressBar) {
 }
 
 async function main() {
-    pageData = await axios.get('https://admin.starwarsunlimited.com/api/cards');
-    totalPageCount = pageData.data.meta.pagination.pageCount;
-    
-    console.log("downloading card definitions");
+    let pageData = await axios.get('https://admin.starwarsunlimited.com/api/cards');
+    let totalPageCount = pageData.data.meta.pagination.pageCount;
+
+    console.log('downloading card definitions');
     const downloadProgressBar = new cliProgress.SingleBar({format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}'});
     downloadProgressBar.start(totalPageCount, 0);
 
     let cards = (await Promise.all([...Array(totalPageCount).keys()]
         .map(pageNumber => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
-        .filter(n => n);    // remove nulls
+        .filter(n => n); // remove nulls
 
     downloadProgressBar.stop();
 
@@ -89,7 +90,7 @@ async function main() {
     var uniqueCards = [];
     for (const card of cards) {
         if (seenNames.includes(card.internalName)) {
-            if (duplicatesWithSetCode[card.internalName] == null) {
+            if (duplicatesWithSetCode[card.internalName] === null) {
                 duplicatesWithSetCode[card.internalName] = cards.filter(c => c.internalName === card.internalName)
                     .map(c => c.debugObject.attributes.expansion.data.attributes.code);
             }
@@ -103,7 +104,7 @@ async function main() {
 
     cards.map(card => delete card.debugObject);
 
-    console.log("\nwriting card definition files");
+    console.log('\nwriting card definition files');
     const fileWriteProgressBar = new cliProgress.SingleBar({format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}'});
     fileWriteProgressBar.start(uniqueCards.length, 0);
 

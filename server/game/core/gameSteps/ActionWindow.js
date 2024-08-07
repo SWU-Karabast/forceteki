@@ -220,7 +220,7 @@ class ActionWindow extends UiPrompt {
                 actionCount: p2ActionsPostWindow,
                 actionsTaken: false
             },
-        }
+        };
 
         return p1ActionsPostWindow + p2ActionsPostWindow > 0;
     }

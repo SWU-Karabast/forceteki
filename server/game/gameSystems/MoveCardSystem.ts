@@ -45,13 +45,13 @@ export class MoveCardSystem extends CardTargetSystem {
                 ? properties.target[0].controller.opponent
                 : properties.target[0].controller
             : properties.changePlayer
-            ? properties.target.controller.opponent
-            : properties.target.controller;
+                ? properties.target.controller.opponent
+                : properties.target.controller;
         if (properties.shuffle) {
-            return ["shuffle {0} into {1}'s {2}", [properties.target, destinationController, properties.destination]];
+            return ['shuffle {0} into {1}\'s {2}', [properties.target, destinationController, properties.destination]];
         }
         return [
-            'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + "{1}'s {2}",
+            'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + '{1}\'s {2}',
             [properties.target, destinationController, properties.destination]
         ];
     }
@@ -79,7 +79,7 @@ export class MoveCardSystem extends CardTargetSystem {
         }
         const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
         player.moveCard(card, properties.destination, { bottom: !!properties.bottom });
-        
+
         let target = properties.target;
         if (Array.isArray(target)) {
             // TODO: should we allow this to move multiple cards at once?

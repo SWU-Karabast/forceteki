@@ -1,6 +1,6 @@
 const _ = require('underscore');
 
-const AbilityLimit = require('../core/ability/AbilityLimit.js')
+const AbilityLimit = require('../core/ability/AbilityLimit.js');
 // const GainAllAbiliitesDynamic = require('./Effects/GainAllAbilitiesDynamic.js');
 // const Restriction = require('./Effects/restriction.js');
 // const { SuppressEffect } = require('./Effects/SuppressEffect');

@@ -59,7 +59,7 @@ export class AdjustableResourceCost implements ICost {
         return new Event(EventName.OnSpendResources, { amount, context }, (event) => {
             event.context.player.markUsedAdjusters(context.playType, event.context.source);
             event.context.player.exhaustResources(amount);
-            
+
             if (this.afterPayHook) {
                 this.afterPayHook(event);
             }

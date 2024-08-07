@@ -31,13 +31,13 @@ describe('Basic attack', function() {
             it(', should only be able to select opponent\'s units in the same arena and base', function () {
                 this.player1.clickCard(this.wampa);
                 expect(this.player1).toHavePrompt('Choose a target for attack');
-                
+
                 // can target opponent's ground units and base but not space units
                 expect(this.player1).toBeAbleToSelect(this.atrt);
                 expect(this.player1).toBeAbleToSelect(this.enfysNest);
                 expect(this.player1).toBeAbleToSelect(this.p2Base);
                 expect(this.player1).not.toBeAbleToSelect(this.allianceXWing);
-                
+
                 expect(this.player1).not.toBeAbleToSelect(this.wampa);
                 expect(this.player1).not.toBeAbleToSelect(this.cartelSpacer);
                 expect(this.player1).not.toBeAbleToSelect(this.p1Base);
@@ -57,13 +57,13 @@ describe('Basic attack', function() {
             it(', should only be able to select opponent\'s units in the same arena and base', function () {
                 this.player1.clickCard(this.wampa);
                 expect(this.player1).toHavePrompt('Choose a target for attack');
-                
+
                 // can target opponent's ground units and base but not space units
                 expect(this.player1).toBeAbleToSelect(this.atrt);
                 expect(this.player1).toBeAbleToSelect(this.enfysNest);
                 expect(this.player1).toBeAbleToSelect(this.p2Base);
                 expect(this.player1).not.toBeAbleToSelect(this.allianceXWing);
-                
+
                 expect(this.player1).not.toBeAbleToSelect(this.wampa);
                 expect(this.player1).not.toBeAbleToSelect(this.cartelSpacer);
                 expect(this.player1).not.toBeAbleToSelect(this.p1Base);

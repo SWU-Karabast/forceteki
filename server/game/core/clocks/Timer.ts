@@ -6,6 +6,6 @@ export class Timer extends BasicClock implements IClock {
     override name = 'Timer';
 
     protected override timeRanOut() {
-        this.player.game.addMessage("{0}'s timer has expired", this.player);
+        this.player.game.addMessage('{0}\'s timer has expired', this.player);
     }
 }

@@ -1,4 +1,4 @@
-import { Location, TargetableLocation, WildcardLocation } from "../Constants";
+import { Location, TargetableLocation, WildcardLocation } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -24,7 +24,7 @@ export const isArena = (location: TargetableLocation) => {
         default:
             return false;
     }
-}
+};
 
 export const isAttackableLocation = (location: TargetableLocation) => {
     switch (location) {
@@ -36,7 +36,7 @@ export const isAttackableLocation = (location: TargetableLocation) => {
         default:
             return false;
     }
-}
+};
 
 // return true if the location matches one of the allowed location filters
 export const cardLocationMatches = (cardLocation: Location, allowedLocations: TargetableLocation | TargetableLocation[]) => {
@@ -54,5 +54,6 @@ export const cardLocationMatches = (cardLocation: Location, allowedLocations: Ta
                 return isAttackableLocation(cardLocation);
             default:
                 return cardLocation === allowedLocation;
-        }});
-}
+        }
+    });
+};

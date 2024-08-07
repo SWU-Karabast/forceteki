@@ -1,7 +1,7 @@
 import AbilityDsl from '../../AbilityDsl';
 import CardAbilityStep from '../ability/CardAbilityStep';
 import { Location, CardType, EffectName, RelativePlayer } from '../Constants';
-import { IInitiateAttack } from "../../Interfaces";
+import { IInitiateAttack } from '../../Interfaces';
 
 // TODO: these are not yet used, probably we'll need them for AbilityDsl at some point?
 
@@ -76,7 +76,7 @@ import { IInitiateAttack } from "../../Interfaces";
 //             const targetCondition = getProperty(properties, context, 'targetCondition');
 //             // default target condition
 //             return targetCondition ? targetCondition(card, context) : null;
-//         },        
+//         },
 //     };
 //     return props;
 // }

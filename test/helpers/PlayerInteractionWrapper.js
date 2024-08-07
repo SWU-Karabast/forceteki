@@ -41,7 +41,7 @@ class PlayerInteractionWrapper {
     get base() {
         return this.player.base;
     }
-    
+
     /**
      * Sets the player's base card
      */
@@ -64,7 +64,7 @@ class PlayerInteractionWrapper {
     get spaceArena() {
         return this.player.filterCardsInPlay((card) => card.location === 'space arena');
     }
-    
+
     set spaceArena(newState = []) {
         this.setArenaUnits('space arena', this.spaceArena, newState);
     }
@@ -97,7 +97,9 @@ class PlayerInteractionWrapper {
      */
     setArenaUnits(arenaName, currentUnitsInArena, newState = []) {
         // First, move all cards in play back to the deck
-        _.each(currentUnitsInArena, (card) => { this.moveCard(card, 'deck'); });
+        _.each(currentUnitsInArena, (card) => {
+            this.moveCard(card, 'deck');
+        });
         // Set up each of the cards
         _.each(newState, (options) => {
             //TODO: Optionally, accept just a string as a parameter???
@@ -436,7 +438,7 @@ class PlayerInteractionWrapper {
         let availableCards = this.currentActionTargets;
 
         if (!availableCards || availableCards.length < nCardsToChoose) {
-            throw new Error(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${this.formatPrompt()}`)
+            throw new Error(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${this.formatPrompt()}`);
         }
 
         for (let i = 0; i < nCardsToChoose; i++) {

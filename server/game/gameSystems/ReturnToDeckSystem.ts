@@ -37,10 +37,10 @@ export class ReturnToDeckSystem extends CardTargetSystem {
     override getEffectMessage(context: AbilityContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         if (properties.shuffle) {
-            return ["shuffle {0} into its owner's deck", [properties.target]];
+            return ['shuffle {0} into its owner\'s deck', [properties.target]];
         }
         return [
-            'return {0} to the ' + (properties.bottom ? 'bottom' : 'top') + " of its owner's deck",
+            'return {0} to the ' + (properties.bottom ? 'bottom' : 'top') + ' of its owner\'s deck',
             [properties.target]
         ];
     }

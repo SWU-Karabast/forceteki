@@ -16,7 +16,7 @@ export class RegroupPhase extends Phase {
             new SimpleStep(game, () => this.endPhase())
         ]);
     }
-    
+
     drawTwo() {
         for (const player of this.game.getPlayers()) {
             player.drawCardsToHand(2);
