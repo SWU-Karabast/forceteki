@@ -161,11 +161,13 @@ class CardAbility extends CardAbilityStep {
             this.game.addMessage(this.properties.message, ...messageArgs);
             return;
         }
+
         let origin = context.ability && context.ability.origin;
         // if origin is the same as source then ignore it
         if (origin === context.source) {
             origin = null;
         }
+
         // Player1 plays Assassination
         let gainedAbility = origin ? "'s gained ability from " : '';
         let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, origin];
@@ -180,8 +182,10 @@ class CardAbility extends CardAbilityStep {
                     [format, args] = cost.getCostMessage(context);
                     return { message: this.game.gameChat.formatMessage(format, [card].concat(args)) };
                 }
+                return null;
             })
             .filter((obj) => obj);
+
         if (costMessages.length > 0) {
             // ,
             messageArgs.push(', ');
@@ -190,6 +194,7 @@ class CardAbility extends CardAbilityStep {
         } else {
             messageArgs = messageArgs.concat(['', '']);
         }
+
         let effectMessage = this.properties.effect;
         let effectArgs = [];
         let extraArgs = null;

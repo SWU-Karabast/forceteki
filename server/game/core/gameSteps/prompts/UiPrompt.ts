@@ -1,6 +1,7 @@
 import { v1 as uuid } from 'uuid';
 import type Player from '../../Player';
 import { BaseStep } from '../BaseStep';
+import Contract from '../../utils/Contract';
 
 type ActivePrompt = {
     buttons: Array<{ text: string; arg?: string; command?: string }>;
@@ -17,6 +18,10 @@ export abstract class UiPrompt extends BaseStep {
     public completed = false;
     public uuid = uuid();
 
+    abstract activePrompt(player: Player): ActivePrompt;
+
+    abstract menuCommand(player: Player, arg: string, method: string): boolean;
+
     isComplete(): boolean {
         return this.completed;
     }
@@ -28,7 +33,7 @@ export abstract class UiPrompt extends BaseStep {
     setPrompt(): void {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
-                player.setPrompt(this.addDefaultCommandToButtons(this.activePrompt(player)));
+                player.setPrompt(this.#addDefaultCommandToButtons(this.activePrompt(player)));
                 player.startClock();
             } else {
                 player.setPrompt(this.waitingPrompt());
@@ -41,13 +46,9 @@ export abstract class UiPrompt extends BaseStep {
         return true;
     }
 
-    activePrompt(player: Player): undefined | ActivePrompt {
-        return undefined;
-    }
-
-    addDefaultCommandToButtons(original?: ActivePrompt) {
-        if (!original) {
-            return;
+    #addDefaultCommandToButtons(original?: ActivePrompt) {
+        if (!Contract.assertNotNullLike(original)) {
+            return null;
         }
 
         const newPrompt = { ...original };
@@ -94,9 +95,5 @@ export abstract class UiPrompt extends BaseStep {
         }
 
         return this.menuCommand(player, arg, method);
-    }
-
-    menuCommand(player: Player, arg: string, method: string): boolean {
-        return true;
     }
 }

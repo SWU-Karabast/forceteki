@@ -49,7 +49,7 @@ if (['true', '1'].includes(debugEnvSetting)) {
 /**
  * Configure the behavior of the Contract.assert* functions.
  * 
- * `AssertMode.Assert` - will throw an error when a contract check fails
+ * `AssertMode.Assert` - will trigger an assertion error when a contract check fails
  * `AssertMode.Log` - will log a message with stack trace when a contract check fails
  * 
  * @param mode assertion mode
@@ -68,28 +68,52 @@ export function configureAssertMode(mode: AssertMode, breakpoint = false): void 
     }
 }
 
-export function assertTrue(cond: boolean): void {
+export function assertTrue(cond: boolean, message?: string): boolean {
     if (!cond) {
-        contractCheckImpl.fail("False condition");
+        contractCheckImpl.fail(message ?? "False condition");
+        return false;
     }
+    return true;
 }
 
-export function assertEqual(val1: object, val2: object): void {
+export function assertFalse(cond: boolean, message?: string): boolean {
+    if (cond) {
+        contractCheckImpl.fail(message ?? "True condition");
+        return false;
+    }
+    return true;
+}
+
+export function assertEqual(val1: object, val2: object, message?: string): boolean {
     if (!(val1 === val2)) {
-        contractCheckImpl.fail(`Value ${val1} is not equal to ${val2}`);
+        contractCheckImpl.fail(message ?? `Value ${val1} is not equal to ${val2}`);
+        return false;
     }
+    return true;
 }
 
-export function assertNotNull(val: object): void {
+export function assertNotNull(val: object, message?: string): boolean {
     if (val === null) {
-        contractCheckImpl.fail("Null object value");
+        contractCheckImpl.fail(message ?? "Null object value");
+        return false;
     }
+    return true;
 }
 
-export function assertNotNullLike(val: object): void {
+export function assertNotNullLike(val: object, message?: string): boolean {
     if (val == null) {
-        contractCheckImpl.fail(`Null-like object value: ${val}`);
+        contractCheckImpl.fail(message ?? `Null-like object value: ${val}`);
+        return false;
     }
+    return true;
+}
+
+export function assertHasProperty(obj: object, propertyName: string, message?: string): boolean {
+    if (obj == null || !(propertyName in obj)) {
+        contractCheckImpl.fail(message ?? `Object does not have property '${propertyName}'`);
+        return false;
+    }
+    return true;
 }
 
 export function fail(message: string): void {

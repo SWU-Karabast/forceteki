@@ -132,6 +132,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
             this.promptBetweenEvents(choices, addBackButton);
             return;
         }
+
         // Several cards could be affected by this ability - prompt the player to choose which they want to affect
         this.game.promptForSelect(this.activePlayer, _.extend(this.getPromptForSelectProperties(), {
             activePromptTitle: 'Select a card to affect',
@@ -146,6 +147,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
                     this.promptBetweenSources(this.choices);
                     return true;
                 }
+                return false;
             }
         }));
     }

@@ -185,8 +185,10 @@ class SelectCardPrompt extends UiPrompt {
         }
 
         if(this.selector.automaticFireOnSelect(this.context) && this.selector.hasReachedLimit(this.selectedCards, this.context)) {
-            this.fireOnSelect();
+            return this.fireOnSelect();
         }
+
+        return true;
     }
 
     checkCardCondition(card) {

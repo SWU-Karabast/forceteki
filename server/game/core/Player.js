@@ -203,8 +203,8 @@ class Player extends GameObject {
      * @param {Function} predicate - BaseCard => Boolean
      */
     findCards(cardList, predicate) {
-        if (!cardList) {
-            return;
+        if (!Contract.assertNotNullLike(cardList)) {
+            return null;
         }
 
         var cardsToReturn = [];
@@ -675,8 +675,8 @@ class Player extends GameObject {
     }
 
     addPlayableLocation(type, player, location, cards = []) {
-        if (!player) {
-            return;
+        if (!Contract.assertNotNullLike(player)) {
+            return null;
         }
         let playableLocation = new PlayableLocation(type, player, location, new Set(cards));
         this.playableLocations.push(playableLocation);

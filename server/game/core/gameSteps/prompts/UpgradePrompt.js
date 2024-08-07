@@ -11,6 +11,17 @@ class UpgradePrompt extends UiPrompt {
         this.playingType = playingType;
     }
 
+    // TODO: why is this set up this way, with the prompt being in continue()?
+    /** @override */
+    activePrompt() {
+        return undefined;
+    }
+
+    /** @override */
+    menuCommand() {
+        return true;
+    }
+
     // continue() {
     //     this.game.promptForSelect(this.player, {
     //         source: 'Play Upgrade',

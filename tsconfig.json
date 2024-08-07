@@ -13,7 +13,10 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "types": ["node"],
-        "noImplicitOverride": true
+        "noImplicitOverride": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true
     },
     // "include": ["server/jigoku/**/*"],
     "include": ["server/**/*"],

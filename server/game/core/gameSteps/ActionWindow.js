@@ -1,6 +1,7 @@
 const { UiPrompt } = require('./prompts/UiPrompt.js');
 const { EventName, Location, RelativePlayer, EffectName, WildcardLocation } = require('../Constants.js');
 const { isArena } = require('../utils/EnumHelpers.js');
+const Contract = require('../utils/Contract');
 
 class ActionWindow extends UiPrompt {
     constructor(game, title, windowName, activePlayer = null) {
@@ -108,25 +109,29 @@ class ActionWindow extends UiPrompt {
 
     /** @override */
     menuCommand(player, choice) {
-        if(choice === 'manual') {
-            this.game.promptForSelect(this.activePlayer, {
-                source: 'Manual Action',
-                activePrompt: 'Which ability are you using?',
-                location: WildcardLocation.Any,
-                controller: RelativePlayer.Self,
-                cardCondition: card => card.isFaceup() || card.canBeSmuggled(),
-                onSelect: (player, card) => {
-                    this.game.addMessage('{0} uses {1}\'s ability', player, card);
-                    this.prevPlayerPassed = false;
-                    return true;
-                }
-            });
-            return true;
-        }
+        switch (choice) {
+            case 'manual':
+                this.game.promptForSelect(this.activePlayer, {
+                    source: 'Manual Action',
+                    activePrompt: 'Which ability are you using?',
+                    location: WildcardLocation.Any,
+                    controller: RelativePlayer.Self,
+                    cardCondition: card => card.isFaceup() || card.canBeSmuggled(),
+                    onSelect: (player, card) => {
+                        this.game.addMessage('{0} uses {1}\'s ability', player, card);
+                        this.prevPlayerPassed = false;
+                        return true;
+                    }
+                });
+                return true;
 
-        if(choice === 'pass') {
-            this.pass();
-            return true;
+            case 'pass':
+                this.pass();
+                return true;
+
+            default:
+                Contract.fail(`Unknown menu choice: ${choice}`);
+                return false;
         }
     }
 

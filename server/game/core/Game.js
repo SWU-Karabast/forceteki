@@ -25,6 +25,7 @@ const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAb
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const SimultaneousEffectWindow = require('./gameSteps/SimultaneousEffectWindow.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
+const Contract = require('./utils/Contract');
 // const { Conflict } = require('./conflict.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
 // const MenuCommands = require('./MenuCommands');
@@ -149,10 +150,16 @@ class Game extends EventEmitter {
      * @returns {Player}
      */
     getPlayerByName(playerName) {
-        let player = this.playersAndSpectators[playerName];
-        if (player && !this.isSpectator(player)) {
-            return player;
+        if (!Contract.assertHasProperty(this.playersAndSpectators, playerName)) {
+            return null;
         }
+
+        let player = this.playersAndSpectators[playerName];
+        if (!Contract.assertFalse(this.isSpectator(player), `Player ${playerName} is a spectator`)) {
+            return null;
+        }
+
+        return player;
     }
 
     /**
@@ -354,21 +361,22 @@ class Game extends EventEmitter {
         this.pipeline.handleCardClicked(player, card);
     }
 
-    facedownCardClicked(playerName, location, controllerName, isProvince = false) {
-        let player = this.getPlayerByName(playerName);
-        let controller = this.getPlayerByName(controllerName);
-        if (!player || !controller) {
-            return;
-        }
-        let list = controller.getSourceListForPile(location);
-        if (!list) {
-            return;
-        }
-        let card = list.find((card) => !isProvince === !card.isProvince);
-        if (card) {
-            return this.pipeline.handleCardClicked(player, card);
-        }
-    }
+    // TODO: implementation of this for smuggle
+    // facedownCardClicked(playerName, location, controllerName, isProvince = false) {
+    //     let player = this.getPlayerByName(playerName);
+    //     let controller = this.getPlayerByName(controllerName);
+    //     if (!player || !controller) {
+    //         return;
+    //     }
+    //     let list = controller.getSourceListForPile(location);
+    //     if (!list) {
+    //         return;
+    //     }
+    //     let card = list.find((card) => !isProvince === !card.isProvince);
+    //     if (card) {
+    //         return this.pipeline.handleCardClicked(player, card);
+    //     }
+    // }
 
     // /**
     //  * This function is called by the client when a card menu item is clicked

@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const { Location } = require('../../Constants.js');
 const { AllPlayerPrompt } = require('./AllPlayerPrompt.js');
+const { default: Contract } = require('../../utils/Contract.js');
 
 class ResourcePrompt extends AllPlayerPrompt {
     constructor(game, minCardsToResource, maxCardsToResource) {
@@ -61,7 +62,15 @@ class ResourcePrompt extends AllPlayerPrompt {
 
     /** @override */
     onCardClicked(player, card) {
-        if(!player || !this.activeCondition(player) || !card) {
+        if (!Contract.assertNotNullLike(player)) {
+            return false;
+        }
+
+        if (!Contract.assertNotNullLike(card)) {
+            return false;
+        }
+
+        if(!this.activeCondition(player)) {
             return false;
         }
 
@@ -70,7 +79,9 @@ class ResourcePrompt extends AllPlayerPrompt {
         } else {
             this.selectedCards[player.name] = this.selectedCards[player.name].filter(c => c !== card);
         }
+
         player.setSelectedCards(this.selectedCards[player.name]);
+        return true;
     }
 
     /** @override */

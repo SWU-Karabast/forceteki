@@ -1180,18 +1180,22 @@ class Card extends EffectSource {
 
     // this will be helpful if we ever get a card where a stat that is "X, where X is ..."
     getPrintedStat(type: StatType) {
-        if (type === StatType.Power) {
-            return this.cardData.power === null || this.cardData.power === undefined
-                ? NaN
-                : isNaN(parseInt(this.cardData.power))
-                ? 0
-                : parseInt(this.cardData.power);
-        } else if (type === StatType.Hp) {
-            return this.cardData.hp === null || this.cardData.hp === undefined
-                ? NaN
-                : isNaN(parseInt(this.cardData.hp))
-                ? 0
-                : parseInt(this.cardData.hp);
+        switch (type) {
+            case StatType.Power:
+                return this.cardData.power === null || this.cardData.power === undefined
+                    ? NaN
+                    : isNaN(parseInt(this.cardData.power))
+                    ? 0
+                    : parseInt(this.cardData.power);
+            case StatType.Hp:
+                return this.cardData.hp === null || this.cardData.hp === undefined
+                    ? NaN
+                    : isNaN(parseInt(this.cardData.hp))
+                    ? 0
+                    : parseInt(this.cardData.hp);
+            default:
+                Contract.fail(`Unknown stat enum value: ${type}`);
+                return null;
         }
     }
 
@@ -1365,6 +1369,9 @@ class Card extends EffectSource {
                 return this.getPower();
             case StatType.Hp:
                 return this.getHp();
+            default:
+                Contract.fail(`Unknown stat enum value: ${type}`);
+                return null;
         }
     }
 
