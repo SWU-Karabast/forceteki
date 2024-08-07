@@ -2,7 +2,9 @@
   "type": "commonjs",
   "scripts": {
     "test": "tsc && npm run jasmine",
-    "jasmine": "node --enable-source-maps node_modules/jasmine/bin/jasmine --config=./jasmine.json",
+    "test-parallel": "tsc && npm run jasmine-parallel",
+    "jasmine": "node --enable-source-maps node_modules/jasmine/bin/jasmine --config=./jasmine.json --random=false",
+    "jasmine-parallel": "node --enable-source-maps node_modules/jasmine/bin/jasmine --config=./jasmine.json --parallel=4 --random=true",
     "lint": "eslint server/ test/server/ --ext=js",
     "get-cards": "node ./bin/fetchdata.js"
   },
