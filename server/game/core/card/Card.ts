@@ -1,5 +1,5 @@
-const AbilityDsl = require('../../abilitydsl.js');
-const Effects = require('../../effects/effectLibrary.js');
+const AbilityDsl = require('../../AbilityDsl.js');
+const Effects = require('../../effects/EffectLibrary.js');
 const EffectSource = require('../effect/EffectSource.js');
 import CardAbility = require('../ability/CardAbility.js');
 // import TriggeredAbility = require('./triggeredability');
