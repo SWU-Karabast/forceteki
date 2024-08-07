@@ -1,6 +1,6 @@
 const _ = require('underscore');
 
-const { detectBinary } = require('../../build/util.js');
+const { detectBinary } = require('../../build/Util.js');
 const { GameMode } = require('../../build/GameMode.js');
 
 class PlayerInteractionWrapper {

@@ -11,39 +11,12 @@
             "type": "node",
         },
         {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach by Process ID",
-            "processId": "${command:PickProcess}"
-        },
-        {
-            "name": "Attach",
-            "type": "node",
-            "request": "attach",
-            "port": 5858,
-            "address": "localhost",
-            "restart": false,
-            "sourceMaps": false,
-            "outDir": null,
-            "localRoot": "${workspaceRoot}",
-            "remoteRoot": null
-        },
-        {
-            "name": "Attach to Process",
-            "type": "node",
-            "request": "attach",
-            "processId": "${command.PickProcess}",
-            "port": 5858,
-            "sourceMaps": false,
-            "outDir": null
-        },
-        {
             "name": "Debug All Jasmine Tests",
             "type": "node",
             "request": "launch",
             "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "args": ["--config=./jasmine.json"],
+            "args": ["--config=./jasmine.json", "--random=false"],
             "console": "integratedTerminal",
             "cwd": "${workspaceRoot}",
             "env": {
@@ -60,7 +33,7 @@
             "env": {
                 "NODE_OPTIONS": "--enable-source-maps"
             },
-            "args": ["--config=./jasmine.json", "${file}"],
+            "args": ["--config=./jasmine.json", "--random=false", "${file}"],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             // "outFiles": ["${workspaceFolder}/build/**/*.js"]

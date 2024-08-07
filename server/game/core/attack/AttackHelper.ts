@@ -1,5 +1,5 @@
 const AbilityLimit = require('./AbilityLimit');
-const AbilityDsl = require('./abilitydsl');
+const AbilityDsl = require('./AbilityDsl');
 const CardAbilityStep = require('./CardAbilityStep');
 const Costs = require('./Costs.js');
 const { Location, CardType, EffectName, RelativePlayer } = require('./Constants');
