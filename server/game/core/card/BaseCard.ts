@@ -2,7 +2,7 @@ import Card from './Card';
 import type Player from '../Player';
 
 export class BaseCard extends Card {
-    isBase = true;
+    override isBase = true;
 
     getStartingHealth(): number {
         return this.cardData.health;

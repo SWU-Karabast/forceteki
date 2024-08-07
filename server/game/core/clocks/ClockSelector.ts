@@ -1,7 +1,7 @@
 import type Player from '../Player';
 import { Byoyomi } from './Byoyomi';
 import { ChessClock } from './ChessClock';
-import { Clock } from './Clock';
+import { BasicClock } from './BasicClock';
 import { Hourglass } from './Hourglass';
 import { Timer } from './Timer';
 import type { IClock } from './IClock';
@@ -31,6 +31,6 @@ export function clockFor(player: Player, details?: ClockConfig): IClock {
             return new Byoyomi(player, time, periods, timePeriod);
         case ClockType.NONE:
         default:
-            return new Clock(player, time, periods);
+            return new BasicClock(player, time, periods);
     }
 }

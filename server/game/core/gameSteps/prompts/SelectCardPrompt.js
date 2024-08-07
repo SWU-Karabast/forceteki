@@ -121,6 +121,7 @@ class SelectCardPrompt extends UiPrompt {
         this.choosingPlayer.setSelectedCards(this.selectedCards);
     }
 
+    /** @override */
     continue() {
         if(this.hideIfNoLegalTargets && this.selector.optional && !this.selector.hasEnoughTargets(this.context, this.choosingPlayer)) {
             this.complete();
@@ -137,10 +138,12 @@ class SelectCardPrompt extends UiPrompt {
         this.choosingPlayer.setSelectableCards(this.selector.findPossibleCards(this.context).filter(card => this.checkCardCondition(card)));
     }
 
+    /** @override */
     activeCondition(player) {
         return player === this.choosingPlayer;
     }
 
+    /** @override */
     activePrompt() {
         let buttons = this.properties.buttons;
         if(!this.selector.automaticFireOnSelect(this.context) && this.selector.hasEnoughSelected(this.selectedCards, this.context) || this.selector.optional) {
@@ -162,10 +165,12 @@ class SelectCardPrompt extends UiPrompt {
         };
     }
 
+    /** @override */
     waitingPrompt() {
         return { menuTitle: this.properties.waitingPromptTitle || 'Waiting for opponent' };
     }
 
+    /** @override */
     onCardClicked(player, card) {
         if(player !== this.choosingPlayer) {
             return false;
@@ -228,6 +233,7 @@ class SelectCardPrompt extends UiPrompt {
         return false;
     }
 
+    /** @override */
     menuCommand(player, arg) {
         if(arg === 'cancel') {
             this.properties.onCancel(player);
@@ -242,6 +248,7 @@ class SelectCardPrompt extends UiPrompt {
         return false;
     }
 
+    /** @override */
     complete() {
         this.clearSelection();
         return super.complete();

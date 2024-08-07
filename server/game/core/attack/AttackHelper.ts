@@ -5,6 +5,8 @@ const Costs = require('./Costs.js');
 const { Location, CardType, EffectName, RelativePlayer } = require('./Constants');
 import { IInitiateAttack } from "../../Interfaces";
 
+// TODO: these are not yet used, probably we'll need them for AbilityDsl at some point?
+
 export const initiateAttack = (game, card, properties) => {
     if (properties.initiateAttack) {
         if (card.type === CardType.Unit) {

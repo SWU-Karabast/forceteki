@@ -7,10 +7,12 @@ class GameWonPrompt extends AllPlayerPrompt {
         this.clickedButton = {};
     }
 
+    /** @override */
     completionCondition(player) {
         return !!this.clickedButton[player.name];
     }
 
+    /** @override */
     activePrompt() {
         return {
             promptTitle: 'Game Won',
@@ -19,10 +21,12 @@ class GameWonPrompt extends AllPlayerPrompt {
         };
     }
 
+    /** @override */
     waitingPrompt() {
         return { menuTitle: 'Waiting for opponent to choose to continue' };
     }
 
+    /** @override */
     menuCommand(player) {
         this.game.addMessage('{0} wants to continue', player);
 

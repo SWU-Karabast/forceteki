@@ -9,6 +9,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
         this.playEvent = eventWindow.events.find(event => event.name === EventName.OnCardPlayed);
     }
 
+    /** @override */
     getPromptForSelectProperties() {
         let buttons = [];
         if(this.playEvent && this.activePlayer === this.playEvent.player && this.playEvent.resolver.canCancel) {
@@ -37,6 +38,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
         return 0;
     }
 
+    /** @override */
     resolveAbility(context) {
         if(this.playEvent) {
             this.playEvent.resolver.canCancel = false;
@@ -46,6 +48,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
 }
 
 class InitiateAbilityEventWindow extends EventWindow {
+    /** @override */
     openWindow(abilityType) {
         if(this.events.length && abilityType === AbilityType.Interrupt) {
             this.queueStep(new InitiateAbilityInterruptWindow(this.game, abilityType, this));
@@ -54,6 +57,7 @@ class InitiateAbilityEventWindow extends EventWindow {
         }
     }
 
+    /** @override */
     executeHandler() {
         this.eventsToExecute = _.sortBy(this.events, 'order');
 

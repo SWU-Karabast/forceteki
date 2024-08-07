@@ -8,6 +8,8 @@ class SingleCardSelector extends BaseCardSelector {
         this.numCards = 1;
     }
 
+
+    /** @override */
     defaultActivePromptTitle() {
         if(this.cardType.length === 1) {
             if(this.cardType[0] === CardType.Upgrade) {
@@ -18,18 +20,22 @@ class SingleCardSelector extends BaseCardSelector {
         return 'Choose a card';
     }
 
+    /** @override */
     automaticFireOnSelect() {
         return true;
     }
 
+    /** @override */
     hasReachedLimit(selectedCards) {
         return selectedCards.length >= this.numCards;
     }
 
+    /** @override */
     hasExceededLimit(selectedCards) {
         return selectedCards.length > this.numCards;
     }
 
+    /** @override */
     formatSelectParam(cards) {
         return cards[0] ? cards[0] : cards;
     }

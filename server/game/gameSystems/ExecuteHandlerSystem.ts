@@ -1,6 +1,6 @@
-import type { AbilityContext } from '../ability/AbilityContext';
-import { GameSystem, type IGameSystemProperties } from './GameSystem';
-import Card from '../card/Card';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import Card from '../core/card/Card';
 
 export interface IExecuteHandlerSystemProperties extends IGameSystemProperties {
     handler: (context: AbilityContext) => void;
@@ -9,23 +9,23 @@ export interface IExecuteHandlerSystemProperties extends IGameSystemProperties {
 
 // TODO: this is sometimes getting used as a no-op, see if we can add an explicit implementation for that
 /**
- * A `GameSystem` which executes a handler function
+ * A {@link GameSystem} which executes a handler function
  */
 export class ExecuteHandlerSystem extends GameSystem {
-    defaultProperties: IExecuteHandlerSystemProperties = {
+    override defaultProperties: IExecuteHandlerSystemProperties = {
         handler: () => true,
         hasTargetsChosenByInitiatingPlayer: false
     };
 
-    hasLegalTarget(): boolean {
+    override hasLegalTarget(): boolean {
         return true;
     }
 
-    canAffect(card: Card, context: AbilityContext): boolean {
+    override canAffect(card: Card, context: AbilityContext): boolean {
         return true;
     }
 
-    addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
+    override addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
         events.push(this.getEvent(null, context, additionalProperties));
     }
 
@@ -34,7 +34,7 @@ export class ExecuteHandlerSystem extends GameSystem {
         properties.handler(event.context);
     }
 
-    hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}) {
+    override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}) {
         const { hasTargetsChosenByInitiatingPlayer } = this.generatePropertiesFromContext(
             context,
             additionalProperties

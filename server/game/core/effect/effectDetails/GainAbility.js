@@ -45,6 +45,7 @@ class GainAbility extends EffectValue {
         return this;
     }
 
+    /** @override */
     reset() {
         this.grantedAbilityLimits = {};
     }
@@ -75,6 +76,7 @@ class GainAbility extends EffectValue {
     //     this.grantedAbilityLimits[target.uuid].currentUser = target.uuid;
     // }
 
+    /** @override */
     unapply(target) {
         if (this.grantedAbilityLimits[target.uuid]) {
             this.grantedAbilityLimits[target.uuid].currentUser = null;

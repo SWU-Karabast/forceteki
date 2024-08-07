@@ -14,10 +14,12 @@ class ActionWindow extends UiPrompt {
         this.prevPlayerPassed = false;
     }
 
+    /** @override */
     activeCondition(player) {
         return player === this.activePlayer;
     }
 
+    /** @override */
     onCardClicked(player, card) {
         if(player !== this.activePlayer) {
             return false;
@@ -66,6 +68,7 @@ class ActionWindow extends UiPrompt {
     }
 
     // TODO: this is probably wrong
+    /** @override */
     continue() {
         // TODO: do we need promptedActionWindows?
         if(!this.activePlayer.promptedActionWindows[this.windowName]) {
@@ -83,6 +86,7 @@ class ActionWindow extends UiPrompt {
     }
 
     // TODO: add claim initiative option here
+    /** @override */
     activePrompt() {
         let buttons = [
             { text: 'Pass', arg: 'pass' }
@@ -97,10 +101,12 @@ class ActionWindow extends UiPrompt {
         };
     }
 
+    /** @override */
     waitingPrompt() {
         return { menuTitle: 'Waiting for opponent to take an action or pass' };
     }
 
+    /** @override */
     menuCommand(player, choice) {
         if(choice === 'manual') {
             this.game.promptForSelect(this.activePlayer, {
@@ -218,6 +224,7 @@ class ActionWindow extends UiPrompt {
         this.bonusActions = undefined;
     }
 
+    /** @override */
     complete() {
         this.teardownBonusActions();
         super.complete();

@@ -40,10 +40,12 @@ class HandlerMenuPrompt extends UiPrompt {
         this.context = properties.context || new AbilityContext({ game: game, player: player, source: properties.source });
     }
 
+    /** @override */
     activeCondition(player) {
         return player === this.player;
     }
 
+    /** @override */
     activePrompt() {
         let buttons = [];
         if(this.properties.cards) {
@@ -104,10 +106,12 @@ class HandlerMenuPrompt extends UiPrompt {
         }];
     }
 
+    /** @override */
     waitingPrompt() {
         return { menuTitle: this.properties.waitingPromptTitle || 'Waiting for opponent' };
     }
 
+    /** @override */
     menuCommand(player, arg) {
         if(_.isString(arg)) {
             if(arg === 'cancel') {

@@ -3,7 +3,7 @@ import type { IClock } from './IClock';
 
 export type Mode = 'stop' | 'down' | 'up' | 'off';
 
-export class Clock implements IClock {
+export class BasicClock implements IClock {
     mainTime: number;
     timeLeft: number;
     timerStart = 0;

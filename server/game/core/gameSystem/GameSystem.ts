@@ -21,7 +21,7 @@ export interface IGameSystemProperties {
  * 
  * @template GameSystemProperties Property class to use for configuring the behavior of the system's execution
  */
-export class GameSystem<GameSystemProperties extends IGameSystemProperties = IGameSystemProperties> {
+export abstract class GameSystem<GameSystemProperties extends IGameSystemProperties = IGameSystemProperties> {
     propertyFactory?: (context?: AbilityContext) => GameSystemProperties;
     properties?: GameSystemProperties;
     targetType: string[] = [];
@@ -48,10 +48,17 @@ export class GameSystem<GameSystemProperties extends IGameSystemProperties = IGa
     }
 
     /**
+     * Method for handling the execution of the {@link GameSystem}. This is where the system's effect is applied to the game state.
+     * @param context Context of ability being executed
+     * @param additionalProperties Any additional properties to extend the default ones with
+     */
+    abstract eventHandler(event: Event, additionalProperties: any): void;
+
+    /**
      * Method for evaluating default targets from an {@link AbilityContext} in case explicit targets aren't provided 
      * at execution time. Returns `[]` by default, will typically be overridden with a more specific method using 
      * {@link GameSystem.setDefaultTargetEvaluator} by the caller if intended to be used.
-     * @param context The context of the activating ability
+     * @param context Context of ability being executed
      * @returns List of default targets extracted from {@link context} (`[]` by default)
      */
     defaultTargets(context: AbilityContext): any[] {
@@ -64,7 +71,7 @@ export class GameSystem<GameSystemProperties extends IGameSystemProperties = IGa
      * - `additionalProperties` parameter
      * - `this.defaultProperties`
      * - a default `properties.target` value set to `this.getDefaultTargets(context)`
-     * @param context The context of the activating ability
+     * @param context Context of ability being executed
      * @param additionalProperties Any additional properties on top of the default ones
      * @returns An object of the `GameSystemProperties` template type
      */
@@ -210,8 +217,6 @@ export class GameSystem<GameSystemProperties extends IGameSystemProperties = IGa
     addPropertiesToEvent(event: any, target: any, context: AbilityContext, additionalProperties = {}): void {
         event.context = context;
     }
-
-    eventHandler(event: any, additionalProperties = {}): void {}
 
     checkEventCondition(event: Event, additionalProperties = {}): boolean {
         return true;

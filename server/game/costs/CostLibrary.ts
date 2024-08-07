@@ -4,7 +4,7 @@ import { Event } from '../core/event/Event';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
-import { ExecuteHandlerSystem } from '../core/gameSystem/ExecuteHandlerSystem';
+import { ExecuteHandlerSystem } from '../gameSystems/ExecuteHandlerSystem';
 import { IReturnToDeckProperties } from '../gameSystems/ReturnToDeckSystem';
 import { ISelectCardProperties } from '../gameSystems/SelectCardSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
@@ -20,12 +20,12 @@ import Player from '../core/Player';
 type SelectCostProperties = Omit<ISelectCardProperties, 'gameSystem'>;
 
 function getSelectCost(
-    action: CardTargetSystem,
+    gameSystem: CardTargetSystem,
     properties: undefined | SelectCostProperties,
     activePromptTitle: string
 ) {
     return new MetaActionCost(
-        GameSystems.selectCard(Object.assign({ gameSystem: action }, properties)),
+        GameSystems.selectCard(Object.assign({ gameSystem: gameSystem }, properties)),
         activePromptTitle
     );
 }

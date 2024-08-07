@@ -30,6 +30,7 @@ class PlayerAction extends PlayerOrCardAbility {
         return fateCost ? fateCost.getReducedCost(context) : 0;
     }
 
+    /** @override */
     isAction() {
         return true;
     }

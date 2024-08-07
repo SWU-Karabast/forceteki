@@ -48,6 +48,7 @@ class CardAbility extends CardAbilityStep {
         return defaultedLocation;
     }
 
+    /** @override */
     meetsRequirements(context, ignoredRequirements = []) {
         if (this.card.isBlank() && this.printedAbility) {
             return 'blank';
@@ -85,6 +86,7 @@ class CardAbility extends CardAbilityStep {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
+    /** @override */
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = super.getCosts(context, playCosts);
         if (!context.subResolution && triggerCosts && context.player.anyEffect(EffectName.AdditionalTriggerCost)) {
@@ -131,6 +133,7 @@ class CardAbility extends CardAbilityStep {
         return location;
     }
 
+    /** @override */
     displayMessage(context, messageVerb = context.source.type === CardType.Event ? 'plays' : 'uses') {
         if (
             context.source.type === CardType.Event &&
@@ -217,10 +220,12 @@ class CardAbility extends CardAbilityStep {
         this.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs);
     }
 
+    /** @override */
     isCardPlayed() {
         return !this.isKeywordAbility() && this.card.getType() === CardType.Event;
     }
 
+    /** @override */
     isTriggeredAbility() {
         return true;
     }

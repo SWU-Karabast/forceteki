@@ -12,11 +12,13 @@ class ResourcePrompt extends AllPlayerPrompt {
         _.each(game.getPlayers(), player => this.selectedCards[player.name] = []);
     }
 
+    /** @override */
     completionCondition(player) {
         let nSelectedCards = this.selectedCards[player.name].length;
         return this.minCardsToResource <= nSelectedCards && nSelectedCards <= this.maxCardsToResource;
     }
 
+    /** @override */
     continue() {
         if(!this.isComplete()) {
             this.highlightSelectableCards();
@@ -38,6 +40,7 @@ class ResourcePrompt extends AllPlayerPrompt {
         });
     }
 
+    /** @override */
     activePrompt() {
         let promptText = null;
         if (this.minCardsToResource != this.maxCardsToResource) {
@@ -56,6 +59,7 @@ class ResourcePrompt extends AllPlayerPrompt {
         };
     }
 
+    /** @override */
     onCardClicked(player, card) {
         if(!player || !this.activeCondition(player) || !card) {
             return false;
@@ -69,12 +73,14 @@ class ResourcePrompt extends AllPlayerPrompt {
         player.setSelectedCards(this.selectedCards[player.name]);
     }
 
+    /** @override */
     waitingPrompt() {
         return {
             menuTitle: 'Waiting for opponent to choose cards to resource'
         };
     }
 
+    /** @override */
     menuCommand(player, arg) {
         if(arg === 'done') {
             if (!this.completionCondition(player)) {

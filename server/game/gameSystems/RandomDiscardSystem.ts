@@ -8,15 +8,15 @@ export interface IRandomDiscardProperties extends IPlayerTargetSystemProperties 
 }
 
 export class RandomDiscardSystem extends PlayerTargetSystem {
-    defaultProperties: IRandomDiscardProperties = { amount: 1 };
+    override defaultProperties: IRandomDiscardProperties = { amount: 1 };
 
-    name = 'discard';
-    eventName = EventName.OnCardsDiscardedFromHand;
+    override name = 'discard';
+    override eventName = EventName.OnCardsDiscardedFromHand;
     constructor(propertyFactory: IRandomDiscardProperties | ((context: AbilityContext) => IRandomDiscardProperties)) {
         super(propertyFactory);
     }
 
-    getEffectMessage(context: AbilityContext): [string, any[]] {
+    override getEffectMessage(context: AbilityContext): [string, any[]] {
         let properties: IRandomDiscardProperties = this.generatePropertiesFromContext(context);
         return [
             'make {0} discard {1} {2} at random',
@@ -24,12 +24,12 @@ export class RandomDiscardSystem extends PlayerTargetSystem {
         ];
     }
 
-    canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
+    override canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
         let properties: IRandomDiscardProperties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.amount > 0 && player.hand.size() > 0 && super.canAffect(player, context);
     }
 
-    addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties): void {
+    override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties): void {
         let { amount } = this.generatePropertiesFromContext(context, additionalProperties) as IRandomDiscardProperties;
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;

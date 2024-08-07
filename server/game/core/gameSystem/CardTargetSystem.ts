@@ -9,10 +9,10 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
 }
 
 /**
- * A `GameSystem` which targets a card or cards for its effect
+ * A {@link GameSystem} which targets a card or cards for its effect
  */
-export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<P> {
-    targetType = [
+export abstract class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<P> {
+    override targetType = [
         CardType.Unit,
         CardType.Upgrade,
         CardType.Event,
@@ -20,19 +20,19 @@ export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTarge
         CardType.Base,
     ];
 
-    defaultTargets(context: AbilityContext): Card[] {
+    override defaultTargets(context: AbilityContext): Card[] {
         return [context.source];
     }
 
-    checkEventCondition(event: any, additionalProperties = {}): boolean {
+    override checkEventCondition(event: any, additionalProperties = {}): boolean {
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
-    canAffect(target: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    override canAffect(target: Card, context: AbilityContext, additionalProperties = {}): boolean {
         return super.canAffect(target, context, additionalProperties);
     }
 
-    addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
+    override addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         for (const card of target as Card[]) {
             let allCostsPaid = true;
@@ -123,12 +123,12 @@ export class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTarge
         }
     }
 
-    addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties = {}): void {
+    override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }
 
-    isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
+    override isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
         return event.card === card && super.isEventFullyResolved(event, card, context, additionalProperties);
     }
 

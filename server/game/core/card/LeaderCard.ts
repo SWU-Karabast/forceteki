@@ -2,7 +2,7 @@ import Card from './Card';
 import type Player from '../Player';
 
 export class LeaderCard extends Card {
-    isLeader = true;
+    override isLeader = true;
 
     // TODO: add epic action and limit 1 per game
 

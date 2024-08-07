@@ -5,20 +5,20 @@ import { GameSystem, type IGameSystemProperties } from './GameSystem';
 export interface IPlayerTargetSystemProperties extends IGameSystemProperties {}
 
 /**
- * A `GameSystem` which targets a player for its effect
+ * A {@link GameSystem} which targets a player for its effect
  */
-export class PlayerTargetSystem<P extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends GameSystem<P> {
-    targetType = ['player'];
+export abstract class PlayerTargetSystem<P extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends GameSystem<P> {
+    override targetType = ['player'];
 
-    defaultTargets(context: AbilityContext): Player[] {
+    override defaultTargets(context: AbilityContext): Player[] {
         return context.player ? [context.player.opponent] : [];
     }
 
-    checkEventCondition(event, additionalProperties): boolean {
+    override checkEventCondition(event, additionalProperties): boolean {
         return this.canAffect(event.player, event.context, additionalProperties);
     }
 
-    addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties = {}): void {
+    override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.player = player;
     }

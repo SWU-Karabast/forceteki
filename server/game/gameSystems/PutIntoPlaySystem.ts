@@ -12,11 +12,11 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
 }
 
 export class PutIntoPlaySystem extends CardTargetSystem {
-    name = 'putIntoPlay';
-    eventName = EventName.OnUnitEntersPlay;
-    cost = 'putting {0} into play';
-    targetType = [CardType.Unit];
-    defaultProperties: IPutIntoPlayProperties = {
+    override name = 'putIntoPlay';
+    override eventName = EventName.OnUnitEntersPlay;
+    override cost = 'putting {0} into play';
+    override targetType = [CardType.Unit];
+    override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
         side: null,
         overrideLocation: null
@@ -36,12 +36,12 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         return context.player;
     }
 
-    getEffectMessage(context: AbilityContext): [string, any[]] {
+    override getEffectMessage(context: AbilityContext): [string, any[]] {
         let { target } = this.generatePropertiesFromContext(context);
         return ['put {0} into play', [target]];
     }
 
-    canAffect(card: Card, context: AbilityContext): boolean {
+    override canAffect(card: Card, context: AbilityContext): boolean {
         let properties = this.generatePropertiesFromContext(context) as IPutIntoPlayProperties;
         let contextCopy = context.copy({ source: card });
         let player = this.getPutIntoPlayPlayer(contextCopy);
@@ -61,7 +61,7 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         return true;
     }
 
-    addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         let { controller, side, overrideLocation } = this.generatePropertiesFromContext(
             context,
             additionalProperties

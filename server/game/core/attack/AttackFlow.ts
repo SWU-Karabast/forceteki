@@ -18,7 +18,6 @@ D.8 Apply duel results.
 D.9 Duel ends.
  */
 
-// UP NEXT: finish this
 export class AttackFlow extends BaseStepWithPipeline {
     constructor(
         game: Game,

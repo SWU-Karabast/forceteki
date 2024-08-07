@@ -21,14 +21,13 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
 }
 
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {
-    name = 'attack';
-    eventName = EventName.OnAttackDeclared;
-    targetType = [CardType.Unit, CardType.Base];  // TODO: leader?
+    override name = 'attack';
+    override eventName = EventName.OnAttackDeclared;
+    override targetType = [CardType.Unit, CardType.Base];  // TODO: leader?
 
-    defaultProperties: IAttackProperties = {};
+    override defaultProperties: IAttackProperties = {};
 
-    // TODO: maybe rename to "appendProperties" for clarity
-    generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IAttackProperties {
+    override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IAttackProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as IAttackProperties;
         if (!properties.attacker) {
             properties.attacker = context.source;
@@ -36,7 +35,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         return properties;
     }
 
-    getEffectMessage(context: AbilityContext): [string, any[]] {
+    override getEffectMessage(context: AbilityContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return [
             '{0} initiates attack against {1}',
@@ -44,7 +43,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         ];
     }
 
-    canAffect(targetCard: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    override canAffect(targetCard: Card, context: AbilityContext, additionalProperties = {}): boolean {
         if (!context.player.opponent) {
             return false;
         }
@@ -93,7 +92,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     }
 
     // TODO: change form from this to "generateEvents" for clarity
-    addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
+    override addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
@@ -110,7 +109,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         events.push(event);
     }
 
-    addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
+    override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (isArray(target)) {
@@ -161,7 +160,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         );
     }
 
-    checkEventCondition(event, additionalProperties): boolean {
+    override checkEventCondition(event, additionalProperties): boolean {
         return this.canAffect(event.target, event.context, additionalProperties);
     }
 }

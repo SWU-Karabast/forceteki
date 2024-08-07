@@ -7,13 +7,13 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 export interface IExhaustSystemProperties extends ICardTargetSystemProperties {}
 
 export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
-    name = 'exhaust';
-    eventName = EventName.OnCardExhausted;
-    cost = 'exhausting {0}';
-    effect = 'exhaust {0}';
-    targetType = [CardType.Unit];
+    override name = 'exhaust';
+    override eventName = EventName.OnCardExhausted;
+    override cost = 'exhausting {0}';
+    override effect = 'exhaust {0}';
+    override targetType = [CardType.Unit];
 
-    canAffect(card: Card, context: AbilityContext): boolean {
+    override canAffect(card: Card, context: AbilityContext): boolean {
         if (!isArena(card.location) || card.exhausted) {
             return false;
         }

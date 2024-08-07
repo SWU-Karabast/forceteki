@@ -57,6 +57,7 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
         return true;
     }
 
+    /** @override */
     filterChoices() {
         // If both players have passed, close the window
         if(this.complete) {
@@ -88,6 +89,7 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
         return false;
     }
 
+    /** @override */
     postResolutionUpdate(resolver) {
         super.postResolutionUpdate(resolver);
         if(!this.resolvedAbilitiesPerPlayer[resolver.context.player.uuid]) {
@@ -99,6 +101,7 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
         this.activePlayer = this.activePlayer.opponent || this.activePlayer;
     }
 
+    /** @override */
     getPromptForSelectProperties() {
         return _.extend(super.getPromptForSelectProperties(), {
             selectCard: this.activePlayer.optionSettings.markCardsUnselectable,
@@ -110,6 +113,7 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
         });
     }
 
+    /** @override */
     hasAbilityBeenTriggered(context) {
         let alreadyResolved = false;
         if(Array.isArray(this.resolvedAbilitiesPerPlayer[context.player.uuid])) {

@@ -2,6 +2,7 @@ const { Location, RelativePlayer, WildcardLocation } = require('../Constants');
 const { cardLocationMatches } = require('../utils/EnumHelpers');
 const _ = require('underscore');
 
+// TODO: once converted to TS, make this abstract
 class BaseCardSelector {
     constructor(properties) {
         this.cardCondition = properties.cardCondition;

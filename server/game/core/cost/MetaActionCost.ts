@@ -8,28 +8,28 @@ import { GameActionCost } from './GameActionCost';
 
 export class MetaActionCost extends GameActionCost implements ICost {
     constructor(
-        action: GameSystem,
+        gameSystem: GameSystem,
         public activePromptTitle: string
     ) {
-        super(action);
+        super(gameSystem);
     }
 
-    getActionName(context: AbilityContext): string {
-        const { gameSystem } = this.action.generatePropertiesFromContext(context) as ISelectCardProperties;
+    override getActionName(context: AbilityContext): string {
+        const { gameSystem } = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         return gameSystem.name;
     }
 
-    canPay(context: AbilityContext): boolean {
-        const properties = this.action.generatePropertiesFromContext(context) as ISelectCardProperties;
+    override canPay(context: AbilityContext): boolean {
+        const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         let additionalProps = {
             controller: RelativePlayer.Self,
             location: properties.location || WildcardLocation.Any
         };
-        return this.action.hasLegalTarget(context, additionalProps);
+        return this.gameSystem.hasLegalTarget(context, additionalProps);
     }
 
-    addEventsToArray(events: any[], context: AbilityContext, result: Result): void {
-        const properties = this.action.generatePropertiesFromContext(context) as ISelectCardProperties;
+    override addEventsToArray(events: any[], context: AbilityContext, result: Result): void {
+        const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.targets && context.choosingPlayerOverride) {
             context.costs[properties.gameSystem.name] = randomItem(
                 properties.selector.getAllLegalTargets(context, context.player)
@@ -54,15 +54,15 @@ export class MetaActionCost extends GameActionCost implements ICost {
                 return properties.subActionProperties ? properties.subActionProperties(target) : {};
             }
         };
-        this.action.addEventsToArray(events, context, additionalProps);
+        this.gameSystem.addEventsToArray(events, context, additionalProps);
     }
 
     hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {
-        return this.action.hasTargetsChosenByInitiatingPlayer(context);
+        return this.gameSystem.hasTargetsChosenByInitiatingPlayer(context);
     }
 
-    getCostMessage(context: AbilityContext): [string, any[]] {
-        const properties = this.action.generatePropertiesFromContext(context) as ISelectCardProperties;
+    override getCostMessage(context: AbilityContext): [string, any[]] {
+        const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         return properties.gameSystem.getCostMessage(context);
     }
 }

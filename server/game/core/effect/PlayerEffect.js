@@ -11,6 +11,7 @@ class PlayerEffect extends Effect {
 
     }
 
+    /** @override */
     isValidTarget(target) {
         if(this.targetController !== RelativePlayer.Any && this.targetController !== RelativePlayer.Self && this.targetController !== RelativePlayer.Opponent && this.targetController !== target) {
             return false;
@@ -24,6 +25,7 @@ class PlayerEffect extends Effect {
         return true;
     }
 
+    /** @override */
     getTargets() {
         return this.game.getPlayers().filter(player => this.match(player));
     }

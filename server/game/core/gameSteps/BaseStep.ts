@@ -3,7 +3,7 @@ import type Game = require('../Game');
 import type Player = require('../Player');
 import type { IStep } from './IStep';
 
-export class BaseStep implements IStep {
+export abstract class BaseStep implements IStep {
     constructor(public game: Game) {}
 
     public continue(): undefined | boolean {

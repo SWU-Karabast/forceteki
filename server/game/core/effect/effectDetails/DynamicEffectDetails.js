@@ -7,11 +7,13 @@ class DynamicEffectDetails extends StaticEffectDetails {
         this.calculate = calculate;
     }
 
+    /** @override */
     apply(target) {
         super.apply(target);
         this.recalculate(target);
     }
 
+    /** @override */
     recalculate(target) {
         let oldValue = this.getValue(target);
         let newValue = this.setValue(target, this.calculate(target, this.context));
@@ -24,6 +26,7 @@ class DynamicEffectDetails extends StaticEffectDetails {
         return oldValue !== newValue;
     }
 
+    /** @override */
     getValue(target) {
         if(target) {
             return this.values[target.uuid];

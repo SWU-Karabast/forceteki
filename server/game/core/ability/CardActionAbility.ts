@@ -33,7 +33,7 @@ import type Game from '../Game.js';
  *                   the card is clicked.
  */
 export class CardActionAbility extends CardAbility {
-    abilityType = AbilityType.Action;
+    override abilityType = AbilityType.Action;
 
     anyPlayer: boolean;
     doesNotTarget: boolean;
@@ -52,7 +52,7 @@ export class CardActionAbility extends CardAbility {
         this.doesNotTarget = (properties as any).doesNotTarget;
     }
 
-    meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
+    override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
         if (!ignoredRequirements.includes('location') && !this.isInValidLocation(context)) {
             return 'location';
         }
@@ -77,7 +77,7 @@ export class CardActionAbility extends CardAbility {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    isAction() {
+    override isAction() {
         return true;
     }
 }

@@ -8,10 +8,12 @@ class DetachedEffectDetails extends StaticEffectDetails {
         this.state = {};
     }
 
+    /** @override */
     apply(target) {
         this.state[target.uuid] = this.applyFunc(target, this.context, this.state[target.uuid]);
     }
 
+    /** @override */
     unapply(target) {
         this.state[target.uuid] = this.unapplyFunc(target, this.context, this.state[target.uuid]);
         if(this.state[target.uuid] === undefined) {
@@ -19,6 +21,7 @@ class DetachedEffectDetails extends StaticEffectDetails {
         }
     }
 
+    /** @override */
     setContext(context) {
         this.context = context;
         for(let state of Object.values(this.state)) {

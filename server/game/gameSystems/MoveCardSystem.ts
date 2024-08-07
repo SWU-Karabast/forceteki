@@ -16,9 +16,9 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 }
 
 export class MoveCardSystem extends CardTargetSystem {
-    name = 'move';
-    targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
-    defaultProperties: IMoveCardProperties = {
+    override name = 'move';
+    override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
+    override defaultProperties: IMoveCardProperties = {
         destination: null,
         switch: false,
         switchTarget: null,
@@ -31,12 +31,12 @@ export class MoveCardSystem extends CardTargetSystem {
         super(properties);
     }
 
-    getCostMessage(context: AbilityContext): [string, any[]] {
+    override getCostMessage(context: AbilityContext): [string, any[]] {
         let properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         return ['shuffling {0} into their deck', [properties.target]];
     }
 
-    getEffectMessage(context: AbilityContext): [string, any[]] {
+    override getEffectMessage(context: AbilityContext): [string, any[]] {
         let properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         let destinationController = Array.isArray(properties.target)
             ? properties.changePlayer
@@ -54,7 +54,7 @@ export class MoveCardSystem extends CardTargetSystem {
         ];
     }
 
-    canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         const { changePlayer, destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         return (
             (!changePlayer ||

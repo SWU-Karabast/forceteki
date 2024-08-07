@@ -115,21 +115,21 @@ class RepeatableAbilityLimit extends FixedAbilityLimit {
         super(max);
     }
 
-    public clone() {
+    public override clone() {
         return new RepeatableAbilityLimit(this.max, this.eventName);
     }
 
-    public isRepeatable(): boolean {
+    public override isRepeatable(): boolean {
         return true;
     }
 
-    public registerEvents(eventEmitter: EventEmitter): void {
+    public override registerEvents(eventEmitter: EventEmitter): void {
         for (const eventN of this.eventName) {
             eventEmitter.on(eventN, () => this.reset());
         }
     }
 
-    public unregisterEvents(eventEmitter: EventEmitter): void {
+    public override unregisterEvents(eventEmitter: EventEmitter): void {
         for (const eventN of this.eventName) {
             eventEmitter.removeListener(eventN, () => this.reset());
         }

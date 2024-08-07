@@ -16,6 +16,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
         this.resolvedAbilities = [];
     }
 
+    /** @override */
     continue() {
         this.game.currentAbilityWindow = this;
         if(this.eventWindow) {

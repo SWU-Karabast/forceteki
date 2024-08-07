@@ -13,7 +13,7 @@ type ActivePrompt = {
     selectRing?: boolean;
 };
 
-export class UiPrompt extends BaseStep {
+export abstract class UiPrompt extends BaseStep {
     public completed = false;
     public uuid = uuid();
 
@@ -70,7 +70,7 @@ export class UiPrompt extends BaseStep {
         return { menuTitle: 'Waiting for opponent' };
     }
 
-    public continue(): boolean {
+    public override continue(): boolean {
         const completed = this.isComplete();
 
         if (completed) {
@@ -88,7 +88,7 @@ export class UiPrompt extends BaseStep {
         }
     }
 
-    public onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
+    public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
         if (!this.activeCondition(player) || uuid !== this.uuid) {
             return false;
         }

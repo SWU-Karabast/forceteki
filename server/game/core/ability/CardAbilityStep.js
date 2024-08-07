@@ -27,6 +27,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         });
     }
 
+    /** @override */
     checkGameActionsForPotential(context) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
@@ -39,6 +40,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return false;
     }
 
+    /** @override */
     displayMessage(context) {
         let message = this.properties.message;
         if (typeof message === 'function') {
@@ -64,6 +66,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return actions.concat(this.gameSystem);
     }
 
+    /** @override */
     executeHandler(context) {
         this.handler(context);
         this.game.queueSimpleStep(() => this.game.checkGameState());
@@ -96,9 +99,10 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     openEventWindow(events) {
-        return this.game.openThenEventWindow(events);
+        return this.game.openAdditionalAbilityStepEventWindow(events);
     }
 
+    /** @override */
     isCardAbility() {
         return true;
     }

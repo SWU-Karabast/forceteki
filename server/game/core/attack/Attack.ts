@@ -19,11 +19,11 @@ enum AttackParticipant {
 type StatisticTotal = number;
 
 export class Attack extends GameObject {
-    #modifiers = new WeakMap<Player, IAttackAbilities>();
+    // #modifiers = new WeakMap<Player, IAttackAbilities>();
     previousAttack: Attack;
 
     constructor(
-        public game: Game,
+        game: Game,
         public attacker: Card,
         public target: Card
     ) {

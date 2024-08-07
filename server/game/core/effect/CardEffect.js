@@ -16,6 +16,7 @@ class CardEffect extends Effect {
         this.targetLocation = properties.targetLocation || WildcardLocation.AnyArena;
     }
 
+    /** @override */
     isValidTarget(target) {
         if(target === this.match) {
             // This is a hack to check whether this is a lasting effect
@@ -28,6 +29,7 @@ class CardEffect extends Effect {
         );
     }
 
+    /** @override */
     getTargets() {
         if(this.targetLocation === WildcardLocation.Any) {
             return this.game.allCards.filter(card => this.match(card, this.context));

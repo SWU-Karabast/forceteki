@@ -21,7 +21,7 @@ import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
 // import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from '../core/gameSystem/ExecuteHandlerSystem';
+import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './ExecuteHandlerSystem';
 // import { IfAbleAction, IfAbleActionProperties } from './IfAbleAction';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';

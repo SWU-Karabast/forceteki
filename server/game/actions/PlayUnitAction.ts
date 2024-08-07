@@ -15,7 +15,7 @@ export class PlayUnitAction extends BaseAction {
         super(card, [payAdjustableResourceCost()]);
     }
 
-    public meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+    public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
             !ignoredRequirements.includes('phase') &&
             context.game.currentPhase !== PhaseName.Action
@@ -43,13 +43,13 @@ export class PlayUnitAction extends BaseAction {
         return super.meetsRequirements(context);
     }
 
-    createContext(player: RelativePlayer = this.card.controller) {
+    override createContext(player: RelativePlayer = this.card.controller) {
         let context = super.createContext(player);
         context.costAspects = this.card.aspects;
         return context;
     }
 
-    public executeHandler(context: ExecutionContext): void {
+    public override executeHandler(context: ExecutionContext): void {
         const cardPlayedEvent = context.game.getEvent(EventName.OnCardPlayed, {
             player: context.player,
             card: context.source,
@@ -77,7 +77,7 @@ export class PlayUnitAction extends BaseAction {
         ]);
     }
 
-    public isCardPlayed(): boolean {
+    public override isCardPlayed(): boolean {
         return true;
     }
 }

@@ -1,28 +1,28 @@
 import Player from '../Player';
-import { Clock, Mode } from './Clock';
+import { BasicClock, Mode } from './BasicClock';
 import type { IClock } from './IClock';
 
-export class ChessClock extends Clock implements IClock {
-    mode: Mode = 'stop';
-    name = 'Chess Clock';
+export class ChessClock extends BasicClock implements IClock {
+    override mode: Mode = 'stop';
+    override name = 'Chess Clock';
 
     constructor(player: Player, time: number) {
         super(player, time, 5);
     }
 
-    protected pause() {
+    protected override pause() {
         this.stop();
     }
 
-    protected restart() {
+    protected override restart() {
         this.start();
     }
 
-    public reset() {
+    public override reset() {
         this.stop();
     }
 
-    public start() {
+    public override start() {
         if (!this.manuallyPaused) {
             if (this.mode !== 'down') {
                 this.mode = 'down';
@@ -31,21 +31,21 @@ export class ChessClock extends Clock implements IClock {
         }
     }
 
-    public stop() {
+    public override stop() {
         super.stop();
         this.mode = 'stop';
     }
 
-    public opponentStart() {}
+    public override opponentStart() {}
 
-    protected timeRanOut() {
+    protected override timeRanOut() {
         this.player.game.addMessage("{0}'s clock has run out", this.player);
         if (this.player.opponent && this.player.opponent.clock.timeLeft > 0) {
             this.player.game.recordWinner(this.player.opponent, 'clock');
         }
     }
 
-    protected updateTimeLeft(secs: number) {
+    protected override updateTimeLeft(secs: number) {
         if (this.timeLeft === 0 || secs < 0) {
             return;
         }

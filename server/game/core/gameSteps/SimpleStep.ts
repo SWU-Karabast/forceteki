@@ -6,12 +6,12 @@ export class SimpleStep extends BaseStep {
         super(game);
     }
 
-    continue() {
+    override continue() {
         this.continueFunc();
         return undefined;
     }
 
-    getDebugInfo() {
+    override getDebugInfo() {
         return this.continueFunc.toString();
     }
 }

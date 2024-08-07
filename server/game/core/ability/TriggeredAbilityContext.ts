@@ -12,11 +12,11 @@ export class TriggeredAbilityContext<S = any> extends AbilityContext<S> {
         this.event = properties.event;
     }
 
-    createCopy(newProps: unknown) {
+    override createCopy(newProps: unknown) {
         return new TriggeredAbilityContext(Object.assign(this.getProps(), newProps));
     }
 
-    getProps() {
+    override getProps() {
         return Object.assign(super.getProps(), { event: this.event });
     }
 

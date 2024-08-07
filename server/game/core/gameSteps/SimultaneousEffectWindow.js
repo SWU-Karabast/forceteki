@@ -7,6 +7,7 @@ class SimultaneousEffectWindow extends ForcedTriggeredAbilityWindow {
         super(game, 'delayedeffects');
     }
 
+    /** @override */
     addChoice(choice) {
         if(!choice.condition) {
             choice.condition = () => true;
@@ -14,6 +15,7 @@ class SimultaneousEffectWindow extends ForcedTriggeredAbilityWindow {
         this.choices.push(choice);
     }
 
+    /** @override */
     filterChoices() {
         let choices = this.choices.filter(choice => choice.condition());
         if(choices.length === 0) {

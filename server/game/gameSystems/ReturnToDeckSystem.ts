@@ -11,10 +11,10 @@ export interface IReturnToDeckProperties extends ICardTargetSystemProperties {
 }
 
 export class ReturnToDeckSystem extends CardTargetSystem {
-    name = 'returnToDeck';
-    eventName = EventName.OnCardDefeated;
-    targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
-    defaultProperties: IReturnToDeckProperties = {
+    override name = 'returnToDeck';
+    override eventName = EventName.OnCardDefeated;
+    override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
+    override defaultProperties: IReturnToDeckProperties = {
         bottom: false,
         shuffle: false,
         location: WildcardLocation.AnyArena
@@ -23,7 +23,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
         super(properties);
     }
 
-    getCostMessage(context: AbilityContext): [string, any[]] {
+    override getCostMessage(context: AbilityContext): [string, any[]] {
         let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         return [
             properties.shuffle
@@ -33,7 +33,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
         ];
     }
 
-    getEffectMessage(context: AbilityContext): [string, any[]] {
+    override getEffectMessage(context: AbilityContext): [string, any[]] {
         let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         if (properties.shuffle) {
             return ["shuffle {0} into its owner's deck", [properties.target]];
@@ -44,7 +44,7 @@ export class ReturnToDeckSystem extends CardTargetSystem {
         ];
     }
 
-    canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         let properties = this.generatePropertiesFromContext(context) as IReturnToDeckProperties;
         let location: TargetableLocation[];
         if (!Array.isArray(properties.location)) {

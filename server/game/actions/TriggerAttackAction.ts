@@ -20,7 +20,7 @@ export class TriggerAttackAction extends BaseAction {
         });
     }
 
-    public meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+    public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
             context.game.currentPhase !== PhaseName.Action &&
             !ignoredRequirements.includes('phase')
@@ -41,7 +41,7 @@ export class TriggerAttackAction extends BaseAction {
     }
 
     // attack triggers as an event instead of a game step because it's part of the same action
-    public executeHandler(context: AbilityContext): void {
+    public override executeHandler(context: AbilityContext): void {
         context.game.openEventWindow([
             attack({
                 attacker: context.source

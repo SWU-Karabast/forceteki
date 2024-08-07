@@ -24,19 +24,23 @@ class MenuPrompt extends UiPrompt {
         this.properties = properties;
     }
 
+    /** @override */
     activeCondition(player) {
         return player === this.player;
     }
 
+    /** @override */
     activePrompt() {
         let promptTitle = this.properties.promptTitle || (this.properties.source ? this.properties.source.name : undefined);
         return _.extend({ promptTitle: promptTitle }, this.properties.activePrompt);
     }
 
+    /** @override */
     waitingPrompt() {
         return { menuTitle: this.properties.waitingPromptTitle || 'Waiting for opponent' };
     }
 
+    /** @override */
     menuCommand(player, arg, method) {
         if(!this.context[method]) {
             return false;

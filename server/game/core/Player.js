@@ -689,6 +689,7 @@ class Player extends GameObject {
 
     /**
      * Returns the aspects for this player (derived from base and leader)
+     * @override
      */
     getAspects() {
         return this.leader.aspects.concat(this.base.aspects);

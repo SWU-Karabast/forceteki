@@ -5,7 +5,7 @@ import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
 import { SimpleStep } from '../SimpleStep';
 import type { IStep } from '../IStep';
 
-export class Phase extends BaseStepWithPipeline {
+export abstract class Phase extends BaseStepWithPipeline {
     public steps: IStep[] = [];
 
     constructor(

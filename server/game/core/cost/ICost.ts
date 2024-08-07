@@ -12,7 +12,7 @@ export type Result = {
 export interface ICost {
     canPay(context: AbilityContext): boolean;
 
-    action?: GameSystem;
+    gameSystem?: GameSystem;
     activePromptTitle?: string;
 
     selectCardName?(player: Player, cardName: string, context: AbilityContext): boolean;

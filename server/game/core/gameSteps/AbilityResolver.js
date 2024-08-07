@@ -185,7 +185,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             if(this.context.ability.isCardPlayed()) {
                 this.game.actions.moveCard({ destination: Location.BeingPlayed }).resolve(this.context.source, this.context);
             }
-            this.game.openThenEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
+            this.game.openAdditionalAbilityStepEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
         } else {
             this.initiateAbility = true;
         }
