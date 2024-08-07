@@ -4,6 +4,7 @@ const { log } = require('console');
 const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
+const cliProgress = require('cli-progress');
 
 const pathToJSON = path.join(__dirname, '../test/json/');
 
@@ -53,13 +54,13 @@ function filterValues(card) {
     return filteredObj;
 }
 
-function getCardData(page) {
+function getCardData(page, progressBar) {
     return axios.get('https://admin.starwarsunlimited.com/api/cards?pagination[page]=' + page)
         .then(res => res.data.data)
         .then((cards) => {
-            console.log(cards.length + ' cards fetched. on page ' + page);
             mkdirp.sync(pathToJSON);
             mkdirp.sync(path.join(pathToJSON, 'Card'));
+            progressBar.increment();
             return Promise.all(
                 cards.map((card) => filterValues(card))
             );
@@ -70,9 +71,17 @@ function getCardData(page) {
 async function main() {
     pageData = await axios.get('https://admin.starwarsunlimited.com/api/cards');
     totalPageCount = pageData.data.meta.pagination.pageCount;
+    
+    console.log("downloading card definitions");
+    const downloadProgressBar = new cliProgress.SingleBar({format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}'});
+    downloadProgressBar.start(totalPageCount, 0);
 
-    let cards = (await Promise.all([...Array(totalPageCount).keys()].map(pageNumber => getCardData(pageNumber + 1)))).flat();
-    cards = cards.filter(n => n); // remove nulls
+    let cards = (await Promise.all([...Array(totalPageCount).keys()]
+        .map(pageNumber => getCardData(pageNumber + 1, downloadProgressBar))))
+        .flat()
+        .filter(n => n);    // remove nulls
+
+    downloadProgressBar.stop();
 
     var cardMap = [];
     var seenNames = [];
@@ -94,13 +103,25 @@ async function main() {
 
     cards.map(card => delete card.debugObject);
 
-    if (duplicatesWithSetCode) {
-        console.log(`Duplicate cards found, with set codes: ${JSON.stringify(duplicatesWithSetCode, null, 2)}`);
-    }
+    console.log("\nwriting card definition files");
+    const fileWriteProgressBar = new cliProgress.SingleBar({format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}'});
+    fileWriteProgressBar.start(uniqueCards.length, 0);
 
-    await Promise.all(uniqueCards.map(async (card) => fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify([card], null, 2))));
+    await Promise.all(uniqueCards.map(async (card) => {
+        fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify([card], null, 2));
+        fileWriteProgressBar.increment();
+    }));
 
-    fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2))
+    fileWriteProgressBar.stop();
+
+    // TODO: better way to handle duplicates between sets
+    // if (duplicatesWithSetCode) {
+    //     console.log(`Duplicate cards found, with set codes: ${JSON.stringify(duplicatesWithSetCode, null, 2)}`);
+    // }
+
+    fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
+
+    console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
 
 main();
