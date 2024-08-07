@@ -18,8 +18,12 @@ function getAttributeNames(attributeList) {
 function filterValues(card) {
     // just filter out variants for now
     // TODO: add some map for variants
-    if (card.attributes.variantOf.data != null)
-    {
+    if (card.attributes.variantOf.data != null) {
+        return null;
+    }
+
+    // filtering out TWI for now since the cards don't have complete data
+    if (card.attributes.expansion.data.attributes.code === 'TWI') {
         return null;
     }
 
@@ -57,13 +61,7 @@ function getCardData(page) {
             mkdirp.sync(pathToJSON);
             mkdirp.sync(path.join(pathToJSON, 'Card'));
             return Promise.all(
-                cards.map((card) => {
-                    let simplifiedCard = filterValues(card);
-                    if (!simplifiedCard) {
-                        return null;
-                    }
-                    return simplifiedCard;
-                })
+                cards.map((card) => filterValues(card))
             );
         })
         .catch((error) => console.log('error fetching: ' + error));
