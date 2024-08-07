@@ -127,7 +127,7 @@ class EventWindow extends BaseStepWithPipeline {
     //     this.queueStep(new KeywordAbilityWindow(this.game, abilityType, this));
     // }
 
-    // TODO: what's up with "then" abilities
+    // TODO: what's up with 'then' abilities
     // checkAdditionalAbilitySteps() {
     //     for(const cardAbilityStep of this.additionalAbilitySteps) {
     //         if(cardAbilityStep.context.events.every(event => cardAbilityStep.condition(event))) {

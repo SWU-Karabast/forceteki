@@ -376,7 +376,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new Error(
-                `Couldn't click on "${text}" for ${this.player.name}. Current prompt is:\n${this.formatPrompt()}`
+                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${this.formatPrompt()}`
             );
         }
 
@@ -390,7 +390,7 @@ class PlayerInteractionWrapper {
 
         if (currentPrompt.buttons.length <= index) {
             throw new Error(
-                `Couldn't click on Button "${index}" for ${
+                `Couldn't click on Button '${index}' for ${
                     this.player.name
                 }. Current prompt is:\n${this.formatPrompt()}`
             );
@@ -400,7 +400,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new Error(
-                `Couldn't click on Button "${index}" for ${
+                `Couldn't click on Button '${index}' for ${
                     this.player.name
                 }. Current prompt is:\n${this.formatPrompt()}`
             );
@@ -421,9 +421,9 @@ class PlayerInteractionWrapper {
 
         if (!promptControl) {
             throw new Error(
-                `Couldn't click card "${cardName}" for ${
+                `Couldn't click card '${cardName}' for ${
                     this.player.name
-                } - unable to find control "${controlName}". Current prompt is:\n${this.formatPrompt()}`
+                } - unable to find control '${controlName}'. Current prompt is:\n${this.formatPrompt()}`
             );
         }
 
@@ -472,7 +472,7 @@ class PlayerInteractionWrapper {
         var items = card.getMenu().filter((item) => item.text === menuText);
 
         if (items.length === 0) {
-            throw new Error(`Card ${card.name} does not have a menu item "${menuText}"`);
+            throw new Error(`Card ${card.name} does not have a menu item '${menuText}'`);
         }
 
         this.game.menuItemClick(this.player.name, card.uuid, items[0]);

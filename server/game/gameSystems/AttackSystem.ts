@@ -91,7 +91,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         properties.costHandler(context, prompt);
     }
 
-    // TODO: change form from this to "generateEvents" for clarity
+    // TODO: change form from this to 'generateEvents' for clarity
     override addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(
             context,

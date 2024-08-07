@@ -10,7 +10,7 @@ import Card from '../core/card/Card.js';
 export class TriggerAttackAction extends BaseAction {
     public title = 'Attack';
 
-    // TODO: rename to "gameSystem" or "triggeredSystem" or something and centralize where it is created, since it's also emitted from executeHandler
+    // TODO: rename to 'gameSystem' or 'triggeredSystem' or something and centralize where it is created, since it's also emitted from executeHandler
     public constructor(card: Card) {
         super(card, [exhaustSelf()], {
             gameSystem: attack({ attacker: card }),

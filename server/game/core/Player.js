@@ -57,7 +57,7 @@ class Player extends GameObject {
         this.additionalPiles = {};
         this.canTakeActionsThisPhase = null;
 
-        // TODO: per the rules, leader and base are both in the same "base zone"
+        // TODO: per the rules, leader and base are both in the same 'base zone'
         this.baseZone = _([]);
         this.leaderZone = _([]);
 
@@ -544,13 +544,13 @@ class Player extends GameObject {
     //     let action = GameSystems.loseHonor({ amount: this.game.gameMode === GameMode.Skirmish ? 3 : 5 });
     //     if (action.canAffect(this, this.game.getFrameworkContext())) {
     //         this.game.addMessage(
-    //             "{0}'s {1} deck has run out of cards, so they lose {2} honor",
+    //             '{0}'s {1} deck has run out of cards, so they lose {2} honor',
     //             this,
     //             deck,
     //             this.game.gameMode === GameMode.Skirmish ? 3 : 5
     //         );
     //     } else {
-    //         this.game.addMessage("{0}'s {1} deck has run out of cards", this, deck);
+    //         this.game.addMessage('{0}'s {1} deck has run out of cards', this, deck);
     //     }
     //     action.resolve(this, this.game.getFrameworkContext());
     //     this.game.queueSimpleStep(() => {

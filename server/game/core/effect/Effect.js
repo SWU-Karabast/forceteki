@@ -15,7 +15,7 @@ const { isArena } = require('../utils/EnumHelpers');
  * condition        - function that returns a boolean determining whether the
  *                    effect can be applied. Use with cards that have a
  *                    condition that must be met before applying a persistent
- *                    effect (e.g. "during a conflict").
+ *                    effect (e.g. 'during a conflict').
  * location         - location where the source of this effect needs to be for
  *                    the effect to be active. Defaults to 'play area'.
  * targetController - string that determines which player's cards are targeted.

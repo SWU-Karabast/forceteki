@@ -1121,7 +1121,7 @@ class Card extends EffectSource {
 
     // --------------------------- TODO: type annotations for all of the below --------------------------
 
-    // this will be helpful if we ever get a card where a stat that is "X, where X is ..."
+    // this will be helpful if we ever get a card where a stat that is 'X, where X is ...'
     getPrintedStat(type: StatType) {
         switch (type) {
             case StatType.Power:
@@ -1265,7 +1265,7 @@ class Card extends EffectSource {
             rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
         }
 
-        // set effects (i.e., "set power to X")
+        // set effects (i.e., 'set power to X')
         const setEffects = rawEffects.filter(
             (effect) => effect.type === EffectName.SetPower
         );

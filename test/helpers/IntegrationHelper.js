@@ -37,9 +37,9 @@ var customMatchers = {
                 result.pass = actual.hasPrompt(expected);
 
                 if (result.pass) {
-                    result.message = `Expected ${actual.name} not to have prompt "${expected}" but it did.`;
+                    result.message = `Expected ${actual.name} not to have prompt '${expected}' but it did.`;
                 } else {
-                    result.message = `Expected ${actual.name} to have prompt "${expected}" but it had menuTitle "${currentPrompt.menuTitle}" and promptTitle "${currentPrompt.promptTitle}".`;
+                    result.message = `Expected ${actual.name} to have prompt '${expected}' but it had menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
                 }
 
                 return result;
@@ -58,13 +58,13 @@ var customMatchers = {
                 );
 
                 if (result.pass) {
-                    result.message = `Expected ${actual.name} not to have enabled prompt button "${expected}" but it did.`;
+                    result.message = `Expected ${actual.name} not to have enabled prompt button '${expected}' but it did.`;
                 } else {
                     var buttonText = _.map(
                         buttons,
                         (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
                     ).join('\n');
-                    result.message = `Expected ${actual.name} to have enabled prompt button "${expected}" but it had buttons:\n${buttonText}`;
+                    result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
 
                 return result;
@@ -83,13 +83,13 @@ var customMatchers = {
                 );
 
                 if (result.pass) {
-                    result.message = `Expected ${actual.name} not to have disabled prompt button "${expected}" but it did.`;
+                    result.message = `Expected ${actual.name} not to have disabled prompt button '${expected}' but it did.`;
                 } else {
                     var buttonText = _.map(
                         buttons,
                         (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
                     ).join('\n');
-                    result.message = `Expected ${actual.name} to have disabled prompt button "${expected}" but it had buttons:\n${buttonText}`;
+                    result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
 
                 return result;

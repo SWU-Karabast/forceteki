@@ -208,7 +208,7 @@ class GameFlowWrapper {
 
         if (!promptedPlayer) {
             var promptString = _.map(this.allPlayers, (player) => player.name + ': ' + player.formatPrompt()).join('\n\n');
-            throw new Error(`No players are being prompted with "${title}". Current prompts are:\n\n${promptString}`);
+            throw new Error(`No players are being prompted with '${title}'. Current prompts are:\n\n${promptString}`);
         }
 
         return promptedPlayer;

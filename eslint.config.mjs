@@ -37,10 +37,6 @@ export default tseslint.config(
         "jasmine/new-line-before-expect": 0,
         "jasmine/prefer-toHaveBeenCalledWith": 0,
 
-        indent: ["error", 4, {
-            SwitchCase: 1,
-        }],
-
         "@stylistic/js/function-call-spacing": ["error", "never"],
         "@stylistic/js/padded-blocks": ["error", "never"],
         "@stylistic/js/object-curly-spacing": ["error", "always"],
@@ -61,6 +57,24 @@ export default tseslint.config(
         "@stylistic/js/no-extra-parens": ["off"],
         "@stylistic/js/comma-dangle": ["error", "only-multiline"],
         "@stylistic/js/eol-last": ["off"],
+        "@stylistic/js/quotes": ["error", "single"],
+        "@stylistic/js/indent": ["error", 4, {
+            "SwitchCase": 1,
+        }],
+        "@stylistic/js/lines-around-comment": ["error", {
+            "beforeBlockComment": true,
+            "afterBlockComment": false,
+            "beforeLineComment": false,
+            "afterLineComment": false,
+            "allowBlockStart": true,
+            "allowBlockEnd": true,
+            "allowObjectStart": true,
+            "allowObjectEnd": true,
+            "allowArrayStart": true,
+            "allowArrayEnd": true,
+            "allowClassStart": true,
+            "allowClassEnd": true,
+        }],
 
         quotes: ["error", "single"],
         "global-strict": 0,

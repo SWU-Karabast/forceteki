@@ -141,7 +141,7 @@ export abstract class CardTargetSystem<P extends ICardTargetSystemProperties = I
         //     if (event.card.isAncestral() && event.isContingent) {
         //         event.destination = Location.Hand;
         //         context.game.addMessage(
-        //             "{0} returns to {1}'s hand due to its Ancestral keyword",
+        //             '{0} returns to {1}'s hand due to its Ancestral keyword',
         //             event.card,
         //             event.card.owner
         //         );

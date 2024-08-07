@@ -106,7 +106,7 @@ async function main() {
     cards.map((card) => delete card.debugObject);
 
     console.log('\nwriting card definition files');
-    const fileWriteProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}'});
+    const fileWriteProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
     await Promise.all(uniqueCards.map(async (card) => {

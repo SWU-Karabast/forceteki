@@ -93,7 +93,7 @@ class ActionWindow extends UiPrompt {
             { text: 'Pass', arg: 'pass' }
         ];
         if (this.game.manualMode) {
-            buttons.unshift({ text: 'Manual Action', arg: 'manual'});
+            buttons.unshift({ text: 'Manual Action', arg: 'manual' });
         }
         return {
             menuTitle: 'Initiate an action',
