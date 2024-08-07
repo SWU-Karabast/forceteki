@@ -3,7 +3,7 @@
 const _ = require('underscore');
 const Game = require('../../build/game/core/Game.js');
 const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
-const Settings = require('../../build/settings.js');
+const Settings = require('../../build/Settings.js');
 
 class GameFlowWrapper {
     constructor() {
