@@ -13,10 +13,6 @@ export class EffectValue<V> {
         this.context = context;
     }
 
-    public setValue(value: V) {
-        this.value = value;
-    }
-
     public getValue(): V {
         return this.value;
     }
@@ -27,11 +23,11 @@ export class EffectValue<V> {
 
     // TODO: should probably have a subclass that adds these instead of having them empty here
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public reset(): void {}
+    public reset(): void { }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public apply(target): void {}
+    public apply(target): void { }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public unapply(target): void {}
+    public unapply(target): void { }
 }

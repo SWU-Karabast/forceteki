@@ -40,12 +40,12 @@ class Effect {
         this.location = properties.location || isArena(properties.location);
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
-        this.effectDetails = effectImpl;
+        this.impl = effectImpl;
         this.ability = properties.ability;
         this.targets = [];
         this.refreshContext();
-        this.effectDetails.duration = this.duration;
-        this.effectDetails.isConditional = !!properties.condition;
+        this.impl.duration = this.duration;
+        this.impl.isConditional = !!properties.condition;
     }
 
     refreshContext() {
@@ -54,7 +54,7 @@ class Effect {
         if (this.ability) {
             this.context.ability = this.ability;
         }
-        this.effectDetails.setContext(this.context);
+        this.impl.setContext(this.context);
     }
 
     isValidTarget(target) {
@@ -71,7 +71,7 @@ class Effect {
 
     addTarget(target) {
         this.targets.push(target);
-        this.effectDetails.apply(target);
+        this.impl.apply(target);
     }
 
     removeTarget(target) {
@@ -79,7 +79,7 @@ class Effect {
     }
 
     removeTargets(targets) {
-        targets.forEach((target) => this.effectDetails.unapply(target));
+        targets.forEach((target) => this.impl.unapply(target));
         this.targets = _.difference(this.targets, targets);
     }
 
@@ -88,7 +88,7 @@ class Effect {
     }
 
     cancel() {
-        _.each(this.targets, (target) => this.effectDetails.unapply(target));
+        _.each(this.targets, (target) => this.impl.unapply(target));
         this.targets = [];
     }
 
@@ -112,7 +112,7 @@ class Effect {
             this.removeTargets(invalidTargets);
             stateChanged = stateChanged || invalidTargets.length > 0;
             // Recalculate the effect for valid targets
-            _.each(this.targets, (target) => stateChanged = this.effectDetails.recalculate(target) || stateChanged);
+            _.each(this.targets, (target) => stateChanged = this.impl.recalculate(target) || stateChanged);
             // Check for new targets
             let newTargets = _.filter(this.getTargets(), (target) => !this.targets.includes(target) && this.isValidTarget(target));
             // Apply the effect to new targets
@@ -123,7 +123,7 @@ class Effect {
                 this.cancel();
                 return true;
             }
-            return this.effectDetails.recalculate(this.match) || stateChanged;
+            return this.impl.recalculate(this.match) || stateChanged;
         } else if (!this.targets.includes(this.match) && this.isValidTarget(this.match)) {
             this.addTarget(this.match);
             return true;
@@ -137,7 +137,7 @@ class Effect {
             targets: _.map(this.targets, (target) => target.name).join(','),
             active: this.isEffectActive(),
             condition: this.condition(this.context),
-            effect: this.effectDetails.getDebugInfo()
+            effect: this.impl.getDebugInfo()
         };
     }
 }

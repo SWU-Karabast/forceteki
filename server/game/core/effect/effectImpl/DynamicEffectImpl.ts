@@ -1,9 +1,12 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import { EffectName } from '../../Constants';
+import { EffectImpl } from './EffectImpl';
 import { EffectValue } from './EffectValue';
 import StaticEffectImpl from './StaticEffectImpl';
 
-class DynamicEffectImpl<TValue> extends StaticEffectImpl<TValue> {
+// TODO: eventually this will subclass EffectImpl directly but I don't fully understand how it uses the apply()
+// function inherited from StaticEffectImpl yet (seems like it shouldn't work)
+export default class DynamicEffectImpl<TValue> extends StaticEffectImpl<TValue> {
     private values: Record<string, TValue> = {};
 
     constructor(
@@ -34,7 +37,7 @@ class DynamicEffectImpl<TValue> extends StaticEffectImpl<TValue> {
         return this.values[target.uuid];
     }
 
-    setValue(target, value) {
+    private setValue(target, value) {
         this.values[target.uuid] = value;
         return value;
     }

@@ -2,6 +2,7 @@ import { EffectValue } from './EffectValue';
 import { CardType, EffectName, Duration, AbilityType } from '../../Constants';
 import GainAbility from './GainAbility';
 import { AbilityContext } from '../../ability/AbilityContext';
+import { EffectImpl } from './EffectImpl';
 
 const binaryCardEffects = [
     EffectName.Blank,
@@ -62,16 +63,13 @@ const binaryCardEffects = [
 // };
 
 // TODO: readonly pass on class properties throughout the repo
-export default class StaticEffectImpl<TValue> {
+export default class StaticEffectImpl<TValue> extends EffectImpl<TValue> {
     readonly value: EffectValue<TValue>;
-    readonly type: EffectName;
-
-    protected context: AbilityContext = null;
-    private duration?: Duration = null;
     private copies: GainAbility[] = [];     // TODO: what exactly is this for?
 
     constructor(type: EffectName, value: EffectValue<TValue> | TValue) {
-        this.type = type;
+        super(type);
+
         if (value instanceof EffectValue) {
             this.value = value;
         } else {
@@ -106,8 +104,8 @@ export default class StaticEffectImpl<TValue> {
         return this.value.recalculate();
     }
 
-    setContext(context: AbilityContext) {
-        this.context = context;
+    override setContext(context: AbilityContext) {
+        super.setContext(context);
         this.value.setContext(context);
     }
 
@@ -174,11 +172,8 @@ export default class StaticEffectImpl<TValue> {
     //     return durations.indexOf(this.duration) > durations.indexOf(effect.duration);
     // }
 
-    getDebugInfo() {
-        return {
-            type: this.type,
-            value: this.value
-        };
+    override getDebugInfo() {
+        return Object.assign(super.getDebugInfo(), { value: this.value });
     }
 }
 
