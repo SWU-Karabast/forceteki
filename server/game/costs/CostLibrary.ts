@@ -34,7 +34,7 @@ function getSelectCost(
  * Cost that will bow the card that initiated the ability.
  */
 export function exhaustSelf(): ICost {
-    return new GameActionCost(GameSystems.exhaust());
+    return new GameActionCost(GameSystems.exhaust({ isCost: true }));
 }
 
 // /**

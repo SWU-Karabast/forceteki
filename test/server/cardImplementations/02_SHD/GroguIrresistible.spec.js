@@ -8,7 +8,10 @@ describe('Grogu, Irresistible', function() {
                         groundArena: ['grogu#irresistible', 'wampa'],
                     },
                     player2: {
-                        groundArena: ['frontier-atrt', 'enfys-nest#marauder'],
+                        groundArena: [
+                            { card: 'frontier-atrt', exhausted: true },
+                            'enfys-nest#marauder'
+                        ],
                     }
                 });
 
@@ -36,12 +39,12 @@ describe('Grogu, Irresistible', function() {
                 expect(this.player1).not.toBeAbleToSelect(this.grogu);
                 expect(this.player1).not.toBeAbleToSelect(this.wampa);
 
-                this.player1.clickCard(this.atrt);
+                this.player1.clickCard(this.enfysNest);
                 expect(this.grogu.exhausted).toBe(true);
-                expect(this.atrt.exhausted).toBe(true);
-                expect(this.enfysNest.exhausted).toBe(false);
+                expect(this.enfysNest.exhausted).toBe(true);
             });
 
+            // this is a general test of the exhaustSelf cost mechanic, don't need to repeat it for other cards that have an exhaustSelf cost
             it('should not be available if Grogu is exhausted', function () {
                 this.grogu.exhausted = true;
                 this.player1.clickCard(this.grogu);
@@ -49,8 +52,6 @@ describe('Grogu, Irresistible', function() {
                 // this is the default action window prompt (meaning no action was available)
                 expect(this.player1).toHavePrompt('Action Window');
             });
-
-            // TODO: test where both of the two enemy units are already exhausted
         });
     });
 });

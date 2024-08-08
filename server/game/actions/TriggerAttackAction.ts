@@ -14,7 +14,6 @@ export class TriggerAttackAction extends BaseAction {
     public constructor(card: Card) {
         super(card, [exhaustSelf()], {
             gameSystem: attack({ attacker: card }),
-            mode: TargetMode.AutoSingle,
             location: WildcardLocation.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });

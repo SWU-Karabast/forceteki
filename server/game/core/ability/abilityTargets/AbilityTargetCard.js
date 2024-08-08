@@ -68,7 +68,7 @@ class AbilityTargetCard {
             targetResults.delayTargeting = this;
             return;
         }
-        if (this.properties.mode === TargetMode.AutoSingle) {
+        if (context.player.autoSingleTarget) {
             let legalTargets = this.selector.getAllLegalTargets(context, player);
             if (legalTargets.length === 1) {
                 context.targets[this.name] = legalTargets[0];

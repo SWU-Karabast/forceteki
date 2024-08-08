@@ -4,8 +4,10 @@ import { CardType, EventName } from '../core/Constants';
 import { isArena } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IExhaustSystemProperties extends ICardTargetSystemProperties {}
+
+export interface IExhaustSystemProperties extends ICardTargetSystemProperties {
+    isCost?: boolean;
+}
 
 export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
     override name = 'exhaust';
@@ -15,9 +17,17 @@ export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
     override targetType = [CardType.Unit];
 
     override canAffect(card: Card, context: AbilityContext): boolean {
-        if (!isArena(card.location) || card.exhausted) {
+        const properties = this.generatePropertiesFromContext(context);
+        if (!isArena(card.location)) {
             return false;
         }
+
+        // if exhausting is a cost, then the card must not be already exhausted
+        // otherwise exhausting is a legal effect, even if the target is already exhausted
+        if (properties.isCost && card.exhausted) {
+            return false;
+        }
+
         return super.canAffect(card, context);
     }
 

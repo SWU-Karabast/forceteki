@@ -47,7 +47,7 @@ describe('Basic attack', function() {
                 this.player1.clickCard(this.cartelSpacer);
                 this.player1.clickCard(this.allianceXWing);
 
-                // attack against base should immediately resolve
+                // attack against base should immediately resolve without prompt for a target, since only one is available
                 expect(this.cartelSpacer.damage).toBe(2);
                 expect(this.cartelSpacer.exhausted).toBe(true);
                 expect(this.allianceXWing.damage).toBe(2);
