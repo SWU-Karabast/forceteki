@@ -14,7 +14,7 @@ jobs:
             cache: 'npm'
         - run: npm install
 
-        - run: npx eslint --quiet
+        - run: npx eslint
   test:
     runs-on: ubuntu-latest
     steps:
