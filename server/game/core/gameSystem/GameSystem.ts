@@ -34,11 +34,11 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
     getDefaultTargets: (context: AbilityContext) => any = (context) => this.defaultTargets(context);
 
     /**
-     * Constructs a {@link GameSystem} with either:
-     * 1. Preset properties, set as {@link GameSystem.properties}
+     * Constructs a {@link GameSystem} with a parameter that is either:
+     * 1. Preset properties in a {@link TGameSystemProperties}, which will be set to {@link GameSystem.properties}.
      * 2. A function for generating properties from an {@link AbilityContext} provided at system resolution time,
      * which represents the context of the {@link PlayerOrCardAbility} that is executing this system.
-     * This is set as {@link GameSystem.propertyFactory}.
+     * This is set to {@link GameSystem.propertyFactory}.
      */
     constructor(propertiesOrPropertyFactory: TGameSystemProperties | ((context?: AbilityContext) => TGameSystemProperties)) {
         if (typeof propertiesOrPropertyFactory === 'function') {
@@ -58,7 +58,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
     /**
      * Method for evaluating default targets from an {@link AbilityContext} in case explicit targets aren't provided
      * at execution time. Returns `[]` by default, will typically be overridden with a more specific method using
-     * {@link GameSystem.setDefaultTargetEvaluator} by the caller if intended to be used.
+     * {@link GameSystem.setDefaultTargetFn} by the caller if intended to be used.
      * @param context Context of ability being executed
      * @returns List of default targets extracted from {@link context} (`[]` by default)
      */
@@ -103,7 +103,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
      * Overrides the default {@link GameSystem.getDefaultTargets} method used by the {@link GameSystem} to extract
      * default targets from an {@link AbilityContext} if an explicit target is not provided at system execution time
      */
-    setDefaultTargetEvaluator(func: (context: AbilityContext) => any): void {
+    setDefaultTargetFn(func: (context: AbilityContext) => any): void {
         this.getDefaultTargets = func;
     }
 
@@ -202,7 +202,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
         context: AbilityContext
     ): void {
         if (target) {
-            this.setDefaultTargetEvaluator(() => target);
+            this.setDefaultTargetFn(() => target);
         }
         const events = [];
         this.addEventsToArray(events, context);

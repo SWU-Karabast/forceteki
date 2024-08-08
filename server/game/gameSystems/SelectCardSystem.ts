@@ -55,7 +55,7 @@ export class SelectCardSystem extends CardTargetSystem {
 
     override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ISelectCardProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as ISelectCardProperties;
-        properties.gameSystem.setDefaultTargetEvaluator(() => properties.target);
+        properties.gameSystem.setDefaultTargetFn(() => properties.target);
         if (!properties.selector) {
             const cardCondition = (card, context) =>
                 properties.gameSystem.allTargetsLegal(
@@ -143,5 +143,5 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    override eventHandler(event): void {}
+    override eventHandler(event): void { }
 }

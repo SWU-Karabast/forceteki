@@ -1,6 +1,6 @@
-const StaticEffectDetails = require('./StaticEffectDetails');
+const StaticEffectImpl = require('./StaticEffectImpl');
 
-class DetachedEffectDetails extends StaticEffectDetails {
+class DetachedEffectImpl extends StaticEffectImpl {
     constructor(type, applyFunc, unapplyFunc) {
         super(type);
         this.applyFunc = applyFunc;
@@ -32,4 +32,4 @@ class DetachedEffectDetails extends StaticEffectDetails {
     }
 }
 
-module.exports = DetachedEffectDetails;
+module.exports = DetachedEffectImpl;

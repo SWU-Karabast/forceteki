@@ -30,7 +30,7 @@ const { isArena } = require('../utils/EnumHelpers');
  *                   and the numerical value of the effect, if any.
  */
 class Effect {
-    constructor(game, source, properties, effectDetails) {
+    constructor(game, source, properties, effectImpl) {
         this.game = game;
         this.source = source;
         this.match = properties.match || (() => true);
@@ -40,7 +40,7 @@ class Effect {
         this.location = properties.location || isArena(properties.location);
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
-        this.effectDetails = effectDetails;
+        this.effectDetails = effectImpl;
         this.ability = properties.ability;
         this.targets = [];
         this.refreshContext();
@@ -57,11 +57,11 @@ class Effect {
         this.effectDetails.setContext(this.context);
     }
 
-    isValidTarget(target) { // eslint-disable-line no-unused-vars
+    isValidTarget(target) {
         return true;
     }
 
-    getDefaultTarget(context) { // eslint-disable-line no-unused-vars
+    getDefaultTarget(context) {
         return null;
     }
 

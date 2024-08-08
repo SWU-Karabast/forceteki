@@ -1,7 +1,7 @@
-const _ = require('underscore');
-const { EffectValue } = require('./EffectValue');
-const { CardType, EffectName, Duration, AbilityType } = require('../../Constants');
-const GainAbility = require('./GainAbility');
+import { EffectValue } from './EffectValue';
+import { CardType, EffectName, Duration, AbilityType } from '../../Constants';
+import GainAbility from './GainAbility';
+import { AbilityContext } from '../../ability/AbilityContext';
 
 const binaryCardEffects = [
     EffectName.Blank,
@@ -61,8 +61,16 @@ const binaryCardEffects = [
 //             : []
 // };
 
-class StaticEffectDetails {
-    constructor(type, value) {
+// TODO: readonly pass on class properties throughout the repo
+export default class StaticEffectImpl<TValue> {
+    readonly value: EffectValue<TValue>;
+    readonly type: EffectName;
+
+    protected context: AbilityContext = null;
+    private duration?: Duration = null;
+    private copies: GainAbility[] = [];     // TODO: what exactly is this for?
+
+    constructor(type: EffectName, value: EffectValue<TValue> | TValue) {
         this.type = type;
         if (value instanceof EffectValue) {
             this.value = value;
@@ -70,9 +78,6 @@ class StaticEffectDetails {
             this.value = new EffectValue(value);
         }
         this.value.reset();
-        this.context = null;
-        this.duration = null;
-        this.copies = [];
     }
 
     apply(target) {
@@ -93,15 +98,15 @@ class StaticEffectDetails {
         this.copies = [];
     }
 
-    getValue() {
+    getValue(target) {
         return this.value.getValue();
     }
 
-    recalculate() {
+    recalculate(target) {
         return this.value.recalculate();
     }
 
-    setContext(context) {
+    setContext(context: AbilityContext) {
         this.context = context;
         this.value.setContext(context);
     }
@@ -177,4 +182,3 @@ class StaticEffectDetails {
     }
 }
 
-module.exports = StaticEffectDetails;
