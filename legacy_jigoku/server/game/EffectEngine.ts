@@ -1,5 +1,4 @@
 import { Durations, EffectNames, EventNames } from './Constants';
-import { Event } from './Events/Event';
 import type Effect from './Effects/Effect';
 import type EffectSource from './EffectSource';
 import { EventRegistrar } from './EventRegistrar';
@@ -8,8 +7,8 @@ import type Game from './game';
 export class EffectEngine {
     events: EventRegistrar;
     effects: Array<Effect> = [];
-    customDurationEvents: any[] = [];
-    effectsChangedSinceLastCheck = false;
+    customDurationEvents = [];
+    newEffect = false;
 
     constructor(private game: Game) {
         this.events = new EventRegistrar(game, this);
@@ -27,13 +26,13 @@ export class EffectEngine {
         if (effect.duration === Durations.Custom) {
             this.registerCustomDurationEvents(effect);
         }
-        this.effectsChangedSinceLastCheck = true;
+        this.newEffect = true;
         return effect;
     }
 
-    checkDelayedEffects(events: Event[]) {
-        let effectsToTrigger: Effect[] = [];
-        const effectsToRemove: Effect[] = [];
+    checkDelayedEffects(events: any[]) {
+        let effectsToTrigger = [];
+        const effectsToRemove = [];
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.effect.type === EffectNames.DelayedEffect
         )) {
@@ -54,7 +53,7 @@ export class EffectEngine {
                 }
             }
         }
-        const effectTriggers = effectsToTrigger.map((effect) => {
+        effectsToTrigger = effectsToTrigger.map((effect) => {
             const properties = effect.effect.getValue();
             const context = effect.context;
             const targets = effect.targets;
@@ -79,8 +78,8 @@ export class EffectEngine {
         if (effectsToRemove.length > 0) {
             this.unapplyAndRemove((effect) => effectsToRemove.includes(effect));
         }
-        if (effectTriggers.length > 0) {
-            this.game.openSimultaneousEffectWindow(effectTriggers);
+        if (effectsToTrigger.length > 0) {
+            this.game.openSimultaneousEffectWindow(effectsToTrigger);
         }
     }
 
@@ -103,11 +102,11 @@ export class EffectEngine {
     }
 
     checkEffects(prevStateChanged = false, loops = 0) {
-        if (!prevStateChanged && !this.effectsChangedSinceLastCheck) {
+        if (!prevStateChanged && !this.newEffect) {
             return false;
         }
         let stateChanged = false;
-        this.effectsChangedSinceLastCheck = false;
+        this.newEffect = false;
         // Check each effect's condition and find new targets
         stateChanged = this.effects.reduce((stateChanged, effect) => effect.checkCondition(stateChanged), stateChanged);
         if (loops === 10) {
@@ -119,19 +118,19 @@ export class EffectEngine {
     }
 
     onConflictFinished() {
-        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilEndOfConflict);
+        this.newEffect = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilEndOfConflict);
     }
 
     onDuelFinished() {
-        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilEndOfDuel);
+        this.newEffect = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilEndOfDuel);
     }
 
     onPhaseEnded() {
-        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilEndOfPhase);
+        this.newEffect = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilEndOfPhase);
     }
 
     onRoundEnded() {
-        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilEndOfRound);
+        this.newEffect = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilEndOfRound);
     }
 
     onPassActionPhasePriority(event) {
@@ -144,7 +143,7 @@ export class EffectEngine {
             }
         }
 
-        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilPassPriority);
+        this.newEffect = this.unapplyAndRemove((effect) => effect.duration === Durations.UntilPassPriority);
         for (const effect of this.effects) {
             if (
                 effect.duration === Durations.UntilOpponentPassPriority ||
@@ -174,7 +173,7 @@ export class EffectEngine {
     }
 
     unregisterCustomDurationEvents(effect: Effect) {
-        const remainingEvents: Event[] = [];
+        const remainingEvents = [];
         for (const event of this.customDurationEvents) {
             if (event.effect === effect) {
                 this.game.removeListener(event.name, event.handler);
@@ -198,11 +197,11 @@ export class EffectEngine {
     }
 
     unapplyAndRemove(match: (effect: Effect) => boolean) {
-        let anyEffectRemoved = false;
-        const remainingEffects: Effect[] = [];
+        let removedEffect = false;
+        const remainingEffects = [];
         for (const effect of this.effects) {
             if (match(effect)) {
-                anyEffectRemoved = true;
+                removedEffect = true;
                 effect.cancel();
                 if (effect.duration === Durations.Custom) {
                     this.unregisterCustomDurationEvents(effect);
@@ -212,7 +211,7 @@ export class EffectEngine {
             }
         }
         this.effects = remainingEffects;
-        return anyEffectRemoved;
+        return removedEffect;
     }
 
     getDebugInfo() {
