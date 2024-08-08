@@ -109,6 +109,7 @@ class Player extends GameObject {
         this.clock.reset();
     }
 
+    // TODO: does this / should this return upgrades?
     getCardsInPlay() {
         return _(this.spaceArena.value().concat(this.groundArena.value()));
     }
@@ -464,7 +465,7 @@ class Player extends GameObject {
     }
 
     /**
-     * Checks whether the passes card is in a legal location for the passed type of play
+     * Checks whether the passed card is in a legal location for the passed type of play
      * @param card BaseCard
      * @param {String} playingType
      */

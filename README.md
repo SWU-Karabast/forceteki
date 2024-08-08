@@ -9,24 +9,31 @@ Follow these instructions to get to the point of being able to run the [unit tes
 * Node.js v22.x
 
 ### Install Dependencies
-Use the following instructions to install dependencies and run the unit tests.
+The following demonstrates how to install dependencies and also some sample commands for interacting with the repo and running tests.
 
 ```bash
 # install node dependencies
 npm install
 
 # run once to download card definition files
+# NOTE: TWI cards are currently being filtered out
 npm run get-cards
 
 # run this to transpile (build) the code. the 'npm test' command will automatically run this as well.
 npx tsc
 
+# run code linter (recommend configuring this automatically with Visual Studio Code)
+npm run lint
+npm run lint-verbose
+
 # runs tsc and executes tests
 npm test
 ```
 
-### VSCode Linting
-We've configured a set of eslint rules to keep the repo looking consistent and help catch potential bugs. To use it, just install the [VSCode ESLint Extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), open the repo as a folder in vscode, and everything should work automatically.
+### Linting
+We've configured a set of eslint rules to keep the repo looking consistent and help catch potential bugs. These rules are checked at PR time.
+
+To facilitate using them locally, we've set up VSCode integration so the rules will be applied automatically while you work. Just install the [VSCode ESLint Extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), open the repo as a folder in vscode, and everything should work automatically.
 
 ### VSCode Debugging
 We have a preconfigured [launch.json](.vscode\launch.json) file with debug profiles for use in Visual Studio Code. Open the repo as a folder in vscode and the profiles should load automatically under "Run and Debug" tab (ctrl + shift + D). See https://code.visualstudio.com/docs/editor/debugging for additional details.

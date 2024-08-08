@@ -25,14 +25,17 @@ for (const filepath of allJsFiles(__dirname)) {
     const fileImported = require(filepath);
 
     const card = 'default' in fileImported ? fileImported.default : fileImported;
-    if (!card.id) {
+
+    const cardId = card.prototype.getImplementationId();
+
+    if (!cardId.id) {
         throw Error('Importing card class without id!');
     }
-    if (cardsMap.has(card.id)) {
+    if (cardsMap.has(cardId.id)) {
         throw Error(`Importing card class with repeated id!: ${card}`);
     }
 
-    cardsMap.set(card.id, card);
+    cardsMap.set(cardId.id, card);
 }
 
 export const cards = cardsMap;

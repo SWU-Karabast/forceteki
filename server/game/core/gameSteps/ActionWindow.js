@@ -59,7 +59,7 @@ class ActionWindow extends UiPrompt {
         });
     }
 
-    postResolutionUpdate(resolver) { // eslint-disable-line no-unused-vars
+    postResolutionUpdate(resolver) {
         this.prevPlayerPassed = false;
 
         // TODO: is this right? need to investigate for e.g. Leia hero ability
@@ -96,7 +96,7 @@ class ActionWindow extends UiPrompt {
             buttons.unshift({ text: 'Manual Action', arg: 'manual' });
         }
         return {
-            menuTitle: 'Initiate an action',
+            menuTitle: 'Choose an action',
             buttons: buttons,
             promptTitle: this.title
         };

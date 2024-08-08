@@ -105,7 +105,7 @@ class FixedAbilityLimit implements IAbilityLimit {
     }
 
     private getModifiedMax(player: Player): number {
-        return this.ability ? this.ability.card.getModifiedLimitMax(player, this.ability, this.max) : this.max;
+        return this.ability ? this.ability.card.getModifiedAbilityLimitMax(player, this.ability, this.max) : this.max;
     }
 }
 

@@ -171,6 +171,7 @@ export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbil
 
 export interface IPersistentEffectProps<Source = any> {
     location?: Location | Location[];
+    // TODO: what's the difference between condition and match?
     condition?: (context: AbilityContext<Source>) => boolean;
     match?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: RelativePlayer;

@@ -6,16 +6,16 @@ const { isArena } = require('../utils/EnumHelpers');
  * Represents a card based effect applied to one or more targets.
  *
  * Properties:
- * match            - function that takes a card/player/ring and context object
+ * match            - function that takes a card/player and context object
  *                    and returns a boolean about whether the passed object should
- *                    have the effect applied. Alternatively, a card/player/ring can
+ *                    have the effect applied. Alternatively, a card/player can
  *                    be passed as the match property to match that single object.
- *                    Doesn't apply to conflict effects.
+ *                    Doesn't apply to attack effects. (TODO: still true?)
  * duration         - string representing how long the effect lasts.
  * condition        - function that returns a boolean determining whether the
  *                    effect can be applied. Use with cards that have a
  *                    condition that must be met before applying a persistent
- *                    effect (e.g. 'during a conflict').
+ *                    effect (e.g. 'when exhausted').
  * location         - location where the source of this effect needs to be for
  *                    the effect to be active. Defaults to 'play area'.
  * targetController - string that determines which player's cards are targeted.
@@ -26,8 +26,8 @@ const { isArena } = require('../utils/EnumHelpers');
  *                    'province', or a specific location (e.g. 'stronghold province'
  *                    or 'hand'). This has no effect if a specific card is passed
  *                    to match.  Card effects only.
- * effectDetails    - object with details of effect to be applied. Includes duration
- *                   and the numerical value of the effect, if any.
+ * impl             - object with details of effect to be applied. Includes duration
+ *                    and the numerical value of the effect, if any.
  */
 class Effect {
     constructor(game, source, properties, effectImpl) {

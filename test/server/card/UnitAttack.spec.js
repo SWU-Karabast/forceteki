@@ -58,6 +58,7 @@ describe('Basic attack', function() {
                 this.player1.clickCard(this.wampa);
                 expect(this.player1).toHavePrompt('Choose a target for attack');
 
+                // TODO: test helper for managing attacks
                 // can target opponent's ground units and base but not space units
                 expect(this.player1).toBeAbleToSelect(this.atrt);
                 expect(this.player1).toBeAbleToSelect(this.enfysNest);

@@ -110,7 +110,9 @@ export default tseslint.config(
                 "objectLiteralTypeAssertions": "never"
             }],
             "@typescript-eslint/ban-ts-comment": ["warn"],
-            "@typescript-eslint/no-unused-vars": ["warn"]
+            "@typescript-eslint/no-unused-vars": ["warn"],
+            "@typescript-eslint/prefer-namespace-keyword": "off",
+            // "@typescript-eslint/no-namespace": "off",
         }
     }
 );

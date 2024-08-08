@@ -64,7 +64,8 @@ export enum EffectName {
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     AddTrait = 'addTrait',
     LoseTrait = 'loseTrait',
-    DelayedEffect = 'delayedEffect'
+    DelayedEffect = 'delayedEffect',
+    IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
 }
 
 export enum Duration {

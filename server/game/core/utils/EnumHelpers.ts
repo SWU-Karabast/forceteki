@@ -38,7 +38,7 @@ export const isAttackableLocation = (location: TargetableLocation) => {
     }
 };
 
-// return true if the location matches one of the allowed location filters
+// return true if the card location matches one of the allowed location filters
 export const cardLocationMatches = (cardLocation: Location, allowedLocations: TargetableLocation | TargetableLocation[]) => {
     if (!Array.isArray(allowedLocations)) {
         allowedLocations = [allowedLocations];

@@ -122,7 +122,7 @@ export class EffectEngine {
         return stateChanged;
     }
 
-    onAttackFinished() {
+    onAttackCompleted() {
         this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfAttack);
     }
 

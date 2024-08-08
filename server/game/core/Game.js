@@ -3,7 +3,7 @@ const EventEmitter = require('events');
 
 const ChatCommands = require('./chat/ChatCommands.js');
 const { GameChat } = require('./chat/GameChat.js');
-// const { EffectEngine } = require('./EffectEngine.js');
+const { EffectEngine } = require('./effect/EffectEngine.js');
 const Player = require('./Player.js');
 const { Spectator } = require('../../Spectator.js');
 const { AnonymousSpectator } = require('../../AnonymousSpectator.js');
@@ -36,7 +36,7 @@ class Game extends EventEmitter {
     constructor(details, options = {}) {
         super();
 
-        // this.effectEngine = new EffectEngine(this);
+        this.effectEngine = new EffectEngine(this);
         this.playersAndSpectators = {};
         this.gameChat = new GameChat();
         this.chatCommands = new ChatCommands(this);
@@ -938,36 +938,36 @@ class Game extends EventEmitter {
     //     this.checkGameState(true);
     // }
 
-    /**
-     * Changes the controller of a card in play to the passed player, and cleans
-     * all the related stuff up (swapping sides in a conflic)
-     * @param {Player} player
-     * @param card
-     */
-    takeControl(player, card) {
-        // if (
-        //     card.controller === player ||
-        //     !card.checkRestrictions(EffectName.TakeControl, this.getFrameworkContext())
-        // ) {
-        //     return;
-        // }
-        // if (!player || !player.cardsInPlay) {
-        //     return;
-        // }
-        // card.controller.removeCardFromPile(card);
-        // player.cardsInPlay.push(card);
-        // card.controller = player;
-        // if (card.isParticipating()) {
-        //     this.currentConflict.removeFromConflict(card);
-        //     if (player.isAttackingPlayer()) {
-        //         this.currentConflict.addAttacker(card);
-        //     } else {
-        //         this.currentConflict.addDefender(card);
-        //     }
-        // }
-        // card.updateEffectContexts();
-        // this.checkGameState(true);
-    }
+    // /**
+    //  * Changes the controller of a card in play to the passed player, and cleans
+    //  * all the related stuff up
+    //  * @param {Player} player
+    //  * @param card
+    //  */
+    // takeControl(player, card) {
+    //     if (
+    //         card.controller === player ||
+    //         !card.checkRestrictions(EffectName.TakeControl, this.getFrameworkContext())
+    //     ) {
+    //         return;
+    //     }
+    //     if (!Contract.assertNotNullLike(player)) {
+    //         return;
+    //     }
+    //     card.controller.removeCardFromPile(card);
+    //     player.cardsInPlay.push(card);
+    //     card.controller = player;
+    //     if (card.isParticipating()) {
+    //         this.currentConflict.removeFromConflict(card);
+    //         if (player.isAttackingPlayer()) {
+    //             this.currentConflict.addAttacker(card);
+    //         } else {
+    //             this.currentConflict.addDefender(card);
+    //         }
+    //     }
+    //     card.updateEffectContexts();
+    //     this.checkGameState(true);
+    // }
 
     watch(socketId, user) {
         if (!this.allowSpectators) {
@@ -1065,43 +1065,30 @@ class Game extends EventEmitter {
         this.addMessage('{0} has reconnected', player);
     }
 
-    // checkGameState(hasChanged = false, events = []) {
-    //     // check for a game state change (recalculating conflict skill if necessary)
-    //     if (
-    //         (!this.currentConflict && this.effectEngine.checkEffects(hasChanged)) ||
-    //         (this.currentConflict && this.currentConflict.calculateSkill(hasChanged)) ||
-    //         hasChanged
-    //     ) {
-    //         this.checkWinCondition();
-    //         // if the state has changed, check for:
-    //         for (const player of this.getPlayers()) {
-    //             player.cardsInPlay.each((card) => {
-    //                 if (card.getModifiedController() !== player) {
-    //                     // any card being controlled by the wrong player
-    //                     this.takeControl(card.getModifiedController(), card);
-    //                 }
-    //                 // any attachments which are illegally attached
-    //                 card.checkForIllegalAttachments();
-    //             });
-    //             _.each(player.getProvinces(), (card) => {
-    //                 card && card.checkForIllegalAttachments();
-    //             });
+    checkGameState(hasChanged = false, events = []) {
+        // check for a game state change (recalculating attack stats if necessary)
+        if (
+            (!this.currentAttack && this.effectEngine.checkEffects(hasChanged)) ||
+            (this.currentAttack && this.currentAttack.calculateSkill(hasChanged)) ||
+            hasChanged
+        ) {
+            // this.checkWinCondition();
+            // if the state has changed, check for:
 
-    //             if (!player.checkRestrictions('haveImperialFavor') && player.imperialFavor !== '') {
-    //                 this.addMessage('The imperial favor is discarded as {0} cannot have it', player.name);
-    //                 player.loseImperialFavor();
-    //             }
-    //         }
-    //         if (this.currentConflict) {
-    //             // conflicts with illegal participants
-    //             this.currentConflict.checkForIllegalParticipants();
-    //         }
-    //     }
-    //     if (events.length > 0) {
-    //         // check for any delayed effects which need to fire
-    //         this.effectEngine.checkDelayedEffects(events);
-    //     }
-    // }
+            // for (const player of this.getPlayers()) {
+            //     player.getCardsInPlay().each((card) => {
+            //         if (card.getModifiedController() !== player) {
+            //             // any card being controlled by the wrong player
+            //             this.takeControl(card.getModifiedController(), card);
+            //         }
+            //     });
+            // }
+        }
+        if (events.length > 0) {
+            // check for any delayed effects which need to fire
+            this.effectEngine.checkDelayedEffects(events);
+        }
+    }
 
     continue() {
         this.pipeline.continue();

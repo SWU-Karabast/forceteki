@@ -3,6 +3,7 @@ const AbilityDsl = require('../../AbilityDsl.js');
 const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
 const { Location, CardType, EffectName, WildcardLocation } = require('../Constants.js');
+const { cardLocationMatches } = require('../utils/EnumHelpers.js');
 
 class CardAbility extends CardAbilityStep {
     constructor(game, card, properties) {
@@ -118,7 +119,7 @@ class CardAbility extends CardAbilityStep {
     isInValidLocation(context) {
         return this.card.type === CardType.Event
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
-            : this.location.includes(this.card.location);
+            : cardLocationMatches(this.card.location, this.location);
     }
 
     getLocationMessage(location, context) {

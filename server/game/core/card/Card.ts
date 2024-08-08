@@ -69,7 +69,6 @@ const ValidKeywords = new Set<PrintedKeyword>([
     'sincerity'
 ]);
 
-// TODO: maybe rename this class for clarity
 // TODO: switch to using mixins for the different card types
 class Card extends EffectSource {
     controller: Player;
@@ -99,8 +98,8 @@ class Card extends EffectSource {
     printedFaction: string;
     location: Location;
 
-    isBase = false;
-    isLeader = false;
+    readonly isBase: boolean = false;
+    readonly isLeader: boolean = false;
 
     upgrades = [] as Card[];
     childCards = [] as Card[];
@@ -198,6 +197,31 @@ class Card extends EffectSource {
         Contract.assertNotNullLike(cardData.aspects);
         Contract.assertNotNullLike(cardData.keywords);
         Contract.assertNotNullLike(cardData.unique);
+
+        this.validateImplementationId(cardData);
+    }
+
+    // TODO: when we refactor Card we can just make this abstract
+    /**
+     * If this is a subclass implementation of a specific card, validate that it matches the provided card data
+     */
+    private validateImplementationId(cardData: any): void {
+        const implementationId = this.getImplementationId();
+        if (implementationId) {
+            if (cardData.id !== implementationId.id || cardData.internalName !== implementationId.internalName) {
+                throw new Error(
+                    `Implementation { ${implementationId.id}, ${implementationId.internalName} } does not match provided card data { ${cardData.id}, ${cardData.internalName} }`
+                );
+            }
+        }
+    }
+
+    /**
+     * Subclass implementations for specific cards must override this method and provide the id
+     * information for the specific card
+     */
+    protected getImplementationId(): null | { internalName: string, id: string } {
+        return null;
     }
 
     override get name(): string {
@@ -673,30 +697,20 @@ class Card extends EffectSource {
         return !this.facedown && this.checkRestrictions('initiateKeywords', context);
     }
 
-    // getModifiedLimitMax(player: Player, ability: CardAbility, max: number): number {
-    //     const effects = this.getRawEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
-    //     let total = max;
-    //     effects.forEach((effect) => {
-    //         const value = effect.getValue(this);
-    //         const applyingPlayer = value.applyingPlayer || effect.context.player;
-    //         const targetAbility = value.targetAbility;
-    //         if ((!targetAbility || targetAbility === ability) && applyingPlayer === player) {
-    //             total++;
-    //         }
-    //     });
+    getModifiedAbilityLimitMax(player: Player, ability: CardAbility, max: number): number {
+        const effects = this.getRawEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
+        let total = max;
+        effects.forEach((effect) => {
+            const value = effect.getValue(this);
+            const applyingPlayer = value.applyingPlayer || effect.context.player;
+            const targetAbility = value.targetAbility;
+            if ((!targetAbility || targetAbility === ability) && applyingPlayer === player) {
+                total++;
+            }
+        });
 
-    //     const printedEffects = this.getRawEffects().filter(
-    //         (effect) => effect.type === EffectName.IncreaseLimitOnPrintedAbilities
-    //     );
-    //     printedEffects.forEach((effect) => {
-    //         const value = effect.getValue(this);
-    //         if (ability.printedAbility && (value === true || value === ability) && effect.context.player === player) {
-    //             total++;
-    //         }
-    //     });
-
-    //     return total;
-    // }
+        return total;
+    }
 
     // getMenu() {
     //     if (
@@ -1900,15 +1914,12 @@ class Card extends EffectSource {
         this.defaultController = player;
     }
 
-    // getModifiedController() {
-    //     if (
-    //         this.location === Location.PlayArea ||
-    //         (this.type === CardType.Holding && this.location.includes('province'))
-    //     ) {
-    //         return this.mostRecentEffect(EffectName.TakeControl) || this.defaultController;
-    //     }
-    //     return this.owner;
-    // }
+    getModifiedController() {
+        if (isArena(this.location)) {
+            return this.mostRecentEffect(EffectName.TakeControl) || this.defaultController;
+        }
+        return this.owner;
+    }
 
     // canDisguise(card, context, intoConflictOnly) {
     //     return (
