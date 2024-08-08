@@ -39,9 +39,9 @@ export class EffectEngine {
         const effectsToTrigger: Effect[] = [];
         const effectsToRemove: Effect[] = [];
         for (const effect of this.effects.filter(
-            (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
+            (effect) => effect.isEffectActive() && effect.effectDetails.type === EffectName.DelayedEffect
         )) {
-            const properties = effect.impl.getValue();
+            const properties = effect.effectDetails.getValue();
             if (properties.condition) {
                 if (properties.condition(effect.context)) {
                     effectsToTrigger.push(effect);
@@ -59,7 +59,7 @@ export class EffectEngine {
             }
         }
         const effectTriggers = effectsToTrigger.map((effect) => {
-            const properties = effect.impl.getValue();
+            const properties = effect.effectDetails.getValue();
             const context = effect.context;
             const targets = effect.targets;
             return {
