@@ -251,12 +251,7 @@ class Card extends EffectSource {
         return this.typeField;
     }
 
-    // TODO: do we need to have this when super.mostRecentEffect is available?
-    private mostRecentCardEffect(predicate: (effect: ICardEffect) => boolean): ICardEffect | undefined {
-        const effects = this.getRawEffects().filter(predicate);
-        return effects[effects.length - 1];
-    }
-
+    // UP NEXT: don't always return play actions
     /**
      * The union of the card's "Action Abilities" (ie abilities that enable an action, SWU 2.1) and
      * any other general card actions such as playing a card

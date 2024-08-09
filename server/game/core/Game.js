@@ -1063,6 +1063,7 @@ class Game extends EventEmitter {
         this.addMessage('{0} has reconnected', player);
     }
 
+    // UP NEXT: rename this to something that makes it clearer that it's needed for updating effect state
     checkGameState(hasChanged = false, events = []) {
         // check for a game state change (recalculating attack stats if necessary)
         if (

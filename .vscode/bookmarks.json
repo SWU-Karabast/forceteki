@@ -44,24 +44,19 @@
 			"path": "server/game/core/card/Card.ts",
 			"bookmarks": [
 				{
-					"line": 280,
+					"line": 275,
 					"column": 64,
 					"label": "EVENT CARDS: play action filter #1"
 				},
 				{
-					"line": 542,
+					"line": 537,
 					"column": 151,
 					"label": "EVENT CARDS: bluff window reaction re-registration"
 				},
 				{
-					"line": 563,
+					"line": 558,
 					"column": 43,
 					"label": "UPGRADES: effect management"
-				},
-				{
-					"line": 944,
-					"column": 43,
-					"label": "EVENT CARDS: play action filter #2"
 				}
 			]
 		},

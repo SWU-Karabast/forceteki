@@ -8,6 +8,16 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
             internalName: 'salacious-crumb#obnoxious-pet'
         };
     }
+
+    override setupCardAbilities() {
+        this.triggeredAbility({
+            // UP NEXT: helper fn on Card to get all friendly units in play
+            condition: () => countUniqueAspects(this.controller.getUnitsInPlay((card) => card !== this)) >= 3,
+
+            // UP NEXT: convert this to a named effect
+            effect: AbilityDsl.ongoingEffects.cardCannot('beAttacked')
+        });
+    }
 }
 
 SalaciousCrumbObnoxiousPet.implemented = false;

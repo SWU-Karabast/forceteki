@@ -106,6 +106,7 @@ export class EffectEngine {
         }
     }
 
+    // UP NEXT: rename this to something that makes it clearer that it's needed for updating effect status
     checkEffects(prevStateChanged = false, loops = 0) {
         if (!prevStateChanged && !this.effectsChangedSinceLastCheck) {
             return false;
