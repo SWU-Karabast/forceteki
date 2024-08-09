@@ -634,6 +634,7 @@ class Player extends GameObject {
         this.preparedDeck = preparedDeck;
         this.deck.each((card) => {
             // register event reactions in case event-in-deck bluff window is enabled
+            // TODO: probably we need to do this differently since we have actual reactions on our events
             if (card.type === CardType.Event) {
                 for (let reaction of card.abilities.reactions) {
                     reaction.registerEvents();
@@ -763,7 +764,7 @@ class Player extends GameObject {
             aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
         }
 
-        let penalizedCost = card.getCost() + aspectPenaltiesTotal;
+        let penalizedCost = card.cost + aspectPenaltiesTotal;
         return this.runAdjustersForCostType(playingType, penalizedCost, card, target, ignoreType);
     }
 

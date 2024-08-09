@@ -42,7 +42,6 @@ export enum EffectName {
     Blank = 'blank',
     AddKeyword = 'addKeyword',
     LoseKeyword = 'loseKeyword',
-    CopyCharacter = 'copyCharacter',    // currently unused
     GainAbility = 'gainAbility',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     UnlessActionCost = 'unlessActionCost',
@@ -53,11 +52,11 @@ export enum EffectName {
     AdditionalTriggerCost = 'additionalTriggercost',
     AdditionalPlayCost = 'additionalPlaycost',
     ModifyStats = 'modifyStats',
-    ModifyPower = 'modifyPower',    // currently unused
-    SetBasePower = 'setBasePower',  // currently unused
-    SetPower = 'setPower',          // currently unused
-    CalculatePrintedPower = 'calculatePrintedPower',    // currently unused
-    ModifyHp = 'modifyHp',      // currently unused
+    ModifyPower = 'modifyPower',
+    SetBasePower = 'setBasePower',
+    SetPower = 'setPower',
+    CalculatePrintedPower = 'calculatePrintedPower',
+    ModifyHp = 'modifyHp',
     UpgradePowerModifier = 'upgradePowerModifier',
     UpgradeHpModifier = 'upgradeHpModifier',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
@@ -66,6 +65,8 @@ export enum EffectName {
     LoseTrait = 'loseTrait',
     DelayedEffect = 'delayedEffect',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
+    LoseAllNonKeywordAbilities = 'loseAllNonKeywordAbilities',
+    CannotApplyLastingEffects = 'cannotApplyLastingEffects',
 }
 
 export enum Duration {

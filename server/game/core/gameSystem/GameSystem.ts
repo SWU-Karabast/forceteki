@@ -19,12 +19,12 @@ export interface IGameSystemProperties {
  * Base class for making structured changes to game state. Almost all effects, actions,
  * costs, etc. should use a {@link GameSystem} object to impact the game state.
  *
- * @template TGameSystemProperties Property class to use for configuring the behavior of the system's execution
+ * @template TProperties Property class to use for configuring the behavior of the system's execution
  */
 // TODO: convert all template parameter names in the repo to use T prefix
-export abstract class GameSystem<TGameSystemProperties extends IGameSystemProperties = IGameSystemProperties> {
-    propertyFactory?: (context?: AbilityContext) => TGameSystemProperties;
-    properties?: TGameSystemProperties;
+export abstract class GameSystem<TProperties extends IGameSystemProperties = IGameSystemProperties> {
+    propertyFactory?: (context?: AbilityContext) => TProperties;
+    properties?: TProperties;
     targetType: string[] = [];
     eventName = EventName.Unnamed;
     name = ''; // TODO: should these be abstract?
@@ -35,12 +35,12 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
 
     /**
      * Constructs a {@link GameSystem} with a parameter that is either:
-     * 1. Preset properties in a {@link TGameSystemProperties}, which will be set to {@link GameSystem.properties}.
+     * 1. Preset properties in a {@link TProperties}, which will be set to {@link GameSystem.properties}.
      * 2. A function for generating properties from an {@link AbilityContext} provided at system resolution time,
      * which represents the context of the {@link PlayerOrCardAbility} that is executing this system.
      * This is set to {@link GameSystem.propertyFactory}.
      */
-    constructor(propertiesOrPropertyFactory: TGameSystemProperties | ((context?: AbilityContext) => TGameSystemProperties)) {
+    constructor(propertiesOrPropertyFactory: TProperties | ((context?: AbilityContext) => TProperties)) {
         if (typeof propertiesOrPropertyFactory === 'function') {
             this.propertyFactory = propertiesOrPropertyFactory;
         } else {
@@ -76,7 +76,7 @@ export abstract class GameSystem<TGameSystemProperties extends IGameSystemProper
      * @param additionalProperties Any additional properties on top of the default ones
      * @returns An object of the `GameSystemProperties` template type
      */
-    generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): TGameSystemProperties {
+    generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): TProperties {
         const properties = Object.assign(
             { target: this.getDefaultTargets(context) },
             this.defaultProperties,

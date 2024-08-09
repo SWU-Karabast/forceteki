@@ -192,14 +192,14 @@ export function putSelfIntoPlay(): ICost {
 //     return {
 //         canIgnoreForTargeting: true,
 //         canPay(context: TriggeredAbilityContext) {
-//             const amount = context.source.getCost();
+//             const amount = context.source.cost;
 //             return (
 //                 context.player.fate >= amount &&
 //                 (amount === 0 || context.player.checkRestrictions('spendFate', context))
 //             );
 //         },
 //         payEvent(context: TriggeredAbilityContext) {
-//             const amount = context.source.getCost();
+//             const amount = context.source.cost;
 //             return new Event(
 //                 EventName.OnSpendFate,
 //                 { amount, context },

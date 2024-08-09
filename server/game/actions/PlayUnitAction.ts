@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import BaseAction from '../core/ability/PlayerAction.js';
+import PlayerAction from '../core/ability/PlayerAction.js';
 import { EffectName, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { payAdjustableResourceCost } from '../costs/CostLibrary.js';
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
@@ -8,7 +8,7 @@ import type Player from '../core/Player.js';
 
 type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 
-export class PlayUnitAction extends BaseAction {
+export class PlayUnitAction extends PlayerAction {
     public title = 'Play this unit';
 
     public constructor(card: Card) {

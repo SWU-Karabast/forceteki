@@ -7,6 +7,7 @@ interface Params {
     cannotBeCancelled: boolean;
 }
 
+// TODO: rename to GameEvent to disambiguate from DOM events
 export class Event {
     cancelled = false;
     resolved = false;

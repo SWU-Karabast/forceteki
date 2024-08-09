@@ -11,7 +11,7 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
 /**
  * A {@link GameSystem} which targets a card or cards for its effect
  */
-export abstract class CardTargetSystem<P extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<P> {
+export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TProperties> {
     override targetType = [
         CardType.Unit,
         CardType.Upgrade,

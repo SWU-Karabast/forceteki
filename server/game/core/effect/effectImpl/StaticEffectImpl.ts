@@ -1,6 +1,5 @@
 import { EffectValue } from './EffectValue';
 import { CardType, EffectName, Duration, AbilityType } from '../../Constants';
-import GainAbility from './GainAbility';
 import { AbilityContext } from '../../ability/AbilityContext';
 import { EffectImpl } from './EffectImpl';
 
@@ -65,7 +64,6 @@ const binaryCardEffects = [
 // TODO: readonly pass on class properties throughout the repo
 export default class StaticEffectImpl<TValue> extends EffectImpl<TValue> {
     readonly value: EffectValue<TValue>;
-    private copies: GainAbility[] = [];     // TODO: what exactly is this for?
 
     constructor(type: EffectName, value: EffectValue<TValue> | TValue) {
         super(type);
@@ -80,20 +78,12 @@ export default class StaticEffectImpl<TValue> extends EffectImpl<TValue> {
 
     apply(target) {
         target.addEffect(this);
-        if (this.value instanceof GainAbility && this.value.abilityType === AbilityType.Persistent) {
-            const copy = this.value.getCopy();
-            copy.apply(target);
-            this.copies.push(copy);
-        } else {
-            this.value.apply(target);
-        }
+        this.value.apply(target);
     }
 
     unapply(target) {
         target.removeEffect(this);
         this.value.unapply(target);
-        this.copies.forEach((a) => a.unapply(target));
-        this.copies = [];
     }
 
     getValue(target) {

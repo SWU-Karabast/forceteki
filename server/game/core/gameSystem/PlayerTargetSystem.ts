@@ -8,7 +8,7 @@ export interface IPlayerTargetSystemProperties extends IGameSystemProperties {}
 /**
  * A {@link GameSystem} which targets a player for its effect
  */
-export abstract class PlayerTargetSystem<P extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends GameSystem<P> {
+export abstract class PlayerTargetSystem<TProperties extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends GameSystem<TProperties> {
     override targetType = ['player'];
 
     override defaultTargets(context: AbilityContext): Player[] {
