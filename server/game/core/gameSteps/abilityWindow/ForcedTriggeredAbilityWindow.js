@@ -37,6 +37,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
         }
     }
 
+    // TODO: need to implement the SWU rules for simultaneous reaction effects
     filterChoices() {
         if (this.choices.length === 0) {
             return true;

@@ -726,22 +726,26 @@ class Player extends GameObject {
      */
     getMinimumPossibleCost(playingType, context, target, ignoreType = false) {
         const card = context.source;
-        let adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType, context.costAspects);
-        let triggeredCostAdjusters = 0;
-        let fakeWindow = { addChoice: () => triggeredCostAdjusters++ };
-        let fakeEvent = this.game.getEvent(EventName.OnCardPlayed, { card: card, player: this, context: context });
-        this.game.emit(EventName.OnCardPlayed + ':' + AbilityType.Interrupt, fakeEvent, fakeWindow);
-        let fakeResolverEvent = this.game.getEvent(EventName.OnAbilityResolverInitiated, {
-            card: card,
-            player: this,
-            context: context
-        });
-        this.game.emit(
-            EventName.OnAbilityResolverInitiated + ':' + AbilityType.Interrupt,
-            fakeResolverEvent,
-            fakeWindow
-        );
-        return Math.max(adjustedCost - triggeredCostAdjusters, 0);
+        const adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType, context.costAspects);
+
+        // TODO: 90% sure we don't need this code, I think it's just checking to see if any potential interrupts would create additional cost
+        // let triggeredCostAdjusters = 0;
+        // let fakeWindow = { addChoice: () => triggeredCostAdjusters++ };
+        // let fakeEvent = this.game.getEvent(EventName.OnCardPlayed, { card: card, player: this, context: context });
+        // this.game.emit(EventName.OnCardPlayed + ':' + AbilityType.Interrupt, fakeEvent, fakeWindow);
+        // let fakeResolverEvent = this.game.getEvent(EventName.OnAbilityResolverInitiated, {
+        //     card: card,
+        //     player: this,
+        //     context: context
+        // });
+        // this.game.emit(
+        //     EventName.OnAbilityResolverInitiated + ':' + AbilityType.Interrupt,
+        //     fakeResolverEvent,
+        //     fakeWindow
+        // );
+        // return Math.max(adjustedCost - triggeredCostAdjusters, 0);
+
+        return Math.max(adjustedCost, 0);
     }
 
     /**

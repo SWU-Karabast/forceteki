@@ -49,15 +49,6 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
 
 class InitiateAbilityEventWindow extends EventWindow {
     /** @override */
-    openWindow(abilityType) {
-        if (this.events.length && abilityType === AbilityType.Interrupt) {
-            this.queueStep(new InitiateAbilityInterruptWindow(this.game, abilityType, this));
-        } else {
-            super.openWindow(abilityType);
-        }
-    }
-
-    /** @override */
     executeHandler() {
         this.eventsToExecute = _.sortBy(this.events, 'order');
 

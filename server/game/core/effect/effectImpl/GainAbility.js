@@ -83,11 +83,8 @@ class GainAbility extends EffectValue {
         }
         if (
             [
-                AbilityType.ForcedInterrupt,
                 AbilityType.ForcedReaction,
-                AbilityType.Interrupt,
-                AbilityType.Reaction,
-                AbilityType.WouldInterrupt
+                AbilityType.Reaction
             ].includes(this.abilityType)
         ) {
             this.value.unregisterEvents();

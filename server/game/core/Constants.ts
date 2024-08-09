@@ -156,11 +156,6 @@ export enum EventName {
 
 export enum AbilityType {
     Action = 'action',
-    WouldInterrupt = 'cancelInterrupt',
-    ForcedInterrupt = 'forcedInterrupt',
-    KeywordInterrupt = 'keywordInterrupt',
-    Interrupt = 'interrupt',
-    KeywordReaction = 'keywordReaction',
     ForcedReaction = 'forcedReaction',
     Reaction = 'reaction',
     Persistent = 'persistent',

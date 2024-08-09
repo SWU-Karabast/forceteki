@@ -64,7 +64,7 @@ export const TriggeredAbilityWindowTitle = {
             })
             .filter(Boolean);
 
-        if (abilityType === AbilityType.ForcedReaction || abilityType === AbilityType.ForcedInterrupt) {
+        if (abilityType === AbilityType.ForcedReaction) {
             return titles.length > 0
                 ? `Choose ${abilityWord} order for ${FormatTitles(titles)}`
                 : `Choose ${abilityWord} order`;

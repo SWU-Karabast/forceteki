@@ -70,8 +70,7 @@ export class PlayUnitAction extends BaseAction {
         const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
         context.game.openEventWindow([
             putIntoPlay({
-                controller: player,
-                overrideLocation: Location.Hand // TODO: should we be doing this?
+                controller: player
             }).getEvent(context.source, context),
             cardPlayedEvent
         ]);

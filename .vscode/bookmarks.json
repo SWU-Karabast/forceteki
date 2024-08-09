@@ -1,0 +1,44 @@
+{
+	"files": [
+		{
+			"path": "server/game/core/Game.js",
+			"bookmarks": [
+				{
+					"line": 686,
+					"column": 8,
+					"label": "Game setup and start"
+				}
+			]
+		},
+		{
+			"path": "server/game/core/event/EventWindow.js",
+			"bookmarks": [
+				{
+					"line": 25,
+					"column": 26,
+					"label": "Event resolution steps"
+				}
+			]
+		},
+		{
+			"path": "server/game/core/gameSteps/abilityWindow/ForcedTriggeredAbilityWindow.js",
+			"bookmarks": [
+				{
+					"line": 40,
+					"column": 7,
+					"label": "Simultaneous reaction resolver"
+				}
+			]
+		},
+		{
+			"path": "server/game/core/gameSteps/ActionWindow.js",
+			"bookmarks": [
+				{
+					"line": 23,
+					"column": 14,
+					"label": "Card click entrypoint"
+				}
+			]
+		}
+	]
+}

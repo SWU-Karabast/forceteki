@@ -18,11 +18,7 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
         if (player.timerSettings.eventsInDeck && this.choices.some((context) => context.player === player)) {
             return true;
         }
-        // Show a bluff prompt if we're in Step 6, the player has the approriate setting, and there's an event for the other player
-        return this.abilityType === AbilityType.WouldInterrupt && player.timerSettings.events && _.any(this.events, (event) => (
-            event.name === EventName.OnInitiateAbilityEffects &&
-            event.card.type === CardType.Event && event.context.player !== player
-        ));
+        return false;
     }
 
     promptWithBluffPrompt(player) {
@@ -62,14 +58,6 @@ class TriggeredAbilityWindow extends ForcedTriggeredAbilityWindow {
         // If both players have passed, close the window
         if (this.complete) {
             return true;
-        }
-        // remove any choices which involve the current player canceling their own abilities
-        if (this.abilityType === AbilityType.WouldInterrupt && !this.activePlayer.optionSettings.cancelOwnAbilities) {
-            this.choices = this.choices.filter((context) => !(
-                context.player === this.activePlayer &&
-                context.event.name === EventName.OnInitiateAbilityEffects &&
-                context.event.context.player === this.activePlayer
-            ));
         }
 
         // if the current player has no available choices in this window, check to see if they should get a bluff prompt

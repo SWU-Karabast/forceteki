@@ -26,10 +26,7 @@ class EventWindow extends BaseStepWithPipeline {
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.setCurrentEventWindow()),
             new SimpleStep(this.game, () => this.checkEventCondition()),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.WouldInterrupt)),
-            new SimpleStep(this.game, () => this.createContingentEvents()),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.ForcedInterrupt)),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.Interrupt)),
+            // new SimpleStep(this.game, () => this.createContingentEvents()),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordInterrupt)),
             new SimpleStep(this.game, () => this.checkForOtherEffects()),
             new SimpleStep(this.game, () => this.preResolutionEffects()),
@@ -72,25 +69,26 @@ class EventWindow extends BaseStepWithPipeline {
             return;
         }
 
-        if ([AbilityType.ForcedReaction, AbilityType.ForcedInterrupt].includes(abilityType)) {
+        if (abilityType === AbilityType.ForcedReaction) {
             this.queueStep(new ForcedTriggeredAbilityWindow(this.game, abilityType, this));
         } else {
             this.queueStep(new TriggeredAbilityWindow(this.game, abilityType, this));
         }
     }
 
-    // This is primarily for LeavesPlayEvents
-    createContingentEvents() {
-        let contingentEvents = [];
-        _.each(this.events, (event) => {
-            contingentEvents = contingentEvents.concat(event.createContingentEvents());
-        });
-        if (contingentEvents.length > 0) {
-            // Exclude current events from the new window, we just want to give players opportunities to respond to the contingent events
-            this.queueStep(new TriggeredAbilityWindow(this.game, AbilityType.WouldInterrupt, this, this.events.slice(0)));
-            _.each(contingentEvents, (event) => this.addEvent(event));
-        }
-    }
+    // TODO: do we need this?
+    // // This is primarily for LeavesPlayEvents
+    // createContingentEvents() {
+    //     let contingentEvents = [];
+    //     _.each(this.events, (event) => {
+    //         contingentEvents = contingentEvents.concat(event.createContingentEvents());
+    //     });
+    //     if (contingentEvents.length > 0) {
+    //         // Exclude current events from the new window, we just want to give players opportunities to respond to the contingent events
+    //         this.queueStep(new TriggeredAbilityWindow(this.game, AbilityType.WouldInterrupt, this, this.events.slice(0)));
+    //         _.each(contingentEvents, (event) => this.addEvent(event));
+    //     }
+    // }
 
     // This catches any persistent/delayed effect cancels
     checkForOtherEffects() {
@@ -115,8 +113,8 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     // checkGameState() {
-    //     this.eventsToExecute = this.eventsToExecute.filter(event => !event.cancelled);
-    //     this.game.checkGameState(_.any(this.eventsToExecute, event => event.handler), this.eventsToExecute);
+    //     this.eventsToExecute = this.eventsToExecute.filter((event) => !event.cancelled);
+    //     this.game.checkGameState(_.any(this.eventsToExecute, (event) => event.handler), this.eventsToExecute);
     // }
 
     // checkKeywordAbilities(abilityType) {

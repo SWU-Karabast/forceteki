@@ -7,7 +7,6 @@ import Card from '../core/card/Card';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: RelativePlayer;
-    side?: RelativePlayer;
     overrideLocation?: Location;
 }
 
@@ -18,7 +17,6 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     override targetType = [CardType.Unit];
     override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
-        side: null,
         overrideLocation: null
     };
 
@@ -26,10 +24,6 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         properties: ((context: AbilityContext) => IPutIntoPlayProperties) | IPutIntoPlayProperties
     ) {
         super(properties);
-    }
-
-    getDefaultSide(context: AbilityContext) {
-        return context.player;
     }
 
     getPutIntoPlayPlayer(context: AbilityContext) {
@@ -42,10 +36,8 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     }
 
     override canAffect(card: Card, context: AbilityContext): boolean {
-        const properties = this.generatePropertiesFromContext(context) as IPutIntoPlayProperties;
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy);
-        const targetSide = properties.side || this.getDefaultSide(contextCopy);
 
         if (!context || !super.canAffect(card, context)) {
             return false;
@@ -62,22 +54,18 @@ export class PutIntoPlaySystem extends CardTargetSystem {
     }
 
     override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        const { controller, side, overrideLocation } = this.generatePropertiesFromContext(
+        const { controller, overrideLocation } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IPutIntoPlayProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
         event.originalLocation = overrideLocation || card.location;
-        event.side = side || this.getDefaultSide(context);
     }
 
     eventHandler(event, additionalProperties = {}): void {
         const player = this.getPutIntoPlayPlayer(event.context);
         event.card.new = true;
-        if (event.fate) {
-            event.card.fate = event.fate;
-        }
 
         let finalController = event.context.player;
         if (event.controller === RelativePlayer.Opponent) {

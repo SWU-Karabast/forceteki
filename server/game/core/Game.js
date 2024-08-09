@@ -713,7 +713,6 @@ class Game extends EventEmitter {
                 []
             )
         );
-        this.provinceCards = this.allCards.filter((card) => card.isProvince);
 
         // if (this.gameMode !== GameMode.Skirmish) {
         //     if (playerWithNoStronghold) {
@@ -1094,60 +1093,50 @@ class Game extends EventEmitter {
         this.pipeline.continue();
     }
 
-    formatDeckForSaving(deck) {
-        var result = {
-            faction: {},
-            conflictCards: [],
-            dynastyCards: [],
-            provinceCards: [],
-            stronghold: undefined,
-            role: undefined
-        };
+    // formatDeckForSaving(deck) {
+    //     var result = {
+    //         faction: {},
+    //         conflictCards: [],
+    //         dynastyCards: [],
+    //         stronghold: undefined,
+    //         role: undefined
+    //     };
 
-        //faction
-        result.faction = deck.faction;
+    //     //faction
+    //     result.faction = deck.faction;
 
-        //conflict
-        deck.conflictCards.forEach((cardData) => {
-            if (cardData && cardData.card) {
-                result.conflictCards.push(`${cardData.count}x ${cardData.card.id}`);
-            }
-        });
+    //     //conflict
+    //     deck.conflictCards.forEach((cardData) => {
+    //         if (cardData && cardData.card) {
+    //             result.conflictCards.push(`${cardData.count}x ${cardData.card.id}`);
+    //         }
+    //     });
 
-        //dynasty
-        deck.dynastyCards.forEach((cardData) => {
-            if (cardData && cardData.card) {
-                result.dynastyCards.push(`${cardData.count}x ${cardData.card.id}`);
-            }
-        });
+    //     //dynasty
+    //     deck.dynastyCards.forEach((cardData) => {
+    //         if (cardData && cardData.card) {
+    //             result.dynastyCards.push(`${cardData.count}x ${cardData.card.id}`);
+    //         }
+    //     });
 
-        //provinces
-        if (deck.provinceCards) {
-            deck.provinceCards.forEach((cardData) => {
-                if (cardData && cardData.card) {
-                    result.provinceCards.push(cardData.card.id);
-                }
-            });
-        }
+    //     //stronghold & role
+    //     if (deck.stronghold) {
+    //         deck.stronghold.forEach((cardData) => {
+    //             if (cardData && cardData.card) {
+    //                 result.stronghold = cardData.card.id;
+    //             }
+    //         });
+    //     }
+    //     if (deck.role) {
+    //         deck.role.forEach((cardData) => {
+    //             if (cardData && cardData.card) {
+    //                 result.role = cardData.card.id;
+    //             }
+    //         });
+    //     }
 
-        //stronghold & role
-        if (deck.stronghold) {
-            deck.stronghold.forEach((cardData) => {
-                if (cardData && cardData.card) {
-                    result.stronghold = cardData.card.id;
-                }
-            });
-        }
-        if (deck.role) {
-            deck.role.forEach((cardData) => {
-                if (cardData && cardData.card) {
-                    result.role = cardData.card.id;
-                }
-            });
-        }
-
-        return result;
-    }
+    //     return result;
+    // }
 
     // /*
     //  * This information is all logged when a game is won
