@@ -8,7 +8,7 @@ const { EffectBuilder } = require('../core/effect/EffectBuilder.js');
 // const { attachmentMilitarySkillModifier } = require('./Effects/Library/attachmentMilitarySkillModifier');
 // const { attachmentPoliticalSkillModifier } = require('./Effects/Library/attachmentPoliticalSkillModifier');
 // const { canPlayFromOwn } = require('./Effects/Library/canPlayFromOwn');
-// const { cardCannot } = require('./Effects/Library/cardCannot');
+const { cardCannot } = require('./CardCannot');
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
 // const { gainAbility } = require('./Effects/Library/gainAbility');
@@ -61,14 +61,13 @@ const Effects = {
     //     EffectBuilder.card.flexible(EffectName.CanOnlyBeDeclaredAsAttackerWithElement, element),
     // cannotApplyLastingEffects: (condition) =>
     //     EffectBuilder.card.static(EffectName.CannotApplyLastingEffects, condition),
-    // cannotBeAttacked: () => EffectBuilder.card.static(EffectName.CannotBeAttacked),
     // cannotHaveOtherRestrictedAttachments: (card) =>
     //     EffectBuilder.card.static(EffectName.CannotHaveOtherRestrictedAttachments, card),
     // cannotParticipateAsAttacker: (type = 'both') =>
     //     EffectBuilder.card.static(EffectName.CannotParticipateAsAttacker, type),
     // cannotParticipateAsDefender: (type = 'both') =>
     //     EffectBuilder.card.static(EffectName.CannotParticipateAsDefender, type),
-    // cardCannot,
+    cardCannot,
     // changeContributionFunction: (func) => EffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
     // changeType: (type) => EffectBuilder.card.static(EffectName.ChangeType, type),
     // characterProvidesAdditionalConflict: (type) =>
@@ -205,7 +204,7 @@ const Effects = {
     //         apply: (player) => (player.actionPhasePriority = true),
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
-    increaseCost: (properties) => Effects.modifyCost(_.extend(properties, { amount: -properties.amount })),
+    increaseCost: (properties) => Effects.modifyCost(Object.assign({}, properties, { amount: -properties.amount })),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     EffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>

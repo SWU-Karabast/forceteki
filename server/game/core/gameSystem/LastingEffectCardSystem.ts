@@ -19,7 +19,7 @@ export interface ILastingEffectCardProperties extends Omit<ILastingEffectGeneral
 export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCardProperties> {
     override name = 'applyLastingEffect';
     override eventName = EventName.OnEffectApplied;
-    effect = 'apply a lasting effect to {0}';
+    override effectDescription = 'apply a lasting effect to {0}';
     override defaultProperties: ILastingEffectCardProperties = {
         duration: Duration.UntilEndOfAttack,
         canChangeZoneOnce: false,

@@ -37,6 +37,7 @@ class Effect {
         this.duration = properties.duration;
         this.until = properties.until || {};
         this.condition = properties.condition || (() => true);
+        // UP NEXT: this needs to be changed to match the name locationFilter (or vice versa). so does the caller (can't remember which)
         this.location = properties.location || isArena(properties.location);
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
@@ -96,7 +97,7 @@ class Effect {
         if (this.duration !== Duration.Persistent) {
             return true;
         }
-        let effectOnSource = this.source.persistentEffects.some((effect) => effect.ref && effect.ref.includes(this));
+        let effectOnSource = this.source.constantAbilities.some((effect) => effect.registeredEffects && effect.registeredEffects.includes(this));
         return !this.source.facedown && effectOnSource;
     }
 

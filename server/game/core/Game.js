@@ -257,21 +257,20 @@ class Game extends EventEmitter {
         return this.allCards.filter(predicate);
     }
 
-    // /**
-    //  * Returns all cards (i.e. characters) which matching the passed predicated
-    //  * function from either players 'in play' area.
-    //  * @param {Function} predicate - card => Boolean
-    //  * @returns {Array} Array of DrawCard objects
-    //  */
-    // findAnyCardsInPlay(predicate) {
-    //     var foundCards = [];
+    /**
+     * Returns all cards which matching the passed predicated function from either players arenas
+     * @param {Function} predicate - card => Boolean
+     * @returns {Array} Array of DrawCard objects
+     */
+    findAnyCardsInPlay(predicate) {
+        var foundCards = [];
 
-    //     _.each(this.getPlayers(), (player) => {
-    //         foundCards = foundCards.concat(player.findCards(player.cardsInPlay, predicate));
-    //     });
+        _.each(this.getPlayers(), (player) => {
+            foundCards = foundCards.concat(player.findCards(player.getCardsInPlay(), predicate));
+        });
 
-    //     return foundCards;
-    // }
+        return foundCards;
+    }
 
     /**
      * Returns if a card is in play (characters, attachments, provinces, holdings) that has the passed trait

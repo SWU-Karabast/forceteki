@@ -135,6 +135,8 @@ class PlayerInteractionWrapper {
                 });
             }
         });
+
+        this.game.checkGameState(true);
     }
 
     get deck() {
@@ -542,6 +544,16 @@ class PlayerInteractionWrapper {
     }
 
     /**
+     *
+     */
+    setActivePlayer() {
+        this.game.actionPhaseActivePlayer = this.player;
+        if (this.game.currentActionWindow) {
+            this.game.currentActionWindow.activePlayer = this.player;
+        }
+    }
+
+    /**
      * Player's action of passing a conflict
      */
     passConflict() {
@@ -552,22 +564,6 @@ class PlayerInteractionWrapper {
         }
         this.clickPrompt('Pass Conflict');
         this.clickPrompt('Yes');
-    }
-
-    /**
-     * Selects a stronghold province at the beginning of the game
-     * @param {!String} card - the province to select
-     */
-    selectStrongholdProvince(card) {
-        if (this.game.gameMode === GameMode.Skirmish) {
-            return;
-        }
-        if (!this.hasPrompt('Select stronghold province')) {
-            throw new Error(`${this.name} is not prompted to select a province`);
-        }
-        card = this.findCardByName(card, 'province deck');
-        this.clickCard(card);
-        this.clickPrompt('Done');
     }
 
     playAttachment(attachment, target) {

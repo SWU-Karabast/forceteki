@@ -84,6 +84,8 @@ class Card extends EffectSource {
     controller: Player;
     override game: Game;
 
+    static implemented = false;
+
     // TODO: readonly pass on class properties throughout the repo
     override readonly id: string;
     readonly printedTitle: string;
@@ -264,14 +266,9 @@ class Card extends EffectSource {
     }
 
     private getActions(location = this.location): any[] {
-        const actions = this.abilities.action;
-
-        const effectActions = this.getEffects(EffectName.GainAbility).filter(
-            (ability) => ability.abilityType === AbilityType.Action
-        );
+        const allAbilities = this.abilities.action;
 
         // const lostAllNonKeywordsAbilities = this.anyEffect(EffectName.LoseAllNonKeywordAbilities);
-        const allAbilities = actions.concat(effectActions);
         // if (lostAllNonKeywordsAbilities) {
         //     allAbilities = allAbilities.filter((a) => a.isKeywordAbility());
         // }
@@ -306,17 +303,13 @@ class Card extends EffectSource {
             AbilityType.Reaction,
         ];
         const triggeredAbilities = this.abilities.triggered;
-        const effectReactions = this.getEffects(EffectName.GainAbility).filter((ability) =>
-            TriggeredAbilityTypes.includes(ability.abilityType)
-        );
 
-        const allAbilities = triggeredAbilities.concat(effectReactions);
         // const lostAllNonKeywordsAbilities = this.anyEffect(EffectName.LoseAllNonKeywordAbilities);
         // if (lostAllNonKeywordsAbilities) {
         //     allAbilities = allAbilities.filter((a) => a.isKeywordAbility());
         // }
 
-        return allAbilities;
+        return triggeredAbilities;
     }
 
     /**
@@ -327,19 +320,14 @@ class Card extends EffectSource {
     }
 
     private getConstantAbilities(): any[] {
-        const gainedPersistentEffects = this.getEffects(EffectName.GainAbility).filter(
-            (ability) => ability.abilityType === AbilityType.Persistent
-        );
-
         // const lostAllNonKeywordsAbilities = this.anyEffect(EffectName.LoseAllNonKeywordAbilities);
         // if (lostAllNonKeywordsAbilities) {
         //     let allAbilities = this.abilities.constant.concat(gainedPersistentEffects);
         //     allAbilities = allAbilities.filter((a) => a.isKeywordEffect || a.type === EffectName.AddKeyword);
         //     return allAbilities;
         // }
-        return this.isBlank()
-            ? gainedPersistentEffects
-            : this.abilities.constant.concat(gainedPersistentEffects);
+        return this.isBlank() ? []
+            : this.abilities.constant;
     }
 
     // TODO: make this abstract eventually
@@ -347,8 +335,11 @@ class Card extends EffectSource {
      * Create card abilities by calling subsequent methods with appropriate properties
      * @param {Object} ability - AbilityDsl object containing limits, costs, effects, and game actions
      */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+
     protected setupCardAbilities(ability) {
+        if (this.type === CardType.Unit) {
+            this.abilities.playCardAction.push(new PlayUnitAction(this));
+        }
     }
 
     protected actionAbility(properties: IActionProps<this>): void {
@@ -529,7 +520,7 @@ class Card extends EffectSource {
     // applyAnyLocationPersistentEffects(): void {
     //     for (const effect of this.persistentEffects) {
     //         if (effect.location === Location.Any) {
-    //             effect.ref = this.addEffectToEngine(effect);
+    //             effect.registeredEffects = this.addEffectToEngine(effect);
     //         }
     //     }
     // }
@@ -955,9 +946,9 @@ class Card extends EffectSource {
             return this.getActions();
         }
         const actions = this.abilities.playCardAction.slice();
-        if (this.type === CardType.Unit) {
-            actions.push(new PlayUnitAction(this));
-        }
+        // if (this.type === CardType.Unit) {
+        //     actions.push(new PlayUnitAction(this));
+        // }
         // else if (this.type === CardType.Upgrade) {
         //     actions.push(new PlayAttachmentAction(this));
         // }

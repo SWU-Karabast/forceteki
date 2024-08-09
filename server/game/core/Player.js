@@ -112,9 +112,13 @@ class Player extends GameObject {
         this.clock.reset();
     }
 
-    // TODO: does this / should this return upgrades?
+    // TODO: this should get upgrades, but we need to confirm once they're implemented
     getCardsInPlay() {
         return _(this.spaceArena.value().concat(this.groundArena.value()));
+    }
+
+    getUnitsInPlay(cardCondition = (card) => true) {
+        return this.getCardsInPlay().filter((card) => card.type === CardType.Unit && cardCondition(card));
     }
 
     /**
@@ -1216,6 +1220,12 @@ class Player extends GameObject {
             let updatedPile = this.removeCardByUuid(originalPile, card.uuid);
 
             switch (originalLocation) {
+                case Location.SpaceArena:
+                    this.spaceArena = updatedPile;
+                    break;
+                case Location.GroundArena:
+                    this.groundArena = updatedPile;
+                    break;
                 case Location.Hand:
                     this.hand = updatedPile;
                     break;
@@ -1227,6 +1237,9 @@ class Player extends GameObject {
                     break;
                 case Location.RemovedFromGame:
                     this.removedFromGame = updatedPile;
+                    break;
+                case Location.Leader:
+                    this.leaderZone = updatedPile;
                     break;
                 default:
                     if (this.additionalPiles[originalPile]) {

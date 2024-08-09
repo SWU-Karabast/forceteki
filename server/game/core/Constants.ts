@@ -42,7 +42,6 @@ export enum EffectName {
     Blank = 'blank',
     AddKeyword = 'addKeyword',
     LoseKeyword = 'loseKeyword',
-    GainAbility = 'gainAbility',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     UnlessActionCost = 'unlessActionCost',
     MustBeChosen = 'mustBeChosen',
@@ -67,6 +66,7 @@ export enum EffectName {
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     LoseAllNonKeywordAbilities = 'loseAllNonKeywordAbilities',
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
+    CannotBeAttacked = 'cannotBeAttacked'
 }
 
 export enum Duration {

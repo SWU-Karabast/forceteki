@@ -1,3 +1,6 @@
+import Card from '../card/Card';
+import { Aspect } from '../Constants';
+
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export function shuffleArray<T>(array: T[]): void {
     for (let i = array.length - 1; i > 0; i--) {
@@ -17,4 +20,13 @@ export type Derivable<T extends boolean | string | number | any[], C> = T | ((co
 
 export function derive<T extends boolean | string | number | any[], C>(input: Derivable<T, C>, context: C): T {
     return typeof input === 'function' ? input(context) : input;
+}
+
+export function countUniqueAspects(cards: Card | Card[]): number {
+    const aspects = new Set<Aspect>();
+    const cardsArray = Array.isArray(cards) ? cards : [cards];
+    cardsArray.forEach((card) => {
+        card.aspects.forEach((aspect) => aspects.add(aspect));
+    });
+    return aspects.size;
 }

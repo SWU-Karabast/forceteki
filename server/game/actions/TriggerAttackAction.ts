@@ -6,9 +6,13 @@ import { exhaustSelf } from '../costs/CostLibrary.js';
 import { attack } from '../gameSystems/GameSystemLibrary.js';
 import type Player from '../core/Player.js';
 import Card from '../core/card/Card.js';
+import { unlimited } from '../core/ability/AbilityLimit.js';
 
 export class TriggerAttackAction extends PlayerAction {
-    public title = 'Attack';
+    title = 'Attack';
+
+    // TODO: this is a hack to get this to behave like a regular card ability for testing
+    limit = unlimited();
 
     public constructor(card: Card) {
         super(card, [exhaustSelf()], {

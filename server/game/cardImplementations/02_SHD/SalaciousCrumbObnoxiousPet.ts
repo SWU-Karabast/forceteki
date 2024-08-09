@@ -1,6 +1,5 @@
 import AbilityDsl from '../../AbilityDsl';
 import Card from '../../core/card/Card';
-import { CardType } from '../../core/Constants';
 
 export default class SalaciousCrumbObnoxiousPet extends Card {
     protected override getImplementationId() {
@@ -10,3 +9,5 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
         };
     }
 }
+
+SalaciousCrumbObnoxiousPet.implemented = false;

@@ -23,7 +23,7 @@ export interface LastingEffectProperties extends ILastingEffectGeneralProperties
 export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
     override name = 'applyLastingEffect';
     override eventName = EventName.OnEffectApplied;
-    effect = 'apply a lasting effect';
+    override effectDescription = 'apply a lasting effect';
     override defaultProperties: LastingEffectProperties = {
         duration: Duration.UntilEndOfAttack,
         effect: [],
