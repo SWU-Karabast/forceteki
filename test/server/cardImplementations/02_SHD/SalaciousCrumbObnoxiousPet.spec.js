@@ -1,6 +1,6 @@
 describe('Salacious Crumb, Obnoxious Pet', function() {
     integration(function() {
-        describe('Crumb', function() {
+        describe('Crumb\'s when played ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
