@@ -136,6 +136,7 @@ class PlayerInteractionWrapper {
             }
         });
 
+        // UP NEXT: make this part of the normal process of playing a card
         this.game.checkGameState(true);
     }
 

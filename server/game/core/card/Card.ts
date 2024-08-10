@@ -156,6 +156,7 @@ class Card extends EffectSource {
         this.printedKeywords = cardData.keywords; // TODO: enum for these
 
         this.setupCardAbilities(AbilityDsl);
+        this.setupPlayAbilities();
         // this.parseKeywords(cardData.text ? cardData.text.replace(/<[^>]*>/g, '').toLowerCase() : '');
         // this.applyAttachmentBonus();
 
@@ -330,8 +331,11 @@ class Card extends EffectSource {
      * Create card abilities by calling subsequent methods with appropriate properties
      * @param {Object} ability - AbilityDsl object containing limits, costs, effects, and game actions
      */
-
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupCardAbilities(ability) {
+    }
+
+    protected setupPlayAbilities() {
         if (this.type === CardType.Unit) {
             this.abilities.playCardAction.push(new PlayUnitAction(this));
         }
@@ -345,12 +349,12 @@ class Card extends EffectSource {
         return new CardActionAbility(this.game, this, properties);
     }
 
-    triggeredAbility(abilityType: AbilityType, properties: ITriggeredAbilityProps): void {
-        this.abilities.triggered.push(this.createTriggeredAbility(abilityType, properties));
+    triggeredAbility(properties: ITriggeredAbilityProps): void {
+        this.abilities.triggered.push(this.createTriggeredAbility(properties));
     }
 
-    createTriggeredAbility(abilityType: AbilityType, properties: ITriggeredAbilityProps): TriggeredAbility {
-        return new TriggeredAbility(this.game, this, abilityType, properties);
+    createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
+        return new TriggeredAbility(this.game, this, AbilityType.ForcedReaction, properties);
     }
 
     /**
@@ -545,6 +549,10 @@ class Card extends EffectSource {
                 } else {
                     triggeredAbility.unregisterEvents();
                 }
+            } else if (cardLocationMatches(to, triggeredAbility.location) && !cardLocationMatches(from, triggeredAbility.location)) {
+                triggeredAbility.registerEvents();
+            } else if (!cardLocationMatches(to, triggeredAbility.location) && cardLocationMatches(from, triggeredAbility.location)) {
+                triggeredAbility.unregisterEvents();
             }
         }
     }
@@ -672,7 +680,7 @@ class Card extends EffectSource {
     }
 
     // getReactions(): any[] {
-    //     return this.reactions.slice();
+    //     return this.triggeredAbilities.slice();
     // }
 
     readiesDuringReadyPhase(): boolean {

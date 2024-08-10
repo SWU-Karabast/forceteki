@@ -49,7 +49,7 @@ const Effects = {
     // registerToPlayFromOutOfPlay: () =>
     //     EffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
     //         apply: (card) => {
-    //             for (const reaction of card.reactions) {
+    //             for (const reaction of card.triggeredAbilities) {
     //                 reaction.registerEvents();
     //             }
     //         },
@@ -173,7 +173,7 @@ const Effects = {
     //             for (const card of cards.filter(
     //                 (card) => card.type === CardType.Event && card.location === location
     //             )) {
-    //                 for (const reaction of card.reactions) {
+    //                 for (const reaction of card.triggeredAbilities) {
     //                     reaction.registerEvents();
     //                 }
     //             }

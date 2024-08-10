@@ -64,7 +64,7 @@ class TriggeredAbility extends CardAbility {
             let context = this.createContext(player, event);
             //console.log(event.name, this.card.name, this.isTriggeredByEvent(event, context), this.meetsRequirements(context));
             if (
-                this.card.reactions.includes(this) &&
+                this.card.triggeredAbilities.includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
                 this.meetsRequirements(context) === ''
             ) {
@@ -78,7 +78,7 @@ class TriggeredAbility extends CardAbility {
             let context = this.createContext(player, events);
             //console.log(events.map(event => event.name), this.card.name, this.aggregateWhen(events, context), this.meetsRequirements(context));
             if (
-                this.card.reactions.includes(this) &&
+                this.card.triggeredAbilities.includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {

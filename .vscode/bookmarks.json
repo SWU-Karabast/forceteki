@@ -4,7 +4,7 @@
 			"path": "server/game/core/Game.js",
 			"bookmarks": [
 				{
-					"line": 685,
+					"line": 686,
 					"column": 8,
 					"label": "Game setup and start"
 				}
@@ -44,19 +44,24 @@
 			"path": "server/game/core/card/Card.ts",
 			"bookmarks": [
 				{
-					"line": 275,
+					"line": 298,
 					"column": 64,
 					"label": "EVENT CARDS: play action filter #1"
 				},
 				{
-					"line": 537,
+					"line": 604,
 					"column": 151,
 					"label": "EVENT CARDS: bluff window reaction re-registration"
 				},
 				{
-					"line": 558,
+					"line": 630,
 					"column": 43,
 					"label": "UPGRADES: effect management"
+				},
+				{
+					"line": 1007,
+					"column": 43,
+					"label": "EVENT CARDS: play action filter #2"
 				}
 			]
 		},
@@ -74,17 +79,12 @@
 			"path": "server/game/core/Player.js",
 			"bookmarks": [
 				{
-					"line": 116,
-					"column": 66,
-					"label": "UPGRADES: confirm that this works"
-				},
-				{
-					"line": 640,
+					"line": 636,
 					"column": 105,
 					"label": "EVENT CARDS: register for bluff window"
 				},
 				{
-					"line": 1184,
+					"line": 1180,
 					"column": 42,
 					"label": "EVENT CARDS: being played zone rules"
 				}
@@ -97,16 +97,6 @@
 					"line": 3,
 					"column": 15,
 					"label": "L5R persistent effect example"
-				}
-			]
-		},
-		{
-			"path": "server/game/core/gameSteps/AbilityResolver.js",
-			"bookmarks": [
-				{
-					"line": 78,
-					"column": 33,
-					"label": "Ability resolution steps"
 				}
 			]
 		}
