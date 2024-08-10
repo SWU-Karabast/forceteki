@@ -1089,7 +1089,15 @@ class Card extends EffectSource {
     }
 
     addDamage(amount: number) {
-        if (isNaN(this.hp) || amount === 0) {
+        if (
+            !Contract.assertNotNullLikeOrNan(this.damage) ||
+            !Contract.assertNotNullLikeOrNan(this.hp) ||
+            !Contract.assertNonNegative(amount)
+        ) {
+            return;
+        }
+
+        if (amount === 0) {
             return;
         }
 
@@ -1104,7 +1112,25 @@ class Card extends EffectSource {
         }
     }
 
-    // TODO: type annotations for all of the hp stuff
+    /** @returns True if any damage was healed, false otherwise */
+    removeDamage(amount: number): boolean {
+        if (
+            !Contract.assertNotNullLikeOrNan(this.damage) ||
+            !Contract.assertNotNullLikeOrNan(this.hp) ||
+            !Contract.assertNonNegative(amount)
+        ) {
+            return false;
+        }
+
+        if (amount === 0 || this.damage === 0) {
+            return false;
+        }
+
+        this.damage -= Math.min(amount, this.damage);
+        return true;
+    }
+
+    // TODO: type annotations for all of the hp methods
     get hp(): number | null {
         return this.getHp();
     }

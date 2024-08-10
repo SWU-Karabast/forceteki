@@ -10,6 +10,7 @@ export interface IExecuteHandlerSystemProperties extends IGameSystemProperties {
 // TODO: this is sometimes getting used as a no-op, see if we can add an explicit implementation for that
 /**
  * A {@link GameSystem} which executes a handler function
+ * @override This was copied from L5R but has not been tested yet
  */
 export class ExecuteHandlerSystem extends GameSystem {
     override defaultProperties: IExecuteHandlerSystemProperties = {

@@ -1,4 +1,4 @@
-import { Location, TargetableLocation, WildcardLocation } from '../Constants';
+import { Location, LocationFilter, WildcardLocation } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -15,7 +15,7 @@ export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][
     return result;
 }
 
-export const isArena = (location: TargetableLocation) => {
+export const isArena = (location: LocationFilter) => {
     switch (location) {
         case Location.GroundArena:
         case Location.SpaceArena:
@@ -26,7 +26,7 @@ export const isArena = (location: TargetableLocation) => {
     }
 };
 
-export const isAttackableLocation = (location: TargetableLocation) => {
+export const isAttackableLocation = (location: LocationFilter) => {
     switch (location) {
         case Location.GroundArena:
         case Location.SpaceArena:
@@ -39,12 +39,12 @@ export const isAttackableLocation = (location: TargetableLocation) => {
 };
 
 // return true if the card location matches one of the allowed location filters
-export const cardLocationMatches = (cardLocation: Location, allowedLocations: TargetableLocation | TargetableLocation[]) => {
-    if (!Array.isArray(allowedLocations)) {
-        allowedLocations = [allowedLocations];
+export const cardLocationMatches = (cardLocation: Location, locationFilter: LocationFilter | LocationFilter[]) => {
+    if (!Array.isArray(locationFilter)) {
+        locationFilter = [locationFilter];
     }
 
-    return allowedLocations.some((allowedLocation) => {
+    return locationFilter.some((allowedLocation) => {
         switch (allowedLocation) {
             case WildcardLocation.Any:
                 return true;

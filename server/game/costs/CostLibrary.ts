@@ -5,7 +5,6 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { ExecuteHandlerSystem } from '../gameSystems/ExecuteHandlerSystem';
-import { IReturnToDeckProperties } from '../gameSystems/ReturnToDeckSystem';
 import { ISelectCardProperties } from '../gameSystems/SelectCardSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Derivable, derive } from '../core/utils/Helpers';

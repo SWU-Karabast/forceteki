@@ -17,7 +17,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 }
 
 // TODO: this system has not been used or tested
-export class MoveCardSystem extends CardTargetSystem {
+export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     override name = 'move';
     override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
     override defaultProperties: IMoveCardProperties = {
@@ -29,10 +29,6 @@ export class MoveCardSystem extends CardTargetSystem {
         bottom: false,
         changePlayer: false,
     };
-
-    public constructor(properties: IMoveCardProperties | ((context: AbilityContext) => IMoveCardProperties)) {
-        super(properties);
-    }
 
     override getCostMessage(context: AbilityContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;

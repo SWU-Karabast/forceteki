@@ -18,7 +18,7 @@ export enum WildcardLocation {
     AnyAttackable = 'any attackable'
 }
 
-export type TargetableLocation = Location | WildcardLocation;
+export type LocationFilter = Location | WildcardLocation;
 
 export enum PlayType {
     PlayFromHand = 'playFromHand',
@@ -153,6 +153,7 @@ export enum EventName {
     OnAttackDeclared = 'onAttackDeclared',
     OnDamageDealt = 'onDamageDealt',
     OnAttackCompleted = 'onAttackCompleted',
+    OnCardReturnedToHand = 'onCardReturnedToHand',
 }
 
 export enum AbilityType {

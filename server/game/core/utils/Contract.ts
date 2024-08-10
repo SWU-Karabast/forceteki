@@ -16,7 +16,6 @@ class LoggingContractCheckImpl implements IContractCheckImpl {
 
     fail(message: string): void {
         if (this.breakpoint) {
-            // eslint-disable-next-line no-debugger
             debugger;
         }
 
@@ -30,7 +29,6 @@ class AssertContractCheckImpl implements IContractCheckImpl {
 
     fail(message: string): void {
         if (this.breakpoint) {
-            // eslint-disable-next-line no-debugger
             debugger;
         }
 
@@ -102,9 +100,18 @@ export function assertNotNull(val: object, message?: string): boolean {
     return true;
 }
 
-export function assertNotNullLike(val: object, message?: string): boolean {
+export function assertNotNullLike(val: any, message?: string): boolean {
     if (val == null) {
         contractCheckImpl.fail(message ?? `Null-like object value: ${val}`);
+        return false;
+    }
+    return true;
+}
+
+export function assertNotNullLikeOrNan(val?: number, message?: string): boolean {
+    assertNotNullLike(val);
+    if (isNaN(val)) {
+        contractCheckImpl.fail(message ?? 'NaN value');
         return false;
     }
     return true;
@@ -128,6 +135,22 @@ export function assertArraySize(ara: object[], expectedSize: number, message?: s
     return true;
 }
 
+export function assertPositiveNonZero(val: number, message?: string) {
+    if (val <= 0) {
+        contractCheckImpl.fail(message ?? `Expected ${val} to be > 0`);
+        return false;
+    }
+    return true;
+}
+
+export function assertNonNegative(val: number, message?: string) {
+    if (val < 0) {
+        contractCheckImpl.fail(message ?? `Expected ${val} to be >= 0`);
+        return false;
+    }
+    return true;
+}
+
 export function fail(message: string): void {
     contractCheckImpl.fail(message);
 }
@@ -140,8 +163,11 @@ const Contract = {
     assertEqual,
     assertNotNull,
     assertNotNullLike,
+    assertNotNullLikeOrNan,
     assertHasProperty,
     assertArraySize,
+    assertPositiveNonZero,
+    assertNonNegative,
     fail
 };
 

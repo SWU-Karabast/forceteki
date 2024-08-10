@@ -4,7 +4,7 @@ import type { GameSystem } from './core/gameSystem/GameSystem';
 import type Card from './core/card/Card';
 import type CardAbility from './core/ability/CardAbility';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
-import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, TargetableLocation } from './core/Constants';
+import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
 // import type { StatusToken } from './StatusToken';
 
 interface IBaseTarget {
@@ -171,7 +171,7 @@ export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbil
 
 export interface IConstantAbilityProps<Source = any> {
     // TODO: is this the right name or should it be 'location' like it was before?
-    locationFilter?: TargetableLocation | TargetableLocation[];
+    locationFilter?: LocationFilter | LocationFilter[];
     // TODO: what's the difference between condition and match?
     condition?: (context: AbilityContext<Source>) => boolean;
     match?: (card: Card, context?: AbilityContext<Source>) => boolean;

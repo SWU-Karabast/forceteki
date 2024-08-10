@@ -143,5 +143,5 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    override eventHandler(event): void { }
+    eventHandler(event): void { }
 }

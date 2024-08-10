@@ -10,7 +10,7 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     overrideLocation?: Location;
 }
 
-export class PutIntoPlaySystem extends CardTargetSystem {
+export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> {
     override name = 'putIntoPlay';
     override eventName = EventName.OnUnitEntersPlay;
     override costDescription = 'putting {0} into play';
@@ -19,12 +19,6 @@ export class PutIntoPlaySystem extends CardTargetSystem {
         controller: RelativePlayer.Self,
         overrideLocation: null
     };
-
-    public constructor(
-        properties: ((context: AbilityContext) => IPutIntoPlayProperties) | IPutIntoPlayProperties
-    ) {
-        super(properties);
-    }
 
     getPutIntoPlayPlayer(context: AbilityContext) {
         return context.player;

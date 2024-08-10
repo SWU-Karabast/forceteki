@@ -3,46 +3,49 @@ import type Card from '../core/card/Card';
 import { CardType, EventName } from '../core/Constants';
 import { isArena, isAttackableLocation } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import Contract from '../core/utils/Contract';
 
-export interface IDamageProperties extends ICardTargetSystemProperties {
-    amount?: number;
-    isCombatDamage?: boolean;
+export interface IHealProperties extends ICardTargetSystemProperties {
+    amount: number;
 }
 
-export class DamageSystem extends CardTargetSystem<IDamageProperties> {
-    override name = 'damage';
+export class HealSystem extends CardTargetSystem<IHealProperties> {
+    override name = 'heal';
     override eventName = EventName.OnDamageDealt;
     override targetType = [CardType.Unit, CardType.Base];
 
     override getEffectMessage(context: AbilityContext): [string, any[]] {
-        const { amount, target, isCombatDamage } = this.generatePropertiesFromContext(context);
+        const { amount, target } = this.generatePropertiesFromContext(context);
 
-        if (isCombatDamage) {
-            return ['deal {1} combat damage to {0}', [amount, target]];
-        }
-        return ['deal {1} damage to {0}', [amount, target]];
+        return ['heal {1} damage from {0}', [amount, target]];
     }
 
     override canAffect(card: Card, context: AbilityContext): boolean {
+        const properties = this.generatePropertiesFromContext(context);
         if (!isAttackableLocation(card.location)) {
             return false;
         }
-        if (!card.checkRestrictions('receiveDamage', context)) {
+        if (properties.isCost && (properties.amount === 0 || card.hp === 0 || card.hp === null)) {
             return false;
+        }
+        // UP NEXT: rename 'checkRestrictions' to 'hasRestriction' and invert the logic
+        {
+            if (!card.checkRestrictions('beHealed', context)) {
+                return false;
+            }
         }
         return super.canAffect(card, context);
     }
 
     override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        const { amount, isCombatDamage } = this.generatePropertiesFromContext(context, additionalProperties) as IDamageProperties;
+        const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.damage = amount;
-        event.isCombatDamage = isCombatDamage;
+        event.healAmount = amount;
         event.context = context;
         event.recipient = card;
     }
 
     eventHandler(event): void {
-        event.card.addDamage(event.damage);
+        event.card.removeDamage(event.healAmount);
     }
 }

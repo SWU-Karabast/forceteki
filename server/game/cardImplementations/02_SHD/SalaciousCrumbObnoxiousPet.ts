@@ -21,7 +21,7 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
                 cardType: CardType.Base,
                 location: Location.Base,
                 controller: RelativePlayer.Self,
-                gameSystem: AbilityDsl.immediateEffects.damage({ amount: 1 })
+                gameSystem: AbilityDsl.immediateEffects.heal({ amount: 1 })
             }
         });
     }

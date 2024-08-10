@@ -33,7 +33,7 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
         this.updateLeavesPlayEvent(event, card, context, additionalProperties);
     }
 
-    override eventHandler(event, additionalProperties = {}): void {
+    eventHandler(event, additionalProperties = {}): void {
         this.leavesPlayEventHandler(event, additionalProperties);
     }
 }

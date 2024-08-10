@@ -7,8 +7,7 @@ class ChatCommands {
         this.game = game;
         this.commands = {
             '/draw': this.draw,
-            '/discard': this.discard,
-            // '/token': this.setToken,
+            // '/discard': this.discard,
             // '/reveal': this.reveal,
             '/move-to-bottom-deck': this.moveCardToDeckBottom,
             '/stop-clocks': this.stopClocks,
@@ -59,13 +58,13 @@ class ChatCommands {
         player.drawCardsToHand(num);
     }
 
-    discard(player, args) {
-        var num = this.getNumberOrDefault(args[1], 1);
+    // discard(player, args) {
+    //     var num = this.getNumberOrDefault(args[1], 1);
 
-        this.game.addMessage('{0} uses the /discard command to discard {1} card{2} at random', player, num, num > 1 ? 's' : '');
+    //     this.game.addMessage('{0} uses the /discard command to discard {1} card{2} at random', player, num, num > 1 ? 's' : '');
 
-        GameSystems.discardAtRandom({ amount: num }).resolve(player, this.game.getFrameworkContext());
-    }
+    //     GameSystems.discardAtRandom({ amount: num }).resolve(player, this.game.getFrameworkContext());
+    // }
 
     moveCardToDeckBottom(player) {
         this.game.promptForSelect(player, {
