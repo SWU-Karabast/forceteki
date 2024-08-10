@@ -15,7 +15,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
     }
 
     override getActionName(context: AbilityContext): string {
-        const { gameSystem } = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
+        const { innerSystem: gameSystem } = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         return gameSystem.name;
     }
 
@@ -31,13 +31,13 @@ export class MetaActionCost extends GameActionCost implements ICost {
     override addEventsToArray(events: any[], context: AbilityContext, result: Result): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.targets && context.choosingPlayerOverride) {
-            context.costs[properties.gameSystem.name] = randomItem(
+            context.costs[properties.innerSystem.name] = randomItem(
                 properties.selector.getAllLegalTargets(context, context.player)
             );
-            context.costs[properties.gameSystem.name + 'StateWhenChosen'] =
-                context.costs[properties.gameSystem.name].createSnapshot();
-            return properties.gameSystem.addEventsToArray(events, context, {
-                target: context.costs[properties.gameSystem.name]
+            context.costs[properties.innerSystem.name + 'StateWhenChosen'] =
+                context.costs[properties.innerSystem.name].createSnapshot();
+            return properties.innerSystem.addEventsToArray(events, context, {
+                target: context.costs[properties.innerSystem.name]
             });
         }
 
@@ -47,11 +47,11 @@ export class MetaActionCost extends GameActionCost implements ICost {
             controller: RelativePlayer.Self,
             cancelHandler: !result.canCancel ? null : () => (result.cancelled = true),
             subActionProperties: (target: any) => {
-                context.costs[properties.gameSystem.name] = target;
+                context.costs[properties.innerSystem.name] = target;
                 if (target.createSnapshot) {
-                    context.costs[properties.gameSystem.name + 'StateWhenChosen'] = target.createSnapshot();
+                    context.costs[properties.innerSystem.name + 'StateWhenChosen'] = target.createSnapshot();
                 }
-                return properties.subActionProperties ? properties.subActionProperties(target) : {};
+                return properties.innerSystemProperties ? properties.innerSystemProperties(target) : {};
             }
         };
         this.gameSystem.addEventsToArray(events, context, additionalProps);
@@ -63,6 +63,6 @@ export class MetaActionCost extends GameActionCost implements ICost {
 
     override getCostMessage(context: AbilityContext): [string, any[]] {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
-        return properties.gameSystem.getCostMessage(context);
+        return properties.innerSystem.getCostMessage(context);
     }
 }

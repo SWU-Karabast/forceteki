@@ -11,11 +11,8 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
     }
 
     override setupCardAbilities() {
-        this.triggeredAbility({
+        this.whenPlayedAbility({
             title: 'Heal 1 damage from friendly base',
-            when: {
-                onUnitEntersPlay: (event) => event.card === this
-            },
             target: {
                 // UP NEXT: add a contract check if location and cardType are mutually exclusive
                 cardType: CardType.Base,
@@ -24,7 +21,19 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
                 gameSystem: AbilityDsl.immediateEffects.heal({ amount: 1 })
             }
         });
+
+        this.actionAbility({
+            title: 'Deal 1 damage to a ground unit',
+            cost: [
+                AbilityDsl.costs.exhaustSelf(),
+                AbilityDsl.costs.returnSelfToHandFromPlay()
+            ],
+            target: {
+                cardCondition: (card) => card.location === Location.GroundArena,
+                gameSystem: AbilityDsl.immediateEffects.damage({ amount: 1 })
+            }
+        });
     }
 }
 
-SalaciousCrumbObnoxiousPet.implemented = false;
+SalaciousCrumbObnoxiousPet.implemented = true;

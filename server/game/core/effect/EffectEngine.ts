@@ -11,6 +11,7 @@ interface ICustomDurationEvent {
     effect: Effect;
 }
 
+// UP NEXT: rename "Effect" to "OngoingEffect"
 export class EffectEngine {
     events: EventRegistrar;
     effects: Effect[] = [];

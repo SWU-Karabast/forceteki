@@ -47,10 +47,7 @@ describe('Grogu, Irresistible', function() {
             // this is a general test of the exhaustSelf cost mechanic, don't need to repeat it for other cards that have an exhaustSelf cost
             it('should not be available if Grogu is exhausted', function () {
                 this.grogu.exhausted = true;
-                this.player1.clickCard(this.grogu);
-
-                // this is the default action window prompt (meaning no action was available)
-                expect(this.player1).toHavePrompt('Action Window');
+                expect(this.grogu).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
             });
         });
     });

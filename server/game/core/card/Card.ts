@@ -357,6 +357,12 @@ class Card extends EffectSource {
         return new TriggeredAbility(this.game, this, AbilityType.ForcedReaction, properties);
     }
 
+    whenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+        const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
+        this.abilities.triggered.push(this.createTriggeredAbility(triggeredProperties));
+    }
+
+
     /**
      * Applies an effect that continues as long as the card providing the effect
      * is both in play and not blank.

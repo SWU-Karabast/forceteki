@@ -36,7 +36,7 @@ for (const filepath of allJsFiles(__dirname)) {
     }
 
     if (!card.implemented) {
-        console.warn(`Loading unimplemented card '${cardId.internalName}'`);
+        console.warn(`Warning: Loading partially implemented card '${cardId.internalName}'`);
     }
 
     cardsMap.set(cardId.id, card);

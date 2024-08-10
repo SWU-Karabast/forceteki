@@ -18,24 +18,27 @@ export interface ISelectCardProperties extends ICardTargetSystemProperties {
     message?: string;
     manuallyRaiseEvent?: boolean;
     messageArgs?: (card: Card, player: RelativePlayer, properties: ISelectCardProperties) => any[];
-    gameSystem: GameSystem;
+    innerSystem: GameSystem;
     selector?: BaseCardSelector;
     mode?: TargetMode;
     numCards?: number;
     hidePromptIfSingleCard?: boolean;
-    subActionProperties?: (card: Card) => any;
+    innerSystemProperties?: (card: Card) => any;
     cancelHandler?: () => void;
     effect?: string;
     effectArgs?: (context) => string[];
 }
 
-// TODO: figure out how this is supposed to work since it has an empty event handler method
-// TODO: this system has not been used or tested
+/**
+ * A wrapper system for adding a target selection prompt around the execution the wrapped system.
+ * Only used for adding a selection effect to a system that is part of a cost.
+ */
+// TODO: why is this class needed for costs when systems already have target evaluation and selection built in?
 export class SelectCardSystem extends CardTargetSystem {
     override defaultProperties: ISelectCardProperties = {
         cardCondition: () => true,
-        gameSystem: null,
-        subActionProperties: (card) => ({ target: card }),
+        innerSystem: null,
+        innerSystemProperties: (card) => ({ target: card }),
         targets: false,
         hidePromptIfSingleCard: false,
         manuallyRaiseEvent: false
@@ -55,12 +58,12 @@ export class SelectCardSystem extends CardTargetSystem {
 
     override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ISelectCardProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as ISelectCardProperties;
-        properties.gameSystem.setDefaultTargetFn(() => properties.target);
+        properties.innerSystem.setDefaultTargetFn(() => properties.target);
         if (!properties.selector) {
             const cardCondition = (card, context) =>
-                properties.gameSystem.allTargetsLegal(
+                properties.innerSystem.allTargetsLegal(
                     context,
-                    Object.assign({}, additionalProperties, properties.subActionProperties(card))
+                    Object.assign({}, additionalProperties, properties.innerSystemProperties(card))
                 ) && properties.cardCondition(card, context);
             properties.selector = CardSelector.for(Object.assign({}, properties, { cardCondition }));
         }
@@ -115,10 +118,10 @@ export class SelectCardSystem extends CardTargetSystem {
                 if (properties.message) {
                     context.game.addMessage(properties.message, ...properties.messageArgs(cards, player, properties));
                 }
-                properties.gameSystem.addEventsToArray(
+                properties.innerSystem.addEventsToArray(
                     events,
                     context,
-                    Object.assign({ parentAction: this }, additionalProperties, properties.subActionProperties(cards))
+                    Object.assign({ parentAction: this }, additionalProperties, properties.innerSystemProperties(cards))
                 );
                 if (properties.manuallyRaiseEvent) {
                     context.game.openEventWindow(events);

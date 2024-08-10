@@ -44,7 +44,8 @@ import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
 // import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
-// import { ReturnToHandAction, ReturnToHandProperties } from './ReturnToHandAction';
+import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
+import { ReturnToHandFromPlaySystem, IReturnToHandFromPlayProperties } from './ReturnToHandFromPlaySystem';
 // import { RevealAction, RevealProperties } from './RevealAction';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
@@ -142,9 +143,13 @@ export function putIntoPlay(propertyFactory: PropsFactory<IPutIntoPlayProperties
 // export function returnToDeck(propertyFactory: PropsFactory<ReturnToDeckProperties> = {}): CardGameAction {
 //     return new ReturnToDeckAction(propertyFactory);
 // }
-// export function returnToHand(propertyFactory: PropsFactory<ReturnToHandProperties> = {}): CardGameAction {
-//     return new ReturnToHandAction(propertyFactory);
-// }
+export function returnToHand(propertyFactory: PropsFactory<IReturnToHandProperties> = {}): CardTargetSystem {
+    return new ReturnToHandSystem(propertyFactory);
+}
+
+export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties> = {}): CardTargetSystem {
+    return new ReturnToHandFromPlaySystem(propertyFactory);
+}
 // /**
 //  * default chatMessage = false
 //  */

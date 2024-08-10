@@ -56,6 +56,7 @@ class PlayerOrCardAbility {
         return cost;
     }
 
+    // UP NEXT: better naming and general clarification for the target construction pipeline
     buildTargets(properties) {
         this.targets = [];
         if (properties.target) {
@@ -120,7 +121,7 @@ class PlayerOrCardAbility {
         return this.getCosts(context).every((cost) => cost.canPay(contextCopy));
     }
 
-    // eslint-disable-next-line no-unused-vars
+
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = this.cost.map((a) => a);
         if (context.ignoreResourceCost) {
@@ -220,7 +221,7 @@ class PlayerOrCardAbility {
         );
     }
 
-    // eslint-disable-next-line no-unused-vars
+
     displayMessage(context) {}
 
     /**
@@ -228,7 +229,7 @@ class PlayerOrCardAbility {
      * should override this method to implement their behavior; by default it
      * does nothing.
      */
-    // eslint-disable-next-line no-unused-vars
+
     executeHandler(context) {}
 
     isAction() {
