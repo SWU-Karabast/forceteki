@@ -733,7 +733,7 @@ class Player extends GameObject {
         const card = context.source;
         const adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType, context.costAspects);
 
-        // TODO: 90% sure we don't need this code, I think it's just checking to see if any potential interrupts would create additional cost
+        // TODO: not sure yet if we need this code, I think it's checking to see if any potential interrupts would create additional cost
         // let triggeredCostAdjusters = 0;
         // let fakeWindow = { addChoice: () => triggeredCostAdjusters++ };
         // let fakeEvent = this.game.getEvent(EventName.OnCardPlayed, { card: card, player: this, context: context });

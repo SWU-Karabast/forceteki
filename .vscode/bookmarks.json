@@ -49,17 +49,17 @@
 					"label": "EVENT CARDS: play action filter #1"
 				},
 				{
-					"line": 604,
+					"line": 610,
 					"column": 151,
 					"label": "EVENT CARDS: bluff window reaction re-registration"
 				},
 				{
-					"line": 630,
+					"line": 636,
 					"column": 43,
 					"label": "UPGRADES: effect management"
 				},
 				{
-					"line": 1007,
+					"line": 1013,
 					"column": 43,
 					"label": "EVENT CARDS: play action filter #2"
 				}
