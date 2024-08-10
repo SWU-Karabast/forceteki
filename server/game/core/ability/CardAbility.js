@@ -31,6 +31,8 @@ class CardAbility extends CardAbilityStep {
             this.card.owner.registerAbilityMax(this.maxIdentifier, this.max);
         }
 
+        // TODO EVENT: this is where the actual payment and activation of an event card happens, this needs to be
+        // changed to behave more like a unit card in terms of how it's played
         if (card.getType() === CardType.Event && !this.isKeywordAbility()) {
             this.cost = this.cost.concat(Costs.payAdjustableResourceCost());
         }

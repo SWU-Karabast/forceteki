@@ -273,6 +273,7 @@ class Card extends EffectSource {
             allAbilities.push(new TriggerAttackAction(this));
         }
 
+        // TODO EVENT: this block prevents the PlayCardAction from being generated for event cards
         // if card is already in play or is an event, return the default actions
         if (isArena(location) || this.type === CardType.Event) {
             return allAbilities;
@@ -545,7 +546,7 @@ class Card extends EffectSource {
         }
         for (const triggeredAbility of this.triggeredAbilities) {
             if (this.type === CardType.Event) {
-                // TODO: this is block is here because the only reaction to register on an event was the bluff window 'reaction', we have real ones now
+                // TODO EVENT: this is block is here because the only reaction to register on an event was the bluff window 'reaction', we have real ones now
                 if (
                     to === Location.Deck ||
                     this.controller.isCardInPlayableLocation(this) ||
@@ -950,6 +951,7 @@ class Card extends EffectSource {
     // }
 
     getPlayCardActions() {
+        // TODO EVENT: this block *also* prevents the PlayCardAction from being generated for event cards
         // events are a special case
         if (this.type === CardType.Event) {
             return this.getActions();
