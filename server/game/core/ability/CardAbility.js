@@ -4,9 +4,13 @@ const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
 const { Location, CardType, EffectName, WildcardLocation } = require('../Constants.js');
 const { cardLocationMatches } = require('../utils/EnumHelpers.js');
+const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
 
 class CardAbility extends CardAbilityStep {
     constructor(game, card, properties) {
+        if (properties.initiateAttack) {
+            addInitiateAttackProperties(properties);
+        }
         super(game, card, properties);
 
         this.title = properties.title;

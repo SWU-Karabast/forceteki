@@ -9,6 +9,8 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import { damage } from './GameSystemLibrary.js';
 import type Card from '../core/card/Card'; // TODO: is this the right import form?
 import { isArray } from 'underscore';
+import Effect from '../core/effect/Effect';
+import { ILastingEffectCardProperties } from '../core/gameSystem/LastingEffectCardSystem';
 
 
 export interface IAttackProperties extends ICardTargetSystemProperties {
@@ -17,13 +19,18 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
     message?: string;
     messageArgs?: (attack: Attack, context: AbilityContext) => any | any[];
     costHandler?: (context: AbilityContext, prompt: any) => void;
-    statistic?: (card: Card) => number;
+
+    /**
+     * Effects to trigger for the duration of the attack. Can be an array of either {@link ILastingEffectCardProperties}
+     * or functions that generate them.
+     */
+    effects?: (ILastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => ILastingEffectCardProperties))[];
 }
 
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     override name = 'attack';
     override eventName = EventName.OnAttackDeclared;
-    override targetType = [CardType.Unit, CardType.Base]; // TODO: leader?
+    override targetType = [CardType.Unit, CardType.Base];
 
     override defaultProperties: IAttackProperties = {};
 

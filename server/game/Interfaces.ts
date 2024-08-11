@@ -113,11 +113,16 @@ interface IAbilityProps<Context> {
     max?: any;
     target?: IActionTarget;
     targets?: IActionTargets;
-    cannotBeMirrored?: boolean;
+
+    /**
+     * Used to indicate the ability should allow the player to trigger an attack from a unit.
+     * Can either be an {@link IInitiateAttack} property object or a function that creates one from
+     * an {@link AbilityContext}.
+     */
+    initiateAttack?: IInitiateAttack | ((context: AbilityContext) => IInitiateAttack);
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;
     effect?: string;
-    evenDuringDynasty?: boolean;
     effectArgs?: EffectArg | ((context: Context) => EffectArg);
     gameSystem?: GameSystem | GameSystem[];
     handler?: (context?: Context) => void;
@@ -127,11 +132,6 @@ interface IAbilityProps<Context> {
 export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
     condition?: (context?: AbilityContext<Source>) => boolean;
     phase?: PhaseName | 'any';
-
-    /**
-     * @deprecated
-     */
-    anyPlayer?: boolean;
 }
 
 interface ITriggeredAbilityCardTarget {

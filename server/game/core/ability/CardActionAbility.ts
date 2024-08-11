@@ -46,8 +46,6 @@ export class CardActionAbility extends CardAbility {
         super(game, card, properties);
 
         this.phase = properties.phase ?? 'any';
-        this.evenDuringDynasty = properties.evenDuringDynasty ?? false;
-        this.anyPlayer = properties.anyPlayer ?? false;
         this.condition = properties.condition;
         this.doesNotTarget = (properties as any).doesNotTarget;
     }

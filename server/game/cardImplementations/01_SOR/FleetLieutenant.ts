@@ -1,6 +1,8 @@
 import AbilityDsl from '../../AbilityDsl';
+import { AbilityContext } from '../../core/ability/AbilityContext';
+import { Attack } from '../../core/attack/Attack';
 import Card from '../../core/card/Card';
-import { CardType, Location, RelativePlayer, Trait, WildcardLocation } from '../../core/Constants';
+import { Trait } from '../../core/Constants';
 
 export default class FleetLieutenant extends Card {
     protected override getImplementationId() {
@@ -13,17 +15,19 @@ export default class FleetLieutenant extends Card {
     override setupCardAbilities() {
         this.whenPlayedAbility({
             title: 'Attack with a unit',
-            target: {
-                cardType: CardType.Unit,
-                controller: RelativePlayer.Self,
-                gameSystem: AbilityDsl.immediateEffects.conditional({
-                    condition: (context) => context.target.hasTrait(Trait.Rebel),
-                    trueGameAction: AbilityDsl.immediateEffects.attack(),
-                    falseGameAction: AbilityDsl.immediateEffects.attack()
-                })
-            }
+            initiateAttack: (context: AbilityContext) => ({
+                effects: [(context: AbilityContext, attack: Attack) => {
+                    if (attack.attacker.hasTrait(Trait.Rebel)) {
+                        return {
+                            target: attack.attacker,
+                            effect: AbilityDsl.ongoingEffects.modifyStats(2),
+                        };
+                    }
+                    return null;
+                }]
+            })
         });
     }
 }
 
-FleetLieutenant.implemented = true;
+FleetLieutenant.implemented = false;

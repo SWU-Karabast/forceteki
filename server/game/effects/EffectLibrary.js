@@ -117,7 +117,7 @@ const Effects = {
     //     EffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
     //     EffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
-    // modifyBothSkills: (value) => EffectBuilder.card.flexible(EffectName.ModifyBothSkills, value),
+    modifyStats: (value) => EffectBuilder.card.flexible(EffectName.ModifyStats, value),
     // modifyMilitarySkill: (value) => EffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // attachmentMilitarySkillModifier,
