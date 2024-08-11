@@ -7,8 +7,6 @@ import type { ILastingEffectGeneralProperties } from './LastingEffectSystem';
 
 export interface ILastingEffectCardProperties extends Omit<ILastingEffectGeneralProperties, 'target'>, ICardTargetSystemProperties {
     targetLocation?: Location | Location[];
-    canChangeZoneOnce?: boolean;
-    canChangeZoneNTimes?: number;
 }
 
 // TODO: how is this related to LastingEffectSystem?
@@ -22,8 +20,6 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
     override effectDescription = 'apply a lasting effect to {0}';
     override defaultProperties: ILastingEffectCardProperties = {
         duration: Duration.UntilEndOfAttack,
-        canChangeZoneOnce: false,
-        canChangeZoneNTimes: 0,
         effect: [],
         ability: null
     };

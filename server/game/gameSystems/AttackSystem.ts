@@ -12,6 +12,7 @@ import { isArray } from 'underscore';
 import Effect from '../core/effect/Effect';
 import { ILastingEffectCardProperties } from '../core/gameSystem/LastingEffectCardSystem';
 
+export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
 
 export interface IAttackProperties extends ICardTargetSystemProperties {
     attacker?: Card;
@@ -24,7 +25,7 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
      * Effects to trigger for the duration of the attack. Can be an array of either {@link ILastingEffectCardProperties}
      * or functions that generate them.
      */
-    effects?: (ILastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => ILastingEffectCardProperties))[];
+    effects?: (IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties))[];
 }
 
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {

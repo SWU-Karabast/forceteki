@@ -41,20 +41,25 @@ const Effects = {
     // attachmentUniqueRestriction: () => EffectBuilder.card.static(EffectName.AttachmentUniqueRestriction),
     // blank: (blankTraits = false) => EffectBuilder.card.static(EffectName.Blank, blankTraits),
     // calculatePrintedMilitarySkill: (func) => EffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
-    // canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
-    //     EffectBuilder.card.flexible(
-    //         EffectName.CanPlayFromOutOfPlay,
-    //         Object.assign({ player: player, playType: playType })
-    //     ),
-    // registerToPlayFromOutOfPlay: () =>
-    //     EffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
-    //         apply: (card) => {
-    //             for (const reaction of card.triggeredAbilities) {
-    //                 reaction.registerEvents();
-    //             }
-    //         },
-    //         unapply: () => true
-    //     }),
+
+    // UP NEXT: convert this file to TS, add an interface for this effect object, and add that interface to EffectValueType
+    /** @deprected This has not yet been tested */
+    canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
+        EffectBuilder.card.flexible(
+            EffectName.CanPlayFromOutOfPlay,
+            Object.assign({ player: player, playType: playType })
+        ),
+
+    /** @deprected This has not yet been tested */
+    registerToPlayFromOutOfPlay: () =>
+        EffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
+            apply: (card) => {
+                for (const triggeredAbility of card.triggeredAbilities) {
+                    triggeredAbility.registerEvents();
+                }
+            },
+            unapply: () => true
+        }),
     // canBeSeenWhenFacedown: () => EffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => EffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>

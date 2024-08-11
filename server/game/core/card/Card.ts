@@ -31,7 +31,7 @@ import {
 // import { PlayAttachmentAction } from './PlayAttachmentAction.js';
 // import { StatusToken } from './StatusToken';
 import Player from '../Player.js';
-import StatModifier from './StatModifier.js';
+import StatsModifierWrapper from '../effect/effectImpl/StatsModifierWrapper.js';
 import type { ICardEffect } from '../effect/ICardEffect.js';
 import { PlayUnitAction } from '../../actions/PlayUnitAction.js';
 import { TriggerAttackAction } from '../../actions/TriggerAttackAction.js';
@@ -39,6 +39,7 @@ import TriggeredAbility from '../ability/TriggeredAbility.js';
 import { IConstantAbility } from '../effect/IConstantAbility.js';
 import PlayerAction from '../ability/PlayerAction.js';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility.js';
+import StatsModifier from '../effect/effectImpl/StatsModifier.js';
 
 // TODO: convert enums to unions
 type PrintedKeyword =
@@ -1113,6 +1114,7 @@ class Card extends EffectSource {
 
         this.damage += amount;
 
+        // TODO EFFECTS: the win and defeat effects should almost certainly be handled elsewhere, probably in a game state check
         if (this.damage >= this.hp) {
             if (this === this.owner.base as Card) {
                 this.game.recordWinner(this.owner.opponent, 'base destroyed');
@@ -1140,42 +1142,38 @@ class Card extends EffectSource {
         return true;
     }
 
-    // TODO: type annotations for all of the hp methods
     get hp(): number | null {
-        return this.getHp();
+        return this.printedHp == null ? null : this.getModifiedStatValue(StatType.Hp);
     }
 
-    getHp(floor = true, excludeModifiers = []): number | null {
-        if (this.printedHp === null) {
-            return null;
-        }
+    get baseHp(): number | null {
+        return this.printedHp;
+    }
 
-        const modifiers = this.getHpModifiers(excludeModifiers);
-        const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
-        if (isNaN(skill)) {
+    get power(): number | null {
+        return this.printedPower == null ? null : this.getModifiedStatValue(StatType.Power);
+    }
+
+    get basePower(): number | null {
+        return this.printedPower;
+    }
+
+    private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
+        const wrappedModifiers = this.getWrappedStatModifiers(excludeModifiers);
+
+        const baseStatValue = statType === StatType.Hp ? this.printedHp : this.printedPower;
+        const stat = wrappedModifiers.reduce((total, wrappedModifier) => total + wrappedModifier.modifier[statType], baseStatValue);
+        if (isNaN(stat)) {
             return 0;
         }
-        return floor ? Math.max(0, skill) : skill;
+
+        // TODO EFFECTS: need a check around here somewhere to defeat the unit if effects have brought hp to 0
+
+        return floor ? Math.max(0, stat) : stat;
     }
 
-    get baseHp(): number {
-        return this.getBaseHp();
-    }
-
-    getBaseHp(): number {
-        const skill = this.getBaseStatModifiers().baseHp;
-        if (isNaN(skill)) {
-            return 0;
-        }
-        return Math.max(0, skill);
-    }
-
-    getHpModifiers(exclusions) {
-        const baseStatModifiers = this.getBaseStatModifiers();
-        if (isNaN(baseStatModifiers.baseHp)) {
-            return baseStatModifiers.baseHpModifiers;
-        }
-
+    // TODO: add a summary method that logs these modifiers (i.e., the names, amounts, etc.)
+    private getWrappedStatModifiers(exclusions) {
         if (!exclusions) {
             exclusions = [];
         }
@@ -1187,190 +1185,11 @@ class Card extends EffectSource {
             rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
         }
 
-        const modifiers = baseStatModifiers.baseHpModifiers;
+        const modifierEffects: ICardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
+        const wrappedStatsModifiers = modifierEffects.map((modifierEffect) => StatsModifierWrapper.fromEffect(modifierEffect, this));
 
-        // hp modifiers
-        // TODO: remove status tokens completely, upgrades completely cover that category
-        const modifierEffects = rawEffects.filter(
-            (effect) =>
-                effect.type === EffectName.UpgradeHpModifier ||
-                effect.type === EffectName.ModifyHp
-        );
-        modifierEffects.forEach((modifierEffect) => {
-            const value = modifierEffect.getValue(this);
-            modifiers.push(StatModifier.fromEffect(value, modifierEffect));
-        });
-
-        return modifiers;
+        return wrappedStatsModifiers;
     }
-
-    // TODO: consolidate these stat getter methods, make some of them private at least
-    get power() {
-        return this.getPower();
-    }
-
-    getPower(floor = true, excludeModifiers = []) {
-        const modifiers = this.getPowerModifiers(excludeModifiers);
-        const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
-        if (isNaN(skill)) {
-            return 0;
-        }
-        return floor ? Math.max(0, skill) : skill;
-    }
-
-    get basePower() {
-        return this.getBasePower();
-    }
-
-    getBasePower() {
-        const skill = this.getBaseStatModifiers().basePower;
-        if (isNaN(skill)) {
-            return 0;
-        }
-        return Math.max(0, skill);
-    }
-
-    getPowerModifiers(exclusions) {
-        const baseStatModifiers = this.getBaseStatModifiers();
-        if (isNaN(baseStatModifiers.basePower)) {
-            return baseStatModifiers.basePowerModifiers;
-        }
-
-        if (!exclusions) {
-            exclusions = [];
-        }
-
-        let rawEffects;
-        if (typeof exclusions === 'function') {
-            rawEffects = this.getRawEffects().filter((effect) => !exclusions(effect));
-        } else {
-            rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
-        }
-
-        // set effects (i.e., 'set power to X')
-        const setEffects = rawEffects.filter(
-            (effect) => effect.type === EffectName.SetPower
-        );
-        if (setEffects.length > 0) {
-            const latestSetEffect = setEffects.at(-1);
-            const setAmount = latestSetEffect.getValue(this);
-            return [
-                StatModifier.fromEffect(
-                    setAmount,
-                    latestSetEffect,
-                    true,
-                    `Set by ${StatModifier.getEffectName(latestSetEffect)}`
-                )
-            ];
-        }
-
-        const modifiers = baseStatModifiers.basePowerModifiers;
-
-        // power modifiers
-        // TODO: remove status tokens completely, upgrades completely cover that category
-        // TODO: does this work for resolving effects like Raid that depend on whether we're the attacker or not?
-        const modifierEffects = rawEffects.filter(
-            (effect) =>
-                effect.type === EffectName.UpgradePowerModifier ||
-                effect.type === EffectName.ModifyPower ||
-                effect.type === EffectName.ModifyStats
-        );
-        modifierEffects.forEach((modifierEffect) => {
-            const value = modifierEffect.getValue(this);
-            modifiers.push(StatModifier.fromEffect(value, modifierEffect));
-        });
-
-        return modifiers;
-    }
-
-    /**
-     * Direct the stat query to the correct sub function.
-     * @param  {string} type - The type of the stat; power or hp
-     * @return {number} The chosen stat value
-     */
-    getStat(type) {
-        switch (type) {
-            case StatType.Power:
-                return this.getPower();
-            case StatType.Hp:
-                return this.getHp();
-            default:
-                Contract.fail(`Unknown stat enum value: ${type}`);
-                return null;
-        }
-    }
-
-    // TODO: rename this to something clearer
-    /**
-     * Apply any modifiers that explicitly say they change the base skill value
-     */
-    getBaseStatModifiers() {
-        const baseModifierEffects = [
-            EffectName.CalculatePrintedPower,
-            EffectName.SetBasePower,
-        ];
-
-        const baseEffects = this.getRawEffects().filter((effect) => baseModifierEffects.includes(effect.type));
-        let basePowerModifiers = [StatModifier.fromCard(this.printedPower, this, 'Printed power', false)];
-        let baseHpModifiers = [StatModifier.fromCard(this.printedHp, this, 'Printed hp', false)];
-        let basePower = this.printedPower;
-        let baseHp = this.printedHp;
-
-        baseEffects.forEach((effect) => {
-            switch (effect.type) {
-            // this case is for cards that don't have a default printed power but it is instead calculated
-                case EffectName.CalculatePrintedPower: {
-                    const powerFunction = effect.getValue(this);
-                    const calculatedPowerValue = powerFunction(this);
-                    basePower = calculatedPowerValue;
-                    basePowerModifiers = basePowerModifiers.filter(
-                        (mod) => !mod.name.startsWith('Printed power')
-                    );
-                    basePowerModifiers.push(
-                        StatModifier.fromEffect(
-                            basePower,
-                            effect,
-                            false,
-                            `Printed power due to ${StatModifier.getEffectName(effect)}`
-                        )
-                    );
-                    break;
-                }
-                case EffectName.SetBasePower:
-                    basePower = effect.getValue(this);
-                    basePowerModifiers.push(
-                        StatModifier.fromEffect(
-                            basePower,
-                            effect,
-                            true,
-                            `Base power set by ${StatModifier.getEffectName(effect)}`
-                        )
-                    );
-                    break;
-            }
-        });
-
-        const overridingPowerModifiers = basePowerModifiers.filter((mod) => mod.overrides);
-        if (overridingPowerModifiers.length > 0) {
-            const lastModifier = overridingPowerModifiers.at(-1);
-            basePowerModifiers = [lastModifier];
-            basePower = lastModifier.amount;
-        }
-        const overridingHpModifiers = baseHpModifiers.filter((mod) => mod.overrides);
-        if (overridingHpModifiers.length > 0) {
-            const lastModifier = overridingHpModifiers.at(-1);
-            baseHpModifiers = [lastModifier];
-            baseHp = lastModifier.amount;
-        }
-
-        return {
-            basePowerModifiers: basePowerModifiers,
-            basePower: basePower,
-            baseHpModifiers: baseHpModifiers,
-            baseHp: baseHp
-        };
-    }
-
 
     // *******************************************************************************************************
     // ************************************** DECKCARD.JS ****************************************************

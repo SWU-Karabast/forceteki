@@ -66,7 +66,8 @@ export enum EffectName {
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     LoseAllNonKeywordAbilities = 'loseAllNonKeywordAbilities',
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
-    CannotBeAttacked = 'cannotBeAttacked'
+    CannotBeAttacked = 'cannotBeAttacked',
+    GainAbility = 'gainAbility'
 }
 
 export enum Duration {

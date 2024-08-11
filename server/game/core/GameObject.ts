@@ -39,6 +39,7 @@ export abstract class GameObject {
         this.effects = this.effects.filter((e) => e !== effect);
     }
 
+    // UP NEXT: rename to getEffectValues
     public getEffects<V = any>(type: EffectName): V[] {
         const filteredEffects = this.getRawEffects().filter((effect) => effect.type === type);
         return filteredEffects.map((effect) => effect.getValue(this));
@@ -125,6 +126,7 @@ export abstract class GameObject {
         return effects[effects.length - 1];
     }
 
+    // UP NEXT: rename to getEffects (and current getEffects to getEffectValues)
     protected getRawEffects() {
         const suppressEffects = this.effects.filter((effect) => effect.type === EffectName.SuppressEffects);
         const suppressedEffects = suppressEffects.reduce((array, effect) => array.concat(effect.getValue(this)), []);

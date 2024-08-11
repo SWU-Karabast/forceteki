@@ -43,30 +43,30 @@ export class Attack extends GameObject {
     }
 
     getTotalsForDisplay(): string {
-        const rawAttacker = this.getTotalPower(this.attacker);
-        const rawTarget = this.getTotalPower(this.target);
+        const rawAttacker = this.getUnitPower(this.attacker);
+        const rawTarget = this.getUnitPower(this.target);
 
         return `${this.attacker.name}: ${typeof rawAttacker === 'number' ? rawAttacker : 0} vs ${typeof rawTarget === 'number' ? rawTarget : 0}: ${this.target.name}`;
     }
 
     get attackerTotalPower(): number | null {
-        return this.getTotalPower(this.attacker);
+        return this.getUnitPower(this.attacker);
     }
 
     get defenderTotalPower(): number | null {
-        return this.targetIsBase ? null : this.getTotalPower(this.target);
+        return this.targetIsBase ? null : this.getUnitPower(this.target);
     }
 
     get targetIsBase(): boolean {
         return this.target.isBase;
     }
 
-    // TODO: implement power modifiers (use Card.getPowerModifiers()), making sure to check if they are live for this specific attack
-    private getTotalPower(involvedUnit: Card): StatisticTotal {
+    // TODO: confirm that attack lasting effects will check that the specified attack has ended or not
+    private getUnitPower(involvedUnit: Card): StatisticTotal {
         if (!Contract.assertTrue(isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
             return null;
         }
 
-        return involvedUnit.getBasePower();
+        return involvedUnit.power;
     }
 }
