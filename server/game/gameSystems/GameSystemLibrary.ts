@@ -12,7 +12,7 @@ import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 // import { ChooseActionProperties, ChooseGameAction } from './ChooseGameAction';
 // import { ChosenDiscardAction, ChosenDiscardProperties } from './ChosenDiscardAction';
 // import { ChosenReturnToDeckAction, ChosenReturnToDeckProperties } from './ChosenReturnToDeckAction';
-// import { ConditionalAction, ConditionalActionProperties } from './ConditionalAction';
+import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
 // import { CreateTokenAction, CreateTokenProperties } from './CreateTokenAction';
 // import { DeckSearchAction, DeckSearchProperties } from './DeckSearchAction';
 // import { DetachAction, DetachActionProperties } from './DetachAction';
@@ -259,9 +259,6 @@ export function noAction(): GameSystem {
 // export function conflictLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
 //     return new LastingEffectAction(propertyFactory);
 // } // duration = 'untilEndOfConflict', effect, targetController, condition, until
-export function immediatelyResolveConflict(): GameSystem {
-    return new ExecuteHandlerSystem({});
-}
 
 // //////////////
 // // META
@@ -272,9 +269,9 @@ export function immediatelyResolveConflict(): GameSystem {
 // export function chooseAction(propertyFactory: PropsFactory<ChooseActionProperties>): GameSystem {
 //     return new ChooseGameAction(propertyFactory);
 // } // choices, activePromptTitle = 'Select one'
-// export function conditional(propertyFactory: PropsFactory<ConditionalActionProperties>): GameSystem {
-//     return new ConditionalAction(propertyFactory);
-// }
+export function conditional(propertyFactory: PropsFactory<IConditionalSystemProperties>): GameSystem {
+    return new ConditionalSystem(propertyFactory);
+}
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>): GameSystem {
 //     return new AffinityAction(propertyFactory);
 // }

@@ -9,7 +9,7 @@ import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseNa
 
 interface IBaseTarget {
     activePromptTitle?: string;
-    location?: Location | Location[];
+    location?: LocationFilter | LocationFilter[];
     controller?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     player?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;

@@ -17,7 +17,8 @@ import {
     Location,
     Aspect,
     WildcardLocation,
-    StatType
+    StatType,
+    Trait
 } from '../Constants.js';
 import { isArena, cardLocationMatches, checkConvertToEnum } from '../utils/EnumHelpers.js';
 import {
@@ -151,7 +152,7 @@ class Card extends EffectSource {
         this.printedSubtitle = cardData.subtitle;
         this.internalName = cardData.internalName;
         this.printedType = checkConvertToEnum([cardData.type], CardType)[0]; // TODO: does this work for leader consistently, since it has two types?
-        this.traits = cardData.traits; // TODO: enum for these
+        this.traits = checkConvertToEnum(cardData.traits, Trait);
         this.aspects = checkConvertToEnum(cardData.aspects, Aspect);
         this.printedKeywords = cardData.keywords; // TODO: enum for these
 
@@ -248,6 +249,7 @@ class Card extends EffectSource {
         return this.printedTitle;
     }
 
+    // UP NEXT: type needs to be an array, sadly
     override get type(): CardType {
         return this.typeField;
     }
