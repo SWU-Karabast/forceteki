@@ -8,6 +8,7 @@ import type Player from '../core/Player.js';
 import Card from '../core/card/Card.js';
 import { unlimited } from '../core/ability/AbilityLimit.js';
 
+// TODO: rename to 'InitiateAttackAction'
 export class TriggerAttackAction extends PlayerAction {
     title = 'Attack';
 

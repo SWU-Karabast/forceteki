@@ -2,16 +2,16 @@ const AbilityLimit = require('./AbilityLimit.js');
 const AbilityDsl = require('../../AbilityDsl.js');
 const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
-const { Location, CardType, EffectName, WildcardLocation } = require('../Constants.js');
+const { Location, CardType, EffectName, WildcardLocation, AbilityType } = require('../Constants.js');
 const { cardLocationMatches } = require('../utils/EnumHelpers.js');
 const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
 
 class CardAbility extends CardAbilityStep {
-    constructor(game, card, properties) {
+    constructor(game, card, properties, abilityType = AbilityType.Action) {
         if (properties.initiateAttack) {
             addInitiateAttackProperties(properties);
         }
-        super(game, card, properties);
+        super(game, card, properties, abilityType);
 
         this.title = properties.title;
         this.limit = properties.limit || AbilityLimit.perRound(1);

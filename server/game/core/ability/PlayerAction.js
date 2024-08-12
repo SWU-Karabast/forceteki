@@ -10,7 +10,6 @@ class PlayerAction extends PlayerOrCardAbility {
         }
         super(properties);
         this.card = card;
-        this.abilityType = 'action';
         this.cannotBeCancelled = true;
     }
 

@@ -139,6 +139,23 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toBeActivePlayer: function () {
+        return {
+            compare: function (player) {
+                let result = {};
+
+                result.pass = player.game.actionPhaseActivePlayer === player;
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to be the active player but they were.`;
+                } else {
+                    result.message = `Expected ${player.name} to be the active player but they were not.`;
+                }
+
+                return result;
+            }
+        };
     }
 };
 

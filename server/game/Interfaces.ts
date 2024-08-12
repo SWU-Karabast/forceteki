@@ -5,6 +5,7 @@ import type Card from './core/card/Card';
 import type CardAbility from './core/ability/CardAbility';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
+import type { Event } from './core/event/Event';
 // import type { StatusToken } from './StatusToken';
 
 interface IBaseTarget {
@@ -115,11 +116,12 @@ interface IAbilityProps<Context> {
     targets?: IActionTargets;
 
     /**
-     * Used to indicate the ability should allow the player to trigger an attack from a unit.
+     * Indicates whether the ability should allow the player to trigger an attack from a unit.
      * Can either be an {@link IInitiateAttack} property object or a function that creates one from
      * an {@link AbilityContext}.
      */
     initiateAttack?: IInitiateAttack | ((context: AbilityContext) => IInitiateAttack);
+
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;
     effect?: string;
@@ -131,6 +133,11 @@ interface IAbilityProps<Context> {
 
 export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
     condition?: (context?: AbilityContext<Source>) => boolean;
+
+    /**
+     * If true, any player can trigger the ability. If false, only the card's controller can trigger it.
+     */
+    anyPlayer?: boolean;
     phase?: PhaseName | 'any';
 }
 
@@ -148,23 +155,32 @@ export type WhenType = {
     [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext) => boolean;
 };
 
-export interface ITriggeredAbilityWhenProps extends IAbilityProps<TriggeredAbilityContext> {
-    when: WhenType;
+interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityContext> {
     collectiveTrigger?: boolean;
-    anyPlayer?: boolean;
     target?: TriggeredAbilityTarget & TriggeredAbilityTarget;
     targets?: ITriggeredAbilityTargets;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => object) | object;
+
+    /**
+     * If true, the ability can be triggered by any player. If false, only the card's controller can
+     * trigger it.
+     */
+    anyPlayer?: boolean;
+
+    /**
+     * Indicates if triggering the ability is optional (in which case the player will be offered the
+     * 'Pass' button on resolution) or if it is mandatory
+     */
+    optional?: boolean;
 }
 
-export interface ITriggeredAbilityAggregateWhenProps extends IAbilityProps<TriggeredAbilityContext> {
-    aggregateWhen: (events: any[], context: TriggeredAbilityContext) => boolean;
-    collectiveTrigger?: boolean;
-    target?: TriggeredAbilityTarget & TriggeredAbilityTarget;
-    targets?: ITriggeredAbilityTargets;
-    handler?: (context: TriggeredAbilityContext) => void;
-    then?: ((context?: TriggeredAbilityContext) => object) | object;
+export interface ITriggeredAbilityWhenProps extends ITriggeredAbilityBaseProps {
+    when: WhenType;
+}
+
+export interface ITriggeredAbilityAggregateWhenProps extends ITriggeredAbilityBaseProps {
+    aggregateWhen: (events: Event[], context: TriggeredAbilityContext) => boolean;
 }
 
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;

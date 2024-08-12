@@ -29,7 +29,7 @@ describe('Fleet Lieutenant', function() {
                 this.noMoreActions();
             });
 
-            it('should trigger a ground unit attack on play', function () {
+            it('should allowing triggering a unit attack on play', function () {
                 this.player1.clickCard(this.fleetLieutenant);
                 expect(this.fleetLieutenant.location).toBe('ground arena');
 
@@ -58,7 +58,13 @@ describe('Fleet Lieutenant', function() {
                 expect(this.peacekeeper.damage).toBe(4);
             });
 
-            // TODO: test confirming that we have a pass option on the attack
+            it('should allow the user to pass on the attack', function () {
+                this.player1.clickCard(this.fleetLieutenant);
+                expect(this.fleetLieutenant.location).toBe('ground arena');
+
+                this.player1.clickPrompt('Cancel');
+                expect(this.player2).toBeActivePlayer();
+            });
         });
     });
 });

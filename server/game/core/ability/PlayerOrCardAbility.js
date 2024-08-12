@@ -2,7 +2,7 @@ const AbilityTargetAbility = require('./abilityTargets/AbilityTargetAbility.js')
 const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
 const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
 const AbilityTargetToken = require('./abilityTargets/AbilityTargetToken.js');
-const { Stage, TargetMode } = require('../Constants.js');
+const { Stage, TargetMode, AbilityType } = require('../Constants.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -27,8 +27,8 @@ class PlayerOrCardAbility {
      * the target of the ability.
      * @param {Array} [properties.gameSystem] - GameSystem[] optional array of game actions
      */
-    constructor(properties) {
-        this.abilityType = 'action';
+    constructor(properties, abilityType = AbilityType.Action) {
+        this.abilityType = abilityType;
         this.gameSystem = properties.gameSystem || [];
         if (!Array.isArray(this.gameSystem)) {
             this.gameSystem = [this.gameSystem];

@@ -363,7 +363,7 @@ class Card extends EffectSource {
     }
 
     private createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
-        return new TriggeredAbility(this.game, this, AbilityType.ForcedReaction, properties);
+        return new TriggeredAbility(this.game, this, properties);
     }
 
     /**

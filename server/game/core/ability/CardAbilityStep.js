@@ -1,14 +1,14 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage } = require('../Constants.js');
+const { Stage, AbilityType } = require('../Constants.js');
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
 class CardAbilityStep extends PlayerOrCardAbility {
-    constructor(game, card, properties) {
-        super(properties);
+    constructor(game, card, properties, abilityType = AbilityType.Action) {
+        super(properties, abilityType);
 
         this.game = game;
         this.card = card;
@@ -17,7 +17,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         this.cannotTargetFirst = true;
     }
 
-    createContext(player = this.card.controller) {
+    createContext(player = this.card.controller, event = null) {
         return new AbilityContext({
             ability: this,
             game: this.game,

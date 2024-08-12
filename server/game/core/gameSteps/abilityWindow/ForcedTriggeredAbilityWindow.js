@@ -18,6 +18,18 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
 
     /** @override */
     continue() {
+        // okay, so this it *seems* like the way this works is the following:
+        // 1. event window is opened and prior steps to this one resolve
+        // 2. this forced triggered ability window is created
+        // 3. the events are emitted, all triggered ability options are added to this.choices
+        // 4. user selects one to resolve
+        // 5. on continue, events are re-emitted and triggered abilities all add themselves again
+        // (including ones that have already fired). any abilities that have already fired will be
+        // filtered out by their ability limit
+        // 6. proceed through with resolving abilities in user sequence until all are at their limit
+        //
+        // since our stuff doesn't inherently have an ability limit, we need to see if the regular
+        // (non-forced) triggered ability window will work for us
         this.game.currentAbilityWindow = this;
         if (this.eventWindow) {
             this.emitEvents();
@@ -57,7 +69,7 @@ class ForcedTriggeredAbilityWindow extends BaseStep {
     }
 
     promptBetweenSources(choices) {
-        this.game.promptForSelect(this.activePlayer, _.extend(this.getPromptForSelectProperties(), {
+        this.game.promptForSelect(this.activePlayer, Object.assign(this.getPromptForSelectProperties(), {
             cardCondition: (card) => _.any(choices, (context) => context.source === card),
             onSelect: (player, card) => {
                 this.promptBetweenAbilities(choices.filter((context) => context.source === card));
