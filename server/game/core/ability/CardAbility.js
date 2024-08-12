@@ -14,6 +14,8 @@ class CardAbility extends CardAbilityStep {
         super(game, card, properties, abilityType);
 
         this.title = properties.title;
+
+        // TODO: need to change this so that the default limit is unlimited (might break some things)
         this.limit = properties.limit || AbilityLimit.perRound(1);
         this.limit.registerEvents(game);
         this.limit.ability = this;
