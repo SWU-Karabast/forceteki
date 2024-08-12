@@ -3,6 +3,8 @@ describe('Basic attack', function() {
         describe('When a unit attacks', function() {
             beforeEach(function () {
                 this.setupTest({
+                    // TODO: allow resources to be optionally be specified as a number instead of naming specific cards (i.e., 2 resources)
+                    // TODO: helper function for automatically selecting a leader and / or base that match the aspects of the card under test
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa'],
@@ -13,7 +15,7 @@ describe('Basic attack', function() {
                     player2: {
                         groundArena: ['frontier-atrt', 'enfys-nest#marauder'],
                         spaceArena: ['alliance-xwing'],
-                        resources: ['atst', 'atst'],     // TODO: allow resources to be optionally be specified as a number instead of naming specific cards (i.e., 2 resources)
+                        resources: ['atst', 'atst'],
                         base: ['jabbas-palace']
                     }
                 });

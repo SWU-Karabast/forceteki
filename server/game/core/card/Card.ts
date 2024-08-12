@@ -353,19 +353,18 @@ class Card extends EffectSource {
         return new CardActionAbility(this.game, this, properties);
     }
 
-    triggeredAbility(properties: ITriggeredAbilityProps): void {
+    protected triggeredAbility(properties: ITriggeredAbilityProps): void {
         this.abilities.triggered.push(this.createTriggeredAbility(properties));
     }
 
-    createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
+    protected whenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+        const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
+        this.triggeredAbility(triggeredProperties);
+    }
+
+    private createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
         return new TriggeredAbility(this.game, this, AbilityType.ForcedReaction, properties);
     }
-
-    whenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
-        const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
-        this.abilities.triggered.push(this.createTriggeredAbility(triggeredProperties));
-    }
-
 
     /**
      * Applies an effect that continues as long as the card providing the effect

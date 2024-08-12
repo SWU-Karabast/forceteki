@@ -17,10 +17,12 @@ export const addInitiateAttackProperties = (properties) => {
             },
             controller: RelativePlayer.Self,
             cost: AbilityDsl.costs.exhaustSelf(),
-            cardCondition: (card, context) => checkAttackerCondition(card, context, properties)
+            cardCondition: (card, context) => checkAttackerCondition(card, context, properties),
         },
         attackTarget: {
             dependsOn: 'attacker',
+            // TODO: if we want to choose a specific character in advance to initiate the attack,
+            // change the first parameter here from 'undefined'
             ...getBaselineAttackTargetProperties(undefined, properties),
             gameSystem: AbilityDsl.immediateEffects.attack((context) => {
                 const attackProperties = getProperty(properties, context);
@@ -47,14 +49,21 @@ const getBaselineAttackTargetProperties = (attacker, properties) => {
         },
         controller: RelativePlayer.Opponent,
         cardCondition: (card, context) => {
+            // if attacker was not declared in advance, get it dynamically from the context
             const attackerCard = attacker ?? context.targets.attacker;
 
             if (attackerCard === card) {
                 return false;
             }
+
             const targetCondition = getProperty(properties, context, 'targetCondition');
+
             // default target condition
-            return targetCondition ? targetCondition(card, context) : null;
+            if (!targetCondition) {
+                return card.location === attackerCard.location;
+            }
+
+            return targetCondition(card, context);
         },
     };
     return props;

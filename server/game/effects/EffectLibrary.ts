@@ -1,21 +1,20 @@
-const _ = require('underscore');
-
-const AbilityLimit = require('../core/ability/AbilityLimit.js');
+import { IAbilityLimit } from '../core/ability/AbilityLimit';
 // const GainAllAbiliitesDynamic = require('./Effects/GainAllAbilitiesDynamic.js');
 // const Restriction = require('./Effects/restriction.js');
 // const { SuppressEffect } = require('./Effects/SuppressEffect');
-const { EffectBuilder } = require('../core/effect/EffectBuilder.js');
+import { EffectBuilder } from '../core/effect/EffectBuilder';
 // const { attachmentMilitarySkillModifier } = require('./Effects/Library/attachmentMilitarySkillModifier');
 // const { attachmentPoliticalSkillModifier } = require('./Effects/Library/attachmentPoliticalSkillModifier');
 // const { canPlayFromOwn } = require('./Effects/Library/canPlayFromOwn');
-const { cardCannot } = require('./CardCannot');
+import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
 // const { gainAbility } = require('./Effects/Library/gainAbility');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
-const { modifyCost } = require('./ModifyCost.js');
+import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-const { EffectName, PlayType, CardType, RelativePlayer } = require('../core/Constants.js');
+import { EffectName, PlayType } from '../core/Constants';
+import StatsModifier from '../core/effect/effectImpl/StatsModifier';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -23,7 +22,7 @@ const { EffectName, PlayType, CardType, RelativePlayer } = require('../core/Cons
     3. Detached effects - do something when applied, and on expiration, but can be ignored in the interim
 */
 
-const Effects = {
+export = {
     // Card effects
     // addFaction: (faction) => EffectBuilder.card.static(EffectName.AddFaction, faction),
     addKeyword: (keyword) => EffectBuilder.card.static(EffectName.AddKeyword, keyword),
@@ -122,7 +121,7 @@ const Effects = {
     //     EffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
     //     EffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
-    modifyStats: (value) => EffectBuilder.card.flexible(EffectName.ModifyStats, value),
+    modifyStats: (modifier: StatsModifier) => EffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
     // modifyMilitarySkill: (value) => EffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // attachmentMilitarySkillModifier,
@@ -209,7 +208,7 @@ const Effects = {
     //         apply: (player) => (player.actionPhasePriority = true),
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
-    increaseCost: (properties) => Effects.modifyCost(Object.assign({}, properties, { amount: -properties.amount })),
+    increaseCost: (properties) => modifyCost(Object.assign({}, properties, { amount: -properties.amount })),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     EffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>
@@ -270,4 +269,3 @@ const Effects = {
     // conflictIgnoreStatusTokens: () => EffectBuilder.conflict.static(EffectName.ConflictIgnoreStatusTokens),
 };
 
-module.exports = Effects;

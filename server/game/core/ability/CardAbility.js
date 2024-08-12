@@ -83,7 +83,7 @@ class CardAbility extends CardAbilityStep {
         if (
             !ignoredRequirements.includes('phase') &&
             !this.isKeywordAbility() &&
-            this.card.isDynasty &&
+            this.card.isDynasty &&  // TODO: remove the dynasty stuff here
             this.card.type === CardType.Event &&
             context.game.currentPhase !== 'dynasty'
         ) {

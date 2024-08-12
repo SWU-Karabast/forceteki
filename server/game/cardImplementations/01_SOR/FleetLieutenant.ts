@@ -15,12 +15,13 @@ export default class FleetLieutenant extends Card {
     override setupCardAbilities() {
         this.whenPlayedAbility({
             title: 'Attack with a unit',
+            // cannotTargetFirst: true,
             initiateAttack: (context: AbilityContext) => ({
                 effects: [(context: AbilityContext, attack: Attack) => {
                     if (attack.attacker.hasTrait(Trait.Rebel)) {
                         return {
                             target: attack.attacker,
-                            effect: AbilityDsl.ongoingEffects.modifyStats(2),
+                            effect: AbilityDsl.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
                         };
                     }
                     return null;
