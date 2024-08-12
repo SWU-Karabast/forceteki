@@ -388,6 +388,10 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
+    passAction() {
+        this.clickPrompt('Pass');
+    }
+
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();
 

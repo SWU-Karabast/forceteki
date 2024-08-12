@@ -31,6 +31,7 @@ const Contract = require('./utils/Contract');
 // const MenuCommands = require('./MenuCommands');
 
 const { EffectName, EventName, Location } = require('./Constants.js');
+const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {

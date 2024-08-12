@@ -11,12 +11,16 @@
             "type": "node",
         },
         {
+            // UP NEXT: add rm -r build to preLaunchTask
             "name": "Debug All Jasmine Tests",
             "type": "node",
             "request": "launch",
             "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "args": ["--config=./jasmine.json", "--random=false"],
+            "args": [
+                "--config=./jasmine.json",
+                "--random=false"
+            ],
             "console": "integratedTerminal",
             "cwd": "${workspaceRoot}",
             "env": {
@@ -25,15 +29,19 @@
             // "outFiles": ["${workspaceFolder}/build/**/*.js"]
         },
         {
-            "name": "Debug Open Jasmine Test", 
-            "type": "node", 
-            "request": "launch", 
+            "name": "Debug Open Jasmine Test",
+            "type": "node",
+            "request": "launch",
             "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "env": {
                 "NODE_OPTIONS": "--enable-source-maps"
             },
-            "args": ["--config=./jasmine.json", "--random=false", "${file}"],
+            "args": [
+                "--config=./jasmine.json",
+                "--random=false",
+                "${file}"
+            ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             // "outFiles": ["${workspaceFolder}/build/**/*.js"]

@@ -9,7 +9,7 @@ class ActionWindow extends UiPrompt {
 
         this.title = title;
         this.windowName = windowName;
-        this.activePlayer = activePlayer ?? this.game.initiativePlayer;
+        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
         this.activePlayerConsecutiveActions = 0;
         this.opportunityCounter = 0;
         this.prevPlayerPassed = false;
@@ -41,7 +41,6 @@ class ActionWindow extends UiPrompt {
             }
         }
         this.game.promptWithHandlerMenu(player, {
-            // TODO: add more specific logic for card location - e.g., smuggle prompt will be here
             activePromptTitle: (isArena(card.location) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
             source: card,
             choices: legalActions.map((action) => action.title).concat('Cancel'),
@@ -62,10 +61,11 @@ class ActionWindow extends UiPrompt {
     postResolutionUpdate(resolver) {
         this.prevPlayerPassed = false;
 
-        // TODO: is this right? need to investigate for e.g. Leia hero ability
-        if (this.activePlayerConsecutiveActions > 1) {
-            this.markBonusActionsTaken();
-        }
+        // if (this.activePlayerConsecutiveActions > 1) {
+        //     this.markBonusActionsTaken();
+        // }
+
+        this.complete();
     }
 
     // TODO: this is probably wrong
@@ -135,105 +135,109 @@ class ActionWindow extends UiPrompt {
         }
     }
 
-    markBonusActionsTaken() {
-        if (this.bonusActions) {
-            this.bonusActions[this.activePlayer.uuid].actionsTaken = true;
-        }
-    }
-
     pass() {
         this.game.addMessage('{0} passes', this.activePlayer);
 
-        if (!this.activePlayer.opponent) {
-            this.attemptComplete();
-            return;
-        }
+        this.complete();
 
-        // TODO: is this right? need to investigate for e.g. Leia hero ability
-        if (this.activePlayerConsecutiveActions > 1) {
-            this.markBonusActionsTaken();
-        }
-    }
+        // if (!this.activePlayer.opponent) {
+        //     this.attemptComplete();
+        //     return;
+        // }
 
-    attemptComplete() {
-        if (!this.activePlayer.opponent) {
-            this.complete();
-        }
-
-        if (!this.checkBonusActions()) {
-            this.complete();
-        }
-    }
-
-    // TODO: figure out what's up with this
-    checkBonusActions() {
-        if (!this.bonusActions) {
-            if (!this.setupBonusActions()) {
-                return false;
-            }
-        }
-
-        const player1 = this.game.initiativePlayer();
-        const player2 = player1.opponent;
-
-        const p1 = this.bonusActions[player1.uuid];
-        const p2 = this.bonusActions[player2.uuid];
-
-        if (p1.actionCount > 0) {
-            if (!p1.actionsTaken) {
-                this.game.addMessage('{0} has a bonus action during resolution!', player1);
-                this.prevPlayerPassed = false;
-                // Set the current player to player1
-                if (this.activePlayer !== player1) {
-                    this.activePlayer = player1;
-                }
-                return true;
-            }
-        }
-        if (p2.actionCount > 0) {
-            if (!p2.actionsTaken) {
-                this.game.addMessage('{0} has a bonus action during resolution!', player2);
-                this.prevPlayerPassed = false;
-                // Set the current player to player2
-                if (this.activePlayer !== player2) {
-                    this.activePlayer = player2;
-                }
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    setupBonusActions() {
-        const player1 = this.game.initiativePlayer;
-        const player2 = player1.opponent;
-        let p1ActionsPostWindow = player1.sumEffects(EffectName.AdditionalActionAfterWindowCompleted);
-        let p2ActionsPostWindow = player2.sumEffects(EffectName.AdditionalActionAfterWindowCompleted);
-
-        this.bonusActions = {
-            [player1.uuid]: {
-                actionCount: p1ActionsPostWindow,
-                actionsTaken: false
-            },
-            [player2.uuid]: {
-                actionCount: p2ActionsPostWindow,
-                actionsTaken: false
-            },
-        };
-
-        return p1ActionsPostWindow + p2ActionsPostWindow > 0;
-    }
-
-    teardownBonusActions() {
-        this.bonusActions = undefined;
+        // // TODO: is this right? need to investigate for e.g. Leia hero ability
+        // if (this.activePlayerConsecutiveActions > 1) {
+        //     this.markBonusActionsTaken();
+        // }
     }
 
     /** @override */
     complete() {
-        this.teardownBonusActions();
+        // this.teardownBonusActions();
         super.complete();
     }
+
+    // markBonusActionsTaken() {
+    //     if (this.bonusActions) {
+    //         this.bonusActions[this.activePlayer.uuid].actionsTaken = true;
+    //     }
+    // }
+
+    // attemptComplete() {
+    //     if (!this.activePlayer.opponent) {
+    //         this.complete();
+    //     }
+
+    //     if (!this.checkBonusActions()) {
+    //         this.complete();
+    //     }
+    // }
+
+    // TODO: this "bonus actions" code from L5R is for a case where a card lets a user take extra actions out of sequence.
+    // Leaving it here in case we ever have something similar
+
+    // checkBonusActions() {
+    //     if (!this.bonusActions) {
+    //         if (!this.setupBonusActions()) {
+    //             return false;
+    //         }
+    //     }
+
+    //     const player1 = this.game.initiativePlayer();
+    //     const player2 = player1.opponent;
+
+    //     const p1 = this.bonusActions[player1.uuid];
+    //     const p2 = this.bonusActions[player2.uuid];
+
+    //     if (p1.actionCount > 0) {
+    //         if (!p1.actionsTaken) {
+    //             this.game.addMessage('{0} has a bonus action during resolution!', player1);
+    //             this.prevPlayerPassed = false;
+    //             // Set the current player to player1
+    //             if (this.activePlayer !== player1) {
+    //                 this.activePlayer = player1;
+    //             }
+    //             return true;
+    //         }
+    //     }
+    //     if (p2.actionCount > 0) {
+    //         if (!p2.actionsTaken) {
+    //             this.game.addMessage('{0} has a bonus action during resolution!', player2);
+    //             this.prevPlayerPassed = false;
+    //             // Set the current player to player2
+    //             if (this.activePlayer !== player2) {
+    //                 this.activePlayer = player2;
+    //             }
+    //             return true;
+    //         }
+    //     }
+
+    //     return false;
+    // }
+
+    // setupBonusActions() {
+    //     const player1 = this.game.initiativePlayer;
+    //     const player2 = player1.opponent;
+    //     let p1ActionsPostWindow = player1.sumEffects(EffectName.AdditionalActionAfterWindowCompleted);
+    //     let p2ActionsPostWindow = player2.sumEffects(EffectName.AdditionalActionAfterWindowCompleted);
+
+    //     this.bonusActions = {
+    //         [player1.uuid]: {
+    //             actionCount: p1ActionsPostWindow,
+    //             actionsTaken: false
+    //         },
+    //         [player2.uuid]: {
+    //             actionCount: p2ActionsPostWindow,
+    //             actionsTaken: false
+    //         },
+    //     };
+
+    //     return p1ActionsPostWindow + p2ActionsPostWindow > 0;
+    // }
+
+    // teardownBonusActions() {
+    //     this.bonusActions = undefined;
+    // }
 }
 
 module.exports = ActionWindow;
