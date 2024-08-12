@@ -61,7 +61,7 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     checkEventCondition() {
-        _.each(this.events, (event) => event.checkCondition());
+        this.events.forEach((event) => event.checkCondition());
     }
 
     openWindow(abilityType) {

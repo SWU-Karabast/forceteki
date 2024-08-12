@@ -40,7 +40,7 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
             super.canAffect(card, context) &&
             properties.effect.some(
                 (props) =>
-                    props.effect.canBeApplied(card) &&
+                    props.impl.canBeApplied(card) &&
                     !lastingEffectRestrictions.some((condition) => condition(props.effect))
             )
         );
@@ -60,8 +60,8 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
         );
         effects = effects.filter(
             (props) =>
-                props.effect.canBeApplied(event.card) &&
-                !lastingEffectRestrictions.some((condition) => condition(props.effect))
+                props.impl.canBeApplied(event.card) &&
+                !lastingEffectRestrictions.some((condition) => condition(props.impl))
         );
         for (const effect of effects) {
             event.context.game.effectEngine.add(effect);

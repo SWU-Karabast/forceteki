@@ -99,12 +99,11 @@ export default class StaticEffectImpl<TValue> extends EffectImpl<TValue> {
         this.value.setContext(context);
     }
 
-    // canBeApplied(target) {
-    //     if (target.facedown && target.type !== CardType.Province) {
-    //         return false;
-    //     }
-    //     return !hasDash[this.type] || !hasDash[this.type](target, this.value);
-    // }
+    // effects can't be applied to facedown cards
+    // TODO: do we have any exceptions to that rule?
+    canBeApplied(target) {
+        return !target.facedown;
+    }
 
     // isMilitaryModifier() {
     //     return MilitaryModifiers.includes(this.type);

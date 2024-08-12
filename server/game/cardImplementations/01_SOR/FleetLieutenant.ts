@@ -17,7 +17,7 @@ export default class FleetLieutenant extends Card {
             title: 'Attack with a unit',
             // cannotTargetFirst: true,
             initiateAttack: (context: AbilityContext) => ({
-                effects: [(context: AbilityContext, attack: Attack) => {
+                effects: (context: AbilityContext, attack: Attack) => {
                     if (attack.attacker.hasTrait(Trait.Rebel)) {
                         return {
                             target: attack.attacker,
@@ -25,7 +25,7 @@ export default class FleetLieutenant extends Card {
                         };
                     }
                     return null;
-                }]
+                }
             })
         });
     }

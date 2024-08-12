@@ -10,7 +10,7 @@ import { damage } from './GameSystemLibrary.js';
 import type Card from '../core/card/Card'; // TODO: is this the right import form?
 import { isArray } from 'underscore';
 import Effect from '../core/effect/Effect';
-import { ILastingEffectCardProperties } from '../core/gameSystem/LastingEffectCardSystem';
+import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
 
@@ -22,10 +22,11 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
     costHandler?: (context: AbilityContext, prompt: any) => void;
 
     /**
-     * Effects to trigger for the duration of the attack. Can be an array of either {@link ILastingEffectCardProperties}
-     * or functions that generate them.
+     * Effects to trigger for the duration of the attack. Can be one or more {@link ILastingEffectCardProperties}
+     * or a function generator(s) for them.
      */
-    effects?: (IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties))[];
+    effects?: IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties) |
+        (IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties))[]
 }
 
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {
@@ -155,6 +156,8 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             return;
         }
 
+        this.registerAttackEffects(context, properties, event.attack);
+
         const attack = event.attack;
         context.game.queueStep(
             new AttackFlow(
@@ -166,6 +169,32 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
                 //     : undefined
             )
         );
+    }
+
+    private registerAttackEffects(context: AbilityContext, properties: IAttackProperties, attack: Attack) {
+        if (!properties.effects) {
+            return;
+        }
+
+        let effects = properties.effects;
+        if (!isArray(effects)) {
+            effects = [effects];
+        }
+
+        // create events for all effects to be generated
+        const effectEvents: Event[] = [];
+        for (const effect of effects) {
+            const effectProperties = typeof effect === 'function' ? effect(context, attack) : effect;
+
+            const effectSystem = new LastingEffectCardSystem(effectProperties);
+            effectSystem.addEventsToArray(effectEvents, context);
+        }
+
+        // trigger events
+        context.game.openEventWindow(effectEvents);
+
+        // TODO EFFECTS: remove this hack
+        context.game.queueSimpleStep(() => context.game.checkGameState());
     }
 
     override checkEventCondition(event, additionalProperties): boolean {

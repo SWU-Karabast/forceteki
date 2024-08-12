@@ -7,7 +7,7 @@ describe('Fleet Lieutenant', function() {
                     player1: {
                         // TODO: replace wampa with a space unit
                         hand: ['fleet-lieutenant'],
-                        groundArena: ['wampa', 'battlefield-marine'],
+                        groundArena: ['wampa', 'specforce-soldier'],
                         resources: ['atst', 'atst', 'atst'],
                         leader: ['leia-organa#alliance-general']
                     },
@@ -19,7 +19,7 @@ describe('Fleet Lieutenant', function() {
 
                 this.fleetLieutenant = this.player1.findCardByName('fleet-lieutenant');
                 this.wampa = this.player1.findCardByName('wampa');
-                this.marine = this.player1.findCardByName('battlefield-marine');
+                this.specforce = this.player1.findCardByName('specforce-soldier');
                 this.atrt = this.player2.findCardByName('frontier-atrt');
                 this.cartelSpacer = this.player2.findCardByName('cartel-spacer');
 
@@ -41,16 +41,16 @@ describe('Fleet Lieutenant', function() {
                 expect(this.atrt.damage).toBe(4);
             });
 
-            it('should trigger a ground unit attack on play with rebel bonus', function () {
+            it('if used with a rebel unit should give it +2 power', function () {
                 this.player1.clickCard(this.fleetLieutenant);
                 expect(this.fleetLieutenant.location).toBe('ground arena');
 
                 // this.player1.clickPrompt('Attack with a unit');
-                this.player1.clickCard(this.marine);
+                this.player1.clickCard(this.specforce);
 
                 // expect(this.wampa.exhausted).toBe(true);
-                expect(this.marine.location).toBe('discard');
-                expect(this.atrt.location).toBe('discard');
+                expect(this.specforce.location).toBe('discard');
+                expect(this.atrt.damage).toBe(4);
             });
         });
     });
