@@ -153,6 +153,7 @@ export enum EventName {
     OnSpendResources = 'onSpendResources',
     OnAttackDeclared = 'onAttackDeclared',
     OnDamageDealt = 'onDamageDealt',
+    OnDamageRemoved = 'onDamageRemoved',
     OnAttackCompleted = 'onAttackCompleted',
     OnCardReturnedToHand = 'onCardReturnedToHand',
 }
@@ -161,6 +162,7 @@ export enum AbilityType {
     Action = 'action',
     ForcedReaction = 'forcedReaction',
     Reaction = 'reaction',
+    TriggeredAbility = 'triggeredAbility',
     Persistent = 'persistent',
     OtherEffects = 'otherEffects'
 }

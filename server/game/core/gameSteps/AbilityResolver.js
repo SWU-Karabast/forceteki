@@ -70,6 +70,8 @@ class AbilityResolver extends BaseStepWithPipeline {
                     card: this.context.source,
                     context: this.context
                 }));
+
+                // UP NEXT: add "pass" option if triggered ability resolution is marked optional
             }
         }
         this.events.push(this.game.getEvent(eventName, eventProps, () => this.queueInitiateAbilitySteps()));

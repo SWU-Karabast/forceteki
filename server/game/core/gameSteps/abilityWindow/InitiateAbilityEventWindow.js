@@ -1,9 +1,9 @@
 const _ = require('underscore');
 const EventWindow = require('../../event/EventWindow.js');
-const TriggeredAbilityWindow = require('./TriggeredAbilityWindow.js');
+const { NewTriggeredAbilityWindow } = require('../../gameSteps/abilityWindow/NewTriggeredAbilityWindow.js');
 const { EventName, AbilityType } = require('../../Constants.js');
 
-class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
+class InitiateAbilityInterruptWindow extends NewTriggeredAbilityWindow {
     constructor(game, abilityType, eventWindow) {
         super(game, abilityType, eventWindow);
         this.playEvent = eventWindow.events.find((event) => event.name === EventName.OnCardPlayed);
@@ -12,7 +12,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     /** @override */
     getPromptForSelectProperties() {
         let buttons = [];
-        if (this.playEvent && this.activePlayer === this.playEvent.player && this.playEvent.resolver.canCancel) {
+        if (this.playEvent && this.currentlyResolvingPlayer === this.playEvent.player && this.playEvent.resolver.canCancel) {
             buttons.push({ text: 'Cancel', arg: 'cancel' });
         }
         if (this.getMinCostReduction() === 0) {
@@ -39,11 +39,11 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     }
 
     /** @override */
-    resolveAbility(context) {
+    resolveAbilityOrPass(context) {
         if (this.playEvent) {
             this.playEvent.resolver.canCancel = false;
         }
-        return super.resolveAbility(context);
+        return super.resolveAbilityOrPass(context);
     }
 }
 

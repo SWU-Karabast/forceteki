@@ -1,5 +1,6 @@
 import { AbilityType } from '../../Constants';
 
+// TODO: update these
 const EventToTitleFunc = {
     onCardExhausted(event: any) {
         return `${event.card.name} being exhausted`;
@@ -27,15 +28,6 @@ const EventToTitleFunc = {
     }
 };
 
-const AbilityTypeToWord = new Map([
-    ['cancelinterrupt', 'interrupt'],
-    ['interrupt', 'interrupt'],
-    ['reaction', 'reaction'],
-    ['forcedreaction', 'forced reaction'],
-    ['forcedinterrupt', 'forced interrupt'],
-    ['duelreaction', 'reaction']
-]);
-
 function FormatTitles(titles: string[]) {
     return titles.reduce((string, title, index) => {
         if (index === 0) {
@@ -52,9 +44,8 @@ interface Event {
 }
 
 export const TriggeredAbilityWindowTitle = {
-    getTitle(abilityType: string, eventsaa: Event[] | Event) {
+    getTitle(eventsaa: Event[] | Event) {
         const events = Array.isArray(eventsaa) ? eventsaa : [eventsaa];
-        const abilityWord = AbilityTypeToWord.get(abilityType) ?? abilityType;
         const titles = events
             .map((event) => {
                 const func = EventToTitleFunc[event.name];
@@ -64,17 +55,9 @@ export const TriggeredAbilityWindowTitle = {
             })
             .filter(Boolean);
 
-        if (abilityType === AbilityType.ForcedReaction) {
-            return titles.length > 0
-                ? `Choose ${abilityWord} order for ${FormatTitles(titles)}`
-                : `Choose ${abilityWord} order`;
-        }
-
-        if (titles.length > 0) {
-            return `Any ${abilityWord}s to ${FormatTitles(titles)}?`;
-        }
-
-        return `Any ${abilityWord}s?`;
+        return titles.length > 0
+            ? `Choose ability order for ${FormatTitles(titles)}`
+            : 'Choose ability order';
     },
     getAction(event: Event) {
         const func = EventToTitleFunc[event.name];

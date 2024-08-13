@@ -126,10 +126,28 @@ export function assertHasProperty(obj: object, propertyName: string, message?: s
     return true;
 }
 
-export function assertArraySize(ara: object[], expectedSize: number, message?: string): boolean {
+export function assertArraySize(ara: any[], expectedSize: number, message?: string): boolean {
     assertNotNullLike(ara);
     if (ara.length !== expectedSize) {
         contractCheckImpl.fail(message ?? `Array size ${ara.length} does not match expected size ${expectedSize}`);
+        return false;
+    }
+    return true;
+}
+
+export function assertNonEmpty(ara: any[], message?: string): boolean {
+    assertNotNullLike(ara);
+    if (ara.length === 0) {
+        contractCheckImpl.fail(message ?? 'Array is empty');
+        return false;
+    }
+    return true;
+}
+
+export function assertHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): boolean {
+    assertNotNullLike(map);
+    if (!map.has(key)) {
+        contractCheckImpl.fail(message ?? `Map does not contain key ${key}`);
         return false;
     }
     return true;
@@ -166,6 +184,8 @@ const Contract = {
     assertNotNullLikeOrNan,
     assertHasProperty,
     assertArraySize,
+    assertNonEmpty,
+    assertHasKey,
     assertPositiveNonZero,
     assertNonNegative,
     fail

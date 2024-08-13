@@ -4,11 +4,11 @@ import type Player from '../Player';
 import type { IStep } from './IStep';
 
 export abstract class BaseStep implements IStep {
+    // UP NEXT: add naming for steps, pipelines, etc. to make debugging easier. maybe source reference in debug mode
+    // maybe names only in debug mode too?
     constructor(public game: Game) {}
 
-    public continue(): undefined | boolean {
-        return undefined;
-    }
+    abstract continue(): boolean;
 
     public onCardClicked(player: Player, card: Card): boolean {
         return false;

@@ -11,7 +11,7 @@ export interface IHealProperties extends ICardTargetSystemProperties {
 
 export class HealSystem extends CardTargetSystem<IHealProperties> {
     override name = 'heal';
-    override eventName = EventName.OnDamageDealt;
+    override eventName = EventName.OnDamageRemoved;
     override targetType = [CardType.Unit, CardType.Base];
 
     override getEffectMessage(context: AbilityContext): [string, any[]] {

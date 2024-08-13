@@ -1,10 +1,11 @@
+import Card from '../card/Card';
 import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
 
 interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {
     event: any;
 }
 
-export class TriggeredAbilityContext<S = any> extends AbilityContext<S> {
+export class TriggeredAbilityContext<S = Card> extends AbilityContext<S> {
     event: any;
 
     constructor(properties: ITriggeredAbilityContextProperties) {
@@ -13,7 +14,7 @@ export class TriggeredAbilityContext<S = any> extends AbilityContext<S> {
     }
 
     override createCopy(newProps: unknown) {
-        return new TriggeredAbilityContext(Object.assign(this.getProps(), newProps));
+        return new TriggeredAbilityContext<this>(Object.assign(this.getProps(), newProps));
     }
 
     override getProps() {

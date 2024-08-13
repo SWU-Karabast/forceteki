@@ -23,7 +23,7 @@ const EventWindow = require('./event/EventWindow.js');
 const AdditionalAbilityStepEventWindow = require('./event/AdditionalAbilityStepEventWindow.js');
 const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAbilityEventWindow.js');
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
-const SimultaneousEffectWindow = require('./gameSteps/SimultaneousEffectWindow.js');
+const { SimultaneousEffectWindow } = require('./gameSteps/SimultaneousEffectWindow.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract');
 // const { Conflict } = require('./conflict.js');
@@ -584,6 +584,10 @@ class Game extends EventEmitter {
      * @param {Object} properties - see menuprompt.js
      */
     promptWithMenu(player, contextObj, properties) {
+        if (!Contract.assertNotNullLike(player)) {
+            return;
+        }
+
         this.queueStep(new MenuPrompt(this, player, contextObj, properties));
     }
 
@@ -593,6 +597,10 @@ class Game extends EventEmitter {
      * @param {Object} properties - see handlermenuprompt.js
      */
     promptWithHandlerMenu(player, properties) {
+        if (!Contract.assertNotNullLike(player)) {
+            return;
+        }
+
         this.queueStep(new HandlerMenuPrompt(this, player, properties));
     }
 
@@ -602,6 +610,10 @@ class Game extends EventEmitter {
      * @param {Object} properties - see selectcardprompt.js
      */
     promptForSelect(player, properties) {
+        if (!Contract.assertNotNullLike(player)) {
+            return;
+        }
+
         this.queueStep(new SelectCardPrompt(this, player, properties));
     }
 
@@ -810,7 +822,7 @@ class Game extends EventEmitter {
 
     openSimultaneousEffectWindow(choices) {
         let window = new SimultaneousEffectWindow(this);
-        _.each(choices, (choice) => window.addChoice(choice));
+        _.each(choices, (choice) => window.addToWindow(choice));
         this.queueStep(window);
     }
 

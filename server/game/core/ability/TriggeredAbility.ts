@@ -5,11 +5,12 @@ import { ITriggeredAbilityProps, ITriggeredAbilityWhenProps, WhenType } from '..
 import { Event } from '../event/Event';
 import Card from '../card/Card';
 import Game from '../Game';
-import ForcedTriggeredAbilityWindow from '../gameSteps/abilityWindow/ForcedTriggeredAbilityWindow';
+import { NewTriggeredAbilityWindow } from '../gameSteps/abilityWindow/NewTriggeredAbilityWindow';
+import Contract from '../utils/Contract';
 
 interface IEventRegistration {
     name: string;
-    handler: (event: Event, window: ForcedTriggeredAbilityWindow) => void;
+    handler: (event: Event, window: NewTriggeredAbilityWindow) => void;
 }
 
 /**
@@ -46,11 +47,7 @@ export default class TriggeredAbility extends CardAbility {
     eventRegistrations?: IEventRegistration[];
 
     constructor(game: Game, card: Card, properties: ITriggeredAbilityProps) {
-        // defaults to ability being required
-        // TODO EVENTS: fuse the two options and let it just be a flag since there aren't different windows for these in SWU
-        const abilityType = !!properties.optional ? AbilityType.Reaction : AbilityType.ForcedReaction;
-
-        super(game, card, properties, abilityType);
+        super(game, card, properties, AbilityType.TriggeredAbility);
 
         if ('when' in properties) {
             this.when = properties.when;
@@ -80,6 +77,10 @@ export default class TriggeredAbility extends CardAbility {
     }
 
     eventHandler(event, window) {
+        if (!Contract.assertNotNullLike(window)) {
+            return;
+        }
+
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, event);
             //console.log(event.name, this.card.name, this.isTriggeredByEvent(event, context), this.meetsRequirements(context));
@@ -88,7 +89,7 @@ export default class TriggeredAbility extends CardAbility {
                 this.isTriggeredByEvent(event, context) &&
                 this.meetsRequirements(context) === ''
             ) {
-                window.addChoice(context);
+                window.addToWindow(context);
             }
         }
     }
@@ -102,7 +103,7 @@ export default class TriggeredAbility extends CardAbility {
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {
-                window.addChoice(context);
+                window.addToWindow(context);
             }
         }
     }

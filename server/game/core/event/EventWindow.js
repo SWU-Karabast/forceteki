@@ -1,9 +1,8 @@
 const _ = require('underscore');
 
 const { BaseStepWithPipeline } = require('../gameSteps/BaseStepWithPipeline.js');
-const ForcedTriggeredAbilityWindow = require('../gameSteps/abilityWindow/ForcedTriggeredAbilityWindow.js');
+const { NewTriggeredAbilityWindow } = require('../gameSteps/abilityWindow/NewTriggeredAbilityWindow');
 const { SimpleStep } = require('../gameSteps/SimpleStep.js');
-const TriggeredAbilityWindow = require('../gameSteps/abilityWindow/TriggeredAbilityWindow.js');
 const { AbilityType } = require('../Constants.js');
 // const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
 
@@ -34,8 +33,7 @@ class EventWindow extends BaseStepWithPipeline {
             // new SimpleStep(this.game, () => this.checkGameState()),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordReaction)),
             // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps()),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.ForcedReaction)),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.Reaction)),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.TriggeredAbility)),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow())
         ]);
     }
@@ -69,10 +67,10 @@ class EventWindow extends BaseStepWithPipeline {
             return;
         }
 
-        if (abilityType === AbilityType.ForcedReaction) {
-            this.queueStep(new ForcedTriggeredAbilityWindow(this.game, abilityType, this));
-        } else {
-            this.queueStep(new TriggeredAbilityWindow(this.game, abilityType, this));
+        // TODO EFFECTS: will need resolution for replacement effects here
+        // not sure if it will need a new window class or can just reuse the existing one
+        if (abilityType === AbilityType.TriggeredAbility) {
+            this.queueStep(new NewTriggeredAbilityWindow(this.game, this));
         }
     }
 

@@ -735,7 +735,7 @@ class Player extends GameObject {
 
         // TODO: not sure yet if we need this code, I think it's checking to see if any potential interrupts would create additional cost
         // let triggeredCostAdjusters = 0;
-        // let fakeWindow = { addChoice: () => triggeredCostAdjusters++ };
+        // let fakeWindow = { addToWindow: () => triggeredCostAdjusters++ };
         // let fakeEvent = this.game.getEvent(EventName.OnCardPlayed, { card: card, player: this, context: context });
         // this.game.emit(EventName.OnCardPlayed + ':' + AbilityType.Interrupt, fakeEvent, fakeWindow);
         // let fakeResolverEvent = this.game.getEvent(EventName.OnAbilityResolverInitiated, {

@@ -12,6 +12,9 @@ const { UiPrompt } = require('./UiPrompt.js');
  * numCards           - an integer specifying the number of cards the player
  *                      must select. Set to 0 if there is no limit on the num
  *                      of cards that can be selected.
+ * availableCards     - one more Card objects indicating the base set of legal
+ *                      targets for selection. The cardCondition filter will still
+ *                      be applied to this list, if provided.
  * multiSelect        - boolean that ensures that the selected cards are sent as
  *                      an array, even if the numCards limit is 1.
  * buttons            - array of buttons for the prompt.
@@ -103,7 +106,8 @@ class SelectCardPrompt extends UiPrompt {
     }
 
     getDefaultControls() {
-        let targets = this.context.targets ? Object.values(this.context.targets) : [];
+        let targets = this.properties.availableCards ??
+            this.context.targets ? Object.values(this.context.targets) : [];
         targets = targets.reduce((array, target) => array.concat(target), []);
         if (targets.length === 0 && this.context.event && this.context.event.card) {
             this.targets = [this.context.event.card];
