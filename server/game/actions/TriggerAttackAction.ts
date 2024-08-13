@@ -12,9 +12,6 @@ import { unlimited } from '../core/ability/AbilityLimit.js';
 export class TriggerAttackAction extends PlayerAction {
     title = 'Attack';
 
-    // UP NEXT: this is a hack to get this to behave like a regular card ability for testing
-    limit = unlimited();
-
     public constructor(card: Card) {
         super(card, [exhaustSelf()], {
             gameSystem: attack({ attacker: card }),

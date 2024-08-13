@@ -64,6 +64,7 @@ class AbilityTargetSelect {
         return Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
     }
 
+    // UP NEXT: add passHandler here
     resolve(context, targetResults) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;

@@ -10,7 +10,7 @@ import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import { AbilityContext } from '../../ability/AbilityContext';
 
-export class NewTriggeredAbilityWindow extends BaseStep {
+export class TriggeredAbilityWindow extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
 

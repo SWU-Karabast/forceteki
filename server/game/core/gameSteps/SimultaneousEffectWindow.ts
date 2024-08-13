@@ -1,8 +1,8 @@
 import Effect from '../effect/Effect';
-import { NewTriggeredAbilityWindow } from './abilityWindow/NewTriggeredAbilityWindow';
+import { TriggeredAbilityWindow } from './abilityWindow/TriggeredAbilityWindow';
 
 // TODO: this is temporarily offline while testing the new ability window type
-export class SimultaneousEffectWindow extends NewTriggeredAbilityWindow {
+export class SimultaneousEffectWindow extends TriggeredAbilityWindow {
     // constructor(game) {
     //     super(game, 'delayedeffects');
     // }

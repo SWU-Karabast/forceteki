@@ -59,7 +59,7 @@ class AbilityTargetCard {
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 
-    resolve(context, targetResults) {
+    resolve(context, targetResults, passPrompt = null) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;
         }
@@ -87,6 +87,10 @@ class AbilityTargetCard {
                 buttons.push({ text: 'Pay costs first', arg: 'costsFirst' });
             }
             buttons.push({ text: 'Cancel', arg: 'cancel' });
+            if (passPrompt) {
+                buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
+                passPrompt.hasBeenShown = true;
+            }
             if (context.ability.abilityType === 'action') {
                 waitingPromptTitle = 'Waiting for opponent to take an action or pass';
             } else {
@@ -110,18 +114,26 @@ class AbilityTargetCard {
                 return true;
             },
             onCancel: () => {
-                targetResults.cancelled = true;
+                this.cancel(targetResults);
                 return true;
             },
             onMenuCommand: (player, arg) => {
                 if (arg === 'costsFirst') {
                     targetResults.payCostsFirst = true;
                     return true;
+                } else if (arg === passPrompt?.arg) {
+                    this.cancel(targetResults);
+                    passPrompt.handler();
+                    return true;
                 }
                 return true;
             }
         };
         context.game.promptForSelect(player, Object.assign(promptProperties, otherProperties));
+    }
+
+    cancel(targetResults) {
+        targetResults.cancelled = true;
     }
 
     checkTarget(context) {

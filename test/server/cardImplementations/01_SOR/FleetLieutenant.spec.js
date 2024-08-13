@@ -62,7 +62,7 @@ describe('Fleet Lieutenant', function() {
                 this.player1.clickCard(this.fleetLieutenant);
                 expect(this.fleetLieutenant.location).toBe('ground arena');
 
-                this.player1.clickPrompt('Cancel');
+                this.player1.clickPrompt('Pass ability');
                 expect(this.player2).toBeActivePlayer();
             });
         });

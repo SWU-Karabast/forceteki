@@ -48,6 +48,7 @@ class AbilityTargetAbility {
         return this.properties.gameSystem.filter((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
+    // UP NEXT: add passHandler here
     resolve(context, targetResults) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;

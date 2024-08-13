@@ -1,7 +1,7 @@
 const _ = require('underscore');
 
 const { BaseStepWithPipeline } = require('../gameSteps/BaseStepWithPipeline.js');
-const { NewTriggeredAbilityWindow } = require('../gameSteps/abilityWindow/NewTriggeredAbilityWindow');
+const { TriggeredAbilityWindow } = require('../gameSteps/abilityWindow/TriggeredAbilityWindow');
 const { SimpleStep } = require('../gameSteps/SimpleStep.js');
 const { AbilityType } = require('../Constants.js');
 // const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
@@ -70,7 +70,7 @@ class EventWindow extends BaseStepWithPipeline {
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
         if (abilityType === AbilityType.TriggeredAbility) {
-            this.queueStep(new NewTriggeredAbilityWindow(this.game, this));
+            this.queueStep(new TriggeredAbilityWindow(this.game, this));
         }
     }
 

@@ -25,6 +25,7 @@ class CardAbility extends CardAbilityStep {
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.cannotBeMirrored = !!properties.cannotBeMirrored;
+        this.optional = !!properties.optional;
         this.max = properties.max;
         this.abilityIdentifier = properties.abilityIdentifier;
         this.origin = properties.origin;
@@ -239,6 +240,7 @@ class CardAbility extends CardAbilityStep {
         return !this.isKeywordAbility() && this.card.getType() === CardType.Event;
     }
 
+    // TODO: rename this, it meant something else in L5R and there's a name collision now
     /** @override */
     isTriggeredAbility() {
         return true;

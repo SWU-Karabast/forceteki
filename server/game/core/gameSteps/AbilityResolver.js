@@ -6,6 +6,7 @@ const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js')
 const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
 const { Location, Stage, CardType, EventName } = require('../Constants.js');
 
+// TODO: convert to TS
 class AbilityResolver extends BaseStepWithPipeline {
     constructor(game, context) {
         super(game);
@@ -19,6 +20,18 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.targetResults = {};
         this.costResults = this.getCostResults();
         this.initialise();
+
+        // TODO: add handler at other stages that might show prompt, i.e. resolveCosts
+        // TODO: add interface for this in Interfaces.ts when we convert to TS
+        this.passAbilityHandler = this.context.ability.optional ? {
+            buttonText: 'Pass ability',
+            arg: 'passAbility',
+            hasBeenShown: false,
+            handler: () => {
+                this.cancelled = true;
+                this.passPriority = true;
+            }
+        } : null;
     }
 
     initialise() {
@@ -70,8 +83,6 @@ class AbilityResolver extends BaseStepWithPipeline {
                     card: this.context.source,
                     context: this.context
                 }));
-
-                // UP NEXT: add "pass" option if triggered ability resolution is marked optional
             }
         }
         this.events.push(this.game.getEvent(eventName, eventProps, () => this.queueInitiateAbilitySteps()));
@@ -80,6 +91,11 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     queueInitiateAbilitySteps() {
         this.queueStep(new SimpleStep(this.game, () => this.resolveCosts()));
+
+        if (this.passAbilityHandler) {
+            this.queueStep(new SimpleStep(this.game, () => this.checkPass()));
+        }
+
         this.queueStep(new SimpleStep(this.game, () => this.payCosts()));
         this.queueStep(new SimpleStep(this.game, () => this.checkCostsWerePaid()));
         this.queueStep(new SimpleStep(this.game, () => this.resolveTargets()));
@@ -92,7 +108,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     resolveEarlyTargets() {
         this.context.stage = Stage.PreTarget;
         if (!this.context.ability.cannotTargetFirst) {
-            this.targetResults = this.context.ability.resolveTargets(this.context);
+            this.targetResults = this.context.ability.resolveTargets(this.context, this.passAbilityHandler);
         }
     }
 
@@ -123,6 +139,28 @@ class AbilityResolver extends BaseStepWithPipeline {
         };
     }
 
+    checkPass() {
+        if (this.cancelled) {
+            return;
+        } else if (this.costResults.cancelled) {
+            this.cancelled = true;
+            return;
+        }
+
+        if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
+            this.game.promptWithHandlerMenu(this.context.player, {
+                activePromptTitle: 'Do you want to trigger this ability or pass?',
+                choices: ['Trigger', 'Pass'],
+                handlers: [
+                    () => {},
+                    () => {
+                        this.passAbilityHandler.handler();
+                    }
+                ]
+            });
+        }
+    }
+
     payCosts() {
         if (this.cancelled) {
             return;
@@ -130,6 +168,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             this.cancelled = true;
             return;
         }
+
         this.passPriority = true;
         if (this.costResults.events.length > 0) {
             this.game.openEventWindow(this.costResults.events);

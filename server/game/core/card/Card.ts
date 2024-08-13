@@ -535,10 +535,14 @@ class Card extends EffectSource {
 
     private resetLimits() {
         for (const action of this.abilities.action) {
-            action.limit.reset();
+            if (action.limit) {
+                action.limit.reset();
+            }
         }
         for (const triggeredAbility of this.abilities.triggered) {
-            triggeredAbility.limit.reset();
+            if (triggeredAbility.limit) {
+                triggeredAbility.limit.reset();
+            }
         }
     }
 

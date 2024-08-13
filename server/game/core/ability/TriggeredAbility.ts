@@ -5,12 +5,12 @@ import { ITriggeredAbilityProps, ITriggeredAbilityWhenProps, WhenType } from '..
 import { Event } from '../event/Event';
 import Card from '../card/Card';
 import Game from '../Game';
-import { NewTriggeredAbilityWindow } from '../gameSteps/abilityWindow/NewTriggeredAbilityWindow';
+import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import Contract from '../utils/Contract';
 
 interface IEventRegistration {
     name: string;
-    handler: (event: Event, window: NewTriggeredAbilityWindow) => void;
+    handler: (event: Event, window: TriggeredAbilityWindow) => void;
 }
 
 /**

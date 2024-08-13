@@ -15,6 +15,7 @@ export default class FleetLieutenant extends Card {
     override setupCardAbilities() {
         this.whenPlayedAbility({
             title: 'Attack with a unit',
+            optional: true,
             initiateAttack: {
                 effects: this.rebelPowerBuffEffectGenerator
             }

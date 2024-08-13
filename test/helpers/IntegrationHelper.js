@@ -145,7 +145,8 @@ var customMatchers = {
             compare: function (player) {
                 let result = {};
 
-                result.pass = player.game.actionPhaseActivePlayer === player;
+                // use player.player here because the received parameter is a PlayerInteractionWrapper
+                result.pass = player.game.actionPhaseActivePlayer === player.player;
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to be the active player but they were.`;

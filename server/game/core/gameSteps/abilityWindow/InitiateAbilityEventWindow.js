@@ -1,9 +1,10 @@
 const _ = require('underscore');
 const EventWindow = require('../../event/EventWindow.js');
-const { NewTriggeredAbilityWindow } = require('../../gameSteps/abilityWindow/NewTriggeredAbilityWindow.js');
+const { TriggeredAbilityWindow } = require('../../gameSteps/abilityWindow/TriggeredAbilityWindow.js');
 const { EventName, AbilityType } = require('../../Constants.js');
 
-class InitiateAbilityInterruptWindow extends NewTriggeredAbilityWindow {
+// TODO: convert to TS
+class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     constructor(game, abilityType, eventWindow) {
         super(game, abilityType, eventWindow);
         this.playEvent = eventWindow.events.find((event) => event.name === EventName.OnCardPlayed);
