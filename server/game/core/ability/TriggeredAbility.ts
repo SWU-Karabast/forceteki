@@ -7,7 +7,7 @@ import Card from '../card/Card';
 import Game from '../Game';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import Contract from '../utils/Contract';
-import type CardAbilityStep = require('./CardAbilityStep');
+import type CardAbilityStep from './CardAbilityStep';
 
 interface IEventRegistration {
     name: string;
