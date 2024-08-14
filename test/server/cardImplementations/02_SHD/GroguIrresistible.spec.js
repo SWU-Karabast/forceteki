@@ -32,12 +32,8 @@ describe('Grogu, Irresistible', function() {
 
                 // TODO: convert specs to ts
                 // can target opponent's units only
-                expect(this.player1).toBeAbleToSelect(this.atrt);
-                expect(this.player1).toBeAbleToSelect(this.enfysNest);
-                expect(this.player1).not.toBeAbleToSelect(this.p1Base);
-                expect(this.player1).not.toBeAbleToSelect(this.p2Base);
-                expect(this.player1).not.toBeAbleToSelect(this.grogu);
-                expect(this.player1).not.toBeAbleToSelect(this.wampa);
+                expect(this.player1).toBeAbleToSelectAllOf([this.atrt, this.enfysNest]);
+                expect(this.player1).toBeAbleToSelectNoneOf([this.p1Base, this.p2Base, this.grogu, this.wampa]);
 
                 this.player1.clickCard(this.enfysNest);
                 expect(this.grogu.exhausted).toBe(true);

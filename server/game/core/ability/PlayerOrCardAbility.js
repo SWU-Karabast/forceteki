@@ -188,7 +188,7 @@ class PlayerOrCardAbility {
         return targetResults;
     }
 
-    resolveRemainingTargets(context, nextTarget) {
+    resolveRemainingTargets(context, nextTarget, passHandler = null) {
         const index = this.targets.indexOf(nextTarget);
         let targets = this.targets.slice();
         if (targets.slice(0, index).every((target) => target.checkTarget(context))) {
@@ -196,7 +196,7 @@ class PlayerOrCardAbility {
         }
         let targetResults = {};
         for (const target of targets) {
-            context.game.queueSimpleStep(() => target.resolve(context, targetResults));
+            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler));
         }
         return targetResults;
     }

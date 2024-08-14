@@ -33,4 +33,4 @@ export default class FleetLieutenant extends Card {
     }
 }
 
-FleetLieutenant.implemented = false;
+FleetLieutenant.implemented = true;

@@ -60,11 +60,8 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 this.player1.clickPrompt('Deal 1 damage to a ground unit');
 
                 // can target any ground unit
-                expect(this.player1).toBeAbleToSelect(this.atrt);
-                expect(this.player1).toBeAbleToSelect(this.wampa);
-                expect(this.player1).not.toBeAbleToSelect(this.player1.base);
-                expect(this.player1).not.toBeAbleToSelect(this.player2.base);
-                expect(this.player1).not.toBeAbleToSelect(this.cartelSpacer);
+                expect(this.player1).toBeAbleToSelectAllOf([this.atrt, this.wampa]);
+                expect(this.player1).toBeAbleToSelectNoneOf([this.player1.base, this.player2.base, this.cartelSpacer]);
 
                 this.player1.clickCard(this.atrt);
                 expect(this.atrt.damage).toBe(1);

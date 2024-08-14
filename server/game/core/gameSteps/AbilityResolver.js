@@ -21,7 +21,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.costResults = this.getCostResults();
         this.initialise();
 
-        // TODO: add handler at other stages that might show prompt, i.e. resolveCosts
         // TODO: add interface for this in Interfaces.ts when we convert to TS
         this.passAbilityHandler = this.context.ability.optional ? {
             buttonText: 'Pass ability',
@@ -38,7 +37,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.pipeline.initialise([
             // new SimpleStep(this.game, () => this.createSnapshot()),
             new SimpleStep(this.game, () => this.resolveEarlyTargets()),
-            new SimpleStep(this.game, () => this.checkForCancel()),
+            new SimpleStep(this.game, () => this.checkForCancelOrPass()),
             new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow()),
         ]);
     }
@@ -91,15 +90,10 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     queueInitiateAbilitySteps() {
         this.queueStep(new SimpleStep(this.game, () => this.resolveCosts()));
-
-        if (this.passAbilityHandler) {
-            this.queueStep(new SimpleStep(this.game, () => this.checkPass()));
-        }
-
         this.queueStep(new SimpleStep(this.game, () => this.payCosts()));
         this.queueStep(new SimpleStep(this.game, () => this.checkCostsWerePaid()));
         this.queueStep(new SimpleStep(this.game, () => this.resolveTargets()));
-        this.queueStep(new SimpleStep(this.game, () => this.checkForCancel()));
+        this.queueStep(new SimpleStep(this.game, () => this.checkForCancelOrPass()));
         this.queueStep(new SimpleStep(this.game, () => this.initiateAbilityEffects()));
         this.queueStep(new SimpleStep(this.game, () => this.executeHandler()));
         this.queueStep(new SimpleStep(this.game, () => this.moveEventCardToDiscard()));
@@ -112,14 +106,20 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    checkForCancel() {
+    checkForCancelOrPass() {
         if (this.cancelled) {
+            return;
+        }
+
+        if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
+            this.queueStep(new SimpleStep(this.game, () => this.checkForPass()));
             return;
         }
 
         this.cancelled = this.targetResults.cancelled;
     }
 
+    // TODO: add passHandler support here
     resolveCosts() {
         if (this.cancelled) {
             return;
@@ -139,7 +139,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         };
     }
 
-    checkPass() {
+    checkForPass() {
         if (this.cancelled) {
             return;
         } else if (this.costResults.cancelled) {
@@ -148,6 +148,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
+            this.passAbilityHandler.hasBeenShown = true;
             this.game.promptWithHandlerMenu(this.context.player, {
                 activePromptTitle: 'Do you want to trigger this ability or pass?',
                 choices: ['Trigger', 'Pass'],
@@ -197,10 +198,10 @@ class AbilityResolver extends BaseStepWithPipeline {
             this.cancelled = true;
         } else if (this.targetResults.delayTargeting) {
             // Targeting was delayed due to an opponent needing to choose targets (which shouldn't happen until costs have been paid), so continue
-            this.targetResults = this.context.ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting);
+            this.targetResults = this.context.ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting, this.passAbilityHandler);
         } else if (this.targetResults.payCostsFirst || !this.context.ability.checkAllTargets(this.context)) {
             // Targeting was stopped by the player choosing to pay costs first, or one of the chosen targets is no longer legal. Retarget from scratch
-            this.targetResults = this.context.ability.resolveTargets(this.context);
+            this.targetResults = this.context.ability.resolveTargets(this.context, this.passAbilityHandler);
         }
     }
 

@@ -116,6 +116,88 @@ var customMatchers = {
             }
         };
     },
+    toBeAbleToSelectAllOf: function () {
+        return {
+            compare: function (player, cards) {
+                if (!Array.isArray(cards)) {
+                    cards = [cards];
+                }
+
+                let cardsPopulated = [];
+                for (let card of cards) {
+                    if (_.isString(card)) {
+                        cardsPopulated.push(player.findCardByName(card));
+                    } else {
+                        cardsPopulated.push(card);
+                    }
+                }
+
+                let result = {};
+
+                let selectable = cardsPopulated.filter((x) => player.currentActionTargets.includes(x));
+                let unselectable = cardsPopulated.filter((x) => !player.currentActionTargets.includes(x));
+
+                result.pass = unselectable.length === 0;
+
+                if (result.pass) {
+                    if (selectable.length === 1) {
+                        result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
+                    } else {
+                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${selectable.map((card) => card.name).join(', ')}`;
+                    }
+                } else {
+                    if (unselectable.length === 1) {
+                        result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
+                    } else {
+                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${unselectable.map((card) => card.name).join(', ')}`;
+                    }
+                }
+
+                return result;
+            }
+        };
+    },
+    toBeAbleToSelectNoneOf: function () {
+        return {
+            compare: function (player, cards) {
+                if (!Array.isArray(cards)) {
+                    cards = [cards];
+                }
+
+                let cardsPopulated = [];
+                for (let card of cards) {
+                    if (_.isString(card)) {
+                        cardsPopulated.push(player.findCardByName(card));
+                    } else {
+                        cardsPopulated.push(card);
+                    }
+                }
+
+                let result = {};
+
+                let selectable = cardsPopulated.filter((x) => player.currentActionTargets.includes(x));
+                let unselectable = cardsPopulated.filter((x) => !player.currentActionTargets.includes(x));
+
+                result.pass = selectable.length === 0;
+
+                if (result.pass) {
+                    if (unselectable.length === 1) {
+                        result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
+                    } else {
+                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${unselectable.map((card) => card.name).join(', ')}`;
+                    }
+                } else {
+                    if (selectable.length === 1) {
+                        result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
+                    } else {
+                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${selectable.map((card) => card.name).join(', ')}`;
+                    }
+                }
+
+                return result;
+            }
+        };
+    },
     toHaveAvailableActionWhenClickedInActionPhaseBy: function () {
         return {
             compare: function (card, player) {
@@ -152,6 +234,24 @@ var customMatchers = {
                     result.message = `Expected ${player.name} not to be the active player but they were.`;
                 } else {
                     result.message = `Expected ${player.name} to be the active player but they were not.`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toHavePassAbilityPrompt: function () {
+        return {
+            compare: function (player) {
+                var result = {};
+                const passPromptText = 'Do you want to trigger this ability or pass?';
+                var currentPrompt = player.currentPrompt();
+                result.pass = player.hasPrompt(passPromptText);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it had menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
                 }
 
                 return result;

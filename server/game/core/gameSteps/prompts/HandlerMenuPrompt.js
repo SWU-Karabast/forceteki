@@ -38,6 +38,7 @@ class HandlerMenuPrompt extends UiPrompt {
         this.properties = properties;
         this.cardCondition = properties.cardCondition || (() => true);
         this.context = properties.context || new AbilityContext({ game: game, player: player, source: properties.source });
+        game.getPlayers().forEach((player) => player.clearSelectableCards());
     }
 
     /** @override */

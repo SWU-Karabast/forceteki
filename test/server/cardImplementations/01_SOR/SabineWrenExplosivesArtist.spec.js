@@ -31,8 +31,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.wampa);
 
-                expect(this.player2).toBeAbleToSelect(this.marine);
-                expect(this.player2).toBeAbleToSelect(this.p1Base);
+                expect(this.player2).toBeAbleToSelectAllOf([this.marine, this.p1Base]);
                 expect(this.player2).not.toBeAbleToSelect(this.sabine);
             });
 
@@ -41,9 +40,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.wampa);
 
-                expect(this.player2).toBeAbleToSelect(this.marine);
-                expect(this.player2).toBeAbleToSelect(this.p1Base);
-                expect(this.player2).toBeAbleToSelect(this.sabine);
+                expect(this.player2).toBeAbleToSelectAllOf([this.marine, this.p1Base, this.sabine]);
             });
         });
     });
