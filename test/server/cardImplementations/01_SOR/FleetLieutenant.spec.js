@@ -29,11 +29,16 @@ describe('Fleet Lieutenant', function() {
                 this.noMoreActions();
             });
 
-            it('should allowing triggering a unit attack on play', function () {
+            it('should allowing triggering an attack by a unit when played', function () {
                 this.player1.clickCard(this.fleetLieutenant);
                 expect(this.fleetLieutenant.location).toBe('ground arena');
+                expect(this.player1).toBeAbleToSelect(this.wampa);
+                expect(this.player1).toBeAbleToSelect(this.monMothma);
+                expect(this.player1).not.toBeAbleToSelect(this.p1Base);
+                expect(this.player1).not.toBeAbleToSelect(this.p2Base);
+                expect(this.player1).not.toBeAbleToSelect(this.peacekeeper);
+                expect(this.player1).not.toBeAbleToSelect(this.cartelSpacer);
 
-                // this.player1.clickPrompt('Attack with a unit');
                 this.player1.clickCard(this.wampa);
 
                 expect(this.wampa.exhausted).toBe(true);

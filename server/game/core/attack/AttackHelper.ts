@@ -16,8 +16,10 @@ export const addInitiateAttackProperties = (properties) => {
                 return opponentChoosesAttacker ? RelativePlayer.Opponent : RelativePlayer.Self;
             },
             controller: RelativePlayer.Self,
-            cost: AbilityDsl.costs.exhaustSelf(),
             cardCondition: (card, context) => checkAttackerCondition(card, context, properties),
+
+            // this is to pay the exhaust cost for the attacker
+            gameSystem: AbilityDsl.immediateEffects.exhaust({ isCost: true })
         },
         attackTarget: {
             dependsOn: 'attacker',
