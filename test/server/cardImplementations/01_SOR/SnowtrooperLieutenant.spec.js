@@ -1,6 +1,6 @@
-describe('Fleet Lieutenant', function() {
+describe('Snowtrooper Lieutenant', function() {
     integration(function() {
-        describe('Fleet lieutenant\'s ability', function() {
+        describe('Snowtrooper lieutenant\'s ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
@@ -44,7 +44,7 @@ describe('Fleet Lieutenant', function() {
                 expect(this.peacekeeper.damage).toBe(4);
             });
 
-            it('if used with a rebel unit should give it +2 power', function () {
+            it('if used with an imperial unit should give it +2 power', function () {
                 this.player1.clickCard(this.snowtrooperLieutenant);
 
                 this.player1.clickCard(this.piett);

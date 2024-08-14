@@ -4,7 +4,7 @@ import { Attack } from '../../core/attack/Attack';
 import Card from '../../core/card/Card';
 import { Trait } from '../../core/Constants';
 
-export default class FleetLieutenant extends Card {
+export default class SnowtrooperLieutenant extends Card {
     protected override getImplementationId() {
         return {
             id: '9097690846',
@@ -17,12 +17,12 @@ export default class FleetLieutenant extends Card {
             title: 'Attack with a unit',
             optional: true,
             initiateAttack: {
-                effects: this.rebelPowerBuffEffectGenerator
+                effects: this.imperialPowerBuffEffectGenerator
             }
         });
     }
 
-    private rebelPowerBuffEffectGenerator(context: AbilityContext, attack: Attack) {
+    private imperialPowerBuffEffectGenerator(context: AbilityContext, attack: Attack) {
         if (attack.attacker.hasTrait(Trait.Imperial)) {
             return {
                 target: attack.attacker,
@@ -33,4 +33,4 @@ export default class FleetLieutenant extends Card {
     }
 }
 
-FleetLieutenant.implemented = true;
+SnowtrooperLieutenant.implemented = true;
