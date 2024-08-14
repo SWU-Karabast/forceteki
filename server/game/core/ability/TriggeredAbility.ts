@@ -7,6 +7,7 @@ import Card from '../card/Card';
 import Game from '../Game';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import Contract from '../utils/Contract';
+import type CardAbilityStep = require('./CardAbilityStep');
 
 interface IEventRegistration {
     name: string;
@@ -32,7 +33,8 @@ interface IEventRegistration {
  * target  - object giving properties for the target API
  * handler - function that will be executed if the player chooses 'Yes' when
  *           asked to trigger the reaction. If the reaction has more than one
- *           choice, use the choices sub object instead.
+ *           choice, use the choices sub object instead. Defaults to
+ *           {@link CardAbilityStep.executeGameActions}
  * limit   - optional AbilityLimit object that represents the max number of uses
  *           for the reaction as well as when it resets.
  * location - string or array of strings indicating the location the card should

@@ -171,7 +171,9 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         );
     }
 
-    // UP NEXT: attack effects need to check that the unit's active attack matches this one
+    // TODO: change attack effects so that they check the specific attack they are affecting,
+    // in case we have have a situation when multiple attacks are happening in parallel but an effect
+    // only applies to one of them.
     private registerAttackEffects(context: AbilityContext, properties: IAttackProperties, attack: Attack) {
         if (!properties.effects) {
             return;

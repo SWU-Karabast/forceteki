@@ -61,7 +61,6 @@ export class Attack extends GameObject {
         return this.target.isBase;
     }
 
-    // TODO: confirm that attack lasting effects will check that the specified attack has ended or not
     private getUnitPower(involvedUnit: Card): StatisticTotal {
         if (!Contract.assertTrue(isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
             return null;

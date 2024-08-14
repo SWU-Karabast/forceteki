@@ -22,6 +22,8 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.initialise();
 
         // TODO: add interface for this in Interfaces.ts when we convert to TS
+        // this is used when a triggerd ability is marked optional to ensure that a "Pass" button
+        // appears at all times during the prompt flow for that ability
         this.passAbilityHandler = this.context.ability.optional ? {
             buttonText: 'Pass ability',
             arg: 'passAbility',
@@ -224,6 +226,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.context.ability.displayMessage(this.context);
 
         if (this.context.ability.isTriggeredAbility()) {
+            // TODO EVENTS: need to remove 'BeingPlayed' reference here and just send directly to discard (should already be there since this is triggering off an already-played card)
             // If this is an event, move it to 'being played', and queue a step to send it to the discard pile after it resolves
             if (this.context.ability.isCardPlayed()) {
                 this.game.actions.moveCard({ destination: Location.BeingPlayed }).resolve(this.context.source, this.context);

@@ -117,14 +117,13 @@ export class TriggeredAbilityWindow extends BaseStep {
             return false;
         }
 
-        this.resolveAbilityOrPass(abilitiesToResolve[0]);
+        this.resolveAbility(abilitiesToResolve[0]);
         return false;
     }
 
-    protected resolveAbilityOrPass(context: TriggeredAbilityContext) {
+    protected resolveAbility(context: TriggeredAbilityContext) {
         const resolver = this.game.resolveAbility(context);
         this.game.queueSimpleStep(() => {
-            // TODO: need to add 'optional' status and figure out how passPriority works
             if (resolver.passPriority) {
                 this.postResolutionUpdate(resolver);
             }
@@ -157,7 +156,7 @@ export class TriggeredAbilityWindow extends BaseStep {
 
         this.game.promptForSelect(this.currentlyResolvingPlayer, Object.assign(this.getPromptForSelectProperties(), {
             onSelect: (player, card) => {
-                this.resolveAbilityOrPass(abilitiesToResolve.find((context) => context.source === card));
+                this.resolveAbility(abilitiesToResolve.find((context) => context.source === card));
                 return true;
             }
         }));

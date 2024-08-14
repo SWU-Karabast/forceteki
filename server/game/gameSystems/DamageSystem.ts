@@ -9,6 +9,9 @@ export interface IDamageProperties extends ICardTargetSystemProperties {
     isCombatDamage?: boolean;
 }
 
+// TODO: for this and the heal system, need to figure out how to handle the situation where 0 damage
+// is dealt / healed. Since the card is technically still a legal target but no damage was technically
+// dealth / healed per the rules (SWU 31.3)
 export class DamageSystem extends CardTargetSystem<IDamageProperties> {
     override name = 'damage';
     override eventName = EventName.OnDamageDealt;
