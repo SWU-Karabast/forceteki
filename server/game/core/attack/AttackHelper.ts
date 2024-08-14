@@ -2,6 +2,7 @@ import AbilityDsl from '../../AbilityDsl';
 import CardAbilityStep from '../ability/CardAbilityStep';
 import { Location, CardType, EffectName, RelativePlayer } from '../Constants';
 import { IInitiateAttack } from '../../Interfaces';
+import { isArena, isAttackableLocation } from '../utils/EnumHelpers';
 
 export const addInitiateAttackProperties = (properties) => {
     if (!properties.initiateAttack) {
@@ -44,7 +45,6 @@ const checkAttackerCondition = (card, context, properties) => {
 
 const getBaselineAttackTargetProperties = (attacker, properties) => {
     const props = {
-        cardType: CardType.Unit,
         player: (context) => {
             const opponentChoosesAttackTarget = getProperty(properties, context, 'opponentChoosesAttackTarget');
             return opponentChoosesAttackTarget ? RelativePlayer.Opponent : RelativePlayer.Self;
@@ -62,7 +62,7 @@ const getBaselineAttackTargetProperties = (attacker, properties) => {
 
             // default target condition
             if (!targetCondition) {
-                return card.location === attackerCard.location;
+                return isAttackableLocation(card.location) && (card.location === attackerCard.location || card.location === Location.Base);
             }
 
             return targetCondition(card, context);

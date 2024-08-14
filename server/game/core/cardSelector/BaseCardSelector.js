@@ -19,7 +19,7 @@ class BaseCardSelector {
     }
 
     buildLocation(property) {
-        let location = property || WildcardLocation.AnyArena || [];
+        let location = property || WildcardLocation.AnyAttackable || [];
         if (!Array.isArray(location)) {
             location = [location];
         }
@@ -64,6 +64,9 @@ class BaseCardSelector {
     getCardsForPlayerLocation(location, player, upgrades) {
         var cards;
         switch (location) {
+            case WildcardLocation.Any:
+                // TODO: is this ever a case we should have? this would allow targeting deck, discard, etc.
+                throw Error('WildcardLocation.Any is currently not supported for card selectors');
             case WildcardLocation.AnyArena:
                 cards = player.getCardsInPlay().toArray();
                 break;
@@ -124,7 +127,7 @@ class BaseCardSelector {
         return this.findPossibleCards(context).filter((card) => this.canTarget(card, context, choosingPlayer));
     }
 
-    // eslint-disable-next-line no-unused-vars
+
     hasEnoughSelected(selectedCards, context) {
         return this.optional || selectedCards.length > 0;
     }
@@ -133,27 +136,27 @@ class BaseCardSelector {
         return this.findPossibleCards(context).some((card) => this.canTarget(card, context, choosingPlayer));
     }
 
-    // eslint-disable-next-line no-unused-vars
+
     defaultActivePromptTitle(context) {
         return 'Choose cards';
     }
 
-    // eslint-disable-next-line no-unused-vars
+
     automaticFireOnSelect(context) {
         return false;
     }
 
-    // eslint-disable-next-line no-unused-vars
+
     wouldExceedLimit(selectedCards, card) {
         return false;
     }
 
-    // eslint-disable-next-line no-unused-vars
+
     hasReachedLimit(selectedCards, context) {
         return false;
     }
 
-    // eslint-disable-next-line no-unused-vars
+
     hasExceededLimit(selectedCards, context) {
         return false;
     }

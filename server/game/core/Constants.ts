@@ -15,6 +15,8 @@ export enum Location {
 export enum WildcardLocation {
     Any = 'any',
     AnyArena = 'any arena',
+
+    // TODO: better name for this?
     AnyAttackable = 'any attackable'
 }
 
