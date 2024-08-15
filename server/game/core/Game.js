@@ -911,7 +911,7 @@ class Game extends EventEmitter {
     //         const gameActionFactory = GameSystems[action];
     //         if (typeof gameActionFactory === 'function') {
     //             const gameSystem = gameActionFactory({ target: cards });
-    //             array.push(...gameSystem.generateEvents(context));
+    //             array.push(...gameSystem.generateEventsForAllTargets(context));
     //         }
     //         return array;
     //     }, []);

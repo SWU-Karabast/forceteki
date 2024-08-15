@@ -1119,7 +1119,7 @@ class Player extends GameObject {
         }
 
         // TODO: does this get resolved in the right place in the attack process?
-        this.game.openEventWindow(GameSystems.defeat().getEvent(card, this.game.getFrameworkContext()));
+        this.game.openEventWindow(GameSystems.defeat().generateEvent(card, this.game.getFrameworkContext()));
     }
 
     /**

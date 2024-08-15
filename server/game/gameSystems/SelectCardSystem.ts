@@ -90,7 +90,7 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     // TODO: this was previously accepting an event input and using it in the in 'OnSelect' method. not sure if changing that change broke anything
-    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
             return [];
@@ -120,7 +120,7 @@ export class SelectCardSystem extends CardTargetSystem {
                 if (properties.message) {
                     context.game.addMessage(properties.message, ...properties.messageArgs(cards, player, properties));
                 }
-                const events = properties.innerSystem.generateEvents(
+                const events = properties.innerSystem.generateEventsForAllTargets(
                     context,
                     Object.assign({ parentAction: this }, additionalProperties, properties.innerSystemProperties(cards))
                 );

@@ -72,7 +72,7 @@ export class PlayUnitAction extends PlayerAction {
         context.game.openEventWindow([
             putIntoPlay({
                 controller: player
-            }).getEvent(context.source, context),
+            }).generateEvent(context.source, context),
             cardPlayedEvent
         ]);
     }

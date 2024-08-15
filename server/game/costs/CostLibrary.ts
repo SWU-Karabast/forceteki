@@ -284,7 +284,7 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //         },
 //         payEvent(context: TriggeredAbilityContext) {
 //             const action = context.game.actions.loseHonor({ amount: context.costs.variableHonorCost });
-//             return action.getEvent(context.player, context);
+//             return action.generateEvent(context.player, context);
 //         }
 //     };
 // }
@@ -350,17 +350,17 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //         payEvent(context: TriggeredAbilityContext) {
 //             const payZeroFate = new HandlerAction({});
 //             if ((context as any).ignoreResourceCost) {
-//                 return payZeroFate.getEvent(context.player, context);
+//                 return payZeroFate.generateEvent(context.player, context);
 //             }
 
 //             const costModifiers = context.player.getTotalCostModifiers(PlayType.PlayFromHand, context.source);
 //             const cost = context.costs.variableFateCost + Math.min(0, costModifiers); //+ve cost modifiers are applied by the engine
 //             if (cost > 0) {
 //                 const action = context.game.actions.loseFate({ amount: cost });
-//                 return action.getEvent(context.player, context);
+//                 return action.generateEvent(context.player, context);
 //             }
 
-//             return payZeroFate.getEvent(context.player, context);
+//             return payZeroFate.generateEvent(context.player, context);
 //         }
 //     };
 // }
@@ -401,7 +401,7 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //         },
 //         payEvent(context: TriggeredAbilityContext) {
 //             const action = context.game.actions.discardCard({ target: context.costs.discardCardsExactlyVariableX });
-//             return action.getEvent(context.costs.discardCardsExactlyVariableX, context);
+//             return action.generateEvent(context.costs.discardCardsExactlyVariableX, context);
 //         }
 //     };
 // }
@@ -417,7 +417,7 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //         },
 //         payEvent(context: TriggeredAbilityContext) {
 //             const action = context.game.actions.discardCard({ target: context.costs.discardHand });
-//             return action.getEvent(context.costs.discardHand, context);
+//             return action.generateEvent(context.costs.discardHand, context);
 //         }
 //     };
 // }
@@ -466,10 +466,10 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //             const actionName = getActionName(context);
 //             if (!context.costs[actionName]) {
 //                 const doNothing = new ExecuteHandlerSystem({});
-//                 return doNothing.getEvent(context.player, context);
+//                 return doNothing.generateEvent(context.player, context);
 //             }
 
-//             return cost.generateEvents(context, {});
+//             return cost.generateEventsForAllTargets(context, {});
 //         }
 //     };
 // }
@@ -593,7 +593,7 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //             const action = context.source.isParticipating()
 //                 ? context.game.actions.sendHome({ target: context.costs.switchLocation })
 //                 : context.game.actions.moveToConflict({ target: context.costs.switchLocation });
-//             return action.getEvent(context.costs.switchLocation, context);
+//             return action.generateEvent(context.costs.switchLocation, context);
 //         }
 //     };
 // }

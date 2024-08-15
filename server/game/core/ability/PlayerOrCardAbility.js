@@ -137,8 +137,8 @@ class PlayerOrCardAbility {
         for (let cost of this.getCosts(context, results.playCosts, results.triggerCosts)) {
             context.game.queueSimpleStep(() => {
                 if (!results.cancelled) {
-                    if (cost.generateEvents) {
-                        results.events.push(...cost.generateEvents(context, results));
+                    if (cost.generateEventsForAllTargets) {
+                        results.events.push(...cost.generateEventsForAllTargets(context, results));
                     } else {
                         if (cost.resolve) {
                             cost.resolve(context, results);

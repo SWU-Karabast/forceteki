@@ -23,9 +23,9 @@ export class GameActionCost implements ICost {
         return this.gameSystem.hasLegalTarget(context);
     }
 
-    generateEvents(context: AbilityContext, result: Result): Event[] {
+    generateEventsForAllTargets(context: AbilityContext, result: Result): Event[] {
         context.costs[this.gameSystem.name] = this.gameSystem.generatePropertiesFromContext(context).target;
-        return this.gameSystem.generateEvents(context);
+        return this.gameSystem.generateEventsForAllTargets(context);
     }
 
     getCostMessage(context: AbilityContext): [string, any[]] {

@@ -48,10 +48,10 @@ export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
         return properties.effect.length > 0;
     }
 
-    override generateEvents(context: AbilityContext, additionalProperties: any): Event[] {
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties: any): Event[] {
         const events: Event[] = [];
         if (this.hasLegalTarget(context, additionalProperties)) {
-            events.push(this.getEvent(null, context, additionalProperties));
+            events.push(this.generateEvent(null, context, additionalProperties));
         }
         return events;
     }

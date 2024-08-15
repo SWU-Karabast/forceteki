@@ -173,22 +173,31 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     }
 
     /**
-     * Generates a list of {@link Event} objects that will apply the effects of this system to the game state.
+     * Generates a list of {@link Event} objects that will apply the effects of this system to the game state
+     * by generating one event per target in `context.targets`.
      * The events must be emitted using an {@link EventWindow}, typically via {@link Game.openEventWindow}.
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
+    generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
         const events: Event[] = [];
         for (const target of this.targets(context, additionalProperties)) {
             if (this.canAffect(target, context, additionalProperties)) {
-                events.push(this.getEvent(target, context, additionalProperties));
+                events.push(this.generateEvent(target, context, additionalProperties));
             }
         }
         return events;
     }
 
-    getEvent(target: any, context: AbilityContext, additionalProperties = {}): Event {
+    /**
+     * Generates one {@link Event} object that will apply the effects of this system to the game state
+     * for the specified target.
+     * The event must be emitted using an {@link EventWindow}, typically via {@link Game.openEventWindow}.
+     * @param target Target to apply the system's effects to
+     * @param context Context of ability being executed
+     * @param additionalProperties Any additional properties to extend the default ones with
+     */
+    generateEvent(target: any, context: AbilityContext, additionalProperties = {}): Event {
         const event = this.createEvent(target, context, additionalProperties);
         this.updateEvent(event, target, context, additionalProperties);
         return event;
@@ -216,7 +225,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         if (target) {
             this.setDefaultTargetFn(() => target);
         }
-        const events = this.generateEvents(context);
+        const events = this.generateEventsForAllTargets(context);
         context.game.queueSimpleStep(() => context.game.openEventWindow(events));
     }
 

@@ -43,7 +43,7 @@ export class InitiateAttackAction extends PlayerAction {
         context.game.openEventWindow([
             attack({
                 attacker: context.source
-            }).getEvent(context.target, context)
+            }).generateEvent(context.target, context)
         ]);
     }
 }

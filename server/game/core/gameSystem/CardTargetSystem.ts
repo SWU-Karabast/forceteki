@@ -35,7 +35,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return super.canAffect(target, context, additionalProperties);
     }
 
-    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
         const events: Event[] = [];
 
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
@@ -117,12 +117,12 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
                 }
                 context.game.queueSimpleStep(() => {
                     if (allCostsPaid) {
-                        events.push(this.getEvent(card, context, additionalProperties));
+                        events.push(this.generateEvent(card, context, additionalProperties));
                     }
                 });
             } else {
                 if (allCostsPaid) {
-                    events.push(this.getEvent(card, context, additionalProperties));
+                    events.push(this.generateEvent(card, context, additionalProperties));
                 }
             }
         }
@@ -166,7 +166,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
             //     if (attachment.location === Location.PlayArea) {
             //         let attachmentEvent = context.game.actions
             //             .discardFromPlay()
-            //             .getEvent(attachment, context.game.getFrameworkContext());
+            //             .generateEvent(attachment, context.game.getFrameworkContext());
             //         attachmentEvent.order = event.order - 1;
             //         let previousCondition = attachmentEvent.condition;
             //         attachmentEvent.condition = (attachmentEvent) =>

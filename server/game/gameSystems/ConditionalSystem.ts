@@ -38,8 +38,8 @@ export class ConditionalSystem extends GameSystem<IConditionalSystemProperties> 
         return this.getGameAction(context, additionalProperties).hasLegalTarget(context, additionalProperties);
     }
 
-    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
-        return this.getGameAction(context, additionalProperties).generateEvents(context, additionalProperties);
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
+        return this.getGameAction(context, additionalProperties).generateEventsForAllTargets(context, additionalProperties);
     }
 
     // UP NEXT: some GameSystem subclasses just generate events but don't themselves have eventHandlers, do we need to specialize for that case?

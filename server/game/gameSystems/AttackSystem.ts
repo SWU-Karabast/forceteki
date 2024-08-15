@@ -85,11 +85,11 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
     resolveAttack(attack: Attack, context: AbilityContext): void {
         // event for damage dealt to target by attacker
-        const damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).getEvent(attack.target, context)];
+        const damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).generateEvent(attack.target, context)];
 
         // event for damage dealt to attacker by defender, if any
         if (!attack.targetIsBase) {
-            damageEvents.push(damage({ amount: attack.defenderTotalPower, isCombatDamage: true }).getEvent(attack.attacker, context));
+            damageEvents.push(damage({ amount: attack.defenderTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
         }
 
         context.game.openEventWindow(damageEvents);
@@ -100,7 +100,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         properties.costHandler(context, prompt);
     }
 
-    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
         const { target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
@@ -189,7 +189,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             const effectProperties = typeof effect === 'function' ? effect(context, attack) : effect;
 
             const effectSystem = new LastingEffectCardSystem(effectProperties);
-            effectEvents.push(...effectSystem.generateEvents(context));
+            effectEvents.push(...effectSystem.generateEventsForAllTargets(context));
         }
 
         // trigger events

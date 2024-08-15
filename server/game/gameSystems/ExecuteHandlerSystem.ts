@@ -27,8 +27,8 @@ export class ExecuteHandlerSystem extends GameSystem {
         return true;
     }
 
-    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
-        return [this.getEvent(null, context, additionalProperties)];
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
+        return [this.generateEvent(null, context, additionalProperties)];
     }
 
     eventHandler(event, additionalProperties = {}): void {
