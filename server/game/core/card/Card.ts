@@ -34,7 +34,7 @@ import Player from '../Player.js';
 import StatsModifierWrapper from '../effect/effectImpl/StatsModifierWrapper.js';
 import type { ICardEffect } from '../effect/ICardEffect.js';
 import { PlayUnitAction } from '../../actions/PlayUnitAction.js';
-import { TriggerAttackAction } from '../../actions/TriggerAttackAction.js';
+import { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
 import TriggeredAbility from '../ability/TriggeredAbility.js';
 import { IConstantAbility } from '../effect/IConstantAbility.js';
 import PlayerAction from '../ability/PlayerAction.js';
@@ -74,7 +74,7 @@ const ValidKeywords = new Set<PrintedKeyword>([
 ]);
 
 interface ICardAbilities {
-    // TODO: maybe rethink some of the inheritance tree (specifically for TriggerAttackAction) so that this can be more specific
+    // TODO: maybe rethink some of the inheritance tree (specifically for InitiateAttackAction) so that this can be more specific
     action: any[];
     triggered: TriggeredAbility[];
     constant: IConstantAbility[];
@@ -273,7 +273,7 @@ class Card extends EffectSource {
         // }
 
         if (this.type === CardType.Unit) {
-            allAbilities.push(new TriggerAttackAction(this));
+            allAbilities.push(new InitiateAttackAction(this));
         }
 
         // TODO EVENT: this block prevents the PlayCardAction from being generated for event cards
