@@ -10,7 +10,7 @@ import type { Event } from './core/event/Event';
 
 interface IBaseTarget {
     activePromptTitle?: string;
-    location?: LocationFilter | LocationFilter[];
+    locationFilter?: LocationFilter | LocationFilter[];
     controller?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     player?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
@@ -43,7 +43,7 @@ export interface IInitiateAttack extends IAttackProperties {
 // interface TargetToken extends BaseTarget {
 //     mode: TargetMode.Token;
 //     optional?: boolean;
-//     location?: Location | Location[];
+//     locationFilter?: Location | Location[];
 //     cardType?: CardType | CardType[];
 //     singleToken?: boolean;
 //     cardCondition?: (card: BaseCard, context?: AbilityContext) => boolean;
@@ -52,7 +52,7 @@ export interface IInitiateAttack extends IAttackProperties {
 
 interface IBaseTargetCard extends IBaseTarget {
     cardType?: CardType | CardType[];
-    location?: Location | Location[];
+    locationFilter?: Location | Location[];
     optional?: boolean;
 }
 
@@ -108,7 +108,7 @@ type EffectArg =
 
 interface IAbilityProps<Context> {
     title: string;
-    location?: Location | Location[];
+    locationFilter?: Location | Location[];
     cost?: any;
     limit?: any;
     max?: any;

@@ -14,7 +14,7 @@ export class InitiateAttackAction extends PlayerAction {
     public constructor(card: Card) {
         super(card, [exhaustSelf()], {
             gameSystem: attack({ attacker: card }),
-            location: WildcardLocation.AnyAttackable,
+            locationFilter: WildcardLocation.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });
     }

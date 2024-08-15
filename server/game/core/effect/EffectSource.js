@@ -44,7 +44,7 @@ class EffectSource extends GameObject {
      * @returns {Effect[]} the effect(s) that were added to the engine
      */
     addEffectToEngine(properties) {
-        if (!Contract.assertFalse('location' in properties, `Attempting to create an effect with the \'location\' property, instead should be using the 'locationFilter' property. Object: ${properties}`)) {
+        if (!Contract.assertFalse('location' in properties, 'Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property.')) {
             // just to catch any accidental use of the 'location' property we missed when doing the refactor to naming 'locationFilter'
             throw Error('Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property');
         }

@@ -1,14 +1,21 @@
 const { Location, RelativePlayer, WildcardLocation } = require('../Constants');
+const { default: Contract } = require('../utils/Contract');
 const { cardLocationMatches } = require('../utils/EnumHelpers');
 const _ = require('underscore');
 
 // TODO: once converted to TS, make this abstract
 class BaseCardSelector {
     constructor(properties) {
+        // TODO: remove this once we feel confident we've finished the rename pass successfully
+        if (!Contract.assertFalse('location' in properties, 'Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property')) {
+            // just to catch any accidental use of the 'location' property we missed when doing the refactor to naming 'locationFilter'
+            throw Error('Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property');
+        }
+
         this.cardCondition = properties.cardCondition;
         this.cardType = properties.cardType;
         this.optional = properties.optional;
-        this.location = this.buildLocation(properties.location);
+        this.locationFilter = this.buildLocationFilter(properties.locationFilter);
         this.controller = properties.controller || RelativePlayer.Any;
         this.checkTarget = !!properties.targets;
         this.sameDiscardPile = !!properties.sameDiscardPile;
@@ -18,12 +25,12 @@ class BaseCardSelector {
         }
     }
 
-    buildLocation(property) {
-        let location = property || WildcardLocation.AnyAttackable || [];
-        if (!Array.isArray(location)) {
-            location = [location];
+    buildLocationFilter(property) {
+        let locationFilter = property || WildcardLocation.AnyAttackable || [];
+        if (!Array.isArray(locationFilter)) {
+            locationFilter = [locationFilter];
         }
-        return location;
+        return locationFilter;
     }
 
     findPossibleCards(context) {
@@ -32,7 +39,7 @@ class BaseCardSelector {
             controllerProp = controllerProp(context);
         }
 
-        if (this.location.includes(WildcardLocation.Any)) {
+        if (this.locationFilter.includes(WildcardLocation.Any)) {
             if (controllerProp === RelativePlayer.Self) {
                 return context.game.allCards.filter((card) => card.controller === context.player);
             } else if (controllerProp === RelativePlayer.Opponent) {
@@ -49,19 +56,19 @@ class BaseCardSelector {
 
         let possibleCards = [];
         if (controllerProp !== RelativePlayer.Opponent) {
-            possibleCards = this.location.reduce(
-                (array, location) => array.concat(this.getCardsForPlayerLocation(location, context.player, upgradesInPlay)), possibleCards
+            possibleCards = this.locationFilter.reduce(
+                (array, locationFilter) => array.concat(this.getCardsForPlayerLocations(locationFilter, context.player, upgradesInPlay)), possibleCards
             );
         }
         if (controllerProp !== RelativePlayer.Self && context.player.opponent) {
-            possibleCards = this.location.reduce(
-                (array, location) => array.concat(this.getCardsForPlayerLocation(location, context.player.opponent, upgradesInPlay)), possibleCards
+            possibleCards = this.locationFilter.reduce(
+                (array, locationFilter) => array.concat(this.getCardsForPlayerLocations(locationFilter, context.player.opponent, upgradesInPlay)), possibleCards
             );
         }
         return possibleCards;
     }
 
-    getCardsForPlayerLocation(location, player, upgrades) {
+    getCardsForPlayerLocations(location, player, upgrades) {
         var cards;
         switch (location) {
             case WildcardLocation.Any:
@@ -114,7 +121,7 @@ class BaseCardSelector {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!cardLocationMatches(card.location, this.location)) {
+        if (!cardLocationMatches(card.location, this.locationFilter)) {
             return false;
         }
         if (card.location === Location.Hand && card.controller !== choosingPlayer) {

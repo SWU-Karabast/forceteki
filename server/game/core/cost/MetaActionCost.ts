@@ -23,7 +23,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         const additionalProps = {
             controller: RelativePlayer.Self,
-            location: properties.location || WildcardLocation.Any
+            locationFilter: properties.locationFilter || WildcardLocation.Any
         };
         return this.gameSystem.hasLegalTarget(context, additionalProps);
     }
@@ -43,7 +43,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
 
         const additionalProps = {
             activePromptTitle: this.activePromptTitle,
-            location: properties.location || WildcardLocation.Any,
+            location: properties.locationFilter || WildcardLocation.Any,
             controller: RelativePlayer.Self,
             cancelHandler: !result.canCancel ? null : () => (result.cancelled = true),
             subActionProperties: (target: any) => {

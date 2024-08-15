@@ -12,7 +12,7 @@ export interface ISelectCardProperties extends ICardTargetSystemProperties {
     player?: RelativePlayer;
     cardType?: CardType | CardType[];
     controller?: RelativePlayer;
-    location?: Location | Location[];
+    locationFilter?: Location | Location[];
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
     targets?: boolean;
     message?: string;

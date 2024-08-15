@@ -16,7 +16,7 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
             target: {
                 // UP NEXT: add a contract check if location and cardType are mutually exclusive
                 cardType: CardType.Base,
-                location: Location.Base,
+                locationFilter: Location.Base,
                 controller: RelativePlayer.Self,
                 gameSystem: AbilityDsl.immediateEffects.heal({ amount: 1 })
             }
