@@ -58,7 +58,7 @@ class Game extends EventEmitter {
         this.currentAttack = null;
         this.manualMode = false;
         this.gameMode = details.gameMode;
-        this.currentPhase = '';
+        this.currentPhase = null;
         this.password = details.password;
         this.roundNumber = 0;
         this.initialFirstPlayer = null;

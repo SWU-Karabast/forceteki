@@ -2,7 +2,7 @@ const AbilityLimit = require('./AbilityLimit.js');
 const AbilityDsl = require('../../AbilityDsl.js');
 const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
-const { Location, CardType, EffectName, WildcardLocation, AbilityType } = require('../Constants.js');
+const { Location, CardType, EffectName, WildcardLocation, AbilityType, PhaseName } = require('../Constants.js');
 const { cardLocationMatches } = require('../utils/EnumHelpers.js');
 const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
 
@@ -51,7 +51,6 @@ class CardAbility extends CardAbilityStep {
             base: Location.Base,
         };
 
-        // TODO: make this not have to be an array (was this way for provinces)
         let defaultedLocation = [location || DefaultLocationForType[card.getType()] || WildcardLocation.AnyArena];
 
         return defaultedLocation;
@@ -82,12 +81,12 @@ class CardAbility extends CardAbilityStep {
             return 'max';
         }
 
+        // TODO: enum for ignoredRequirements strings?
+        // TODO: is this phase ability check correct for SWU? not sure about constant abilities during regroup phase
         if (
             !ignoredRequirements.includes('phase') &&
             !this.isKeywordAbility() &&
-            this.card.isDynasty &&  // TODO: remove the dynasty stuff here
-            this.card.type === CardType.Event &&
-            context.game.currentPhase !== 'dynasty'
+            context.game.currentPhase !== PhaseName.Action
         ) {
             return 'phase';
         }

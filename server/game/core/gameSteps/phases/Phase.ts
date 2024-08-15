@@ -43,6 +43,6 @@ export abstract class Phase extends BaseStepWithPipeline {
         if (!skipEventWindow) {
             this.game.createEventAndOpenWindow(EventName.OnPhaseEnded, { phase: this.name });
         }
-        this.game.currentPhase = '';
+        this.game.currentPhase = null;
     }
 }
