@@ -203,14 +203,21 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         return event;
     }
 
-    updateEvent(event: Event, target: any, context: AbilityContext, additionalProperties = {}): void {
+    /**
+     * Writes the important properties of this system onto the passed event object. Only used internally by
+     * systems during event generation.
+     */
+    protected updateEvent(event: Event, target: any, context: AbilityContext, additionalProperties = {}): void {
         event.name = this.eventName;
         this.addPropertiesToEvent(event, target, context, additionalProperties);
         event.replaceHandler((event) => this.eventHandler(event, additionalProperties));
         event.condition = () => this.checkEventCondition(event, additionalProperties);
     }
 
-    createEvent(target: any, context: AbilityContext, additionalProperties): Event {
+    /**
+     * Create a very basic blank event object. Important properties must be added via {@link GameSystem.updateEvent}.
+     */
+    protected createEvent(target: any, context: AbilityContext, additionalProperties): Event {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
         const event = new Event(EventName.Unnamed, { cannotBeCancelled });
         event.checkFullyResolved = (eventAtResolution) =>
@@ -218,6 +225,10 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         return event;
     }
 
+    /**
+     * Resolves the effects of the effects of the system on game state by generating the necessary events and
+     * opening a window to resolve them with {@link Game.openEventWindow}.
+     */
     resolve(
         target: undefined | PlayerOrCard | PlayerOrCard[],
         context: AbilityContext
