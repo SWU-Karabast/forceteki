@@ -25,7 +25,7 @@ export interface ICost {
     getActionName?(context: AbilityContext): string;
     getCostMessage?(context: AbilityContext): unknown[];
     hasTargetsChosenByInitiatingPlayer?(context: AbilityContext): boolean;
-    addEventsToArray?(events: any[], context: AbilityContext, result?: Result): void;
+    generateEvents?(context: AbilityContext, result?: Result): Event[];
     resolve?(context: AbilityContext, result: Result): void;
     payEvent?(context: TriggeredAbilityContext): Event | Event[];
     pay?(context: TriggeredAbilityContext): void;

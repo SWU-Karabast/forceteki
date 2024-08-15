@@ -469,9 +469,7 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //                 return doNothing.getEvent(context.player, context);
 //             }
 
-//             const events = [];
-//             cost.addEventsToArray(events, context, {});
-//             return events;
+//             return cost.generateEvents(context, {});
 //         }
 //     };
 // }

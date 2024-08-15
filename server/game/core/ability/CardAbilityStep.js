@@ -81,7 +81,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
         for (const action of actions) {
             this.game.queueSimpleStep(() => {
-                action.addEventsToArray(context.events, context);
+                context.events.push(...action.generateEvents(context));
             });
         }
         this.game.queueSimpleStep(() => {

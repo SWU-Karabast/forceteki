@@ -5,6 +5,7 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
 import { randomItem } from '../utils/Helpers';
 import { GameActionCost } from './GameActionCost';
+import { Event } from '../event/Event';
 
 export class MetaActionCost extends GameActionCost implements ICost {
     constructor(
@@ -28,7 +29,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
         return this.gameSystem.hasLegalTarget(context, additionalProps);
     }
 
-    override addEventsToArray(events: any[], context: AbilityContext, result: Result): void {
+    override generateEvents(context: AbilityContext, result: Result): Event[] {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.targets && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
@@ -36,7 +37,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
             );
             context.costs[properties.innerSystem.name + 'StateWhenChosen'] =
                 context.costs[properties.innerSystem.name].createSnapshot();
-            return properties.innerSystem.addEventsToArray(events, context, {
+            return properties.innerSystem.generateEvents(context, {
                 target: context.costs[properties.innerSystem.name]
             });
         }
@@ -54,7 +55,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
                 return properties.innerSystemProperties ? properties.innerSystemProperties(target) : {};
             }
         };
-        this.gameSystem.addEventsToArray(events, context, additionalProps);
+        return this.gameSystem.generateEvents(context, additionalProps);
     }
 
     hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {

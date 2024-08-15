@@ -74,8 +74,7 @@ export class EffectEngine {
                         }
                         this.game.addMessage(properties.message, ...messageArgs);
                     }
-                    const actionEvents = [];
-                    properties.gameAction.addEventsToArray(actionEvents, context);
+                    const actionEvents = properties.gameAction.generateEvents(context);
                     this.game.queueSimpleStep(() => this.game.openAdditionalAbilityStepEventWindow(actionEvents));  // TODO: why is it using this window type?
                     this.game.queueSimpleStep(() => context.refill());
                 }

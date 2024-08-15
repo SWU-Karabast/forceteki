@@ -8,6 +8,7 @@ export interface IConditionalSystemProperties extends IGameSystemProperties {
     falseGameAction: GameSystem;
 }
 
+/** @deprecated This was brought from L5R but has not yet been tested */
 export class ConditionalSystem extends GameSystem<IConditionalSystemProperties> {
     override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IConditionalSystemProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
@@ -37,11 +38,11 @@ export class ConditionalSystem extends GameSystem<IConditionalSystemProperties> 
         return this.getGameAction(context, additionalProperties).hasLegalTarget(context, additionalProperties);
     }
 
-    // UP NEXT: should there be two different types of GameSystem? ones that have handlers and ones that add to array?
-    override addEventsToArray(events: Event[], context: AbilityContext, additionalProperties = {}): void {
-        this.getGameAction(context, additionalProperties).addEventsToArray(events, context, additionalProperties);
+    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
+        return this.getGameAction(context, additionalProperties).generateEvents(context, additionalProperties);
     }
 
+    // UP NEXT: some GameSystem subclasses just generate events but don't themselves have eventHandlers, do we need to specialize for that case?
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     eventHandler(target) {}
 

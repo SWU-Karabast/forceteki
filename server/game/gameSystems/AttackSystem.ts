@@ -9,7 +9,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import { damage } from './GameSystemLibrary.js';
 import type Card from '../core/card/Card';
 import { isArray } from 'underscore';
-import Effect from '../core/effect/Effect';
+import { Event } from '../core/event/Event';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
@@ -100,8 +100,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         properties.costHandler(context, prompt);
     }
 
-    // TODO: change form from this to 'generateEvents' for clarity
-    override addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
+    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
         const { target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
@@ -109,13 +108,13 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         const cards = (target as Card[]).filter((card) => this.canAffect(card, context));
         if (cards.length !== 1) {
-            return;
+            return [];
         }
 
         const event = this.createEvent(null, context, additionalProperties);
         this.updateEvent(event, cards, context, additionalProperties);
 
-        events.push(event);
+        return [event];
     }
 
     override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
@@ -190,7 +189,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             const effectProperties = typeof effect === 'function' ? effect(context, attack) : effect;
 
             const effectSystem = new LastingEffectCardSystem(effectProperties);
-            effectSystem.addEventsToArray(effectEvents, context);
+            effectEvents.push(...effectSystem.generateEvents(context));
         }
 
         // trigger events

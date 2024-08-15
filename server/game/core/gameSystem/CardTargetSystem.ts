@@ -2,6 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
 import { CardType, EffectName, Location } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
+import { Event } from '../event/Event';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -34,7 +35,9 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return super.canAffect(target, context, additionalProperties);
     }
 
-    override addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
+    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
+        const events: Event[] = [];
+
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         for (const card of target as Card[]) {
             let allCostsPaid = true;
@@ -123,6 +126,8 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
                 }
             }
         }
+
+        return events;
     }
 
     override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties = {}): void {

@@ -6,6 +6,7 @@ import { CardType, EffectName, Location, RelativePlayer, TargetMode } from '../c
 import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
+import type { Event } from '../core/event/Event';
 
 export interface ISelectCardProperties extends ICardTargetSystemProperties {
     activePromptTitle?: string;
@@ -88,10 +89,11 @@ export class SelectCardSystem extends CardTargetSystem {
         return properties.selector.hasEnoughTargets(context, player);
     }
 
-    override addEventsToArray(events, context: AbilityContext, additionalProperties = {}): void {
+    // TODO: this was previously accepting an event input and using it in the in 'OnSelect' method. not sure if changing that change broke anything
+    override generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
-            return;
+            return [];
         }
         let player = properties.player === RelativePlayer.Opponent ? context.player.opponent : context.player;
         let mustSelect = [];
@@ -106,7 +108,7 @@ export class SelectCardSystem extends CardTargetSystem {
                 );
         }
         if (!properties.selector.hasEnoughTargets(context, player)) {
-            return;
+            return [];
         }
         const defaultProperties = {
             context: context,
@@ -118,8 +120,7 @@ export class SelectCardSystem extends CardTargetSystem {
                 if (properties.message) {
                     context.game.addMessage(properties.message, ...properties.messageArgs(cards, player, properties));
                 }
-                properties.innerSystem.addEventsToArray(
-                    events,
+                const events = properties.innerSystem.generateEvents(
                     context,
                     Object.assign({ parentAction: this }, additionalProperties, properties.innerSystemProperties(cards))
                 );
@@ -134,10 +135,11 @@ export class SelectCardSystem extends CardTargetSystem {
             const cards = properties.selector.getAllLegalTargets(context);
             if (cards.length === 1) {
                 finalProperties.onSelect(player, cards[0]);
-                return;
+                return [];
             }
         }
         context.game.promptForSelect(player, finalProperties);
+        return [];
     }
 
     override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {

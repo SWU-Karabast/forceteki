@@ -4,6 +4,7 @@ import { CardType, EventName, Stage } from '../Constants';
 import { Event } from '../event/Event';
 import type Player from '../Player';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type Game from '../Game';
 
 type PlayerOrCard = Player | Card;
 
@@ -171,12 +172,20 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         return true;
     }
 
-    addEventsToArray(events: Event[], context: AbilityContext, additionalProperties = {}): void {
+    /**
+     * Generates a list of {@link Event} objects that will apply the effects of this system to the game state.
+     * The events must be emitted using an {@link EventWindow}, typically via {@link Game.openEventWindow}.
+     * @param context Context of ability being executed
+     * @param additionalProperties Any additional properties to extend the default ones with
+     */
+    generateEvents(context: AbilityContext, additionalProperties = {}): Event[] {
+        const events: Event[] = [];
         for (const target of this.targets(context, additionalProperties)) {
             if (this.canAffect(target, context, additionalProperties)) {
                 events.push(this.getEvent(target, context, additionalProperties));
             }
         }
+        return events;
     }
 
     getEvent(target: any, context: AbilityContext, additionalProperties = {}): Event {
@@ -207,15 +216,8 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         if (target) {
             this.setDefaultTargetFn(() => target);
         }
-        const events = [];
-        this.addEventsToArray(events, context);
+        const events = this.generateEvents(context);
         context.game.queueSimpleStep(() => context.game.openEventWindow(events));
-    }
-
-    getEventArray(context: AbilityContext, additionalProperties = {}): Event[] {
-        const events = [];
-        this.addEventsToArray(events, context, additionalProperties);
-        return events;
     }
 
     addPropertiesToEvent(event: any, target: any, context: AbilityContext, additionalProperties = {}): void {
