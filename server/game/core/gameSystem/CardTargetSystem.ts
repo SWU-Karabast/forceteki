@@ -39,7 +39,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         for (const card of target as Card[]) {
             let allCostsPaid = true;
             const additionalCosts = card
-                .getEffects(EffectName.UnlessActionCost)
+                .getEffectValues(EffectName.UnlessActionCost)
                 .filter((properties) => properties.actionName === this.name);
 
             if (context.player && context.ability && context.ability.targets && context.ability.targets.length > 0) {

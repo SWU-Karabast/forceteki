@@ -40,18 +40,18 @@ export abstract class GameObject {
     }
 
     // UP NEXT: rename to getEffectValues
-    public getEffects<V = any>(type: EffectName): V[] {
-        const filteredEffects = this.getRawEffects().filter((effect) => effect.type === type);
+    public getEffectValues<V = any>(type: EffectName): V[] {
+        const filteredEffects = this.getEffects().filter((effect) => effect.type === type);
         return filteredEffects.map((effect) => effect.getValue(this));
     }
 
     public sumEffects(type: EffectName) {
-        const filteredEffects = this.getEffects(type);
+        const filteredEffects = this.getEffectValues(type);
         return filteredEffects.reduce((total, effect) => total + effect, 0);
     }
 
     public anyEffect(type: EffectName) {
-        return this.getEffects(type).length > 0;
+        return this.getEffectValues(type).length > 0;
     }
 
     public allowGameAction(actionType: string, context = this.game.getFrameworkContext()) {
@@ -68,7 +68,7 @@ export abstract class GameObject {
      * can be a value of {@link AbilityRestriction} or an arbitrary string such as a card name.
      */
     public hasRestriction(actionType: string, context?: AbilityContext) {
-        return this.getEffects(EffectName.AbilityRestrictions).some((restriction) =>
+        return this.getEffectValues(EffectName.AbilityRestrictions).some((restriction) =>
             restriction.isMatch(actionType, context, this)
         );
     }
@@ -126,12 +126,11 @@ export abstract class GameObject {
     }
 
     public mostRecentEffect(type: EffectName) {
-        const effects = this.getEffects(type);
+        const effects = this.getEffectValues(type);
         return effects[effects.length - 1];
     }
 
-    // UP NEXT: rename to getEffects (and current getEffects to getEffectValues)
-    protected getRawEffects() {
+    protected getEffects() {
         const suppressEffects = this.effects.filter((effect) => effect.type === EffectName.SuppressEffects);
         const suppressedEffects = suppressEffects.reduce((array, effect) => array.concat(effect.getValue(this)), []);
         return this.effects.filter((effect) => !suppressedEffects.includes(effect));

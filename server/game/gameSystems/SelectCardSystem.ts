@@ -101,7 +101,7 @@ export class SelectCardSystem extends CardTargetSystem {
                 .getAllLegalTargets(context, player)
                 .filter((card) =>
                     card
-                        .getEffects(EffectName.MustBeChosen)
+                        .getEffectValues(EffectName.MustBeChosen)
                         .some((restriction) => restriction.isMatch('target', context))
                 );
         }

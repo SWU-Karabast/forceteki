@@ -98,7 +98,7 @@ class AbilityTargetCard {
             }
         }
         let mustSelect = this.selector.getAllLegalTargets(context, player).filter((card) =>
-            card.getEffects(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
+            card.getEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
         let promptProperties = {
             waitingPromptTitle: waitingPromptTitle,

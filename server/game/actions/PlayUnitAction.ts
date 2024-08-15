@@ -67,7 +67,7 @@ export class PlayUnitAction extends PlayerAction {
             context.player,
             context.source,
         );
-        const effect = context.source.getEffects(EffectName.EntersPlayForOpponent);
+        const effect = context.source.getEffectValues(EffectName.EntersPlayForOpponent);
         const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
         context.game.openEventWindow([
             putIntoPlay({

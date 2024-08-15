@@ -375,7 +375,7 @@ class Player extends GameObject {
     //             (type) =>
     //                 types.includes(type) &&
     //                 this.getConflictOpportunities() > 0 &&
-    //                 !this.getEffects(EffectName.CannotDeclareConflictsOfType).includes(type)
+    //                 !this.getEffectValues(EffectName.CannotDeclareConflictsOfType).includes(type)
     //         );
     //     }
 
@@ -386,7 +386,7 @@ class Player extends GameObject {
     //     return types.filter(
     //         (type) =>
     //             this.getRemainingConflictOpportunitiesForType(type) > 0 &&
-    //             !this.getEffects(EffectName.CannotDeclareConflictsOfType).includes(type)
+    //             !this.getEffectValues(EffectName.CannotDeclareConflictsOfType).includes(type)
     //     );
     // }
 
@@ -398,7 +398,7 @@ class Player extends GameObject {
     //     let setConflictType = this.mostRecentEffect(EffectName.SetConflictDeclarationType);
     //     let forceConflictType = this.mostRecentEffect(EffectName.ForceConflictDeclarationType);
     //     const provideConflictDeclarationType = this.mostRecentEffect(EffectName.ProvideConflictDeclarationType);
-    //     const additionalConflictEffects = this.getEffects(EffectName.AdditionalConflict);
+    //     const additionalConflictEffects = this.getEffectValues(EffectName.AdditionalConflict);
     //     const additionalConflictsForType = additionalConflictEffects.filter((x) => x === type).length;
     //     let baselineAvailableConflicts =
     //         this.defaultAllowedConflicts[ConflictTypes.Military] +
@@ -445,7 +445,7 @@ class Player extends GameObject {
     //         }
     //         const availableAll =
     //             baselineAvailableConflicts +
-    //             this.getEffects(EffectName.AdditionalConflict).length -
+    //             this.getEffectValues(EffectName.AdditionalConflict).length -
     //             declaredConflictsOfOtherType;
     //         if (type === provideConflictDeclarationType) {
     //             return availableAll;
@@ -478,7 +478,7 @@ class Player extends GameObject {
      */
     isCardInPlayableLocation(card, playingType = null) {
         // use an effect check to see if this card is in an out of play location but can still be played from
-        if (card.getEffects(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
+        if (card.getEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
             return true;
         }
 
@@ -489,8 +489,8 @@ class Player extends GameObject {
     }
 
     findPlayType(card) {
-        if (card.getEffects(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            let effects = card.getEffects(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
+        if (card.getEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
+            let effects = card.getEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
             return effects[effects.length - 1].playType || PlayType.PlayFromHand;
         }
 
@@ -813,12 +813,12 @@ class Player extends GameObject {
     //     }
 
     //     const playerCostToTargetEffects = abilitySource.controller
-    //         ? abilitySource.controller.getEffects(EffectName.PlayerFateCostToTargetCard)
+    //         ? abilitySource.controller.getEffectValues(EffectName.PlayerFateCostToTargetCard)
     //         : [];
 
     //     let targetCost = 0;
     //     for (const target of targets) {
-    //         for (const cardCostToTarget of target.getEffects(EffectName.FateCostToTarget)) {
+    //         for (const cardCostToTarget of target.getEffectValues(EffectName.FateCostToTarget)) {
     //             if (
     //                 // no card type restriction
     //                 (!cardCostToTarget.cardType ||
@@ -1057,7 +1057,7 @@ class Player extends GameObject {
     // }
 
     // get skillModifier() {
-    //     return this.getEffects(EffectName.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
+    //     return this.getEffectValues(EffectName.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
     // }
 
     /**
@@ -1321,14 +1321,14 @@ class Player extends GameObject {
 
         if (activePlayer === this) {
             return (
-                this.getEffects(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
-                this.getEffects(EffectName.ShowTopCard).includes(RelativePlayer.Self)
+                this.getEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+                this.getEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Self)
             );
         }
 
         return (
-            this.getEffects(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
-            this.getEffects(EffectName.ShowTopCard).includes(RelativePlayer.Opponent)
+            this.getEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+            this.getEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Opponent)
         );
     }
 

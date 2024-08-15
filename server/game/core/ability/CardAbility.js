@@ -101,19 +101,19 @@ class CardAbility extends CardAbilityStep {
         let costs = super.getCosts(context, playCosts);
         if (!context.subResolution && triggerCosts && context.player.anyEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.player
-                .getEffects(EffectName.AdditionalTriggerCost)
+                .getEffectValues(EffectName.AdditionalTriggerCost)
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
         if (!context.subResolution && triggerCosts && context.source.anyEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.source
-                .getEffects(EffectName.AdditionalTriggerCost)
+                .getEffectValues(EffectName.AdditionalTriggerCost)
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
         if (!context.subResolution && playCosts && context.player.anyEffect(EffectName.AdditionalPlayCost)) {
             const additionalPlayCosts = context.player
-                .getEffects(EffectName.AdditionalPlayCost)
+                .getEffectValues(EffectName.AdditionalPlayCost)
                 .map((effect) => effect(context));
             return costs.concat(...additionalPlayCosts);
         }

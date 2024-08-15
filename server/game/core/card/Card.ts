@@ -434,10 +434,10 @@ class Card extends EffectSource {
     hasKeyword(keyword: string): boolean {
         const targetKeyword = keyword.toLowerCase();
 
-        const addKeywordEffects = this.getEffects(EffectName.AddKeyword).filter(
+        const addKeywordEffects = this.getEffectValues(EffectName.AddKeyword).filter(
             (effectValue: string) => effectValue === targetKeyword
         );
-        const loseKeywordEffects = this.getEffects(EffectName.LoseKeyword).filter(
+        const loseKeywordEffects = this.getEffectValues(EffectName.LoseKeyword).filter(
             (effectValue: string) => effectValue === targetKeyword
         );
 
@@ -492,15 +492,15 @@ class Card extends EffectSource {
 
     getTraitSet(): Set<string> {
         const set = new Set(
-            this.getEffects(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
+            this.getEffectValues(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
                 ? []
                 : this.traits
         );
 
-        for (const gainedTrait of this.getEffects(EffectName.AddTrait)) {
+        for (const gainedTrait of this.getEffectValues(EffectName.AddTrait)) {
             set.add(gainedTrait);
         }
-        for (const lostTrait of this.getEffects(EffectName.LoseTrait)) {
+        for (const lostTrait of this.getEffectValues(EffectName.LoseTrait)) {
             set.delete(lostTrait);
         }
 
@@ -635,7 +635,7 @@ class Card extends EffectSource {
     }
 
     getModifiedAbilityLimitMax(player: Player, ability: CardAbility, max: number): number {
-        const effects = this.getRawEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
+        const effects = this.getEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
         let total = max;
         effects.forEach((effect) => {
             const value = effect.getValue(this);
@@ -727,7 +727,7 @@ class Card extends EffectSource {
     }
 
     // isAttachmentBonusModifierSwitchActive() {
-    //     const switches = this.getEffects(EffectName.SwitchAttachmentSkillModifiers).filter(Boolean);
+    //     const switches = this.getEffectValues(EffectName.SwitchAttachmentSkillModifiers).filter(Boolean);
     //     // each pair of switches cancels each other. Need an odd number of switches to be active
     //     return switches.length % 2 === 1;
     // }
@@ -760,7 +760,7 @@ class Card extends EffectSource {
     //     const illegalAttachments = new Set(
     //         this.upgrades.filter((attachment) => !this.allowAttachment(attachment) || !attachment.canAttach(this))
     //     );
-    //     for (const effectCard of this.getEffects(EffectName.CannotHaveOtherRestrictedAttachments)) {
+    //     for (const effectCard of this.getEffectValues(EffectName.CannotHaveOtherRestrictedAttachments)) {
     //         for (const card of this.upgrades) {
     //             if (card.isRestricted() && card !== effectCard) {
     //                 illegalAttachments.add(card);
@@ -770,7 +770,7 @@ class Card extends EffectSource {
 
     //     const attachmentLimits = this.upgrades.filter((card) => card.anyEffect(EffectName.AttachmentLimit));
     //     for (const card of attachmentLimits) {
-    //         let limit = Math.max(...card.getEffects(EffectName.AttachmentLimit));
+    //         let limit = Math.max(...card.getEffectValues(EffectName.AttachmentLimit));
     //         const matchingAttachments = this.upgrades.filter((attachment) => attachment.id === card.id);
     //         for (const card of matchingAttachments.slice(0, -limit)) {
     //             illegalAttachments.add(card);
@@ -794,7 +794,7 @@ class Card extends EffectSource {
     //     }
 
     //     for (const object of this.upgrades.reduce(
-    //         (array, card) => array.concat(card.getEffects(EffectName.AttachmentRestrictTraitAmount)),
+    //         (array, card) => array.concat(card.getEffectValues(EffectName.AttachmentRestrictTraitAmount)),
     //         []
     //     )) {
     //         for (const trait of Object.keys(object)) {
@@ -1079,9 +1079,9 @@ class Card extends EffectSource {
 
         let rawEffects;
         if (typeof exclusions === 'function') {
-            rawEffects = this.getRawEffects().filter((effect) => !exclusions(effect));
+            rawEffects = this.getEffects().filter((effect) => !exclusions(effect));
         } else {
-            rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
+            rawEffects = this.getEffects().filter((effect) => !exclusions.includes(effect.type));
         }
 
         const modifierEffects: ICardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
@@ -1160,7 +1160,7 @@ class Card extends EffectSource {
 
     // getStatusTokenModifiers() {
     //     let modifiers = [];
-    //     let modifierEffects = this.getRawEffects().filter((effect) => effect.type === EffectName.ModifyBothSkills);
+    //     let modifierEffects = this.getEffects().filter((effect) => effect.type === EffectName.ModifyBothSkills);
 
     //     // skill modifiers
     //     modifierEffects.forEach((modifierEffect) => {
@@ -1207,7 +1207,7 @@ class Card extends EffectSource {
     //     }
 
     //     const attachmentController = properties.controller ?? this.controller;
-    //     for (const effect of this.getRawEffects() as CardEffect[]) {
+    //     for (const effect of this.getEffects() as CardEffect[]) {
     //         switch (effect.type) {
     //             case EffectName.AttachmentMyControlOnly: {
     //                 if (attachmentController !== parent.controller) {
