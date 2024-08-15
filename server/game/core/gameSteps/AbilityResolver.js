@@ -79,7 +79,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                     resolver: this
                 }));
             }
-            if (this.context.ability.isTriggeredAbility()) {
+            if (this.context.ability.isActivatedAbility()) {
                 this.events.push(new Event(EventName.OnCardAbilityTriggered, {
                     player: this.context.player,
                     card: this.context.source,
@@ -226,7 +226,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
         this.context.ability.displayMessage(this.context);
 
-        if (this.context.ability.isTriggeredAbility()) {
+        if (this.context.ability.isActivatedAbility()) {
             // TODO EVENTS: need to remove 'BeingPlayed' reference here and just send directly to discard (should already be there since this is triggering off an already-played card)
             // If this is an event, move it to 'being played', and queue a step to send it to the discard pile after it resolves
             if (this.context.ability.isCardPlayed()) {

@@ -30,6 +30,10 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         changePlayer: false,
     };
 
+    constructor(propertiesOrPropertyFactory: IMoveCardProperties | ((context?: AbilityContext) => IMoveCardProperties)) {
+        super(propertiesOrPropertyFactory);
+    }
+
     override getCostMessage(context: AbilityContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         return ['shuffling {0} into their deck', [properties.target]];

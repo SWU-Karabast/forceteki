@@ -163,6 +163,8 @@ export enum EventName {
     OnCardReturnedToHand = 'onCardReturnedToHand',
 }
 
+// TODO: remove legacy values 'ForcedReaction', 'Reaction'
+// TODO: rename 'Persistent' to 'ConstantAbility'?
 export enum AbilityType {
     Action = 'action',
     ForcedReaction = 'forcedReaction',

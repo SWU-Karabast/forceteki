@@ -232,18 +232,21 @@ class PlayerOrCardAbility {
     executeHandler(context) {}
 
     isAction() {
-        return false;
+        return this.abilityType === AbilityType.Action;
     }
 
+    /** Indicates whether this ability is an ability represents a card being played */
     isCardPlayed() {
         return false;
     }
 
+    /** Indicates whether this ability is an ability from card text as opposed to other types of actions like playing a card */
     isCardAbility() {
         return false;
     }
 
-    isTriggeredAbility() {
+    /** Indicates whether this ability is an "activated" ability on a card, as opposed to a constant ability */
+    isActivatedAbility() {
         return false;
     }
 

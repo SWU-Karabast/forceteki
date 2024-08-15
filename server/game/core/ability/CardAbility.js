@@ -63,7 +63,7 @@ class CardAbility extends CardAbilityStep {
         }
 
         if (
-            (this.isTriggeredAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
+            (this.isActivatedAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
             (this.card.type === CardType.Event && !this.card.canPlay(context, context.playType))
         ) {
             return 'cannotTrigger';
@@ -234,14 +234,13 @@ class CardAbility extends CardAbilityStep {
     }
 
     /** @override */
-    isCardPlayed() {
-        return !this.isKeywordAbility() && this.card.getType() === CardType.Event;
+    isActivatedAbility() {
+        return [AbilityType.Action, AbilityType.TriggeredAbility].includes(this.abilityType);
     }
 
-    // TODO: rename this, it meant something else in L5R and there's a name collision now
     /** @override */
-    isTriggeredAbility() {
-        return true;
+    isCardPlayed() {
+        return !this.isKeywordAbility() && this.card.getType() === CardType.Event;
     }
 }
 

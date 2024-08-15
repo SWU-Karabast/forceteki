@@ -12,7 +12,7 @@ const getApplyingPlayer = (effect) => {
 export const restrictionDsl = {
     // abilitiesTriggeredByOpponents: (context, effect) =>
     //     context.player === getApplyingPlayer(effect).opponent &&
-    //     context.ability.isTriggeredAbility() &&
+    //     context.ability.isActivatedAbility() &&
     //     context.ability.abilityType !== AbilityTypes.ForcedReaction &&
     //     context.ability.abilityType !== AbilityTypes.ForcedInterrupt,
     // adjacentCharacters: (context, effect) =>
@@ -27,7 +27,7 @@ export const restrictionDsl = {
     // attackedProvinceNonForced: (context) =>
     //     context.game.currentConflict &&
     //     context.game.currentConflict.getConflictProvinces().includes(context.source) &&
-    //     context.ability.isTriggeredAbility() &&
+    //     context.ability.isActivatedAbility() &&
     //     context.ability.abilityType !== AbilityTypes.ForcedReaction &&
     //     context.ability.abilityType !== AbilityTypes.ForcedInterrupt,
     // attackingCharacters: (context) =>
@@ -83,7 +83,7 @@ export const restrictionDsl = {
     //     context.player === getApplyingPlayer(effect).opponent &&
     //     context.source.type === CardTypes.Event,
     // opponentsTriggeredAbilities: (context, effect) =>
-    //     context.player === getApplyingPlayer(effect).opponent && context.ability.isTriggeredAbility(),
+    //     context.player === getApplyingPlayer(effect).opponent && context.ability.isActivatedAbility(),
     // opponentsCardAbilities: (context, effect) =>
     //     context.player === getApplyingPlayer(effect).opponent && context.ability.isCardAbility(),
     // opponentsCharacters: (context, effect) =>
@@ -99,7 +99,7 @@ export const restrictionDsl = {
     // keywordAbilities: (context) => context.ability.isKeywordAbility(),
     // nonKeywordAbilities: (context) => !context.ability.isKeywordAbility(),
     // nonForcedAbilities: (context) =>
-    //     context.ability.isTriggeredAbility() &&
+    //     context.ability.isActivatedAbility() &&
     //     context.ability.abilityType !== AbilityTypes.ForcedReaction &&
     //     context.ability.abilityType !== AbilityTypes.ForcedInterrupt,
     // equalOrMoreExpensiveCharacterTriggeredAbilities: (context, effect, card) =>
