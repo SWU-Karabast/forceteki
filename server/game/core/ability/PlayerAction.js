@@ -23,7 +23,6 @@ class PlayerAction extends PlayerOrCardAbility {
         });
     }
 
-    // TODO: replace 'fate' with 'resource' everywhere
     getReducedCost(context) {
         let resourceCost = this.cost.find((cost) => cost.getReducedCost);
         return resourceCost ? resourceCost.getReducedCost(context) : 0;

@@ -5,6 +5,7 @@ const { GameObject } = require('../GameObject.js');
 
 const { Duration, WildcardLocation } = require('../Constants.js');
 const Effect = require('./Effect.js');
+const { default: Contract } = require('../utils/Contract.js');
 
 // This class is inherited by Card and also represents Framework effects
 
@@ -18,7 +19,7 @@ class EffectSource extends GameObject {
      */
     untilEndOfPhase(propertyFactory) {
         var properties = propertyFactory(AbilityDsl);
-        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, location: WildcardLocation.Any }, properties));
+        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, locationFilter: WildcardLocation.Any }, properties));
     }
 
     /**
@@ -26,7 +27,7 @@ class EffectSource extends GameObject {
      */
     untilEndOfRound(propertyFactory) {
         var properties = propertyFactory(AbilityDsl);
-        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, location: WildcardLocation.Any }, properties));
+        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, locationFilter: WildcardLocation.Any }, properties));
     }
 
     /**
@@ -34,7 +35,7 @@ class EffectSource extends GameObject {
      */
     lastingEffect(propertyFactory) {
         let properties = propertyFactory(AbilityDsl);
-        this.addEffectToEngine(Object.assign({ duration: Duration.Custom, location: WildcardLocation.Any }, properties));
+        this.addEffectToEngine(Object.assign({ duration: Duration.Custom, locationFilter: WildcardLocation.Any }, properties));
     }
 
     /**
@@ -43,6 +44,11 @@ class EffectSource extends GameObject {
      * @returns {Effect[]} the effect(s) that were added to the engine
      */
     addEffectToEngine(properties) {
+        if (!Contract.assertFalse('location' in properties, `Attempting to create an effect with the \'location\' property, instead should be using the 'locationFilter' property. Object: ${properties}`)) {
+            // just to catch any accidental use of the 'location' property we missed when doing the refactor to naming 'locationFilter'
+            throw Error('Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property');
+        }
+
         let effect = properties.effect;
         properties = _.omit(properties, 'effect');
         if (Array.isArray(effect)) {

@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const { Location, Duration } = require('../Constants');
+const { Location, Duration, WildcardLocation } = require('../Constants');
 const { isArena } = require('../utils/EnumHelpers');
 
 /**
@@ -38,7 +38,7 @@ class Effect {
         this.until = properties.until || {};
         this.condition = properties.condition || (() => true);
         // UP NEXT: this needs to be changed to match the name locationFilter (or vice versa). so does the caller (can't remember which)
-        this.location = properties.location || isArena(properties.location);
+        this.locationFilter = properties.locationFilter || WildcardLocation.AnyArena;
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
         this.impl = effectImpl;
