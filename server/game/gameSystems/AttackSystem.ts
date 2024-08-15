@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { CardType, EventName, Location } from '../core/Constants';
+import { AbilityRestriction, CardType, EventName, Location } from '../core/Constants';
 import { isAttackableLocation, isArena } from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
@@ -64,7 +64,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         if (targetCard === properties.attacker || targetCard.controller === properties.attacker.controller) {
             return false; //cannot attack yourself or your controller's cards
         }
-        if (!targetCard.checkRestrictions('beAttacked', context)) {
+        if (targetCard.hasRestriction(AbilityRestriction.BeAttacked, context)) {
             return false;
         }
         // TODO: sentinel check will go here

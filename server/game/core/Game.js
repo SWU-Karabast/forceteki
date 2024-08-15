@@ -958,7 +958,7 @@ class Game extends EventEmitter {
     // takeControl(player, card) {
     //     if (
     //         card.controller === player ||
-    //         !card.checkRestrictions(EffectName.TakeControl, this.getFrameworkContext())
+    //         card.hasRestriction(EffectName.TakeControl, this.getFrameworkContext())
     //     ) {
     //         return;
     //     }

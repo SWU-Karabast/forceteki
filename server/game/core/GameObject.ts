@@ -1,7 +1,7 @@
 import { v1 as uuidV1 } from 'uuid';
 
 import type { AbilityContext } from './ability/AbilityContext';
-import { EffectName, Stage } from './Constants';
+import { AbilityRestriction, EffectName, Stage } from './Constants';
 import type { ICardEffect } from './effect/ICardEffect';
 import type Game from './Game';
 import type { GameSystem } from './gameSystem/GameSystem';
@@ -60,11 +60,15 @@ export abstract class GameObject {
             const gameSystem: GameSystem = gameActionFactory();
             return gameSystem.canAffect(this, context);
         }
-        return this.checkRestrictions(actionType, context);
+        return !this.hasRestriction(actionType, context);
     }
 
-    public checkRestrictions(actionType: string, context?: AbilityContext) {
-        return !this.getEffects(EffectName.AbilityRestrictions).some((restriction) =>
+    /**
+     * Returns true if the card has any ability restriction matching the given name. Restriction names
+     * can be a value of {@link AbilityRestriction} or an arbitrary string such as a card name.
+     */
+    public hasRestriction(actionType: string, context?: AbilityContext) {
+        return this.getEffects(EffectName.AbilityRestrictions).some((restriction) =>
             restriction.isMatch(actionType, context, this)
         );
     }
@@ -87,7 +91,7 @@ export abstract class GameObject {
     }
 
     public canBeTargeted(context: AbilityContext, selectedCards: GameObject | GameObject[] = []) {
-        if (!this.checkRestrictions('target', context)) {
+        if (this.hasRestriction(AbilityRestriction.Target, context)) {
             return false;
         }
         let targets = selectedCards;

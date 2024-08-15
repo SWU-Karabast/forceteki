@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import PlayerAction from '../core/ability/PlayerAction.js';
-import { EffectName, EventName, Location, PhaseName, PlayType, TargetMode, WildcardLocation } from '../core/Constants.js';
+import { AbilityRestriction, EffectName, EventName, Location, PhaseName, PlayType, TargetMode, WildcardLocation } from '../core/Constants.js';
 import { isArena } from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import { attack } from '../gameSystems/GameSystemLibrary.js';
@@ -32,8 +32,7 @@ export class InitiateAttackAction extends PlayerAction {
         ) {
             return 'location';
         }
-        // TODO: rename checkRestrictions to be clearer what the return value means
-        if (!context.player.checkRestrictions('cannotAttack', context)) {
+        if (context.player.hasRestriction(AbilityRestriction.Attack, context)) {
             return 'restriction';
         }
         return super.meetsRequirements(context);

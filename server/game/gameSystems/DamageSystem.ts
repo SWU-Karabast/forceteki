@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Card from '../core/card/Card';
-import { CardType, EventName } from '../core/Constants';
+import { AbilityRestriction, CardType, EventName } from '../core/Constants';
 import { isArena, isAttackableLocation } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
@@ -30,7 +30,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
         if (!isAttackableLocation(card.location)) {
             return false;
         }
-        if (!card.checkRestrictions('receiveDamage', context)) {
+        if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
             return false;
         }
         return super.canAffect(card, context);

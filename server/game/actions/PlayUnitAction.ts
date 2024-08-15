@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import PlayerAction from '../core/ability/PlayerAction.js';
-import { EffectName, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants.js';
+import { AbilityRestriction, EffectName, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { payAdjustableResourceCost } from '../costs/CostLibrary.js';
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
 import type Card from '../core/card/Card.js';
@@ -35,8 +35,8 @@ export class PlayUnitAction extends PlayerAction {
             return 'cannotTrigger';
         }
         if (
-            !context.player.checkRestrictions('playUnit', context) ||
-            !context.player.checkRestrictions('enterPlay', context)
+            context.player.hasRestriction(AbilityRestriction.PlayUnit, context) ||
+            context.player.hasRestriction(AbilityRestriction.PutIntoPlay, context)
         ) {
             return 'restriction';
         }

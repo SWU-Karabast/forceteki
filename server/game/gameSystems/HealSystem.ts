@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Card from '../core/card/Card';
-import { CardType, EventName } from '../core/Constants';
+import { AbilityRestriction, CardType, EventName } from '../core/Constants';
 import { isArena, isAttackableLocation } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Contract from '../core/utils/Contract';
@@ -28,11 +28,8 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
         if (properties.isCost && (properties.amount === 0 || card.hp === 0 || card.hp === null)) {
             return false;
         }
-        // UP NEXT: rename 'checkRestrictions' to 'hasRestriction' and invert the logic
-        {
-            if (!card.checkRestrictions('beHealed', context)) {
-                return false;
-            }
+        if (card.hasRestriction(AbilityRestriction.BeHealed, context)) {
+            return false;
         }
         return super.canAffect(card, context);
     }

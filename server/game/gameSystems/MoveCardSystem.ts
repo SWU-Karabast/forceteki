@@ -57,7 +57,7 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         const { changePlayer, destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         return (
             (!changePlayer ||
-                (card.checkRestrictions(EffectName.TakeControl, context) &&
+                (!card.hasRestriction(EffectName.TakeControl, context) &&
                     !card.anotherUniqueInPlay(context.player))) &&
             (!destination || context.player.isLegalLocationForCard(card, destination)) &&
             !isArena(card.location) &&

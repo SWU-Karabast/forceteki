@@ -18,7 +18,8 @@ import {
     Aspect,
     WildcardLocation,
     StatType,
-    Trait
+    Trait,
+    AbilityRestriction
 } from '../Constants.js';
 import { isArena, cardLocationMatches, checkConvertToEnum } from '../utils/EnumHelpers.js';
 import {
@@ -506,15 +507,6 @@ class Card extends EffectSource {
         return set;
     }
 
-    // isFaction(faction: Faction): boolean {
-    //     const copyEffect = this.mostRecentEffect(EffectName.CopyCharacter);
-    //     const cardFaction = copyEffect ? copyEffect.printedFaction : this.printedFaction;
-    //     if (faction === 'neutral') {
-    //         return cardFaction === faction && !this.anyEffect(EffectName.AddFaction);
-    //     }
-    //     return cardFaction === faction || this.getEffects(EffectName.AddFaction).includes(faction);
-    // }
-
     // isInPlay(): boolean {
     //     if (this.isFacedown()) {
     //         return false;
@@ -634,12 +626,12 @@ class Card extends EffectSource {
         return (
             !this.facedown &&
             (ignoredRequirements.includes('triggeringRestrictions') ||
-                this.checkRestrictions('triggerAbilities', context))
+                !this.hasRestriction(AbilityRestriction.TriggerAbilities, context))
         );
     }
 
     canInitiateKeywords(context: AbilityContext): boolean {
-        return !this.facedown && this.checkRestrictions('initiateKeywords', context);
+        return !this.facedown && !this.hasRestriction(AbilityRestriction.InitiateKeywords, context);
     }
 
     getModifiedAbilityLimitMax(player: Player, ability: CardAbility, max: number): number {
@@ -684,11 +676,11 @@ class Card extends EffectSource {
         return this.anyEffect(EffectName.Blank);
     }
 
-    override checkRestrictions(actionType, context: AbilityContext): boolean {
+    override hasRestriction(actionType, context: AbilityContext): boolean {
         const player = (context && context.player) || this.controller;
         return (
-            super.checkRestrictions(actionType, context) &&
-            player.checkRestrictions(actionType, context)
+            super.hasRestriction(actionType, context) ||
+            player.hasRestriction(actionType, context)
         );
     }
 
@@ -877,85 +869,6 @@ class Card extends EffectSource {
         return this.isBlank() || this.allowedAttachmentTraits.length === 0;
     }
 
-    // /**
-    //  * Applies an effect with the specified properties while the current card is
-    //  * attached to another card. By default the effect will target the parent
-    //  * card, but you can provide a match function to narrow down whether the
-    //  * effect is applied (for cases where the effect only applies to specific
-    //  * characters).
-    //  */
-    // whileAttached(properties: Pick<PersistentEffectProps<this>, 'condition' | 'match' | 'effect'>) {
-    //     this.persistentEffect({
-    //         condition: properties.condition || (() => true),
-    //         match: (card, context) => card === this.parent && (!properties.match || properties.match(card, context)),
-    //         targetController: RelativePlayer.Any,
-    //         effect: properties.effect
-    //     });
-    // }
-
-    // /**
-    //  * Checks whether the passed card meets the attachment restrictions (e.g.
-    //  * Opponent cards only, specific factions, etc) for this card.
-    //  */
-    // canAttach(parent?: BaseCard, properties = { ignoreType: false, controller: this.controller }) {
-    //     if (!(parent instanceof BaseCard)) {
-    //         return false;
-    //     }
-
-    //     if (
-    //         parent.getType() !== CardType.Character ||
-    //         (!properties.ignoreType && this.getType() !== CardType.Attachment)
-    //     ) {
-    //         return false;
-    //     }
-
-    //     const attachmentController = properties.controller ?? this.controller;
-    //     for (const effect of this.getRawEffects() as CardEffect[]) {
-    //         switch (effect.type) {
-    //             case EffectName.AttachmentMyControlOnly: {
-    //                 if (attachmentController !== parent.controller) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentOpponentControlOnly: {
-    //                 if (attachmentController === parent.controller) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentUniqueRestriction: {
-    //                 if (!parent.isUnique()) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentFactionRestriction: {
-    //                 const factions = effect.getValue<Faction[]>(this as any);
-    //                 if (!factions.some((faction) => parent.isFaction(faction))) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentTraitRestriction: {
-    //                 const traits = effect.getValue<string[]>(this as any);
-    //                 if (!traits.some((trait) => parent.hasTrait(trait))) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentCardCondition: {
-    //                 const cardCondition = effect.getValue<(card: BaseCard) => boolean>(this as any);
-    //                 if (!cardCondition(parent)) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     return true;
-    // }
-
     getPlayCardActions() {
         // TODO EVENT: this block *also* prevents the PlayCardAction from being generated for event cards
         // events are a special case
@@ -994,23 +907,6 @@ class Card extends EffectSource {
         this.childCards = this.childCards.filter((a) => a !== card);
         this.controller.moveCard(card, location);
     }
-
-    // addStatusToken(tokenType) {
-    //     tokenType = tokenType.grantedStatus || tokenType;
-    //     if (!this.statusTokens.find((a) => a.grantedStatus === tokenType)) {
-    //         if (tokenType === CharacterStatus.Honored && this.isDishonored) {
-    //             this.removeStatusToken(CharacterStatus.Dishonored);
-    //         } else if (tokenType === CharacterStatus.Dishonored && this.isHonored) {
-    //             this.removeStatusToken(CharacterStatus.Honored);
-    //         } else {
-    //             const token = StatusToken.create(this.game, this, tokenType);
-    //             if (token) {
-    //                 token.setCard(this);
-    //                 this.statusTokens.push(token);
-    //             }
-    //         }
-    //     }
-    // }
 
     // TODO: is this correct handling of hidden cards? not sure how this integrates with the client
     public override getShortSummaryForControls(activePlayer: Player): any {
@@ -1252,31 +1148,7 @@ class Card extends EffectSource {
     //     return clone;
     // }
 
-    // hasDash(type = '') {
-    //     if (type === 'glory' || this.printedType !== CardType.Character) {
-    //         return false;
-    //     }
-
-    //     let baseSkillModifiers = this.getBaseSkillModifiers();
-
-    //     if (type === 'military') {
-    //         return isNaN(baseSkillModifiers.baseMilitarySkill);
-    //     } else if (type === 'political') {
-    //         return isNaN(baseSkillModifiers.basePoliticalSkill);
-    //     }
-
-    //     return isNaN(baseSkillModifiers.baseMilitarySkill) || isNaN(baseSkillModifiers.basePoliticalSkill);
-    // }
-
-    // getContributionToConflict(type) {
-    //     let skillFunction = this.mostRecentEffect(EffectName.ChangeContributionFunction);
-    //     if (skillFunction) {
-    //         return skillFunction(this);
-    //     }
-    //     return this.getSkill(type);
-    // }
-
-    // TODO: these status token modifier methods could be reused for attachments
+    // TODO UPGRADES: these status token modifier methods could be reused for upgrades
     // getStatusTokenSkill() {
     //     const modifiers = this.getStatusTokenModifiers();
     //     const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
@@ -1302,132 +1174,83 @@ class Card extends EffectSource {
     //     return modifiers;
     // }
 
-    // getMilitaryModifiers(exclusions) {
-    //     let baseSkillModifiers = this.getBaseSkillModifiers();
-    //     if (isNaN(baseSkillModifiers.baseMilitarySkill)) {
-    //         return baseSkillModifiers.baseMilitaryModifiers;
-    //     }
-
-    //     if (!exclusions) {
-    //         exclusions = [];
-    //     }
-
-    //     let rawEffects;
-    //     if (typeof exclusions === 'function') {
-    //         rawEffects = this.getRawEffects().filter((effect) => !exclusions(effect));
-    //     } else {
-    //         rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
-    //     }
-
-    //     // set effects
-    //     let setEffects = rawEffects.filter(
-    //         (effect) => effect.type === EffectName.SetMilitarySkill || effect.type === EffectName.SetDash
-    //     );
-    //     if (setEffects.length > 0) {
-    //         let latestSetEffect = _.last(setEffects);
-    //         let setAmount = latestSetEffect.type === EffectName.SetDash ? undefined : latestSetEffect.getValue(this);
-    //         return [
-    //             StatModifier.fromEffect(
-    //                 setAmount,
-    //                 latestSetEffect,
-    //                 true,
-    //                 `Set by ${StatModifier.getEffectName(latestSetEffect)}`
-    //             )
-    //         ];
-    //     }
-
-    //     let modifiers = baseSkillModifiers.baseMilitaryModifiers;
-
-    //     // skill modifiers
-    //     let modifierEffects = rawEffects.filter(
-    //         (effect) =>
-    //             effect.type === EffectName.AttachmentMilitarySkillModifier ||
-    //             effect.type === EffectName.ModifyMilitarySkill ||
-    //             effect.type === EffectName.ModifyBothSkills
-    //     );
-    //     modifierEffects.forEach((modifierEffect) => {
-    //         const value = modifierEffect.getValue(this);
-    //         modifiers.push(StatModifier.fromEffect(value, modifierEffect));
+    // /**
+    //  * Applies an effect with the specified properties while the current card is
+    //  * attached to another card. By default the effect will target the parent
+    //  * card, but you can provide a match function to narrow down whether the
+    //  * effect is applied (for cases where the effect only applies to specific
+    //  * characters).
+    //  */
+    // whileAttached(properties: Pick<PersistentEffectProps<this>, 'condition' | 'match' | 'effect'>) {
+    //     this.persistentEffect({
+    //         condition: properties.condition || (() => true),
+    //         match: (card, context) => card === this.parent && (!properties.match || properties.match(card, context)),
+    //         targetController: RelativePlayer.Any,
+    //         effect: properties.effect
     //     });
-
-    //     // adjust honor status effects
-    //     this.adjustHonorStatusModifiers(modifiers);
-
-    //     // multipliers
-    //     let multiplierEffects = rawEffects.filter(
-    //         (effect) => effect.type === EffectName.ModifyMilitarySkillMultiplier
-    //     );
-    //     multiplierEffects.forEach((multiplierEffect) => {
-    //         let multiplier = multiplierEffect.getValue(this);
-    //         let currentTotal = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
-    //         let amount = (multiplier - 1) * currentTotal;
-    //         modifiers.push(StatModifier.fromEffect(amount, multiplierEffect));
-    //     });
-
-    //     return modifiers;
     // }
 
-    // getPoliticalModifiers(exclusions) {
-    //     let baseSkillModifiers = this.getBaseSkillModifiers();
-    //     if (isNaN(baseSkillModifiers.basePoliticalSkill)) {
-    //         return baseSkillModifiers.basePoliticalModifiers;
+    // /**
+    //  * Checks whether the passed card meets the attachment restrictions (e.g.
+    //  * Opponent cards only, specific factions, etc) for this card.
+    //  */
+    // canAttach(parent?: BaseCard, properties = { ignoreType: false, controller: this.controller }) {
+    //     if (!(parent instanceof BaseCard)) {
+    //         return false;
     //     }
 
-    //     if (!exclusions) {
-    //         exclusions = [];
+    //     if (
+    //         parent.getType() !== CardType.Character ||
+    //         (!properties.ignoreType && this.getType() !== CardType.Attachment)
+    //     ) {
+    //         return false;
     //     }
 
-    //     let rawEffects;
-    //     if (typeof exclusions === 'function') {
-    //         rawEffects = this.getRawEffects().filter((effect) => !exclusions(effect));
-    //     } else {
-    //         rawEffects = this.getRawEffects().filter((effect) => !exclusions.includes(effect.type));
+    //     const attachmentController = properties.controller ?? this.controller;
+    //     for (const effect of this.getRawEffects() as CardEffect[]) {
+    //         switch (effect.type) {
+    //             case EffectName.AttachmentMyControlOnly: {
+    //                 if (attachmentController !== parent.controller) {
+    //                     return false;
+    //                 }
+    //                 break;
+    //             }
+    //             case EffectName.AttachmentOpponentControlOnly: {
+    //                 if (attachmentController === parent.controller) {
+    //                     return false;
+    //                 }
+    //                 break;
+    //             }
+    //             case EffectName.AttachmentUniqueRestriction: {
+    //                 if (!parent.isUnique()) {
+    //                     return false;
+    //                 }
+    //                 break;
+    //             }
+    //             case EffectName.AttachmentFactionRestriction: {
+    //                 const factions = effect.getValue<Faction[]>(this as any);
+    //                 if (!factions.some((faction) => parent.isFaction(faction))) {
+    //                     return false;
+    //                 }
+    //                 break;
+    //             }
+    //             case EffectName.AttachmentTraitRestriction: {
+    //                 const traits = effect.getValue<string[]>(this as any);
+    //                 if (!traits.some((trait) => parent.hasTrait(trait))) {
+    //                     return false;
+    //                 }
+    //                 break;
+    //             }
+    //             case EffectName.AttachmentCardCondition: {
+    //                 const cardCondition = effect.getValue<(card: BaseCard) => boolean>(this as any);
+    //                 if (!cardCondition(parent)) {
+    //                     return false;
+    //                 }
+    //                 break;
+    //             }
+    //         }
     //     }
-
-    //     // set effects
-    //     let setEffects = rawEffects.filter((effect) => effect.type === EffectName.SetPoliticalSkill);
-    //     if (setEffects.length > 0) {
-    //         let latestSetEffect = _.last(setEffects);
-    //         let setAmount = latestSetEffect.getValue(this);
-    //         return [
-    //             StatModifier.fromEffect(
-    //                 setAmount,
-    //                 latestSetEffect,
-    //                 true,
-    //                 `Set by ${StatModifier.getEffectName(latestSetEffect)}`
-    //             )
-    //         ];
-    //     }
-
-    //     let modifiers = baseSkillModifiers.basePoliticalModifiers;
-
-    //     // skill modifiers
-    //     let modifierEffects = rawEffects.filter(
-    //         (effect) =>
-    //             effect.type === EffectName.AttachmentPoliticalSkillModifier ||
-    //             effect.type === EffectName.ModifyPoliticalSkill ||
-    //             effect.type === EffectName.ModifyBothSkills
-    //     );
-    //     modifierEffects.forEach((modifierEffect) => {
-    //         const value = modifierEffect.getValue(this);
-    //         modifiers.push(StatModifier.fromEffect(value, modifierEffect));
-    //     });
-
-    //     // adjust honor status effects
-    //     this.adjustHonorStatusModifiers(modifiers);
-
-    //     // multipliers
-    //     let multiplierEffects = rawEffects.filter(
-    //         (effect) => effect.type === EffectName.ModifyPoliticalSkillMultiplier
-    //     );
-    //     multiplierEffects.forEach((multiplierEffect) => {
-    //         let multiplier = multiplierEffect.getValue(this);
-    //         let currentTotal = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
-    //         let amount = (multiplier - 1) * currentTotal;
-    //         modifiers.push(StatModifier.fromEffect(amount, multiplierEffect));
-    //     });
-
-    //     return modifiers;
+    //     return true;
     // }
 
     get showStats() {
@@ -1444,10 +1267,10 @@ class Card extends EffectSource {
 
     canPlay(context, type) {
         return (
-            this.checkRestrictions(type, context) &&
-            context.player.checkRestrictions(type, context) &&
-            this.checkRestrictions('play', context) &&
-            context.player.checkRestrictions('play', context)
+            !this.hasRestriction(type, context) &&
+            !context.player.hasRestriction(type, context) &&
+            !this.hasRestriction(AbilityRestriction.Play, context) &&
+            !context.player.hasRestriction(AbilityRestriction.Play, context)
         );
     }
 
@@ -1558,117 +1381,6 @@ class Card extends EffectSource {
         }
     }
 
-    // canDeclareAsAttacker(conflictType, ring, province, incomingAttackers = undefined) {
-    //     // eslint-disable-line no-unused-vars
-    //     if (!province) {
-    //         let provinces =
-    //             this.game.currentConflict && this.game.currentConflict.defendingPlayer
-    //                 ? this.game.currentConflict.defendingPlayer.getProvinces()
-    //                 : null;
-    //         if (provinces) {
-    //             return provinces.some(
-    //                 (a) =>
-    //                     a.canDeclare(conflictType, ring) &&
-    //                     this.canDeclareAsAttacker(conflictType, ring, a, incomingAttackers)
-    //             );
-    //         }
-    //     }
-
-    //     let attackers = this.game.isDuringConflict() ? this.game.currentConflict.attackers : [];
-    //     if (incomingAttackers) {
-    //         attackers = incomingAttackers;
-    //     }
-    //     if (!attackers.includes(this)) {
-    //         attackers = attackers.concat(this);
-    //     }
-
-    //     // Check if I add an element that I can\'t attack with
-    //     const elementsAdded = this.upgrades.reduce(
-    //         (array, attachment) => array.concat(attachment.getEffects(EffectName.AddElementAsAttacker)),
-    //         this.getEffects(EffectName.AddElementAsAttacker)
-    //     );
-
-    //     if (
-    //         elementsAdded.some((element) =>
-    //             this.game.rings[element]
-    //                 .getEffects(EffectName.CannotDeclareRing)
-    //                 .some((match) => match(this.controller))
-    //         )
-    //     ) {
-    //         return false;
-    //     }
-
-    //     if (
-    //         conflictType === ConflictTypes.Military &&
-    //         attackers.reduce((total, card) => total + card.sumEffects(EffectName.CardCostToAttackMilitary), 0) >
-    //             this.controller.hand.size()
-    //     ) {
-    //         return false;
-    //     }
-
-    //     let fateCostToAttackProvince = province ? province.getFateCostToAttack() : 0;
-    //     if (
-    //         attackers.reduce((total, card) => total + card.sumEffects(EffectName.FateCostToAttack), 0) +
-    //             fateCostToAttackProvince >
-    //         this.controller.fate
-    //     ) {
-    //         return false;
-    //     }
-    //     if (this.anyEffect(EffectName.CanOnlyBeDeclaredAsAttackerWithElement)) {
-    //         for (let element of this.getEffects(EffectName.CanOnlyBeDeclaredAsAttackerWithElement)) {
-    //             if (!ring.hasElement(element) && !elementsAdded.includes(element)) {
-    //                 return false;
-    //             }
-    //         }
-    //     }
-
-    //     if (this.controller.anyEffect(EffectName.LimitLegalAttackers)) {
-    //         const checks = this.controller.getEffects(EffectName.LimitLegalAttackers);
-    //         let valid = true;
-    //         checks.forEach((check) => {
-    //             if (typeof check === 'function') {
-    //                 valid = valid && check(this);
-    //             }
-    //         });
-    //         if (!valid) {
-    //             return false;
-    //         }
-    //     }
-
-    //     return (
-    //         this.checkRestrictions('declareAsAttacker', this.game.getFrameworkContext()) &&
-    //         this.canParticipateAsAttacker(conflictType) &&
-    //         this.location === Location.PlayArea &&
-    //         !this.exhausted
-    //     );
-    // }
-
-    // canDeclareAsDefender(conflictType = this.game.currentConflict.conflictType) {
-    //     return (
-    //         this.checkRestrictions('declareAsDefender', this.game.getFrameworkContext()) &&
-    //         this.canParticipateAsDefender(conflictType) &&
-    //         this.location === Location.PlayArea &&
-    //         !this.exhausted &&
-    //         !this.covert
-    //     );
-    // }
-
-    // canParticipateAsAttacker(conflictType = this.game.currentConflict.conflictType) {
-    //     let effects = this.getEffects(EffectName.CannotParticipateAsAttacker);
-    //     return !effects.some((value) => value === 'both' || value === conflictType) && !this.hasDash(conflictType);
-    // }
-
-    // canParticipateAsDefender(conflictType = this.game.currentConflict.conflictType) {
-    //     let effects = this.getEffects(EffectName.CannotParticipateAsDefender);
-    //     let hasDash = conflictType ? this.hasDash(conflictType) : false;
-
-    //     return !effects.some((value) => value === 'both' || value === conflictType) && !hasDash;
-    // }
-
-    // bowsOnReturnHome() {
-    //     return !this.anyEffect(EffectName.DoesNotBow);
-    // }
-
     setDefaultController(player) {
         this.defaultController = player;
     }
@@ -1679,19 +1391,6 @@ class Card extends EffectSource {
         }
         return this.owner;
     }
-
-    // canDisguise(card, context, intoConflictOnly) {
-    //     return (
-    //         this.disguisedKeywordTraits.some((trait) => card.hasTrait(trait)) &&
-    //         card.allowGameAction('discardFromPlay', context) &&
-    //         !card.isUnique() &&
-    //         (!intoConflictOnly || card.isParticipating())
-    //     );
-    // }
-
-    // play() {
-    //     //empty function so playcardaction doesn't crash the game
-    // }
 
     // getSummary(activePlayer, hideWhenFaceup) {
     //     let baseSummary = super.getSummary(activePlayer, hideWhenFaceup);

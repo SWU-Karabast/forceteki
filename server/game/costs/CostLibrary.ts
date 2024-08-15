@@ -213,7 +213,7 @@ export function putSelfIntoPlay(): ICost {
 //             const amount = context.source.cost;
 //             return (
 //                 context.player.fate >= amount &&
-//                 (amount === 0 || context.player.checkRestrictions('spendFate', context))
+//                 (amount === 0 || !context.player.hasRestriction('spendFate', context))
 //             );
 //         },
 //         payEvent(context: TriggeredAbilityContext) {
@@ -496,7 +496,7 @@ export function optional(cost: ICost): ICost {
 //             if (context.player.fate < amount) {
 //                 fateAvailable = false;
 //             }
-//             if (!context.player.checkRestrictions('spendFate', context)) {
+//             if (context.player.hasRestriction('spendFate', context)) {
 //                 fateAvailable = false;
 //             }
 //             let choices = [];

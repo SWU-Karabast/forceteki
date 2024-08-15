@@ -1060,20 +1060,6 @@ class Player extends GameObject {
     //     return this.getEffects(EffectName.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
     // }
 
-    // hasAffinity(trait, context) {
-    //     if (!this.checkRestrictions('haveAffinity', context)) {
-    //         return false;
-    //     }
-
-    //     for (const cheatedAffinities of this.getEffects(EffectName.SatisfyAffinity)) {
-    //         if (cheatedAffinities.includes(trait)) {
-    //             return true;
-    //         }
-    //     }
-
-    //     return this.cardsInPlay.some((card) => card.type === CardType.Character && card.hasTrait(trait));
-    // }
-
     /**
      * Called by the game when the game starts, sets the players decklist
      * @param {*} deck
