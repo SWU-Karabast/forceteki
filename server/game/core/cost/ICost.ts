@@ -18,7 +18,7 @@ export interface ICost {
     selectCardName?(player: Player, cardName: string, context: AbilityContext): boolean;
     promptsPlayer?: boolean;
     dependsOn?: string;
-    isPrintedFateCost?: boolean;
+    isPrintedResourceCost?: boolean;
     isPlayCost?: boolean;
     canIgnoreForTargeting?: boolean;
 

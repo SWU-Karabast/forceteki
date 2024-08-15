@@ -4,6 +4,7 @@ const { TriggeredAbilityWindow } = require('../../gameSteps/abilityWindow/Trigge
 const { EventName, AbilityType } = require('../../Constants.js');
 
 // TODO: convert to TS
+// TODO EFFECTS: see if the below code is useful for replacement effects
 class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     constructor(game, abilityType, eventWindow) {
         super(game, abilityType, eventWindow);
@@ -16,9 +17,9 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
         if (this.playEvent && this.currentlyResolvingPlayer === this.playEvent.player && this.playEvent.resolver.canCancel) {
             buttons.push({ text: 'Cancel', arg: 'cancel' });
         }
-        if (this.getMinCostReduction() === 0) {
-            buttons.push({ text: 'Pass', arg: 'pass' });
-        }
+        // if (this.getMinCostReduction() === 0) {
+        //     buttons.push({ text: 'Pass', arg: 'pass' });
+        // }
         return Object.assign(super.getPromptForSelectProperties(), {
             buttons: buttons,
             onCancel: () => {
@@ -28,16 +29,17 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
         });
     }
 
-    getMinCostReduction() {
-        if (this.playEvent) {
-            const context = this.playEvent.context;
-            const alternatePools = context.player.getAlternateFatePools(this.playEvent.playType, context.source, context);
-            const alternatePoolTotal = alternatePools.reduce((total, pool) => total + pool.fate, 0);
-            const maxPlayerFate = context.player.hasRestriction('spendFate', context) ? 0 : context.player.fate;
-            return Math.max(context.ability.getReducedCost(context) - maxPlayerFate - alternatePoolTotal, 0);
-        }
-        return 0;
-    }
+    // TODO: unclear what the purpose of this was
+    // getMinCostReduction() {
+    //     if (this.playEvent) {
+    //         const context = this.playEvent.context;
+    //         const alternatePools = context.player.getAlternateFatePools(this.playEvent.playType, context.source, context);
+    //         const alternatePoolTotal = alternatePools.reduce((total, pool) => total + pool.fate, 0);
+    //         const maxPlayerFate = context.player.hasRestriction('spendFate', context) ? 0 : context.player.fate;
+    //         return Math.max(context.ability.getReducedCost(context) - maxPlayerFate - alternatePoolTotal, 0);
+    //     }
+    //     return 0;
+    // }
 
     /** @override */
     resolveAbility(context) {
@@ -49,6 +51,16 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
 }
 
 class InitiateAbilityEventWindow extends EventWindow {
+    // TODO EFFECTS: see if the below code is useful for replacement effects
+    // /** @override */
+    // openWindow(abilityType) {
+    //     if (this.events.length && abilityType === AbilityTypes.Interrupt) {
+    //         this.queueStep(new InitiateAbilityInterruptWindow(this.game, abilityType, this));
+    //     } else {
+    //         super.openWindow(abilityType);
+    //     }
+    // }
+
     /** @override */
     executeHandler() {
         this.eventsToExecute = _.sortBy(this.events, 'order');

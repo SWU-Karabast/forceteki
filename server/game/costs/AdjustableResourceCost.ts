@@ -2,19 +2,6 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, Location, RelativePlayer } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { Event } from '../core/event/Event';
-import Card from '../core/card/Card';
-
-const CANCELLED = 'CANCELLED';
-const STOP = 'STOP';
-
-type PoolOption = Card | typeof CANCELLED | typeof STOP;
-interface Props {
-    reducedCost: number;
-    minFate?: number;
-    maxFate?: number;
-    pool?: PoolOption;
-    numberOfChoices?: number;
-}
 
 export class AdjustableResourceCost implements ICost {
     public isPlayCost = true;

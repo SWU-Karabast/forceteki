@@ -124,7 +124,7 @@ class PlayerOrCardAbility {
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = this.cost.map((a) => a);
         if (context.ignoreResourceCost) {
-            costs = costs.filter((cost) => !cost.isPrintedFateCost);
+            costs = costs.filter((cost) => !cost.isPrintedResourceCost);
         }
 
         if (!playCosts) {

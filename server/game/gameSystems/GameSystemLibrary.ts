@@ -115,14 +115,12 @@ export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): Ca
 //     return new PlayCardAction(propertyFactory);
 // }
 /**
- * default fate = 0
  * default status = ordinary
  */
 export function putIntoPlay(propertyFactory: PropsFactory<IPutIntoPlayProperties> = {}): GameSystem {
     return new PutIntoPlaySystem(propertyFactory);
 }
 // /**
-//  * default fate = 0
 //  * default status = ordinary
 //  */
 // export function opponentPutIntoPlay(propertyFactory: PropsFactory<OpponentPutIntoPlayProperties> = {}): GameSystem {
