@@ -7,7 +7,7 @@ import { AttackFlow } from '../core/attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { damage } from './GameSystemLibrary.js';
-import type Card from '../core/card/Card'; // TODO: is this the right import form?
+import type Card from '../core/card/Card';
 import { isArray } from 'underscore';
 import Effect from '../core/effect/Effect';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
@@ -67,7 +67,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         if (targetCard.hasRestriction(AbilityRestriction.BeAttacked, context)) {
             return false;
         }
-        // TODO: sentinel check will go here
+        // TODO SENTINEL: check will go here
         if (
             targetCard.location !== properties.attacker.location &&
             targetCard.location !== Location.Base &&

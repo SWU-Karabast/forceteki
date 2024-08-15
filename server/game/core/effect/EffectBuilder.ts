@@ -60,18 +60,5 @@ export const EffectBuilder = {
             (typeof value === 'function'
                 ? EffectBuilder.player.dynamic(type, value)
                 : EffectBuilder.player.static(type, value))
-    },
-    // // TODO: change this to combat
-    // conflict: {
-    //     static: (type: EffectName, value) => (game: Game, source: BaseCard, props: Props) =>
-    //         new ConflictEffect(game, source, props, new StaticEffect(type, value)),
-    //     dynamic: (type: EffectName, value) => (game: Game, source: BaseCard, props: Props) =>
-    //         new ConflictEffect(game, source, props, new DynamicEffect(type, value)),
-    //     detached: (type: EffectName, value) => (game: Game, source: BaseCard, props: Props) =>
-    //         new ConflictEffect(game, source, props, new DetachedEffect(type, value.apply, value.unapply)),
-    //     flexible: (type: EffectName, value) =>
-    //         typeof value === 'function'
-    //             ? EffectBuilder.conflict.dynamic(type, value)
-    //             : EffectBuilder.conflict.static(type, value)
-    // }
+    }
 };

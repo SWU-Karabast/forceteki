@@ -33,7 +33,7 @@ export interface ISelectCardProperties extends ICardTargetSystemProperties {
  * A wrapper system for adding a target selection prompt around the execution the wrapped system.
  * Only used for adding a selection effect to a system that is part of a cost.
  */
-// TODO: why is this class needed for costs when systems already have target evaluation and selection built in?
+// TODO: why is this class needed for evaluating costs when systems already have target evaluation and selection built in?
 export class SelectCardSystem extends CardTargetSystem {
     override defaultProperties: ISelectCardProperties = {
         cardCondition: () => true,

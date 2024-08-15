@@ -35,10 +35,9 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
 
         if (!context || !super.canAffect(card, context)) {
             return false;
-        // TODO: smuggle impl here
+        // TODO SMUGGLE: impl here
         } else if (isArena(card.location) || card.facedown) {
             return false;
-        // TODO: enums for restrictions instead of raw strings
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;
         } else if (player.hasRestriction(AbilityRestriction.PutIntoPlay, contextCopy)) {

@@ -244,8 +244,6 @@ export = {
     //     EffectBuilder.player.static(EffectName.DefendersChosenFirstDuringConflict, amountOfAttackers),
     // costToDeclareAnyParticipants: (properties) =>
     //     EffectBuilder.player.static(EffectName.CostToDeclareAnyParticipants, properties),
-    // changeConflictSkillFunctionPlayer: (func) =>
-    //     EffectBuilder.player.static(EffectName.ChangeConflictSkillFunction, func), // TODO: Add this to lasting effect checks
     // limitLegalAttackers: (matchFunc) => EffectBuilder.player.static(EffectName.LimitLegalAttackers, matchFunc), //matchFunc: (card) => bool
     // additionalActionAfterWindowCompleted: (amount = 1) =>
     //     EffectBuilder.player.static(EffectName.AdditionalActionAfterWindowCompleted, amount),
@@ -258,10 +256,6 @@ export = {
     //         )
     //     ),
     // cannotContribute: (func) => EffectBuilder.conflict.dynamic(EffectName.CannotContribute, func),
-    // changeConflictSkillFunction: (func) => EffectBuilder.conflict.static(EffectName.ChangeConflictSkillFunction, func), // TODO: Add this to lasting effect checks
-    // modifyConflictElementsToResolve: (value) =>
-    //     EffectBuilder.conflict.static(EffectName.ModifyConflictElementsToResolve, value), // TODO: Add this to lasting effect checks
-    // restrictNumberOfDefenders: (value) => EffectBuilder.conflict.static(EffectName.RestrictNumberOfDefenders, value), // TODO: Add this to lasting effect checks
     // resolveConflictEarly: () => EffectBuilder.player.static(EffectName.ResolveConflictEarly),
     // forceConflictUnopposed: () => EffectBuilder.conflict.static(EffectName.ForceConflictUnopposed),
     // additionalAttackedProvince: (province) =>

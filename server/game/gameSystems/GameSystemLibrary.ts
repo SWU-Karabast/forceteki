@@ -104,6 +104,7 @@ export function heal(propertyFactory: PropsFactory<IHealProperties>): GameSystem
  * default switch = false
  * default shuffle = false
  * default faceup = false
+ * @deprecated This system was imported from L5R but has not been tested
  */
 export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): CardTargetSystem {
     return new MoveCardSystem(propertyFactory);

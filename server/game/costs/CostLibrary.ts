@@ -129,22 +129,22 @@ export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
 //     );
 // }
 
-/** @deprecated This has not yet been tested */
-export function discardTopCardsFromDeck(properties: { amount: number; }): ICost {
-    return {
-        getActionName: (context) => 'discardTopCardsFromDeck',
-        getCostMessage: (context) => ['discarding {0}'],
-        canPay: (context) => context.player.deck.size() >= 4,
-        resolve: (context) => {
-            context.costs.discardTopCardsFromDeck = context.player.deck.first(4);
-        },
-        pay: (context) => {
-            for (const card of context.costs.discardTopCardsFromDeck as Card[]) {
-                card.controller.moveCard(card, Location.Deck);
-            }
-        }
-    };
-}
+// /** @deprecated This has not yet been tested */
+// export function discardTopCardsFromDeck(properties: { amount: number; }): ICost {
+//     return {
+//         getActionName: (context) => 'discardTopCardsFromDeck',
+//         getCostMessage: (context) => ['discarding {0}'],
+//         canPay: (context) => context.player.deck.size() >= 4,
+//         resolve: (context) => {
+//             context.costs.discardTopCardsFromDeck = context.player.deck.first(4);
+//         },
+//         pay: (context) => {
+//             for (const card of context.costs.discardTopCardsFromDeck as Card[]) {
+//                 card.controller.moveCard(card, Location.Deck);
+//             }
+//         }
+//     };
+// }
 
 // /**
 //  * Cost that requires removing a card selected by the player from the game.
@@ -422,59 +422,59 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //     };
 // }
 
-export function optional(cost: ICost): ICost {
-    const getActionName = (context: TriggeredAbilityContext) =>
-        `optional${cost.getActionName(context).replace(/^./, (c) => c.toUpperCase())}`;
+// export function optional(cost: ICost): ICost {
+//     const getActionName = (context: TriggeredAbilityContext) =>
+//         `optional${cost.getActionName(context).replace(/^./, (c) => c.toUpperCase())}`;
 
-    return {
-        promptsPlayer: true,
-        canPay: () => true,
-        getCostMessage: (context: TriggeredAbilityContext) =>
-            (context.costs[getActionName(context)] ? cost.getCostMessage(context) : undefined),
-        getActionName: getActionName,
-        resolve: (context: TriggeredAbilityContext, result) => {
-            if (!cost.canPay(context)) {
-                return;
-            }
-            const actionName = getActionName(context);
+//     return {
+//         promptsPlayer: true,
+//         canPay: () => true,
+//         getCostMessage: (context: TriggeredAbilityContext) =>
+//             (context.costs[getActionName(context)] ? cost.getCostMessage(context) : undefined),
+//         getActionName: getActionName,
+//         resolve: (context: TriggeredAbilityContext, result) => {
+//             if (!cost.canPay(context)) {
+//                 return;
+//             }
+//             const actionName = getActionName(context);
 
-            const choices = ['Yes', 'No'];
-            const handlers = [
-                () => {
-                    context.costs[actionName] = true;
-                },
-                // eslint-disable-next-line @typescript-eslint/no-empty-function
-                () => {}
-            ];
+//             const choices = ['Yes', 'No'];
+//             const handlers = [
+//                 () => {
+//                     context.costs[actionName] = true;
+//                 },
+//                 // eslint-disable-next-line @typescript-eslint/no-empty-function
+//                 () => {}
+//             ];
 
-            if (result.canCancel) {
-                choices.push('Cancel');
-                handlers.push(() => {
-                    result.cancelled = true;
-                });
-            }
+//             if (result.canCancel) {
+//                 choices.push('Cancel');
+//                 handlers.push(() => {
+//                     result.cancelled = true;
+//                 });
+//             }
 
-            context.game.promptWithHandlerMenu(context.player, {
-                activePromptTitle: 'Pay optional cost?',
-                source: context.source,
-                choices: choices,
-                handlers: handlers
-            });
-        },
+//             context.game.promptWithHandlerMenu(context.player, {
+//                 activePromptTitle: 'Pay optional cost?',
+//                 source: context.source,
+//                 choices: choices,
+//                 handlers: handlers
+//             });
+//         },
 
-        payEvent: (context: TriggeredAbilityContext) => {
-            const actionName = getActionName(context);
-            if (!context.costs[actionName]) {
-                const doNothing = new ExecuteHandlerSystem({});
-                return doNothing.getEvent(context.player, context);
-            }
+//         payEvent: (context: TriggeredAbilityContext) => {
+//             const actionName = getActionName(context);
+//             if (!context.costs[actionName]) {
+//                 const doNothing = new ExecuteHandlerSystem({});
+//                 return doNothing.getEvent(context.player, context);
+//             }
 
-            const events = [];
-            cost.addEventsToArray(events, context, {});
-            return events;
-        }
-    };
-}
+//             const events = [];
+//             cost.addEventsToArray(events, context, {});
+//             return events;
+//         }
+//     };
+// }
 
 // export function optionalFateCost(amount: number): Cost {
 //     return {
@@ -532,43 +532,43 @@ export function optional(cost: ICost): ICost {
 //     };
 // }
 
-export function nameCard(): ICost {
-    return {
-        selectCardName(player, cardName, context) {
-            context.costs.nameCardCost = cardName;
-            return true;
-        },
-        getActionName(context: TriggeredAbilityContext) {
-            return 'nameCard';
-        },
-        getCostMessage(context: TriggeredAbilityContext) {
-            return ['naming {1}', [context.costs.nameCardCost]];
-        },
-        canPay() {
-            return true;
-        },
-        resolve(context: TriggeredAbilityContext) {
-            const dummyObject = {
-                selectCardName: (player, cardName, context) => {
-                    context.costs.nameCardCost = cardName;
-                    return true;
-                }
-            };
+// export function nameCard(): ICost {
+//     return {
+//         selectCardName(player, cardName, context) {
+//             context.costs.nameCardCost = cardName;
+//             return true;
+//         },
+//         getActionName(context: TriggeredAbilityContext) {
+//             return 'nameCard';
+//         },
+//         getCostMessage(context: TriggeredAbilityContext) {
+//             return ['naming {1}', [context.costs.nameCardCost]];
+//         },
+//         canPay() {
+//             return true;
+//         },
+//         resolve(context: TriggeredAbilityContext) {
+//             const dummyObject = {
+//                 selectCardName: (player, cardName, context) => {
+//                     context.costs.nameCardCost = cardName;
+//                     return true;
+//                 }
+//             };
 
-            context.game.promptWithMenu(context.player, dummyObject, {
-                context: context,
-                activePrompt: {
-                    menuTitle: 'Name a card',
-                    controls: [
-                        { type: 'card-name', command: 'menuButton', method: 'selectCardName', name: 'card-name' }
-                    ]
-                }
-            });
-        },
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        pay() {}
-    };
-}
+//             context.game.promptWithMenu(context.player, dummyObject, {
+//                 context: context,
+//                 activePrompt: {
+//                     menuTitle: 'Name a card',
+//                     controls: [
+//                         { type: 'card-name', command: 'menuButton', method: 'selectCardName', name: 'card-name' }
+//                     ]
+//                 }
+//             });
+//         },
+//         // eslint-disable-next-line @typescript-eslint/no-empty-function
+//         pay() {}
+//     };
+// }
 
 // export function switchLocation(): Cost {
 //     return {

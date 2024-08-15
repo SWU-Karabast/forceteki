@@ -16,7 +16,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     discardDestinationCards?: boolean;
 }
 
-// TODO: this system has not been used or tested
+/** @deprecated This system was imported from L5R but has not been tested */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     override name = 'move';
     override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
@@ -29,10 +29,6 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         bottom: false,
         changePlayer: false,
     };
-
-    constructor(propertiesOrPropertyFactory: IMoveCardProperties | ((context?: AbilityContext) => IMoveCardProperties)) {
-        super(propertiesOrPropertyFactory);
-    }
 
     override getCostMessage(context: AbilityContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
