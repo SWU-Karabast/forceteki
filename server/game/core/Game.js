@@ -399,7 +399,7 @@ class Game extends EventEmitter {
     //     }
 
     //     MenuCommands.cardMenuClick(menuItem, this, player, card);
-    //     this.checkGameState(true);
+    //     this.resolveGameState(true);
     // }
 
     // /**
@@ -518,7 +518,7 @@ class Game extends EventEmitter {
 
     //     if (!this.isSpectator(player)) {
     //         if (this.chatCommands.executeCommand(player, args[0], args)) {
-    //             this.checkGameState(true);
+    //             this.resolveGameState(true);
     //             return;
     //         }
 
@@ -826,7 +826,6 @@ class Game extends EventEmitter {
         this.queueStep(window);
     }
 
-    // TODO: clearer naming here maybe
     /**
      * Creates a game Event, and opens a window for it.
      * @param {String} eventName
@@ -900,7 +899,7 @@ class Game extends EventEmitter {
     //  * cards, and performs it on all legal targets.
     //  * @param {AbilityContext} context
     //  * @param {Object} actions - Object with { actionName: targets }
-    //  * @returns {Event[]} - TODO: Change this?
+    //  * @returns {Event[]}
     //  */
     // applyGameAction(context, actions) {
     //     if (!context) {
@@ -941,7 +940,7 @@ class Game extends EventEmitter {
 
     // updateCurrentConflict(conflict) {
     //     this.currentConflict = conflict;
-    //     this.checkGameState(true);
+    //     this.resolveGameState(true);
     // }
 
     // /**
@@ -972,7 +971,7 @@ class Game extends EventEmitter {
     //         }
     //     }
     //     card.updateEffectContexts();
-    //     this.checkGameState(true);
+    //     this.resolveGameState(true);
     // }
 
     watch(socketId, user) {
@@ -1071,11 +1070,10 @@ class Game extends EventEmitter {
         this.addMessage('{0} has reconnected', player);
     }
 
-    // UP NEXT: rename this to something that makes it clearer that it's needed for updating effect state
-    checkGameState(hasChanged = false, events = []) {
+    resolveGameState(hasChanged = false, events = []) {
         // check for a game state change (recalculating attack stats if necessary)
         if (
-            (!this.currentAttack && this.effectEngine.checkEffects(hasChanged)) ||
+            (!this.currentAttack && this.effectEngine.resolveEffects(hasChanged)) ||
             (this.currentAttack && this.currentAttack.calculateSkill(hasChanged)) ||
             hasChanged
         ) {

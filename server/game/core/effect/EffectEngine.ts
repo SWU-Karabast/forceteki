@@ -108,7 +108,7 @@ export class EffectEngine {
     }
 
     // UP NEXT: rename this to something that makes it clearer that it's needed for updating effect status
-    checkEffects(prevStateChanged = false, loops = 0) {
+    resolveEffects(prevStateChanged = false, loops = 0) {
         if (!prevStateChanged && !this.effectsChangedSinceLastCheck) {
             return false;
         }
@@ -119,7 +119,7 @@ export class EffectEngine {
         if (loops === 10) {
             throw new Error('EffectEngine.checkEffects looped 10 times');
         } else {
-            this.checkEffects(stateChanged, loops + 1);
+            this.resolveEffects(stateChanged, loops + 1);
         }
         return stateChanged;
     }

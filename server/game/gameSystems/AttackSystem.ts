@@ -197,7 +197,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         context.game.openEventWindow(effectEvents);
 
         // TODO EFFECTS: remove this hack
-        context.game.queueSimpleStep(() => context.game.checkGameState());
+        context.game.queueSimpleStep(() => context.game.resolveGameState());
     }
 
     override checkEventCondition(event, additionalProperties): boolean {

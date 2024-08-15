@@ -30,7 +30,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.checkForOtherEffects()),
             new SimpleStep(this.game, () => this.preResolutionEffects()),
             new SimpleStep(this.game, () => this.executeHandler()),
-            // new SimpleStep(this.game, () => this.checkGameState()),
+            // new SimpleStep(this.game, () => this.resolveGameState()),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordReaction)),
             // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps()),
             new SimpleStep(this.game, () => this.openWindow(AbilityType.TriggeredAbility)),
@@ -110,9 +110,9 @@ class EventWindow extends BaseStepWithPipeline {
         });
     }
 
-    // checkGameState() {
+    // resolveGameState() {
     //     this.eventsToExecute = this.eventsToExecute.filter((event) => !event.cancelled);
-    //     this.game.checkGameState(_.any(this.eventsToExecute, (event) => event.handler), this.eventsToExecute);
+    //     this.game.resolveGameState(_.any(this.eventsToExecute, (event) => event.handler), this.eventsToExecute);
     // }
 
     // checkKeywordAbilities(abilityType) {

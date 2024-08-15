@@ -1003,7 +1003,7 @@ class Player extends GameObject {
 
     //     this.game.addMessage('{0} manually moves {1} from their {2} to their {3}', this, display, source, target);
     //     this.moveCard(card, target);
-    //     this.game.checkGameState(true);
+    //     this.game.resolveGameState(true);
     // }
 
     /**

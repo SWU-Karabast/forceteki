@@ -69,7 +69,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     /** @override */
     executeHandler(context) {
         this.handler(context);
-        this.game.queueSimpleStep(() => this.game.checkGameState());
+        this.game.queueSimpleStep(() => this.game.resolveGameState());
     }
 
     executeGameActions(context) {

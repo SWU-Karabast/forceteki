@@ -31,14 +31,14 @@ export class AttackFlow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.dealDamage()),
             new SimpleStep(this.game, () => this.completeAttack()),
             new SimpleStep(this.game, () => this.cleanUpAttack()),
-            // new SimpleStep(this.game, () => this.game.checkGameState(true))
+            // new SimpleStep(this.game, () => this.game.resolveGameState(true))
         ]);
     }
 
     private setCurrentAttack() {
         this.attack.previousAttack = this.game.currentAttack;
         this.game.currentAttack = this.attack;
-        // this.game.checkGameState(true);
+        // this.game.resolveGameState(true);
     }
 
     private dealDamage() {
