@@ -1,5 +1,6 @@
 import AbilityDsl from '../../AbilityDsl';
 import Card from '../../core/card/Card';
+import { AbilityRestriction } from '../../core/Constants';
 import { countUniqueAspects } from '../../core/utils/Helpers';
 
 export default class SabineWrenExplosivesArtist extends Card {
@@ -15,8 +16,7 @@ export default class SabineWrenExplosivesArtist extends Card {
             // UP NEXT: helper fn on Card to get all friendly units in play
             condition: () => countUniqueAspects(this.controller.getUnitsInPlay((card) => card !== this)) >= 3,
 
-            // UP NEXT: convert this to a named effect
-            effect: AbilityDsl.ongoingEffects.cardCannot('beAttacked')
+            effect: AbilityDsl.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
     }
 }

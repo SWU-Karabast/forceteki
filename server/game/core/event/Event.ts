@@ -1,11 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { EventName } from '../Constants';
-
-interface Params {
-    amount: number;
-    context: AbilityContext;
-    cannotBeCancelled: boolean;
-}
+import Player from '../Player';
 
 // TODO: rename to GameEvent to disambiguate from DOM events
 export class Event {
@@ -23,8 +18,8 @@ export class Event {
 
     constructor(
         public name: string,
-        params: Partial<Params>,
-        private handler?: (event: Event & Partial<Params>) => void
+        params: any,
+        private handler?: (event: Event) => void
     ) {
         for (const key in params) {
             if (key in params) {

@@ -2,6 +2,7 @@ const AbilityTargetAbility = require('./abilityTargets/AbilityTargetAbility.js')
 const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
 const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
 const { Stage, TargetMode, AbilityType } = require('../Constants.js');
+const { Event } = require('../event/Event.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -146,7 +147,7 @@ class PlayerOrCardAbility {
                             if (!results.cancelled) {
                                 let newEvents = cost.payEvent
                                     ? cost.payEvent(context)
-                                    : context.game.getEvent('payCost', {}, () => cost.pay(context));
+                                    : new Event('payCost', {}, () => cost.pay(context));
                                 if (Array.isArray(newEvents)) {
                                     for (let event of newEvents) {
                                         results.events.push(event);

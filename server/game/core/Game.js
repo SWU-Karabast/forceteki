@@ -363,7 +363,7 @@ class Game extends EventEmitter {
         this.pipeline.handleCardClicked(player, card);
     }
 
-    // TODO: implementation of this for smuggle
+    // TODO SMUGGLE: implementation of this
     // facedownCardClicked(playerName, location, controllerName, isProvince = false) {
     //     let player = this.getPlayerByName(playerName);
     //     let controller = this.getPlayerByName(controllerName);
@@ -826,22 +826,17 @@ class Game extends EventEmitter {
         this.queueStep(window);
     }
 
-    // TODO: this feels unnecessary
-    getEvent(eventName, params, handler) {
-        return new Event(eventName, params, handler);
-    }
-
     // TODO: clearer naming here maybe
     /**
      * Creates a game Event, and opens a window for it.
      * @param {String} eventName
      * @param {Object} params - parameters for this event
-     * @param {Function} handler - (Event + params) => undefined
+     * @param {(Event) => void} handler - (Event + params) => undefined
      * returns {Event} - this allows the caller to track Event.resolved and
      * tell whether or not the handler resolved successfully
      */
     raiseEvent(eventName, params = {}, handler = () => true) {
-        let event = this.getEvent(eventName, params, handler);
+        let event = new Event(eventName, params, handler);
         this.openEventWindow([event]);
         return event;
     }
@@ -852,7 +847,7 @@ class Game extends EventEmitter {
      * @param {Object} params - parameters for this event
      */
     emitEvent(eventName, params = {}) {
-        let event = this.getEvent(eventName, params);
+        let event = new Event(eventName, params);
         this.emit(event.name, event);
     }
 

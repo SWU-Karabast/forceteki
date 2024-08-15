@@ -5,6 +5,7 @@ import { payAdjustableResourceCost } from '../costs/CostLibrary.js';
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
 import type Card from '../core/card/Card.js';
 import type Player from '../core/Player.js';
+import { Event } from '../core/event/Event.js';
 
 type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 
@@ -50,7 +51,7 @@ export class PlayUnitAction extends PlayerAction {
     }
 
     public override executeHandler(context: ExecutionContext): void {
-        const cardPlayedEvent = context.game.getEvent(EventName.OnCardPlayed, {
+        const cardPlayedEvent = new Event(EventName.OnCardPlayed, {
             player: context.player,
             card: context.source,
             context: context,
