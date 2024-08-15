@@ -39,7 +39,6 @@ export abstract class GameObject {
         this.effects = this.effects.filter((e) => e !== effect);
     }
 
-    // UP NEXT: rename to getEffectValues
     public getEffectValues<V = any>(type: EffectName): V[] {
         const filteredEffects = this.getEffects().filter((effect) => effect.type === type);
         return filteredEffects.map((effect) => effect.getValue(this));

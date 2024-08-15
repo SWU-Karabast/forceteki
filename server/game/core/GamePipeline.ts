@@ -6,9 +6,8 @@ type StepFactory = () => IStep;
 type StepItem = IStep | StepFactory;
 
 export class GamePipeline {
-    // TODO: clearer name for queue
-    public pipeline: StepItem[] = [];
-    public queue: StepItem[] = [];
+    private pipeline: StepItem[] = [];
+    private stepsQueuedDuringCurrentStep: StepItem[] = [];
 
     initialise(steps: StepItem[]): void {
         this.pipeline = steps;
@@ -38,7 +37,7 @@ export class GamePipeline {
             if (currentStep.queueStep) {
                 currentStep.queueStep(step);
             } else {
-                this.queue.push(step);
+                this.stepsQueuedDuringCurrentStep.push(step);
             }
         }
     }
@@ -81,7 +80,7 @@ export class GamePipeline {
     }
 
     continue() {
-        this.queueIntoPipeline();
+        this.queueNewStepsIntoPipeline();
 
         while (this.pipeline.length > 0) {
             const currentStep = this.getCurrentStep();
@@ -89,27 +88,27 @@ export class GamePipeline {
             // Explicitly check for a return of false - if no return values is
             // defined then just continue to the next step.
             if (currentStep.continue() === false) {
-                if (this.queue.length === 0) {
+                if (this.stepsQueuedDuringCurrentStep.length === 0) {
                     return false;
                 }
             } else {
                 this.pipeline = this.pipeline.slice(1);
             }
 
-            this.queueIntoPipeline();
+            this.queueNewStepsIntoPipeline();
         }
         return true;
     }
 
-    private queueIntoPipeline() {
-        this.pipeline.unshift(...this.queue);
-        this.queue = [];
+    private queueNewStepsIntoPipeline() {
+        this.pipeline.unshift(...this.stepsQueuedDuringCurrentStep);
+        this.stepsQueuedDuringCurrentStep = [];
     }
 
     getDebugInfo() {
         return {
             pipeline: this.pipeline.map((step) => this.getDebugInfoForStep(step)),
-            queue: this.queue.map((step) => this.getDebugInfoForStep(step))
+            queue: this.stepsQueuedDuringCurrentStep.map((step) => this.getDebugInfoForStep(step))
         };
     }
 
