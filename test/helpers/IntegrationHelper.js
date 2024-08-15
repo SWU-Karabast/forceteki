@@ -336,7 +336,7 @@ global.integration = function (definitions) {
 
                 // TODO: re-enable
                 // if (options.phase !== 'setup') {
-                //     this.game.checkGameState(true);
+                //     this.game.resolveGameState(true);
                 // }
             };
 

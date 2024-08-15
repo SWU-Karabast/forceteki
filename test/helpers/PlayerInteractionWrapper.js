@@ -136,8 +136,8 @@ class PlayerInteractionWrapper {
             }
         });
 
-        // UP NEXT: make this part of the normal process of playing a card
-        this.game.checkGameState(true);
+        // TODO EFFECTS: make this part of the normal process of playing a card
+        this.game.resolveGameState(true);
     }
 
     get deck() {
@@ -340,7 +340,7 @@ class PlayerInteractionWrapper {
         }
         card.facedown = false;
         if (this.game.currentPhase !== 'setup') {
-            this.game.checkGameState(true);
+            this.game.resolveGameState(true);
         }
         return card;
     }
@@ -521,7 +521,7 @@ class PlayerInteractionWrapper {
             throw new Error(`${element} is not a valid ring selection`);
         }
         this.game.rings[element].claimRing(this.player);
-        this.game.checkGameState(true);
+        this.game.resolveGameState(true);
         this.game.continue();
     }
 
