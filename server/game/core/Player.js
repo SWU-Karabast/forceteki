@@ -112,7 +112,7 @@ class Player extends GameObject {
         this.clock.reset();
     }
 
-    // TODO: this should get upgrades, but we need to confirm once they're implemented
+    // TODO UPGRADES: this should retrieve upgrades, but we need to confirm once they're implemented
     getCardsInPlay() {
         return _(this.spaceArena.value().concat(this.groundArena.value()));
     }
@@ -534,7 +534,7 @@ class Player extends GameObject {
             // });
             // this.game.queueSimpleStep(() => this.drawCardsToHand(remainingCards));
 
-            // TODO: fill out this implementation
+            // TODO OVERDRAW: fill out this implementation
             throw new Error('Deck ran out of cards');
         } else {
             for (let card of this.deck.toArray().slice(0, numCards)) {
@@ -638,7 +638,7 @@ class Player extends GameObject {
         this.preparedDeck = preparedDeck;
         this.deck.each((card) => {
             // register event reactions in case event-in-deck bluff window is enabled
-            // TODO: probably we need to do this differently since we have actual reactions on our events
+            // TODO EVENTS: probably we need to do this differently since we have actual reactions on our events
             if (card.type === CardType.Event) {
                 for (let reaction of card.abilities.triggeredAbilities) {
                     reaction.registerEvents();
@@ -1046,13 +1046,13 @@ class Player extends GameObject {
         return legalLocations[type] && cardLocationMatches(location, legalLocations[type]);
     }
 
+    // TODO UPGRADES
     // /**
     //  * This is only used when an upgrade is dragged into play.  Usually,
     //  * upgrades are played by playCard()
     //  * @deprecated
     //  */
     // promptForUpgrade(card, playingType) {
-    //     // TODO: Really want to move this out of here.
     //     this.game.queueStep(new AttachmentPrompt(this.game, this, card, playingType));
     // }
 
@@ -1118,8 +1118,7 @@ class Player extends GameObject {
             return;
         }
 
-        // TODO: event resolution is probably not working right. this will get resolved in its own separate window as part of combat,
-        // but actually all combat effects should be resolved in the same window with resolution order decided per rules
+        // TODO: does this get resolved in the right place in the attack process?
         this.game.openEventWindow(GameSystems.defeat().getEvent(card, this.game.getFrameworkContext()));
     }
 
@@ -1336,7 +1335,7 @@ class Player extends GameObject {
     //     return this.anyEffect(EffectName.EventsCannotBeCancelled);
     // }
 
-    // // TODO: what stats are we interested in?
+    // // TODO STATE SAVE: what stats are we interested in?
     // getStats() {
     //     return {
     //         fate: this.fate,
@@ -1347,7 +1346,7 @@ class Player extends GameObject {
     //     };
     // }
 
-    // TODO: clean this up
+    // TODO STATE SAVE: clean this up
     // /**
     //  * This information is passed to the UI
     //  * @param {Player} activePlayer
