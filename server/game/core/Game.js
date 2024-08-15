@@ -207,7 +207,7 @@ class Game extends EventEmitter {
      */
     rotateActivePlayer() {
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {
-            this.raiseEvent(
+            this.createEventAndOpenWindow(
                 EventName.OnPassActionPhasePriority,
                 { player: this.actionPhaseActivePlayer, actionWindow: this },
                 () => {
@@ -767,15 +767,15 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.raiseEvent(EventName.OnBeginRound);
+        this.createEventAndOpenWindow(EventName.OnBeginRound);
         this.queueStep(new ActionPhase(this));
         this.queueStep(new RegroupPhase(this));
-        this.queueStep(new SimpleStep(this, () => this.roundEnded()));
-        this.queueStep(new SimpleStep(this, () => this.beginRound()));
+        this.queueSimpleStep(() => this.roundEnded());
+        this.queueSimpleStep(() => this.beginRound());
     }
 
     roundEnded() {
-        this.raiseEvent(EventName.OnRoundEnded);
+        this.createEventAndOpenWindow(EventName.OnRoundEnded);
     }
 
     /*
@@ -788,7 +788,7 @@ class Game extends EventEmitter {
         return step;
     }
 
-    // TODO: use this everywhere or remove it
+    // TODO: mandatory names for pipeline steps
     /*
      * Creates a step which calls a handler function
      * @param {Function} handler - () => undefined
@@ -835,7 +835,7 @@ class Game extends EventEmitter {
      * returns {Event} - this allows the caller to track Event.resolved and
      * tell whether or not the handler resolved successfully
      */
-    raiseEvent(eventName, params = {}, handler = () => true) {
+    createEventAndOpenWindow(eventName, params = {}, handler = () => true) {
         let event = new Event(eventName, params, handler);
         this.openEventWindow([event]);
         return event;

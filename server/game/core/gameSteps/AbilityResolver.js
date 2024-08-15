@@ -92,14 +92,14 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     queueInitiateAbilitySteps() {
-        this.queueStep(new SimpleStep(this.game, () => this.resolveCosts()));
-        this.queueStep(new SimpleStep(this.game, () => this.payCosts()));
-        this.queueStep(new SimpleStep(this.game, () => this.checkCostsWerePaid()));
-        this.queueStep(new SimpleStep(this.game, () => this.resolveTargets()));
-        this.queueStep(new SimpleStep(this.game, () => this.checkForCancelOrPass()));
-        this.queueStep(new SimpleStep(this.game, () => this.initiateAbilityEffects()));
-        this.queueStep(new SimpleStep(this.game, () => this.executeHandler()));
-        this.queueStep(new SimpleStep(this.game, () => this.moveEventCardToDiscard()));
+        this.game.queueSimpleStep(() => this.resolveCosts());
+        this.game.queueSimpleStep(() => this.payCosts());
+        this.game.queueSimpleStep(() => this.checkCostsWerePaid());
+        this.game.queueSimpleStep(() => this.resolveTargets());
+        this.game.queueSimpleStep(() => this.checkForCancelOrPass());
+        this.game.queueSimpleStep(() => this.initiateAbilityEffects());
+        this.game.queueSimpleStep(() => this.executeHandler());
+        this.game.queueSimpleStep(() => this.moveEventCardToDiscard());
     }
 
     resolveEarlyTargets() {
@@ -115,7 +115,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
-            this.queueStep(new SimpleStep(this.game, () => this.checkForPass()));
+            this.game.queueSimpleStep(() => this.checkForPass());
             return;
         }
 

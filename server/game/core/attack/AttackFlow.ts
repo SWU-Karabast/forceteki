@@ -46,7 +46,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private completeAttack() {
-        this.game.raiseEvent(EventName.OnAttackCompleted, { attack: this.attack });
+        this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, { attack: this.attack });
     }
 
     private cleanUpAttack() {
