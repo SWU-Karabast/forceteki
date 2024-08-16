@@ -17,18 +17,35 @@ export class GamePipeline {
         this.pipeline = steps;
     }
 
-    public getCurrentStep(): IStep {
-        const step = this.pipeline[0];
+    /**
+     * Resolve all steps in the pipeline (including any new ones added during resolution)
+     * @returns {boolean} True if the pipeline has completed, false if it has been paused with steps still queued
+     */
+    public continue() {
+        this.queueNewStepsIntoPipeline();
 
-        if (typeof step === 'function') {
-            const createdStep = step();
-            this.pipeline[0] = createdStep;
-            return createdStep;
+        while (this.pipeline.length > 0) {
+            const currentStep = this.getCurrentStep();
+
+            // Explicitly check for a return of false - if no return values is
+            // defined then just continue to the next step.
+            if (currentStep.continue() === false) {
+                if (this.stepsQueuedDuringCurrentStep.length === 0) {
+                    return false;
+                }
+            } else {
+                this.pipeline = this.pipeline.slice(1);
+            }
+
+            this.queueNewStepsIntoPipeline();
         }
-
-        return step;
+        return true;
     }
 
+    /**
+     * Queues a new step to be added to the pipeline after the current step is finished resolving or is paused.
+     * The new step added here will be pushed to the front of the pipeline.
+     */
     public queueStep(step: IStep) {
         if (this.pipeline.length === 0) {
             this.pipeline.unshift(step);
@@ -79,33 +96,6 @@ export class GamePipeline {
         return step.onMenuCommand(player, arg, uuid, method) !== false;
     }
 
-    // UP NEXT: docstr for pipeline methods
-    public continue() {
-        this.queueNewStepsIntoPipeline();
-
-        while (this.pipeline.length > 0) {
-            const currentStep = this.getCurrentStep();
-
-            // Explicitly check for a return of false - if no return values is
-            // defined then just continue to the next step.
-            if (currentStep.continue() === false) {
-                if (this.stepsQueuedDuringCurrentStep.length === 0) {
-                    return false;
-                }
-            } else {
-                this.pipeline = this.pipeline.slice(1);
-            }
-
-            this.queueNewStepsIntoPipeline();
-        }
-        return true;
-    }
-
-    private queueNewStepsIntoPipeline() {
-        this.pipeline.unshift(...this.stepsQueuedDuringCurrentStep);
-        this.stepsQueuedDuringCurrentStep = [];
-    }
-
     public getDebugInfo() {
         return {
             pipeline: this.pipeline.map((step) => this.getDebugInfoForStep(step)),
@@ -130,5 +120,22 @@ export class GamePipeline {
         }
 
         return name;
+    }
+
+    private getCurrentStep(): IStep {
+        const step = this.pipeline[0];
+
+        if (typeof step === 'function') {
+            const createdStep = step();
+            this.pipeline[0] = createdStep;
+            return createdStep;
+        }
+
+        return step;
+    }
+
+    private queueNewStepsIntoPipeline() {
+        this.pipeline.unshift(...this.stepsQueuedDuringCurrentStep);
+        this.stepsQueuedDuringCurrentStep = [];
     }
 }

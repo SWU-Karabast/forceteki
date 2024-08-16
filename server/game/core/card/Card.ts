@@ -90,7 +90,6 @@ class Card extends OngoingEffectSource {
 
     public static implemented = false;
 
-    // UP NEXT: readonly pass on class properties throughout the repo
     public override readonly id: string;
     public readonly printedTitle: string;
     public readonly printedSubtitle: string;
@@ -112,18 +111,19 @@ class Card extends OngoingEffectSource {
     protected traits: string[];
     public location: Location;
 
+    public readonly printedHp: number | null;
+    public readonly printedPower: number | null;
+    public readonly printedCost: number | null;
+    public readonly aspects: Aspect[] = [];
+
     protected upgrades = [] as Card[];
     protected childCards = [] as Card[];
     protected allowedAttachmentTraits = [] as string[];
     protected printedKeywords: string[] = [];
-    public aspects: Aspect[] = [];
 
     // TODO: readonly getters for most of these
     protected defaultController: Player;
     public parent: Card | null;
-    public printedHp: number | null;
-    public printedPower: number | null;
-    public printedCost: number | null;
     public exhausted: boolean | null;
     public damage: number | null;
     public hiddenForController: boolean;

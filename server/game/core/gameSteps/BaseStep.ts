@@ -8,6 +8,10 @@ export abstract class BaseStep implements IStep {
     // maybe names only in debug mode too?
     public constructor(public game: Game) {}
 
+    /**
+     * Resolve the pipeline step
+     * @returns {boolean} True if step has finished resolving upon return, false if it has not (typically because new steps have been queued that need to be resolved first)
+     */
     public abstract continue(): boolean;
 
     public onCardClicked(player: Player, card: Card): boolean {
