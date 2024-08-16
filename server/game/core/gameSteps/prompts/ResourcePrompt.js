@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const { Location } = require('../../Constants.js');
 const { AllPlayerPrompt } = require('./AllPlayerPrompt.js');
 const { default: Contract } = require('../../utils/Contract.js');
@@ -10,7 +9,7 @@ class ResourcePrompt extends AllPlayerPrompt {
         this.selectableCards = {};
         this.minCardsToResource = minCardsToResource;
         this.maxCardsToResource = maxCardsToResource;
-        _.each(game.getPlayers(), (player) => this.selectedCards[player.name] = []);
+        game.getPlayers().forEach((player) => this.selectedCards[player.name] = []);
     }
 
     /** @override */
@@ -29,7 +28,7 @@ class ResourcePrompt extends AllPlayerPrompt {
     }
 
     highlightSelectableCards() {
-        _.each(this.game.getPlayers(), (player) => {
+        this.game.getPlayers().forEach((player) => {
             // cards are only selectable until we've selected as many as allowed
             if (!this.selectableCards[player.name] && this.selectedCards[player.name].length < this.maxCardsToResource) {
                 this.selectableCards[player.name] = player.hand;

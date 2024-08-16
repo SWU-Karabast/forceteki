@@ -1,5 +1,3 @@
-const _ = require('underscore');
-
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer, EffectName, TargetMode } = require('../../Constants.js');
 
@@ -78,7 +76,9 @@ class AbilityTargetCard {
                 return;
             }
         }
-        let otherProperties = _.omit(this.properties, 'cardCondition', 'player');
+
+        // create a copy of properties without cardCondition or player
+        let { _cardCondition, _player, ...otherProperties } = this.properties;
 
         let buttons = [];
         let waitingPromptTitle = '';

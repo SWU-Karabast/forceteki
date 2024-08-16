@@ -1,5 +1,3 @@
-const _ = require('underscore');
-
 const AbilityHelper = require('../../AbilityHelper');
 const { GameObject } = require('../GameObject.js');
 
@@ -50,11 +48,11 @@ class OngoingEffectSource extends GameObject {
         }
 
         let effect = properties.effect;
-        properties = _.omit(properties, 'effect');
-        if (Array.isArray(effect)) {
-            return effect.map((factory) => this.game.effectEngine.add(factory(this.game, this, properties)));
+        let { _effect, ...propertiesWithoutEffect } = properties;
+        if (Array.isArray(propertiesWithoutEffect)) {
+            return propertiesWithoutEffect.map((factory) => this.game.effectEngine.add(factory(this.game, this, propertiesWithoutEffect)));
         }
-        return [this.game.effectEngine.add(effect(this.game, this, properties))];
+        return [this.game.effectEngine.add(effect(this.game, this, propertiesWithoutEffect))];
     }
 
     removeEffectFromEngine(effectArray) {

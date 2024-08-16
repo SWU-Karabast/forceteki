@@ -25,7 +25,7 @@ class HandlerMenuPrompt extends UiPrompt {
     constructor(game, player, properties) {
         super(game);
         this.player = player;
-        if (_.isString(properties.source)) {
+        if (typeof properties.source === 'string') {
             properties.source = new OngoingEffectSource(game, properties.source);
         } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
@@ -51,15 +51,16 @@ class HandlerMenuPrompt extends UiPrompt {
         let buttons = [];
         if (this.properties.cards) {
             let cardQuantities = {};
-            _.each(this.properties.cards, (card) => {
+            this.properties.cards.forEach((card) => {
                 if (cardQuantities[card.id]) {
                     cardQuantities[card.id] += 1;
                 } else {
                     cardQuantities[card.id] = 1;
                 }
             });
+            // TODO: write our own uniq function so we can remove underscore and convert to TS
             let cards = _.uniq(this.properties.cards, (card) => card.id);
-            buttons = _.map(cards, (card) => {
+            buttons = cards.map((card) => {
                 let text = card.name;
                 if (cardQuantities[card.id] > 1) {
                     text = text + ' (' + cardQuantities[card.id].toString() + ')';
@@ -67,7 +68,7 @@ class HandlerMenuPrompt extends UiPrompt {
                 return { text: text, arg: card.id, card: card, disabled: !this.cardCondition(card, this.context) };
             });
         }
-        buttons = buttons.concat(_.map(this.properties.choices, (choice, index) => {
+        buttons = buttons.concat(this.properties.choices.map((choice, index) => {
             return { text: choice, arg: index };
         }));
         if (this.game.manualMode && (!this.properties.choices || this.properties.choices.every((choice) => choice !== 'Cancel'))) {
@@ -114,12 +115,12 @@ class HandlerMenuPrompt extends UiPrompt {
 
     /** @override */
     menuCommand(player, arg) {
-        if (_.isString(arg)) {
+        if (typeof arg === 'string') {
             if (arg === 'cancel') {
                 this.complete();
                 return true;
             }
-            let card = _.find(this.properties.cards, (card) => card.id === arg);
+            let card = this.properties.cards.find((card) => card.id === arg);
             if (card && this.properties.cardHandler) {
                 this.properties.cardHandler(card);
                 this.complete();

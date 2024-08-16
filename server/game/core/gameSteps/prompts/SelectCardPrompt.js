@@ -1,5 +1,4 @@
 const _ = require('underscore');
-
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
@@ -55,7 +54,7 @@ class SelectCardPrompt extends UiPrompt {
         super(game);
 
         this.choosingPlayer = choosingPlayer;
-        if (_.isString(properties.source)) {
+        if (typeof properties.source === 'string') {
             properties.source = new OngoingEffectSource(game, properties.source);
         } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
@@ -69,6 +68,7 @@ class SelectCardPrompt extends UiPrompt {
 
         this.properties = properties;
         this.context = properties.context || new AbilityContext({ game: game, player: choosingPlayer, source: properties.source });
+        // TODO: confirm how this works and then replace it
         _.defaults(this.properties, this.defaultProperties());
         if (properties.gameSystem) {
             if (!Array.isArray(properties.gameSystem)) {
@@ -218,7 +218,7 @@ class SelectCardPrompt extends UiPrompt {
         if (!this.selectedCards.includes(card)) {
             this.selectedCards.push(card);
         } else {
-            this.selectedCards = _.reject(this.selectedCards, (c) => c === card);
+            this.selectedCards = this.selectedCards.filter((c) => c !== card);
         }
         this.choosingPlayer.setSelectedCards(this.selectedCards);
 

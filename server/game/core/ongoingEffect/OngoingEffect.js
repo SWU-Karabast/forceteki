@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const { Location, Duration, WildcardLocation } = require('../Constants');
 const { isArena } = require('../utils/EnumHelpers');
 
@@ -80,7 +79,7 @@ class OngoingEffect {
 
     removeTargets(targets) {
         targets.forEach((target) => this.impl.unapply(target));
-        this.targets = _.difference(this.targets, targets);
+        this.targets = this.targets.filter((target) => !targets.includes(target));
     }
 
     hasTarget(target) {
@@ -88,7 +87,7 @@ class OngoingEffect {
     }
 
     cancel() {
-        _.each(this.targets, (target) => this.impl.unapply(target));
+        this.targets.forEach((target) => this.impl.unapply(target));
         this.targets = [];
     }
 
@@ -105,18 +104,18 @@ class OngoingEffect {
             stateChanged = this.targets.length > 0 || stateChanged;
             this.cancel();
             return stateChanged;
-        } else if (_.isFunction(this.match)) {
+        } else if (typeof this.match === 'function') {
             // Get any targets which are no longer valid
-            let invalidTargets = _.filter(this.targets, (target) => !this.match(target, this.context) || !this.isValidTarget(target));
+            let invalidTargets = this.targets.filter((target) => !this.match(target, this.context) || !this.isValidTarget(target));
             // Remove invalid targets
             this.removeTargets(invalidTargets);
             stateChanged = stateChanged || invalidTargets.length > 0;
             // Recalculate the effect for valid targets
-            _.each(this.targets, (target) => stateChanged = this.impl.recalculate(target) || stateChanged);
+            this.targets.forEach((target) => stateChanged = this.impl.recalculate(target) || stateChanged);
             // Check for new targets
-            let newTargets = _.filter(this.getTargets(), (target) => !this.targets.includes(target) && this.isValidTarget(target));
+            let newTargets = this.getTargets().filter((target) => !this.targets.includes(target) && this.isValidTarget(target));
             // Apply the effect to new targets
-            _.each(newTargets, (target) => this.addTarget(target));
+            newTargets.forEach((target) => this.addTarget(target));
             return stateChanged || newTargets.length > 0;
         } else if (this.targets.includes(this.match)) {
             if (!this.isValidTarget(this.match)) {
@@ -134,7 +133,7 @@ class OngoingEffect {
     getDebugInfo() {
         return {
             source: this.source.name,
-            targets: _.map(this.targets, (target) => target.name).join(','),
+            targets: this.targets.map((target) => target.name).join(','),
             active: this.isEffectActive(),
             condition: this.condition(this.context),
             effect: this.impl.getDebugInfo()

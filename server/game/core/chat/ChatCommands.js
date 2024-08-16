@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const GameSystems = require('../../gameSystems/GameSystemLibrary');
 const { Location, CardType, RelativePlayer, WildcardLocation } = require('../Constants.js');
 
@@ -29,12 +28,12 @@ class ChatCommands {
 
     startClocks(player) {
         this.game.addMessage('{0} restarts the timers', player);
-        _.each(this.game.getPlayers(), (player) => player.clock.manuallyResume());
+        this.game.getPlayers().forEach((player) => player.clock.manuallyResume());
     }
 
     stopClocks(player) {
         this.game.addMessage('{0} stops the timers', player);
-        _.each(this.game.getPlayers(), (player) => player.clock.manuallyPause());
+        this.game.getPlayers().forEach((player) => player.clock.manuallyPause());
     }
 
     modifyClock(player, args) {

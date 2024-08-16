@@ -1,5 +1,3 @@
-const _ = require('underscore');
-
 const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
 const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js');
@@ -183,7 +181,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         if (this.cancelled) {
             return;
         }
-        this.cancelled = _.any(this.costResults.events, (event) => event.getResolutionEvent().cancelled);
+        this.cancelled = this.costResults.events.some((event) => event.getResolutionEvent().cancelled);
         if (this.cancelled) {
             this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
         }

@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const { SelectChoice } = require('./SelectChoice.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
 
@@ -80,7 +79,7 @@ class AbilityTargetSelect {
         }
         let promptTitle = this.properties.activePromptTitle || 'Select one';
         let choices = Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
-        let handlers = _.map(choices, (choice) => {
+        let handlers = choices.map((choice) => {
             return () => {
                 context.selects[this.name] = new SelectChoice(choice);
                 if (this.name === 'target') {
