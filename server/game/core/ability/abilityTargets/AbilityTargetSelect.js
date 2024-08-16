@@ -64,7 +64,7 @@ class AbilityTargetSelect {
         return Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
     }
 
-    // UP NEXT: add passHandler here
+    // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
     resolve(context, targetResults) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;

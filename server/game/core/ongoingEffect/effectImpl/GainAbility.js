@@ -94,9 +94,8 @@ class GainAbility extends OngoingEffectValueWrapper {
         if (
             [
                 // AbilityType.ForcedInterrupt,
-                AbilityType.ForcedReaction,
+                AbilityType.TriggeredAbility,
                 // AbilityType.Interrupt,
-                AbilityType.Reaction,
                 // AbilityType.WouldInterrupt
             ].includes(this.abilityType)
         ) {

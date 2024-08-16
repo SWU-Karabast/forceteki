@@ -4,7 +4,7 @@ const { AbilityType } = require('../Constants.js');
 class AdditionalAbilityStepEventWindow extends EventWindow {
     /** @override */
     openWindow(abilityType) {
-        if (abilityType !== AbilityType.ForcedReaction && abilityType !== AbilityType.Reaction) {
+        if (abilityType !== AbilityType.TriggeredAbility) {
             super.openWindow(abilityType);
         }
     }

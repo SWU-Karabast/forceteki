@@ -309,7 +309,6 @@ class Card extends OngoingEffectSource {
         return false;
     }
 
-    // UP NEXT: don't always return play actions
     /**
      * The union of the card's "Action Abilities" (ie abilities that enable an action, SWU 2.1) and
      * any other general card actions such as playing a card
@@ -352,10 +351,6 @@ class Card extends OngoingEffectSource {
     }
 
     private getTriggeredAbilities(): TriggeredAbility[] {
-        const TriggeredAbilityTypes = [
-            AbilityType.ForcedReaction,
-            AbilityType.Reaction,
-        ];
         const triggeredAbilities = this.abilities.triggered;
 
         // const lostAllNonKeywordsAbilities = this.anyEffect(EffectName.LoseAllNonKeywordAbilities);

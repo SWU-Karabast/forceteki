@@ -12,7 +12,7 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
 /**
  * A {@link GameSystem} which targets a card or cards for its effect
  */
-// UP NEXT: mixin for Action types (CardAction, PlayerAction)?
+// TODO: mixin for Action types (CardAction, PlayerAction)?
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
 export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TProperties> {
     override targetType = [

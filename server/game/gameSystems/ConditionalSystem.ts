@@ -42,7 +42,7 @@ export class ConditionalSystem extends GameSystem<IConditionalSystemProperties> 
         return this.getGameAction(context, additionalProperties).generateEventsForAllTargets(context, additionalProperties);
     }
 
-    // UP NEXT: some GameSystem subclasses just generate events but don't themselves have eventHandlers, do we need to specialize for that case?
+    // TODO: some GameSystem subclasses just generate events but don't themselves have eventHandlers, do we need to specialize for that case?
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     eventHandler(target) {}
 
