@@ -1,5 +1,5 @@
 import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
-import { EffectValue } from '../core/effect/effectImpl/EffectValue';
+import { EffectValueWrapper } from '../core/effect/effectImpl/EffectValueWrapper';
 import { Location } from '../core/Constants';
 
 const getApplyingPlayer = (effect) => {

@@ -1,7 +1,7 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import { EffectName } from '../../Constants';
 import { EffectImpl } from './EffectImpl';
-import { EffectValue } from './EffectValue';
+import { EffectValueWrapper } from './EffectValueWrapper';
 import StaticEffectImpl from './StaticEffectImpl';
 
 // TODO: eventually this will subclass EffectImpl directly but I don't fully understand how it uses the apply()

@@ -41,7 +41,6 @@ export = {
     // blank: (blankTraits = false) => EffectBuilder.card.static(EffectName.Blank, blankTraits),
     // calculatePrintedMilitarySkill: (func) => EffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
-    // UP NEXT: convert this file to TS, add an interface for this effect object, and add that interface to EffectValueType
     /** @deprected This has not yet been tested */
     canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
         EffectBuilder.card.flexible(

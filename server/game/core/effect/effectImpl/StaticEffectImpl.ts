@@ -1,4 +1,4 @@
-import { EffectValue } from './EffectValue';
+import { EffectValueWrapper } from './EffectValueWrapper';
 import { CardType, EffectName, Duration, AbilityType } from '../../Constants';
 import { AbilityContext } from '../../ability/AbilityContext';
 import { EffectImpl } from './EffectImpl';
@@ -63,40 +63,40 @@ const binaryCardEffects = [
 
 // TODO: readonly pass on class properties throughout the repo
 export default class StaticEffectImpl<TValue> extends EffectImpl<TValue> {
-    readonly value: EffectValue<TValue>;
+    readonly valueWrapper: EffectValueWrapper<TValue>;
 
-    constructor(type: EffectName, value: EffectValue<TValue> | TValue) {
+    constructor(type: EffectName, value: EffectValueWrapper<TValue> | TValue) {
         super(type);
 
-        if (value instanceof EffectValue) {
-            this.value = value;
+        if (value instanceof EffectValueWrapper) {
+            this.valueWrapper = value;
         } else {
-            this.value = new EffectValue(value);
+            this.valueWrapper = new EffectValueWrapper(value);
         }
-        this.value.reset();
+        this.valueWrapper.reset();
     }
 
     apply(target) {
         target.addEffect(this);
-        this.value.apply(target);
+        this.valueWrapper.apply(target);
     }
 
     unapply(target) {
         target.removeEffect(this);
-        this.value.unapply(target);
+        this.valueWrapper.unapply(target);
     }
 
     getValue(target) {
-        return this.value.getValue();
+        return this.valueWrapper.getValue();
     }
 
     recalculate(target) {
-        return this.value.recalculate();
+        return this.valueWrapper.recalculate();
     }
 
     override setContext(context: AbilityContext) {
         super.setContext(context);
-        this.value.setContext(context);
+        this.valueWrapper.setContext(context);
     }
 
     // effects can't be applied to facedown cards
@@ -162,7 +162,7 @@ export default class StaticEffectImpl<TValue> extends EffectImpl<TValue> {
     // }
 
     override getDebugInfo() {
-        return Object.assign(super.getDebugInfo(), { value: this.value });
+        return Object.assign(super.getDebugInfo(), { value: this.valueWrapper });
     }
 }
 
