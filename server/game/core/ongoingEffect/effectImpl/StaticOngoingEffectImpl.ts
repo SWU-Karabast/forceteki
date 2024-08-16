@@ -1,7 +1,7 @@
-import { EffectValueWrapper } from './EffectValueWrapper';
+import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import { CardType, EffectName, Duration, AbilityType } from '../../Constants';
 import { AbilityContext } from '../../ability/AbilityContext';
-import { EffectImpl } from './EffectImpl';
+import { OngoingEffectImpl } from './OngoingEffectImpl';
 
 const binaryCardEffects = [
     EffectName.Blank,
@@ -62,16 +62,16 @@ const binaryCardEffects = [
 // };
 
 // TODO: readonly pass on class properties throughout the repo
-export default class StaticEffectImpl<TValue> extends EffectImpl<TValue> {
-    readonly valueWrapper: EffectValueWrapper<TValue>;
+export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
+    readonly valueWrapper: OngoingEffectValueWrapper<TValue>;
 
-    constructor(type: EffectName, value: EffectValueWrapper<TValue> | TValue) {
+    constructor(type: EffectName, value: OngoingEffectValueWrapper<TValue> | TValue) {
         super(type);
 
-        if (value instanceof EffectValueWrapper) {
+        if (value instanceof OngoingEffectValueWrapper) {
             this.valueWrapper = value;
         } else {
-            this.valueWrapper = new EffectValueWrapper(value);
+            this.valueWrapper = new OngoingEffectValueWrapper(value);
         }
         this.valueWrapper.reset();
     }

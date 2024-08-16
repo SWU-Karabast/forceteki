@@ -1,12 +1,12 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import { EffectName } from '../../Constants';
-import { EffectImpl } from './EffectImpl';
-import { EffectValueWrapper } from './EffectValueWrapper';
-import StaticEffectImpl from './StaticEffectImpl';
+import { OngoingEffectImpl } from './OngoingEffectImpl';
+import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 
-// TODO: eventually this will subclass EffectImpl directly but I don't fully understand how it uses the apply()
-// function inherited from StaticEffectImpl yet (seems like it shouldn't work)
-export default class DynamicEffectImpl<TValue> extends StaticEffectImpl<TValue> {
+// TODO: eventually this will subclass OngoingEffectImpl directly but I don't fully understand how it uses the apply()
+// function inherited from StaticOngoingEffectImpl yet (seems like it shouldn't work)
+export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
     private values: Record<string, TValue> = {};
 
     constructor(
@@ -43,4 +43,4 @@ export default class DynamicEffectImpl<TValue> extends StaticEffectImpl<TValue> 
     }
 }
 
-module.exports = DynamicEffectImpl;
+module.exports = DynamicOngoingEffectImpl;

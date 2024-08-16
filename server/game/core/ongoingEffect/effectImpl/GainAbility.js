@@ -1,10 +1,10 @@
-const { EffectValueWrapper } = require('./EffectValueWrapper');
+const { OngoingEffectValueWrapper } = require('./OngoingEffectValueWrapper');
 const { AbilityType, Location, WildcardLocation } = require('../../Constants');
 
 /**
  * @deprecated This will be needed for Tech's ability but not yet tested (TODO TECH ABILITY)
  */
-class GainAbility extends EffectValueWrapper {
+class GainAbility extends OngoingEffectValueWrapper {
     constructor(abilityType, ability) {
         super(true);
         this.abilityType = abilityType;

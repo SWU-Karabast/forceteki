@@ -1,7 +1,7 @@
 import Card from '../../card/Card';
 import type { CardType } from '../../Constants';
-import Effect from '../Effect';
-import { ICardEffect } from '../ICardEffect';
+import OngoingEffect from '../OngoingEffect';
+import { IOngoingCardEffect } from '../IOngoingCardEffect';
 import StatsModifier from './StatsModifier';
 
 export default class StatsModifierWrapper {
@@ -38,7 +38,7 @@ export default class StatsModifierWrapper {
         return;
     }
 
-    static fromEffect(effect: ICardEffect, card: Card, overrides = false, name = `${this.getEffectName(effect)}`) {
+    static fromEffect(effect: IOngoingCardEffect, card: Card, overrides = false, name = `${this.getEffectName(effect)}`) {
         const modifier = effect.getValue(card) as StatsModifier;
 
         return new this(

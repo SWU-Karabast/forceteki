@@ -87,7 +87,7 @@ export enum Duration {
 
 export enum Stage {
     Cost = 'cost',
-    Effect = 'effect',
+    EffectTmp = 'effect',
     PreTarget = 'preTarget',
     Target = 'target'
 }

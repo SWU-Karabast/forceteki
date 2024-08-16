@@ -242,7 +242,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         if (this.cancelled || !this.initiateAbility) {
             return;
         }
-        this.context.stage = Stage.Effect;
+        this.context.stage = Stage.EffectTmp;
         this.context.ability.executeHandler(this.context);
     }
 

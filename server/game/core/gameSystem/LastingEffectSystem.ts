@@ -5,7 +5,7 @@ import type { WhenType } from '../../Interfaces';
 import type Player from '../Player';
 import { GameSystem, type IGameSystemProperties } from './GameSystem';
 import { Event } from '../event/Event';
-import Effect from '../effect/Effect';
+import OngoingEffect from '../ongoingEffect/OngoingEffect';
 
 export interface ILastingEffectGeneralProperties extends IGameSystemProperties {
     duration?: Duration;
@@ -33,7 +33,7 @@ export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
     override generatePropertiesFromContext(
         context: AbilityContext,
         additionalProperties = {}
-    ): LastingEffectProperties & { effect?: Effect[] } {
+    ): LastingEffectProperties & { effect?: OngoingEffect[] } {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as LastingEffectProperties & {
             effect: any[];
         };

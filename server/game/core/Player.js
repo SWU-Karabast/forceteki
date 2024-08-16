@@ -27,6 +27,7 @@ const {
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
 
+// UP NEXT: rm -r build on all transpile commands
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
         super(game, user.username);
@@ -680,7 +681,7 @@ class Player extends GameObject {
 
     /**
      * Adds the passed Cost Adjuster to this Player
-     * @param source = EffectSource source of the adjuster
+     * @param source = OngoingEffectSource source of the adjuster
      * @param {Object} properties
      * @returns {CostAdjuster}
      */

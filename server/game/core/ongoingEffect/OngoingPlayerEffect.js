@@ -1,12 +1,12 @@
-const Effect = require('./Effect.js');
+const OngoingEffect = require('./OngoingEffect.js');
 const { RelativePlayer } = require('../Constants.js');
 
-class PlayerEffect extends Effect {
+class OngoingPlayerEffect extends OngoingEffect {
     constructor(game, source, properties, effect) {
         super(game, source, properties, effect);
         this.targetController = properties.targetController || RelativePlayer.Self;
         if (typeof this.match !== 'function') {
-            this.match = (player) => true; // eslint-disable-line no-unused-vars
+            this.match = (player) => true;
         }
     }
 
@@ -30,4 +30,4 @@ class PlayerEffect extends Effect {
     }
 }
 
-module.exports = PlayerEffect;
+module.exports = OngoingPlayerEffect;

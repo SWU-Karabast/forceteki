@@ -2,7 +2,7 @@ import { v1 as uuidV1 } from 'uuid';
 
 import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
-import type { ICardEffect } from './effect/ICardEffect';
+import type { IOngoingCardEffect } from './ongoingEffect/IOngoingCardEffect';
 import type Game from './Game';
 import type { GameSystem } from './gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
@@ -11,7 +11,7 @@ import type Player from './Player';
 export abstract class GameObject {
     public uuid = uuidV1();
     protected id: string;
-    private effects = [] as ICardEffect[];
+    private effects = [] as IOngoingCardEffect[];
     private nameField: string;
 
     public constructor(
@@ -26,11 +26,11 @@ export abstract class GameObject {
         return this.nameField;
     }
 
-    public addEffect(effect: ICardEffect) {
+    public addEffect(effect: IOngoingCardEffect) {
         this.effects.push(effect);
     }
 
-    public removeEffect(effect: ICardEffect) {
+    public removeEffect(effect: IOngoingCardEffect) {
         this.effects = this.effects.filter((e) => e !== effect);
     }
 
@@ -99,7 +99,7 @@ export abstract class GameObject {
             }
 
             // return (context.player.countSpendableResources() >= targetingCost);
-        } else if (context.stage === Stage.Target || context.stage === Stage.Effect) {
+        } else if (context.stage === Stage.Target || context.stage === Stage.EffectTmp) {
             //We paid costs first, or targeting has to be done after costs have been paid
             // return (context.player.countSpendableResources() >= targetingCost);
         }

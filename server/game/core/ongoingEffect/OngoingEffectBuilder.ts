@@ -7,12 +7,12 @@ import type { GameSystem, IGameSystemProperties } from '../gameSystem/GameSystem
 import type { WhenType } from '../../Interfaces';
 import type Player from '../Player';
 // import type { StatusToken } from '../StatusToken';
-import CardEffect from './CardEffect';
+import OngoingCardEffect from './OngoingCardEffect';
 // import ConflictEffect from './ConflictEffect';
-import DetachedEffectImpl from './effectImpl/DetachedEffectImpl';
-import DynamicEffectImpl from './effectImpl/DynamicEffectImpl';
-import PlayerEffect from './PlayerEffect';
-import StaticEffectImpl from './effectImpl/StaticEffectImpl';
+import DetachedOngoingEffectImpl from './effectImpl/DetachedOngoingEffectImpl';
+import DynamicOngoingEffectImpl from './effectImpl/DynamicOngoingEffectImpl';
+import OngoingPlayerEffect from './OngoingPlayerEffect';
+import StaticOngoingEffectImpl from './effectImpl/StaticOngoingEffectImpl';
 
 type PlayerOrCard = Player | Card;
 
@@ -36,29 +36,29 @@ interface Props {
     3. Detached effects - do something when applied, and on expiration, but can be ignored in the interim
 */
 
-export const EffectBuilder = {
+export const OngoingEffectBuilder = {
     card: {
         static: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
-            new CardEffect(game, source, props, new StaticEffectImpl(type, value)),
+            new OngoingCardEffect(game, source, props, new StaticOngoingEffectImpl(type, value)),
         dynamic: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
-            new CardEffect(game, source, props, new DynamicEffectImpl(type, value)),
+            new OngoingCardEffect(game, source, props, new DynamicOngoingEffectImpl(type, value)),
         detached: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
-            new CardEffect(game, source, props, new DetachedEffectImpl(type, value.apply, value.unapply)),
+            new OngoingCardEffect(game, source, props, new DetachedOngoingEffectImpl(type, value.apply, value.unapply)),
         flexible: (type: EffectName, value?: unknown) =>
             (typeof value === 'function'
-                ? EffectBuilder.card.dynamic(type, value)
-                : EffectBuilder.card.static(type, value))
+                ? OngoingEffectBuilder.card.dynamic(type, value)
+                : OngoingEffectBuilder.card.static(type, value))
     },
     player: {
         static: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
-            new PlayerEffect(game, source, props, new StaticEffectImpl(type, value)),
+            new OngoingPlayerEffect(game, source, props, new StaticOngoingEffectImpl(type, value)),
         dynamic: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
-            new PlayerEffect(game, source, props, new DynamicEffectImpl(type, value)),
+            new OngoingPlayerEffect(game, source, props, new DynamicOngoingEffectImpl(type, value)),
         detached: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
-            new PlayerEffect(game, source, props, new DetachedEffectImpl(type, value.apply, value.unapply)),
+            new OngoingPlayerEffect(game, source, props, new DetachedOngoingEffectImpl(type, value.apply, value.unapply)),
         flexible: (type: EffectName, value) =>
             (typeof value === 'function'
-                ? EffectBuilder.player.dynamic(type, value)
-                : EffectBuilder.player.static(type, value))
+                ? OngoingEffectBuilder.player.dynamic(type, value)
+                : OngoingEffectBuilder.player.static(type, value))
     }
 };

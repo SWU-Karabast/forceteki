@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const { AbilityContext } = require('../../ability/AbilityContext.js');
-const EffectSource = require('../../effect/EffectSource.js');
+const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
 const { UiPrompt } = require('./UiPrompt.js');
 
 /**
@@ -26,14 +26,14 @@ class HandlerMenuPrompt extends UiPrompt {
         super(game);
         this.player = player;
         if (_.isString(properties.source)) {
-            properties.source = new EffectSource(game, properties.source);
+            properties.source = new OngoingEffectSource(game, properties.source);
         } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
         }
         if (properties.source && !properties.waitingPromptTitle) {
             properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
         } else if (!properties.source) {
-            properties.source = new EffectSource(game);
+            properties.source = new OngoingEffectSource(game);
         }
         this.properties = properties;
         this.cardCondition = properties.cardCondition || (() => true);

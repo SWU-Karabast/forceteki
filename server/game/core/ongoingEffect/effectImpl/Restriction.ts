@@ -1,6 +1,6 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import Player from '../../Player';
-import { EffectValueWrapper } from './EffectValueWrapper';
+import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import { restrictionDsl } from '../../../effects/RestrictionDsl';
 import type Card from '../../card/Card';
 
@@ -15,7 +15,7 @@ export interface RestrictionProperties {
     params?: any;
 }
 
-export class Restriction extends EffectValueWrapper<Restriction> {
+export class Restriction extends OngoingEffectValueWrapper<Restriction> {
     type: string;
     restrictedActionCondition?: (context: AbilityContext) => boolean;
     applyingPlayer?: Player;

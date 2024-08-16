@@ -1,9 +1,9 @@
-const Effect = require('./Effect.js');
+const OngoingEffect = require('./OngoingEffect.js');
 const { RelativePlayer, WildcardLocation } = require('../Constants.js');
 const { isArena } = require('../utils/EnumHelpers.js');
 
-// TODO: confusingly, this is not an implementation of ICardEffect. what's the relationship supposed to be?
-class CardEffect extends Effect {
+// TODO: confusingly, this is not an implementation of IOngoingCardEffect. what's the relationship supposed to be?
+class OngoingCardEffect extends OngoingEffect {
     constructor(game, source, properties, effect) {
         if (!properties.match) {
             properties.match = (card, context) => card === context.source;
@@ -40,4 +40,4 @@ class CardEffect extends Effect {
     }
 }
 
-module.exports = CardEffect;
+module.exports = OngoingCardEffect;

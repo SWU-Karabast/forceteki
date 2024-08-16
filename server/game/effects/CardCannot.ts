@@ -1,8 +1,8 @@
 import type Card from '../core/card/Card';
 import { EffectName } from '../core/Constants';
 import type Player from '../core/Player';
-import { EffectBuilder } from '../core/effect/EffectBuilder';
-import { Restriction } from '../core/effect/effectImpl/Restriction';
+import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
+import { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 
 type CardCannotProperties =
@@ -15,7 +15,7 @@ type CardCannotProperties =
       };
 
 export function cardCannot(properties: CardCannotProperties) {
-    return EffectBuilder.card.static(
+    return OngoingEffectBuilder.card.static(
         EffectName.AbilityRestrictions,
         new Restriction(
             typeof properties === 'string'

@@ -3,7 +3,7 @@ const EventEmitter = require('events');
 
 const ChatCommands = require('./chat/ChatCommands.js');
 const { GameChat } = require('./chat/GameChat.js');
-const { EffectEngine } = require('./effect/EffectEngine.js');
+const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
 const Player = require('./Player.js');
 const { Spectator } = require('../../Spectator.js');
 const { AnonymousSpectator } = require('../../AnonymousSpectator.js');
@@ -37,7 +37,7 @@ class Game extends EventEmitter {
     constructor(details, options = {}) {
         super();
 
-        this.effectEngine = new EffectEngine(this);
+        this.effectEngine = new OngoingEffectEngine(this);
         this.playersAndSpectators = {};
         this.gameChat = new GameChat();
         this.chatCommands = new ChatCommands(this);

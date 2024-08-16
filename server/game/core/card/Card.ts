@@ -1,6 +1,6 @@
 import AbilityDsl from '../../AbilityDsl.js';
 import Effects from '../../effects/EffectLibrary.js';
-import EffectSource from '../effect/EffectSource.js';
+import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource.js';
 import CardAbility from '../ability/CardAbility.js';
 import Game from '../Game.js';
 import Contract from '../utils/Contract';
@@ -33,15 +33,15 @@ import {
 // import { PlayAttachmentAction } from './PlayAttachmentAction.js';
 // import { StatusToken } from './StatusToken';
 import Player from '../Player.js';
-import StatsModifierWrapper from '../effect/effectImpl/StatsModifierWrapper.js';
-import type { ICardEffect } from '../effect/ICardEffect.js';
+import StatsModifierWrapper from '../ongoingEffect/effectImpl/StatsModifierWrapper.js';
+import type { IOngoingCardEffect } from '../ongoingEffect/IOngoingCardEffect.js';
 import { PlayUnitAction } from '../../actions/PlayUnitAction.js';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
 import TriggeredAbility from '../ability/TriggeredAbility.js';
-import { IConstantAbility } from '../effect/IConstantAbility.js';
+import { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
 import PlayerAction from '../ability/PlayerAction.js';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility.js';
-import StatsModifier from '../effect/effectImpl/StatsModifier.js';
+import StatsModifier from '../ongoingEffect/effectImpl/StatsModifier.js';
 
 // TODO: convert enums to unions
 type PrintedKeyword =
@@ -84,7 +84,7 @@ interface ICardAbilities {
 }
 
 // TODO: switch to using mixins for the different card types
-class Card extends EffectSource {
+class Card extends OngoingEffectSource {
     controller: Player;
     override game: Game;
 
@@ -1138,7 +1138,7 @@ class Card extends EffectSource {
             rawEffects = this.getEffects().filter((effect) => !exclusions.includes(effect.type));
         }
 
-        const modifierEffects: ICardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
+        const modifierEffects: IOngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
         const wrappedStatsModifiers = modifierEffects.map((modifierEffect) => StatsModifierWrapper.fromEffect(modifierEffect, this));
 
         return wrappedStatsModifiers;
@@ -1261,7 +1261,7 @@ class Card extends EffectSource {
     //     }
 
     //     const attachmentController = properties.controller ?? this.controller;
-    //     for (const effect of this.getEffects() as CardEffect[]) {
+    //     for (const effect of this.getEffects() as OngoingCardEffect[]) {
     //         switch (effect.type) {
     //             case EffectName.AttachmentMyControlOnly: {
     //                 if (attachmentController !== parent.controller) {

@@ -1,4 +1,4 @@
-import Effect from '../effect/Effect';
+import OngoingEffect from '../ongoingEffect/OngoingEffect';
 import { TriggeredAbilityWindow } from './abilityWindow/TriggeredAbilityWindow';
 
 // TODO: this is temporarily offline while testing the new ability window type
@@ -7,7 +7,7 @@ export class SimultaneousEffectWindow extends TriggeredAbilityWindow {
     //     super(game, 'delayedeffects');
     // }
 
-    // override addToWindow(choice: Effect) {
+    // override addToWindow(choice: OngoingEffect) {
     //     this.assertWindowResolutionNotStarted('effect', choice.source);
 
     //     if (!choice.condition) {

@@ -2,7 +2,7 @@ import { IAbilityLimit } from '../core/ability/AbilityLimit';
 // const GainAllAbiliitesDynamic = require('./Effects/GainAllAbilitiesDynamic.js');
 // const Restriction = require('./Effects/restriction.js');
 // const { SuppressEffect } = require('./Effects/SuppressEffect');
-import { EffectBuilder } from '../core/effect/EffectBuilder';
+import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
 // const { attachmentMilitarySkillModifier } = require('./Effects/Library/attachmentMilitarySkillModifier');
 // const { attachmentPoliticalSkillModifier } = require('./Effects/Library/attachmentPoliticalSkillModifier');
 // const { canPlayFromOwn } = require('./Effects/Library/canPlayFromOwn');
@@ -14,7 +14,7 @@ import { cardCannot } from './CardCannot';
 import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import { EffectName, PlayType } from '../core/Constants';
-import StatsModifier from '../core/effect/effectImpl/StatsModifier';
+import StatsModifier from '../core/ongoingEffect/effectImpl/StatsModifier';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -24,33 +24,33 @@ import StatsModifier from '../core/effect/effectImpl/StatsModifier';
 
 export = {
     // Card effects
-    // addFaction: (faction) => EffectBuilder.card.static(EffectName.AddFaction, faction),
-    addKeyword: (keyword) => EffectBuilder.card.static(EffectName.AddKeyword, keyword),
-    // addTrait: (trait) => EffectBuilder.card.static(EffectName.AddTrait, trait),
-    // additionalTriggerCostForCard: (func) => EffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
-    // attachmentCardCondition: (func) => EffectBuilder.card.static(EffectName.AttachmentCardCondition, func),
+    // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
+    addKeyword: (keyword) => OngoingEffectBuilder.card.static(EffectName.AddKeyword, keyword),
+    // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
+    // additionalTriggerCostForCard: (func) => OngoingEffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
+    // attachmentCardCondition: (func) => OngoingEffectBuilder.card.static(EffectName.AttachmentCardCondition, func),
     // attachmentFactionRestriction: (factions) =>
-    //     EffectBuilder.card.static(EffectName.AttachmentFactionRestriction, factions),
-    // attachmentLimit: (amount) => EffectBuilder.card.static(EffectName.AttachmentLimit, amount),
-    // attachmentMyControlOnly: () => EffectBuilder.card.static(EffectName.AttachmentMyControlOnly),
-    // attachmentOpponentControlOnly: () => EffectBuilder.card.static(EffectName.AttachmentOpponentControlOnly),
+    //     OngoingEffectBuilder.card.static(EffectName.AttachmentFactionRestriction, factions),
+    // attachmentLimit: (amount) => OngoingEffectBuilder.card.static(EffectName.AttachmentLimit, amount),
+    // attachmentMyControlOnly: () => OngoingEffectBuilder.card.static(EffectName.AttachmentMyControlOnly),
+    // attachmentOpponentControlOnly: () => OngoingEffectBuilder.card.static(EffectName.AttachmentOpponentControlOnly),
     // attachmentRestrictTraitAmount: (object) =>
-    //     EffectBuilder.card.static(EffectName.AttachmentRestrictTraitAmount, object),
-    // attachmentTraitRestriction: (traits) => EffectBuilder.card.static(EffectName.AttachmentTraitRestriction, traits),
-    // attachmentUniqueRestriction: () => EffectBuilder.card.static(EffectName.AttachmentUniqueRestriction),
-    // blank: (blankTraits = false) => EffectBuilder.card.static(EffectName.Blank, blankTraits),
-    // calculatePrintedMilitarySkill: (func) => EffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
+    //     OngoingEffectBuilder.card.static(EffectName.AttachmentRestrictTraitAmount, object),
+    // attachmentTraitRestriction: (traits) => OngoingEffectBuilder.card.static(EffectName.AttachmentTraitRestriction, traits),
+    // attachmentUniqueRestriction: () => OngoingEffectBuilder.card.static(EffectName.AttachmentUniqueRestriction),
+    // blank: (blankTraits = false) => OngoingEffectBuilder.card.static(EffectName.Blank, blankTraits),
+    // calculatePrintedMilitarySkill: (func) => OngoingEffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
     /** @deprected This has not yet been tested */
     canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
-        EffectBuilder.card.flexible(
+        OngoingEffectBuilder.card.flexible(
             EffectName.CanPlayFromOutOfPlay,
             Object.assign({ player: player, playType: playType })
         ),
 
     /** @deprected This has not yet been tested */
     registerToPlayFromOutOfPlay: () =>
-        EffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
+        OngoingEffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
             apply: (card) => {
                 for (const triggeredAbility of card.triggeredAbilities) {
                     triggeredAbility.registerEvents();
@@ -58,44 +58,44 @@ export = {
             },
             unapply: () => true
         }),
-    // canBeSeenWhenFacedown: () => EffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
-    // canBeTriggeredByOpponent: () => EffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
+    // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
+    // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>
-    //     EffectBuilder.card.flexible(EffectName.CanOnlyBeDeclaredAsAttackerWithElement, element),
+    //     OngoingEffectBuilder.card.flexible(EffectName.CanOnlyBeDeclaredAsAttackerWithElement, element),
     // cannotApplyLastingEffects: (condition) =>
-    //     EffectBuilder.card.static(EffectName.CannotApplyLastingEffects, condition),
+    //     OngoingEffectBuilder.card.static(EffectName.CannotApplyLastingEffects, condition),
     // cannotHaveOtherRestrictedAttachments: (card) =>
-    //     EffectBuilder.card.static(EffectName.CannotHaveOtherRestrictedAttachments, card),
+    //     OngoingEffectBuilder.card.static(EffectName.CannotHaveOtherRestrictedAttachments, card),
     // cannotParticipateAsAttacker: (type = 'both') =>
-    //     EffectBuilder.card.static(EffectName.CannotParticipateAsAttacker, type),
+    //     OngoingEffectBuilder.card.static(EffectName.CannotParticipateAsAttacker, type),
     // cannotParticipateAsDefender: (type = 'both') =>
-    //     EffectBuilder.card.static(EffectName.CannotParticipateAsDefender, type),
+    //     OngoingEffectBuilder.card.static(EffectName.CannotParticipateAsDefender, type),
     cardCannot,
-    // changeContributionFunction: (func) => EffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
-    // changeType: (type) => EffectBuilder.card.static(EffectName.ChangeType, type),
+    // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
+    // changeType: (type) => OngoingEffectBuilder.card.static(EffectName.ChangeType, type),
     // characterProvidesAdditionalConflict: (type) =>
-    //     EffectBuilder.card.detached(EffectName.AdditionalConflict, {
+    //     OngoingEffectBuilder.card.detached(EffectName.AdditionalConflict, {
     //         apply: (card) => card.controller.addConflictOpportunity(type),
     //         unapply: (card) => card.controller.removeConflictOpportunity(type)
     //     }),
-    // contributeToConflict: (player) => EffectBuilder.card.flexible(EffectName.ContributeToConflict, player),
-    // canContributeWhileBowed: (properties) => EffectBuilder.card.static(EffectName.CanContributeWhileBowed, properties),
+    // contributeToConflict: (player) => OngoingEffectBuilder.card.flexible(EffectName.ContributeToConflict, player),
+    // canContributeWhileBowed: (properties) => OngoingEffectBuilder.card.static(EffectName.CanContributeWhileBowed, properties),
     // copyCard,
-    // customDetachedCard: (properties) => EffectBuilder.card.detached(EffectName.CustomEffect, properties),
-    // delayedEffect: (properties) => EffectBuilder.card.static(EffectName.DelayedEffect, properties),
-    // doesNotBow: () => EffectBuilder.card.static(EffectName.DoesNotBow),
-    // doesNotReady: () => EffectBuilder.card.static(EffectName.DoesNotReady),
-    // entersPlayWithStatus: (status) => EffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),
-    // entersPlayForOpponent: () => EffectBuilder.card.static(EffectName.EntersPlayForOpponent),
-    // fateCostToAttack: (amount = 1) => EffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
-    // cardCostToAttackMilitary: (amount = 1) => EffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
-    // fateCostToTarget: (properties) => EffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
+    // customDetachedCard: (properties) => OngoingEffectBuilder.card.detached(EffectName.CustomEffect, properties),
+    // delayedEffect: (properties) => OngoingEffectBuilder.card.static(EffectName.DelayedEffect, properties),
+    // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
+    // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
+    // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),
+    // entersPlayForOpponent: () => OngoingEffectBuilder.card.static(EffectName.EntersPlayForOpponent),
+    // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
+    // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
+    // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
     // gainAbility,
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
-    //     EffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
+    //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
     // gainPlayAction: (playActionClass) =>
-    //     EffectBuilder.card.detached(EffectName.GainPlayAction, {
+    //     OngoingEffectBuilder.card.detached(EffectName.GainPlayAction, {
     //         apply: (card) => {
     //             let action = new playActionClass(card);
     //             card.abilities.playActions.push(action);
@@ -104,71 +104,71 @@ export = {
     //         unapply: (card, context, playAction) =>
     //             (card.abilities.playActions = card.abilities.playActions.filter((action) => action !== playAction))
     //     }),
-    // hideWhenFaceUp: () => EffectBuilder.card.static(EffectName.HideWhenFaceUp),
-    // honorStatusDoesNotAffectLeavePlay: () => EffectBuilder.card.flexible(EffectName.HonorStatusDoesNotAffectLeavePlay),
-    // honorStatusDoesNotModifySkill: () => EffectBuilder.card.flexible(EffectName.HonorStatusDoesNotModifySkill),
-    // taintedStatusDoesNotCostHonor: () => EffectBuilder.card.flexible(EffectName.TaintedStatusDoesNotCostHonor),
-    // honorStatusReverseModifySkill: () => EffectBuilder.card.flexible(EffectName.HonorStatusReverseModifySkill),
-    // immunity: (properties) => EffectBuilder.card.static(EffectName.AbilityRestrictions, new Restriction(properties)),
-    // increaseLimitOnAbilities: (abilities) => EffectBuilder.card.static(EffectName.IncreaseLimitOnAbilities, abilities),
+    // hideWhenFaceUp: () => OngoingEffectBuilder.card.static(EffectName.HideWhenFaceUp),
+    // honorStatusDoesNotAffectLeavePlay: () => OngoingEffectBuilder.card.flexible(EffectName.HonorStatusDoesNotAffectLeavePlay),
+    // honorStatusDoesNotModifySkill: () => OngoingEffectBuilder.card.flexible(EffectName.HonorStatusDoesNotModifySkill),
+    // taintedStatusDoesNotCostHonor: () => OngoingEffectBuilder.card.flexible(EffectName.TaintedStatusDoesNotCostHonor),
+    // honorStatusReverseModifySkill: () => OngoingEffectBuilder.card.flexible(EffectName.HonorStatusReverseModifySkill),
+    // immunity: (properties) => OngoingEffectBuilder.card.static(EffectName.AbilityRestrictions, new Restriction(properties)),
+    // increaseLimitOnAbilities: (abilities) => OngoingEffectBuilder.card.static(EffectName.IncreaseLimitOnAbilities, abilities),
     // increaseLimitOnPrintedAbilities: (abilities) =>
-    //     EffectBuilder.card.static(EffectName.IncreaseLimitOnPrintedAbilities, abilities),
-    // loseAllNonKeywordAbilities: () => EffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
-    // loseKeyword: (keyword) => EffectBuilder.card.static(EffectName.LoseKeyword, keyword),
-    // loseTrait: (trait) => EffectBuilder.card.static(EffectName.LoseTrait, trait),
+    //     OngoingEffectBuilder.card.static(EffectName.IncreaseLimitOnPrintedAbilities, abilities),
+    // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
+    // loseKeyword: (keyword) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
+    // loseTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
-    //     EffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
+    //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
-    //     EffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
-    modifyStats: (modifier: StatsModifier) => EffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
-    // modifyMilitarySkill: (value) => EffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
+    //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
+    modifyStats: (modifier: StatsModifier) => OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // attachmentMilitarySkillModifier,
     // modifyMilitarySkillMultiplier: (value) =>
-    //     EffectBuilder.card.flexible(EffectName.ModifyMilitarySkillMultiplier, value),
-    // modifyPoliticalSkill: (value) => EffectBuilder.card.flexible(EffectName.ModifyPoliticalSkill, value),
+    //     OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkillMultiplier, value),
+    // modifyPoliticalSkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyPoliticalSkill, value),
     // attachmentPoliticalSkillModifier,
     // modifyPoliticalSkillMultiplier: (value) =>
-    //     EffectBuilder.card.flexible(EffectName.ModifyPoliticalSkillMultiplier, value),
+    //     OngoingEffectBuilder.card.flexible(EffectName.ModifyPoliticalSkillMultiplier, value),
     // modifyRestrictedAttachmentAmount: (value) =>
-    //     EffectBuilder.card.flexible(EffectName.ModifyRestrictedAttachmentAmount, value),
+    //     OngoingEffectBuilder.card.flexible(EffectName.ModifyRestrictedAttachmentAmount, value),
     // mustBeChosen: (properties) =>
-    //     EffectBuilder.card.static(
+    //     OngoingEffectBuilder.card.static(
     //         EffectName.MustBeChosen,
     //         new Restriction(Object.assign({ type: 'target' }, properties))
     //     ),
     // mustBeDeclaredAsAttacker,
     // mustBeDeclaredAsAttackerIfType: (type = 'both') =>
-    //     EffectBuilder.card.static(EffectName.MustBeDeclaredAsAttackerIfType, type),
-    // mustBeDeclaredAsDefender: (type = 'both') => EffectBuilder.card.static(EffectName.MustBeDeclaredAsDefender, type),
-    // setBaseDash: (type) => EffectBuilder.card.static(EffectName.SetBaseDash, type),
-    // setBaseMilitarySkill: (value) => EffectBuilder.card.static(EffectName.SetBaseMilitarySkill, value),
-    // setBasePoliticalSkill: (value) => EffectBuilder.card.static(EffectName.SetBasePoliticalSkill, value),
-    // setBaseProvinceStrength: (value) => EffectBuilder.card.static(EffectName.SetBaseProvinceStrength, value),
-    // setDash: (type) => EffectBuilder.card.static(EffectName.SetDash, type),
-    // setMilitarySkill: (value) => EffectBuilder.card.static(EffectName.SetMilitarySkill, value),
-    // setPoliticalSkill: (value) => EffectBuilder.card.static(EffectName.SetPoliticalSkill, value),
-    // setProvinceStrength: (value) => EffectBuilder.card.static(EffectName.SetProvinceStrength, value),
-    // setProvinceStrengthBonus: (value) => EffectBuilder.card.flexible(EffectName.SetProvinceStrengthBonus, value),
+    //     OngoingEffectBuilder.card.static(EffectName.MustBeDeclaredAsAttackerIfType, type),
+    // mustBeDeclaredAsDefender: (type = 'both') => OngoingEffectBuilder.card.static(EffectName.MustBeDeclaredAsDefender, type),
+    // setBaseDash: (type) => OngoingEffectBuilder.card.static(EffectName.SetBaseDash, type),
+    // setBaseMilitarySkill: (value) => OngoingEffectBuilder.card.static(EffectName.SetBaseMilitarySkill, value),
+    // setBasePoliticalSkill: (value) => OngoingEffectBuilder.card.static(EffectName.SetBasePoliticalSkill, value),
+    // setBaseProvinceStrength: (value) => OngoingEffectBuilder.card.static(EffectName.SetBaseProvinceStrength, value),
+    // setDash: (type) => OngoingEffectBuilder.card.static(EffectName.SetDash, type),
+    // setMilitarySkill: (value) => OngoingEffectBuilder.card.static(EffectName.SetMilitarySkill, value),
+    // setPoliticalSkill: (value) => OngoingEffectBuilder.card.static(EffectName.SetPoliticalSkill, value),
+    // setProvinceStrength: (value) => OngoingEffectBuilder.card.static(EffectName.SetProvinceStrength, value),
+    // setProvinceStrengthBonus: (value) => OngoingEffectBuilder.card.flexible(EffectName.SetProvinceStrengthBonus, value),
     // provinceCannotHaveSkillIncreased: (value) =>
-    //     EffectBuilder.card.static(EffectName.ProvinceCannotHaveSkillIncreased, value),
+    //     OngoingEffectBuilder.card.static(EffectName.ProvinceCannotHaveSkillIncreased, value),
     // suppressEffects: (condition) =>
-    //     EffectBuilder.card.static(EffectName.SuppressEffects, new SuppressEffect(condition)),
-    // takeControl: (player) => EffectBuilder.card.static(EffectName.TakeControl, player),
+    //     OngoingEffectBuilder.card.static(EffectName.SuppressEffects, new SuppressEffect(condition)),
+    // takeControl: (player) => OngoingEffectBuilder.card.static(EffectName.TakeControl, player),
     // triggersAbilitiesFromHome: (properties) =>
-    //     EffectBuilder.card.static(EffectName.TriggersAbilitiesFromHome, properties),
-    // participatesFromHome: (properties) => EffectBuilder.card.static(EffectName.ParticipatesFromHome, properties),
-    // unlessActionCost: (properties) => EffectBuilder.card.static(EffectName.UnlessActionCost, properties),
+    //     OngoingEffectBuilder.card.static(EffectName.TriggersAbilitiesFromHome, properties),
+    // participatesFromHome: (properties) => OngoingEffectBuilder.card.static(EffectName.ParticipatesFromHome, properties),
+    // unlessActionCost: (properties) => OngoingEffectBuilder.card.static(EffectName.UnlessActionCost, properties),
     // // Player effects
-    // additionalAction: (amount = 1) => EffectBuilder.player.static(EffectName.AdditionalAction, amount),
-    // additionalCardPlayed: (amount = 1) => EffectBuilder.player.flexible(EffectName.AdditionalCardPlayed, amount),
+    // additionalAction: (amount = 1) => OngoingEffectBuilder.player.static(EffectName.AdditionalAction, amount),
+    // additionalCardPlayed: (amount = 1) => OngoingEffectBuilder.player.flexible(EffectName.AdditionalCardPlayed, amount),
     // additionalCharactersInConflict: (amount) =>
-    //     EffectBuilder.player.flexible(EffectName.AdditionalCharactersInConflict, amount),
-    // additionalTriggerCost: (func) => EffectBuilder.player.static(EffectName.AdditionalTriggerCost, func),
-    // additionalPlayCost: (func) => EffectBuilder.player.static(EffectName.AdditionalPlayCost, func),
+    //     OngoingEffectBuilder.player.flexible(EffectName.AdditionalCharactersInConflict, amount),
+    // additionalTriggerCost: (func) => OngoingEffectBuilder.player.static(EffectName.AdditionalTriggerCost, func),
+    // additionalPlayCost: (func) => OngoingEffectBuilder.player.static(EffectName.AdditionalPlayCost, func),
     // canPlayFromOwn,
     // canPlayFromOpponents: (location, cards, sourceOfEffect, playType = PlayType.PlayFromHand) =>
-    //     EffectBuilder.player.detached(EffectName.CanPlayFromOpponents, {
+    //     OngoingEffectBuilder.player.detached(EffectName.CanPlayFromOpponents, {
     //         apply: (player) => {
     //             if (!player.opponent) {
     //                 return;
@@ -200,65 +200,65 @@ export = {
     //             }
     //         }
     //     }),
-    // changePlayerSkillModifier: (value) => EffectBuilder.player.flexible(EffectName.ChangePlayerSkillModifier, value),
-    // customDetachedPlayer: (properties) => EffectBuilder.player.detached(EffectName.CustomEffect, properties),
+    // changePlayerSkillModifier: (value) => OngoingEffectBuilder.player.flexible(EffectName.ChangePlayerSkillModifier, value),
+    // customDetachedPlayer: (properties) => OngoingEffectBuilder.player.detached(EffectName.CustomEffect, properties),
     // gainActionPhasePriority: () =>
-    //     EffectBuilder.player.detached(EffectName.GainActionPhasePriority, {
+    //     OngoingEffectBuilder.player.detached(EffectName.GainActionPhasePriority, {
     //         apply: (player) => (player.actionPhasePriority = true),
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
     increaseCost: (properties) => modifyCost(Object.assign({}, properties, { amount: -properties.amount })),
     // modifyCardsDrawnInDrawPhase: (amount) =>
-    //     EffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
+    //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>
-    //     EffectBuilder.player.static(
+    //     OngoingEffectBuilder.player.static(
     //         EffectName.AbilityRestrictions,
     //         new Restriction(Object.assign({ type: properties.cannot || properties }, properties))
     //     ),
-    // playerDelayedEffect: (properties) => EffectBuilder.player.static(EffectName.DelayedEffect, properties),
+    // playerDelayedEffect: (properties) => OngoingEffectBuilder.player.static(EffectName.DelayedEffect, properties),
     // playerFateCostToTargetCard: (properties) =>
-    //     EffectBuilder.player.flexible(
+    //     OngoingEffectBuilder.player.flexible(
     //         EffectName.PlayerFateCostToTargetCard,
     //         properties
     //     ) /* amount: number; match: (card) => boolean */,
     modifyCost,
     // reduceNextPlayedCardCost: (amount, match) =>
-    //     EffectBuilder.player.detached(EffectName.CostReducer, {
+    //     OngoingEffectBuilder.player.detached(EffectName.CostReducer, {
     //         apply: (player, context) =>
     //             player.addCostReducer(context.source, { amount: amount, match: match, limit: AbilityLimit.fixed(1) }),
     //         unapply: (player, context, reducer) => player.removeCostReducer(reducer)
     //     }),
-    // satisfyAffinity: (traits) => EffectBuilder.player.static(EffectName.SatisfyAffinity, traits),
-    // setConflictDeclarationType: (type) => EffectBuilder.player.static(EffectName.SetConflictDeclarationType, type),
+    // satisfyAffinity: (traits) => OngoingEffectBuilder.player.static(EffectName.SatisfyAffinity, traits),
+    // setConflictDeclarationType: (type) => OngoingEffectBuilder.player.static(EffectName.SetConflictDeclarationType, type),
     // provideConflictDeclarationType: (type) =>
-    //     EffectBuilder.player.static(EffectName.ProvideConflictDeclarationType, type),
-    // forceConflictDeclarationType: (type) => EffectBuilder.player.static(EffectName.ForceConflictDeclarationType, type),
-    // setMaxConflicts: (amount) => EffectBuilder.player.static(EffectName.SetMaxConflicts, amount),
-    // setConflictTotalSkill: (value) => EffectBuilder.player.static(EffectName.SetConflictTotalSkill, value),
+    //     OngoingEffectBuilder.player.static(EffectName.ProvideConflictDeclarationType, type),
+    // forceConflictDeclarationType: (type) => OngoingEffectBuilder.player.static(EffectName.ForceConflictDeclarationType, type),
+    // setMaxConflicts: (amount) => OngoingEffectBuilder.player.static(EffectName.SetMaxConflicts, amount),
+    // setConflictTotalSkill: (value) => OngoingEffectBuilder.player.static(EffectName.SetConflictTotalSkill, value),
     // showTopConflictCard: (players = RelativePlayer.Any) =>
-    //     EffectBuilder.player.static(EffectName.ShowTopConflictCard, players),
-    // eventsCannotBeCancelled: () => EffectBuilder.player.static(EffectName.EventsCannotBeCancelled),
-    // restartDynastyPhase: (source) => EffectBuilder.player.static(EffectName.RestartDynastyPhase, source),
+    //     OngoingEffectBuilder.player.static(EffectName.ShowTopConflictCard, players),
+    // eventsCannotBeCancelled: () => OngoingEffectBuilder.player.static(EffectName.EventsCannotBeCancelled),
+    // restartDynastyPhase: (source) => OngoingEffectBuilder.player.static(EffectName.RestartDynastyPhase, source),
     // defendersChosenFirstDuringConflict: (amountOfAttackers) =>
-    //     EffectBuilder.player.static(EffectName.DefendersChosenFirstDuringConflict, amountOfAttackers),
+    //     OngoingEffectBuilder.player.static(EffectName.DefendersChosenFirstDuringConflict, amountOfAttackers),
     // costToDeclareAnyParticipants: (properties) =>
-    //     EffectBuilder.player.static(EffectName.CostToDeclareAnyParticipants, properties),
-    // limitLegalAttackers: (matchFunc) => EffectBuilder.player.static(EffectName.LimitLegalAttackers, matchFunc), //matchFunc: (card) => bool
+    //     OngoingEffectBuilder.player.static(EffectName.CostToDeclareAnyParticipants, properties),
+    // limitLegalAttackers: (matchFunc) => OngoingEffectBuilder.player.static(EffectName.LimitLegalAttackers, matchFunc), //matchFunc: (card) => bool
     // additionalActionAfterWindowCompleted: (amount = 1) =>
-    //     EffectBuilder.player.static(EffectName.AdditionalActionAfterWindowCompleted, amount),
+    //     OngoingEffectBuilder.player.static(EffectName.AdditionalActionAfterWindowCompleted, amount),
     // // Conflict effects
     // charactersCannot: (properties) =>
-    //     EffectBuilder.conflict.static(
+    //     OngoingEffectBuilder.conflict.static(
     //         EffectName.AbilityRestrictions,
     //         new Restriction(
     //             Object.assign({ restricts: 'characters', type: properties.cannot || properties }, properties)
     //         )
     //     ),
-    // cannotContribute: (func) => EffectBuilder.conflict.dynamic(EffectName.CannotContribute, func),
-    // resolveConflictEarly: () => EffectBuilder.player.static(EffectName.ResolveConflictEarly),
-    // forceConflictUnopposed: () => EffectBuilder.conflict.static(EffectName.ForceConflictUnopposed),
+    // cannotContribute: (func) => OngoingEffectBuilder.conflict.dynamic(EffectName.CannotContribute, func),
+    // resolveConflictEarly: () => OngoingEffectBuilder.player.static(EffectName.ResolveConflictEarly),
+    // forceConflictUnopposed: () => OngoingEffectBuilder.conflict.static(EffectName.ForceConflictUnopposed),
     // additionalAttackedProvince: (province) =>
-    //     EffectBuilder.conflict.static(EffectName.AdditionalAttackedProvince, province),
-    // conflictIgnoreStatusTokens: () => EffectBuilder.conflict.static(EffectName.ConflictIgnoreStatusTokens),
+    //     OngoingEffectBuilder.conflict.static(EffectName.AdditionalAttackedProvince, province),
+    // conflictIgnoreStatusTokens: () => OngoingEffectBuilder.conflict.static(EffectName.ConflictIgnoreStatusTokens),
 };
 

@@ -1,7 +1,7 @@
 import PlayerOrCardAbility from './PlayerOrCardAbility';
 import type Card from '../card/Card';
 import { Aspect, Location, PlayType, Stage } from '../Constants';
-import EffectSource from '../effect/EffectSource';
+import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';
@@ -51,7 +51,7 @@ export class AbilityContext<S = any> {
 
     constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
-        this.source = properties.source || new EffectSource(this.game);
+        this.source = properties.source || new OngoingEffectSource(this.game);
         this.player = properties.player;
         this.ability = properties.ability || new PlayerOrCardAbility({});
         this.costs = properties.costs || {};
@@ -59,7 +59,7 @@ export class AbilityContext<S = any> {
         this.targets = properties.targets || {};
         this.selects = properties.selects || {};
         this.tokens = properties.tokens || {};
-        this.stage = properties.stage || Stage.Effect;
+        this.stage = properties.stage || Stage.EffectTmp;
         this.targetAbility = properties.targetAbility;
         // const location = this.player && this.player.playableLocations.find(location => location.contains(this.source));
         this.playType = this.player && this.player.findPlayType(this.source); //location && location.playingType;

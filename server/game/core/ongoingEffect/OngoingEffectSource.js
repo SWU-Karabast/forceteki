@@ -4,12 +4,12 @@ const AbilityDsl = require('../../AbilityDsl.js');
 const { GameObject } = require('../GameObject.js');
 
 const { Duration, WildcardLocation } = require('../Constants.js');
-const Effect = require('./Effect.js');
+const OngoingEffect = require('./OngoingEffect.js');
 const { default: Contract } = require('../utils/Contract.js');
 
 // This class is inherited by Card and also represents Framework effects
 
-class EffectSource extends GameObject {
+class OngoingEffectSource extends GameObject {
     constructor(game, name = 'Framework effect') {
         super(game, name);
     }
@@ -40,8 +40,8 @@ class EffectSource extends GameObject {
 
     /**
      * Adds persistent/lasting/delayed effect(s) to the effect engine
-     * @param {Object} properties properties for the effect(s), see {@link Effect}
-     * @returns {Effect[]} the effect(s) that were added to the engine
+     * @param {Object} properties properties for the effect(s), see {@link OngoingEffect}
+     * @returns {OngoingEffect[]} the effect(s) that were added to the engine
      */
     addEffectToEngine(properties) {
         if (!Contract.assertFalse('location' in properties, 'Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property.')) {
@@ -66,4 +66,4 @@ class EffectSource extends GameObject {
     }
 }
 
-module.exports = EffectSource;
+module.exports = OngoingEffectSource;

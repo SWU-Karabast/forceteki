@@ -2,7 +2,7 @@ const _ = require('underscore');
 
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
-const EffectSource = require('../../effect/EffectSource.js');
+const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
 const { UiPrompt } = require('./UiPrompt.js');
 
 /**
@@ -56,7 +56,7 @@ class SelectCardPrompt extends UiPrompt {
 
         this.choosingPlayer = choosingPlayer;
         if (_.isString(properties.source)) {
-            properties.source = new EffectSource(game, properties.source);
+            properties.source = new OngoingEffectSource(game, properties.source);
         } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
         }
@@ -64,7 +64,7 @@ class SelectCardPrompt extends UiPrompt {
             properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
         }
         if (!properties.source) {
-            properties.source = new EffectSource(game);
+            properties.source = new OngoingEffectSource(game);
         }
 
         this.properties = properties;

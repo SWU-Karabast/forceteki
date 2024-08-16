@@ -1,8 +1,8 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import { EffectName } from '../../Constants';
-import { EffectImpl } from './EffectImpl';
+import { OngoingEffectImpl } from './OngoingEffectImpl';
 
-export default class DetachedEffectImpl<TValue> extends EffectImpl<TValue> {
+export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
     private state: Record<string, any> = {};
 
     constructor(type: EffectName,

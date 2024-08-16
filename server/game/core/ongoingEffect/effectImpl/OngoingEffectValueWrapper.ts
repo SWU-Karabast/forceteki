@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 
-export class EffectValueWrapper<V> {
+export class OngoingEffectValueWrapper<V> {
     value: V;
     context?: AbilityContext;
 

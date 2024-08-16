@@ -1,20 +1,19 @@
 import { Duration, EffectName, EventName } from '../Constants';
 import { Event } from '../event/Event';
-import type Effect from '../effect/Effect';
-import type EffectSource from './EffectSource';
+import type OngoingEffect from './OngoingEffect';
+import type OngoingEffectSource from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
 
 interface ICustomDurationEvent {
     name: string;
     handler: (...args: any[]) => void;
-    effect: Effect;
+    effect: OngoingEffect;
 }
 
-// UP NEXT: rename "Effect" to "OngoingEffect"
-export class EffectEngine {
+export class OngoingEffectEngine {
     events: EventRegistrar;
-    effects: Effect[] = [];
+    effects: OngoingEffect[] = [];
     customDurationEvents: ICustomDurationEvent[] = [];
     effectsChangedSinceLastCheck = false;
 
@@ -27,7 +26,7 @@ export class EffectEngine {
         ]);
     }
 
-    add(effect: Effect) {
+    add(effect: OngoingEffect) {
         this.effects.push(effect);
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
@@ -37,8 +36,8 @@ export class EffectEngine {
     }
 
     checkDelayedEffects(events: Event[]) {
-        const effectsToTrigger: Effect[] = [];
-        const effectsToRemove: Effect[] = [];
+        const effectsToTrigger: OngoingEffect[] = [];
+        const effectsToRemove: OngoingEffect[] = [];
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
         )) {
@@ -88,7 +87,7 @@ export class EffectEngine {
         }
     }
 
-    removeLastingEffects(card: EffectSource) {
+    removeLastingEffects(card: OngoingEffectSource) {
         this.unapplyAndRemove(
             (effect) =>
                 effect.match === card &&
@@ -115,7 +114,7 @@ export class EffectEngine {
         // Check each effect's condition and find new targets
         stateChanged = this.effects.reduce((stateChanged, effect) => effect.checkCondition(stateChanged), stateChanged);
         if (loops === 10) {
-            throw new Error('EffectEngine.checkEffects looped 10 times');
+            throw new Error('OngoingEffectEngine.checkEffects looped 10 times');
         } else {
             this.resolveEffects(stateChanged, loops + 1);
         }
@@ -134,7 +133,7 @@ export class EffectEngine {
         this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfRound);
     }
 
-    registerCustomDurationEvents(effect: Effect) {
+    registerCustomDurationEvents(effect: OngoingEffect) {
         if (!effect.until) {
             return;
         }
@@ -150,7 +149,7 @@ export class EffectEngine {
         }
     }
 
-    unregisterCustomDurationEvents(effect: Effect) {
+    unregisterCustomDurationEvents(effect: OngoingEffect) {
         const remainingEvents: ICustomDurationEvent[] = [];
         for (const event of this.customDurationEvents) {
             if (event.effect === effect) {
@@ -174,9 +173,9 @@ export class EffectEngine {
         };
     }
 
-    unapplyAndRemove(match: (effect: Effect) => boolean) {
+    unapplyAndRemove(match: (effect: OngoingEffect) => boolean) {
         let anyEffectRemoved = false;
-        const remainingEffects: Effect[] = [];
+        const remainingEffects: OngoingEffect[] = [];
         for (const effect of this.effects) {
             if (match(effect)) {
                 anyEffectRemoved = true;

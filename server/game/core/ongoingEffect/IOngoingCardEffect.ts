@@ -2,7 +2,7 @@ import { AbilityContext } from '../ability/AbilityContext';
 import type { EffectName } from '../Constants';
 import type { GameObject } from '../GameObject';
 
-export interface ICardEffect {
+export interface IOngoingCardEffect {
     type: EffectName;
     value: any;
     getValue: <T = any>(obj: GameObject) => T;

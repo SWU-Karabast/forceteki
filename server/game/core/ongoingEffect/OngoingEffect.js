@@ -29,7 +29,7 @@ const { isArena } = require('../utils/EnumHelpers');
  * impl             - object with details of effect to be applied. Includes duration
  *                    and the numerical value of the effect, if any.
  */
-class Effect {
+class OngoingEffect {
     constructor(game, source, properties, effectImpl) {
         this.game = game;
         this.source = source;
@@ -142,4 +142,4 @@ class Effect {
     }
 }
 
-module.exports = Effect;
+module.exports = OngoingEffect;
