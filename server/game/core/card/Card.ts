@@ -1,4 +1,4 @@
-import AbilityDsl from '../../AbilityDsl.js';
+import AbilityHelper from '../../AbilityHelper.js';
 import Effects from '../../ongoingEffects/EffectLibrary.js';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource.js';
 import CardAbility from '../ability/CardAbility.js';
@@ -209,7 +209,7 @@ class Card extends OngoingEffectSource {
         this.aspects = checkConvertToEnum(cardData.aspects, Aspect);
         this.printedKeywords = cardData.keywords; // TODO: enum for these
 
-        this.setupCardAbilities(AbilityDsl);
+        this.setupCardAbilities(AbilityHelper);
         this.setupPlayAbilities();
         // this.parseKeywords(cardData.text ? cardData.text.replace(/<[^>]*>/g, '').toLowerCase() : '');
         // this.applyAttachmentBonus();
@@ -406,7 +406,7 @@ class Card extends OngoingEffectSource {
     // TODO: make this abstract eventually
     /**
      * Create card abilities by calling subsequent methods with appropriate properties
-     * @param {Object} ability - AbilityDsl object containing limits, costs, effects, and game actions
+     * @param {Object} ability - AbilityHelper object containing limits, costs, effects, and game actions
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupCardAbilities(ability) {
@@ -806,7 +806,7 @@ class Card extends OngoingEffectSource {
 
         // TODO: uncomment
         // for (const keyword of this.printedKeywords) {
-        //     this.persistentEffect({ effect: AbilityDsl.effects.addKeyword(keyword) });
+        //     this.persistentEffect({ effect: AbilityHelper.effects.addKeyword(keyword) });
         // }
     }
 
@@ -823,7 +823,7 @@ class Card extends OngoingEffectSource {
     //         this.persistentEffect({
     //             match: (card) => card === this.parent,
     //             targetController: RelativePlayer.Any,
-    //             effect: AbilityDsl.effects.attachmentMilitarySkillModifier(() =>
+    //             effect: AbilityHelper.effects.attachmentMilitarySkillModifier(() =>
     //                 this.isAttachmentBonusModifierSwitchActive() ? politicalBonus : militaryBonus
     //             )
     //         });
@@ -832,7 +832,7 @@ class Card extends OngoingEffectSource {
     //         this.persistentEffect({
     //             match: (card) => card === this.parent,
     //             targetController: RelativePlayer.Any,
-    //             effect: AbilityDsl.effects.attachmentPoliticalSkillModifier(() =>
+    //             effect: AbilityHelper.effects.attachmentPoliticalSkillModifier(() =>
     //                 this.isAttachmentBonusModifierSwitchActive() ? militaryBonus : politicalBonus
     //             )
     //         });

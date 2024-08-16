@@ -1,4 +1,4 @@
-import AbilityDsl from '../../AbilityDsl';
+import AbilityHelper from '../../AbilityHelper';
 import Card from '../../core/card/Card';
 import { AbilityRestriction } from '../../core/Constants';
 import { countUniqueAspects } from '../../core/utils/Helpers';
@@ -15,7 +15,7 @@ export default class SabineWrenExplosivesArtist extends Card {
         this.constantAbility({
             condition: () => countUniqueAspects(this.controller.getOtherUnitsInPlay(this, null)) >= 3,
 
-            effect: AbilityDsl.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
+            effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
     }
 }

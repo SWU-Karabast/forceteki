@@ -173,6 +173,7 @@ export function fail(message: string): void {
     contractCheckImpl.fail(message);
 }
 
+// TODO: fix things so we don't need this
 const Contract = {
     AssertMode,
     configureAssertMode,

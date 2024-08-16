@@ -1,6 +1,6 @@
 const _ = require('underscore');
 
-const AbilityDsl = require('../../AbilityDsl.js');
+const AbilityHelper = require('../../AbilityHelper');
 const { GameObject } = require('../GameObject.js');
 
 const { Duration, WildcardLocation } = require('../Constants.js');
@@ -18,7 +18,7 @@ class OngoingEffectSource extends GameObject {
      * Applies an effect which lasts until the end of the phase.
      */
     untilEndOfPhase(propertyFactory) {
-        var properties = propertyFactory(AbilityDsl);
+        var properties = propertyFactory(AbilityHelper);
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, locationFilter: WildcardLocation.Any }, properties));
     }
 
@@ -26,7 +26,7 @@ class OngoingEffectSource extends GameObject {
      * Applies an effect which lasts until the end of the round.
      */
     untilEndOfRound(propertyFactory) {
-        var properties = propertyFactory(AbilityDsl);
+        var properties = propertyFactory(AbilityHelper);
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, locationFilter: WildcardLocation.Any }, properties));
     }
 
@@ -34,7 +34,7 @@ class OngoingEffectSource extends GameObject {
      * Applies a 'lasting effect' (SWU 7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */
     lastingEffect(propertyFactory) {
-        let properties = propertyFactory(AbilityDsl);
+        let properties = propertyFactory(AbilityHelper);
         this.addEffectToEngine(Object.assign({ duration: Duration.Custom, locationFilter: WildcardLocation.Any }, properties));
     }
 
