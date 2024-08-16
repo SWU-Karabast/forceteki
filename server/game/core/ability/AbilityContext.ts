@@ -27,9 +27,9 @@ export interface IAbilityContextProperties {
  * While the structure will vary from inheriting classes, it is guaranteed to have at least the `game` object, the
  * `player` that is executing the action, and the `source` card object that the ability is generated from.
  */
-export class AbilityContext<S = any> {
+export class AbilityContext<TSource = any> {
     game: Game;
-    source: S;
+    source: TSource;
     player: Player;
     ability: PlayerOrCardAbility;
     costs: any;

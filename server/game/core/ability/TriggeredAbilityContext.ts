@@ -5,7 +5,7 @@ interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {
     event: any;
 }
 
-export class TriggeredAbilityContext<S = Card> extends AbilityContext<S> {
+export class TriggeredAbilityContext<TSource = Card> extends AbilityContext<TSource> {
     event: any;
 
     constructor(properties: ITriggeredAbilityContextProperties) {
