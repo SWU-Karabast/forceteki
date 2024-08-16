@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
 const { UiPrompt } = require('./UiPrompt.js');
@@ -59,7 +58,7 @@ class HandlerMenuPrompt extends UiPrompt {
                 }
             });
             // TODO: write our own uniq function so we can remove underscore and convert to TS
-            let cards = _.uniq(this.properties.cards, (card) => card.id);
+            let cards = this.getUniqueCardsById(this.properties.cards);
             buttons = cards.map((card) => {
                 let text = card.name;
                 if (cardQuantities[card.id] > 1) {
@@ -80,6 +79,23 @@ class HandlerMenuPrompt extends UiPrompt {
             controls: this.getAdditionalPromptControls(),
             promptTitle: this.properties.source.name
         };
+    }
+
+    getUniqueCardsById(cards) {
+        const filteredCards = [];
+        const seenIds = new Set();
+
+        for (let card of cards) {
+            if (seenIds.has(card.id)) {
+                continue;
+            }
+
+            filteredCards.push(card);
+
+            seenIds.add(card.id);
+        }
+
+        return filteredCards;
     }
 
     getAdditionalPromptControls() {

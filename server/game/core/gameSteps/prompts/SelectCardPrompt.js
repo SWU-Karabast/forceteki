@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
@@ -68,8 +67,7 @@ class SelectCardPrompt extends UiPrompt {
 
         this.properties = properties;
         this.context = properties.context || new AbilityContext({ game: game, player: choosingPlayer, source: properties.source });
-        // TODO: confirm how this works and then replace it
-        _.defaults(this.properties, this.defaultProperties());
+        this.properties = Object.assign(this.defaultProperties(), properties);
         if (properties.gameSystem) {
             if (!Array.isArray(properties.gameSystem)) {
                 this.properties.gameSystem = [properties.gameSystem];
