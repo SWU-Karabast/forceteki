@@ -25,6 +25,8 @@ export enum WildcardLocation {
 
 export type LocationFilter = Location | WildcardLocation;
 
+export type Arena = Location.GroundArena | Location.SpaceArena;
+
 export enum PlayType {
     PlayFromHand = 'playFromHand',
     Smuggle = 'smuggle'

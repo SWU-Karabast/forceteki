@@ -37,7 +37,6 @@ class Effect {
         this.duration = properties.duration;
         this.until = properties.until || {};
         this.condition = properties.condition || (() => true);
-        // UP NEXT: this needs to be changed to match the name locationFilter (or vice versa). so does the caller (can't remember which)
         this.locationFilter = properties.locationFilter || WildcardLocation.AnyArena;
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;

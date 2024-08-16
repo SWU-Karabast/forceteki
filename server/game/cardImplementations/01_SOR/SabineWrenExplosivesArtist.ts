@@ -13,8 +13,7 @@ export default class SabineWrenExplosivesArtist extends Card {
 
     override setupCardAbilities() {
         this.constantAbility({
-            // UP NEXT: helper fn on Card to get all friendly units in play
-            condition: () => countUniqueAspects(this.controller.getUnitsInPlay((card) => card !== this)) >= 3,
+            condition: () => countUniqueAspects(this.controller.getOtherUnitsInPlay(this, null)) >= 3,
 
             effect: AbilityDsl.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });

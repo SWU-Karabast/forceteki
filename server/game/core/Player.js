@@ -25,6 +25,7 @@ const {
 } = require('./Constants');
 
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
+const Card = require('./card/Card');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -113,12 +114,29 @@ class Player extends GameObject {
     }
 
     // TODO UPGRADES: this should retrieve upgrades, but we need to confirm once they're implemented
-    getCardsInPlay() {
+    /**
+     * Get all cards in designated play arena(s) owned by this player
+     * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
+     */
+    getCardsInPlay(arena = null) {
         return _(this.spaceArena.value().concat(this.groundArena.value()));
     }
 
-    getUnitsInPlay(cardCondition = (card) => true) {
-        return this.getCardsInPlay().filter((card) => card.type === CardType.Unit && cardCondition(card));
+    /**
+     * Get all units in designated play arena(s) owned by this player
+     * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
+     */
+    getUnitsInPlay(arena = null, cardCondition = (card) => true) {
+        return this.getCardsInPlay(arena).filter((card) => card.type === CardType.Unit && cardCondition(card));
+    }
+
+    /**
+     * Get all cards in designated play arena(s) other than the passed card owned by this player.
+     * @param { Card } ignoreUnit Unit to filter from the returned results
+     * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
+     */
+    getOtherUnitsInPlay(ignoreUnit, arena = null, cardCondition = (card) => true) {
+        return this.getCardsInPlay(arena).filter((card) => card.type === CardType.Unit && card !== ignoreUnit && cardCondition(card));
     }
 
     /**
