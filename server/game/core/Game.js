@@ -788,7 +788,7 @@ class Game extends EventEmitter {
         return step;
     }
 
-    // TODO: mandatory names for pipeline steps
+    // UP NEXT: mandatory names for pipeline steps
     /*
      * Creates a step which calls a handler function
      * @param {Function} handler - () => undefined

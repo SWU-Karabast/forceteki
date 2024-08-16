@@ -2,7 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import { EventName } from '../Constants';
 import Player from '../Player';
 
-// TODO: rename to GameEvent to disambiguate from DOM events
+// UP NEXT: rename to GameEvent to disambiguate from DOM events
 export class Event {
     cancelled = false;
     resolved = false;

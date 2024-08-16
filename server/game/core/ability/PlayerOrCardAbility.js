@@ -69,7 +69,7 @@ class PlayerOrCardAbility {
         }
     }
 
-    // TODO: definition / interface for the properties object here
+    // UP NEXT: definition / interface for the properties object here
     getAbilityTarget(name, properties) {
         if (properties.gameSystem) {
             if (!Array.isArray(properties.gameSystem)) {

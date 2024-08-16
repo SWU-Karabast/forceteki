@@ -170,7 +170,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         );
     }
 
-    // TODO: change attack effects so that they check the specific attack they are affecting,
+    // TODO ATTACKS: change attack effects so that they check the specific attack they are affecting,
     // in case we have have a situation when multiple attacks are happening in parallel but an effect
     // only applies to one of them.
     private registerAttackEffects(context: AbilityContext, properties: IAttackProperties, attack: Attack) {

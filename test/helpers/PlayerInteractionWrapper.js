@@ -102,7 +102,6 @@ class PlayerInteractionWrapper {
         });
         // Set up each of the cards
         _.each(newState, (options) => {
-            //TODO: Optionally, accept just a string as a parameter???
             if (_.isString(options)) {
                 options = {
                     card: options

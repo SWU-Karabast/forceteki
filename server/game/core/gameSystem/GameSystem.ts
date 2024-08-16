@@ -24,7 +24,7 @@ export interface IGameSystemProperties {
  *
  * @template TProperties Property class to use for configuring the behavior of the system's execution
  */
-// TODO: convert all template parameter names in the repo to use T prefix
+// UP NEXT: convert all template parameter names in the repo to use T prefix
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
 export abstract class GameSystem<TProperties extends IGameSystemProperties = IGameSystemProperties> {
     propertyFactory?: (context?: AbilityContext) => TProperties;

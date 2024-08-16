@@ -139,7 +139,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
         super.updateEvent(event, card, context, additionalProperties);
         event.destination = Location.Discard;
-        // TODO: the L5R 'ancestral' keyword behaves exactly like Gar's deployed ability, we can reuse this code for him
+        // TODO GAR SAXON: the L5R 'ancestral' keyword behaves exactly like Gar's deployed ability, we can reuse this code for him
         // event.preResolutionEffect = () => {
         //     event.cardStateWhenLeftPlay = event.card.createSnapshot();
         //     if (event.card.isAncestral() && event.isContingent) {

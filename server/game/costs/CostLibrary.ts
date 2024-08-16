@@ -254,7 +254,7 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //     );
 // }
 
-// // TODO: reuse variable methods for swu cards
+// TODO: reuse variable methods for swu cards
 // export function variableHonorCost(amountFunc: (context: TriggeredAbilityContext) => number): Cost {
 //     return {
 //         promptsPlayer: true,

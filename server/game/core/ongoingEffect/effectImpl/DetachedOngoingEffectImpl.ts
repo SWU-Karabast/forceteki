@@ -7,8 +7,8 @@ export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl
 
     constructor(type: EffectName,
         public applyFunc,
-        public unapplyFunc) {
-        // TODO: change lint rules to allow brace on next line in cases like the above
+        public unapplyFunc
+    ) {
         super(type);
         this.applyFunc = applyFunc;
         this.unapplyFunc = unapplyFunc;

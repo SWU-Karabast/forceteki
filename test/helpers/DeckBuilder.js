@@ -10,7 +10,7 @@ const deckBufferSize = 8; // buffer decks to prevent re-shuffling
 
 class DeckBuilder {
     constructor() {
-        this.cards = this.loadCards('test/json/Card');  // TODO: why did this need to be changed?
+        this.cards = this.loadCards('test/json/Card');
     }
 
     loadCards(directory) {

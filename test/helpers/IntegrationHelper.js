@@ -318,7 +318,7 @@ global.integration = function (definitions) {
                 this.player2.damageToBase = options.player2.damageToBase ?? 0;
 
                 // set cards below - the playerinteractionwrapper will convert string names to real cards
-                // TODO: need to redesign the below, it's unintuitive to read and will probably lead to unintended side effects
+                // UP NEXT: need to redesign the below, it's unintuitive to read and will probably lead to unintended side effects
 
                 //Field
                 this.player1.groundArena = options.player1.groundArena;
@@ -334,7 +334,7 @@ global.integration = function (definitions) {
                 this.player1.discard = options.player1.discard;
                 this.player2.discard = options.player2.discard;
 
-                // TODO: re-enable
+                // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {
                 //     this.game.resolveGameState(true);
                 // }

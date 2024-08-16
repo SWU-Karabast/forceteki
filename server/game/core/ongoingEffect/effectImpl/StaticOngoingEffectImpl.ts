@@ -61,7 +61,7 @@ const binaryCardEffects = [
 //             : []
 // };
 
-// TODO: readonly pass on class properties throughout the repo
+// UP NEXT: readonly pass on class properties throughout the repo
 export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
     readonly valueWrapper: OngoingEffectValueWrapper<TValue>;
 

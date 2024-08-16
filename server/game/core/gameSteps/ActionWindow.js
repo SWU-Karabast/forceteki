@@ -68,7 +68,7 @@ class ActionWindow extends UiPrompt {
         this.complete();
     }
 
-    // TODO: this is probably wrong
+    // TODO: confirm that this works correctly
     /** @override */
     continue() {
         // TODO: do we need promptedActionWindows?
