@@ -39,19 +39,24 @@ class CardAbility extends CardAbilityStep {
 
         // TODO EVENT: this is where the actual payment and activation of an event card happens, this needs to be
         // changed to behave more like a unit card in terms of how it's played
-        if (card.getType() === CardType.Event && !this.isKeywordAbility()) {
+        if (card.isEvent() && !this.isKeywordAbility()) {
             this.cost = this.cost.concat(Costs.payAdjustableResourceCost());
         }
     }
 
     buildLocation(card, location) {
-        const DefaultLocationForType = {
-            event: Location.Hand,
-            leader: Location.Leader,
-            base: Location.Base,
-        };
+        let defaultLocationForType = null;
+        if (card.isEvent()) {
+            defaultLocationForType = Location.Hand;
+        } else if (card.isLeader()) {
+            defaultLocationForType = Location.Leader;
+        } else if (card.isBase()) {
+            defaultLocationForType = Location.Base;
+        } else {
+            defaultLocationForType = WildcardLocation.AnyArena;
+        }
 
-        let defaultedLocation = [location || DefaultLocationForType[card.getType()] || WildcardLocation.AnyArena];
+        let defaultedLocation = [location || defaultLocationForType];
 
         return defaultedLocation;
     }
@@ -64,7 +69,7 @@ class CardAbility extends CardAbilityStep {
 
         if (
             (this.isActivatedAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
-            (this.card.type === CardType.Event && !this.card.canPlay(context, context.playType))
+            (this.card.isEvent() && !this.card.canPlay(context, context.playType))
         ) {
             return 'cannotTrigger';
         }
@@ -124,7 +129,7 @@ class CardAbility extends CardAbilityStep {
     }
 
     isInValidLocation(context) {
-        return this.card.type === CardType.Event
+        return this.card.isEvent()
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
             : cardLocationMatches(this.card.location, this.location);
     }
@@ -142,9 +147,9 @@ class CardAbility extends CardAbilityStep {
     }
 
     /** @override */
-    displayMessage(context, messageVerb = context.source.type === CardType.Event ? 'plays' : 'uses') {
+    displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if (
-            context.source.type === CardType.Event &&
+            context.source.isEvent() &&
             context.source.isConflict &&
             context.source.location !== Location.Hand &&
             context.source.location !== Location.BeingPlayed
@@ -240,7 +245,7 @@ class CardAbility extends CardAbilityStep {
 
     /** @override */
     isCardPlayed() {
-        return !this.isKeywordAbility() && this.card.getType() === CardType.Event;
+        return !this.isKeywordAbility() && this.card.isEvent();
     }
 }
 

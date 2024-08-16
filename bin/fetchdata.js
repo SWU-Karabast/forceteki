@@ -35,12 +35,13 @@ function filterValues(card) {
     let filteredObj = filterAttributes(card.attributes);
 
     filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
-
     filteredObj.aspects = getAttributeNames(card.attributes.aspects);
-    filteredObj.type = getAttributeNames(card.attributes.type);
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);
+
+    // if a card has multiple types it will be still in one string, like 'token upgrade'
+    filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
 
     let internalName = filteredObj.title;
     if (filteredObj.subtitle) {
@@ -126,4 +127,6 @@ async function main() {
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
 
+// TODO: some downloads can fail due to request issues, either improve the retry settings or add
+// some check on number of downloaded cards so we can have an error message
 main();

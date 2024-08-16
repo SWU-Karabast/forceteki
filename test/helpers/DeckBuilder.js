@@ -123,9 +123,9 @@ class DeckBuilder {
         });
 
         return {
-            leader: _.filter(cardCounts, (count) => count.card.type === 'leader'),
-            base: _.filter(cardCounts, (count) => count.card.type === 'base'),
-            deckCards: _.filter(cardCounts, (count) => count.card.type !== 'leader' && count.card.type !== 'base')
+            leader: _.filter(cardCounts, (count) => count.card.types.includes('leader')),
+            base: _.filter(cardCounts, (count) => count.card.types.includes('base')),
+            deckCards: _.filter(cardCounts, (count) => !count.card.types.includes('leader') && !count.card.types.includes('base'))
         };
     }
 

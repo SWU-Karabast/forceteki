@@ -58,7 +58,7 @@ export class Attack extends GameObject {
     }
 
     get targetIsBase(): boolean {
-        return this.target.isBase;
+        return this.target.isBase();
     }
 
     private getUnitPower(involvedUnit: Card): StatisticTotal {

@@ -32,7 +32,7 @@ export class Deck {
         //leader & base
         for (const { count, card } of this.data.base ?? []) {
             for (let i = 0; i < count; i++) {
-                if (card?.type === CardType.Base) {
+                if (card?.types.includes(CardType.Base)) {
                     const CardConstructor = cards.get(card.id) ?? BaseCard;
                     // @ts-expect-error
                     const baseCard: BaseCard = new CardConstructor(player, card);
@@ -43,7 +43,7 @@ export class Deck {
         }
         for (const { count, card } of this.data.leader ?? []) {
             for (let i = 0; i < count; i++) {
-                if (card?.type === CardType.Leader) {
+                if (card?.types.includes(CardType.Leader)) {
                     const CardConstructor = cards.get(card.id) ?? LeaderCard;
                     // @ts-expect-error
                     const leaderCard: LeaderCard = new CardConstructor(player, card);

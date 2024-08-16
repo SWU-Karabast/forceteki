@@ -11,7 +11,6 @@ import type Player from './Player';
 export abstract class GameObject {
     public uuid = uuidV1();
     protected id: string;
-    protected printedType = '';
     private effects = [] as ICardEffect[];
     private nameField: string;
 
@@ -21,10 +20,6 @@ export abstract class GameObject {
     ) {
         this.id = name;
         this.nameField = name;
-    }
-
-    public get type() {
-        return this.getType();
     }
 
     public get name() {
@@ -72,19 +67,11 @@ export abstract class GameObject {
         );
     }
 
-    public getType() {
-        if (this.anyEffect(EffectName.ChangeType)) {
-            return this.mostRecentEffect(EffectName.ChangeType);
-        }
-        return this.printedType;
-    }
-
     public getShortSummary() {
         return {
             id: this.id,
             label: this.name,
             name: this.name,
-            type: this.getType(),
             uuid: this.uuid
         };
     }

@@ -112,7 +112,7 @@ class AbilityTargetAbility {
         if (!context.targetAbility || context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
             return false;
         }
-        return this.properties.cardType === context.targetAbility.card.type &&
+        return context.targetAbility.card.hasSomeType(this.properties.cardType) &&
                (!this.properties.cardCondition || this.properties.cardCondition(context.targetAbility.card, context)) &&
                this.abilityCondition(context.targetAbility);
     }

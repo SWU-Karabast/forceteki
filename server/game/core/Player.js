@@ -127,7 +127,7 @@ class Player extends GameObject {
      * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
      */
     getUnitsInPlay(arena = null, cardCondition = (card) => true) {
-        return this.getCardsInPlay(arena).filter((card) => card.type === CardType.Unit && cardCondition(card));
+        return this.getCardsInPlay(arena).filter((card) => card.isUnit() && cardCondition(card));
     }
 
     /**
@@ -136,7 +136,7 @@ class Player extends GameObject {
      * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
      */
     getOtherUnitsInPlay(ignoreUnit, arena = null, cardCondition = (card) => true) {
-        return this.getCardsInPlay(arena).filter((card) => card.type === CardType.Unit && card !== ignoreUnit && cardCondition(card));
+        return this.getCardsInPlay(arena).filter((card) => card.isUnit() && card !== ignoreUnit && cardCondition(card));
     }
 
     /**
@@ -657,7 +657,7 @@ class Player extends GameObject {
         this.deck.each((card) => {
             // register event reactions in case event-in-deck bluff window is enabled
             // TODO EVENTS: probably we need to do this differently since we have actual reactions on our events
-            if (card.type === CardType.Event) {
+            if (card.isEvent()) {
                 for (let reaction of card.abilities.triggeredAbilities) {
                     reaction.registerEvents();
                 }
@@ -841,7 +841,7 @@ class Player extends GameObject {
     //                 // no card type restriction
     //                 (!cardCostToTarget.cardType ||
     //                     // or match type restriction
-    //                     abilitySource.type === cardCostToTarget.cardType) &&
+    //                     abilitySource.hasSomeType(cardCostToTarget.cardType)) &&
     //                 // no player restriction
     //                 (!cardCostToTarget.targetPlayer ||
     //                     // or match player restriction
@@ -1025,7 +1025,7 @@ class Player extends GameObject {
     // }
 
     /**
-     * Checks whether card.type is consistent with location
+     * Checks whether card type is consistent with location
      * @param card BaseCard
      * @param {Location} location
      */
@@ -1048,20 +1048,30 @@ class Player extends GameObject {
             Location.GroundArena,
             Location.Resource
         ];
-        const legalLocations = {
-            base: [Location.Base],
-            leader: [WildcardLocation.AnyArena, Location.Leader],
-            unit: [...deckCardLocations],
-            event: [...deckCardLocations, Location.BeingPlayed],
-            attachment: [...deckCardLocations]
+        const legalLocations = (types) => {
+
         };
 
-        let type = card.type;
-        if (location === Location.Discard) {
-            type = card.printedType || card.type; //fallback to type if printedType doesn't exist (mock cards, token cards)
+        let legalLocationsForType;
+        if (card.isToken()) {
+            legalLocationsForType = [Location.SpaceArena, Location.GroundArena];
+        } else if (card.isBase()) {
+            legalLocationsForType = [Location.Base];
+        } else if (card.isUnit()) {
+            legalLocationsForType = deckCardLocations;
+        } else if (card.isLeader()) {
+            // since we've already checked if the leader is deployed ('leader unit' type), this means undeployed leader
+            legalLocationsForType = [Location.Leader];
+        } else if (card.isEvent()) {
+            legalLocationsForType = [...deckCardLocations, Location.BeingPlayed];
+        } else if (card.isUpgrade()) {
+            legalLocationsForType = deckCardLocations;
+        } else {
+            Contract.fail(`Unexpected unit type set: ${Array.from(card.types).join(', ')}`);
+            return false;
         }
 
-        return legalLocations[type] && cardLocationMatches(location, legalLocations[type]);
+        return legalLocationsForType && cardLocationMatches(location, legalLocationsForType);
     }
 
     // TODO UPGRADES
@@ -1181,7 +1191,7 @@ class Player extends GameObject {
             card.setDefaultController(this);
             card.controller = this;
             // // This should only be called when an upgrade is dragged into play
-            // if (card.type === CardType.Upgrade) {
+            // if (card.isUpgrade()) {
             //     this.promptForUpgrade(card);
             //     return;
             // }

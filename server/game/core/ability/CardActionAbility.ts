@@ -64,7 +64,7 @@ export class CardActionAbility extends CardAbility {
             this.card.anyEffect(EffectName.CanBeTriggeredByOpponent) &&
             this.abilityType !== AbilityType.ForcedReaction;
         const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
-        if (!ignoredRequirements.includes('player') && this.card.type !== CardType.Event && !canPlayerTrigger) {
+        if (!ignoredRequirements.includes('player') && !this.card.isEvent() && !canPlayerTrigger) {
             return 'player';
         }
 

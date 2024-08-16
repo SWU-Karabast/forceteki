@@ -122,7 +122,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     canAffect(target: any, context: AbilityContext, additionalProperties = {}): boolean {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
         return (
-            this.targetType.includes(target.type) &&
+            target.hasSomeType(this.targetType) &&
             !context.gameActionsResolutionChain.includes(this) &&
             ((context.stage === Stage.Effect && cannotBeCancelled) || !target.hasRestriction(this.name, context))
         );

@@ -19,7 +19,8 @@ import {
     WildcardLocation,
     StatType,
     Trait,
-    AbilityRestriction
+    AbilityRestriction,
+    LocationFilter
 } from '../Constants.js';
 import { isArena, cardLocationMatches, checkConvertToEnum } from '../utils/EnumHelpers.js';
 import {
@@ -96,7 +97,7 @@ class Card extends EffectSource {
     readonly internalName: string;
     readonly defaultArena: Location | null;
     readonly unique: boolean;
-    private readonly typeField: CardType;
+    readonly printedTypes: Set<CardType>;
 
     menu = [
         { command: 'exhaust', text: 'Exhaust/Ready' },
@@ -112,9 +113,6 @@ class Card extends EffectSource {
     traits: string[];
     printedFaction: string;
     location: Location;
-
-    readonly isBase: boolean = false;
-    readonly isLeader: boolean = false;
 
     upgrades = [] as Card[];
     childCards = [] as Card[];
@@ -148,12 +146,11 @@ class Card extends EffectSource {
 
         this.id = cardData.id;
         this.unique = cardData.unique;
-        this.typeField = cardData.type;
 
         this.printedTitle = cardData.title;
         this.printedSubtitle = cardData.subtitle;
         this.internalName = cardData.internalName;
-        this.printedType = checkConvertToEnum([cardData.type], CardType)[0]; // TODO: does this work for leader consistently, since it has two types?
+        this.printedTypes = new Set(checkConvertToEnum(cardData.types, CardType));
         this.traits = checkConvertToEnum(cardData.traits, Trait);
         this.aspects = checkConvertToEnum(cardData.aspects, Aspect);
         this.printedKeywords = cardData.keywords; // TODO: enum for these
@@ -195,7 +192,7 @@ class Card extends EffectSource {
         //     this.abilities.triggered.push(new CourtesyAbility(this.game, this));
         //     this.abilities.triggered.push(new SincerityAbility(this.game, this));
         // }
-        // if (cardData.type === CardType.Event && this.hasEphemeral()) {
+        // if (cardData.isEvent() && this.hasEphemeral()) {
         //     this.eventRegistrarForEphemeral = new EventRegistrar(this.game, this);
         //     this.eventRegistrarForEphemeral.register([{ [EventName.OnCardPlayed]: 'handleEphemeral' }]);
         // }
@@ -208,7 +205,7 @@ class Card extends EffectSource {
         Contract.assertNotNullLike(cardData);
         Contract.assertNotNullLike(cardData.id);
         Contract.assertNotNullLike(cardData.title);
-        Contract.assertNotNullLike(cardData.type);
+        Contract.assertNotNullLike(cardData.types);
         Contract.assertNotNullLike(cardData.traits);
         Contract.assertNotNullLike(cardData.aspects);
         Contract.assertNotNullLike(cardData.keywords);
@@ -251,9 +248,65 @@ class Card extends EffectSource {
         return this.printedTitle;
     }
 
-    // UP NEXT: type needs to be an array, sadly
-    override get type(): CardType {
-        return this.typeField;
+    get types(): Set<CardType> {
+        return this.printedTypes;
+    }
+
+    isEvent(): boolean {
+        return this.hasSomeType(CardType.Event);
+    }
+
+    isUnit(): boolean {
+        return this.hasSomeType(CardType.Unit);
+    }
+
+    isUpgrade(): boolean {
+        return this.hasSomeType(CardType.Upgrade);
+    }
+
+    isBase(): boolean {
+        return this.hasSomeType(CardType.Base);
+    }
+
+    isLeader(): boolean {
+        return this.hasSomeType(CardType.Leader);
+    }
+
+    isToken(): boolean {
+        return this.hasSomeType(CardType.Token);
+    }
+
+    hasEveryType(types: Set<CardType>): boolean;
+    hasEveryType(...types: CardType[]): boolean;
+    hasEveryType(typeSetOrFirstType: Set<CardType> | CardType, ...otherTypes: CardType[]): boolean {
+        const typesToCheck =
+            typeSetOrFirstType instanceof Set
+                ? typeSetOrFirstType
+                : new Set([typeSetOrFirstType, ...otherTypes]);
+
+        for (const type of typesToCheck.values()) {
+            if (!this.types.has(type)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    hasSomeType(types: Set<CardType> | CardType | CardType[]): boolean {
+        let typesToCheck: Set<CardType> | CardType[];
+
+        if (!(types instanceof Set) && !(types instanceof Array)) {
+            typesToCheck = [types];
+        } else {
+            typesToCheck = types;
+        }
+
+        for (const type of typesToCheck) {
+            if (this.types.has(type)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // UP NEXT: don't always return play actions
@@ -273,13 +326,13 @@ class Card extends EffectSource {
         //     allAbilities = allAbilities.filter((a) => a.isKeywordAbility());
         // }
 
-        if (this.type === CardType.Unit) {
+        if (this.isUnit()) {
             allAbilities.push(new InitiateAttackAction(this));
         }
 
         // TODO EVENT: this block prevents the PlayCardAction from being generated for event cards
         // if card is already in play or is an event, return the default actions
-        if (isArena(location) || this.type === CardType.Event) {
+        if (isArena(location) || this.isEvent()) {
             return allAbilities;
         }
 
@@ -341,7 +394,7 @@ class Card extends EffectSource {
     }
 
     protected setupPlayAbilities() {
-        if (this.type === CardType.Unit) {
+        if (this.isUnit()) {
             this.abilities.playCardAction.push(new PlayUnitAction(this));
         }
     }
@@ -372,21 +425,25 @@ class Card extends EffectSource {
      * is both in play and not blank.
      */
     protected constantAbility(properties: IConstantAbilityProps<this>): void {
-        const allowedLocations = [
+        const allowedLocationFilters = [
             WildcardLocation.Any,
             Location.Discard,
             WildcardLocation.AnyArena,
             Location.Leader,
             Location.Base,
         ];
-        const defaultLocationForType = {
-            leader: Location.Leader,
-            base: Location.Base,
-        };
 
-        const locationFilter = properties.locationFilter || defaultLocationForType[this.getType()] || WildcardLocation.AnyArena;
-        if (!allowedLocations.includes(locationFilter)) {
-            throw new Error(`'${locationFilter}' is not a supported effect location.`);
+        const locationFilter = properties.locationFilter || WildcardLocation.AnyArena;
+
+        let notAllowedLocations: LocationFilter[];
+        if (Array.isArray(locationFilter)) {
+            notAllowedLocations = allowedLocationFilters.filter((location) => locationFilter.includes(location));
+        } else {
+            notAllowedLocations = allowedLocationFilters.includes(locationFilter) ? [] : [locationFilter];
+        }
+
+        if (notAllowedLocations.length > 0) {
+            throw new Error(`Illegal effect location(s) specified: '${notAllowedLocations.join(', ')}'`);
         }
         this.abilities.constant.push({ duration: Duration.Persistent, locationFilter, ...properties });
     }
@@ -543,7 +600,7 @@ class Card extends EffectSource {
             this.resetLimits();
         }
         for (const triggeredAbility of this.triggeredAbilities) {
-            if (this.type === CardType.Event) {
+            if (this.isEvent()) {
                 // TODO EVENT: this is block is here because the only reaction to register on an event was the bluff window 'reaction', we have real ones now
                 if (
                     to === Location.Deck ||
@@ -872,14 +929,14 @@ class Card extends EffectSource {
     getPlayCardActions() {
         // TODO EVENT: this block *also* prevents the PlayCardAction from being generated for event cards
         // events are a special case
-        if (this.type === CardType.Event) {
+        if (this.isEvent()) {
             return this.getActions();
         }
         const actions = this.abilities.playCardAction.slice();
-        // if (this.type === CardType.Unit) {
+        // if (this.isUnit()) {
         //     actions.push(new PlayUnitAction(this));
         // }
-        // else if (this.type === CardType.Upgrade) {
+        // else if (this.isUpgrade()) {
         //     actions.push(new PlayAttachmentAction(this));
         // }
         return actions;
@@ -965,7 +1022,7 @@ class Card extends EffectSource {
     //         popupMenuText: this.popupMenuText,
     //         showPopup: this.showPopup,
     //         tokens: this.tokens,
-    //         type: this.getType(),
+    //         types: this.types,
     //         isDishonored: this.isDishonored,
     //         isHonored: this.isHonored,
     //         isTainted: !!this.isTainted,
@@ -1254,7 +1311,7 @@ class Card extends EffectSource {
     // }
 
     get showStats() {
-        return isArena(this.location) && this.type === CardType.Unit;
+        return isArena(this.location) && this.isUnit();
     }
 
     exhaust() {
@@ -1314,8 +1371,8 @@ class Card extends EffectSource {
             case Location.SpaceArena:
             case Location.GroundArena:
                 this.controller = this.owner;
-                this.exhausted = this.type === CardType.Unit ? true : null;
-                this.damage = this.type === CardType.Unit ? 0 : null;
+                this.exhausted = this.isUnit() ? true : null;
+                this.damage = this.isUnit() ? 0 : null;
                 this.playedThisTurn = false;
                 this.facedown = false;
                 this.hiddenForController = false;
@@ -1325,8 +1382,8 @@ class Card extends EffectSource {
             case Location.Base:
             case Location.Leader:
                 this.controller = this.owner;
-                this.exhausted = this.type === CardType.Leader ? false : null;
-                this.damage = this.type === CardType.Base ? 0 : null;
+                this.exhausted = this.isLeader() ? false : null;
+                this.damage = this.isBase() ? 0 : null;
                 this.playedThisTurn = false;
                 this.facedown = false;
                 this.hiddenForController = false;

@@ -175,7 +175,7 @@ export = {
     //                 return;
     //             }
     //             for (const card of cards.filter(
-    //                 (card) => card.type === CardType.Event && card.location === location
+    //                 (card) => card.isEvent() && card.location === location
     //             )) {
     //                 for (const reaction of card.triggeredAbilities) {
     //                     reaction.registerEvents();

@@ -68,7 +68,7 @@ export default class TriggeredAbility extends CardAbility {
 
         if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
             if (
-                this.card.type !== CardType.Event ||
+                !this.card.isEvent() ||
                 !context.player.isCardInPlayableLocation(this.card, context.playType)
             ) {
                 return 'player';

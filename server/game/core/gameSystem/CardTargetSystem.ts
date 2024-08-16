@@ -31,10 +31,6 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
-    override canAffect(target: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        return super.canAffect(target, context, additionalProperties);
-    }
-
     override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
         const events: Event[] = [];
 
