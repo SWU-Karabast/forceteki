@@ -28,7 +28,6 @@ const {
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
 
-// UP NEXT: rm -r build on all transpile commands
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
         super(game, user.username);
@@ -756,9 +755,9 @@ class Player extends GameObject {
         // TODO: not sure yet if we need this code, I think it's checking to see if any potential interrupts would create additional cost
         // let triggeredCostAdjusters = 0;
         // let fakeWindow = { addToWindow: () => triggeredCostAdjusters++ };
-        // let fakeEvent = new Event(EventName.OnCardPlayed, { card: card, player: this, context: context });
+        // let fakeEvent = new GameEvent(EventName.OnCardPlayed, { card: card, player: this, context: context });
         // this.game.emit(EventName.OnCardPlayed + ':' + AbilityType.Interrupt, fakeEvent, fakeWindow);
-        // let fakeResolverEvent = new Event(EventName.OnAbilityResolverInitiated, {
+        // let fakeResolverEvent = new GameEvent(EventName.OnAbilityResolverInitiated, {
         //     card: card,
         //     player: this,
         //     context: context

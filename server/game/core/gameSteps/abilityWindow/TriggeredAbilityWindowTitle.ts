@@ -39,12 +39,12 @@ function FormatTitles(titles: string[]) {
     }, '');
 }
 
-interface Event {
+interface GameEvent {
     name: string;
 }
 
 export const TriggeredAbilityWindowTitle = {
-    getTitle(eventsaa: Event[] | Event) {
+    getTitle(eventsaa: GameEvent[] | GameEvent) {
         const events = Array.isArray(eventsaa) ? eventsaa : [eventsaa];
         const titles = events
             .map((event) => {
@@ -59,7 +59,7 @@ export const TriggeredAbilityWindowTitle = {
             ? `Choose ability order for ${FormatTitles(titles)}`
             : 'Choose ability order';
     },
-    getAction(event: Event) {
+    getAction(event: GameEvent) {
         const func = EventToTitleFunc[event.name];
         if (func) {
             return func(event);

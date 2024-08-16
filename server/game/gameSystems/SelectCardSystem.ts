@@ -6,7 +6,7 @@ import { CardType, EffectName, Location, RelativePlayer, TargetMode } from '../c
 import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
-import type { Event } from '../core/event/Event';
+import type { GameEvent } from '../core/event/GameEvent';
 
 export interface ISelectCardProperties extends ICardTargetSystemProperties {
     activePromptTitle?: string;
@@ -90,7 +90,7 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     // TODO: this was previously accepting an event input and using it in the in 'OnSelect' method. not sure if changing that change broke anything
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
             return [];

@@ -1,6 +1,6 @@
 import type CardAbility from '../core/ability/CardAbility';
 import type Card from '../core/card/Card';
-import type { Event } from '../core/event/Event';
+import type { GameEvent } from '../core/event/GameEvent';
 import AbilityResolver from '../core/gameSteps/AbilityResolver';
 import type Player from '../core/Player';
 import type TriggeredAbility from '../core/ability/TriggeredAbility';
@@ -12,7 +12,7 @@ export interface ITriggerAbilityProperties extends ICardTargetSystemProperties {
     subResolution?: boolean;
     ignoredRequirements?: string[];
     player?: Player;
-    event?: Event;
+    event?: GameEvent;
 }
 
 export class TriggerAbilitySystem extends CardTargetSystem<ITriggerAbilityProperties> {

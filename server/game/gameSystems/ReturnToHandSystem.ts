@@ -20,7 +20,7 @@ export class ReturnToHandSystem extends CardTargetSystem<IReturnToHandProperties
     override eventName = EventName.OnCardReturnedToHand;
     override effectDescription = 'return {0} to their hand';
     override costDescription = 'returning {0} to their hand';
-    override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
+    override targetType = [CardType.Unit, CardType.Upgrade, CardType.EventTmp];
     override defaultProperties: IReturnToHandProperties = {
         locationFilter: [WildcardLocation.AnyArena, Location.Discard]
     };

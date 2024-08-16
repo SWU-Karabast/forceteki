@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
 import { CardType, EventName, Stage } from '../Constants';
-import { Event } from '../event/Event';
+import { GameEvent } from '../event/GameEvent';
 import type Player from '../Player';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type Game from '../Game';
@@ -57,7 +57,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    abstract eventHandler(event: Event, additionalProperties: any): void;
+    abstract eventHandler(event: GameEvent, additionalProperties: any): void;
 
     /**
      * Method for evaluating default targets from an {@link AbilityContext} in case explicit targets aren't provided
@@ -173,14 +173,14 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     }
 
     /**
-     * Generates a list of {@link Event} objects that will apply the effects of this system to the game state
+     * Generates a list of {@link GameEvent} objects that will apply the effects of this system to the game state
      * by generating one event per target in `context.targets`.
      * The events must be emitted using an {@link EventWindow}, typically via {@link Game.openEventWindow}.
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
-        const events: Event[] = [];
+    generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
+        const events: GameEvent[] = [];
         for (const target of this.targets(context, additionalProperties)) {
             if (this.canAffect(target, context, additionalProperties)) {
                 events.push(this.generateEvent(target, context, additionalProperties));
@@ -190,14 +190,14 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     }
 
     /**
-     * Generates one {@link Event} object that will apply the effects of this system to the game state
+     * Generates one {@link GameEvent} object that will apply the effects of this system to the game state
      * for the specified target.
      * The event must be emitted using an {@link EventWindow}, typically via {@link Game.openEventWindow}.
      * @param target Target to apply the system's effects to
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    generateEvent(target: any, context: AbilityContext, additionalProperties = {}): Event {
+    generateEvent(target: any, context: AbilityContext, additionalProperties = {}): GameEvent {
         const event = this.createEvent(target, context, additionalProperties);
         this.updateEvent(event, target, context, additionalProperties);
         return event;
@@ -207,7 +207,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
      * Writes the important properties of this system onto the passed event object. Only used internally by
      * systems during event generation.
      */
-    protected updateEvent(event: Event, target: any, context: AbilityContext, additionalProperties = {}): void {
+    protected updateEvent(event: GameEvent, target: any, context: AbilityContext, additionalProperties = {}): void {
         event.name = this.eventName;
         this.addPropertiesToEvent(event, target, context, additionalProperties);
         event.replaceHandler((event) => this.eventHandler(event, additionalProperties));
@@ -217,9 +217,9 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     /**
      * Create a very basic blank event object. Important properties must be added via {@link GameSystem.updateEvent}.
      */
-    protected createEvent(target: any, context: AbilityContext, additionalProperties): Event {
+    protected createEvent(target: any, context: AbilityContext, additionalProperties): GameEvent {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
-        const event = new Event(EventName.Unnamed, { cannotBeCancelled });
+        const event = new GameEvent(EventName.Unnamed, { cannotBeCancelled });
         event.checkFullyResolved = (eventAtResolution) =>
             this.isEventFullyResolved(eventAtResolution, target, context, additionalProperties);
         return event;
@@ -244,11 +244,11 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         event.context = context;
     }
 
-    checkEventCondition(event: Event, additionalProperties = {}): boolean {
+    checkEventCondition(event: GameEvent, additionalProperties = {}): boolean {
         return true;
     }
 
-    isEventFullyResolved(event: Event, target: any, context: AbilityContext, additionalProperties = {}): boolean {
+    isEventFullyResolved(event: GameEvent, target: any, context: AbilityContext, additionalProperties = {}): boolean {
         return !event.cancelled && event.name === this.eventName;
     }
 

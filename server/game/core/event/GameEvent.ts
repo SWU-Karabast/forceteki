@@ -2,8 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import { EventName } from '../Constants';
 import Player from '../Player';
 
-// UP NEXT: rename to GameEvent to disambiguate from DOM events
-export class Event {
+export class GameEvent {
     cancelled = false;
     resolved = false;
     context = null;
@@ -19,7 +18,7 @@ export class Event {
     constructor(
         public name: string,
         params: any,
-        private handler?: (event: Event) => void
+        private handler?: (event: GameEvent) => void
     ) {
         for (const key in params) {
             if (key in params) {

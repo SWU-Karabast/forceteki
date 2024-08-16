@@ -17,7 +17,7 @@ const HandlerMenuPrompt = require('./gameSteps/prompts/HandlerMenuPrompt.js');
 const SelectCardPrompt = require('./gameSteps/prompts/SelectCardPrompt.js');
 const GameWonPrompt = require('./gameSteps/prompts/GameWonPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
-const { Event } = require('./event/Event.js');
+const { GameEvent } = require('./event/GameEvent.js');
 const InitiateCardAbilityEvent = require('./event/InitiateCardAbilityEvent.js');
 const EventWindow = require('./event/EventWindow.js');
 const AdditionalAbilityStepEventWindow = require('./event/AdditionalAbilityStepEventWindow.js');
@@ -827,15 +827,15 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Creates a game Event, and opens a window for it.
+     * Creates a game GameEvent, and opens a window for it.
      * @param {String} eventName
      * @param {Object} params - parameters for this event
-     * @param {(Event) => void} handler - (Event + params) => undefined
-     * returns {Event} - this allows the caller to track Event.resolved and
+     * @param {(GameEvent) => void} handler - (GameEvent + params) => undefined
+     * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
      * tell whether or not the handler resolved successfully
      */
     createEventAndOpenWindow(eventName, params = {}, handler = () => true) {
-        let event = new Event(eventName, params, handler);
+        let event = new GameEvent(eventName, params, handler);
         this.openEventWindow([event]);
         return event;
     }
@@ -846,7 +846,7 @@ class Game extends EventEmitter {
      * @param {Object} params - parameters for this event
      */
     emitEvent(eventName, params = {}) {
-        let event = new Event(eventName, params);
+        let event = new GameEvent(eventName, params);
         this.emit(event.name, event);
     }
 
@@ -899,7 +899,7 @@ class Game extends EventEmitter {
     //  * cards, and performs it on all legal targets.
     //  * @param {AbilityContext} context
     //  * @param {Object} actions - Object with { actionName: targets }
-    //  * @returns {Event[]}
+    //  * @returns {GameEvent[]}
     //  */
     // applyGameAction(context, actions) {
     //     if (!context) {

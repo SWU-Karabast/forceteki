@@ -5,7 +5,7 @@ const { SimpleStep } = require('./SimpleStep.js');
 const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js');
 const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
 const { Location, Stage, CardType, EventName } = require('../Constants.js');
-const { Event } = require('../event/Event.js');
+const { GameEvent } = require('../event/GameEvent.js');
 
 // TODO: convert to TS
 class AbilityResolver extends BaseStepWithPipeline {
@@ -68,7 +68,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                 context: this.context
             };
             if (this.context.ability.isCardPlayed()) {
-                this.events.push(new Event(EventName.OnCardPlayed, {
+                this.events.push(new GameEvent(EventName.OnCardPlayed, {
                     player: this.context.player,
                     card: this.context.source,
                     context: this.context,
@@ -80,14 +80,14 @@ class AbilityResolver extends BaseStepWithPipeline {
                 }));
             }
             if (this.context.ability.isActivatedAbility()) {
-                this.events.push(new Event(EventName.OnCardAbilityTriggered, {
+                this.events.push(new GameEvent(EventName.OnCardAbilityTriggered, {
                     player: this.context.player,
                     card: this.context.source,
                     context: this.context
                 }));
             }
         }
-        this.events.push(new Event(eventName, eventProps, () => this.queueInitiateAbilitySteps()));
+        this.events.push(new GameEvent(eventName, eventProps, () => this.queueInitiateAbilitySteps()));
         this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events));
     }
 

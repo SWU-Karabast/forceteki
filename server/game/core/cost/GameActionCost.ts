@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { ICost, Result } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
-import type { Event } from '../event/Event';
+import type { GameEvent } from '../event/GameEvent';
 
 /**
  * Class that wraps a {@link GameSystem} so it can be represented as an action cost
@@ -23,7 +23,7 @@ export class GameActionCost implements ICost {
         return this.gameSystem.hasLegalTarget(context);
     }
 
-    generateEventsForAllTargets(context: AbilityContext, result: Result): Event[] {
+    generateEventsForAllTargets(context: AbilityContext, result: Result): GameEvent[] {
         context.costs[this.gameSystem.name] = this.gameSystem.generatePropertiesFromContext(context).target;
         return this.gameSystem.generateEventsForAllTargets(context);
     }

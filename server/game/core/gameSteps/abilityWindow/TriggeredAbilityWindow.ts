@@ -1,5 +1,5 @@
 import Player from '../../Player';
-import { Event } from '../../event/Event';
+import { GameEvent } from '../../event/GameEvent';
 import EventWindow from '../../event/EventWindow';
 import { AbilityType, WildcardLocation } from '../../Constants';
 import Contract from '../../utils/Contract';
@@ -15,16 +15,16 @@ export class TriggeredAbilityWindow extends BaseStep {
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
 
     /** Already resolved effects / abilities */
-    protected resolved: { ability: TriggeredAbilityContext, event: Event }[] = [];
+    protected resolved: { ability: TriggeredAbilityContext, event: GameEvent }[] = [];
 
     /** Chosen order of players to resolve in (SWU 6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
 
     /** The events that were triggered as part of this window */
-    private triggeringEvents: Event[];
+    private triggeringEvents: GameEvent[];
 
     private eventWindow: EventWindow;
-    private eventsToExclude: Event[];
+    private eventsToExclude: GameEvent[];
     private eventsEmitted = false;
     private choosePlayerResolutionOrderComplete = false;
 

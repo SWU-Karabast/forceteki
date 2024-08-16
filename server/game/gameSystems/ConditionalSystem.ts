@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Event } from '../core/event/Event';
+import type { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 
 export interface IConditionalSystemProperties extends IGameSystemProperties {
@@ -38,7 +38,7 @@ export class ConditionalSystem extends GameSystem<IConditionalSystemProperties> 
         return this.getGameAction(context, additionalProperties).hasLegalTarget(context, additionalProperties);
     }
 
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         return this.getGameAction(context, additionalProperties).generateEventsForAllTargets(context, additionalProperties);
     }
 

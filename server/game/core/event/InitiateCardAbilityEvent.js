@@ -1,8 +1,8 @@
 const _ = require('underscore');
-const { Event } = require('./Event.js');
+const { GameEvent } = require('./GameEvent.js');
 const { EventName } = require('../Constants.js');
 
-class InitiateCardAbilityEvent extends Event {
+class InitiateCardAbilityEvent extends GameEvent {
     constructor(params, handler) {
         super(EventName.OnInitiateAbilityEffects, params, handler);
         if (!this.context.ability.doesNotTarget) {

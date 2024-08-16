@@ -1,7 +1,7 @@
 import { AbilityContext } from '../ability/AbilityContext';
 import { GameSystem } from '../gameSystem/GameSystem';
 import { TriggeredAbilityContext } from '../ability/TriggeredAbilityContext';
-import { Event } from '../event/Event';
+import { GameEvent } from '../event/GameEvent';
 import Player from '../Player.js';
 
 export interface Result {
@@ -25,8 +25,8 @@ export interface ICost {
     getActionName?(context: AbilityContext): string;
     getCostMessage?(context: AbilityContext): unknown[];
     hasTargetsChosenByInitiatingPlayer?(context: AbilityContext): boolean;
-    generateEventsForAllTargets?(context: AbilityContext, result?: Result): Event[];
+    generateEventsForAllTargets?(context: AbilityContext, result?: Result): GameEvent[];
     resolve?(context: AbilityContext, result: Result): void;
-    payEvent?(context: TriggeredAbilityContext): Event | Event[];
+    payEvent?(context: TriggeredAbilityContext): GameEvent | GameEvent[];
     pay?(context: TriggeredAbilityContext): void;
 }

@@ -2,7 +2,7 @@ import CardAbility from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { Stage, CardType, EffectName, AbilityType } from '../Constants';
 import { ITriggeredAbilityProps, ITriggeredAbilityWhenProps, WhenType } from '../../Interfaces';
-import { Event } from '../event/Event';
+import { GameEvent } from '../event/GameEvent';
 import Card from '../card/Card';
 import Game from '../Game';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
@@ -11,7 +11,7 @@ import type CardAbilityStep from './CardAbilityStep';
 
 interface IEventRegistration {
     name: string;
-    handler: (event: Event, window: TriggeredAbilityWindow) => void;
+    handler: (event: GameEvent, window: TriggeredAbilityWindow) => void;
 }
 
 /**
@@ -43,7 +43,7 @@ interface IEventRegistration {
 
 export default class TriggeredAbility extends CardAbility {
     when?: WhenType;
-    aggregateWhen?: (events: Event[], context: TriggeredAbilityContext) => boolean;
+    aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
     anyPlayer: boolean;
     collectiveTrigger: boolean;
     eventRegistrations?: IEventRegistration[];
@@ -110,7 +110,7 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    override createContext(player = this.card.controller, event: Event) {
+    override createContext(player = this.card.controller, event: GameEvent) {
         return new TriggeredAbilityContext({
             event: event,
             game: this.game,

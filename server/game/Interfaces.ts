@@ -5,7 +5,7 @@ import type Card from './core/card/Card';
 import type CardAbility from './core/ability/CardAbility';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
-import type { Event } from './core/event/Event';
+import type { GameEvent } from './core/event/GameEvent';
 // import type { StatusToken } from './StatusToken';
 
 interface IBaseTarget {
@@ -180,7 +180,7 @@ export interface ITriggeredAbilityWhenProps extends ITriggeredAbilityBaseProps {
 }
 
 export interface ITriggeredAbilityAggregateWhenProps extends ITriggeredAbilityBaseProps {
-    aggregateWhen: (events: Event[], context: TriggeredAbilityContext) => boolean;
+    aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 }
 
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;

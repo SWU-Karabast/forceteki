@@ -2,7 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
 import { CardType, EffectName, Location } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
-import { Event } from '../event/Event';
+import { GameEvent } from '../event/GameEvent';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -18,7 +18,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
     override targetType = [
         CardType.Unit,
         CardType.Upgrade,
-        CardType.Event,
+        CardType.EventTmp,
         CardType.Leader,
         CardType.Base,
     ];
@@ -31,8 +31,8 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
-        const events: Event[] = [];
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
+        const events: GameEvent[] = [];
 
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         for (const card of target as Card[]) {

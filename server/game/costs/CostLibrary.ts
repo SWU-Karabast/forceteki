@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, Location, RelativePlayer, TargetMode } from '../core/Constants';
-import { Event } from '../core/event/Event';
+import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
@@ -218,7 +218,7 @@ export function putSelfIntoPlay(): ICost {
 //         },
 //         payEvent(context: TriggeredAbilityContext) {
 //             const amount = context.source.cost;
-//             return new Event(
+//             return new GameEvent(
 //                 EventName.OnSpendFate,
 //                 { amount, context },
 //                 (event) => (event.context.player.fate -= event.amount)

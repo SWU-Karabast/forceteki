@@ -253,7 +253,7 @@ class Card extends OngoingEffectSource {
     }
 
     isEvent(): boolean {
-        return this.hasSomeType(CardType.Event);
+        return this.hasSomeType(CardType.EventTmp);
     }
 
     isUnit(): boolean {

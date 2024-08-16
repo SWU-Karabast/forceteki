@@ -4,7 +4,7 @@ import { Duration, EventName, RelativePlayer } from '../Constants';
 import type { WhenType } from '../../Interfaces';
 import type Player from '../Player';
 import { GameSystem, type IGameSystemProperties } from './GameSystem';
-import { Event } from '../event/Event';
+import { GameEvent } from '../event/GameEvent';
 import OngoingEffect from '../ongoingEffect/OngoingEffect';
 
 export interface ILastingEffectGeneralProperties extends IGameSystemProperties {
@@ -48,15 +48,15 @@ export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
         return properties.effect.length > 0;
     }
 
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties: any): Event[] {
-        const events: Event[] = [];
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties: any): GameEvent[] {
+        const events: GameEvent[] = [];
         if (this.hasLegalTarget(context, additionalProperties)) {
             events.push(this.generateEvent(null, context, additionalProperties));
         }
         return events;
     }
 
-    eventHandler(event: Event, additionalProperties: any): void {
+    eventHandler(event: GameEvent, additionalProperties: any): void {
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
         if (!properties.ability) {
             properties.ability = event.context.ability;

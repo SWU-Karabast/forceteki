@@ -9,7 +9,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import { damage } from './GameSystemLibrary.js';
 import type Card from '../core/card/Card';
 import { isArray } from 'underscore';
-import { Event } from '../core/event/Event';
+import { GameEvent } from '../core/event/GameEvent';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
@@ -100,7 +100,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         properties.costHandler(context, prompt);
     }
 
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         const { target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
@@ -184,7 +184,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         }
 
         // create events for all effects to be generated
-        const effectEvents: Event[] = [];
+        const effectEvents: GameEvent[] = [];
         for (const effect of effects) {
             const effectProperties = typeof effect === 'function' ? effect(context, attack) : effect;
 

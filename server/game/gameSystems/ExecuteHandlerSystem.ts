@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import Card from '../core/card/Card';
-import { Event } from '../core/event/Event';
+import { GameEvent } from '../core/event/GameEvent';
 
 export interface IExecuteHandlerSystemProperties extends IGameSystemProperties {
     handler: (context: AbilityContext) => void;
@@ -27,7 +27,7 @@ export class ExecuteHandlerSystem extends GameSystem {
         return true;
     }
 
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): Event[] {
+    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         return [this.generateEvent(null, context, additionalProperties)];
     }
 

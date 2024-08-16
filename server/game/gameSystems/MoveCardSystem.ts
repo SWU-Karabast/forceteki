@@ -19,7 +19,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 /** @deprecated This system was imported from L5R but has not been tested */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     override name = 'move';
-    override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
+    override targetType = [CardType.Unit, CardType.Upgrade, CardType.EventTmp];
     override defaultProperties: IMoveCardProperties = {
         destination: null,
         switch: false,

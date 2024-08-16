@@ -1,7 +1,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, Location, RelativePlayer } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
-import { Event } from '../core/event/Event';
+import { GameEvent } from '../core/event/GameEvent';
 
 export class AdjustableResourceCost implements ICost {
     public isPlayCost = true;
@@ -40,10 +40,10 @@ export class AdjustableResourceCost implements ICost {
         return context.player.getAdjustedCost(context.playType, context.source, null, this.ignoreType, context.costAspects);
     }
 
-    public payEvent(context: AbilityContext): Event {
+    public payEvent(context: AbilityContext): GameEvent {
         const amount = this.getReducedCost(context);
         context.costs.resources = amount;
-        return new Event(EventName.OnSpendResources, { amount, context }, (event) => {
+        return new GameEvent(EventName.OnSpendResources, { amount, context }, (event) => {
             event.context.player.markUsedAdjusters(context.playType, event.context.source);
             event.context.player.exhaustResources(amount);
 

@@ -1,5 +1,5 @@
 import { Duration, EffectName, EventName } from '../Constants';
-import { Event } from '../event/Event';
+import { GameEvent } from '../event/GameEvent';
 import type OngoingEffect from './OngoingEffect';
 import type OngoingEffectSource from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
@@ -35,7 +35,7 @@ export class OngoingEffectEngine {
         return effect;
     }
 
-    checkDelayedEffects(events: Event[]) {
+    checkDelayedEffects(events: GameEvent[]) {
         const effectsToTrigger: OngoingEffect[] = [];
         const effectsToRemove: OngoingEffect[] = [];
         for (const effect of this.effects.filter(

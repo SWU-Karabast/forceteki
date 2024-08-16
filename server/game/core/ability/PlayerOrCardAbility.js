@@ -2,7 +2,7 @@ const AbilityTargetAbility = require('./abilityTargets/AbilityTargetAbility.js')
 const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
 const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
 const { Stage, TargetMode, AbilityType } = require('../Constants.js');
-const { Event } = require('../event/Event.js');
+const { GameEvent } = require('../event/GameEvent.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -57,7 +57,7 @@ class PlayerOrCardAbility {
         return cost;
     }
 
-    // UP NEXT: better naming and general clarification for the target construction pipeline
+    // UP NEXT TARGET: better naming and general clarification for the target construction pipeline
     buildTargets(properties) {
         this.targets = [];
         if (properties.target) {
@@ -69,7 +69,7 @@ class PlayerOrCardAbility {
         }
     }
 
-    // UP NEXT: definition / interface for the properties object here
+    // UP NEXT TARGET: definition / interface for the properties object here
     getAbilityTarget(name, properties) {
         if (properties.gameSystem) {
             if (!Array.isArray(properties.gameSystem)) {
@@ -147,7 +147,7 @@ class PlayerOrCardAbility {
                             if (!results.cancelled) {
                                 let newEvents = cost.payEvent
                                     ? cost.payEvent(context)
-                                    : new Event('payCost', {}, () => cost.pay(context));
+                                    : new GameEvent('payCost', {}, () => cost.pay(context));
                                 if (Array.isArray(newEvents)) {
                                     for (let event of newEvents) {
                                         results.events.push(event);
