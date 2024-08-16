@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const EventEmitter = require('events');
 
 const ChatCommands = require('./chat/ChatCommands.js');
@@ -67,7 +66,7 @@ class Game extends EventEmitter {
 
         this.shortCardData = options.shortCardData || [];
 
-        _.each(details.players, (player) => {
+        details.players.forEach((player) => {
             this.playersAndSpectators[player.user.username] = new Player(
                 player.id,
                 player.user,
@@ -77,7 +76,7 @@ class Game extends EventEmitter {
             );
         });
 
-        _.each(details.spectators, (spectator) => {
+        details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.user.username] = new Spectator(spectator.id, spectator.user);
         });
 
@@ -228,8 +227,7 @@ class Game extends EventEmitter {
      * @returns DrawCard
      */
     findAnyCardInPlayByUuid(cardId) {
-        return _.reduce(
-            this.getPlayers(),
+        return this.getPlayers().reduce(
             (card, player) => {
                 if (card) {
                     return card;
@@ -251,7 +249,7 @@ class Game extends EventEmitter {
 
     /**
      * Returns all cards from anywhere in the game matching the passed predicate
-     * @param {Function} predicate - card => Boolean
+     * @param {(value: any) => boolean} predicate - card => Boolean
      * @returns {Array} Array of DrawCard objects
      */
     findAnyCardsInAnyList(predicate) {
@@ -266,7 +264,7 @@ class Game extends EventEmitter {
     findAnyCardsInPlay(predicate) {
         var foundCards = [];
 
-        _.each(this.getPlayers(), (player) => {
+        this.getPlayers().forEach((player) => {
             foundCards = foundCards.concat(player.findCards(player.getCardsInPlay(), predicate));
         });
 
@@ -329,15 +327,15 @@ class Game extends EventEmitter {
     // }
 
     stopNonChessClocks() {
-        _.each(this.getPlayers(), (player) => player.stopNonChessClocks());
+        this.getPlayers().forEach((player) => player.stopNonChessClocks());
     }
 
     stopClocks() {
-        _.each(this.getPlayers(), (player) => player.stopClock());
+        this.getPlayers().forEach((player) => player.stopClock());
     }
 
     resetClocks() {
-        _.each(this.getPlayers(), (player) => player.resetClock());
+        this.getPlayers().forEach((player) => player.resetClock());
     }
 
     // TODO: parameter contract checks for this flow
@@ -716,14 +714,11 @@ class Game extends EventEmitter {
             // }
         }
 
-        this.allCards = _(
-            _.reduce(
-                this.getPlayers(),
-                (cards, player) => {
-                    return cards.concat(player.decklist.allCards);
-                },
-                []
-            )
+        this.allCards = this.getPlayers().reduce(
+            (cards, player) => {
+                return cards.concat(player.decklist.allCards);
+            },
+            []
         );
 
         // if (this.gameMode !== GameMode.Skirmish) {
@@ -822,7 +817,7 @@ class Game extends EventEmitter {
 
     openSimultaneousEffectWindow(choices) {
         let window = new SimultaneousEffectWindow(this);
-        _.each(choices, (choice) => window.addToWindow(choice));
+        choices.forEach((choice) => window.addToWindow(choice));
         this.queueStep(window);
     }
 
@@ -857,7 +852,7 @@ class Game extends EventEmitter {
      * @returns {EventWindow}
      */
     openEventWindow(events) {
-        if (!_.isArray(events)) {
+        if (!Array.isArray(events)) {
             events = [events];
         }
         return this.queueStep(new EventWindow(this, events));
@@ -865,7 +860,7 @@ class Game extends EventEmitter {
 
     openAdditionalAbilityStepEventWindow(events) {
         if (this.currentEventWindow) {
-            if (!_.isArray(events)) {
+            if (!Array.isArray(events)) {
                 events = [events];
             }
             return this.queueStep(new AdditionalAbilityStepEventWindow(this, events));
@@ -890,7 +885,7 @@ class Game extends EventEmitter {
      * @param {Array} eventProps
      */
     raiseMultipleInitiateAbilityEvents(eventProps) {
-        let events = _.map(eventProps, (event) => new InitiateCardAbilityEvent(event.params, event.handler));
+        let events = eventProps.map((event) => new InitiateCardAbilityEvent(event.params, event.handler));
         this.queueStep(new InitiateAbilityEventWindow(this, events));
     }
 

@@ -1160,7 +1160,7 @@ class Card extends OngoingEffectSource {
     public anotherUniqueInPlay(player) {
         return (
             this.unique &&
-            this.game.allCards.any(
+            this.game.allCards.some(
                 (card) =>
                     card.isInPlay() &&
                     card.printedName === this.printedTitle && // TODO: also check subtitle
@@ -1173,7 +1173,7 @@ class Card extends OngoingEffectSource {
     public anotherUniqueInPlayControlledBy(player) {
         return (
             this.unique &&
-            this.game.allCards.any(
+            this.game.allCards.some(
                 (card) =>
                     card.isInPlay() &&
                     card.printedName === this.printedTitle &&

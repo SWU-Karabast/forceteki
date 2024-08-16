@@ -270,7 +270,7 @@ class Player extends GameObject {
      * @param {Function} predicate - DrawCard => Boolean
      */
     anyCardsInPlay(predicate) {
-        return this.game.allCards.any(
+        return this.game.allCards.some(
             (card) => card.controller === this && isArena(card.location) && predicate(card)
         );
     }
