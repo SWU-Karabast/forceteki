@@ -132,6 +132,62 @@ class Card extends OngoingEffectSource {
     public facedown: boolean;
     public resourced: boolean;
 
+    public get title(): string {
+        return this.printedTitle;
+    }
+
+    public get types(): Set<CardType> {
+        return this.printedTypes;
+    }
+
+    /**
+     * The union of the card's "Action Abilities" (ie abilities that enable an action, SWU 2.1) and
+     * any other general card actions such as playing a card
+     */
+    public get actions(): any[] {
+        return this.getActions();
+    }
+
+    /**
+     * SWU 6.1: Triggered abilities have bold text indicating their triggering condition, starting with the word
+     * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
+     * “When Defeated,” and “On Attack” abilities
+     */
+    public get triggeredAbilities(): TriggeredAbility[] {
+        return this.getTriggeredAbilities();
+    }
+
+    /**
+     * "Constant abilities" are any non-triggered passive ongoing abilities (SWU 3.1)
+     */
+    public get constantAbilities(): IConstantAbility[] {
+        return this.getConstantAbilities();
+    }
+
+    public get hp(): number | null {
+        return this.printedHp == null ? null : this.getModifiedStatValue(StatType.Hp);
+    }
+
+    public get baseHp(): number | null {
+        return this.printedHp;
+    }
+
+    public get power(): number | null {
+        return this.printedPower == null ? null : this.getModifiedStatValue(StatType.Power);
+    }
+
+    public get basePower(): number | null {
+        return this.printedPower;
+    }
+
+    public get cost() {
+        return this.printedCost;
+    }
+
+    public get showStats() {
+        return isArena(this.location) && this.isUnit();
+    }
+
     public constructor(
         public owner: Player,
         public cardData: any
@@ -242,14 +298,6 @@ class Card extends OngoingEffectSource {
         return this.title;
     }
 
-    public get title(): string {
-        return this.printedTitle;
-    }
-
-    public get types(): Set<CardType> {
-        return this.printedTypes;
-    }
-
     public isEvent(): boolean {
         return this.hasSomeType(CardType.EventTmp);
     }
@@ -308,14 +356,6 @@ class Card extends OngoingEffectSource {
         return false;
     }
 
-    /**
-     * The union of the card's "Action Abilities" (ie abilities that enable an action, SWU 2.1) and
-     * any other general card actions such as playing a card
-     */
-    public get actions(): any[] {
-        return this.getActions();
-    }
-
     private getActions(location = this.location): any[] {
         const allAbilities = this.abilities.action;
 
@@ -340,14 +380,6 @@ class Card extends OngoingEffectSource {
         return allAbilities.concat(this.getPlayCardActions());
     }
 
-    /**
-     * SWU 6.1: Triggered abilities have bold text indicating their triggering condition, starting with the word
-     * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
-     * “When Defeated,” and “On Attack” abilities
-     */
-    public get triggeredAbilities(): TriggeredAbility[] {
-        return this.getTriggeredAbilities();
-    }
 
     private getTriggeredAbilities(): TriggeredAbility[] {
         const triggeredAbilities = this.abilities.triggered;
@@ -358,13 +390,6 @@ class Card extends OngoingEffectSource {
         // }
 
         return triggeredAbilities;
-    }
-
-    /**
-     * "Constant abilities" are any non-triggered passive ongoing abilities (SWU 3.1)
-     */
-    public get constantAbilities(): IConstantAbility[] {
-        return this.getConstantAbilities();
     }
 
     private getConstantAbilities(): any[] {
@@ -1090,22 +1115,6 @@ class Card extends OngoingEffectSource {
         return true;
     }
 
-    public get hp(): number | null {
-        return this.printedHp == null ? null : this.getModifiedStatValue(StatType.Hp);
-    }
-
-    public get baseHp(): number | null {
-        return this.printedHp;
-    }
-
-    public get power(): number | null {
-        return this.printedPower == null ? null : this.getModifiedStatValue(StatType.Power);
-    }
-
-    public get basePower(): number | null {
-        return this.printedPower;
-    }
-
     private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
         const wrappedModifiers = this.getWrappedStatModifiers(excludeModifiers);
 
@@ -1142,10 +1151,6 @@ class Card extends OngoingEffectSource {
     // *******************************************************************************************************
     // ************************************** DECKCARD.JS ****************************************************
     // *******************************************************************************************************
-
-    public get cost() {
-        return this.printedCost;
-    }
 
     private costLessThan(num) {
         const cost = this.printedCost;
@@ -1301,10 +1306,6 @@ class Card extends OngoingEffectSource {
     //     }
     //     return true;
     // }
-
-    public get showStats() {
-        return isArena(this.location) && this.isUnit();
-    }
 
     public exhaust() {
         this.exhausted = true;

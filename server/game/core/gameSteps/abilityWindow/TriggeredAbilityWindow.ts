@@ -28,7 +28,6 @@ export class TriggeredAbilityWindow extends BaseStep {
     private eventsEmitted = false;
     private choosePlayerResolutionOrderComplete = false;
 
-    // UP NEXT: go through and clean up files so that properties appear before ctor in files
     public get currentlyResolvingPlayer(): Player | null {
         return this.resolvePlayerOrder?.[0] ?? null;
     }

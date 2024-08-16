@@ -9,12 +9,12 @@ export class GamePipeline {
     private pipeline: StepItem[] = [];
     private stepsQueuedDuringCurrentStep: StepItem[] = [];
 
-    public initialise(steps: StepItem[]): void {
-        this.pipeline = steps;
-    }
-
     public get length(): number {
         return this.pipeline.length;
+    }
+
+    public initialise(steps: StepItem[]): void {
+        this.pipeline = steps;
     }
 
     public getCurrentStep(): IStep {

@@ -14,16 +14,16 @@ export abstract class GameObject {
     private effects = [] as IOngoingCardEffect[];
     private nameField: string;
 
+    public get name() {
+        return this.nameField;
+    }
+
     public constructor(
         public game: Game,
         name: string
     ) {
         this.id = name;
         this.nameField = name;
-    }
-
-    public get name() {
-        return this.nameField;
     }
 
     public addEffect(effect: IOngoingCardEffect) {
