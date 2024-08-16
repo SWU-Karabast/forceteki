@@ -330,7 +330,7 @@ class Card extends EffectSource {
             allAbilities.push(new InitiateAttackAction(this));
         }
 
-        // TODO EVENT: this block prevents the PlayCardAction from being generated for event cards
+        // TODO EVENT: this block prevents any PlayCardAction from being generated for event cards
         // if card is already in play or is an event, return the default actions
         if (isArena(location) || this.isEvent()) {
             return allAbilities;
@@ -394,6 +394,13 @@ class Card extends EffectSource {
     }
 
     protected setupPlayAbilities() {
+        // TODO UPGRADE: add play upgrade here
+
+        // TODO EVENT: this block *also* prevents the PlayCardAction from being generated for event cards
+        if (this.isEvent()) {
+            return;
+        }
+
         if (this.isUnit()) {
             this.abilities.playCardAction.push(new PlayUnitAction(this));
         }
@@ -927,18 +934,8 @@ class Card extends EffectSource {
     }
 
     getPlayCardActions() {
-        // TODO EVENT: this block *also* prevents the PlayCardAction from being generated for event cards
-        // events are a special case
-        if (this.isEvent()) {
-            return this.getActions();
-        }
         const actions = this.abilities.playCardAction.slice();
-        // if (this.isUnit()) {
-        //     actions.push(new PlayUnitAction(this));
-        // }
-        // else if (this.isUpgrade()) {
-        //     actions.push(new PlayAttachmentAction(this));
-        // }
+
         return actions;
     }
 
