@@ -1339,7 +1339,7 @@ class Card extends OngoingEffectSource {
 
         // TODO: reuse this for capture logic
         // // Remove any cards underneath from the game
-        // const cardsUnderneath = this.controller.getSourceListForPile(this.uuid).map((a) => a);
+        // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
         // if (cardsUnderneath.length > 0) {
         //     cardsUnderneath.forEach((card) => {
         //         this.controller.moveCard(card, Location.RemovedFromGame);

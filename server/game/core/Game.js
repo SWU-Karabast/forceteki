@@ -370,7 +370,7 @@ class Game extends EventEmitter {
     //     if (!player || !controller) {
     //         return;
     //     }
-    //     let list = controller.getSourceListForPile(location);
+    //     let list = controller.getCardPile(location);
     //     if (!list) {
     //         return;
     //     }

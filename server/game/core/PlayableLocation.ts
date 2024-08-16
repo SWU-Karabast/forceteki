@@ -15,6 +15,6 @@ export class PlayableLocation {
             return false;
         }
 
-        return this.player.getSourceListForPile(this.location).contains(card);
+        return this.player.getCardPile(this.location).contains(card);
     }
 }

@@ -79,10 +79,10 @@ class BaseCardSelector {
                 break;
             case WildcardLocation.AnyAttackable:
                 cards = player.getCardsInPlay().toArray();
-                cards = cards.concat(player.getSourceListForPile(Location.Base).toArray());
+                cards = cards.concat(player.getCardPile(Location.Base).toArray());
                 break;
             default:
-                cards = player.getSourceListForPile(location).toArray();
+                cards = player.getCardPile(location).toArray();
                 break;
         }
 

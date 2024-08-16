@@ -567,7 +567,7 @@ class Player extends GameObject {
     //  * @param {String} deck - one of 'conflict' or 'dynasty'
     //  */
     // deckRanOutOfCards(deck) {
-    //     let discardPile = this.getSourceListForPile(deck + ' discard pile');
+    //     let discardPile = this.getCardPile(deck + ' discard pile');
     //     let action = GameSystems.loseHonor({ amount: this.game.gameMode === GameMode.Skirmish ? 3 : 5 });
     //     if (action.canAffect(this, this.game.getFrameworkContext())) {
     //         this.game.addMessage(
@@ -597,7 +597,7 @@ class Player extends GameObject {
     // replaceDynastyCard(location) {
     //     let province = this.getProvinceCardInProvince(location);
 
-    //     if (!province || this.getSourceListForPile(location).size() > 1) {
+    //     if (!province || this.getCardPile(location).size() > 1) {
     //         return false;
     //     }
     //     if (this.dynastyDeck.size() === 0) {
@@ -939,12 +939,11 @@ class Player extends GameObject {
     //     this.showDeck = true;
     // }
 
-    // UP NEXT: clearer name for this method
     /**
      * Gets the appropriate list for the passed location pile
      * @param {String} source
      */
-    getSourceListForPile(source) {
+    getCardPile(source) {
         switch (source) {
             case Location.Hand:
                 return this.hand;
@@ -985,7 +984,7 @@ class Player extends GameObject {
     //  * @param target
     //  */
     // drop(cardId, source, target) {
-    //     var sourceList = this.getSourceListForPile(source);
+    //     var sourceList = this.getCardPile(source);
     //     var card = this.findCardByUuid(sourceList, cardId);
 
     //     // Dragging is only legal in manual mode, when the card is currently in source, when the source and target are different and when the target is a legal location
@@ -1002,7 +1001,7 @@ class Player extends GameObject {
     //     if (
     //         card.isProvince &&
     //         target !== Location.ProvinceDeck &&
-    //         this.getSourceListForPile(target).any((card) => card.isProvince)
+    //         this.getCardPile(target).any((card) => card.isProvince)
     //     ) {
     //         return;
     //     }
@@ -1166,7 +1165,7 @@ class Player extends GameObject {
             targetLocation = targetLocation.replace(' bottom', '');
         }
 
-        var targetPile = this.getSourceListForPile(targetLocation);
+        var targetPile = this.getCardPile(targetLocation);
 
         if (!this.isLegalLocationForCard(card, targetLocation) || (targetPile && targetPile.contains(card))) {
             Contract.fail(`Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
@@ -1230,7 +1229,7 @@ class Player extends GameObject {
         }
 
         var originalLocation = card.location;
-        var originalPile = this.getSourceListForPile(originalLocation);
+        var originalPile = this.getCardPile(originalLocation);
 
         if (originalPile) {
             let updatedPile = this.removeCardByUuid(originalPile, card.uuid);
