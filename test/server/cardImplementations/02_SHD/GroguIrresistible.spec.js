@@ -30,7 +30,6 @@ describe('Grogu, Irresistible', function() {
                 this.player1.clickCard(this.grogu);
                 this.player1.clickPrompt('Exhaust an enemy unit');
 
-                // UP NEXT: convert specs to ts
                 // can target opponent's units only
                 expect(this.player1).toBeAbleToSelectAllOf([this.atrt, this.enfysNest]);
                 expect(this.player1).toBeAbleToSelectNoneOf([this.p1Base, this.p2Base, this.grogu, this.wampa]);

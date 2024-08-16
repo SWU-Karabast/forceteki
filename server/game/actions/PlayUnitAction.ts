@@ -57,7 +57,7 @@ export class PlayUnitAction extends PlayerAction {
             context: context,
             originalLocation: context.source.location,
             originallyOnTopOfDeck:
-                context.player && context.player.deck && context.player.deck.first() === context.source,
+                context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
             onPlayCardSource: context.onPlayCardSource,
             playType: PlayType.PlayFromHand
         });

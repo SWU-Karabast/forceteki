@@ -1,5 +1,6 @@
 import https from 'https';
 import http from 'http';
+import { shuffleArray } from './game/core/utils/Helpers';
 
 export function escapeRegex(regex: string): string {
     return regex.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
@@ -62,4 +63,13 @@ export function detectBinary(state: unknown, path = '', results = []): { path: s
     }
 
     return results;
+}
+
+export function shuffle<T>(array: T[]): T[] {
+    const shuffleArray = [...array];
+    for (let i = shuffleArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffleArray[i], shuffleArray[j]] = [shuffleArray[j], shuffleArray[i]];
+    }
+    return shuffleArray;
 }

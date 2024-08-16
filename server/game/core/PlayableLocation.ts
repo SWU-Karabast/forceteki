@@ -10,11 +10,11 @@ export class PlayableLocation {
         public cards = new Set<Card>()
     ) {}
 
-    public contains(card: Card) {
+    public includes(card: Card) {
         if (this.cards.size > 0 && !this.cards.has(card)) {
             return false;
         }
 
-        return this.player.getCardPile(this.location).contains(card);
+        return this.player.getCardPile(this.location).includes(card);
     }
 }

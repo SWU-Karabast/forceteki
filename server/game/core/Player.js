@@ -1,5 +1,4 @@
 // UP NEXT: remove underscore everywhere
-const _ = require('underscore');
 
 const { GameObject } = require('./GameObject');
 const { Deck } = require('../Deck.js');
@@ -27,6 +26,7 @@ const {
 
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
+const { shuffle } = require('../../Util');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -49,19 +49,19 @@ class Player extends GameObject {
         this.lobbyId = null;
 
         // TODO: add a Zone class for managing these
-        this.deck = _([]);
-        this.hand = _([]);
-        this.resources = _([]);
-        this.spaceArena = _([]);
-        this.groundArena = _([]);
-        this.discard = _([]);
-        this.removedFromGame = _([]);
+        this.hand = [];
+        this.drawDeck = [];
+        this.resources = [];
+        this.spaceArena = [];
+        this.groundArena = [];
+        this.discard = [];
+        this.removedFromGame = [];
         this.additionalPiles = {};
         this.canTakeActionsThisPhase = null;
 
         // TODO: per the rules, leader and base are both in the same 'base zone'
-        this.baseZone = _([]);
-        this.leaderZone = _([]);
+        this.baseZone = [];
+        this.leaderZone = [];
 
         this.leader = null;
         this.base = null;
@@ -74,7 +74,7 @@ class Player extends GameObject {
         ];
 
         this.limitedPlayed = 0;
-        this.deck = {};
+        this.decklist = {};
         this.costAdjusters = [];
         this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
@@ -120,7 +120,7 @@ class Player extends GameObject {
      * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
      */
     getCardsInPlay(arena = null) {
-        return _(this.spaceArena.value().concat(this.groundArena.value()));
+        return this.spaceArena.concat(this.groundArena);
     }
 
     /**
@@ -166,7 +166,7 @@ class Player extends GameObject {
      * Checks whether any cards in play are currently marked as selected
      */
     areCardsSelected() {
-        return this.getCardsInPlay().any((card) => {
+        return this.getCardsInPlay().some((card) => {
             return card.selected;
         });
     }
@@ -177,11 +177,9 @@ class Player extends GameObject {
      * @param {String} uuid
      */
     removeCardByUuid(list, uuid) {
-        return _(
-            list.reject((card) => {
-                return card.uuid === uuid;
-            })
-        );
+        return list.filter((card) => {
+            return card.uuid !== uuid;
+        });
     }
 
     /**
@@ -217,7 +215,7 @@ class Player extends GameObject {
      */
     findCard(cardList, predicate) {
         var cards = this.findCards(cardList, predicate);
-        if (!cards || _.isEmpty(cards)) {
+        if (!cards || cards.length === 0) {
             return undefined;
         }
 
@@ -236,7 +234,7 @@ class Player extends GameObject {
 
         var cardsToReturn = [];
 
-        cardList.each((card) => {
+        cardList.forEach((card) => {
             if (predicate(card)) {
                 cardsToReturn.push(card);
             }
@@ -501,9 +499,8 @@ class Player extends GameObject {
             return true;
         }
 
-        return _.any(
-            this.playableLocations,
-            (location) => (!playingType || location.playingType === playingType) && location.contains(card)
+        return this.playableLocations.some(
+            (location) => (!playingType || location.playingType === playingType) && location.includes(card)
         );
     }
 
@@ -513,7 +510,7 @@ class Player extends GameObject {
             return effects[effects.length - 1].playType || PlayType.PlayFromHand;
         }
 
-        let location = this.playableLocations.find((location) => location.contains(card));
+        let location = this.playableLocations.find((location) => location.includes(card));
         if (location) {
             return location.playingType;
         }
@@ -542,7 +539,7 @@ class Player extends GameObject {
     drawCardsToHand(numCards) {
         let remainingCards = 0;
 
-        if (numCards > this.deck.size()) {
+        if (numCards > this.drawDeck.length) {
             // remainingCards = numCards - this.deck.size();
             // let cards = this.deck.toArray();
             // this.deckRanOutOfCards('conflict');
@@ -556,7 +553,7 @@ class Player extends GameObject {
             // TODO OVERDRAW: fill out this implementation
             throw new Error('Deck ran out of cards');
         } else {
-            for (let card of this.deck.toArray().slice(0, numCards)) {
+            for (let card of this.drawDeck.slice(0, numCards)) {
                 this.moveCard(card, Location.Hand);
             }
         }
@@ -638,24 +635,23 @@ class Player extends GameObject {
             this.game.addMessage('{0} is shuffling their dynasty deck', this);
         }
         this.game.emitEvent(EventName.OnDeckShuffled, { player: this });
-        this.deck = _(this.deck.shuffle());
+        this.drawDeck = shuffle(this.drawDeck);
     }
 
     /**
      * Takes a decklist passed from the lobby, creates all the cards in it, and puts references to them in the relevant lists
      */
     prepareDecks() {
-        var deck = new Deck(this.deck);
-        var preparedDeck = deck.prepare(this);
-        if (preparedDeck.base instanceof BaseCard) {
-            this.base = preparedDeck.base;
+        var preparedDecklist = new Deck(this.decklist).prepare(this);
+        if (preparedDecklist.base instanceof BaseCard) {
+            this.base = preparedDecklist.base;
         }
-        if (preparedDeck.leader instanceof BaseCard) {
-            this.leader = preparedDeck.leader;
+        if (preparedDecklist.leader instanceof BaseCard) {
+            this.leader = preparedDecklist.leader;
         }
-        this.deck = _(preparedDeck.deckCards);
-        this.preparedDeck = preparedDeck;
-        this.deck.each((card) => {
+        this.drawDeck = preparedDecklist.deckCards;
+        this.decklist = preparedDecklist;
+        this.drawDeck.forEach((card) => {
             // register event reactions in case event-in-deck bluff window is enabled
             // TODO EVENTS: probably we need to do this differently since we have actual reactions on our events
             if (card.isEvent()) {
@@ -664,7 +660,7 @@ class Player extends GameObject {
                 }
             }
         });
-        this.outsideTheGameCards = preparedDeck.outsideTheGameCards;
+        this.outsideTheGameCards = preparedDecklist.outsideTheGameCards;
     }
 
     /**
@@ -696,9 +692,9 @@ class Player extends GameObject {
      * @param {CostAdjuster} adjuster
      */
     removeCostAdjuster(adjuster) {
-        if (_.contains(this.costAdjusters, adjuster)) {
+        if (this.costAdjusters.includes(adjuster)) {
             adjuster.unregisterEvents();
-            this.costAdjusters = _.reject(this.costAdjusters, (r) => r === adjuster);
+            this.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster);
         }
     }
 
@@ -712,7 +708,7 @@ class Player extends GameObject {
     }
 
     removePlayableLocation(location) {
-        this.playableLocations = _.reject(this.playableLocations, (l) => l === location);
+        this.playableLocations = this.playableLocations.filter((l) => l !== location);
     }
 
     /**
@@ -817,10 +813,10 @@ class Player extends GameObject {
 
     getTotalCostModifiers(playingType, card, target, ignoreType = false) {
         var baseCost = 0;
-        var matchingAdjusters = _.filter(this.costAdjusters, (adjuster) =>
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
             adjuster.canAdjust(playingType, card, target, ignoreType)
         );
-        var reducedCost = _.reduce(matchingAdjusters, (cost, adjuster) => cost - adjuster.getAmount(card, this), baseCost);
+        var reducedCost = matchingAdjusters.reduce((cost, adjuster) => cost - adjuster.getAmount(card, this), baseCost);
         return reducedCost;
     }
 
@@ -872,8 +868,8 @@ class Player extends GameObject {
      * @param target BaseCard
      */
     markUsedAdjusters(playingType, card, target = null, aspects = null) {
-        var matchingAdjusters = _.filter(this.costAdjusters, (adjuster) => adjuster.canAdjust(playingType, card, target, null, aspects));
-        _.each(matchingAdjusters, (adjuster) => {
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, target, null, aspects));
+        matchingAdjusters.forEach((adjuster) => {
             adjuster.markUsed();
             if (adjuster.isExpired()) {
                 this.removeCostAdjuster(adjuster);
@@ -929,7 +925,7 @@ class Player extends GameObject {
             this.noTimer = false;
         }
 
-        this.getCardsInPlay().each((card) => {
+        this.getCardsInPlay().forEach((card) => {
             card.new = false;
         });
         this.passedActionPhase = false;
@@ -948,7 +944,7 @@ class Player extends GameObject {
             case Location.Hand:
                 return this.hand;
             case Location.Deck:
-                return this.deck;
+                return this.drawDeck;
             case Location.Discard:
                 return this.discard;
             case Location.Resource:
@@ -974,7 +970,7 @@ class Player extends GameObject {
     }
 
     createAdditionalPile(name, properties) {
-        this.additionalPiles[name] = _.extend({ cards: _([]) }, properties);
+        this.additionalPiles[name] = Object.assign({ cards: [] }, properties);
     }
 
     // /**
@@ -1093,9 +1089,9 @@ class Player extends GameObject {
      * @param {*} deck
      */
     selectDeck(deck) {
-        this.deck.selected = false;
-        this.deck = deck;
-        this.deck.selected = true;
+        this.decklist.selected = false;
+        this.decklist = deck;
+        this.decklist.selected = true;
         if (deck.base.length > 0) {
             this.base = new BaseCard(this, deck.base[0].card);
         }
@@ -1108,14 +1104,14 @@ class Player extends GameObject {
      * Returns the number of resources available to spend
      */
     countSpendableResources() {
-        return this.resources.value().reduce((count, card) => count += !card.exhausted, 0);
+        return this.resources.reduce((count, card) => count += !card.exhausted, 0);
     }
 
     /**
      * Returns the number of resources available to spend
      */
     countExhaustedResources() {
-        return this.resources.value().reduce((count, card) => count += card.exhausted, 0);
+        return this.resources.reduce((count, card) => count += card.exhausted, 0);
     }
 
     /**
@@ -1167,7 +1163,7 @@ class Player extends GameObject {
 
         var targetPile = this.getCardPile(targetLocation);
 
-        if (!this.isLegalLocationForCard(card, targetLocation) || (targetPile && targetPile.contains(card))) {
+        if (!this.isLegalLocationForCard(card, targetLocation) || (targetPile && targetPile.includes(card))) {
             Contract.fail(`Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
             return;
         }
@@ -1245,7 +1241,7 @@ class Player extends GameObject {
                     this.hand = updatedPile;
                     break;
                 case Location.Deck:
-                    this.deck = updatedPile;
+                    this.drawDeck = updatedPile;
                     break;
                 case Location.Discard:
                     this.discard = updatedPile;
@@ -1342,7 +1338,7 @@ class Player extends GameObject {
             activePlayer = this;
         }
 
-        if (activePlayer.deck && activePlayer.deck.size() <= 0) {
+        if (activePlayer.drawDeck && activePlayer.drawDeck.size() <= 0) {
             return false;
         }
 

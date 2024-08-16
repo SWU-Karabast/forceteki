@@ -19,7 +19,7 @@ class PlayerInteractionWrapper {
     }
 
     get hand() {
-        return this.player.hand.value();
+        return this.player.hand;
     }
 
     /**
@@ -140,11 +140,11 @@ class PlayerInteractionWrapper {
     }
 
     get deck() {
-        return this.player.deck.value();
+        return this.player.deck;
     }
 
     get resources() {
-        return this.player.resources.value();
+        return this.player.resources;
     }
 
     // TODO: helper method for this
@@ -182,7 +182,7 @@ class PlayerInteractionWrapper {
     }
 
     get discard() {
-        return this.player.discard.value();
+        return this.player.discard;
     }
 
     /**
@@ -314,7 +314,7 @@ class PlayerInteractionWrapper {
         if (side === 'opponent') {
             player = this.opponent;
         }
-        var cards = player.preparedDeck.allCards.filter(condition);
+        var cards = player.decklist.allCards.filter(condition);
         if (cards.length === 0) {
             throw new Error(`Could not find any matching cards for ${player.name}`);
         }

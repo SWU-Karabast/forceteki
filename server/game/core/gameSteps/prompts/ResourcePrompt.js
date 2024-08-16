@@ -32,7 +32,7 @@ class ResourcePrompt extends AllPlayerPrompt {
         _.each(this.game.getPlayers(), (player) => {
             // cards are only selectable until we've selected as many as allowed
             if (!this.selectableCards[player.name] && this.selectedCards[player.name].length < this.maxCardsToResource) {
-                this.selectableCards[player.name] = player.hand.toArray();
+                this.selectableCards[player.name] = player.hand;
             } else {
                 this.selectableCards[player.name] = [];
             }
