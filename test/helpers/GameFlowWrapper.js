@@ -1,6 +1,5 @@
 /* global jasmine */
 
-const _ = require('underscore');
 const Game = require('../../build/game/core/Game.js');
 const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../build/Settings.js');
@@ -32,13 +31,13 @@ class GameFlowWrapper {
     }
 
     get firstPlayer() {
-        return _.find(this.allPlayers, (player) => player.initiativePlayer);
+        return this.allPlayers.find((player) => player.initiativePlayer);
     }
 
     eachPlayerInInitiativeOrder(handler) {
-        var playersInOrder = _.sortBy(this.allPlayers, (player) => !player.initiativePlayer);
+        var playersInOrder = this.allPlayers.sort((player) => !player.initiativePlayer);
 
-        _.each(playersInOrder, (player) => handler(player));
+        playersInOrder.forEach((player) => handler(player));
     }
 
     /**
@@ -46,8 +45,8 @@ class GameFlowWrapper {
      * @param {Function} handler - function of a player to be executed
      */
     eachPlayerStartingWithPrompted(handler) {
-        var playersInPromptedOrder = _.sortBy(this.allPlayers, (player) => player.hasPrompt('Waiting for opponent to take an action or pass'));
-        _.each(playersInPromptedOrder, (player) => handler(player));
+        var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to take an action or pass'));
+        playersInPromptedOrder.forEach((player) => handler(player));
     }
 
     /**
@@ -55,7 +54,7 @@ class GameFlowWrapper {
      */
     resourceAnyTwo() {
         this.guardCurrentPhase('setup');
-        _.each(this.allPlayers, (player) => player.clickAnyOfSelectableCards(2));
+        this.allPlayers.forEach((player) => player.clickAnyOfSelectableCards(2));
         this.game.continue();
     }
 
@@ -108,14 +107,14 @@ class GameFlowWrapper {
                 this.noMoreActions();
             } catch (e) {
                 // Case: handle skipping a player's conflict
-                var playersInPromptedOrder = _.sortBy(this.allPlayers, (player) => player.hasPrompt('Waiting for opponent to declare conflict'));
+                var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to declare conflict'));
                 playersInPromptedOrder[0].clickPrompt('Pass Conflict');
                 playersInPromptedOrder[0].clickPrompt('yes');
             }
         }
         this.noMoreActions();
         // Resolve claiming imperial favor, if any
-        var claimingPlayer = _.find(this.allPlayers, (player) => player.hasPrompt('Which side of the Imperial Favor would you like to claim?'));
+        var claimingPlayer = this.allPlayers.find((player) => player.hasPrompt('Which side of the Imperial Favor would you like to claim?'));
         if (claimingPlayer) {
             claimingPlayer.clickPrompt('military');
         }
@@ -127,11 +126,11 @@ class GameFlowWrapper {
      */
     finishRegroupPhase() {
         this.guardCurrentPhase('regroup');
-        var playersInPromptedOrder = _.sortBy(this.allPlayers, (player) => player.hasPrompt('Waiting for opponent to discard dynasty cards'));
-        _.each(playersInPromptedOrder, (player) => player.clickPrompt('Done'));
+        var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to discard dynasty cards'));
+        playersInPromptedOrder.forEach((player) => player.clickPrompt('Done'));
         // End the round
-        var promptedToEnd = _.sortBy(this.allPlayers, (player) => player.hasPrompt('Waiting for opponent to end the round'));
-        _.each(promptedToEnd, (player) => player.clickPrompt('End Round'));
+        var promptedToEnd = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to end the round'));
+        promptedToEnd.forEach((player) => player.clickPrompt('End Round'));
         this.guardCurrentPhase('dynasty');
     }
 
@@ -207,7 +206,7 @@ class GameFlowWrapper {
         var promptedPlayer = this.allPlayers.find((p) => p.hasPrompt(title));
 
         if (!promptedPlayer) {
-            var promptString = _.map(this.allPlayers, (player) => player.name + ': ' + player.formatPrompt()).join('\n\n');
+            var promptString = this.allPlayers.map((player) => player.name + ': ' + player.formatPrompt()).join('\n\n');
             throw new Error(`No players are being prompted with '${title}'. Current prompts are:\n\n${promptString}`);
         }
 

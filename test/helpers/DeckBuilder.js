@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const _ = require('underscore');
 
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = 'darth-vader#dark-lord-of-the-sith';
@@ -21,7 +20,7 @@ class DeckBuilder {
         }
 
         var jsonCards = fs.readdirSync(directory).filter((file) => file.endsWith('.json'));
-        _.each(jsonCards, (cardPath) => {
+        jsonCards.forEach((cardPath) => {
             var card = require(path.join('../json/Card', cardPath))[0];
             cards[card.id] = card;
         });
@@ -93,7 +92,7 @@ class DeckBuilder {
 
         let inPlayCards = [];
         for (const card of arenaList) {
-            if (_.isString(card)) {
+            if (typeof card === 'string') {
                 inPlayCards.push(card);
             } else {
                 //Add the card itself
@@ -110,7 +109,7 @@ class DeckBuilder {
 
     buildDeck(cardInternalNames) {
         var cardCounts = {};
-        _.each(cardInternalNames, (internalName) => {
+        cardInternalNames.forEach((internalName) => {
             var cardData = this.getCard(internalName);
             if (cardCounts[cardData.id]) {
                 cardCounts[cardData.id].count++;
@@ -123,9 +122,9 @@ class DeckBuilder {
         });
 
         return {
-            leader: _.filter(cardCounts, (count) => count.card.types.includes('leader')),
-            base: _.filter(cardCounts, (count) => count.card.types.includes('base')),
-            deckCards: _.filter(cardCounts, (count) => !count.card.types.includes('leader') && !count.card.types.includes('base'))
+            leader: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('leader')),
+            base: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('base')),
+            deckCards: this.filterPropertiesToArray(cardCounts, (count) => !count.card.types.includes('leader') && !count.card.types.includes('base'))
         };
     }
 
@@ -134,18 +133,28 @@ class DeckBuilder {
             return this.cards[internalName];
         }
 
-        var cardsByName = _.filter(this.cards, (card) => card.internalName === internalName);
+        var cardsByName = this.filterPropertiesToArray(this.cards, (card) => card.internalName === internalName);
 
         if (cardsByName.length === 0) {
             throw new Error(`Unable to find any card matching ${internalName}`);
         }
 
         if (cardsByName.length > 1) {
-            var matchingLabels = _.map(cardsByName, (card) => card.name).join('\n');
+            var matchingLabels = cardsByName.map((card) => card.name).join('\n');
             throw new Error(`Multiple cards match the name ${internalName}. Use one of these instead:\n${matchingLabels}`);
         }
 
         return cardsByName[0];
+    }
+
+    filterPropertiesToArray(obj, predicate) {
+        let result = [];
+        for (let prop in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, prop) && predicate(obj[prop])) {
+                result.push(obj[prop]);
+            }
+        }
+        return result;
     }
 }
 

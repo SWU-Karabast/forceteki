@@ -1,7 +1,6 @@
 /* global describe, beforeEach, jasmine */
 /* eslint camelcase: 0, no-invalid-this: 0 */
 
-const _ = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
 
@@ -52,16 +51,14 @@ var customMatchers = {
                 var buttons = actual.currentPrompt().buttons;
                 var result = {};
 
-                result.pass = _.any(
-                    buttons,
+                result.pass = buttons.some(
                     (button) => !button.disabled && util.equals(button.text, expected, customEqualityMatchers)
                 );
 
                 if (result.pass) {
                     result.message = `Expected ${actual.name} not to have enabled prompt button '${expected}' but it did.`;
                 } else {
-                    var buttonText = _.map(
-                        buttons,
+                    var buttonText = buttons.map(
                         (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
                     ).join('\n');
                     result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
@@ -77,16 +74,14 @@ var customMatchers = {
                 var buttons = actual.currentPrompt().buttons;
                 var result = {};
 
-                result.pass = _.any(
-                    buttons,
+                result.pass = buttons.some(
                     (button) => button.disabled && util.equals(button.text, expected, customEqualityMatchers)
                 );
 
                 if (result.pass) {
                     result.message = `Expected ${actual.name} not to have disabled prompt button '${expected}' but it did.`;
                 } else {
-                    var buttonText = _.map(
-                        buttons,
+                    var buttonText = buttons.map(
                         (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
                     ).join('\n');
                     result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
@@ -99,7 +94,7 @@ var customMatchers = {
     toBeAbleToSelect: function () {
         return {
             compare: function (player, card) {
-                if (_.isString(card)) {
+                if (typeof card === 'string') {
                     card = player.findCardByName(card);
                 }
                 let result = {};
@@ -125,7 +120,7 @@ var customMatchers = {
 
                 let cardsPopulated = [];
                 for (let card of cards) {
-                    if (_.isString(card)) {
+                    if (typeof card === 'string') {
                         cardsPopulated.push(player.findCardByName(card));
                     } else {
                         cardsPopulated.push(card);
@@ -166,7 +161,7 @@ var customMatchers = {
 
                 let cardsPopulated = [];
                 for (let card of cards) {
-                    if (_.isString(card)) {
+                    if (typeof card === 'string') {
                         cardsPopulated.push(player.findCardByName(card));
                     } else {
                         cardsPopulated.push(card);
@@ -201,7 +196,7 @@ var customMatchers = {
     toHaveAvailableActionWhenClickedInActionPhaseBy: function () {
         return {
             compare: function (card, player) {
-                if (_.isString(card)) {
+                if (typeof card === 'string') {
                     card = player.findCardByName(card);
                 }
                 let result = {};
@@ -277,7 +272,7 @@ global.integration = function (definitions) {
             this.player1 = this.flow.player1;
             this.player2 = this.flow.player2;
 
-            _.each(ProxiedGameFlowWrapperMethods, (method) => {
+            ProxiedGameFlowWrapperMethods.forEach((method) => {
                 this[method] = (...args) => this.flow[method].apply(this.flow, args);
             });
 
