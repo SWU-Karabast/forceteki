@@ -1,5 +1,5 @@
 const AbilityLimit = require('./core/ability/AbilityLimit');
-const Effects = require('./effects/EffectLibrary.js');
+const Effects = require('./ongoingEffects/EffectLibrary.js');
 const Costs = require('./costs/CostLibrary.js');
 const GameSystems = require('./gameSystems/GameSystemLibrary');
 

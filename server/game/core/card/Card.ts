@@ -1,5 +1,5 @@
 import AbilityDsl from '../../AbilityDsl.js';
-import Effects from '../../effects/EffectLibrary.js';
+import Effects from '../../ongoingEffects/EffectLibrary.js';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource.js';
 import CardAbility from '../ability/CardAbility.js';
 import Game from '../Game.js';
