@@ -1,3 +1,4 @@
+// UP NEXT: remove underscore everywhere
 const _ = require('underscore');
 
 const { GameObject } = require('./GameObject');

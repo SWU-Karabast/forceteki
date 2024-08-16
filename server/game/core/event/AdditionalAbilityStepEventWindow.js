@@ -1,6 +1,7 @@
 const EventWindow = require('./EventWindow.js');
 const { AbilityType } = require('../Constants.js');
 
+// UP NEXT: rename this and related back to "Then"
 class AdditionalAbilityStepEventWindow extends EventWindow {
     /** @override */
     openWindow(abilityType) {
