@@ -28,28 +28,27 @@ export interface IAbilityContextProperties {
  * `player` that is executing the action, and the `source` card object that the ability is generated from.
  */
 export class AbilityContext<TSource = any> {
-    game: Game;
-    source: TSource;
-    player: Player;
-    ability: PlayerOrCardAbility;
-    costs: any;
-    costAspects: Aspect[];
-    targets: any;
-    selects: any;
-    tokens: any;
-    events: any[] = [];
-    stage: Stage;
-    targetAbility: any;
-    target: any;
-    select: string;
-    // token: StatusToken;
-    subResolution = false;
-    choosingPlayerOverride: Player = null;
-    gameActionsResolutionChain: GameSystem[] = [];
-    playType: PlayType;
-    cardStateWhenInitiated: any = null;
+    public game: Game;
+    public source: TSource;
+    public player: Player;
+    public ability: PlayerOrCardAbility;
+    public costs: any;
+    public costAspects: Aspect[];
+    public targets: any;
+    public selects: any;
+    public tokens: any;
+    public events: any[] = [];
+    public stage: Stage;
+    public targetAbility: any;
+    public target: any;
+    public select: string;
+    public subResolution = false;
+    public choosingPlayerOverride: Player = null;
+    public gameActionsResolutionChain: GameSystem[] = [];
+    public playType: PlayType;
+    public cardStateWhenInitiated: any = null;
 
-    constructor(properties: IAbilityContextProperties) {
+    public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
         this.source = properties.source || new OngoingEffectSource(this.game);
         this.player = properties.player;
@@ -65,7 +64,7 @@ export class AbilityContext<TSource = any> {
         this.playType = this.player && this.player.findPlayType(this.source); //location && location.playingType;
     }
 
-    copy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
+    public copy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
         const copy = this.createCopy(newProps);
         copy.target = this.target;
         // copy.token = this.token;
@@ -78,11 +77,11 @@ export class AbilityContext<TSource = any> {
         return copy;
     }
 
-    createCopy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
+    public createCopy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
         return new AbilityContext(Object.assign(this.getProps(), newProps));
     }
 
-    getProps(): IAbilityContextProperties {
+    public getProps(): IAbilityContextProperties {
         return {
             game: this.game,
             source: this.source,

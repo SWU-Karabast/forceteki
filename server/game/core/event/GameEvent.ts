@@ -3,19 +3,19 @@ import { EventName } from '../Constants';
 import Player from '../Player';
 
 export class GameEvent {
-    cancelled = false;
-    resolved = false;
-    context = null;
-    window = null;
-    replacementEvent = null;
-    condition = (event) => true;
-    order = 0;
-    isContingent = false;
-    checkFullyResolved = (event) => !event.cancelled;
-    createContingentEvents = () => [];
-    preResolutionEffect = () => true;
+    public cancelled = false;
+    public resolved = false;
+    public context = null;
+    public window = null;
+    public replacementEvent = null;
+    public condition = (event) => true;
+    public order = 0;
+    public isContingent = false;
+    public checkFullyResolved = (event) => !event.cancelled;
+    public createContingentEvents = () => [];
+    public preResolutionEffect = () => true;
 
-    constructor(
+    public constructor(
         public name: string,
         params: any,
         private handler?: (event: GameEvent) => void
@@ -27,22 +27,33 @@ export class GameEvent {
         }
     }
 
-    cancel() {
+    public executeHandler() {
+        this.resolved = true;
+        if (this.handler) {
+            this.handler(this);
+        }
+    }
+
+    public replaceHandler(newHandler) {
+        this.handler = newHandler;
+    }
+
+    public cancel() {
         this.cancelled = true;
         if (this.window) {
             this.window.removeEvent(this);
         }
     }
 
-    setWindow(window) {
+    public setWindow(window) {
         this.window = window;
     }
 
-    unsetWindow() {
+    public unsetWindow() {
         this.window = null;
     }
 
-    checkCondition() {
+    public checkCondition() {
         if (this.cancelled || this.resolved || this.name === EventName.Unnamed) {
             return;
         }
@@ -51,25 +62,14 @@ export class GameEvent {
         }
     }
 
-    getResolutionEvent() {
+    public getResolutionEvent() {
         if (this.replacementEvent) {
             return this.replacementEvent.getResolutionEvent();
         }
         return this;
     }
 
-    isFullyResolved() {
+    public isFullyResolved() {
         return this.checkFullyResolved(this.getResolutionEvent());
-    }
-
-    executeHandler() {
-        this.resolved = true;
-        if (this.handler) {
-            this.handler(this);
-        }
-    }
-
-    replaceHandler(newHandler) {
-        this.handler = newHandler;
     }
 }

@@ -1,14 +1,10 @@
 export class AnonymousSpectator {
-    name = 'Anonymous';
-    emailHash = '';
-    buttons = [];
-    menuTitle = 'Spectator mode';
+    public readonly name = 'Anonymous';
+    public readonly emailHash = '';
+    public readonly buttons = [];
+    public readonly menuTitle = 'Spectator mode';
 
-    getCardSelectionState() {
-        return {};
-    }
-
-    getRingSelectionState() {
+    public getCardSelectionState() {
         return {};
     }
 }

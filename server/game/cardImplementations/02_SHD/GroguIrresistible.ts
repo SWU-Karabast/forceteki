@@ -9,7 +9,7 @@ export default class GroguIrresistible extends Card {
         };
     }
 
-    override setupCardAbilities() {
+    public override setupCardAbilities() {
         this.actionAbility({
             title: 'Exhaust an enemy unit',
             cost: AbilityDsl.costs.exhaustSelf(),

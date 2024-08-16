@@ -3,10 +3,10 @@ import { BasicClock, Mode } from './BasicClock';
 import type { IClock } from './IClock';
 
 export class ChessClock extends BasicClock implements IClock {
-    override mode: Mode = 'stop';
-    override name = 'Chess Clock';
+    public override mode: Mode = 'stop';
+    public override readonly name: string = 'Chess Clock';
 
-    constructor(player: Player, time: number) {
+    public constructor(player: Player, time: number) {
         super(player, time, 5);
     }
 

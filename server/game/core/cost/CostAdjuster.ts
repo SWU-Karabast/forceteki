@@ -26,7 +26,7 @@ export class CostAdjuster {
     private limit?: IAbilityLimit;
     private playingTypes?: PlayType[];
 
-    constructor(
+    public constructor(
         private game: Game,
         private source: Card,
         properties: CostAdjusterProperties,

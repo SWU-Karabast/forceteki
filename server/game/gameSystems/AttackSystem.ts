@@ -30,13 +30,41 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
 }
 
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {
-    override name = 'attack';
-    override eventName = EventName.OnAttackDeclared;
-    override targetType = [CardType.Unit, CardType.Base];
+    public override readonly name = 'attack';
+    public override readonly eventName = EventName.OnAttackDeclared;
+    protected override readonly defaultProperties: IAttackProperties = {};
+    protected override readonly targetType = [CardType.Unit, CardType.Base];
 
-    override defaultProperties: IAttackProperties = {};
+    public eventHandler(event, additionalProperties): void {
+        const context = event.context;
+        const target = event.target;
 
-    override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IAttackProperties {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        if (
+            !isArena(properties.attacker.location) || !isAttackableLocation(target.location)
+        ) {
+            context.game.addMessage(
+                'The attack cannot proceed as the attacker or defender is no longer in play'
+            );
+            return;
+        }
+
+        this.registerAttackEffects(context, properties, event.attack);
+
+        const attack = event.attack;
+        context.game.queueStep(
+            new AttackFlow(
+                context.game,
+                attack,
+                (attack) => this.resolveAttack(attack, event.context),
+                // properties.costHandler
+                //     ? (prompt) => this.attackCosts(prompt, event.context, additionalProperties)
+                //     : undefined
+            )
+        );
+    }
+
+    public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IAttackProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as IAttackProperties;
         if (!properties.attacker) {
             properties.attacker = context.source;
@@ -44,7 +72,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         return properties;
     }
 
-    override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: AbilityContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return [
             '{0} initiates attack against {1}',
@@ -52,7 +80,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         ];
     }
 
-    override canAffect(targetCard: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(targetCard: Card, context: AbilityContext, additionalProperties = {}): boolean {
         if (!context.player.opponent) {
             return false;
         }
@@ -83,24 +111,12 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         );
     }
 
-    resolveAttack(attack: Attack, context: AbilityContext): void {
-        // event for damage dealt to target by attacker
-        const damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).generateEvent(attack.target, context)];
-
-        // event for damage dealt to attacker by defender, if any
-        if (!attack.targetIsBase) {
-            damageEvents.push(damage({ amount: attack.defenderTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
-        }
-
-        context.game.openEventWindow(damageEvents);
-    }
-
-    attackCosts(prompt, context: AbilityContext, additionalProperties = {}): void {
+    public attackCosts(prompt, context: AbilityContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         properties.costHandler(context, prompt);
     }
 
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
+    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         const { target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
@@ -117,7 +133,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         return [event];
     }
 
-    override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
+    public override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (isArray(target)) {
@@ -141,33 +157,20 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         );
     }
 
-    eventHandler(event, additionalProperties): void {
-        const context = event.context;
-        const target = event.target;
+    public override checkEventCondition(event, additionalProperties): boolean {
+        return this.canAffect(event.target, event.context, additionalProperties);
+    }
 
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (
-            !isArena(properties.attacker.location) || !isAttackableLocation(target.location)
-        ) {
-            context.game.addMessage(
-                'The attack cannot proceed as the attacker or defender is no longer in play'
-            );
-            return;
+    private resolveAttack(attack: Attack, context: AbilityContext): void {
+        // event for damage dealt to target by attacker
+        const damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).generateEvent(attack.target, context)];
+
+        // event for damage dealt to attacker by defender, if any
+        if (!attack.targetIsBase) {
+            damageEvents.push(damage({ amount: attack.defenderTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
         }
 
-        this.registerAttackEffects(context, properties, event.attack);
-
-        const attack = event.attack;
-        context.game.queueStep(
-            new AttackFlow(
-                context.game,
-                attack,
-                (attack) => this.resolveAttack(attack, event.context),
-                // properties.costHandler
-                //     ? (prompt) => this.attackCosts(prompt, event.context, additionalProperties)
-                //     : undefined
-            )
-        );
+        context.game.openEventWindow(damageEvents);
     }
 
     // TODO ATTACKS: change attack effects so that they check the specific attack they are affecting,
@@ -197,9 +200,5 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         // TODO EFFECTS: remove this hack
         context.game.queueSimpleStep(() => context.game.resolveGameState());
-    }
-
-    override checkEventCondition(event, additionalProperties): boolean {
-        return this.canAffect(event.target, event.context, additionalProperties);
     }
 }

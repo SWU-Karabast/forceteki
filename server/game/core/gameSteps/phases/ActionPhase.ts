@@ -6,9 +6,9 @@ import { SimpleStep } from '../SimpleStep';
 import ActionWindow from '../ActionWindow';
 
 export class ActionPhase extends Phase {
-    activePlayer?: Player;
+    public activePlayer?: Player;
 
-    constructor(game: Game) {
+    public constructor(game: Game) {
         super(game, PhaseName.Action);
         this.initialise([
             new SimpleStep(this.game, () => this.queueNextAction())

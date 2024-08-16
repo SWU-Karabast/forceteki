@@ -9,19 +9,19 @@ import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
     private values: Record<string, TValue> = {};
 
-    constructor(
+    public constructor(
         type: EffectName,
         private calculate: ((target: any, context: AbilityContext) => TValue)
     ) {
         super(type, null);
     }
 
-    override apply(target) {
+    public override apply(target) {
         super.apply(target);
         this.recalculate(target);
     }
 
-    override recalculate(target) {
+    public override recalculate(target) {
         const oldValue = this.getValue(target);
         const newValue = this.setValue(target, this.calculate(target, this.context));
         if (typeof oldValue === 'function' && typeof newValue === 'function') {
@@ -33,7 +33,7 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
         return oldValue !== newValue;
     }
 
-    override getValue(target) {
+    public override getValue(target) {
         return this.values[target.uuid];
     }
 

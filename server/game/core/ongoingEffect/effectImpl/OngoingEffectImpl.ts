@@ -5,7 +5,7 @@ export abstract class OngoingEffectImpl<TValue> {
     public duration?: Duration = null;
     protected context?: AbilityContext = null;
 
-    constructor(public readonly type: EffectName) {
+    public constructor(public readonly type: EffectName) {
     }
 
     // TODO: add type union in constants.ts for ability targets (player or card, anything else?)
@@ -18,7 +18,7 @@ export abstract class OngoingEffectImpl<TValue> {
         this.context = context;
     }
 
-    getDebugInfo() {
+    public getDebugInfo() {
         return {
             type: this.type
         };

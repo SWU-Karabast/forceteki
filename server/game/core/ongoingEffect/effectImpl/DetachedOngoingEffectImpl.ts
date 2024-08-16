@@ -5,7 +5,7 @@ import { OngoingEffectImpl } from './OngoingEffectImpl';
 export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
     private state: Record<string, any> = {};
 
-    constructor(type: EffectName,
+    public constructor(type: EffectName,
         public applyFunc,
         public unapplyFunc
     ) {
@@ -14,11 +14,11 @@ export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl
         this.unapplyFunc = unapplyFunc;
     }
 
-    apply(target: any) {
+    public apply(target: any) {
         this.state[target.uuid] = this.applyFunc(target, this.context, this.state[target.uuid]);
     }
 
-    unapply(target: any) {
+    public unapply(target: any) {
         this.state[target.uuid] = this.unapplyFunc(target, this.context, this.state[target.uuid]);
         if (this.state[target.uuid] === undefined) {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -26,15 +26,15 @@ export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl
         }
     }
 
-    getValue(target: any) {
+    public getValue(target: any) {
         return null;
     }
 
-    recalculate(target: any): boolean {
+    public recalculate(target: any): boolean {
         return false;
     }
 
-    override setContext(context: AbilityContext) {
+    public override setContext(context: AbilityContext) {
         super.setContext(context);
         for (const state of Object.values(this.state)) {
             if (state.context) {

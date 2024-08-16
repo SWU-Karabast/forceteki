@@ -9,15 +9,15 @@ export class GamePipeline {
     private pipeline: StepItem[] = [];
     private stepsQueuedDuringCurrentStep: StepItem[] = [];
 
-    initialise(steps: StepItem[]): void {
+    public initialise(steps: StepItem[]): void {
         this.pipeline = steps;
     }
 
-    get length(): number {
+    public get length(): number {
         return this.pipeline.length;
     }
 
-    getCurrentStep(): IStep {
+    public getCurrentStep(): IStep {
         const step = this.pipeline[0];
 
         if (typeof step === 'function') {
@@ -29,7 +29,7 @@ export class GamePipeline {
         return step;
     }
 
-    queueStep(step: IStep) {
+    public queueStep(step: IStep) {
         if (this.pipeline.length === 0) {
             this.pipeline.unshift(step);
         } else {
@@ -42,7 +42,7 @@ export class GamePipeline {
         }
     }
 
-    cancelStep() {
+    public cancelStep() {
         if (this.pipeline.length === 0) {
             return;
         }
@@ -59,7 +59,7 @@ export class GamePipeline {
         this.pipeline.shift();
     }
 
-    handleCardClicked(player: Player, card: Card) {
+    public handleCardClicked(player: Player, card: Card) {
         if (this.pipeline.length > 0) {
             const step = this.getCurrentStep();
             if (step.onCardClicked(player, card) !== false) {
@@ -70,7 +70,7 @@ export class GamePipeline {
         return false;
     }
 
-    handleMenuCommand(player: Player, arg: string, uuid: string, method: string) {
+    public handleMenuCommand(player: Player, arg: string, uuid: string, method: string) {
         if (this.pipeline.length === 0) {
             return false;
         }
@@ -79,7 +79,8 @@ export class GamePipeline {
         return step.onMenuCommand(player, arg, uuid, method) !== false;
     }
 
-    continue() {
+    // UP NEXT: docstr for pipeline methods
+    public continue() {
         this.queueNewStepsIntoPipeline();
 
         while (this.pipeline.length > 0) {
@@ -105,14 +106,14 @@ export class GamePipeline {
         this.stepsQueuedDuringCurrentStep = [];
     }
 
-    getDebugInfo() {
+    public getDebugInfo() {
         return {
             pipeline: this.pipeline.map((step) => this.getDebugInfoForStep(step)),
             queue: this.stepsQueuedDuringCurrentStep.map((step) => this.getDebugInfoForStep(step))
         };
     }
 
-    getDebugInfoForStep(step: StepItem) {
+    public getDebugInfoForStep(step: StepItem) {
         if (typeof step === 'function') {
             return step.toString();
         }

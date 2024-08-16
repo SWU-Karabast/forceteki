@@ -21,16 +21,24 @@ export interface LastingEffectProperties extends ILastingEffectGeneralProperties
 
 // TODO: how is this related to LastingEffectCardSystem?
 export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
-    override name = 'applyLastingEffect';
-    override eventName = EventName.OnEffectApplied;
-    override effectDescription = 'apply a lasting effect';
-    override defaultProperties: LastingEffectProperties = {
+    public override readonly name = 'applyLastingEffect';
+    public override readonly eventName = EventName.OnEffectApplied;
+    public override readonly effectDescription = 'apply a lasting effect';
+    protected override readonly defaultProperties: LastingEffectProperties = {
         duration: Duration.UntilEndOfAttack,
         effect: [],
         ability: null
     } satisfies LastingEffectProperties;
 
-    override generatePropertiesFromContext(
+    public eventHandler(event: GameEvent, additionalProperties: any): void {
+        const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
+        if (!properties.ability) {
+            properties.ability = event.context.ability;
+        }
+        event.context.source[properties.duration](() => properties);
+    }
+
+    public override generatePropertiesFromContext(
         context: AbilityContext,
         additionalProperties = {}
     ): LastingEffectProperties & { effect?: OngoingEffect[] } {
@@ -43,24 +51,16 @@ export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
         return properties;
     }
 
-    override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.effect.length > 0;
     }
 
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties: any): GameEvent[] {
+    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties: any): GameEvent[] {
         const events: GameEvent[] = [];
         if (this.hasLegalTarget(context, additionalProperties)) {
             events.push(this.generateEvent(null, context, additionalProperties));
         }
         return events;
-    }
-
-    eventHandler(event: GameEvent, additionalProperties: any): void {
-        const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
-        if (!properties.ability) {
-            properties.ability = event.context.ability;
-        }
-        event.context.source[properties.duration](() => properties);
     }
 }

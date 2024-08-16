@@ -1,11 +1,11 @@
 export class Spectator {
-    buttons = [];
-    menuTitle = 'Spectator mode';
-    name: string;
-    emailHash: string;
-    lobbyId?: string;
+    public readonly buttons = [];
+    public readonly menuTitle = 'Spectator mode';
+    public readonly name: string;
+    public readonly emailHash: string;
+    public readonly lobbyId?: string;
 
-    constructor(
+    public constructor(
         public id: string,
         public user: { username: string; emailHash: string }
     ) {
@@ -13,15 +13,11 @@ export class Spectator {
         this.emailHash = this.user.emailHash;
     }
 
-    getCardSelectionState() {
+    public getCardSelectionState() {
         return {};
     }
 
-    getRingSelectionState() {
-        return {};
-    }
-
-    getShortSummary() {
+    public getShortSummary() {
         return {
             name: this.name,
             id: this.id,

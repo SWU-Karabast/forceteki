@@ -2,7 +2,7 @@ import Card from './Card';
 import type Player from '../Player';
 
 export class BaseCard extends Card {
-    getStartingHealth(): number {
+    public getStartingHealth(): number {
         return this.cardData.health;
     }
 

@@ -19,7 +19,7 @@ D.9 Duel ends.
  */
 
 export class AttackFlow extends BaseStepWithPipeline {
-    constructor(
+    public constructor(
         game: Game,
         private attack: Attack,
         private damageHandler: (attack: Attack) => void,

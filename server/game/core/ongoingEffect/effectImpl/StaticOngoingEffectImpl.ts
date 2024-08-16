@@ -61,11 +61,11 @@ const binaryCardEffects = [
 //             : []
 // };
 
-// UP NEXT: readonly pass on class properties throughout the repo
+// UP NEXT: readonly and protected / private pass on classes throughout the repo
 export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
-    readonly valueWrapper: OngoingEffectValueWrapper<TValue>;
+    public readonly valueWrapper: OngoingEffectValueWrapper<TValue>;
 
-    constructor(type: EffectName, value: OngoingEffectValueWrapper<TValue> | TValue) {
+    public constructor(type: EffectName, value: OngoingEffectValueWrapper<TValue> | TValue) {
         super(type);
 
         if (value instanceof OngoingEffectValueWrapper) {
@@ -76,32 +76,32 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         this.valueWrapper.reset();
     }
 
-    apply(target) {
+    public apply(target) {
         target.addEffect(this);
         this.valueWrapper.apply(target);
     }
 
-    unapply(target) {
+    public unapply(target) {
         target.removeEffect(this);
         this.valueWrapper.unapply(target);
     }
 
-    getValue(target) {
+    public getValue(target) {
         return this.valueWrapper.getValue();
     }
 
-    recalculate(target) {
+    public recalculate(target) {
         return this.valueWrapper.recalculate();
     }
 
-    override setContext(context: AbilityContext) {
+    public override setContext(context: AbilityContext) {
         super.setContext(context);
         this.valueWrapper.setContext(context);
     }
 
     // effects can't be applied to facedown cards
     // TODO: do we have any exceptions to that rule?
-    canBeApplied(target) {
+    public canBeApplied(target) {
         return !target.facedown;
     }
 
@@ -161,7 +161,7 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
     //     return durations.indexOf(this.duration) > durations.indexOf(effect.duration);
     // }
 
-    override getDebugInfo() {
+    public override getDebugInfo() {
         return Object.assign(super.getDebugInfo(), { value: this.valueWrapper });
     }
 }

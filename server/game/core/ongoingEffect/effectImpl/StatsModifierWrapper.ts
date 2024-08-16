@@ -5,40 +5,40 @@ import { IOngoingCardEffect } from '../IOngoingCardEffect';
 import StatsModifier from './StatsModifier';
 
 export default class StatsModifierWrapper {
-    modifier: StatsModifier;
-    name: string;
-    type: CardType;
-    overrides: boolean;
+    public readonly modifier: StatsModifier;
+    public readonly name: string;
+    public readonly type: CardType;
+    public readonly overrides: boolean;
 
-    constructor(modifier: StatsModifier, name: string, overrides: boolean, type: CardType) {
+    public constructor(modifier: StatsModifier, name: string, overrides: boolean, type: CardType) {
         this.modifier = modifier;
         this.name = name;
         this.overrides = overrides;
         this.type = type;
     }
 
-    static getEffectName(effect) {
+    public static getEffectName(effect) {
         if (effect && effect.context && effect.context.source) {
             return effect.context.source.name;
         }
         return 'Unknown';
     }
 
-    static getEffectType(effect) {
+    public static getEffectType(effect) {
         if (effect && effect.context && effect.context.source) {
             return effect.context.source.type;
         }
         return;
     }
 
-    static getCardType(card) {
+    public static getCardType(card) {
         if (card) {
             return card.type;
         }
         return;
     }
 
-    static fromEffect(effect: IOngoingCardEffect, card: Card, overrides = false, name = `${this.getEffectName(effect)}`) {
+    public static fromEffect(effect: IOngoingCardEffect, card: Card, overrides = false, name = `${this.getEffectName(effect)}`) {
         const modifier = effect.getValue(card) as StatsModifier;
 
         return new this(
@@ -49,7 +49,7 @@ export default class StatsModifierWrapper {
         );
     }
 
-    static fromPrintedValues(card: Card, name, overrides = false) {
+    public static fromPrintedValues(card: Card, name, overrides = false) {
         return new this({
             hp: card.printedHp,
             power: card.printedPower

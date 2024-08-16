@@ -8,32 +8,32 @@ import { isArena } from '../core/utils/EnumHelpers';
 export interface IDefeatCardProperties extends ICardTargetSystemProperties {}
 
 export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
-    override name = 'defeat';
-    override eventName = EventName.OnCardDefeated;
-    override costDescription = 'defeating {0}';
-    override targetType = [CardType.Unit, CardType.Upgrade];
+    public override readonly name = 'defeat';
+    public override readonly eventName = EventName.OnCardDefeated;
+    public override readonly costDescription = 'defeating {0}';
+    protected override readonly targetType = [CardType.Unit, CardType.Upgrade];
 
     public constructor(propertyFactory) {
         super(propertyFactory);
     }
 
-    override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public eventHandler(event, additionalProperties = {}): void {
+        this.leavesPlayEventHandler(event, additionalProperties);
+    }
+
+    public override getEffectMessage(context: AbilityContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return ['defeat {0}', [properties.target]];
     }
 
-    override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: AbilityContext): boolean {
         if (!isArena(card.location)) {
             return false;
         }
         return super.canAffect(card, context);
     }
 
-    override updateEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         this.updateLeavesPlayEvent(event, card, context, additionalProperties);
-    }
-
-    eventHandler(event, additionalProperties = {}): void {
-        this.leavesPlayEventHandler(event, additionalProperties);
     }
 }

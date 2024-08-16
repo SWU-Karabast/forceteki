@@ -85,56 +85,54 @@ interface ICardAbilities {
 
 // TODO: switch to using mixins for the different card types
 class Card extends OngoingEffectSource {
-    controller: Player;
-    override game: Game;
+    public controller: Player;
+    public override game: Game;
 
-    static implemented = false;
+    public static implemented = false;
 
-    // TODO: readonly pass on class properties throughout the repo
-    override readonly id: string;
-    readonly printedTitle: string;
-    readonly printedSubtitle: string;
-    readonly internalName: string;
-    readonly defaultArena: Location | null;
-    readonly unique: boolean;
-    readonly printedTypes: Set<CardType>;
+    // UP NEXT: readonly pass on class properties throughout the repo
+    public override readonly id: string;
+    public readonly printedTitle: string;
+    public readonly printedSubtitle: string;
+    public readonly internalName: string;
+    public readonly defaultArena: Location | null;
+    public readonly unique: boolean;
+    public readonly printedTypes: Set<CardType>;
 
-    menu = [
+    public menu = [
         { command: 'exhaust', text: 'Exhaust/Ready' },
         { command: 'control', text: 'Give control' }
     ];
 
-    tokens: object = {};
     // menu: { command: string; text: string }[] = [];
 
-    showPopup = false;
-    popupMenuText = '';
-    abilities: ICardAbilities = { action: [], triggered: [], constant: [], playCardAction: [] };
-    traits: string[];
-    printedFaction: string;
-    location: Location;
+    private showPopup = false;
+    private popupMenuText = '';
+    public abilities: ICardAbilities = { action: [], triggered: [], constant: [], playCardAction: [] };
+    protected traits: string[];
+    public location: Location;
 
-    upgrades = [] as Card[];
-    childCards = [] as Card[];
-    // statusTokens = [] as StatusToken[];
-    allowedAttachmentTraits = [] as string[];
-    printedKeywords: string[] = [];
-    aspects: Aspect[] = [];
+    protected upgrades = [] as Card[];
+    protected childCards = [] as Card[];
+    protected allowedAttachmentTraits = [] as string[];
+    protected printedKeywords: string[] = [];
+    public aspects: Aspect[] = [];
 
-    defaultController: Player;
-    parent: Card | null;
-    printedHp: number | null;
-    printedPower: number | null;
-    printedCost: number | null;
-    exhausted: boolean | null;
-    damage: number | null;
-    hiddenForController: boolean;
-    hiddenForOpponent: boolean;
-    playedThisTurn: boolean;
-    facedown: boolean;
-    resourced: boolean;
+    // TODO: readonly getters for most of these
+    protected defaultController: Player;
+    public parent: Card | null;
+    public printedHp: number | null;
+    public printedPower: number | null;
+    public printedCost: number | null;
+    public exhausted: boolean | null;
+    public damage: number | null;
+    public hiddenForController: boolean;
+    public hiddenForOpponent: boolean;
+    public playedThisTurn: boolean;
+    public facedown: boolean;
+    public resourced: boolean;
 
-    constructor(
+    public constructor(
         public owner: Player,
         public cardData: any
     ) {
@@ -240,59 +238,60 @@ class Card extends OngoingEffectSource {
     /**
      * Equivalent to {@link Card.title}
      */
-    override get name(): string {
+    public override get name(): string {
         return this.title;
     }
 
-    get title(): string {
+    public get title(): string {
         return this.printedTitle;
     }
 
-    get types(): Set<CardType> {
+    public get types(): Set<CardType> {
         return this.printedTypes;
     }
 
-    isEvent(): boolean {
+    public isEvent(): boolean {
         return this.hasSomeType(CardType.EventTmp);
     }
 
-    isUnit(): boolean {
+    public isUnit(): boolean {
         return this.hasSomeType(CardType.Unit);
     }
 
-    isUpgrade(): boolean {
+    public isUpgrade(): boolean {
         return this.hasSomeType(CardType.Upgrade);
     }
 
-    isBase(): boolean {
+    public isBase(): boolean {
         return this.hasSomeType(CardType.Base);
     }
 
-    isLeader(): boolean {
+    public isLeader(): boolean {
         return this.hasSomeType(CardType.Leader);
     }
 
-    isToken(): boolean {
+    public isToken(): boolean {
         return this.hasSomeType(CardType.Token);
     }
 
-    hasEveryType(types: Set<CardType>): boolean;
-    hasEveryType(...types: CardType[]): boolean;
-    hasEveryType(typeSetOrFirstType: Set<CardType> | CardType, ...otherTypes: CardType[]): boolean {
-        const typesToCheck =
-            typeSetOrFirstType instanceof Set
-                ? typeSetOrFirstType
-                : new Set([typeSetOrFirstType, ...otherTypes]);
+    public hasEveryType(types: Set<CardType> | CardType | CardType[]): boolean {
+        let typesToCheck: Set<CardType> | CardType[];
 
-        for (const type of typesToCheck.values()) {
+        if (!(types instanceof Set) && !(types instanceof Array)) {
+            typesToCheck = [types];
+        } else {
+            typesToCheck = types;
+        }
+
+        for (const type of typesToCheck) {
             if (!this.types.has(type)) {
                 return false;
             }
         }
-        return true;
+        return false;
     }
 
-    hasSomeType(types: Set<CardType> | CardType | CardType[]): boolean {
+    public hasSomeType(types: Set<CardType> | CardType | CardType[]): boolean {
         let typesToCheck: Set<CardType> | CardType[];
 
         if (!(types instanceof Set) && !(types instanceof Array)) {
@@ -313,7 +312,7 @@ class Card extends OngoingEffectSource {
      * The union of the card's "Action Abilities" (ie abilities that enable an action, SWU 2.1) and
      * any other general card actions such as playing a card
      */
-    get actions(): any[] {
+    public get actions(): any[] {
         return this.getActions();
     }
 
@@ -346,7 +345,7 @@ class Card extends OngoingEffectSource {
      * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
      * “When Defeated,” and “On Attack” abilities
      */
-    get triggeredAbilities(): TriggeredAbility[] {
+    public get triggeredAbilities(): TriggeredAbility[] {
         return this.getTriggeredAbilities();
     }
 
@@ -364,7 +363,7 @@ class Card extends OngoingEffectSource {
     /**
      * "Constant abilities" are any non-triggered passive ongoing abilities (SWU 3.1)
      */
-    get constantAbilities(): IConstantAbility[] {
+    public get constantAbilities(): IConstantAbility[] {
         return this.getConstantAbilities();
     }
 
@@ -490,7 +489,7 @@ class Card extends OngoingEffectSource {
     //     }
     // }
 
-    hasKeyword(keyword: string): boolean {
+    public hasKeyword(keyword: string): boolean {
         const targetKeyword = keyword.toLowerCase();
 
         const addKeywordEffects = this.getEffectValues(EffectName.AddKeyword).filter(
@@ -503,17 +502,18 @@ class Card extends OngoingEffectSource {
         return addKeywordEffects.length > loseKeywordEffects.length;
     }
 
-    hasPrintedKeyword(keyword: PrintedKeyword) {
+    public hasPrintedKeyword(keyword: PrintedKeyword) {
         return this.printedKeywords.includes(keyword);
     }
 
-    hasTrait(trait: string): boolean {
+    public hasTrait(trait: string): boolean {
         return this.hasSomeTrait(trait);
     }
 
-    hasEveryTrait(traits: Set<string>): boolean;
-    hasEveryTrait(...traits: string[]): boolean;
-    hasEveryTrait(traitSetOrFirstTrait: Set<string> | string, ...otherTraits: string[]): boolean {
+    // TODO: fix the below so they use the same pattern as has*Trait above
+    public hasEveryTrait(traits: Set<string>): boolean;
+    public hasEveryTrait(...traits: string[]): boolean;
+    public hasEveryTrait(traitSetOrFirstTrait: Set<string> | string, ...otherTraits: string[]): boolean {
         const traitsToCheck =
             traitSetOrFirstTrait instanceof Set
                 ? traitSetOrFirstTrait
@@ -528,9 +528,9 @@ class Card extends OngoingEffectSource {
         return true;
     }
 
-    hasSomeTrait(traits: Set<string>): boolean;
-    hasSomeTrait(...traits: string[]): boolean;
-    hasSomeTrait(traitSetOrFirstTrait: Set<string> | string, ...otherTraits: string[]): boolean {
+    public hasSomeTrait(traits: Set<string>): boolean;
+    public hasSomeTrait(...traits: string[]): boolean;
+    public hasSomeTrait(traitSetOrFirstTrait: Set<string> | string, ...otherTraits: string[]): boolean {
         const traitsToCheck =
             traitSetOrFirstTrait instanceof Set
                 ? traitSetOrFirstTrait
@@ -545,11 +545,11 @@ class Card extends OngoingEffectSource {
         return false;
     }
 
-    getTraits(): Set<string> {
+    public getTraits(): Set<string> {
         return this.getTraitSet();
     }
 
-    getTraitSet(): Set<string> {
+    public getTraitSet(): Set<string> {
         const set = new Set(
             this.getEffectValues(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
                 ? []
@@ -650,7 +650,7 @@ class Card extends OngoingEffectSource {
         }
     }
 
-    updateConstantAbilityContexts() {
+    protected updateConstantAbilityContexts() {
         for (const constantAbility of this.constantAbilities) {
             if (constantAbility.registeredEffects) {
                 for (const effect of constantAbility.registeredEffects) {
@@ -660,7 +660,7 @@ class Card extends OngoingEffectSource {
         }
     }
 
-    moveTo(targetLocation: Location) {
+    public moveTo(targetLocation: Location) {
         const originalLocation = this.location;
 
         if (originalLocation === targetLocation) {
@@ -681,7 +681,7 @@ class Card extends OngoingEffectSource {
         }
     }
 
-    canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
+    public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
         return (
             !this.facedown &&
             (ignoredRequirements.includes('triggeringRestrictions') ||
@@ -689,11 +689,11 @@ class Card extends OngoingEffectSource {
         );
     }
 
-    canInitiateKeywords(context: AbilityContext): boolean {
+    public canInitiateKeywords(context: AbilityContext): boolean {
         return !this.facedown && !this.hasRestriction(AbilityRestriction.InitiateKeywords, context);
     }
 
-    getModifiedAbilityLimitMax(player: Player, ability: CardAbility, max: number): number {
+    public getModifiedAbilityLimitMax(player: Player, ability: CardAbility, max: number): number {
         const effects = this.getEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
         let total = max;
         effects.forEach((effect) => {
@@ -731,11 +731,11 @@ class Card extends OngoingEffectSource {
     //     return menu;
     // }
 
-    isBlank(): boolean {
+    public isBlank(): boolean {
         return this.anyEffect(EffectName.Blank);
     }
 
-    override hasRestriction(actionType, context: AbilityContext): boolean {
+    public override hasRestriction(actionType, context: AbilityContext): boolean {
         const player = (context && context.player) || this.controller;
         return (
             super.hasRestriction(actionType, context) ||
@@ -747,7 +747,7 @@ class Card extends OngoingEffectSource {
     //     return this.triggeredAbilities.slice();
     // }
 
-    readiesDuringReadyPhase(): boolean {
+    public readiesDuringReadyPhase(): boolean {
         return !this.anyEffect(EffectName.DoesNotReady);
     }
 
@@ -756,7 +756,7 @@ class Card extends OngoingEffectSource {
     // }
 
     // TODO: would something like this be helpful for swu?
-    parseKeywords(text: string) {
+    public parseKeywords(text: string) {
         // const potentialKeywords = [];
         // for (const line of text.split('\n')) {
         //     for (const k of line.slice(0, -1).split('.')) {
@@ -912,7 +912,7 @@ class Card extends OngoingEffectSource {
      * Checks whether an attachment can be played on a given card.  Intended to be
      * used by cards inheriting this class
      */
-    canPlayOn(card) {
+    public canPlayOn(card) {
         return true;
     }
 
@@ -920,7 +920,7 @@ class Card extends OngoingEffectSource {
      * Checks 'no attachment' restrictions for this card when attempting to
      * attach the passed attachment card.
      */
-    allowAttachment(attachment) {
+    public allowAttachment(attachment) {
         if (this.allowedAttachmentTraits.some((trait) => attachment.hasTrait(trait))) {
             return true;
         }
@@ -928,7 +928,7 @@ class Card extends OngoingEffectSource {
         return this.isBlank() || this.allowedAttachmentTraits.length === 0;
     }
 
-    getPlayCardActions() {
+    protected getPlayCardActions() {
         const actions = this.abilities.playCardAction.slice();
 
         return actions;
@@ -939,16 +939,16 @@ class Card extends OngoingEffectSource {
      * game effects to respond to.
      * @param {Card} attachment
      */
-    removeAttachment(attachment) {
+    public removeAttachment(attachment) {
         this.upgrades = this.upgrades.filter((card) => card.uuid !== attachment.uuid);
     }
 
-    addChildCard(card, location) {
+    protected addChildCard(card, location) {
         this.childCards.push(card);
         this.controller.moveCard(card, location);
     }
 
-    removeChildCard(card, location) {
+    protected removeChildCard(card, location) {
         if (!card) {
             return;
         }
@@ -1027,7 +1027,7 @@ class Card extends OngoingEffectSource {
     // --------------------------- TODO: type annotations for all of the below --------------------------
 
     // this will be helpful if we ever get a card where a stat that is 'X, where X is ...'
-    getPrintedStat(type: StatType) {
+    public getPrintedStat(type: StatType) {
         switch (type) {
             case StatType.Power:
                 return this.cardData.power === null || this.cardData.power === undefined
@@ -1047,7 +1047,7 @@ class Card extends OngoingEffectSource {
         }
     }
 
-    addDamage(amount: number) {
+    public addDamage(amount: number) {
         if (
             !Contract.assertNotNullLikeOrNan(this.damage) ||
             !Contract.assertNotNullLikeOrNan(this.hp) ||
@@ -1073,7 +1073,7 @@ class Card extends OngoingEffectSource {
     }
 
     /** @returns True if any damage was healed, false otherwise */
-    removeDamage(amount: number): boolean {
+    public removeDamage(amount: number): boolean {
         if (
             !Contract.assertNotNullLikeOrNan(this.damage) ||
             !Contract.assertNotNullLikeOrNan(this.hp) ||
@@ -1090,19 +1090,19 @@ class Card extends OngoingEffectSource {
         return true;
     }
 
-    get hp(): number | null {
+    public get hp(): number | null {
         return this.printedHp == null ? null : this.getModifiedStatValue(StatType.Hp);
     }
 
-    get baseHp(): number | null {
+    public get baseHp(): number | null {
         return this.printedHp;
     }
 
-    get power(): number | null {
+    public get power(): number | null {
         return this.printedPower == null ? null : this.getModifiedStatValue(StatType.Power);
     }
 
-    get basePower(): number | null {
+    public get basePower(): number | null {
         return this.printedPower;
     }
 
@@ -1143,16 +1143,16 @@ class Card extends OngoingEffectSource {
     // ************************************** DECKCARD.JS ****************************************************
     // *******************************************************************************************************
 
-    get cost() {
+    public get cost() {
         return this.printedCost;
     }
 
-    costLessThan(num) {
+    private costLessThan(num) {
         const cost = this.printedCost;
         return num && (cost || cost === 0) && cost < num;
     }
 
-    anotherUniqueInPlay(player) {
+    public anotherUniqueInPlay(player) {
         return (
             this.unique &&
             this.game.allCards.any(
@@ -1165,7 +1165,7 @@ class Card extends OngoingEffectSource {
         );
     }
 
-    anotherUniqueInPlayControlledBy(player) {
+    public anotherUniqueInPlayControlledBy(player) {
         return (
             this.unique &&
             this.game.allCards.any(
@@ -1302,19 +1302,19 @@ class Card extends OngoingEffectSource {
     //     return true;
     // }
 
-    get showStats() {
+    public get showStats() {
         return isArena(this.location) && this.isUnit();
     }
 
-    exhaust() {
+    public exhaust() {
         this.exhausted = true;
     }
 
-    ready() {
+    public ready() {
         this.exhausted = false;
     }
 
-    canPlay(context, type) {
+    public canPlay(context, type) {
         return (
             !this.hasRestriction(type, context) &&
             !context.player.hasRestriction(type, context) &&
@@ -1330,7 +1330,7 @@ class Card extends OngoingEffectSource {
      *
      * Note that a card becoming a resource is _not_ leaving play.
      */
-    leavesPlay() {
+    public leavesPlay() {
         // // If this is an attachment and is attached to another card, we need to remove all links between them
         // if (this.parent && this.parent.attachments) {
         //     this.parent.removeAttachment(this);
@@ -1430,11 +1430,11 @@ class Card extends OngoingEffectSource {
         }
     }
 
-    setDefaultController(player) {
+    public setDefaultController(player) {
         this.defaultController = player;
     }
 
-    getModifiedController() {
+    public getModifiedController() {
         if (isArena(this.location)) {
             return this.mostRecentEffect(EffectName.TakeControl) || this.defaultController;
         }

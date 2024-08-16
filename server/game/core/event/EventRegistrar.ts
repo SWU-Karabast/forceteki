@@ -12,7 +12,7 @@ interface IEventHandler {
 export class EventRegistrar {
     private events: IEventHandler[];
 
-    constructor(
+    public constructor(
         private game: Game,
         private context: unknown
     ) {

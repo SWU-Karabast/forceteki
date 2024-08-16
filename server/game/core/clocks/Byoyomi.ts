@@ -3,21 +3,21 @@ import { ChessClock } from './ChessClock';
 import type { IClock } from './IClock';
 
 export class Byoyomi extends ChessClock implements IClock {
-    override name = 'Byoyomi';
+    public override readonly name = 'Byoyomi';
 
-    constructor(player: Player, time: number, private periods: number, private timePeriod: number) {
+    public constructor(player: Player, time: number, private periods: number, private timePeriod: number) {
         super(player, time);
         this.timeLeft = time + periods * timePeriod;
     }
 
-    override reset() {
+    public override reset() {
         if (this.timeLeft > 0 && this.timeLeft < this.periods * this.timePeriod) {
             this.periods = Math.ceil(this.timeLeft / this.timePeriod);
             this.timeLeft = this.periods * this.timePeriod;
         }
     }
 
-    override getState() {
+    public override getState() {
         const state = super.getState();
         return Object.assign(
             {

@@ -6,9 +6,9 @@ import { cards } from './cardImplementations/Index';
 import Player from './core/Player';
 
 export class Deck {
-    constructor(public data: any) {}
+    public constructor(public data: any) {}
 
-    prepare(player: Player) {
+    public prepare(player: Player) {
         const result = {
             deckCards: [] as Card[],
             outOfPlayCards: [],

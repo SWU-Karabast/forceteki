@@ -1,9 +1,9 @@
 import { TargetMode } from '../../Constants';
 
 export class SelectChoice {
-    constructor(public choice: string) {}
+    public constructor(public choice: string) {}
 
-    getShortSummary() {
+    public getShortSummary() {
         return {
             id: this.choice,
             label: this.choice,

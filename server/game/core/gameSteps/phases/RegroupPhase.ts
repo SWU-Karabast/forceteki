@@ -8,7 +8,7 @@ import { SimpleStep } from '../SimpleStep';
 import ResourcePrompt from '../prompts/ResourcePrompt';
 
 export class RegroupPhase extends Phase {
-    constructor(game: Game) {
+    public constructor(game: Game) {
         super(game, PhaseName.Regroup);
         this.pipeline.initialise([
             new SimpleStep(game, () => this.drawTwo()),
@@ -17,7 +17,7 @@ export class RegroupPhase extends Phase {
         ]);
     }
 
-    drawTwo() {
+    private drawTwo() {
         for (const player of this.game.getPlayers()) {
             player.drawCardsToHand(2);
         }

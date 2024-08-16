@@ -21,9 +21,25 @@ type StatisticTotal = number;
 
 export class Attack extends GameObject {
     // #modifiers = new WeakMap<Player, IAttackAbilities>();
-    previousAttack: Attack;
+    public previousAttack: Attack;
 
-    constructor(
+    public get participants(): undefined | Card[] {
+        return [...[this.attacker], this.target];
+    }
+
+    public get attackerTotalPower(): number | null {
+        return this.getUnitPower(this.attacker);
+    }
+
+    public get defenderTotalPower(): number | null {
+        return this.targetIsBase ? null : this.getUnitPower(this.target);
+    }
+
+    public get targetIsBase(): boolean {
+        return this.target.isBase();
+    }
+
+    public constructor(
         game: Game,
         public attacker: Card,
         public target: Card
@@ -31,34 +47,18 @@ export class Attack extends GameObject {
         super(game, 'Attack');
     }
 
-    get participants(): undefined | Card[] {
-        return [...[this.attacker], this.target];
-    }
-
-    isInvolved(card: Card): boolean {
+    public isInvolved(card: Card): boolean {
         return (
             isArena(card.location) &&
             ([this.attacker as Card, this.target as Card].includes(card))
         );
     }
 
-    getTotalsForDisplay(): string {
+    public getTotalsForDisplay(): string {
         const rawAttacker = this.getUnitPower(this.attacker);
         const rawTarget = this.getUnitPower(this.target);
 
         return `${this.attacker.name}: ${typeof rawAttacker === 'number' ? rawAttacker : 0} vs ${typeof rawTarget === 'number' ? rawTarget : 0}: ${this.target.name}`;
-    }
-
-    get attackerTotalPower(): number | null {
-        return this.getUnitPower(this.attacker);
-    }
-
-    get defenderTotalPower(): number | null {
-        return this.targetIsBase ? null : this.getUnitPower(this.target);
-    }
-
-    get targetIsBase(): boolean {
-        return this.target.isBase();
     }
 
     private getUnitPower(involvedUnit: Card): StatisticTotal {

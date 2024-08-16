@@ -33,16 +33,15 @@ import type Game from '../Game.js';
  *                   the card is clicked.
  */
 export class CardActionAbility extends CardAbility {
-    override abilityType = AbilityType.Action;
+    public override readonly abilityType: AbilityType = AbilityType.Action;
 
-    anyPlayer: boolean;
-    doesNotTarget: boolean;
-    phase: string;
-    evenDuringDynasty: boolean;
+    protected anyPlayer: boolean;
+    protected doesNotTarget: boolean;
+    protected phase: string;
 
-    condition?: (context?: AbilityContext) => boolean;
+    public readonly condition?: (context?: AbilityContext) => boolean;
 
-    constructor(game: Game, card: Card, properties: IActionProps) {
+    public constructor(game: Game, card: Card, properties: IActionProps) {
         super(game, card, properties);
 
         this.phase = properties.phase ?? 'any';
@@ -51,7 +50,7 @@ export class CardActionAbility extends CardAbility {
         this.doesNotTarget = (properties as any).doesNotTarget;
     }
 
-    override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
+    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
         if (!ignoredRequirements.includes('location') && !this.isInValidLocation(context)) {
             return 'location';
         }
@@ -75,7 +74,7 @@ export class CardActionAbility extends CardAbility {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    override isAction() {
+    public override isAction() {
         return true;
     }
 }

@@ -42,13 +42,13 @@ interface IEventRegistration {
  */
 
 export default class TriggeredAbility extends CardAbility {
-    when?: WhenType;
-    aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
-    anyPlayer: boolean;
-    collectiveTrigger: boolean;
-    eventRegistrations?: IEventRegistration[];
+    public when?: WhenType;
+    public aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
+    public anyPlayer: boolean;
+    public collectiveTrigger: boolean;
+    public eventRegistrations?: IEventRegistration[];
 
-    constructor(game: Game, card: Card, properties: ITriggeredAbilityProps) {
+    public constructor(game: Game, card: Card, properties: ITriggeredAbilityProps) {
         super(game, card, properties, AbilityType.TriggeredAbility);
 
         if ('when' in properties) {
@@ -60,7 +60,7 @@ export default class TriggeredAbility extends CardAbility {
         this.collectiveTrigger = !!properties.collectiveTrigger;
     }
 
-    override meetsRequirements(context, ignoredRequirements = []) {
+    public override meetsRequirements(context, ignoredRequirements = []) {
         const canOpponentTrigger =
             this.card.anyEffect(EffectName.CanBeTriggeredByOpponent) &&
             this.abilityType !== AbilityType.TriggeredAbility;
@@ -78,7 +78,7 @@ export default class TriggeredAbility extends CardAbility {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    eventHandler(event, window) {
+    public eventHandler(event, window) {
         if (!Contract.assertNotNullLike(window)) {
             return;
         }
@@ -96,21 +96,7 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    private checkAggregateWhen(events, window) {
-        for (const player of this.game.getPlayers()) {
-            const context = this.createContext(player, events);
-            //console.log(events.map(event => event.name), this.card.name, this.aggregateWhen(events, context), this.meetsRequirements(context));
-            if (
-                this.card.triggeredAbilities.includes(this) &&
-                this.aggregateWhen(events, context) &&
-                this.meetsRequirements(context) === ''
-            ) {
-                window.addToWindow(context);
-            }
-        }
-    }
-
-    override createContext(player = this.card.controller, event: GameEvent) {
+    public override createContext(player = this.card.controller, event: GameEvent) {
         return new TriggeredAbilityContext({
             event: event,
             game: this.game,
@@ -121,13 +107,7 @@ export default class TriggeredAbility extends CardAbility {
         });
     }
 
-    isTriggeredByEvent(event, context) {
-        const listener = this.when[event.name];
-
-        return listener && listener(event, context);
-    }
-
-    registerEvents() {
+    public registerEvents() {
         if (this.eventRegistrations) {
             return;
         } else if (this.aggregateWhen) {
@@ -153,12 +133,32 @@ export default class TriggeredAbility extends CardAbility {
         });
     }
 
-    unregisterEvents() {
+    public unregisterEvents() {
         if (this.eventRegistrations) {
             this.eventRegistrations.forEach((event) => {
                 this.game.removeListener(event.name, event.handler);
             });
             this.eventRegistrations = null;
+        }
+    }
+
+    private isTriggeredByEvent(event, context) {
+        const listener = this.when[event.name];
+
+        return listener && listener(event, context);
+    }
+
+    private checkAggregateWhen(events, window) {
+        for (const player of this.game.getPlayers()) {
+            const context = this.createContext(player, events);
+            //console.log(events.map(event => event.name), this.card.name, this.aggregateWhen(events, context), this.meetsRequirements(context));
+            if (
+                this.card.triggeredAbilities.includes(this) &&
+                this.aggregateWhen(events, context) &&
+                this.meetsRequirements(context) === ''
+            ) {
+                window.addToWindow(context);
+            }
         }
     }
 }

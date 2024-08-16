@@ -11,7 +11,7 @@ export default class SabineWrenExplosivesArtist extends Card {
         };
     }
 
-    override setupCardAbilities() {
+    protected override setupCardAbilities() {
         this.constantAbility({
             condition: () => countUniqueAspects(this.controller.getOtherUnitsInPlay(this, null)) >= 3,
 

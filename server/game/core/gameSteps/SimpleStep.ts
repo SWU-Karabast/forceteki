@@ -2,16 +2,16 @@ import type Game from '../Game';
 import { BaseStep } from './BaseStep';
 
 export class SimpleStep extends BaseStep {
-    constructor(game: Game, public continueFunc: () => void) {
+    public constructor(game: Game, public continueFunc: () => void) {
         super(game);
     }
 
-    override continue() {
+    public override continue() {
         this.continueFunc();
         return undefined;
     }
 
-    override getDebugInfo() {
+    public override getDebugInfo() {
         return this.continueFunc.toString();
     }
 }

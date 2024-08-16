@@ -10,7 +10,7 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
         };
     }
 
-    override setupCardAbilities() {
+    public override setupCardAbilities() {
         this.whenPlayedAbility({
             title: 'Heal 1 damage from friendly base',
             target: {

@@ -10,7 +10,7 @@ export class AdjustableResourceCost implements ICost {
     // used for extending this class if any cards have unique after pay hooks
     protected afterPayHook?: ((event: any) => void) = null;
 
-    constructor(public ignoreType: boolean) {}
+    public constructor(public ignoreType: boolean) {}
 
     public canPay(context: AbilityContext): boolean {
         if (context.source.printedCost === null) {

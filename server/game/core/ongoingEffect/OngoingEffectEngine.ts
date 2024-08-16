@@ -12,12 +12,12 @@ interface ICustomDurationEvent {
 }
 
 export class OngoingEffectEngine {
-    events: EventRegistrar;
-    effects: OngoingEffect[] = [];
-    customDurationEvents: ICustomDurationEvent[] = [];
-    effectsChangedSinceLastCheck = false;
+    public events: EventRegistrar;
+    public effects: OngoingEffect[] = [];
+    public customDurationEvents: ICustomDurationEvent[] = [];
+    public effectsChangedSinceLastCheck = false;
 
-    constructor(private game: Game) {
+    public constructor(private game: Game) {
         this.events = new EventRegistrar(game, this);
         this.events.register([
             EventName.OnAttackCompleted,
@@ -26,7 +26,7 @@ export class OngoingEffectEngine {
         ]);
     }
 
-    add(effect: OngoingEffect) {
+    public add(effect: OngoingEffect) {
         this.effects.push(effect);
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
@@ -35,7 +35,7 @@ export class OngoingEffectEngine {
         return effect;
     }
 
-    checkDelayedEffects(events: GameEvent[]) {
+    public checkDelayedEffects(events: GameEvent[]) {
         const effectsToTrigger: OngoingEffect[] = [];
         const effectsToRemove: OngoingEffect[] = [];
         for (const effect of this.effects.filter(
@@ -87,7 +87,7 @@ export class OngoingEffectEngine {
         }
     }
 
-    removeLastingEffects(card: OngoingEffectSource) {
+    public removeLastingEffects(card: OngoingEffectSource) {
         this.unapplyAndRemove(
             (effect) =>
                 effect.match === card &&
@@ -105,7 +105,7 @@ export class OngoingEffectEngine {
         }
     }
 
-    resolveEffects(prevStateChanged = false, loops = 0) {
+    public resolveEffects(prevStateChanged = false, loops = 0) {
         if (!prevStateChanged && !this.effectsChangedSinceLastCheck) {
             return false;
         }
@@ -121,59 +121,7 @@ export class OngoingEffectEngine {
         return stateChanged;
     }
 
-    onAttackCompleted() {
-        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfAttack);
-    }
-
-    onPhaseEnded() {
-        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfPhase);
-    }
-
-    onRoundEnded() {
-        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfRound);
-    }
-
-    registerCustomDurationEvents(effect: OngoingEffect) {
-        if (!effect.until) {
-            return;
-        }
-
-        const handler = this.createCustomDurationHandler(effect);
-        for (const eventName of Object.keys(effect.until)) {
-            this.customDurationEvents.push({
-                name: eventName,
-                handler: handler,
-                effect: effect
-            });
-            this.game.on(eventName, handler);
-        }
-    }
-
-    unregisterCustomDurationEvents(effect: OngoingEffect) {
-        const remainingEvents: ICustomDurationEvent[] = [];
-        for (const event of this.customDurationEvents) {
-            if (event.effect === effect) {
-                this.game.removeListener(event.name, event.handler);
-            } else {
-                remainingEvents.push(event);
-            }
-        }
-        this.customDurationEvents = remainingEvents;
-    }
-
-    createCustomDurationHandler(customDurationEffect) {
-        return (...args) => {
-            const event = args[0];
-            const listener = customDurationEffect.until[event.name];
-            if (listener && listener(...args)) {
-                customDurationEffect.cancel();
-                this.unregisterCustomDurationEvents(customDurationEffect);
-                this.effects = this.effects.filter((effect) => effect !== customDurationEffect);
-            }
-        };
-    }
-
-    unapplyAndRemove(match: (effect: OngoingEffect) => boolean) {
+    public unapplyAndRemove(match: (effect: OngoingEffect) => boolean) {
         let anyEffectRemoved = false;
         const remainingEffects: OngoingEffect[] = [];
         for (const effect of this.effects) {
@@ -191,7 +139,59 @@ export class OngoingEffectEngine {
         return anyEffectRemoved;
     }
 
-    getDebugInfo() {
+    private onAttackCompleted() {
+        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfAttack);
+    }
+
+    private onPhaseEnded() {
+        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfPhase);
+    }
+
+    private onRoundEnded() {
+        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfRound);
+    }
+
+    private registerCustomDurationEvents(effect: OngoingEffect) {
+        if (!effect.until) {
+            return;
+        }
+
+        const handler = this.createCustomDurationHandler(effect);
+        for (const eventName of Object.keys(effect.until)) {
+            this.customDurationEvents.push({
+                name: eventName,
+                handler: handler,
+                effect: effect
+            });
+            this.game.on(eventName, handler);
+        }
+    }
+
+    private unregisterCustomDurationEvents(effect: OngoingEffect) {
+        const remainingEvents: ICustomDurationEvent[] = [];
+        for (const event of this.customDurationEvents) {
+            if (event.effect === effect) {
+                this.game.removeListener(event.name, event.handler);
+            } else {
+                remainingEvents.push(event);
+            }
+        }
+        this.customDurationEvents = remainingEvents;
+    }
+
+    private createCustomDurationHandler(customDurationEffect) {
+        return (...args) => {
+            const event = args[0];
+            const listener = customDurationEffect.until[event.name];
+            if (listener && listener(...args)) {
+                customDurationEffect.cancel();
+                this.unregisterCustomDurationEvents(customDurationEffect);
+                this.effects = this.effects.filter((effect) => effect !== customDurationEffect);
+            }
+        };
+    }
+
+    public getDebugInfo() {
         return this.effects.map((effect) => effect.getDebugInfo());
     }
 }

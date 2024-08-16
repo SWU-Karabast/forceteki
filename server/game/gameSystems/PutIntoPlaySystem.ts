@@ -11,52 +11,18 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
 }
 
 export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> {
-    override name = 'putIntoPlay';
-    override eventName = EventName.OnUnitEntersPlay;
-    override costDescription = 'putting {0} into play';
-    override targetType = [CardType.Unit];
-    override defaultProperties: IPutIntoPlayProperties = {
+    public override readonly name = 'putIntoPlay';
+    public override readonly eventName = EventName.OnUnitEntersPlay;
+    public override readonly costDescription = 'putting {0} into play';
+
+    protected override readonly targetType = [CardType.Unit];
+    protected override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
         overrideLocation: null
     };
 
-    getPutIntoPlayPlayer(context: AbilityContext) {
-        return context.player;
-    }
 
-    override getEffectMessage(context: AbilityContext): [string, any[]] {
-        const { target } = this.generatePropertiesFromContext(context);
-        return ['put {0} into play', [target]];
-    }
-
-    override canAffect(card: Card, context: AbilityContext): boolean {
-        const contextCopy = context.copy({ source: card });
-        const player = this.getPutIntoPlayPlayer(contextCopy);
-
-        if (!context || !super.canAffect(card, context)) {
-            return false;
-        // TODO SMUGGLE: impl here
-        } else if (isArena(card.location) || card.facedown) {
-            return false;
-        } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
-            return false;
-        } else if (player.hasRestriction(AbilityRestriction.PutIntoPlay, contextCopy)) {
-            return false;
-        }
-        return true;
-    }
-
-    override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        const { controller, overrideLocation } = this.generatePropertiesFromContext(
-            context,
-            additionalProperties
-        ) as IPutIntoPlayProperties;
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.controller = controller;
-        event.originalLocation = overrideLocation || card.location;
-    }
-
-    eventHandler(event, additionalProperties = {}): void {
+    public eventHandler(event, additionalProperties = {}): void {
         const player = this.getPutIntoPlayPlayer(event.context);
         event.card.new = true;
 
@@ -80,5 +46,41 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
             event.card.owner.cardsInPlay.splice(event.card.owner.cardsInPlay.indexOf(event.card), 1);
             event.card.controller.cardsInPlay.push(event.card);
         }
+    }
+
+    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+        const { target } = this.generatePropertiesFromContext(context);
+        return ['put {0} into play', [target]];
+    }
+
+    public override canAffect(card: Card, context: AbilityContext): boolean {
+        const contextCopy = context.copy({ source: card });
+        const player = this.getPutIntoPlayPlayer(contextCopy);
+
+        if (!context || !super.canAffect(card, context)) {
+            return false;
+        // TODO SMUGGLE: impl here
+        } else if (isArena(card.location) || card.facedown) {
+            return false;
+        } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
+            return false;
+        } else if (player.hasRestriction(AbilityRestriction.PutIntoPlay, contextCopy)) {
+            return false;
+        }
+        return true;
+    }
+
+    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+        const { controller, overrideLocation } = this.generatePropertiesFromContext(
+            context,
+            additionalProperties
+        ) as IPutIntoPlayProperties;
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+        event.controller = controller;
+        event.originalLocation = overrideLocation || card.location;
+    }
+
+    private getPutIntoPlayPlayer(context: AbilityContext) {
+        return context.player;
     }
 }

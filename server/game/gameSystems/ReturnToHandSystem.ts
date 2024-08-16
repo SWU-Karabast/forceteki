@@ -16,26 +16,26 @@ export interface IReturnToHandProperties extends ICardTargetSystemProperties {
  * see {@link ReturnToHandFromPlaySystem}
  */
 export class ReturnToHandSystem extends CardTargetSystem<IReturnToHandProperties> {
-    override name = 'returnToHand';
-    override eventName = EventName.OnCardReturnedToHand;
-    override effectDescription = 'return {0} to their hand';
-    override costDescription = 'returning {0} to their hand';
-    override targetType = [CardType.Unit, CardType.Upgrade, CardType.EventTmp];
-    override defaultProperties: IReturnToHandProperties = {
+    public override readonly name = 'returnToHand';
+    public override readonly eventName = EventName.OnCardReturnedToHand;
+    public override readonly effectDescription = 'return {0} to their hand';
+    public override readonly costDescription = 'returning {0} to their hand';
+    protected override readonly targetType = [CardType.Unit, CardType.Upgrade, CardType.EventTmp];
+    protected override readonly defaultProperties: IReturnToHandProperties = {
         locationFilter: [WildcardLocation.AnyArena, Location.Discard]
     };
 
-    override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public eventHandler(event, additionalProperties = {}): void {
+        this.leavesPlayEventHandler(event, additionalProperties);
+    }
+
+    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         const properties = super.generatePropertiesFromContext(context);
         return cardLocationMatches(card.location, properties.locationFilter) && super.canAffect(card, context, additionalProperties);
     }
 
-    override updateEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         this.updateLeavesPlayEvent(event, card, context, additionalProperties);
         event.destination = Location.Hand;
-    }
-
-    eventHandler(event, additionalProperties = {}): void {
-        this.leavesPlayEventHandler(event, additionalProperties);
     }
 }

@@ -8,7 +8,7 @@ import ResourcePrompt from '../prompts/ResourcePrompt';
 import Player from '../../Player';
 
 export class SetupPhase extends Phase {
-    constructor(game: Game) {
+    public constructor(game: Game) {
         const name = 'setup';
         super(game, name);
         this.game.currentPhase = name;
@@ -25,20 +25,20 @@ export class SetupPhase extends Phase {
         ]);
     }
 
-    putBaseInPlay() {
+    private putBaseInPlay() {
         for (const player of this.game.getPlayers()) {
             player.moveCard(player.base, Location.Base);
             player.damageToBase = 0;
         }
     }
 
-    putLeaderInPlay() {
+    private putLeaderInPlay() {
         for (const player of this.game.getPlayers()) {
             player.moveCard(player.leader, Location.Leader);
         }
     }
 
-    chooseFirstPlayer() {
+    private chooseFirstPlayer() {
         const firstPlayer = randomItem(this.game.getPlayers());
 
         this.game.promptWithHandlerMenu(firstPlayer, {
@@ -56,7 +56,7 @@ export class SetupPhase extends Phase {
         });
     }
 
-    chooseMulligan() {
+    private chooseMulligan() {
         const playersByInitiative = [this.game.initiativePlayer, this.game.initiativePlayer.opponent];
         for (const player of playersByInitiative) {
             this.game.promptWithHandlerMenu(player, {
@@ -81,7 +81,7 @@ export class SetupPhase extends Phase {
         }
     }
 
-    drawStartingHands() {
+    private drawStartingHands() {
         for (const player of this.game.getPlayers()) {
             player.shuffleDeck();
             player.drawCardsToHand(6);

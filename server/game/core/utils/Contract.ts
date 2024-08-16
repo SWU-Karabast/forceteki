@@ -11,10 +11,10 @@ interface IContractCheckImpl {
 }
 
 class LoggingContractCheckImpl implements IContractCheckImpl {
-    constructor(private readonly breakpoint: boolean) {
+    public constructor(private readonly breakpoint: boolean) {
     }
 
-    fail(message: string): void {
+    public fail(message: string): void {
         if (this.breakpoint) {
             debugger;
         }
@@ -24,10 +24,10 @@ class LoggingContractCheckImpl implements IContractCheckImpl {
 }
 
 class AssertContractCheckImpl implements IContractCheckImpl {
-    constructor(private readonly breakpoint: boolean) {
+    public constructor(private readonly breakpoint: boolean) {
     }
 
-    fail(message: string): void {
+    public fail(message: string): void {
         if (this.breakpoint) {
             debugger;
         }

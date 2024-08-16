@@ -112,7 +112,8 @@ export default tseslint.config(
             "@typescript-eslint/ban-ts-comment": ["warn"],
             "@typescript-eslint/no-unused-vars": ["warn"],
             "@typescript-eslint/prefer-namespace-keyword": "off",
-            // "@typescript-eslint/no-namespace": "off",
+            "@typescript-eslint/explicit-member-accessibility": "error",
+            "@typescript-eslint/no-namespace": "off"
         }
     }
 );

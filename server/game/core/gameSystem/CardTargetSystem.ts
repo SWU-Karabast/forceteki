@@ -15,7 +15,7 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
 // TODO: mixin for Action types (CardAction, PlayerAction)?
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
 export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TProperties> {
-    override targetType = [
+    protected override readonly targetType = [
         CardType.Unit,
         CardType.Upgrade,
         CardType.EventTmp,
@@ -23,15 +23,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         CardType.Base,
     ];
 
-    override defaultTargets(context: AbilityContext): Card[] {
-        return [context.source];
-    }
-
-    override checkEventCondition(event: any, additionalProperties = {}): boolean {
-        return this.canAffect(event.card, event.context, additionalProperties);
-    }
-
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
+    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         const events: GameEvent[] = [];
 
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
@@ -126,13 +118,21 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return events;
     }
 
-    override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties = {}): void {
+    public override checkEventCondition(event: any, additionalProperties = {}): boolean {
+        return this.canAffect(event.card, event.context, additionalProperties);
+    }
+
+    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }
 
-    override isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
+    public override isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
         return event.card === card && super.isEventFullyResolved(event, card, context, additionalProperties);
+    }
+
+    protected override defaultTargets(context: AbilityContext): Card[] {
+        return [context.source];
     }
 
     protected updateLeavesPlayEvent(event, card: Card, context: AbilityContext, additionalProperties): void {

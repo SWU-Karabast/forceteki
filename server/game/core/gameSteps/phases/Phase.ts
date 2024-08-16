@@ -8,21 +8,21 @@ import type { IStep } from '../IStep';
 export abstract class Phase extends BaseStepWithPipeline {
     public steps: IStep[] = [];
 
-    constructor(
+    public constructor(
         game: Game,
         private name: PhaseName | 'setup'
     ) {
         super(game);
     }
 
-    initialise(steps: IStep[]): void {
+    public initialise(steps: IStep[]): void {
         this.pipeline.initialise([new SimpleStep(this.game, () => this.createPhase())]);
         const startStep = new SimpleStep(this.game, () => this.startPhase());
         const endStep = new SimpleStep(this.game, () => this.endPhase());
         this.steps = [startStep, ...steps, endStep];
     }
 
-    createPhase(): void {
+    protected createPhase(): void {
         this.game.createEventAndOpenWindow(EventName.OnPhaseCreated, { phase: this.name }, () => {
             for (const step of this.steps) {
                 this.game.queueStep(step);
@@ -30,7 +30,7 @@ export abstract class Phase extends BaseStepWithPipeline {
         });
     }
 
-    startPhase(): void {
+    protected startPhase(): void {
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, { phase: this.name }, () => {
             this.game.currentPhase = this.name;
             if (this.name !== 'setup') {
@@ -39,7 +39,7 @@ export abstract class Phase extends BaseStepWithPipeline {
         });
     }
 
-    endPhase(skipEventWindow = false): void {
+    protected endPhase(skipEventWindow = false): void {
         if (!skipEventWindow) {
             this.game.createEventAndOpenWindow(EventName.OnPhaseEnded, { phase: this.name });
         }

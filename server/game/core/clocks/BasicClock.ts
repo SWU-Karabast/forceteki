@@ -4,16 +4,16 @@ import type { IClock } from './IClock';
 export type Mode = 'stop' | 'down' | 'up' | 'off';
 
 export class BasicClock implements IClock {
-    mainTime: number;
-    timeLeft: number;
-    timerStart = 0;
-    paused = false;
-    stateId = 0;
-    mode: Mode = 'off';
-    name = 'Clock';
-    manuallyPaused = false;
+    public mainTime: number;
+    public timeLeft: number;
+    public timerStart = 0;
+    public paused = false;
+    public stateId = 0;
+    public mode: Mode = 'off';
+    public readonly name: string = 'Clock';
+    public manuallyPaused = false;
 
-    constructor(protected player: Player, time: number, protected delayToStartClock?: number) {
+    public constructor(protected player: Player, time: number, protected delayToStartClock?: number) {
         this.mainTime = time;
         this.timeLeft = time;
     }
@@ -87,23 +87,23 @@ export class BasicClock implements IClock {
         }
     }
 
-    manuallyPause() {
+    public manuallyPause() {
         this.stop();
         this.manuallyPaused = true;
         this.updateStateId();
     }
 
-    manuallyResume() {
+    public manuallyResume() {
         this.timerStart = 0;
         this.manuallyPaused = false;
         this.updateStateId();
     }
 
-    modify(secs: number) {
+    public modify(secs: number) {
         this.timeLeft += secs;
     }
 
-    updateStateId() {
+    private updateStateId() {
         this.stateId++;
     }
 }

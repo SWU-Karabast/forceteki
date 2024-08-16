@@ -2,9 +2,9 @@ import { ChessClock } from './ChessClock';
 import type { IClock } from './IClock';
 
 export class Hourglass extends ChessClock implements IClock {
-    override name = 'Hourglass';
+    public override readonly name = 'Hourglass';
 
-    override opponentStart() {
+    public override opponentStart() {
         this.mode = 'up';
         super.opponentStart();
     }

@@ -1,10 +1,10 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 
 export class OngoingEffectValueWrapper<TValue> {
-    value: TValue;
-    context?: AbilityContext;
+    public value: TValue;
+    public context?: AbilityContext;
 
-    constructor(value: TValue) {
+    public constructor(value: TValue) {
         // @ts-expect-error
         this.value = value == null ? true : value;
     }

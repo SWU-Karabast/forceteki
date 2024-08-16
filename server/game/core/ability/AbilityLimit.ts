@@ -64,7 +64,7 @@ class FixedAbilityLimit implements IAbilityLimit {
     public currentUser: null | string = null;
     private useCount = new Map<string, number>();
 
-    constructor(public max: number) {}
+    public constructor(public max: number) {}
 
     public clone() {
         return new FixedAbilityLimit(this.max);
@@ -110,7 +110,7 @@ class FixedAbilityLimit implements IAbilityLimit {
 }
 
 class RepeatableAbilityLimit extends FixedAbilityLimit {
-    constructor(
+    public constructor(
         max: number,
         private eventName: Set<EventName>
     ) {

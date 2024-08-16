@@ -9,17 +9,17 @@ export interface IPlayerTargetSystemProperties extends IGameSystemProperties {}
  * A {@link GameSystem} which targets a player for its effect
  */
 export abstract class PlayerTargetSystem<TProperties extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends GameSystem<TProperties> {
-    override targetType = ['player'];
+    public override readonly targetType = ['player'];
 
-    override defaultTargets(context: AbilityContext): Player[] {
+    public override defaultTargets(context: AbilityContext): Player[] {
         return context.player ? [context.player.opponent] : [];
     }
 
-    override checkEventCondition(event, additionalProperties): boolean {
+    public override checkEventCondition(event, additionalProperties): boolean {
         return this.canAffect(event.player, event.context, additionalProperties);
     }
 
-    override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties = {}): void {
+    public override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.player = player;
     }

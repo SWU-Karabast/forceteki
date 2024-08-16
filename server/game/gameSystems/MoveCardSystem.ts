@@ -18,9 +18,10 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 
 /** @deprecated This system was imported from L5R but has not been tested */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
-    override name = 'move';
-    override targetType = [CardType.Unit, CardType.Upgrade, CardType.EventTmp];
-    override defaultProperties: IMoveCardProperties = {
+    public override readonly name = 'move';
+    public override targetType = [CardType.Unit, CardType.Upgrade, CardType.EventTmp];
+
+    protected override defaultProperties: IMoveCardProperties = {
         destination: null,
         switch: false,
         switchTarget: null,
@@ -30,42 +31,7 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         changePlayer: false,
     };
 
-    override getCostMessage(context: AbilityContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
-        return ['shuffling {0} into their deck', [properties.target]];
-    }
-
-    override getEffectMessage(context: AbilityContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
-        const destinationController = Array.isArray(properties.target)
-            ? properties.changePlayer
-                ? properties.target[0].controller.opponent
-                : properties.target[0].controller
-            : properties.changePlayer
-                ? properties.target.controller.opponent
-                : properties.target.controller;
-        if (properties.shuffle) {
-            return ['shuffle {0} into {1}\'s {2}', [properties.target, destinationController, properties.destination]];
-        }
-        return [
-            'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + '{1}\'s {2}',
-            [properties.target, destinationController, properties.destination]
-        ];
-    }
-
-    override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        const { changePlayer, destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
-        return (
-            (!changePlayer ||
-                (!card.hasRestriction(EffectName.TakeControl, context) &&
-                    !card.anotherUniqueInPlay(context.player))) &&
-            (!destination || context.player.isLegalLocationForCard(card, destination)) &&
-            !isArena(card.location) &&
-            super.canAffect(card, context)
-        );
-    }
-
-    eventHandler(event, additionalProperties = {}): void {
+    public eventHandler(event, additionalProperties = {}): void {
         const context = event.context;
         const card = event.card;
         event.cardStateWhenMoved = card.createSnapshot();
@@ -93,5 +59,40 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
             card.facedown = false;
         }
         card.checkForIllegalAttachments();
+    }
+
+    public override getCostMessage(context: AbilityContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
+        return ['shuffling {0} into their deck', [properties.target]];
+    }
+
+    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
+        const destinationController = Array.isArray(properties.target)
+            ? properties.changePlayer
+                ? properties.target[0].controller.opponent
+                : properties.target[0].controller
+            : properties.changePlayer
+                ? properties.target.controller.opponent
+                : properties.target.controller;
+        if (properties.shuffle) {
+            return ['shuffle {0} into {1}\'s {2}', [properties.target, destinationController, properties.destination]];
+        }
+        return [
+            'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + '{1}\'s {2}',
+            [properties.target, destinationController, properties.destination]
+        ];
+    }
+
+    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+        const { changePlayer, destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+        return (
+            (!changePlayer ||
+                (!card.hasRestriction(EffectName.TakeControl, context) &&
+                    !card.anotherUniqueInPlay(context.player))) &&
+            (!destination || context.player.isLegalLocationForCard(card, destination)) &&
+            !isArena(card.location) &&
+            super.canAffect(card, context)
+        );
     }
 }

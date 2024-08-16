@@ -10,17 +10,21 @@ export interface IHealProperties extends ICardTargetSystemProperties {
 }
 
 export class HealSystem extends CardTargetSystem<IHealProperties> {
-    override name = 'heal';
-    override eventName = EventName.OnDamageRemoved;
-    override targetType = [CardType.Unit, CardType.Base];
+    public override readonly name = 'heal';
+    public override readonly eventName = EventName.OnDamageRemoved;
+    protected override readonly targetType = [CardType.Unit, CardType.Base];
 
-    override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public eventHandler(event): void {
+        event.card.removeDamage(event.healAmount);
+    }
+
+    public override getEffectMessage(context: AbilityContext): [string, any[]] {
         const { amount, target } = this.generatePropertiesFromContext(context);
 
         return ['heal {1} damage from {0}', [amount, target]];
     }
 
-    override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: AbilityContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
         if (!isAttackableLocation(card.location)) {
             return false;
@@ -34,15 +38,11 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
         return super.canAffect(card, context);
     }
 
-    override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.healAmount = amount;
         event.context = context;
         event.recipient = card;
-    }
-
-    eventHandler(event): void {
-        event.card.removeDamage(event.healAmount);
     }
 }

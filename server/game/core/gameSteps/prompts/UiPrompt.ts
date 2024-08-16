@@ -18,19 +18,43 @@ export abstract class UiPrompt extends BaseStep {
     public completed = false;
     public uuid = uuid();
 
-    abstract activePrompt(player: Player): ActivePrompt;
+    public abstract activePrompt(player: Player): ActivePrompt;
 
-    abstract menuCommand(player: Player, arg: string, method: string): boolean;
+    public abstract menuCommand(player: Player, arg: string, method: string): boolean;
 
-    isComplete(): boolean {
+    public override continue(): boolean {
+        const completed = this.isComplete();
+
+        if (completed) {
+            this.clearPrompts();
+        } else {
+            this.setPrompt();
+        }
+
+        return completed;
+    }
+
+    public isComplete(): boolean {
         return this.completed;
     }
 
-    complete(): void {
+    public complete(): void {
         this.completed = true;
     }
 
-    setPrompt(): void {
+    public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
+        if (!this.activeCondition(player) || uuid !== this.uuid) {
+            return false;
+        }
+
+        return this.menuCommand(player, arg, method);
+    }
+
+    public waitingPrompt() {
+        return { menuTitle: 'Waiting for opponent' };
+    }
+
+    public setPrompt(): void {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
                 player.setPrompt(this.addDefaultCommandToButtons(this.activePrompt(player)));
@@ -42,7 +66,7 @@ export abstract class UiPrompt extends BaseStep {
         }
     }
 
-    activeCondition(player: Player): boolean {
+    protected activeCondition(player: Player): boolean {
         return true;
     }
 
@@ -67,33 +91,9 @@ export abstract class UiPrompt extends BaseStep {
         return newPrompt;
     }
 
-    waitingPrompt() {
-        return { menuTitle: 'Waiting for opponent' };
-    }
-
-    public override continue(): boolean {
-        const completed = this.isComplete();
-
-        if (completed) {
-            this.clearPrompts();
-        } else {
-            this.setPrompt();
-        }
-
-        return completed;
-    }
-
-    clearPrompts(): void {
+    private clearPrompts(): void {
         for (const player of this.game.getPlayers()) {
             player.cancelPrompt();
         }
-    }
-
-    public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
-        if (!this.activeCondition(player) || uuid !== this.uuid) {
-            return false;
-        }
-
-        return this.menuCommand(player, arg, method);
     }
 }

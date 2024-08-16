@@ -12,7 +12,7 @@ export default class SnowtrooperLieutenant extends Card {
         };
     }
 
-    override setupCardAbilities() {
+    public override setupCardAbilities() {
         this.whenPlayedAbility({
             title: 'Attack with a unit',
             optional: true,

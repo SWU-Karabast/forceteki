@@ -29,29 +29,17 @@ export class TriggeredAbilityWindow extends BaseStep {
     private choosePlayerResolutionOrderComplete = false;
 
     // UP NEXT: go through and clean up files so that properties appear before ctor in files
-    get currentlyResolvingPlayer(): Player | null {
+    public get currentlyResolvingPlayer(): Player | null {
         return this.resolvePlayerOrder?.[0] ?? null;
     }
 
-    constructor(game, window, eventsToExclude = []) {
+    public constructor(game, window, eventsToExclude = []) {
         super(game);
         this.eventWindow = window;
         this.eventsToExclude = eventsToExclude ?? [];
     }
 
-    addToWindow(context: TriggeredAbilityContext) {
-        this.assertWindowResolutionNotStarted('ability', context.source);
-
-        if (!context.event.cancelled && context.ability) {
-            if (!this.unresolved.has(context.player)) {
-                this.unresolved.set(context.player, [context]);
-            } else {
-                this.unresolved.get(context.player).push(context);
-            }
-        }
-    }
-
-    override continue() {
+    public override continue() {
         this.game.currentAbilityWindow = this;
 
         if (!this.eventsEmitted) {
@@ -85,6 +73,18 @@ export class TriggeredAbilityWindow extends BaseStep {
         }
 
         return false;
+    }
+
+    public addToWindow(context: TriggeredAbilityContext) {
+        this.assertWindowResolutionNotStarted('ability', context.source);
+
+        if (!context.event.cancelled && context.ability) {
+            if (!this.unresolved.has(context.player)) {
+                this.unresolved.set(context.player, [context]);
+            } else {
+                this.unresolved.get(context.player).push(context);
+            }
+        }
     }
 
     protected assertWindowResolutionNotStarted(triggerTypeName: string, source: Card) {

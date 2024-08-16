@@ -36,7 +36,7 @@ export interface ISelectCardProperties extends ICardTargetSystemProperties {
  */
 // TODO: why is this class needed for evaluating costs when systems already have target evaluation and selection built in?
 export class SelectCardSystem extends CardTargetSystem {
-    override defaultProperties: ISelectCardProperties = {
+    protected override readonly defaultProperties: ISelectCardProperties = {
         cardCondition: () => true,
         innerSystem: null,
         innerSystemProperties: (card) => ({ target: card }),
@@ -49,7 +49,10 @@ export class SelectCardSystem extends CardTargetSystem {
         super(properties);
     }
 
-    override getEffectMessage(context: AbilityContext): [string, any[]] {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public eventHandler(event): void { }
+
+    public override getEffectMessage(context: AbilityContext): [string, any[]] {
         const { target, effect, effectArgs } = this.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (effect) {
             return [effect, effectArgs(context) || []];
@@ -57,7 +60,7 @@ export class SelectCardSystem extends CardTargetSystem {
         return ['choose a target for {0}', [target]];
     }
 
-    override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ISelectCardProperties {
+    public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ISelectCardProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as ISelectCardProperties;
         properties.innerSystem.setDefaultTargetFn(() => properties.target);
         if (!properties.selector) {
@@ -71,7 +74,7 @@ export class SelectCardSystem extends CardTargetSystem {
         return properties;
     }
 
-    override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
             (properties.targets && context.choosingPlayerOverride) ||
@@ -80,7 +83,7 @@ export class SelectCardSystem extends CardTargetSystem {
         return properties.selector.canTarget(card, context, player);
     }
 
-    override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
             (properties.targets && context.choosingPlayerOverride) ||
@@ -90,7 +93,7 @@ export class SelectCardSystem extends CardTargetSystem {
     }
 
     // TODO: this was previously accepting an event input and using it in the in 'OnSelect' method. not sure if changing that change broke anything
-    override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
+    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
             return [];
@@ -142,11 +145,8 @@ export class SelectCardSystem extends CardTargetSystem {
         return [];
     }
 
-    override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {
+    public override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.targets && properties.player !== RelativePlayer.Opponent;
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    eventHandler(event): void { }
 }

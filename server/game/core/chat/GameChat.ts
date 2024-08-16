@@ -13,12 +13,12 @@ type MsgArg = string | { name: string } | { getShortSummary: () => string };
 type MessageText = string | (string | number)[];
 
 export class GameChat {
-    messages: {
+    public messages: {
         date: Date;
         message: MessageText | { alert: { type: string; message: string | string[] } };
     }[] = [];
 
-    addChatMessage(player: Player, message: any): void {
+    public addChatMessage(player: Player, message: any): void {
         const playerArg = {
             name: player.user.username,
             emailHash: player.user.emailHash,
@@ -28,17 +28,17 @@ export class GameChat {
         this.addMessage('{0} {1}', playerArg, message);
     }
 
-    addMessage(message: string, ...args: MsgArg[]): void {
+    public addMessage(message: string, ...args: MsgArg[]): void {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: formattedMessage });
     }
 
-    addAlert(type: string, message: string, ...args: MsgArg[]): void {
+    public addAlert(type: string, message: string, ...args: MsgArg[]): void {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: { alert: { type: type, message: formattedMessage } } });
     }
 
-    formatMessage(format: string, args: MsgArg[]): string | string[] {
+    public formatMessage(format: string, args: MsgArg[]): string | string[] {
         if (!format) {
             return '';
         }
@@ -74,7 +74,7 @@ export class GameChat {
         }, []);
     }
 
-    formatArray(array: MsgArg[]): string | string[] {
+    private formatArray(array: MsgArg[]): string | string[] {
         if (array.length === 0) {
             return [];
         }

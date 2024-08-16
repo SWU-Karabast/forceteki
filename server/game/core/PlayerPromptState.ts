@@ -2,16 +2,16 @@ import type Card from './card/Card';
 import type Player from './Player';
 
 export class PlayerPromptState {
-    selectCard = false;
-    selectOrder = false;
-    selectRing = false;
-    menuTitle = '';
-    promptTitle = '';
-    buttons = [];
-    controls = [];
+    public selectCard = false;
+    public selectOrder = false;
+    public selectRing = false;
+    public menuTitle = '';
+    public promptTitle = '';
+    public buttons = [];
+    public controls = [];
 
-    selectableCards: Card[] = [];
-    selectedCards?: Card[] = [];
+    private selectableCards: Card[] = [];
+    private selectedCards?: Card[] = [];
 
     public constructor(public player: Player) {}
 
@@ -31,7 +31,7 @@ export class PlayerPromptState {
         this.selectableCards = [];
     }
 
-    setPrompt(prompt: {
+    public setPrompt(prompt: {
         selectCard?: boolean;
         selectOrder?: boolean;
         selectRing?: boolean;
@@ -61,7 +61,7 @@ export class PlayerPromptState {
             });
     }
 
-    cancelPrompt() {
+    public cancelPrompt() {
         this.selectCard = false;
         this.selectRing = false;
         this.menuTitle = '';
@@ -69,7 +69,7 @@ export class PlayerPromptState {
         this.controls = [];
     }
 
-    getCardSelectionState(card: Card) {
+    public getCardSelectionState(card: Card) {
         const selectable = this.selectableCards.includes(card);
         const index = this.selectedCards?.indexOf(card) ?? -1;
         const result = {
@@ -85,7 +85,7 @@ export class PlayerPromptState {
         return result;
     }
 
-    getState() {
+    public getState() {
         return {
             selectCard: this.selectCard,
             selectOrder: this.selectOrder,

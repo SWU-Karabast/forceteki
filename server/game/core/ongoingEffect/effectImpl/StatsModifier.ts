@@ -1,4 +1,4 @@
 export default class StatsModifier {
-    hp: number;
-    power: number;
+    public hp: number;
+    public power: number;
 }
