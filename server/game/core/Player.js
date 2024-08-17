@@ -649,7 +649,7 @@ class Player extends GameObject {
             this.leader = preparedDecklist.leader;
         }
 
-        const hpCardtest = new HpCard(this, preparedDecklist.deckCards[0].cardData);
+        const hpCardTest = new HpCard(this, preparedDecklist.deckCards[0].cardData);
 
         this.drawDeck = preparedDecklist.deckCards;
         this.decklist = preparedDecklist;

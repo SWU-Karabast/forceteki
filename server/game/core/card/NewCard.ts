@@ -10,5 +10,10 @@ export class NewCard extends OngoingEffectSource {
         private readonly cardData: any
     ) {
         super(owner.game);
+
+        this.id = cardData.id;
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected readCardData(cardData: any) {}
 }
