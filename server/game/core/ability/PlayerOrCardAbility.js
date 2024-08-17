@@ -26,7 +26,7 @@ class PlayerOrCardAbility {
      * objects.
      * @param {Object} [properties.target] - Optional property that specifies
      * the target of the ability.
-     * @param {Array} [properties.gameSystem] - GameSystem[] optional array of game actions
+     * @param {Array} [properties.immediateEffect] - GameSystem[] optional array of game actions
      * @param {string} [properties.title] - Name to use for ability display and debugging
      * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
      */
@@ -36,7 +36,7 @@ class PlayerOrCardAbility {
         this.title = properties.title;
         this.limit = null;
         this.abilityType = abilityType;
-        this.gameSystem = properties.gameSystem || [];
+        this.gameSystem = properties.immediateEffect || [];
         if (!Array.isArray(this.gameSystem)) {
             this.gameSystem = [this.gameSystem];
         }
@@ -82,12 +82,12 @@ class PlayerOrCardAbility {
     }
 
     buildTargetResolver(name, properties) {
-        if (properties.gameSystem) {
-            if (!Array.isArray(properties.gameSystem)) {
-                properties.gameSystem = [properties.gameSystem];
+        if (properties.immediateEffect) {
+            if (!Array.isArray(properties.immediateEffect)) {
+                properties.immediateEffect = [properties.immediateEffect];
             }
         } else {
-            properties.gameSystem = [];
+            properties.immediateEffect = [];
         }
         if (properties.mode === TargetMode.Select) {
             return new AbilityTargetSelect(name, properties, this);

@@ -15,7 +15,7 @@ export default class GroguIrresistible extends Card {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardCondition: (card) => card.controller !== this.controller,
-                gameSystem: AbilityHelper.immediateEffects.exhaust()
+                immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
         });
     }

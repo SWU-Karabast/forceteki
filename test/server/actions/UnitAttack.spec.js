@@ -30,7 +30,7 @@ describe('Basic attack', function() {
                 this.noMoreActions();
             });
 
-            it(', should only be able to select opponent\'s units in the same arena and base', function () {
+            it('the player should only be able to select opponent\'s units in the same arena and base', function () {
                 this.player1.clickCard(this.wampa);
                 expect(this.player1).toHavePrompt('Choose a target for attack');
 

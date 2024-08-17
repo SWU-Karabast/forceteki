@@ -14,11 +14,10 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
         this.whenPlayedAbility({
             title: 'Heal 1 damage from friendly base',
             targetResolver: {
-                // UP NEXT TARGET: use a different name than "gameSystem" here?
                 cardType: CardType.Base,
                 locationFilter: Location.Base,
                 controller: RelativePlayer.Self,
-                gameSystem: AbilityHelper.immediateEffects.heal({ amount: 1 })
+                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 1 })
             }
         });
 
@@ -30,7 +29,7 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
             ],
             targetResolver: {
                 cardCondition: (card) => card.location === Location.GroundArena,
-                gameSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }
         });
     }

@@ -33,7 +33,7 @@ class AbilityTargetAbility {
                 }
                 return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
                        (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                       properties.gameSystem.some((gameSystem) => gameSystem.hasLegalTarget(contextCopy));
+                       properties.immediateEffect.some((gameSystem) => gameSystem.hasLegalTarget(contextCopy));
             });
         };
         return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: false }));
@@ -52,7 +52,7 @@ class AbilityTargetAbility {
     }
 
     getGameSystem(context) {
-        return this.properties.gameSystem.filter((gameSystem) => gameSystem.hasLegalTarget(context));
+        return this.properties.immediateEffect.filter((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
     // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
@@ -133,7 +133,7 @@ class AbilityTargetAbility {
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {
-        if (this.properties.gameSystem.some((action) => action.hasTargetsChosenByInitiatingPlayer(context))) {
+        if (this.properties.immediateEffect.some((action) => action.hasTargetsChosenByInitiatingPlayer(context))) {
             return true;
         }
         return this.getChoosingPlayer(context) === context.player;

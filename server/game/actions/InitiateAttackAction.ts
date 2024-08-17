@@ -11,7 +11,7 @@ import { unlimited } from '../core/ability/AbilityLimit.js';
 export class InitiateAttackAction extends PlayerAction {
     public constructor(card: Card) {
         super(card, 'Attack', [exhaustSelf()], {
-            gameSystem: attack({ attacker: card }),
+            immediateEffect: attack({ attacker: card }),
             locationFilter: WildcardLocation.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });

@@ -26,7 +26,7 @@ interface ITargetResolverBase {
     controller?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     player?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
-    gameSystem?: GameSystem | GameSystem[];
+    immediateEffect?: GameSystem | GameSystem[];
     dependsOn?: string;
 }
 
