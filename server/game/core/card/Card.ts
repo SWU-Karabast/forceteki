@@ -429,6 +429,7 @@ class Card extends OngoingEffectSource {
     }
 
     private createActionAbility(properties: IActionProps): CardActionAbility {
+        properties.cardName = this.title;
         return new CardActionAbility(this.game, this, properties);
     }
 
@@ -442,6 +443,7 @@ class Card extends OngoingEffectSource {
     }
 
     private createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
+        properties.cardName = this.title;
         return new TriggeredAbility(this.game, this, properties);
     }
 
@@ -470,6 +472,7 @@ class Card extends OngoingEffectSource {
         if (notAllowedLocations.length > 0) {
             throw new Error(`Illegal effect location(s) specified: '${notAllowedLocations.join(', ')}'`);
         }
+        properties.cardName = this.title;
         this.abilities.constant.push({ duration: Duration.Persistent, locationFilter, ...properties });
     }
 

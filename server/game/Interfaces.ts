@@ -19,6 +19,7 @@ export interface IConstantAbilityProps<Source = any> {
     match?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: RelativePlayer;
     targetLocation?: Location;
+    cardName?: string;
 
     // TODO: can we get a real signature here
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -42,6 +43,7 @@ export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext
          */
         anyPlayer?: boolean;
         phase?: PhaseName | 'any';
+        cardName?: string;
     }
 
 export type traitLimit = Record<string, number>;
@@ -110,6 +112,7 @@ interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityConte
     targets?: ITriggeredAbilityTargets;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => object) | object;
+    cardName?: string;
 
     /**
      * If true, the ability can be triggered by any player. If false, only the card's controller can

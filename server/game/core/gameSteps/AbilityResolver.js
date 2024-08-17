@@ -252,7 +252,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     /** @override */
     toString() {
-        return `'AbilityResolver: ${this.context.ability.title}'`;
+        return `'AbilityResolver: ${this.context.ability}'`;
     }
 }
 

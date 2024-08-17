@@ -259,7 +259,7 @@ class PlayerInteractionWrapper {
                 '\n'
             ) +
             '\n' +
-            selectableCards.pluck((obj) => obj['name']).join('\n')
+            selectableCards.map((obj) => obj['name']).join('\n')
         );
     }
 

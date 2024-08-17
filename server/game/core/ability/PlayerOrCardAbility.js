@@ -24,10 +24,11 @@ class PlayerOrCardAbility {
      * @param {Object|Array} [properties.cost] - optional property that specifies
      * the cost for the ability. Can either be a cost object or an array of cost
      * objects.
-     * @param {Object} [properties.target] - optional property that specifies
+     * @param {Object} [properties.target] - Optional property that specifies
      * the target of the ability.
      * @param {Array} [properties.gameSystem] - GameSystem[] optional array of game actions
      * @param {string} [properties.title] - Name to use for ability display and debugging
+     * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
      */
     constructor(properties, abilityType = AbilityType.Action) {
         Contract.assertStringValue(properties.title);
@@ -48,10 +49,13 @@ class PlayerOrCardAbility {
             }
         }
         this.nonDependentTargets = this.targets.filter((target) => !target.properties.dependsOn);
+        this.toStringName = properties.cardName
+            ? `'${properties.cardName} ability: ${this.title}'`
+            : `'Ability: ${this.title}'`;
     }
 
     toString() {
-        return `'Ability: ${this.title}'`;
+        return this.toStringName;
     }
 
     buildCost(cost) {
