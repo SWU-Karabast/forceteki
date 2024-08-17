@@ -84,7 +84,7 @@ class AbilityTargetAbility {
                         choices: abilities.map((ability) => ability.title).concat('Back'),
                         choiceHandler: (choice) => {
                             if (choice === 'Back') {
-                                context.game.queueSimpleStep(() => this.resolve(context, targetResults));
+                                context.game.queueSimpleStep(() => this.resolve(context, targetResults), `Resolve target '${this.name}' for ${context.ability}`);
                             } else {
                                 context.targetAbility = abilities.find((ability) => ability.title === choice);
                             }

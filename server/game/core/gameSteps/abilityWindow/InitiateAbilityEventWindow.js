@@ -74,7 +74,7 @@ class InitiateAbilityEventWindow extends EventWindow {
         // TODO: should we be doing this here?
         // We need to separate executing the handler and emitting events as in this window, the handler just
         // queues ability resolution steps, and we don't want the events to be emitted until step 8
-        this.game.queueSimpleStep(() => this.emitEvents());
+        this.game.queueSimpleStep(() => this.emitEvents(), 'emitEvents for InitiateAbilityEventWindow');
     }
 
     emitEvents() {

@@ -75,7 +75,7 @@ export class OngoingEffectEngine {
                     }
                     const actionEvents = properties.gameAction.generateEventsForAllTargets(context);
                     this.game.queueSimpleStep(() => this.game.openAdditionalAbilityStepEventWindow(actionEvents), 'openAdditionAbilityStepEventWindow');  // TODO: why is it using this window type?
-                    this.game.queueSimpleStep(() => context.refill());
+                    this.game.queueSimpleStep(() => context.refill(), 'context.refill');  // TODO EFFECTS: this is supposed to be calling resolveGameState
                 }
             };
         });

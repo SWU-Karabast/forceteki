@@ -3,6 +3,7 @@ const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
 const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
 const { Stage, TargetMode, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
+const { default: Contract } = require('../utils/Contract.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -29,6 +30,8 @@ class PlayerOrCardAbility {
      * @param {string} [properties.title] - Name to use for ability display and debugging
      */
     constructor(properties, abilityType = AbilityType.Action) {
+        // Contract.assertStringValue(properties.title);
+
         this.title = properties.title;
         this.limit = null;
         this.abilityType = abilityType;
@@ -48,7 +51,7 @@ class PlayerOrCardAbility {
     }
 
     toString() {
-        return `Ability: ${this.title}`;
+        return `'Ability: ${this.title}'`;
     }
 
     buildCost(cost) {
@@ -162,11 +165,25 @@ class PlayerOrCardAbility {
                                     results.events.push(newEvents);
                                 }
                             }
-                        });
+                        }, this.buildCostEventStepName(cost));
                     }
                 }
-            }, `Resolve cost for '${this}'`);
+            }, this.buildResolveCostStepName(cost));
         }
+    }
+
+    buildResolveCostStepName(cost) {
+        if (cost.gameSystem) {
+            return `Resolve cost ${cost.gameSystem} for ${this}`;
+        }
+        return `Resolve cost for ${this}`;
+    }
+
+    buildCostEventStepName(cost) {
+        if (cost.gameSystem) {
+            return `Generate cost events for ${cost.gameSystem} for ${this}`;
+        }
+        return `Generate cost events for ${this}`;
     }
 
     /**
@@ -190,7 +207,7 @@ class PlayerOrCardAbility {
             delayTargeting: null
         };
         for (let target of this.targets) {
-            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler));
+            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
         return targetResults;
     }
@@ -203,7 +220,7 @@ class PlayerOrCardAbility {
         }
         let targetResults = {};
         for (const target of targets) {
-            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler));
+            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
         return targetResults;
     }

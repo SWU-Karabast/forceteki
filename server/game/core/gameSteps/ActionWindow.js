@@ -55,7 +55,7 @@ class ActionWindow extends UiPrompt {
             if (resolver.passPriority) {
                 this.postResolutionUpdate(resolver);
             }
-        });
+        }, `Check and pass priority for ${resolver.context.ability}`);
     }
 
     postResolutionUpdate(resolver) {

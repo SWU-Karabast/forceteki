@@ -1,13 +1,15 @@
 import type Game from '../Game';
+import Contract from '../utils/Contract';
 import { BaseStep } from './BaseStep';
 
 export class SimpleStep extends BaseStep {
     private readonly name: string;
 
     public constructor(game: Game, public continueFunc: () => void, stepName: string) {
+        Contract.assertStringValue(stepName);
         super(game);
 
-        this.name = `Step: ${stepName}`;
+        this.name = `'Step: ${stepName}'`;
     }
 
     public override continue() {

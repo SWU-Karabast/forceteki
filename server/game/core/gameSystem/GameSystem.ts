@@ -261,6 +261,6 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     }
 
     public toString() {
-        return `GameSystem: ${this.name}`;
+        return `'GameSystem: ${this.name}'`;
     }
 }

@@ -113,7 +113,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
-            this.game.queueSimpleStep(() => this.checkForPass());
+            this.game.queueSimpleStep(() => this.checkForPass(), 'checkForPass');
             return;
         }
 
@@ -252,7 +252,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     /** @override */
     toString() {
-        return `AbilityResolver: ${this.context.ability.title}`;
+        return `'AbilityResolver: ${this.context.ability.title}'`;
     }
 }
 
