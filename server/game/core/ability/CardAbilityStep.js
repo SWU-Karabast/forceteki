@@ -5,6 +5,9 @@ const { Stage, AbilityType } = require('../Constants.js');
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
+ *
+ * The default handler for this will resolve the ability using a `ThenEventWindow` so that any triggered
+ * effects will not resolve until after the entire "Then" chain is done (see `ThenEventWindow` or SWU 29.2 for details)
  */
 class CardAbilityStep extends PlayerOrCardAbility {
     constructor(game, card, properties, abilityType = AbilityType.Action) {
@@ -15,6 +18,12 @@ class CardAbilityStep extends PlayerOrCardAbility {
         this.properties = properties;
         this.handler = properties.handler || this.executeGameActions;
         this.cannotTargetFirst = true;
+    }
+
+    /** @override */
+    executeHandler(context) {
+        this.handler(context);
+        this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
     }
 
     createContext(player = this.card.controller, event = null) {
@@ -66,12 +75,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return actions.concat(this.gameSystem);
     }
 
-    /** @override */
-    executeHandler(context) {
-        this.handler(context);
-        this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
-    }
-
     executeGameActions(context) {
         context.events = [];
         let systems = this.getGameSystems(context);
@@ -100,7 +103,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     openEventWindow(events) {
-        return this.game.openAdditionalAbilityStepEventWindow(events);
+        return this.game.openThenEventWindow(events);
     }
 
     /** @override */
