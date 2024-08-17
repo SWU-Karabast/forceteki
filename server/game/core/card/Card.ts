@@ -25,10 +25,9 @@ import {
 import { isArena, cardLocationMatches, checkConvertToEnum } from '../utils/EnumHelpers.js';
 import {
     IActionProps,
-    IAttachmentConditionProps,
+    // IAttachmentConditionProps,
     IConstantAbilityProps,
-    ITriggeredAbilityProps,
-    ITriggeredAbilityWhenProps
+    ITriggeredAbilityProps
 } from '../../Interfaces.js';
 // import { PlayAttachmentAction } from './PlayAttachmentAction.js';
 // import { StatusToken } from './StatusToken';

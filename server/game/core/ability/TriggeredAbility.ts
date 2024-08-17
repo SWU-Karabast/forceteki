@@ -1,7 +1,7 @@
 import CardAbility from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { Stage, CardType, EffectName, AbilityType } from '../Constants';
-import { ITriggeredAbilityProps, ITriggeredAbilityWhenProps, WhenType } from '../../Interfaces';
+import { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
 import { GameEvent } from '../event/GameEvent';
 import Card from '../card/Card';
 import Game from '../Game';
