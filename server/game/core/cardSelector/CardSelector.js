@@ -11,7 +11,7 @@ const defaultProperties = {
     numCards: 1,
     cardCondition: () => true,
     numCardsFunc: () => 1,
-    cardType: [CardType.Upgrade, CardType.Unit, CardType.EventTmp, CardType.Leader, CardType.Base],
+    cardType: [CardType.Upgrade, CardType.Unit, CardType.Event, CardType.Leader, CardType.Base],
     multiSelect: false,
     sameDiscardPile: false
 };

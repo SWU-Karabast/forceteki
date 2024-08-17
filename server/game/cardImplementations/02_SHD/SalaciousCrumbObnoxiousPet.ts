@@ -14,7 +14,7 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
         this.whenPlayedAbility({
             title: 'Heal 1 damage from friendly base',
             target: {
-                // UP NEXT TARGET: add a contract check if location and cardType are mutually exclusive
+                // UP NEXT: use a different name than "gameSystem" here?
                 cardType: CardType.Base,
                 locationFilter: Location.Base,
                 controller: RelativePlayer.Self,

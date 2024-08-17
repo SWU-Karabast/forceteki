@@ -24,7 +24,7 @@ const {
 
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
-const { shuffle } = require('../../Util');
+const { shuffle, defaultLegalLocationsForCardTypes } = require('../../Util');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -985,7 +985,7 @@ class Player extends GameObject {
     //     if (
     //         !this.game.manualMode ||
     //         source === target ||
-    //         !this.isLegalLocationForCard(card, target) ||
+    //         !this.isLegalLocationForCardTypes(card.types, target) ||
     //         card.location !== source
     //     ) {
     //         return;
@@ -1019,49 +1019,20 @@ class Player extends GameObject {
     // }
 
     /**
-     * Checks whether card type is consistent with location
-     * @param card BaseCard
+     * Checks whether card type set (usually from {@link Card.types}) is consistent with location,
+     * checking for custom out-of-play locations
+     * @param {Set<CardType>} cardTypes
      * @param {Location} location
      */
-    isLegalLocationForCard(card, location) {
-        if (!card) {
-            return false;
-        }
-
+    isLegalLocationForCardTypes(cardTypes, location) {
         //if we're trying to go into an additional pile, we're probably supposed to be there
         if (this.additionalPiles[location]) {
             return true;
         }
 
-        const deckCardLocations = [
-            Location.Hand,
-            Location.Deck,
-            Location.Discard,
-            Location.RemovedFromGame,
-            Location.SpaceArena,
-            Location.GroundArena,
-            Location.Resource
-        ];
-        const legalLocations = (types) => {
+        const legalLocationsForType = defaultLegalLocationsForCardTypes(cardTypes);
 
-        };
-
-        let legalLocationsForType;
-        if (card.isToken()) {
-            legalLocationsForType = [Location.SpaceArena, Location.GroundArena];
-        } else if (card.isBase()) {
-            legalLocationsForType = [Location.Base];
-        } else if (card.isUnit()) {
-            legalLocationsForType = deckCardLocations;
-        } else if (card.isLeader()) {
-            // since we've already checked if the leader is deployed ('leader unit' type), this means undeployed leader
-            legalLocationsForType = [Location.Leader];
-        } else if (card.isEvent()) {
-            legalLocationsForType = [...deckCardLocations, Location.BeingPlayed];
-        } else if (card.isUpgrade()) {
-            legalLocationsForType = deckCardLocations;
-        } else {
-            Contract.fail(`Unexpected unit type set: ${Array.from(card.types).join(', ')}`);
+        if (!Contract.assertNotNullLike(legalLocationsForType, `Unexpected unit type set: ${Array.from(cardTypes).join(', ')}`)) {
             return false;
         }
 
@@ -1161,7 +1132,7 @@ class Player extends GameObject {
 
         var targetPile = this.getCardPile(targetLocation);
 
-        if (!this.isLegalLocationForCard(card, targetLocation) || (targetPile && targetPile.includes(card))) {
+        if (!this.isLegalLocationForCardTypes(card.types, targetLocation) || (targetPile && targetPile.includes(card))) {
             Contract.fail(`Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
             return;
         }

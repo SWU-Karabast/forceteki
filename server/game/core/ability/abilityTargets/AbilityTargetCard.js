@@ -1,5 +1,8 @@
+const { defaultLegalLocationsForCardTypes } = require('../../../../Util.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer, EffectName, TargetMode } = require('../../Constants.js');
+const { default: Contract } = require('../../utils/Contract.js');
+const { cardLocationMatches } = require('../../utils/EnumHelpers.js');
 
 class AbilityTargetCard {
     constructor(name, properties, ability) {
@@ -16,6 +19,8 @@ class AbilityTargetCard {
             let dependsOnTarget = ability.targets.find((target) => target.name === this.properties.dependsOn);
             dependsOnTarget.dependentTarget = this;
         }
+
+        this.validateLocationLegalForTarget(properties);
     }
 
     getSelector(properties) {
@@ -175,6 +180,26 @@ class AbilityTargetCard {
             }
             return false;
         });
+    }
+
+    /**
+     * Checks whether the target's provided location filters have at least one legal location for the provided
+     * card types. This is to catch situations in which a mismatched location and card type was accidentally
+     * provided, which would cause target resolution to always silently fail to find any legal targets.
+     */
+    validateLocationLegalForTarget(properties) {
+        if (!properties.locationFilter || !properties.cardType) {
+            return;
+        }
+
+        for (const type of Array.isArray(properties.cardType) ? properties.cardType : [properties.cardType]) {
+            const legalLocations = defaultLegalLocationsForCardTypes(type);
+            if (legalLocations.some((location) => cardLocationMatches(location, properties.locationFilter))) {
+                return;
+            }
+        }
+
+        Contract.fail(`Target location filters '${properties.locationFilter}' for ability has no overlap with legal locations for target card types '${properties.cardType}', so target resolution is guaranteed to find no legal targets`);
     }
 }
 

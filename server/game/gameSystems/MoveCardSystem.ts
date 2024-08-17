@@ -19,7 +19,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 /** @deprecated This system was imported from L5R but has not been tested */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public override readonly name = 'move';
-    public override targetType = [CardType.Unit, CardType.Upgrade, CardType.EventTmp];
+    public override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
 
     protected override defaultProperties: IMoveCardProperties = {
         destination: null,
@@ -90,7 +90,7 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
             (!changePlayer ||
                 (!card.hasRestriction(EffectName.TakeControl, context) &&
                     !card.anotherUniqueInPlay(context.player))) &&
-            (!destination || context.player.isLegalLocationForCard(card, destination)) &&
+            (!destination || context.player.isLegalLocationForCardTypes(card.types, destination)) &&
             !isArena(card.location) &&
             super.canAffect(card, context)
         );

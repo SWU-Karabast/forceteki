@@ -18,7 +18,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
     protected override readonly targetType = [
         CardType.Unit,
         CardType.Upgrade,
-        CardType.EventTmp,
+        CardType.Event,
         CardType.Leader,
         CardType.Base,
     ];
@@ -177,7 +177,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
     }
 
     protected leavesPlayEventHandler(event, additionalProperties = {}): void {
-        if (!event.card.owner.isLegalLocationForCard(event.card, event.destination)) {
+        if (!event.card.owner.isLegalLocationForCardTypes(event.card.types, event.destination)) {
             event.card.game.addMessage(
                 '{0} is not a legal location for {1} and it is discarded',
                 event.destination,

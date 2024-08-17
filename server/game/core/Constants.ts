@@ -121,7 +121,7 @@ export enum CardType {
     Unit = 'unit',
     Leader = 'leader',
     Base = 'base',
-    EventTmp = 'event',
+    Event = 'event',
     Upgrade = 'upgrade',
     Token = 'token'
 }
