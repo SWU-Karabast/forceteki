@@ -9,6 +9,9 @@ export class GamePipeline {
     private pipeline: StepItem[] = [];
     private stepsQueuedDuringCurrentStep: StepItem[] = [];
 
+    // TODO: consider adding a debug mode in which completed steps are stored for
+    // easier diagnosis of pipeline execution
+
     public get length(): number {
         return this.pipeline.length;
     }
