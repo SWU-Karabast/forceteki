@@ -30,7 +30,7 @@ class PlayerOrCardAbility {
      * @param {string} [properties.title] - Name to use for ability display and debugging
      */
     constructor(properties, abilityType = AbilityType.Action) {
-        // Contract.assertStringValue(properties.title);
+        Contract.assertStringValue(properties.title);
 
         this.title = properties.title;
         this.limit = null;
