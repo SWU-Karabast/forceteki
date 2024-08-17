@@ -20,6 +20,7 @@ npm install
 npm run get-cards
 
 # run this to transpile (build) the code. the 'npm test' command will automatically run this as well.
+# rm -r build/  # needed if files are added / deleted / renamed between builds
 npx tsc
 
 # run code linter (recommend configuring this automatically with Visual Studio Code)
@@ -28,6 +29,7 @@ npm run lint-verbose
 
 # runs tsc and executes tests
 npm test
+npm run test-parallel   # runs tests in parallel for higher speed
 ```
 
 ### Linting
