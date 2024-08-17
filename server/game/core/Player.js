@@ -1,5 +1,3 @@
-// UP NEXT: remove underscore everywhere
-
 const { GameObject } = require('./GameObject');
 const { Deck } = require('../Deck.js');
 const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');

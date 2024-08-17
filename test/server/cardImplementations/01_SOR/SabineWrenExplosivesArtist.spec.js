@@ -36,7 +36,7 @@ describe('Sabine Wren, Explosives Artist', function() {
             });
 
             it('should be targetable when less than 3 friendly aspects are in play', function () {
-                this.player1.spaceArena = [];
+                this.player1.setSpaceArenaUnits([]);
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.wampa);
 

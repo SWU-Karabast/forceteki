@@ -260,7 +260,7 @@ beforeEach(function () {
 });
 
 global.integration = function (definitions) {
-    describe('integration', function () {
+    describe('- integration -', function () {
         beforeEach(function () {
             Contract.configureAssertMode(Contract.AssertMode.Assert, true);
 
@@ -313,51 +313,25 @@ global.integration = function (definitions) {
                 this.player2.damageToBase = options.player2.damageToBase ?? 0;
 
                 // set cards below - the playerinteractionwrapper will convert string names to real cards
-                // UP NEXT: need to redesign the below, it's unintuitive to read and will probably lead to unintended side effects
 
-                //Field
-                this.player1.groundArena = options.player1.groundArena;
-                this.player2.groundArena = options.player2.groundArena;
-                this.player1.spaceArena = options.player1.spaceArena;
-                this.player2.spaceArena = options.player2.spaceArena;
-                //Resources
-                this.player1.resources = options.player1.resources;
-                this.player2.resources = options.player2.resources;
-                //Deck + discard
-                this.player1.hand = options.player1.hand;
-                this.player2.hand = options.player2.hand;
-                this.player1.discard = options.player1.discard;
-                this.player2.discard = options.player2.discard;
+                // Arenas
+                this.player1.setGroundArenaUnits(options.player1.groundArena);
+                this.player2.setGroundArenaUnits(options.player2.groundArena);
+                this.player1.setSpaceArenaUnits(options.player1.spaceArena);
+                this.player2.setSpaceArenaUnits(options.player2.spaceArena);
+                // Resources
+                this.player1.setResourceCards(options.player1.resources);
+                this.player2.setResourceCards(options.player2.resources);
+                // Hand + discard
+                this.player1.setHand(options.player1.hand);
+                this.player2.setHand(options.player2.hand);
+                this.player1.setDiscard(options.player1.discard);
+                this.player2.setDiscard(options.player2.discard);
 
                 // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {
                 //     this.game.resolveGameState(true);
                 // }
-            };
-
-            this.initiateConflict = function (options = {}) {
-                if (!options.type) {
-                    options.type = 'military';
-                }
-                if (!options.ring) {
-                    options.ring = 'air';
-                }
-                let attackingPlayer = this.getPromptedPlayer(
-                    'Choose an elemental ring\n(click the ring again to change conflict type)'
-                );
-                if (!attackingPlayer) {
-                    throw new Error('Neither player can declare a conflict');
-                }
-                attackingPlayer.declareConflict(options.type, options.province, options.attackers, options.ring);
-                if (!options.defenders) {
-                    return;
-                }
-                let defendingPlayer = this.getPromptedPlayer('Choose defenders');
-                defendingPlayer.assignDefenders(options.defenders);
-                if (!options.jumpTo) {
-                    return;
-                }
-                this.noMoreActions();
             };
         });
 

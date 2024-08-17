@@ -25,7 +25,7 @@ class PlayerInteractionWrapper {
      * hand and conflict deck
      * @param {String|DrawCard)[]} [cards] - a list of card names, ids or objects
      */
-    set hand(cards = []) {
+    setHand(cards = []) {
         //Move all cards in hand to the deck
         var cardsInHand = this.hand;
         cardsInHand.forEach((card) => this.moveCard(card, 'deck'));
@@ -63,7 +63,7 @@ class PlayerInteractionWrapper {
         return this.player.filterCardsInPlay((card) => card.location === 'space arena');
     }
 
-    set spaceArena(newState = []) {
+    setSpaceArenaUnits(newState = []) {
         this.setArenaUnits('space arena', this.spaceArena, newState);
     }
 
@@ -75,7 +75,7 @@ class PlayerInteractionWrapper {
         return this.player.filterCardsInPlay((card) => card.location === 'ground arena');
     }
 
-    set groundArena(newState = []) {
+    setGroundArenaUnits(newState = []) {
         this.setArenaUnits('ground arena', this.groundArena, newState);
     }
 
@@ -156,7 +156,7 @@ class PlayerInteractionWrapper {
      * or String containing name or id of the card
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
-    set resources(newContents = []) {
+    setResourceCards(newContents = []) {
         //  Move cards to the deck
         this.resources.forEach((card) => {
             this.moveCard(card, 'deck');
@@ -185,7 +185,7 @@ class PlayerInteractionWrapper {
      * Sets the contents of the conflict discard pile
      * @param {String[]} newContents - list of names of cards to be put in conflict discard
      */
-    set discard(newContents = []) {
+    setDiscard(newContents = []) {
         //  Move cards to the deck
         this.discard.forEach((card) => {
             this.moveCard(card, 'deck');
