@@ -2,11 +2,10 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type Card from './core/card/Card';
-import type CardAbility from './core/ability/CardAbility';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
-import type { IActionTarget, IActionTargets, ITriggeredAbilityTarget, ITriggeredAbilityTargets } from './TargetInterfaces';
+import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;
@@ -87,8 +86,8 @@ interface IAbilityProps<Context> {
     cost?: any;
     limit?: any;
     max?: any;
-    target?: IActionTarget;
-    targets?: IActionTargets;
+    target?: IActionTargetResolver;
+    targets?: IActionTargetsResolver;
 
     /**
      * Indicates whether the ability should allow the player to trigger an attack from a unit.
@@ -108,8 +107,8 @@ interface IAbilityProps<Context> {
 
 interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityContext> {
     collectiveTrigger?: boolean;
-    target?: ITriggeredAbilityTarget;
-    targets?: ITriggeredAbilityTargets;
+    target?: ITriggeredAbilityTargetResolver;
+    targets?: ITriggeredAbilityTargetsResolver;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => object) | object;
     cardName?: string;
@@ -126,5 +125,3 @@ interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityConte
      */
     optional?: boolean;
 }
-
-// export type Token = HonoredToken | DishonoredToken;
