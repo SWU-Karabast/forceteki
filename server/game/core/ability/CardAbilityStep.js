@@ -83,7 +83,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             this.game.queueSimpleStep(() => {
                 context.events.push(...system.generateEventsForAllTargets(context));
             },
-            `push ${system.name} events for '${this}'`);
+            `push ${system.name} events for ${this}`);
         }
         this.game.queueSimpleStep(() => {
             let eventsToResolve = context.events.filter((event) => !event.cancelled && !event.resolved);
@@ -96,7 +96,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
                 let cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
                 this.game.resolveAbility(cardAbilityStep.createContext(context.player));
             }
-        }, `resolve events for '${this}'`);
+        }, `resolve events for ${this}`);
     }
 
     openEventWindow(events) {

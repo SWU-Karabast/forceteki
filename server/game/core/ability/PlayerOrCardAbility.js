@@ -165,25 +165,11 @@ class PlayerOrCardAbility {
                                     results.events.push(newEvents);
                                 }
                             }
-                        }, this.buildCostEventStepName(cost));
+                        }, `Generate cost events for ${cost.gameSystem ? cost.gameSystem : cost.constructor.name} for ${this}`);
                     }
                 }
-            }, this.buildResolveCostStepName(cost));
+            }, `Resolve cost '${cost.gameSystem ? cost.gameSystem : cost.constructor.name}' for ${this}`);
         }
-    }
-
-    buildResolveCostStepName(cost) {
-        if (cost.gameSystem) {
-            return `Resolve cost ${cost.gameSystem} for ${this}`;
-        }
-        return `Resolve cost for ${this}`;
-    }
-
-    buildCostEventStepName(cost) {
-        if (cost.gameSystem) {
-            return `Generate cost events for ${cost.gameSystem} for ${this}`;
-        }
-        return `Generate cost events for ${this}`;
     }
 
     /**
