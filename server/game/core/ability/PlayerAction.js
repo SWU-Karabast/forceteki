@@ -3,12 +3,12 @@ const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stage } = require('../Constants.js');
 
 class PlayerAction extends PlayerOrCardAbility {
-    constructor(card, costs = [], target) {
+    constructor(card, title, costs = [], target) {
         let properties = { cost: costs };
         if (target) {
             properties.target = target;
         }
-        super(properties);
+        super(properties, title);
         this.card = card;
         this.cannotBeCancelled = true;
     }

@@ -211,7 +211,7 @@ class CardAbility extends CardAbilityStep {
         let effectArgs = [];
         let extraArgs = null;
         if (!effectMessage) {
-            let gameActions = this.getGameActions(context).filter((gameSystem) => gameSystem.hasLegalTarget(context));
+            let gameActions = this.getGameSystems(context).filter((gameSystem) => gameSystem.hasLegalTarget(context));
             if (gameActions.length > 0) {
                 // effects with multiple game actions really need their own effect message
                 [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);

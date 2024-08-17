@@ -37,9 +37,9 @@ class AbilityResolver extends BaseStepWithPipeline {
     initialise() {
         this.pipeline.initialise([
             // new SimpleStep(this.game, () => this.createSnapshot()),
-            new SimpleStep(this.game, () => this.resolveEarlyTargets()),
-            new SimpleStep(this.game, () => this.checkForCancelOrPass()),
-            new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow()),
+            new SimpleStep(this.game, () => this.resolveEarlyTargets(), 'resolveEarlyTargets'),
+            new SimpleStep(this.game, () => this.checkForCancelOrPass(), 'checkForCancelOrPass'),
+            new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow(), 'openInitiateAbilityEventWindow'),
         ]);
     }
 
@@ -90,14 +90,14 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     queueInitiateAbilitySteps() {
-        this.game.queueSimpleStep(() => this.resolveCosts());
-        this.game.queueSimpleStep(() => this.payCosts());
-        this.game.queueSimpleStep(() => this.checkCostsWerePaid());
-        this.game.queueSimpleStep(() => this.resolveTargets());
-        this.game.queueSimpleStep(() => this.checkForCancelOrPass());
-        this.game.queueSimpleStep(() => this.initiateAbilityEffects());
-        this.game.queueSimpleStep(() => this.executeHandler());
-        this.game.queueSimpleStep(() => this.moveEventCardToDiscard());
+        this.game.queueSimpleStep(() => this.resolveCosts(), 'resolveCosts');
+        this.game.queueSimpleStep(() => this.payCosts(), 'payCosts');
+        this.game.queueSimpleStep(() => this.checkCostsWerePaid(), 'checkCostsWerePaid');
+        this.game.queueSimpleStep(() => this.resolveTargets(), 'resolveTargets');
+        this.game.queueSimpleStep(() => this.checkForCancelOrPass(), 'checkForCancelOrPass');
+        this.game.queueSimpleStep(() => this.initiateAbilityEffects(), 'initiateAbilityEffects');
+        this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
+        this.game.queueSimpleStep(() => this.moveEventCardToDiscard(), 'moveEventCardToDiscard');
     }
 
     resolveEarlyTargets() {
@@ -248,6 +248,11 @@ class AbilityResolver extends BaseStepWithPipeline {
         if (this.context.source.location === Location.BeingPlayed) {
             this.context.player.moveCard(this.context.source, Location.Discard);
         }
+    }
+
+    /** @override */
+    toString() {
+        return `AbilityResolver: ${this.context.ability.title}`;
     }
 }
 

@@ -48,7 +48,7 @@ class AbilityTargetSelect {
         return choice.hasLegalTarget(contextCopy);
     }
 
-    getGameAction(context) {
+    getGameSystem(context) {
         if (!context.selects[this.name]) {
             return [];
         }

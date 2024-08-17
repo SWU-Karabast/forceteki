@@ -60,24 +60,6 @@ export default class TriggeredAbility extends CardAbility {
         this.collectiveTrigger = !!properties.collectiveTrigger;
     }
 
-    public override meetsRequirements(context, ignoredRequirements = []) {
-        const canOpponentTrigger =
-            this.card.anyEffect(EffectName.CanBeTriggeredByOpponent) &&
-            this.abilityType !== AbilityType.TriggeredAbility;
-        const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
-
-        if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
-            if (
-                !this.card.isEvent() ||
-                !context.player.isCardInPlayableLocation(this.card, context.playType)
-            ) {
-                return 'player';
-            }
-        }
-
-        return super.meetsRequirements(context, ignoredRequirements);
-    }
-
     public eventHandler(event, window) {
         if (!Contract.assertNotNullLike(window)) {
             return;
@@ -94,6 +76,24 @@ export default class TriggeredAbility extends CardAbility {
                 window.addToWindow(context);
             }
         }
+    }
+
+    public override meetsRequirements(context, ignoredRequirements = []) {
+        const canOpponentTrigger =
+            this.card.anyEffect(EffectName.CanBeTriggeredByOpponent) &&
+            this.abilityType !== AbilityType.TriggeredAbility;
+        const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
+
+        if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
+            if (
+                !this.card.isEvent() ||
+                !context.player.isCardInPlayableLocation(this.card, context.playType)
+            ) {
+                return 'player';
+            }
+        }
+
+        return super.meetsRequirements(context, ignoredRequirements);
     }
 
     public override createContext(player = this.card.controller, event: GameEvent) {

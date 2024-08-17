@@ -193,7 +193,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
             this.setDefaultTargetFn(() => target);
         }
         const events = this.generateEventsForAllTargets(context);
-        context.game.queueSimpleStep(() => context.game.openEventWindow(events));
+        context.game.queueSimpleStep(() => context.game.openEventWindow(events), `openEventWindow for '${this}'`);
     }
 
     public checkEventCondition(event: GameEvent, additionalProperties = {}): boolean {
@@ -258,5 +258,9 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
      */
     private targets(context: AbilityContext, additionalProperties = {}) {
         return this.generatePropertiesFromContext(context, additionalProperties).target as PlayerOrCard[];
+    }
+
+    public toString() {
+        return `GameSystem: ${this.name}`;
     }
 }

@@ -26,8 +26,10 @@ class PlayerOrCardAbility {
      * @param {Object} [properties.target] - optional property that specifies
      * the target of the ability.
      * @param {Array} [properties.gameSystem] - GameSystem[] optional array of game actions
+     * @param {string} [properties.title] - Name to use for ability display and debugging
      */
     constructor(properties, abilityType = AbilityType.Action) {
+        this.title = properties.title;
         this.limit = null;
         this.abilityType = abilityType;
         this.gameSystem = properties.gameSystem || [];
@@ -43,6 +45,10 @@ class PlayerOrCardAbility {
             }
         }
         this.nonDependentTargets = this.targets.filter((target) => !target.properties.dependsOn);
+    }
+
+    toString() {
+        return `Ability: ${this.title}`;
     }
 
     buildCost(cost) {
@@ -159,7 +165,7 @@ class PlayerOrCardAbility {
                         });
                     }
                 }
-            });
+            }, `Resolve cost for '${this}'`);
         }
     }
 

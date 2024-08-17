@@ -49,7 +49,7 @@ class AbilityTargetCard {
         return this.selector.optional || this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
-    getGameAction(context) {
+    getGameSystem(context) {
         return this.properties.gameSystem.filter((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 

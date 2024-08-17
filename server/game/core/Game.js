@@ -747,7 +747,7 @@ class Game extends EventEmitter {
         //     }
         // }
 
-        this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound())]);
+        this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
 
         this.playStarted = true;
         this.startedAt = new Date();
@@ -765,8 +765,8 @@ class Game extends EventEmitter {
         this.createEventAndOpenWindow(EventName.OnBeginRound);
         this.queueStep(new ActionPhase(this));
         this.queueStep(new RegroupPhase(this));
-        this.queueSimpleStep(() => this.roundEnded());
-        this.queueSimpleStep(() => this.beginRound());
+        this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
+        this.queueSimpleStep(() => this.beginRound(), 'beginRound');
     }
 
     roundEnded() {
@@ -789,8 +789,8 @@ class Game extends EventEmitter {
      * @param {Function} handler - () => undefined
      * @returns {undefined}
      */
-    queueSimpleStep(handler) {
-        this.pipeline.queueStep(new SimpleStep(this, handler));
+    queueSimpleStep(handler, stepName) {
+        this.pipeline.queueStep(new SimpleStep(this, handler, stepName));
     }
 
     /*
@@ -912,7 +912,6 @@ class Game extends EventEmitter {
     //     }, []);
     //     if (events.length > 0) {
     //         this.openEventWindow(events);
-    //         this.queueSimpleStep(() => context.refill());
     //     }
     //     return events;
     // }

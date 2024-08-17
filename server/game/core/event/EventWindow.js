@@ -16,23 +16,25 @@ class EventWindow extends BaseStepWithPipeline {
             }
         });
 
+        this.toStringName = `'EventWindow: ${this.events.map((event) => event.name).join(', ')}'`;
+
         this.initialise();
     }
 
     initialise() {
         this.pipeline.initialise([
-            new SimpleStep(this.game, () => this.setCurrentEventWindow()),
-            new SimpleStep(this.game, () => this.checkEventCondition()),
-            // new SimpleStep(this.game, () => this.createContingentEvents()),
+            new SimpleStep(this.game, () => this.setCurrentEventWindow(), 'setCurrentEventWindow'),
+            new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
+            // new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordInterrupt)),
-            new SimpleStep(this.game, () => this.checkForOtherEffects()),
-            new SimpleStep(this.game, () => this.preResolutionEffects()),
-            new SimpleStep(this.game, () => this.executeHandler()),
-            // new SimpleStep(this.game, () => this.resolveGameState()),
+            new SimpleStep(this.game, () => this.checkForOtherEffects(), 'checkForOtherEffects'),
+            new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
+            new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
+            // new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordReaction)),
-            // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps()),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.TriggeredAbility)),
-            new SimpleStep(this.game, () => this.resetCurrentEventWindow())
+            // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps(), 'checkAdditionalAbilitySteps'),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.TriggeredAbility), 'open TriggeredAbility window'),
+            new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
         ]);
     }
 
@@ -137,6 +139,11 @@ class EventWindow extends BaseStepWithPipeline {
         } else {
             this.game.currentEventWindow = null;
         }
+    }
+
+    /** @override */
+    toString() {
+        return this.toStringName;
     }
 }
 

@@ -10,10 +10,8 @@ import { GameEvent } from '../core/event/GameEvent.js';
 type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 
 export class PlayUnitAction extends PlayerAction {
-    public title = 'Play this unit';
-
     public constructor(card: Card) {
-        super(card, [payAdjustableResourceCost()]);
+        super(card, 'Play this unit', [payAdjustableResourceCost()]);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

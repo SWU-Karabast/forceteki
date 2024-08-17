@@ -13,6 +13,7 @@ export default class SabineWrenExplosivesArtist extends Card {
 
     protected override setupCardAbilities() {
         this.constantAbility({
+            title: 'Sabine passive',
             condition: () => countUniqueAspects(this.controller.getOtherUnitsInPlay(this, null)) >= 3,
 
             effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)

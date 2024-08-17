@@ -44,7 +44,7 @@ class AbilityTargetAbility {
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 
-    getGameAction(context) {
+    getGameSystem(context) {
         return this.properties.gameSystem.filter((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
