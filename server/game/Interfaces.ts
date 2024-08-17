@@ -186,6 +186,7 @@ export interface ITriggeredAbilityAggregateWhenProps extends ITriggeredAbilityBa
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;
 
 export interface IConstantAbilityProps<Source = any> {
+    title: string;
     locationFilter?: LocationFilter | LocationFilter[];
     // TODO: what's the difference between condition and match?
     condition?: (context: AbilityContext<Source>) => boolean;

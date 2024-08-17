@@ -144,6 +144,15 @@ export function assertNonEmpty(ara: any[], message?: string): boolean {
     return true;
 }
 
+export function assertStringValue(val: string, message?: string): boolean {
+    assertNotNullLike(val);
+    if (val === '') {
+        contractCheckImpl.fail(message ?? 'String is empty');
+        return false;
+    }
+    return true;
+}
+
 export function assertHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): boolean {
     assertNotNullLike(map);
     if (!map.has(key)) {
@@ -186,6 +195,7 @@ const Contract = {
     assertHasProperty,
     assertArraySize,
     assertNonEmpty,
+    assertStringValue,
     assertHasKey,
     assertPositiveNonZero,
     assertNonNegative,

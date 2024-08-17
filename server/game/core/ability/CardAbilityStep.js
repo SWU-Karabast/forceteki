@@ -59,9 +59,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
     }
 
-    getGameActions(context) {
+    getGameSystems(context) {
         // if there are any targets, look for gameActions attached to them
-        let actions = this.targets.reduce((array, target) => array.concat(target.getGameAction(context)), []);
+        let actions = this.targets.reduce((array, target) => array.concat(target.getGameSystem(context)), []);
         // look for a gameSystem on the ability itself, on an attachment execute that action on its parent, otherwise on the card itself
         return actions.concat(this.gameSystem);
     }
@@ -69,20 +69,21 @@ class CardAbilityStep extends PlayerOrCardAbility {
     /** @override */
     executeHandler(context) {
         this.handler(context);
-        this.game.queueSimpleStep(() => this.game.resolveGameState());
+        this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
     }
 
     executeGameActions(context) {
         context.events = [];
-        let actions = this.getGameActions(context);
+        let systems = this.getGameSystems(context);
         let then = this.properties.then;
         if (then && typeof then === 'function') {
             then = then(context);
         }
-        for (const action of actions) {
+        for (const system of systems) {
             this.game.queueSimpleStep(() => {
-                context.events.push(...action.generateEventsForAllTargets(context));
-            });
+                context.events.push(...system.generateEventsForAllTargets(context));
+            },
+            `push ${system.name} events for ${this}`);
         }
         this.game.queueSimpleStep(() => {
             let eventsToResolve = context.events.filter((event) => !event.cancelled && !event.resolved);
@@ -95,7 +96,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
                 let cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
                 this.game.resolveAbility(cardAbilityStep.createContext(context.player));
             }
-        });
+        }, `resolve events for ${this}`);
     }
 
     openEventWindow(events) {

@@ -101,13 +101,13 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
                                 this.getEffectMessage(context, additionalProperties)
                             );
                         }
-                    });
+                    }, 'resolve card targeting costs');
                 }
                 context.game.queueSimpleStep(() => {
                     if (allCostsPaid) {
                         events.push(this.generateEvent(card, context, additionalProperties));
                     }
-                });
+                }, 'push card target event if targeting cost paid');
             } else {
                 if (allCostsPaid) {
                     events.push(this.generateEvent(card, context, additionalProperties));

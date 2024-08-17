@@ -9,10 +9,8 @@ import Card from '../core/card/Card.js';
 import { unlimited } from '../core/ability/AbilityLimit.js';
 
 export class InitiateAttackAction extends PlayerAction {
-    public readonly title = 'Attack';
-
     public constructor(card: Card) {
-        super(card, [exhaustSelf()], {
+        super(card, 'Attack', [exhaustSelf()], {
             gameSystem: attack({ attacker: card }),
             locationFilter: WildcardLocation.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'

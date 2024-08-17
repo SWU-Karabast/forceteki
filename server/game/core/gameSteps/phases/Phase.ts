@@ -16,9 +16,9 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     public initialise(steps: IStep[]): void {
-        this.pipeline.initialise([new SimpleStep(this.game, () => this.createPhase())]);
-        const startStep = new SimpleStep(this.game, () => this.startPhase());
-        const endStep = new SimpleStep(this.game, () => this.endPhase());
+        this.pipeline.initialise([new SimpleStep(this.game, () => this.createPhase(), 'createPhase')]);
+        const startStep = new SimpleStep(this.game, () => this.startPhase(), 'startPhase');
+        const endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
         this.steps = [startStep, ...steps, endStep];
     }
 

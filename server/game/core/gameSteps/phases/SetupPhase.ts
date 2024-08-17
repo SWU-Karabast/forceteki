@@ -13,15 +13,15 @@ export class SetupPhase extends Phase {
         super(game, name);
         this.game.currentPhase = name;
         this.pipeline.initialise([
-            new SimpleStep(game, () => this.putBaseInPlay()),
-            new SimpleStep(game, () => this.putLeaderInPlay()),
-            new SimpleStep(game, () => this.chooseFirstPlayer()),
-            new SimpleStep(game, () => this.drawStartingHands()),
-            new SimpleStep(game, () => this.chooseMulligan()),
+            new SimpleStep(game, () => this.putBaseInPlay(), 'putBaseInPlay'),
+            new SimpleStep(game, () => this.putLeaderInPlay(), 'putLeaderInPlay'),
+            new SimpleStep(game, () => this.chooseFirstPlayer(), 'chooseFirstPlayer'),
+            new SimpleStep(game, () => this.drawStartingHands(), 'drawStartingHands'),
+            new SimpleStep(game, () => this.chooseMulligan(), 'chooseMulligan'),
             new ResourcePrompt(game, 2, 2),
 
             // there aren't clear game rules yet for resolving events that trigger during the setup step, so we skip the event window here
-            new SimpleStep(game, () => this.endPhase(true))
+            new SimpleStep(game, () => this.endPhase(true), 'endPhase')
         ]);
     }
 

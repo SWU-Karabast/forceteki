@@ -27,6 +27,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     private eventsToExclude: GameEvent[];
     private eventsEmitted = false;
     private choosePlayerResolutionOrderComplete = false;
+    private readonly toStringName: string;
 
     public get currentlyResolvingPlayer(): Player | null {
         return this.resolvePlayerOrder?.[0] ?? null;
@@ -36,6 +37,8 @@ export class TriggeredAbilityWindow extends BaseStep {
         super(game);
         this.eventWindow = window;
         this.eventsToExclude = eventsToExclude ?? [];
+
+        this.toStringName = `'TriggeredAbilityWindow: ${this.eventWindow.events.map((event) => event.name).join(', ')}'`;
     }
 
     public override continue() {
@@ -126,7 +129,7 @@ export class TriggeredAbilityWindow extends BaseStep {
             if (resolver.passPriority) {
                 this.postResolutionUpdate(resolver);
             }
-        });
+        }, `Check and pass priority for ${resolver.context.ability}`);
     }
 
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */
@@ -240,5 +243,9 @@ export class TriggeredAbilityWindow extends BaseStep {
         this.game.emit('aggregateEvent:' + AbilityType.TriggeredAbility, events, this);
 
         this.triggeringEvents = events;
+    }
+
+    public override toString() {
+        return this.toStringName;
     }
 }
