@@ -50,7 +50,7 @@ export interface IConstantAbilityProps<Source = any> {
 
     // TODO: can we get a real signature here
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    effect: Function | Function[];
+    ongoingEffect: Function | Function[];
 
     createCopies?: boolean;
 }

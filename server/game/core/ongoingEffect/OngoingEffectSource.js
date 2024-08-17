@@ -47,20 +47,26 @@ class OngoingEffectSource extends GameObject {
             throw Error('Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property');
         }
 
-        let effect = properties.effect;
-        let { _effect, ...propertiesWithoutEffect } = properties;
-        if (Array.isArray(propertiesWithoutEffect)) {
-            return propertiesWithoutEffect.map((factory) => this.game.effectEngine.add(factory(this.game, this, propertiesWithoutEffect)));
+        let ongoingEffect = properties.ongoingEffect;
+
+        let propertiesWithoutEffect;
+        {
+            let { ongoingEffect, ...remainingProperties } = properties;
+            propertiesWithoutEffect = remainingProperties;
         }
-        return [this.game.effectEngine.add(effect(this.game, this, propertiesWithoutEffect))];
+
+        if (Array.isArray(ongoingEffect)) {
+            return ongoingEffect.map((factory) => this.game.ongoingEffectEnginer.add(factory(this.game, this, propertiesWithoutEffect)));
+        }
+        return [this.game.ongoingEffectEnginer.add(ongoingEffect(this.game, this, propertiesWithoutEffect))];
     }
 
     removeEffectFromEngine(effectArray) {
-        this.game.effectEngine.unapplyAndRemove((effect) => effectArray.includes(effect));
+        this.game.ongoingEffectEnginer.unapplyAndRemove((effect) => effectArray.includes(effect));
     }
 
     removeLastingEffects() {
-        this.game.effectEngine.removeLastingEffects(this);
+        this.game.ongoingEffectEnginer.removeLastingEffects(this);
     }
 }
 

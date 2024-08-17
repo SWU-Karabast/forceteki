@@ -16,7 +16,7 @@ export default class SabineWrenExplosivesArtist extends Card {
             title: 'Sabine passive',
             condition: () => countUniqueAspects(this.controller.getOtherUnitsInPlay(this, null)) >= 3,
 
-            effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
+            ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
     }
 }

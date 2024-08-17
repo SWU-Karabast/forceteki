@@ -42,7 +42,7 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
                 !lastingEffectRestrictions.some((condition) => condition(props.impl))
         );
         for (const effect of effects) {
-            event.context.game.effectEngine.add(effect);
+            event.context.game.ongoingEffectEnginer.add(effect);
         }
     }
 
