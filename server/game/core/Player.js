@@ -25,6 +25,7 @@ const {
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
 const { shuffle, defaultLegalLocationsForCardTypes } = require('../../Util');
+const { HpCard } = require('./card/CardDeclarations');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -647,6 +648,9 @@ class Player extends GameObject {
         if (preparedDecklist.leader instanceof BaseCard) {
             this.leader = preparedDecklist.leader;
         }
+
+        const hpCardtest = new HpCard(this, preparedDecklist.deckCards[0].cardData);
+
         this.drawDeck = preparedDecklist.deckCards;
         this.decklist = preparedDecklist;
         this.drawDeck.forEach((card) => {

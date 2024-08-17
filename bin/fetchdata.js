@@ -129,4 +129,7 @@ async function main() {
 
 // TODO: some downloads can fail due to request issues, either improve the retry settings or add
 // some check on number of downloaded cards so we can have an error message
+
+// TODO: upload the set of card jsons as a github artifact so we're not relying on downloading
+// from the SWU site
 main();
