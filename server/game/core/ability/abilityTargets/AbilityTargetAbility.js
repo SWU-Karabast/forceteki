@@ -1,5 +1,6 @@
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
+const { default: Contract } = require('../../utils/Contract.js');
 
 class AbilityTargetAbility {
     constructor(name, properties, ability) {
@@ -10,7 +11,13 @@ class AbilityTargetAbility {
         this.dependentTarget = null;
         this.dependentCost = null;
         if (this.properties.dependsOn) {
-            let dependsOnTarget = ability.targets.find((target) => target.name === this.properties.dependsOn);
+            let dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
+
+            // assert that the target we depend on actually exists
+            if (!Contract.assertNotNullLike(dependsOnTarget)) {
+                return null;
+            }
+
             dependsOnTarget.dependentTarget = this;
         }
     }

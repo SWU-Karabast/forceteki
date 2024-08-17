@@ -40,15 +40,15 @@ class PlayerOrCardAbility {
         if (!Array.isArray(this.gameSystem)) {
             this.gameSystem = [this.gameSystem];
         }
-        this.buildTargets(properties);
+        this.buildTargetResolvers(properties);
         this.cost = this.buildCost(properties.cost);
         for (const cost of this.cost) {
             if (cost.dependsOn) {
-                let dependsOnTarget = this.targets.find((target) => target.name === cost.dependsOn);
+                let dependsOnTarget = this.targetResolvers.find((target) => target.name === cost.dependsOn);
                 dependsOnTarget.dependentCost = cost;
             }
         }
-        this.nonDependentTargets = this.targets.filter((target) => !target.properties.dependsOn);
+        this.nonDependentTargets = this.targetResolvers.filter((target) => !target.properties.dependsOn);
         this.toStringName = properties.cardName
             ? `'${properties.cardName} ability: ${this.title}'`
             : `'Ability: ${this.title}'`;
@@ -70,20 +70,18 @@ class PlayerOrCardAbility {
         return cost;
     }
 
-    // UP NEXT TARGET: better naming and general clarification for the target construction pipeline
-    buildTargets(properties) {
-        this.targets = [];
-        if (properties.target) {
-            this.targets.push(this.getAbilityTarget('target', properties.target));
-        } else if (properties.targets) {
-            for (const key of Object.keys(properties.targets)) {
-                this.targets.push(this.getAbilityTarget(key, properties.targets[key]));
+    buildTargetResolvers(properties) {
+        this.targetResolvers = [];
+        if (properties.targetResolver) {
+            this.targetResolvers.push(this.buildTargetResolver('target', properties.targetResolver));
+        } else if (properties.targetResolvers) {
+            for (const key of Object.keys(properties.targetResolvers)) {
+                this.targetResolvers.push(this.buildTargetResolver(key, properties.targetResolvers[key]));
             }
         }
     }
 
-    // UP NEXT TARGET: definition / interface for the properties object here
-    getAbilityTarget(name, properties) {
+    buildTargetResolver(name, properties) {
         if (properties.gameSystem) {
             if (!Array.isArray(properties.gameSystem)) {
                 properties.gameSystem = [properties.gameSystem];
@@ -110,7 +108,7 @@ class PlayerOrCardAbility {
         if (!this.canPayCosts(context) && !ignoredRequirements.includes('cost')) {
             return 'cost';
         }
-        if (this.targets.length === 0) {
+        if (this.targetResolvers.length === 0) {
             if (this.gameSystem.length > 0 && !this.checkGameActionsForPotential(context)) {
                 return 'condition';
             }
@@ -196,15 +194,15 @@ class PlayerOrCardAbility {
             payCostsFirst: false,
             delayTargeting: null
         };
-        for (let target of this.targets) {
+        for (let target of this.targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
         return targetResults;
     }
 
     resolveRemainingTargets(context, nextTarget, passHandler = null) {
-        const index = this.targets.indexOf(nextTarget);
-        let targets = this.targets.slice();
+        const index = this.targetResolvers.indexOf(nextTarget);
+        let targets = this.targetResolvers.slice();
         if (targets.slice(0, index).every((target) => target.checkTarget(context))) {
             targets = targets.slice(index);
         }
@@ -225,7 +223,7 @@ class PlayerOrCardAbility {
 
     hasTargetsChosenByInitiatingPlayer(context) {
         return (
-            this.targets.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
+            this.targetResolvers.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
             this.gameSystem.some((action) => action.hasTargetsChosenByInitiatingPlayer(context)) ||
             this.cost.some(
                 (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByInitiatingPlayer(context)

@@ -33,7 +33,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
                 .getEffectValues(EffectName.UnlessActionCost)
                 .filter((properties) => properties.actionName === this.name);
 
-            if (context.player && context.ability && context.ability.targets && context.ability.targets.length > 0) {
+            if (context.player && context.ability && context.ability.targetResolvers && context.ability.targetResolvers.length > 0) {
                 // let targetForCost = [card];
 
                 // if (context.targets.challenger && context.targets.duelTarget) {

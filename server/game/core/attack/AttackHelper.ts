@@ -9,7 +9,7 @@ export const addInitiateAttackProperties = (properties) => {
         return;
     }
 
-    properties.targets = {
+    properties.targetResolvers = {
         attacker: {
             cardType: CardType.Unit,
             player: (context) => {

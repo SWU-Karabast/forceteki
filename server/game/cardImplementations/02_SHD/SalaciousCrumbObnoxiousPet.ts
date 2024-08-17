@@ -13,7 +13,7 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
     public override setupCardAbilities() {
         this.whenPlayedAbility({
             title: 'Heal 1 damage from friendly base',
-            target: {
+            targetResolver: {
                 // UP NEXT TARGET: use a different name than "gameSystem" here?
                 cardType: CardType.Base,
                 locationFilter: Location.Base,
@@ -28,7 +28,7 @@ export default class SalaciousCrumbObnoxiousPet extends Card {
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.returnSelfToHandFromPlay()
             ],
-            target: {
+            targetResolver: {
                 cardCondition: (card) => card.location === Location.GroundArena,
                 gameSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }

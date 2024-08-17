@@ -13,7 +13,7 @@ export default class GroguIrresistible extends Card {
         this.actionAbility({
             title: 'Exhaust an enemy unit',
             cost: AbilityHelper.costs.exhaustSelf(),
-            target: {
+            targetResolver: {
                 cardCondition: (card) => card.controller !== this.controller,
                 gameSystem: AbilityHelper.immediateEffects.exhaust()
             }

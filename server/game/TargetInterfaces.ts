@@ -10,11 +10,11 @@ export type ITriggeredAbilityTargetResolver =
     | (ICardTargetResolver & ITriggeredAbilityCardTargetResolver)
     | ISelectTargetResolver;
 
-export type ITriggeredAbilityTargetsResolver = Record<string, ITriggeredAbilityTargetResolver & ISubTargetResolver & ITriggeredAbilityTargetResolver>;
+export type ITriggeredAbilityTargetsResolver = Record<string, ITriggeredAbilityTargetResolver & ITriggeredAbilityTargetResolver>;
 
 export type IActionTargetResolver = (ICardTargetResolver & IActionCardTargetResolver) | ISelectTargetResolver | IAbilityTargetResolver;
 
-export type IActionTargetsResolver = Record<string, IActionTargetResolver & ISubTargetResolver>;
+export type IActionTargetsResolver = Record<string, IActionTargetResolver>;
 
 
 // ********************************************** INTERNAL TYPES **********************************************
@@ -27,6 +27,7 @@ interface ITargetResolverBase {
     player?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
     gameSystem?: GameSystem | GameSystem[];
+    dependsOn?: string;
 }
 
 interface ISelectTargetResolver extends ITargetResolverBase {
@@ -77,10 +78,6 @@ type ICardTargetResolver =
     | ICardMaxStatTargetResolver
     | CardSingleUnlimitedTargetResolver
     | IAbilityTargetResolver;
-
-interface ISubTargetResolver {
-    dependsOn?: string;
-}
 
 interface IActionCardTargetResolver {
     cardCondition?: (card: Card, context?: AbilityContext) => boolean;

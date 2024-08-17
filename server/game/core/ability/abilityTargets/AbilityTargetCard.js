@@ -1,9 +1,10 @@
-const { defaultLegalLocationsForCardTypes } = require('../../../../Util.js');
+const { defaultLegalLocationsForCardTypes, asArray } = require('../../../../Util.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer, EffectName, TargetMode } = require('../../Constants.js');
 const { default: Contract } = require('../../utils/Contract.js');
 const { cardLocationMatches } = require('../../utils/EnumHelpers.js');
 
+// TODO: the AbilityTarget* classes need a base class and then converted to TS
 class AbilityTargetCard {
     constructor(name, properties, ability) {
         this.name = name;
@@ -16,7 +17,13 @@ class AbilityTargetCard {
         this.dependentTarget = null;
         this.dependentCost = null;
         if (this.properties.dependsOn) {
-            let dependsOnTarget = ability.targets.find((target) => target.name === this.properties.dependsOn);
+            let dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
+
+            // assert that the target we depend on actually exists
+            if (!Contract.assertNotNullLike(dependsOnTarget)) {
+                return null;
+            }
+
             dependsOnTarget.dependentTarget = this;
         }
 
@@ -55,7 +62,7 @@ class AbilityTargetCard {
     }
 
     getGameSystem(context) {
-        return this.properties.gameSystem.filter((gameSystem) => gameSystem.hasLegalTarget(context));
+        return asArray(this.properties.gameSystem).filter((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
     getAllLegalTargets(context) {
@@ -83,7 +90,11 @@ class AbilityTargetCard {
         }
 
         // create a copy of properties without cardCondition or player
-        let { _cardCondition, _player, ...otherProperties } = this.properties;
+        let extractedProperties;
+        {
+            let { cardCondition, player, ...otherProperties } = this.properties;
+            extractedProperties = otherProperties;
+        }
 
         let buttons = [];
         let waitingPromptTitle = '';
@@ -134,7 +145,7 @@ class AbilityTargetCard {
                 return true;
             }
         };
-        context.game.promptForSelect(player, Object.assign(promptProperties, otherProperties));
+        context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 
     cancel(targetResults) {

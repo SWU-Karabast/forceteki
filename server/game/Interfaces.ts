@@ -10,6 +10,34 @@ import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTa
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;
 
+// TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
+// for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
+export interface IAbilityProps<Context> {
+    title: string;
+    locationFilter?: Location | Location[];
+    cost?: any;
+    limit?: any;
+    max?: any;
+    targetResolver?: IActionTargetResolver;
+    targetResolvers?: IActionTargetsResolver;
+    cardName?: string;
+
+    /**
+     * Indicates whether the ability should allow the player to trigger an attack from a unit.
+     * Can either be an {@link IInitiateAttack} property object or a function that creates one from
+     * an {@link AbilityContext}.
+     */
+    initiateAttack?: IInitiateAttack | ((context: AbilityContext) => IInitiateAttack);
+
+    printedAbility?: boolean;
+    cannotTargetFirst?: boolean;
+    effect?: string;
+    effectArgs?: EffectArg | ((context: Context) => EffectArg);
+    gameSystem?: GameSystem | GameSystem[];
+    handler?: (context?: Context) => void;
+    then?: ((context?: AbilityContext) => object) | object;
+}
+
 export interface IConstantAbilityProps<Source = any> {
     title: string;
     locationFilter?: LocationFilter | LocationFilter[];
@@ -42,7 +70,6 @@ export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext
          */
         anyPlayer?: boolean;
         phase?: PhaseName | 'any';
-        cardName?: string;
     }
 
 export type traitLimit = Record<string, number>;
@@ -80,38 +107,12 @@ interface ITriggeredAbilityAggregateWhenProps extends ITriggeredAbilityBaseProps
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 }
 
-interface IAbilityProps<Context> {
-    title: string;
-    locationFilter?: Location | Location[];
-    cost?: any;
-    limit?: any;
-    max?: any;
-    target?: IActionTargetResolver;
-    targets?: IActionTargetsResolver;
-
-    /**
-     * Indicates whether the ability should allow the player to trigger an attack from a unit.
-     * Can either be an {@link IInitiateAttack} property object or a function that creates one from
-     * an {@link AbilityContext}.
-     */
-    initiateAttack?: IInitiateAttack | ((context: AbilityContext) => IInitiateAttack);
-
-    printedAbility?: boolean;
-    cannotTargetFirst?: boolean;
-    effect?: string;
-    effectArgs?: EffectArg | ((context: Context) => EffectArg);
-    gameSystem?: GameSystem | GameSystem[];
-    handler?: (context?: Context) => void;
-    then?: ((context?: AbilityContext) => object) | object;
-}
-
 interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityContext> {
     collectiveTrigger?: boolean;
-    target?: ITriggeredAbilityTargetResolver;
-    targets?: ITriggeredAbilityTargetsResolver;
+    targetResolver?: ITriggeredAbilityTargetResolver;
+    targetResolvers?: ITriggeredAbilityTargetsResolver;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => object) | object;
-    cardName?: string;
 
     /**
      * If true, the ability can be triggered by any player. If false, only the card's controller can

@@ -1,5 +1,6 @@
 const { SelectChoice } = require('./SelectChoice.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
+const { default: Contract } = require('../../utils/Contract.js');
 
 class AbilityTargetSelect {
     constructor(name, properties, ability) {
@@ -8,7 +9,13 @@ class AbilityTargetSelect {
         this.dependentTarget = null;
         this.dependentCost = null;
         if (this.properties.dependsOn) {
-            let dependsOnTarget = ability.targets.find((target) => target.name === this.properties.dependsOn);
+            let dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
+
+            // assert that the target we depend on actually exists
+            if (!Contract.assertNotNullLike(dependsOnTarget)) {
+                return null;
+            }
+
             dependsOnTarget.dependentTarget = this;
         }
     }
@@ -72,7 +79,7 @@ class AbilityTargetSelect {
             return;
         }
 
-        let player = (this.properties.targets && context.choosingPlayerOverride) || this.getChoosingPlayer(context);
+        let player = (this.properties.targetResolvers && context.choosingPlayerOverride) || this.getChoosingPlayer(context);
         if (player === context.player.opponent && context.stage === Stage.PreTarget) {
             targetResults.delayTargeting = this;
             return;
@@ -119,7 +126,7 @@ class AbilityTargetSelect {
 
     checkTarget(context) {
         if (
-            this.properties.targets &&
+            this.properties.targetResolvers &&
             context.choosingPlayerOverride &&
             this.getChoosingPlayer(context) === context.player
         ) {
@@ -137,7 +144,7 @@ class AbilityTargetSelect {
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {
-        if (this.properties.targets) {
+        if (this.properties.targetResolvers) {
             return true;
         }
         let actions = Object.values(this.getChoices(context)).filter((value) => typeof value !== 'function');

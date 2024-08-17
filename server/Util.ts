@@ -112,3 +112,11 @@ export function defaultLegalLocationsForCardTypes(cardTypes: Set<CardType> | Car
     }
     return null;
 }
+
+export function asArray(val: any) {
+    if (val == null) {
+        return [];
+    }
+
+    return Array.isArray(val) ? val : [val];
+}

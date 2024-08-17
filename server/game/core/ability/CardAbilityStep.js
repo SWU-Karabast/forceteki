@@ -61,7 +61,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
 
     getGameSystems(context) {
         // if there are any targets, look for gameActions attached to them
-        let actions = this.targets.reduce((array, target) => array.concat(target.getGameSystem(context)), []);
+        let actions = this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystem(context)), []);
         // look for a gameSystem on the ability itself, on an attachment execute that action on its parent, otherwise on the card itself
         return actions.concat(this.gameSystem);
     }
