@@ -22,6 +22,7 @@ export default class FleetLieutenant extends Card {
         });
     }
 
+    // TODO: make this its own effect in the library (along with snowtrooper)
     private rebelPowerBuffEffectGenerator(context: AbilityContext, attack: Attack) {
         if (attack.attacker.hasTrait(Trait.Rebel)) {
             return {

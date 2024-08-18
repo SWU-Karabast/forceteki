@@ -424,6 +424,7 @@ class Card extends OngoingEffectSource {
         }
     }
 
+    // TODO: consolidate these down to "add*" abilities
     protected actionAbility(properties: IActionProps<this>): void {
         this.abilities.action.push(this.createActionAbility(properties));
     }
