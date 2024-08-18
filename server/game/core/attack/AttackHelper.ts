@@ -22,6 +22,7 @@ export const addInitiateAttackProperties = (properties) => {
             // this is to pay the exhaust cost for the attacker
             // TODO: need to investigate to see if this resolves at the right point in the attack
             // (experiment with something that would trigger off of the exhaust to make sure it happens at the right time)
+            // if not, try splitting the two with a "then" clause to get exhaust to fire first
             immediateEffect: AbilityHelper.immediateEffects.exhaust({ isCost: true })
         },
         attackTarget: {

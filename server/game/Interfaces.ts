@@ -17,7 +17,6 @@ export interface IAbilityProps<Context> {
     locationFilter?: Location | Location[];
     cost?: any;
     limit?: any;
-    max?: any;
     targetResolver?: IActionTargetResolver;
     targetResolvers?: IActionTargetsResolver;
     cardName?: string;
@@ -41,7 +40,7 @@ export interface IAbilityProps<Context> {
 export interface IConstantAbilityProps<Source = any> {
     title: string;
     locationFilter?: LocationFilter | LocationFilter[];
-    // TODO: what's the difference between condition and match?
+    // TODO: what's the difference between condition and match? document it here
     condition?: (context: AbilityContext<Source>) => boolean;
     match?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: RelativePlayer;
@@ -71,6 +70,8 @@ export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext
         anyPlayer?: boolean;
         phase?: PhaseName | 'any';
     }
+
+export type IEpicActionProps<Source = any> = Omit<IAbilityProps<AbilityContext<Source>>, 'cost' | 'limit'>;
 
 export type traitLimit = Record<string, number>;
 

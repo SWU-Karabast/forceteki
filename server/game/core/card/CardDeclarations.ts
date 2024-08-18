@@ -1,3 +1,4 @@
+import { EpicAction } from './EpicAction';
 import { Exhaust } from './Exhaust';
 import { Hp } from './Hp';
 import { NewCard } from './NewCard';
@@ -5,6 +6,8 @@ import { NewCard } from './NewCard';
 export const HpCard = Hp(NewCard);
 
 export const HpExhaust = Exhaust(Hp(NewCard));
+
+export const Base = EpicAction(Hp(NewCard));
 
 // epic action
 

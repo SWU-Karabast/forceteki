@@ -24,16 +24,10 @@ class CardAbility extends CardAbilityStep {
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.cannotBeMirrored = !!properties.cannotBeMirrored;
         this.optional = !!properties.optional;
-        this.max = properties.max;
         this.abilityIdentifier = properties.abilityIdentifier;
         this.origin = properties.origin;
         if (!this.abilityIdentifier) {
             this.abilityIdentifier = this.printedAbility ? this.card.id + '1' : '';
-        }
-        this.maxIdentifier = this.card.name + this.abilityIdentifier;
-
-        if (this.max) {
-            this.card.owner.registerAbilityMax(this.maxIdentifier, this.max);
         }
 
         // TODO EVENT: this is where the actual payment and activation of an event card happens, this needs to be
@@ -79,10 +73,6 @@ class CardAbility extends CardAbilityStep {
 
         if (!ignoredRequirements.includes('limit') && this.limit.isAtMax(context.player)) {
             return 'limit';
-        }
-
-        if (!ignoredRequirements.includes('max') && this.max && context.player.isAbilityAtMax(this.maxIdentifier)) {
-            return 'max';
         }
 
         // TODO: enum for ignoredRequirements strings?

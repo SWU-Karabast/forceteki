@@ -71,7 +71,7 @@ class GainAbility extends OngoingEffectValueWrapper {
             }
             return;
         } else if (this.abilityType === AbilityType.Action) {
-            this.value = target.createAction(properties);
+            this.value = target.createActionAbility(properties);
         } else {
             this.value = target.createTriggeredAbility(this.abilityType, properties);
             this.value.registerEvents();

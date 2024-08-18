@@ -24,9 +24,6 @@ import type Game from '../Game.js';
  *                to activate the action. Defaults to 'play area'.
  * limit        - optional AbilityLimit object that represents the max number of
  *                uses for the action as well as when it resets.
- * max          - optional AbilityLimit object that represents the max number of
- *                times the ability by card title can be used. Contrast with
- *                `limit` which limits per individual card.
  * anyPlayer    - boolean indicating that the action may be executed by a player
  *                other than the card's controller. Defaults to false.
  * clickToActivate - boolean that indicates the action should be activated when

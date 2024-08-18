@@ -45,7 +45,7 @@ export class TriggerAbilitySystem extends CardTargetSystem<ITriggerAbilityProper
         if (
             !super.canAffect(card, context) ||
             !ability ||
-            (!properties.subResolution && player.isAbilityAtMax(ability.maxIdentifier))
+            (!properties.subResolution)
         ) {
             return false;
         }

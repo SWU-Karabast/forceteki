@@ -25,7 +25,8 @@ const {
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
 const { shuffle, defaultLegalLocationsForCardTypes } = require('../../Util');
-const { HpCard, HpExhaust } = require('./card/CardDeclarations');
+const { HpCard, HpExhaust, Base } = require('./card/CardDeclarations');
+const AbilityHelper = require('../AbilityHelper');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -649,7 +650,14 @@ class Player extends GameObject {
             this.leader = preparedDecklist.leader;
         }
 
-        const cardTest = new HpExhaust(this, preparedDecklist.deckCards[0].cardData);
+        const baseTest = new Base(this, preparedDecklist.deckCards[0].cardData);
+        baseTest.addEpicActionAbility({
+            title: 'Exhaust an enemy unit',
+            targetResolver: {
+                cardCondition: (card) => card.controller !== this,
+                immediateEffect: AbilityHelper.immediateEffects.exhaust()
+            }
+        }, preparedDecklist.deckCards[0]);
 
         this.drawDeck = preparedDecklist.deckCards;
         this.decklist = preparedDecklist;
@@ -877,46 +885,6 @@ class Player extends GameObject {
                 this.removeCostAdjuster(adjuster);
             }
         });
-    }
-
-    /**
-     * Registers a card ability max limit on this Player
-     * @param {String} maxIdentifier
-     * @param limit FixedAbilityLimit
-     */
-    registerAbilityMax(maxIdentifier, limit) {
-        if (this.abilityMaxByIdentifier[maxIdentifier]) {
-            return;
-        }
-
-        this.abilityMaxByIdentifier[maxIdentifier] = limit;
-        limit.registerEvents(this.game);
-    }
-
-    /**
-     * Checks whether a max ability is at max
-     * @param {String} maxIdentifier
-     */
-    isAbilityAtMax(maxIdentifier) {
-        let limit = this.abilityMaxByIdentifier[maxIdentifier];
-
-        if (!limit) {
-            return false;
-        }
-
-        return limit.isAtMax(this);
-    }
-
-    /**
-     * Marks the use of a max ability
-     * @param {String} maxIdentifier
-     */
-    incrementAbilityMax(maxIdentifier) {
-        let limit = this.abilityMaxByIdentifier[maxIdentifier];
-
-        if (limit) {
-            limit.increment(this);
-        }
     }
 
     /**
