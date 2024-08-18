@@ -1,5 +1,6 @@
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
-import Player from '../Player';
+import type Player from '../Player';
+import Contract from '../utils/Contract';
 
 export type CardConstructor = new (...args: any[]) => NewCard;
 
@@ -11,11 +12,11 @@ export class NewCard extends OngoingEffectSource {
         private readonly cardData: any
     ) {
         super(owner.game);
-
-        this.readCardData(cardData);
     }
 
-    protected readCardData(cardData: any) {
-        this.id = cardData.id;
+    protected unpackConstructorArgs(...args: any[]): [Player, any] {
+        Contract.assertArraySize(args, 2);
+
+        return [args[0] as Player, args[1]];
     }
 }
