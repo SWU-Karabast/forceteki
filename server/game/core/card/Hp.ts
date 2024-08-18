@@ -1,12 +1,6 @@
-import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
-import Player from '../Player';
-import { NewCard } from './NewCard';
+import { CardConstructor } from './NewCard';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type GConstructor<T = {}> = new (...args: any[]) => T;
-type CardAble = GConstructor<NewCard>;
-
-export function Hp<TBaseClass extends CardAble>(BaseClass: TBaseClass) {
+export function Hp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithHp extends BaseClass {
         private _printedHp = 30;
         private _damage = 0;

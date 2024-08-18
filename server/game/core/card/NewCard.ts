@@ -1,6 +1,7 @@
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import Player from '../Player';
 
+export type CardConstructor = new (...args: any[]) => NewCard;
 
 export class NewCard extends OngoingEffectSource {
     protected override id: string;
