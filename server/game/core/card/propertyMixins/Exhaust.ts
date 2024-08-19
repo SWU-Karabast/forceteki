@@ -1,3 +1,4 @@
+import { Location } from '../../Constants';
 import Contract from '../../utils/Contract';
 import { CardConstructor } from '../NewCard';
 

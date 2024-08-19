@@ -7,7 +7,7 @@ import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import Contract from '../utils/Contract';
 import Card from './Card';
-import { CardType } from '../Constants';
+import { CardType, Location } from '../Constants';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { checkConvertToEnum } from '../utils/EnumHelpers';
@@ -19,11 +19,16 @@ export class NewCard extends OngoingEffectSource {
 
     protected override readonly id: string;
     protected _actions: PlayerOrCardAbility[] = [];
-
     protected readonly printedTypes: Set<CardType>;
+
+    private _location: Location;
 
     public get actions() {
         return this._actions;
+    }
+
+    public get location() {
+        return this._location;
     }
 
     public get types(): Set<CardType> {
@@ -41,31 +46,10 @@ export class NewCard extends OngoingEffectSource {
         this.id = cardData.id;
 
         this.printedTypes = new Set(checkConvertToEnum(cardData.types, CardType));
-
-        this.addDefaultPlayActions();
     }
 
 
     // **************************************** INITIALIZATION HELPERS ****************************************
-    // TODO THIS PR: remove this and just do it in the class constructors?
-    protected addDefaultPlayActions() {
-        if (this.printedTypes.has(CardType.Leader) && this.printedTypes.has(CardType.Unit)) {
-            this._actions.push(new InitiateAttackAction(this.generateOriginalCard()));
-        } else if (this.printedTypes.has(CardType.Unit)) {
-            this._actions.push(new InitiateAttackAction(this.generateOriginalCard()));
-            this._actions.push(new PlayUnitAction(this.generateOriginalCard()));
-        } else if (this.printedTypes.has(CardType.Leader)) {
-            // TODO LEADER: add deploy action
-        } else if (this.printedTypes.has(CardType.Upgrade)) {
-            // TODO UPGRADES: add play upgrade action
-        } else if (this.printedTypes.has(CardType.Event)) {
-            // TODO EVENTS: add play event action
-        }
-
-        // if base, do nothing
-    }
-
-
     // TODO THIS PR: remove this
     protected generateOriginalCard() {
         return new Card(this.owner, this.cardData);
@@ -143,5 +127,12 @@ export class NewCard extends OngoingEffectSource {
             }
         }
         return false;
+    }
+
+
+    // ******************************************* CARD TYPE HELPERS *******************************************
+    // this is here to be overridden, we can't use abstract bc it doesn't work with mixins sadly
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected initializeForCurrentLocation() {
     }
 }

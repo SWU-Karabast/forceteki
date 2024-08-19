@@ -4,7 +4,7 @@ import { Hp } from './propertyMixins/Hp';
 import { NewCard } from './NewCard';
 import { Exhaust } from './propertyMixins/Exhaust';
 import { Cost } from './propertyMixins/Cost';
-import { CardType } from '../Constants';
+import { CardType, Location } from '../Constants';
 import Contract from '../utils/Contract';
 
 const EventCardParent = Cost(Exhaust(NewCard));
@@ -22,6 +22,20 @@ export class EventCard extends EventCardParent {
 
     public override isEvent() {
         return true;
+    }
+
+    protected override initializeForCurrentLocation(): void {
+        super.initializeForCurrentLocation();
+
+        switch (this.location) {
+            case Location.Resource:
+                this.enableExhaust(true);
+                break;
+
+            default:
+                this.enableExhaust(false);
+                break;
+        }
     }
 
     // TODO EVENTS: populate this with an addEventAbility() method (see Unit.ts for reference)

@@ -8,7 +8,7 @@ import { Power } from './propertyMixins/Power';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import Contract from '../utils/Contract';
-import { CardType } from '../Constants';
+import { CardType, Location } from '../Constants';
 
 const UpgradeCardParent = ArenaAbilities(Power(Hp(Cost(Exhaust(NewCard)))));
 
@@ -25,5 +25,19 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public override isUpgrade() {
         return true;
+    }
+
+    protected override initializeForCurrentLocation(): void {
+        super.initializeForCurrentLocation();
+
+        switch (this.location) {
+            case Location.Resource:
+                this.enableExhaust(true);
+                break;
+
+            default:
+                this.enableExhaust(false);
+                break;
+        }
     }
 }

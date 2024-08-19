@@ -4,7 +4,7 @@ import { Power } from './propertyMixins/Power';
 import { LeaderCardNew } from './LeaderCardNew';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import Contract from '../utils/Contract';
-import { CardType } from '../Constants';
+import { CardType, Location } from '../Constants';
 
 const LeaderUnitCardParent = Power(Hp(LeaderCardNew));
 
@@ -27,6 +27,22 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
     public override isLeaderUnit() {
         return this.isDeployed;
+    }
+
+    protected override initializeForCurrentLocation(): void {
+        super.initializeForCurrentLocation();
+
+        switch (this.location) {
+            case Location.GroundArena || Location.SpaceArena:
+                this.enableDamage(true);
+                this.enableExhaust(true);
+                break;
+
+            case Location.Base:
+                this.enableDamage(false);
+                this.enableExhaust(true);
+                break;
+        }
     }
 
     // TODO: where to put code that handles defeat for leader vs token vs normal card?

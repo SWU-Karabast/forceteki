@@ -8,7 +8,7 @@ import { Power } from './propertyMixins/Power';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import Contract from '../utils/Contract';
-import { CardType } from '../Constants';
+import { CardType, Location } from '../Constants';
 
 const UnitCardParent = ArenaAbilities(Power(Hp(Cost(Exhaust(NewCard)))));
 
@@ -30,5 +30,26 @@ export class UnitCard extends UnitCardParent {
 
     public override isNonLeaderUnit() {
         return true;
+    }
+
+    protected override initializeForCurrentLocation(): void {
+        super.initializeForCurrentLocation();
+
+        switch (this.location) {
+            case Location.GroundArena || Location.SpaceArena:
+                this.enableDamage(true);
+                this.enableExhaust(true);
+                break;
+
+            case Location.Resource:
+                this.enableDamage(false);
+                this.enableExhaust(true);
+                break;
+
+            default:
+                this.enableDamage(false);
+                this.enableExhaust(false);
+                break;
+        }
     }
 }
