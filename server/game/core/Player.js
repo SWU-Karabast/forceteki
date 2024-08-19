@@ -25,8 +25,9 @@ const {
 const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
 const { shuffle, defaultLegalLocationsForCardTypes } = require('../../Util');
-const { HpCard, HpExhaust, Base } = require('./card/CardDeclarations');
 const AbilityHelper = require('../AbilityHelper');
+const { BaseCardNew } = require('./card/BaseCardNew');
+const { EventCard } = require('./card/EventCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -650,7 +651,7 @@ class Player extends GameObject {
             this.leader = preparedDecklist.leader;
         }
 
-        const baseTest = new Base(this, preparedDecklist.deckCards[0].cardData);
+        const baseTest = new BaseCardNew(this, preparedDecklist.deckCards[0].cardData);
         baseTest.addEpicActionAbility({
             title: 'Exhaust an enemy unit',
             targetResolver: {
@@ -658,6 +659,8 @@ class Player extends GameObject {
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
         }, preparedDecklist.deckCards[0]);
+
+        const eventTest = new EventCard(this, preparedDecklist.deckCards[0].cardData);
 
         this.drawDeck = preparedDecklist.deckCards;
         this.decklist = preparedDecklist;
