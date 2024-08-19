@@ -28,8 +28,9 @@ export class NewCard extends OngoingEffectSource {
 
     protected defaultActions: PlayerOrCardAbility[] = [];
     protected defaultController: Player;
-    protected hiddenForController = false;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
-    protected hiddenForOpponent = false;
+    protected facedown = true;
+    protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
+    protected hiddenForOpponent = true;
     protected _upgrades: Card[] = [];
 
     private _location: Location;
@@ -38,13 +39,21 @@ export class NewCard extends OngoingEffectSource {
      * The union of the card's "Action Abilities" (i.e. abilities that enable an action, `SWU 7.2.1`)
      * and any other general card actions such as playing a card
      */
-    public get actions() {
+    public get actions(): PlayerOrCardAbility[] {
         return this.isBlank() ? []
             : this.defaultActions;
     }
 
-    public get location() {
+    public get keywords(): Set<Keyword> {
+        return this.getKeywords();
+    }
+
+    public get location(): Location {
         return this._location;
+    }
+
+    public get traits(): Set<Trait> {
+        return this.getTraits();
     }
 
     public get types(): Set<CardType> {
@@ -165,7 +174,8 @@ export class NewCard extends OngoingEffectSource {
 
 
     // ******************************************* KEYWORD HELPERS *******************************************
-    public get keywords() {
+    /** Helper method for {@link NewCard.keywords} */
+    private getKeywords() {
         const keywords = this.printedKeywords;
 
         for (const gainedTrait of this.getEffectValues(EffectName.AddKeyword)) {
@@ -207,7 +217,8 @@ export class NewCard extends OngoingEffectSource {
 
 
     // ******************************************* TRAIT HELPERS *******************************************
-    public get traits() {
+    /** Helper method for {@link NewCard.traits} */
+    private getTraits() {
         const traits = new Set(
             this.getEffectValues(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
                 ? []
@@ -271,13 +282,13 @@ export class NewCard extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentLocation(prevLocation: Location) {
-        // TODO THIS PR: figure out how to implement playedThisTurn and facedown. might need more mixins
+        // TODO THIS PR: "Playable" mixin which adds addPlayAction and enteredPlayThisTurn
         switch (this.location) {
             case Location.SpaceArena:
             case Location.GroundArena:
                 this.controller = this.owner;
                 // this.playedThisTurn = false;
-                // this.facedown = false;
+                this.facedown = false;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = false;
                 break;
@@ -286,7 +297,7 @@ export class NewCard extends OngoingEffectSource {
             case Location.Leader:
                 this.controller = this.owner;
                 // this.playedThisTurn = false;
-                // this.facedown = false;
+                this.facedown = false;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = false;
                 break;
@@ -294,7 +305,7 @@ export class NewCard extends OngoingEffectSource {
             case Location.Resource:
                 this.controller = this.owner;
                 // this.playedThisTurn = false;
-                // this.facedown = true;
+                this.facedown = true;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = true;
                 break;
@@ -302,7 +313,7 @@ export class NewCard extends OngoingEffectSource {
             case Location.Deck:
                 this.controller = this.owner;
                 // this.playedThisTurn = false;
-                // this.facedown = true;
+                this.facedown = true;
                 this.hiddenForController = true;
                 this.hiddenForOpponent = true;
                 break;
@@ -310,7 +321,7 @@ export class NewCard extends OngoingEffectSource {
             case Location.Hand:
                 this.controller = this.owner;
                 // this.playedThisTurn = false;
-                // this.facedown = false;
+                this.facedown = false;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = true;
                 break;
@@ -321,7 +332,7 @@ export class NewCard extends OngoingEffectSource {
             case Location.BeingPlayed:
                 this.controller = this.owner;
                 // this.playedThisTurn = false;
-                // this.facedown = false;
+                this.facedown = false;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = false;
                 break;
@@ -331,7 +342,7 @@ export class NewCard extends OngoingEffectSource {
         }
     }
 
-    // TODO UPGRADES: this whole section
+    // TODO THIS PR: only unit card types can have attachments. need to move this out of here
     // *************************************** UPGRADE HELPERS ***************************************
     /**
      * Checks whether an attachment can be played on a given card.  Intended to be

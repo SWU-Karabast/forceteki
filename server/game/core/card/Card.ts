@@ -1118,7 +1118,7 @@ class Card extends OngoingEffectSource {
         return true;
     }
 
-    // TODO THIS PR: how to handle these if hp and powe are split?
+    // TODO THIS PR: how to handle these if hp and power are split?
     private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
         const wrappedModifiers = this.getWrappedStatModifiers(excludeModifiers);
 

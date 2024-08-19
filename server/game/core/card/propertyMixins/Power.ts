@@ -5,8 +5,6 @@ export function Power<TBaseClass extends CardConstructor>(BaseClass: TBaseClass)
     return class WithPower extends BaseClass {
         private readonly _printedPower: number;
 
-        // TODO THIS PR: import all of the cost-related code, adjusters etc.
-
         public get power(): number {
             return this._printedPower;
         }
