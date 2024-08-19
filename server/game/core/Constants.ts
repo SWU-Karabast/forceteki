@@ -179,6 +179,11 @@ export enum Aspect {
     Vigilance = 'vigilance'
 }
 
+export enum Keyword {
+    /** @deprecated This is not implemented yet */
+    Sentinel = 'sentinel',
+}
+
 export enum Trait {
     Force = 'force',
     Rebel = 'rebel',

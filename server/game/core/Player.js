@@ -651,17 +651,6 @@ class Player extends GameObject {
             this.leader = preparedDecklist.leader;
         }
 
-        const baseTest = new BaseCardNew(this, preparedDecklist.deckCards[0].cardData);
-        baseTest.addEpicActionAbility({
-            title: 'Exhaust an enemy unit',
-            targetResolver: {
-                cardCondition: (card) => card.controller !== this,
-                immediateEffect: AbilityHelper.immediateEffects.exhaust()
-            }
-        });
-
-        const eventTest = new EventCard(this, preparedDecklist.deckCards[0].cardData);
-
         this.drawDeck = preparedDecklist.deckCards;
         this.decklist = preparedDecklist;
         this.drawDeck.forEach((card) => {

@@ -24,8 +24,8 @@ export class EventCard extends EventCardParent {
         return true;
     }
 
-    protected override initializeForCurrentLocation(): void {
-        super.initializeForCurrentLocation();
+    protected override initializeForCurrentLocation(prevLocation: Location): void {
+        super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {
             case Location.Resource:

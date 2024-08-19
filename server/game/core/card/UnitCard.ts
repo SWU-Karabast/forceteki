@@ -20,8 +20,8 @@ export class UnitCard extends UnitCardParent {
         super(owner, cardData);
         Contract.assertTrue(this.printedTypes.has(CardType.Unit));
 
-        this._actions.push(new InitiateAttackAction(this.generateOriginalCard()));
-        this._actions.push(new PlayUnitAction(this.generateOriginalCard()));
+        this.defaultActions.push(new InitiateAttackAction(this.generateOriginalCard()));
+        this.defaultActions.push(new PlayUnitAction(this.generateOriginalCard()));
     }
 
     public override isUnit() {
@@ -32,8 +32,8 @@ export class UnitCard extends UnitCardParent {
         return true;
     }
 
-    protected override initializeForCurrentLocation(): void {
-        super.initializeForCurrentLocation();
+    protected override initializeForCurrentLocation(prevLocation: Location): void {
+        super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {
             case Location.GroundArena || Location.SpaceArena:

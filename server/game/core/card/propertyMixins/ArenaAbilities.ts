@@ -4,17 +4,20 @@ import { CardActionAbility } from '../../ability/CardActionAbility';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { Duration, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import Player from '../../Player';
 import { cardLocationMatches, isArena } from '../../utils/EnumHelpers';
 import Card from '../Card';
 import { CardConstructor } from '../NewCard';
+import * as KeywordHelpers from '../KeywordHelpers';
 
 export function ArenaAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithArenaAbilities extends BaseClass {
-        protected _actionAbilities: CardActionAbility[] = [];
-        protected _triggeredAbilities: TriggeredAbility[] = [];
-        protected _constantAbilities: IConstantAbility[] = [];
+        protected _actionAbilities: CardActionAbility[];
+        protected _triggeredAbilities: TriggeredAbility[];
+        protected _constantAbilities: IConstantAbility[];
 
         // **************************************** ABILITY GETTERS ****************************************
+        // TODO THIS PR: move this higher in the inheritance chain for smuggle
         public override get actions() {
             return this.isBlank() ? []
                 : this.defaultActions.concat(this.actionAbilities);
@@ -29,6 +32,16 @@ export function ArenaAbilities<TBaseClass extends CardConstructor>(BaseClass: TB
                 : this._actionAbilities;
         }
 
+        /**
+         * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
+         * don’t have any special styling
+         */
+        public get constantAbilities() {
+            return this.isBlank() ? []
+                : this._constantAbilities;
+        }
+
+
         // TODO THIS PR: go through and fix SWU rule reference numbers
         /**
          * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
@@ -40,14 +53,15 @@ export function ArenaAbilities<TBaseClass extends CardConstructor>(BaseClass: TB
                 : this._triggeredAbilities;
         }
 
-        /**
-         * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
-         * don’t have any special styling
-         */
-        public get constantAbilities() {
-            return this.isBlank() ? []
-                : this._constantAbilities;
+        // **************************************** CONSTRUCTOR ****************************************
+        public constructor(...args: any[]) {
+            super(...args);
+
+            this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords);
+            this._triggeredAbilities = KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords);
+            this._constantAbilities = KeywordHelpers.GenerateConstantAbilitiesFromKeywords(this.printedKeywords);
         }
+
 
         // ********************************************* ABILITY SETUP *********************************************
         // TODO THIS PR: consolidate these down to "add*" abilities
@@ -104,13 +118,22 @@ export function ArenaAbilities<TBaseClass extends CardConstructor>(BaseClass: TB
         }
 
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************
+        protected override initializeForCurrentLocation(prevLocation: Location) {
+            super.initializeForCurrentLocation(prevLocation);
+
+            // TODO: do we need to consider a case where a card is moved from one arena to another?
+            this.updateTriggeredAbilityEvents(prevLocation, this.location);
+            this.updateConstantAbilityEffects(prevLocation, this.location);
+        }
+
+        /** Register / un-register the event triggers for any triggered abilities */
         private updateTriggeredAbilityEvents(from: Location, to: Location, reset: boolean = true) {
-            if (reset) {
-                this.resetLimits();
-            }
+            // TODO CAPTURE: does being captured and then freed in the same turn reset any ability limits?
+            this.resetLimits();
+
             for (const triggeredAbility of this._triggeredAbilities) {
                 if (this.isEvent()) {
-                    // TODO EVENT: this is block is here because jigoku would would register a bluff 'reaction' window, do we still need that?
+                    // TODO EVENT: this block is here because jigoku would would register a 'bluff' triggered ability window in the UI, do we still need that?
                     // normal event abilities have their own category so this is the only 'triggered ability' for event cards
                     if (
                         to === Location.Deck ||
