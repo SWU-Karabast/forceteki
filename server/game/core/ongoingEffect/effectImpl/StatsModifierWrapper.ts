@@ -1,8 +1,11 @@
-import Card from '../../card/Card';
+import Card, { UnitOrLeaderUnitCard } from '../../card/Card';
 import type { CardType } from '../../Constants';
 import OngoingEffect from '../OngoingEffect';
 import { IOngoingCardEffect } from '../IOngoingCardEffect';
 import StatsModifier from './StatsModifier';
+import { LeaderUnitCard } from '../../card/LeaderUnitCard';
+import { UnitCard } from '../../card/UnitCard';
+import { UnitPropertiesCard } from '../../card/propertyMixins/UnitProperties';
 
 export default class StatsModifierWrapper {
     public readonly modifier: StatsModifier;
@@ -49,7 +52,7 @@ export default class StatsModifierWrapper {
         );
     }
 
-    public static fromPrintedValues(card: Card, name, overrides = false) {
+    public static fromPrintedValues(card: UnitOrLeaderUnitCard, name, overrides = false) {
         return new this({
             hp: card.printedHp,
             power: card.printedPower
@@ -60,6 +63,7 @@ export default class StatsModifierWrapper {
         );
     }
 
+    // TODO THIS PR: standardize on TODO UPGRADE(S), likewise for others
     // TODO UPGRADE: should we use this for generating stat modifiers from attached upgrades or use the effect system?
     // static fromStatusToken(amount: number, name, overrides = false) {
     //     return new this(

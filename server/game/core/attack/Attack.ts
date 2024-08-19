@@ -7,20 +7,15 @@ import type Player from '../Player';
 import { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
 import Contract from '../utils/Contract';
+import { UnitCard } from '../card/UnitCard';
 
 export interface IAttackAbilities {
     saboteur: boolean;
 }
 
-enum AttackParticipant {
-    Attacker,
-    Target
-}
-
 type StatisticTotal = number;
 
 export class Attack extends GameObject {
-    // #modifiers = new WeakMap<Player, IAttackAbilities>();
     public previousAttack: Attack;
 
     public get participants(): undefined | Card[] {
@@ -41,14 +36,15 @@ export class Attack extends GameObject {
 
     public constructor(
         game: Game,
-        public attacker: Card,
-        public target: Card
+        public attacker: UnitCard,
+        public target: UnitCard
     ) {
         super(game, 'Attack');
     }
 
     public isInvolved(card: Card): boolean {
         return (
+            (card.isUnit() || card.isBase()) &&
             isArena(card.location) &&
             ([this.attacker as Card, this.target as Card].includes(card))
         );
@@ -61,7 +57,7 @@ export class Attack extends GameObject {
         return `${this.attacker.name}: ${typeof rawAttacker === 'number' ? rawAttacker : 0} vs ${typeof rawTarget === 'number' ? rawTarget : 0}: ${this.target.name}`;
     }
 
-    private getUnitPower(involvedUnit: Card): StatisticTotal {
+    private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
         if (!Contract.assertTrue(isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
             return null;
         }

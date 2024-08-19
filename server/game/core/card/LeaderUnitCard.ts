@@ -17,7 +17,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
-        this.defaultActions.push(new InitiateAttackAction(this.generateOriginalCard()));
+        this.defaultActions.push(new InitiateAttackAction(this));
 
         // leaders are always in a zone where they are allowed to be exhausted
         this.enableExhaust(true);

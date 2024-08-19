@@ -18,9 +18,12 @@ import { UpgradeCard } from './UpgradeCard';
 import { LeaderCard } from './LeaderCard';
 import { UnitCard } from './UnitCard';
 import AbilityHelper from '../../AbilityHelper';
+import { LeaderUnitCard } from './LeaderUnitCard';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
+
+export type UnitOrLeaderUnitCard = UnitCard | LeaderUnitCard;
 
 export default class Card extends OngoingEffectSource {
     public static implemented = false;
@@ -184,11 +187,6 @@ export default class Card extends OngoingEffectSource {
         return null;
     }
 
-    // TODO THIS PR: remove this
-    protected generateOriginalCard() {
-        return new Card(this.owner, this.cardData);
-    }
-
     protected unpackConstructorArgs(...args: any[]): [Player, any] {
         Contract.assertArraySize(args, 2);
 
@@ -209,7 +207,7 @@ export default class Card extends OngoingEffectSource {
 
     private createActionAbility(properties: IActionAbilityProps): CardActionAbility {
         properties.cardName = this.title;
-        return new CardActionAbility(this.game, this.generateOriginalCard(), properties);
+        return new CardActionAbility(this.game, this, properties);
     }
 
 

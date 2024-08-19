@@ -103,7 +103,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     private createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
         properties.cardName = this.title;
-        return new TriggeredAbility(this.game, this.generateOriginalCard(), properties);
+        return new TriggeredAbility(this.game, this, properties);
     }
 
 

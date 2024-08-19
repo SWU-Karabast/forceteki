@@ -1,18 +1,13 @@
-import AbilityHelper from '../../../AbilityHelper';
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { IActionAbilityProps, IEpicActionProps } from '../../../Interfaces';
-import { CardActionAbility } from '../../ability/CardActionAbility';
 import { CardType, EffectName, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
-import Player from '../../Player';
 import Contract from '../../utils/Contract';
-import { isArena } from '../../utils/EnumHelpers';
-import Card from '../Card';
-import { CardConstructor } from '../Card';
-import { InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import { InPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { Damage } from './Damage';
 import { PrintedPower } from './PrintedPower';
+
+export const UnitPropertiesCard = UnitProperties(InPlayCard);
 
 export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
     // create a "base" class that has the damage, hp, and power properties from other mixins
@@ -34,7 +29,7 @@ export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseCla
             super(...args);
             Contract.assertTrue(this.printedTypes.has(CardType.Unit));
 
-            this.defaultActions.push(new InitiateAttackAction(this.generateOriginalCard()));
+            this.defaultActions.push(new InitiateAttackAction(this));
         }
 
         public override isUnit() {
@@ -45,6 +40,7 @@ export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseCla
         private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
             const wrappedModifiers = this.getWrappedStatModifiers(excludeModifiers);
 
+            // TODO THIS PR: switch to using a modifier wrapper for the base stats as well
             const baseStatValue = statType === StatType.Hp ? this.printedHp : this.printedPower;
             const stat = wrappedModifiers.reduce((total, wrappedModifier) => total + wrappedModifier.modifier[statType], baseStatValue);
             if (isNaN(stat)) {
@@ -70,7 +66,7 @@ export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseCla
             }
 
             const modifierEffects: IOngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
-            const wrappedStatsModifiers = modifierEffects.map((modifierEffect) => StatsModifierWrapper.fromEffect(modifierEffect, this.generateOriginalCard()));
+            const wrappedStatsModifiers = modifierEffects.map((modifierEffect) => StatsModifierWrapper.fromEffect(modifierEffect, this));
 
             return wrappedStatsModifiers;
         }

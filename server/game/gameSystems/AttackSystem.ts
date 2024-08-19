@@ -11,6 +11,8 @@ import type Card from '../core/card/Card';
 import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
+import Contract from '../core/utils/Contract';
+import { UnitCard } from '../core/card/UnitCard';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
 
@@ -136,6 +138,11 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     public override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
+        if (!Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`)) {
+            return;
+        }
+        const attacker = properties.attacker as UnitCard;
+
         if (isArray(target)) {
             if (target.length !== 1) {
                 context.game.addMessage(`Attack requires exactly one target, cannot attack ${target.length} targets`);
@@ -147,12 +154,17 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             event.target = target;
         }
 
+        if (!Contract.assertTrue(event.target.isUnit(), `Attack target card '${event.target.internalName}' is not a unit`)) {
+            return;
+        }
+
+
         event.context = context;
-        event.attacker = properties.attacker;
+        event.attacker = attacker;
 
         event.attack = new Attack(
             context.game,
-            properties.attacker,
+            attacker,
             event.target
         );
     }
