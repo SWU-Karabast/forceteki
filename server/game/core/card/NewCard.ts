@@ -1,17 +1,23 @@
-import { IActionAbilityProps } from '../../../Interfaces';
-import { CardActionAbility } from '../../ability/CardActionAbility';
-import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import TriggeredAbility from '../../ability/TriggeredAbility';
-import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
-import OngoingEffectSource from '../../ongoingEffect/OngoingEffectSource';
-import type Player from '../../Player';
-import Contract from '../../utils/Contract';
-import Card from '../Card';
-import { AbilityRestriction, CardType, EffectName, EventName, Keyword, Location, Trait } from '../../Constants';
-import { PlayUnitAction } from '../../../actions/PlayUnitAction';
-import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { checkConvertToEnum, isArena } from '../../utils/EnumHelpers';
-import * as KeywordHelpers from '../KeywordHelpers';
+import { IActionAbilityProps } from '../../Interfaces';
+import { CardActionAbility } from '../ability/CardActionAbility';
+import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import TriggeredAbility from '../ability/TriggeredAbility';
+import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
+import type Player from '../Player';
+import Contract from '../utils/Contract';
+import Card from './Card';
+import { AbilityRestriction, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
+import { PlayUnitAction } from '../../actions/PlayUnitAction';
+import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
+import { checkConvertToEnum, isArena } from '../utils/EnumHelpers';
+import * as KeywordHelpers from './KeywordHelpers';
+import { EventCard } from './EventCard';
+import { BaseCardNew } from './BaseCardNew';
+import { TokenUnitCard, TokenUpgradeCard } from './TokenCardTypes';
+import { UpgradeCard } from './UpgradeCard';
+import { LeaderCardNew } from './LeaderCardNew';
+import { UnitCard } from './UnitCard';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => NewCard;
@@ -75,6 +81,37 @@ export class NewCard extends OngoingEffectSource {
 
     public get upgrades(): Card[] {
         return this._upgrades;
+    }
+
+
+    // *********************************************** STATIC METHODS ***********************************************
+    public static createUnimplementedCard(owner: Player, cardData: any): NewCard {
+        Contract.assertNotNullLike(cardData.types);
+        const cardTypes = new Set(checkConvertToEnum(cardData.types, CardType));
+
+        if (cardTypes.has(CardType.Event)) {
+            return new EventCard(owner, cardData);
+        }
+        if (cardTypes.has(CardType.Base)) {
+            return new BaseCardNew(owner, cardData);
+        }
+        if (cardTypes.has(CardType.Upgrade)) {
+            if (cardTypes.has(CardType.Token)) {
+                return new TokenUpgradeCard(owner, cardData);
+            }
+            return new UpgradeCard(owner, cardData);
+        }
+        if (cardTypes.has(CardType.Leader)) {
+            return new LeaderCardNew(owner, cardData);
+        }
+        if (cardTypes.has(CardType.Unit)) {
+            if (cardTypes.has(CardType.Token)) {
+                return new TokenUnitCard(owner, cardData);
+            }
+            return new UnitCard(owner, cardData);
+        }
+
+        throw new Error(`Invalid card type set: ${cardTypes}`);
     }
 
 

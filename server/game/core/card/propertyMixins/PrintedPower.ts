@@ -1,5 +1,5 @@
 import Contract from '../../utils/Contract';
-import { CardConstructor } from '../baseClasses/NewCard';
+import { CardConstructor } from '../NewCard';
 
 export function PrintedPower<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithPrintedPower extends BaseClass {

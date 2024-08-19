@@ -1,6 +1,6 @@
 import Player from '../Player';
 import { PrintedHp } from './propertyMixins/PrintedHp';
-import { NewCard } from './baseClasses/NewCard';
+import { NewCard } from './NewCard';
 import { Cost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import Contract from '../utils/Contract';

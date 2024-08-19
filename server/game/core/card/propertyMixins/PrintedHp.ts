@@ -1,5 +1,5 @@
 import Contract from '../../utils/Contract';
-import { CardConstructor, NewCard } from '../baseClasses/NewCard';
+import { CardConstructor, NewCard } from '../NewCard';
 import type { Damage } from './Damage';
 
 /**

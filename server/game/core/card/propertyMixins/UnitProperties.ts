@@ -9,7 +9,7 @@ import Player from '../../Player';
 import Contract from '../../utils/Contract';
 import { isArena } from '../../utils/EnumHelpers';
 import Card from '../Card';
-import { CardConstructor } from '../baseClasses/NewCard';
+import { CardConstructor } from '../NewCard';
 import { InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { Damage } from './Damage';
 import { PrintedPower } from './PrintedPower';

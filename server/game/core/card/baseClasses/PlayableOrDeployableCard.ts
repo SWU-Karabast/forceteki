@@ -3,7 +3,7 @@ import { CardType, EventName, Location } from '../../Constants';
 import Player from '../../Player';
 import Contract from '../../utils/Contract';
 import { isArena } from '../../utils/EnumHelpers';
-import { NewCard } from './NewCard';
+import { NewCard } from '../NewCard';
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
