@@ -2,14 +2,12 @@ import Player from '../Player';
 import { PrintedHp } from './propertyMixins/PrintedHp';
 import { NewCard } from './NewCard';
 import { Cost } from './propertyMixins/Cost';
-import { OngoingAbilities } from './propertyMixins/OngoingAbilities';
+import { OngoingAbilityCard } from './OngoingAbilityCard';
 import Contract from '../utils/Contract';
 import { CardType } from '../Constants';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 
-const LeaderCardParent = OngoingAbilities(PlayableOrDeployableCard);
-
-export class LeaderCardNew extends LeaderCardParent {
+export class LeaderCardNew extends OngoingAbilityCard {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertTrue(this.printedTypes.has(CardType.Leader));

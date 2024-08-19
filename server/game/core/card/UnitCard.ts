@@ -2,7 +2,6 @@ import Player from '../Player';
 import { PrintedHp } from './propertyMixins/PrintedHp';
 import { NewCard } from './NewCard';
 import { Cost } from './propertyMixins/Cost';
-import { OngoingAbilities } from './propertyMixins/OngoingAbilities';
 import { PrintedPower } from './propertyMixins/PrintedPower';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
@@ -11,7 +10,7 @@ import { CardType, Location } from '../Constants';
 import { Damage } from './propertyMixins/Damage';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 
-const UnitCardParent = OngoingAbilities(PrintedPower(Damage(Cost(PlayableOrDeployableCard))));
+const UnitCardParent = PrintedPower(Damage(Cost(PlayableOrDeployableCard)));
 
 export class UnitCard extends UnitCardParent {
     public constructor(
