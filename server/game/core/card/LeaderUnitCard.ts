@@ -6,25 +6,32 @@ import Contract from '../utils/Contract';
 import { CardType, Location } from '../Constants';
 import { Damage } from './propertyMixins/Damage';
 import { Cost } from './propertyMixins/Cost';
+import { UnitProperties } from './propertyMixins/UnitProperties';
 
-const LeaderUnitCardParent = PrintedPower(Damage(Cost(LeaderCardNew)));
+const LeaderUnitCardParent = UnitProperties(Cost(LeaderCardNew));
 
 export class LeaderUnitCard extends LeaderUnitCardParent {
-    public readonly isDeployed: boolean = false;
+    private _isDeployed = false;
+
+    public get isDeployed() {
+        return this._isDeployed;
+    }
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedTypes.has(CardType.Unit));
 
         this.defaultActions.push(new InitiateAttackAction(this.generateOriginalCard()));
+
+        // leaders are always in a zone where they are allowed to be exhausted
+        this.enableExhaust(true);
     }
 
     public override isUnit() {
-        return this.isDeployed;
+        return this._isDeployed;
     }
 
     public override isLeaderUnit() {
-        return this.isDeployed;
+        return this._isDeployed;
     }
 
     protected override initializeForCurrentLocation(prevLocation: Location): void {
@@ -32,13 +39,13 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
         switch (this.location) {
             case Location.GroundArena || Location.SpaceArena:
+                this._isDeployed = true;
                 this.enableDamage(true);
-                this.enableExhaust(true);
                 break;
 
             case Location.Base:
+                this._isDeployed = false;
                 this.enableDamage(false);
-                this.enableExhaust(true);
                 break;
         }
     }

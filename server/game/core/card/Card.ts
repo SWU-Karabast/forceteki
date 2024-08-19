@@ -3,7 +3,7 @@ import Effects from '../../ongoingEffects/EffectLibrary.js';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource.js';
 import CardAbility from '../ability/CardAbility.js';
 import Game from '../Game.js';
-import Contract from '../utils/Contract';
+import Contract from '../utils/Contract.js';
 
 import { AbilityContext } from '../ability/AbilityContext.js';
 import { CardActionAbility } from '../ability/CardActionAbility.js';
@@ -1118,7 +1118,6 @@ class Card extends OngoingEffectSource {
         return true;
     }
 
-    // TODO THIS PR: how to handle these if hp and power are split?
     private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
         const wrappedModifiers = this.getWrappedStatModifiers(excludeModifiers);
 

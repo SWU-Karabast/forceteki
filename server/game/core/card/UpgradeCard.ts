@@ -1,12 +1,12 @@
 import Player from '../Player';
 import { PrintedHp } from './propertyMixins/PrintedHp';
 import { Cost } from './propertyMixins/Cost';
-import { OngoingAbilityCard } from './OngoingAbilityCard';
+import { InPlayCard } from './baseClasses/InPlayCard';
 import { PrintedPower } from './propertyMixins/PrintedPower';
 import Contract from '../utils/Contract';
 import { CardType, Location } from '../Constants';
 
-const UpgradeCardParent = PrintedPower(PrintedHp(Cost(OngoingAbilityCard)));
+const UpgradeCardParent = PrintedPower(PrintedHp(Cost(InPlayCard)));
 
 export class UpgradeCard extends UpgradeCardParent {
     public constructor(

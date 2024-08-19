@@ -1,9 +1,12 @@
-import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { CardType, EventName, Location } from '../Constants';
-import Player from '../Player';
-import Contract from '../utils/Contract';
-import { isArena } from '../utils/EnumHelpers';
+import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
+import { CardType, EventName, Location } from '../../Constants';
+import Player from '../../Player';
+import Contract from '../../utils/Contract';
+import { isArena } from '../../utils/EnumHelpers';
 import { NewCard } from './NewCard';
+
+// required for mixins to be based on this class
+export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
 
 /**
  * Subclass of {@link NewCard} that represents shared features of all non-base cards.
@@ -17,17 +20,11 @@ export class PlayableOrDeployableCard extends NewCard {
          */
     protected defaultActions: PlayerOrCardAbility[] = [];
 
-    private _enteredPlayThisRound?: boolean = null;
     private _exhausted?: boolean = null;
 
     public override get actions(): PlayerOrCardAbility[] {
         return this.isBlank() ? []
             : this.defaultActions.concat(super.actions);
-    }
-
-    public get enteredPlayThisTurn() {
-        Contract.assertNotNullLike(this._enteredPlayThisRound);
-        return this._enteredPlayThisRound;
     }
 
     public get exhausted() {
@@ -55,21 +52,5 @@ export class PlayableOrDeployableCard extends NewCard {
 
     protected enableExhaust(enabledStatus: boolean) {
         this._exhausted = enabledStatus ? true : null;
-    }
-
-    protected override initializeForCurrentLocation(prevLocation: Location) {
-        super.initializeForCurrentLocation(prevLocation);
-
-        this._enteredPlayThisRound = isArena(this.location) ? true : null;
-
-        // register a handler to reset the enteredPlayThisRound flag after the end of the round
-        this.game.on(EventName.OnRoundEndedCleanup, this.resetEnteredPlayThisRound);
-    }
-
-    private resetEnteredPlayThisRound() {
-        // if the value is null, the card is no longer in play
-        if (this._enteredPlayThisRound !== null) {
-            this._enteredPlayThisRound = false;
-        }
     }
 }

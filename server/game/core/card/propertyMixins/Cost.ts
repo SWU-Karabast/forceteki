@@ -1,5 +1,5 @@
 import Contract from '../../utils/Contract';
-import { CardConstructor } from '../NewCard';
+import { CardConstructor } from '../baseClasses/NewCard';
 
 /** Mixin function that adds the `cost` property to a base class. */
 export function Cost<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {

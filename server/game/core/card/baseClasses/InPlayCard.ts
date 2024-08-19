@@ -1,23 +1,30 @@
-import AbilityHelper from '../../AbilityHelper';
-import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
-import TriggeredAbility from '../ability/TriggeredAbility';
-import { CardType, Duration, Location, LocationFilter, WildcardLocation } from '../Constants';
-import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
-import Player from '../Player';
-import { cardLocationMatches, isArena } from '../utils/EnumHelpers';
-import Card from './Card';
-import { CardConstructor } from './NewCard';
-import * as KeywordHelpers from './KeywordHelpers';
+import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import TriggeredAbility from '../../ability/TriggeredAbility';
+import { CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
+import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import Player from '../../Player';
+import { cardLocationMatches, isArena } from '../../utils/EnumHelpers';
+import * as KeywordHelpers from '../KeywordHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
-import Contract from '../utils/Contract';
+import Contract from '../../utils/Contract';
+
+// required for mixins to be based on this class
+export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 
 /**
- * Subclass of {@link NewCard} (via {@link PlayableOrDeployableCard}) that adds properties for cards that can
- * have "ongoing" abilities, i.e., triggered abilities and constant abilities. This excludes events and bases.
+ * Subclass of {@link NewCard} (via {@link PlayableOrDeployableCard}) that adds properties for cards that
+ * can be in any "in-play" zones (`SWU 4.9`). This encompasses all card types other than events or bases.
+ *
+ * The two unique properties of in-play cards added by this subclass are:
+ * 1. "Ongoing" abilities, i.e., triggered abilities and constant abilities
+ * 2. The ability to be defeated as an overridable method
  */
-export class OngoingAbilityCard extends PlayableOrDeployableCard {
+export class InPlayCard extends PlayableOrDeployableCard {
     protected _triggeredAbilities: TriggeredAbility[];
     protected _constantAbilities: IConstantAbility[];
+
+    private _enteredPlayThisRound?: boolean = null;
+
 
     // **************************************** ABILITY GETTERS ****************************************
     /**
@@ -29,6 +36,10 @@ export class OngoingAbilityCard extends PlayableOrDeployableCard {
             : this._constantAbilities;
     }
 
+    public get enteredPlayThisRound() {
+        Contract.assertNotNullLike(this._enteredPlayThisRound);
+        return this._enteredPlayThisRound;
+    }
 
     // TODO THIS PR: go through and fix SWU rule reference numbers
     /**
@@ -41,7 +52,8 @@ export class OngoingAbilityCard extends PlayableOrDeployableCard {
             : this._triggeredAbilities;
     }
 
-    // **************************************** CONSTRUCTOR ****************************************
+
+    // ********************************************** CONSTRUCTOR **********************************************
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -94,13 +106,31 @@ export class OngoingAbilityCard extends PlayableOrDeployableCard {
         return new TriggeredAbility(this.game, this.generateOriginalCard(), properties);
     }
 
+
+    // ******************************************** PLAY / DEFEAT MANAGEMENT ********************************************
+    // TODO LEADER: TODO TOKEN: add custom defeat logic here. figure out how it should interact with player.defeatCard()
+    // and the DefeatCardSystem
+
+    private resetEnteredPlayThisRound() {
+        // if the value is null, the card is no longer in play
+        if (this._enteredPlayThisRound !== null) {
+            this._enteredPlayThisRound = false;
+        }
+    }
+
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
     protected override initializeForCurrentLocation(prevLocation: Location) {
         super.initializeForCurrentLocation(prevLocation);
 
-        // TODO: do we need to consider a case where a card is moved from one arena to another?
+        // TODO: do we need to consider a case where a card is moved from one arena to another,
+        // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(prevLocation, this.location);
         this.updateConstantAbilityEffects(prevLocation, this.location);
+
+        this._enteredPlayThisRound = isArena(this.location) ? true : null;
+
+        // register a handler to reset the enteredPlayThisRound flag after the end of the round
+        this.game.on(EventName.OnRoundEndedCleanup, this.resetEnteredPlayThisRound);
     }
 
     /** Register / un-register the event triggers for any triggered abilities */

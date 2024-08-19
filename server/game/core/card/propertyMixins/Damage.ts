@@ -1,5 +1,5 @@
 import Contract from '../../utils/Contract';
-import { CardConstructor } from '../NewCard';
+import { CardConstructor } from '../baseClasses/NewCard';
 import { PrintedHp } from './PrintedHp';
 
 /**
@@ -11,8 +11,6 @@ export function Damage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass
 
     return class WithDamage extends HpClass {
         private _damage?: number;
-
-        // TODO THIS PR: all of the stat modifier code
 
         /** Used to flag whether the card is in a zone where damage can be applied */
         private damageEnabled = false;
