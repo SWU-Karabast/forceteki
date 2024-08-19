@@ -86,7 +86,8 @@ class PlayerInteractionWrapper {
      *    card: String,
      *    exhausted: Boolean
      *    covert: Boolean,
-     *    upgrades: String[]
+     *    upgrades: String[],
+     *    damage: Number
      *  }
      * or String containing name or id of the card
      * @param {String} arenaName - name of the arena to set the units in, either 'ground arena' or 'space arena'
@@ -130,6 +131,9 @@ class PlayerInteractionWrapper {
                 upgrades.forEach((upgrade) => {
                     this.player.attach(upgrade, card);
                 });
+            }
+            if (options.damage !== undefined) {
+                card.damage = options.damage;
             }
         });
 

@@ -442,6 +442,11 @@ class Card extends OngoingEffectSource {
         this.triggeredAbility(triggeredProperties);
     }
 
+    protected attackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+        const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event) => event.attacker === this } });
+        this.triggeredAbility(triggeredProperties);
+    }
+
     private createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
         properties.cardName = this.title;
         return new TriggeredAbility(this.game, this, properties);
