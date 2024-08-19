@@ -59,9 +59,7 @@ export enum EffectName {
     AdditionalPlayCost = 'additionalPlaycost',
     ModifyStats = 'modifyStats',
     ModifyPower = 'modifyPower',
-    SetBasePower = 'setBasePower',
     SetPower = 'setPower',
-    CalculatePrintedPower = 'calculatePrintedPower',
     ModifyHp = 'modifyHp',
     UpgradePowerModifier = 'upgradePowerModifier',
     UpgradeHpModifier = 'upgradeHpModifier',
@@ -71,7 +69,6 @@ export enum EffectName {
     LoseTrait = 'loseTrait',
     DelayedEffect = 'delayedEffect',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
-    LoseAllNonKeywordAbilities = 'loseAllNonKeywordAbilities',
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotBeAttacked = 'cannotBeAttacked',
     GainAbility = 'gainAbility'
@@ -165,12 +162,12 @@ export enum EventName {
     OnCardReturnedToHand = 'onCardReturnedToHand',
 }
 
-// TODO: rename 'Persistent' to 'ConstantAbility'?
+// TODO THIS PR: rename 'Persistent' to 'ConstantAbility'?
+// TODO THIS PR: remove 'ability' from 'triggeredability', it's redundant
 export enum AbilityType {
     Action = 'action',
     TriggeredAbility = 'triggeredAbility',
-    Persistent = 'persistent',
-    OtherEffects = 'otherEffects'
+    Persistent = 'persistent'
 }
 
 export enum Aspect {

@@ -24,7 +24,7 @@ import {
 } from '../Constants.js';
 import { isArena, cardLocationMatches, checkConvertToEnum } from '../utils/EnumHelpers.js';
 import {
-    IActionProps,
+    IActionAbilityProps,
     // IAttachmentConditionProps,
     IConstantAbilityProps,
     ITriggeredAbilityProps
@@ -425,11 +425,11 @@ class Card extends OngoingEffectSource {
     }
 
     // TODO: consolidate these down to "add*" abilities
-    protected actionAbility(properties: IActionProps<this>): void {
+    protected actionAbility(properties: IActionAbilityProps<this>): void {
         this.abilities.action.push(this.createActionAbility(properties));
     }
 
-    private createActionAbility(properties: IActionProps): CardActionAbility {
+    private createActionAbility(properties: IActionAbilityProps): CardActionAbility {
         properties.cardName = this.title;
         return new CardActionAbility(this.game, this, properties);
     }

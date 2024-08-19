@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { IActionProps, IEpicActionProps } from '../../../Interfaces';
+import { IActionAbilityProps, IEpicActionProps } from '../../../Interfaces';
 import { CardActionAbility } from '../../ability/CardActionAbility';
 import Card from '../Card';
 import { CardConstructor } from '../NewCard';

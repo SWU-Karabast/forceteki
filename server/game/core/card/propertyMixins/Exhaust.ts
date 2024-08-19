@@ -4,7 +4,7 @@ import { CardConstructor } from '../NewCard';
 
 export function Exhaust<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithExhaust extends BaseClass {
-        private _exhausted = null;
+        private _exhausted?: boolean = null;
         private exhaustEnabled = false;
 
         public get exhausted() {

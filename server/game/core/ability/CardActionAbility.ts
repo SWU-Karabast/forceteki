@@ -1,7 +1,7 @@
 import type { AbilityContext } from './AbilityContext.js';
 import CardAbility from './CardAbility.js';
 import { AbilityType, CardType, EffectName, PhaseName } from '../Constants.js';
-import type { IActionProps } from '../../Interfaces.js';
+import type { IActionAbilityProps } from '../../Interfaces.js';
 import type Card from '../card/Card.js';
 import type Game from '../Game.js';
 
@@ -38,7 +38,7 @@ export class CardActionAbility extends CardAbility {
 
     public readonly condition?: (context?: AbilityContext) => boolean;
 
-    public constructor(game: Game, card: Card, properties: IActionProps) {
+    public constructor(game: Game, card: Card, properties: IActionAbilityProps) {
         super(game, card, properties);
 
         this.phase = properties.phase ?? 'any';

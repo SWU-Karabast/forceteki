@@ -36,6 +36,7 @@ class Game extends EventEmitter {
     constructor(details, options = {}) {
         super();
 
+        // TODO THIS PR: fix this typo
         this.ongoingEffectEnginer = new OngoingEffectEngine(this);
         this.playersAndSpectators = {};
         this.gameChat = new GameChat();

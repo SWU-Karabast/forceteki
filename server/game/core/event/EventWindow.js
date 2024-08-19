@@ -27,7 +27,6 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
             // new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordInterrupt)),
-            new SimpleStep(this.game, () => this.checkForOtherEffects(), 'checkForOtherEffects'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
             // new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
@@ -87,11 +86,6 @@ class EventWindow extends BaseStepWithPipeline {
     //         _.each(contingentEvents, (event) => this.addEvent(event));
     //     }
     // }
-
-    // This catches any persistent/delayed effect cancels
-    checkForOtherEffects() {
-        this.events.forEach((event) => this.game.emit(event.name + ':' + AbilityType.OtherEffects, event));
-    }
 
     preResolutionEffects() {
         this.events.forEach((event) => event.preResolutionEffect());

@@ -61,7 +61,7 @@ export interface IInitiateAttack extends IAttackProperties {
     targetCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
 }
 
-export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
+export interface IActionAbilityProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
         condition?: (context?: AbilityContext<Source>) => boolean;
 
         /**
