@@ -658,7 +658,7 @@ class Player extends GameObject {
                 cardCondition: (card) => card.controller !== this,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
-        }, preparedDecklist.deckCards[0]);
+        });
 
         const eventTest = new EventCard(this, preparedDecklist.deckCards[0].cardData);
 

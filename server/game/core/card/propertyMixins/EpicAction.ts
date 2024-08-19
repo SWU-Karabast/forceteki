@@ -6,12 +6,11 @@ import { CardConstructor } from '../NewCard';
 
 export function EpicAction<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithEpicAction extends BaseClass {
-        public addEpicActionAbility(properties: IEpicActionProps<this>, cardImpl: Card): void {
+        public addEpicActionAbility(properties: IEpicActionProps<this>): void {
             const propertiesWithLimit: IActionProps<this> = Object.assign(properties, {
                 limit: AbilityHelper.limit.perGame(1),
             });
 
-            // FIXME: cardImpl -> this
             this.actions.push(new CardActionAbility(this.game, this.generateOriginalCard(), propertiesWithLimit));
         }
     };

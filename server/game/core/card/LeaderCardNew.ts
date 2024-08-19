@@ -4,25 +4,24 @@ import { Hp } from './propertyMixins/Hp';
 import { NewCard } from './NewCard';
 import { Exhaust } from './propertyMixins/Exhaust';
 import { Cost } from './propertyMixins/Cost';
-import { CardType } from '../Constants';
+import { ArenaAbilities } from './propertyMixins/ArenaAbilities';
 import Contract from '../utils/Contract';
+import { CardType } from '../Constants';
 
-const EventCardParent = Cost(Exhaust(NewCard));
+const LeaderCardParent = ArenaAbilities(Cost(Exhaust(NewCard)));
 
-export class EventCard extends EventCardParent {
+export class LeaderCardNew extends LeaderCardParent {
     public constructor(
         owner: Player,
         cardData: any
     ) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedTypes.has(CardType.Event));
+        Contract.assertTrue(this.printedTypes.has(CardType.Leader));
 
-        // TODO EVENTS: add play event action to this._actions (see Unit.ts for reference)
+        // TODO LEADER: add deploy epic action to this._actions (see Unit.ts for reference)
     }
 
-    public override isEvent() {
+    public override isLeader() {
         return true;
     }
-
-    // TODO EVENTS: populate this with an addEventAbility() method (see Unit.ts for reference)
 }

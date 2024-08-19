@@ -6,16 +6,18 @@ export function Hp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
         public readonly printedHp: number;
         private _damage?: number;
 
+        // TODO THIS PR: all of the stat modifier code
+
         /** Used to flag whether the card is in a zone where damage can be applied */
-        private _damageEnabled = false;
+        private damageEnabled = false;
 
         public get damage(): number {
-            Contract.assertTrue(this._damageEnabled);
+            Contract.assertTrue(this.damageEnabled);
             return this._damage;
         }
 
         protected set damage(value: number) {
-            Contract.assertTrue(this._damageEnabled);
+            Contract.assertTrue(this.damageEnabled);
             this._damage = value;
         }
 
@@ -33,7 +35,7 @@ export function Hp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
         }
 
         protected enableDamage(enabledStatus: boolean) {
-            this._damageEnabled = enabledStatus;
+            this.damageEnabled = enabledStatus;
             this._damage = enabledStatus ? 0 : null;
         }
     };

@@ -10,14 +10,17 @@ import Card from './Card';
 import { CardType } from '../Constants';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
+import { checkConvertToEnum } from '../utils/EnumHelpers';
 
 export type CardConstructor = new (...args: any[]) => NewCard;
 
 export class NewCard extends OngoingEffectSource {
+    public readonly title: string;
+
     protected override readonly id: string;
     protected _actions: PlayerOrCardAbility[] = [];
 
-    private readonly printedTypes: Set<CardType>;
+    protected readonly printedTypes: Set<CardType>;
 
     public get actions() {
         return this._actions;
@@ -33,14 +36,18 @@ export class NewCard extends OngoingEffectSource {
     ) {
         super(owner.game);
 
+        this.title = cardData.title;
+
         this.id = cardData.id;
-        this.printedTypes = new Set(cardData.types);
+
+        this.printedTypes = new Set(checkConvertToEnum(cardData.types, CardType));
 
         this.addDefaultPlayActions();
     }
 
 
     // **************************************** INITIALIZATION HELPERS ****************************************
+    // TODO THIS PR: remove this and just do it in the class constructors?
     protected addDefaultPlayActions() {
         if (this.printedTypes.has(CardType.Leader) && this.printedTypes.has(CardType.Unit)) {
             this._actions.push(new InitiateAttackAction(this.generateOriginalCard()));
@@ -73,31 +80,35 @@ export class NewCard extends OngoingEffectSource {
 
     // ******************************************* CARD TYPE HELPERS *******************************************
     public isEvent(): boolean {
-        return this.hasSomeType(CardType.Event);
+        return false;
     }
 
     public isUnit(): boolean {
-        return this.hasSomeType(CardType.Unit);
+        return false;
     }
 
     public isUpgrade(): boolean {
-        return this.hasSomeType(CardType.Upgrade);
+        return false;
     }
 
     public isBase(): boolean {
-        return this.hasSomeType(CardType.Base);
+        return false;
     }
 
     public isLeader(): boolean {
-        return this.hasSomeType(CardType.Leader);
+        return false;
     }
 
     public isLeaderUnit(): boolean {
-        return this.hasEveryType([CardType.Leader, CardType.Unit]);
+        return false;
+    }
+
+    public isNonLeaderUnit(): boolean {
+        return false;
     }
 
     public isToken(): boolean {
-        return this.hasSomeType(CardType.Token);
+        return false;
     }
 
     public hasSomeType(types: Set<CardType> | CardType | CardType[]): boolean {
