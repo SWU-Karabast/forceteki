@@ -29,6 +29,8 @@ describe('2-1B Surgical Droid', function() {
             it('surgical droid should heal r2d2 to full', function () {
                 expect(this.r2d2.damage).toBe(1);
                 expect(this.surgicalDroid.exhausted).toBe(false);
+                expect(this.p1Base.damage).toBe(0);
+                expect(this.p2Base.damage).toBe(0);
                 this.player1.clickCard(this.surgicalDroid);
                 expect(this.surgicalDroid.location).toBe('ground arena');
                 expect(this.player1).toBeAbleToSelectAllOf([this.p2Base, this.wampa]);
@@ -38,6 +40,8 @@ describe('2-1B Surgical Droid', function() {
                 this.player1.clickCard(this.r2d2);
                 expect(this.surgicalDroid.exhausted).toBe(true);
                 expect(this.r2d2.damage).toBe(0);
+                expect(this.p1Base.damage).toBe(0);
+                expect(this.p2Base.damage).toBe(1);
             });
 
             it('surgical droid ability can be passed', function () {
