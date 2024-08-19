@@ -1,15 +1,17 @@
-import Card from './Card';
-import type Player from '../Player';
+import Player from '../Player';
+import { InPlayCard } from './baseClasses/InPlayCard';
+import Contract from '../utils/Contract';
+import { CardType } from '../Constants';
 
-export class LeaderCard extends Card {
-    // TODO: add epic action and limit 1 per game
+export class LeaderCard extends InPlayCard {
+    public constructor(owner: Player, cardData: any) {
+        super(owner, cardData);
+        Contract.assertTrue(this.printedTypes.has(CardType.Leader));
 
-    // getSummary(activePlayer: Player, hideWhenFaceup = false) {
-    //     const baseSummary = super.getSummary(activePlayer, hideWhenFaceup);
-    //     return {
-    //         ...baseSummary,
-    //         isLeader: this.isLeader,
-    //         childCards: this.childCards.map((card: Card) => card.getSummary(activePlayer, hideWhenFaceup)),
-    //     };
-    // }
+        // TODO LEADER: add deploy epic action (see Base.ts for reference)
+    }
+
+    public override isLeader() {
+        return true;
+    }
 }

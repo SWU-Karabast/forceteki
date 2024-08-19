@@ -1,5 +1,5 @@
 import Contract from '../../utils/Contract';
-import { CardConstructor } from '../NewCard';
+import { CardConstructor } from '../Card';
 import { PrintedHp } from './PrintedHp';
 
 /**

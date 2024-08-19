@@ -1,5 +1,5 @@
 import Contract from '../../utils/Contract';
-import { CardConstructor } from '../NewCard';
+import { CardConstructor } from '../Card';
 
 export function PrintedPower<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithPrintedPower extends BaseClass {
@@ -9,7 +9,7 @@ export function PrintedPower<TBaseClass extends CardConstructor>(BaseClass: TBas
             return this.printedPower;
         }
 
-        // see NewCard constructor for list of expected args
+        // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
             const [Player, cardData] = this.unpackConstructorArgs(...args);

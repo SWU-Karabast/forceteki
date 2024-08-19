@@ -3,7 +3,7 @@ import PlayerAction from '../core/ability/PlayerAction.js';
 import { AbilityRestriction, EffectName, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { payAdjustableResourceCost } from '../costs/CostLibrary.js';
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
-import type Card from '../core/card/Card.js';
+import Card from '../core/card/Card';
 import type Player from '../core/Player.js';
 import { GameEvent } from '../core/event/GameEvent.js';
 

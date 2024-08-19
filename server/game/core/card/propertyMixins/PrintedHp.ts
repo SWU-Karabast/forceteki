@@ -1,5 +1,5 @@
 import Contract from '../../utils/Contract';
-import { CardConstructor, NewCard } from '../NewCard';
+import { CardConstructor } from '../Card';
 import type { Damage } from './Damage';
 
 /**
@@ -14,7 +14,7 @@ export function PrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBaseCl
             return this.printedHp;
         }
 
-        // see NewCard constructor for list of expected args
+        // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
             const [Player, cardData] = this.unpackConstructorArgs(...args);

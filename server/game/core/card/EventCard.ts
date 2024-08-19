@@ -1,5 +1,5 @@
 import Player from '../Player';
-import { NewCard } from './NewCard';
+import Card from './Card';
 import { Cost } from './propertyMixins/Cost';
 import { CardType, Location } from '../Constants';
 import Contract from '../utils/Contract';
@@ -8,10 +8,7 @@ import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard
 const EventCardParent = Cost(PlayableOrDeployableCard);
 
 export class EventCard extends EventCardParent {
-    public constructor(
-        owner: Player,
-        cardData: any
-    ) {
+    public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertTrue(this.printedTypes.has(CardType.Event));
 

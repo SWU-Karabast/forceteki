@@ -43,8 +43,8 @@ class PlayerInteractionWrapper {
     /**
      * Sets the player's base card
      */
-    set base(newCard) {
-        this.player.base = newCard;
+    set base(Card) {
+        this.player.base = Card;
     }
 
     /**

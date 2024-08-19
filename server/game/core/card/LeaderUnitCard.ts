@@ -1,14 +1,11 @@
 import Player from '../Player';
-import { PrintedPower } from './propertyMixins/PrintedPower';
-import { LeaderCardNew } from './LeaderCardNew';
+import { LeaderCard } from './LeaderCard';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
-import Contract from '../utils/Contract';
-import { CardType, Location } from '../Constants';
-import { Damage } from './propertyMixins/Damage';
+import { Location } from '../Constants';
 import { Cost } from './propertyMixins/Cost';
 import { UnitProperties } from './propertyMixins/UnitProperties';
 
-const LeaderUnitCardParent = UnitProperties(Cost(LeaderCardNew));
+const LeaderUnitCardParent = UnitProperties(Cost(LeaderCard));
 
 export class LeaderUnitCard extends LeaderUnitCardParent {
     private _isDeployed = false;

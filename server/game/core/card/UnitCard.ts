@@ -1,6 +1,5 @@
 import Player from '../Player';
 import { PrintedHp } from './propertyMixins/PrintedHp';
-import { NewCard } from './NewCard';
 import { Cost } from './propertyMixins/Cost';
 import { PrintedPower } from './propertyMixins/PrintedPower';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';

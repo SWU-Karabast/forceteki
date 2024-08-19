@@ -9,7 +9,7 @@ import Player from '../../Player';
 import Contract from '../../utils/Contract';
 import { isArena } from '../../utils/EnumHelpers';
 import Card from '../Card';
-import { CardConstructor } from '../NewCard';
+import { CardConstructor } from '../Card';
 import { InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { Damage } from './Damage';
 import { PrintedPower } from './PrintedPower';
@@ -20,16 +20,16 @@ export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseCla
 
     return class AsUnit extends StatsAndDamageClass {
         // *************************************** PROPERTY GETTERS ***************************************
-        public override get hp(): number | null {
+        public override get hp(): number {
             return this.getModifiedStatValue(StatType.Hp);
         }
 
-        public override get power(): number | null {
+        public override get power(): number {
             return this.getModifiedStatValue(StatType.Power);
         }
 
         // ****************************************** CONSTRUCTOR ******************************************
-        // see NewCard constructor for list of expected args
+        // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
             Contract.assertTrue(this.printedTypes.has(CardType.Unit));

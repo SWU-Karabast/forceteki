@@ -12,7 +12,7 @@ import Contract from '../../utils/Contract';
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 
 /**
- * Subclass of {@link NewCard} (via {@link PlayableOrDeployableCard}) that adds properties for cards that
+ * Subclass of {@link Card} (via {@link PlayableOrDeployableCard}) that adds properties for cards that
  * can be in any "in-play" zones (`SWU 4.9`). This encompasses all card types other than events or bases.
  *
  * The two unique properties of in-play cards added by this subclass are:
@@ -31,12 +31,12 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
      * don’t have any special styling
      */
-    public get constantAbilities() {
+    public get constantAbilities(): IConstantAbility[] {
         return this.isBlank() ? []
             : this._constantAbilities;
     }
 
-    public get enteredPlayThisRound() {
+    public get enteredPlayThisRound(): boolean {
         Contract.assertNotNullLike(this._enteredPlayThisRound);
         return this._enteredPlayThisRound;
     }
@@ -47,7 +47,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
      * “When Defeated,” and “On Attack” abilities
      */
-    public get triggeredAbilities() {
+    public get triggeredAbilities(): TriggeredAbility[] {
         return this.isBlank() ? []
             : this._triggeredAbilities;
     }
@@ -91,7 +91,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties });
     }
 
-    // TODO THIS PR: consolidate these down to "add*" abilities (also in NewCard.ts). Also add docstr
+    // TODO THIS PR: consolidate these down to "add*" abilities (also in Card.ts). Also add docstr
     protected triggeredAbility(properties: ITriggeredAbilityProps): void {
         this._triggeredAbilities.push(this.createTriggeredAbility(properties));
     }

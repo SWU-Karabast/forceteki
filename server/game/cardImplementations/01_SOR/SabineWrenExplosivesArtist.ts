@@ -1,9 +1,9 @@
 import AbilityHelper from '../../AbilityHelper';
-import Card from '../../core/card/Card';
+import { UnitCard } from '../../core/card/UnitCard';
 import { AbilityRestriction } from '../../core/Constants';
 import { countUniqueAspects } from '../../core/utils/Helpers';
 
-export default class SabineWrenExplosivesArtist extends Card {
+export default class SabineWrenExplosivesArtist extends UnitCard {
     protected override getImplementationId() {
         return {
             id: '3646264648',

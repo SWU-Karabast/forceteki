@@ -6,8 +6,6 @@ const { CostAdjuster } = require('./cost/CostAdjuster');
 const GameSystems = require('../gameSystems/GameSystemLibrary');
 const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
-const { BaseCard } = require('./card/BaseCard');
-const { LeaderCard } = require('./card/LeaderCard');
 const Contract = require('./utils/Contract');
 
 const {
@@ -26,8 +24,8 @@ const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
 const { shuffle, defaultLegalLocationsForCardTypes } = require('../../Util');
 const AbilityHelper = require('../AbilityHelper');
-const { BaseCardNew } = require('./card/BaseCardNew');
-const { EventCard } = require('./card/EventCard');
+const { BaseCard } = require('./card/BaseCard');
+const { LeaderCard } = require('./card/LeaderCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -134,7 +132,7 @@ class Player extends GameObject {
 
     /**
      * Get all cards in designated play arena(s) other than the passed card owned by this player.
-     * @param { Card } ignoreUnit Unit to filter from the returned results
+     * @param { any } ignoreUnit Unit to filter from the returned results
      * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
      */
     getOtherUnitsInPlay(ignoreUnit, arena = null, cardCondition = (card) => true) {

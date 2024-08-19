@@ -1,7 +1,7 @@
 import AbilityHelper from '../../AbilityHelper';
-import Card from '../../core/card/Card';
+import { UnitCard } from '../../core/card/UnitCard';
 
-export default class GroguIrresistible extends Card {
+export default class GroguIrresistible extends UnitCard {
     protected override getImplementationId() {
         return {
             id: '6536128825',

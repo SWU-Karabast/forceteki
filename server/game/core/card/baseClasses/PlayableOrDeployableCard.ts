@@ -3,17 +3,17 @@ import { CardType, EventName, Location } from '../../Constants';
 import Player from '../../Player';
 import Contract from '../../utils/Contract';
 import { isArena } from '../../utils/EnumHelpers';
-import { NewCard } from '../NewCard';
+import Card from '../Card';
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
 
 /**
- * Subclass of {@link NewCard} that represents shared features of all non-base cards.
+ * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends NewCard {
+export class PlayableOrDeployableCard extends Card {
     /**
          * List of actions that the player can take with this card that aren't printed text abilities.
          * Typical examples are playing / deploying cards and attacking.
@@ -27,12 +27,12 @@ export class PlayableOrDeployableCard extends NewCard {
             : this.defaultActions.concat(super.actions);
     }
 
-    public get exhausted() {
+    public get exhausted(): boolean {
         Contract.assertNotNullLike(this._exhausted);
         return this._exhausted;
     }
 
-    // see NewCard constructor for list of expected args
+    // see Card constructor for list of expected args
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 

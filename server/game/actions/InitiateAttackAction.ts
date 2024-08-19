@@ -5,7 +5,7 @@ import { isArena } from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import { attack } from '../gameSystems/GameSystemLibrary.js';
 import type Player from '../core/Player.js';
-import Card from '../core/card/Card.js';
+import Card from '../core/card/Card';
 import { unlimited } from '../core/ability/AbilityLimit.js';
 
 export class InitiateAttackAction extends PlayerAction {

@@ -1,5 +1,5 @@
 import Contract from '../../utils/Contract';
-import { CardConstructor } from '../NewCard';
+import { CardConstructor } from '../Card';
 
 /** Mixin function that adds the `cost` property to a base class. */
 export function Cost<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
@@ -10,7 +10,7 @@ export function Cost<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) 
             return this._printedCost;
         }
 
-        // see NewCard constructor for list of expected args
+        // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
             const [Player, cardData] = this.unpackConstructorArgs(...args);

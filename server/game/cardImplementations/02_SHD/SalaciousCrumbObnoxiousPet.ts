@@ -1,8 +1,8 @@
 import AbilityHelper from '../../AbilityHelper';
-import Card from '../../core/card/Card';
+import { UnitCard } from '../../core/card/UnitCard';
 import { CardType, Location, RelativePlayer } from '../../core/Constants';
 
-export default class SalaciousCrumbObnoxiousPet extends Card {
+export default class SalaciousCrumbObnoxiousPet extends UnitCard {
     protected override getImplementationId() {
         return {
             id: '2744523125',
