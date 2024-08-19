@@ -1,11 +1,13 @@
 import Player from '../Player';
-import { EpicAction } from './propertyMixins/EpicAction';
-import { Hp } from './propertyMixins/Hp';
 import { NewCard } from './NewCard';
 import { CardType } from '../Constants';
 import Contract from '../utils/Contract';
+import { Damage } from './propertyMixins/Damage';
+import { CardActionAbility } from '../ability/CardActionAbility';
+import AbilityHelper from '../../AbilityHelper';
+import { IActionAbilityProps, IEpicActionProps } from '../../Interfaces';
 
-const BaseCardParent = EpicAction(Hp(NewCard));
+const BaseCardParent = Damage(NewCard);
 
 export class BaseCardNew extends BaseCardParent {
     public constructor(
@@ -20,5 +22,13 @@ export class BaseCardNew extends BaseCardParent {
 
     public override isBase() {
         return true;
+    }
+
+    public addEpicActionAbility(properties: IEpicActionProps<this>): void {
+        const propertiesWithLimit: IActionAbilityProps<this> = Object.assign(properties, {
+            limit: AbilityHelper.limit.perGame(1),
+        });
+
+        this.actions.push(new CardActionAbility(this.game, this.generateOriginalCard(), propertiesWithLimit));
     }
 }

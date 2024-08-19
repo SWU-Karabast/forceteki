@@ -1,10 +1,15 @@
 import Contract from '../../utils/Contract';
-import Card from '../Card';
-import { CardConstructor, NewCard } from '../NewCard';
+import { CardConstructor } from '../NewCard';
+import { PrintedHp } from './PrintedHp';
 
-export function Hp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    return class WithHp extends BaseClass {
-        public readonly printedHp: number;
+/**
+ * Mixin function that adds the `damage` property and corresponding methods to a base class.
+ * This is effectively a subclass of the mixin {@link PrintedHp}.
+ */
+export function Damage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+    const HpClass = PrintedHp(BaseClass);
+
+    return class WithDamage extends HpClass {
         private _damage?: number;
 
         // TODO THIS PR: all of the stat modifier code
@@ -20,19 +25,6 @@ export function Hp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
         protected set damage(value: number) {
             Contract.assertTrue(this.damageEnabled);
             this._damage = value;
-        }
-
-        public get hp(): number {
-            return this.printedHp;
-        }
-
-        // see NewCard constructor for list of expected args
-        public constructor(...args: any[]) {
-            super(...args);
-            const [Player, cardData] = this.unpackConstructorArgs(...args);
-
-            Contract.assertNotNullLike(cardData.hp);
-            this.printedHp = cardData.hp;
         }
 
         public addDamage(amount: number) {

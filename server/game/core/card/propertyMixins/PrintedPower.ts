@@ -1,12 +1,12 @@
 import Contract from '../../utils/Contract';
 import { CardConstructor } from '../NewCard';
 
-export function Power<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    return class WithPower extends BaseClass {
-        private readonly _printedPower: number;
+export function PrintedPower<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+    return class WithPrintedPower extends BaseClass {
+        public readonly printedPower: number;
 
         public get power(): number {
-            return this._printedPower;
+            return this.printedPower;
         }
 
         // see NewCard constructor for list of expected args
@@ -15,7 +15,7 @@ export function Power<TBaseClass extends CardConstructor>(BaseClass: TBaseClass)
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
             Contract.assertNotNullLike(cardData.power);
-            this._printedPower = cardData.power;
+            this.printedPower = cardData.power;
         }
     };
 }

@@ -11,6 +11,7 @@ import { AbilityRestriction, CardType, EffectName, EventName, Keyword, Location,
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { checkConvertToEnum, isArena } from '../utils/EnumHelpers';
+import * as KeywordHelpers from './KeywordHelpers';
 
 export type CardConstructor = new (...args: any[]) => NewCard;
 
@@ -26,7 +27,7 @@ export class NewCard extends OngoingEffectSource {
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedTypes: Set<CardType>;
 
-    protected defaultActions: PlayerOrCardAbility[] = [];
+    protected _actionAbilities: CardActionAbility[];
     protected defaultController: Player;
     protected facedown = true;
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
@@ -35,13 +36,24 @@ export class NewCard extends OngoingEffectSource {
 
     private _location: Location;
 
+
+    // ******************************************** PROPERTY GETTERS ********************************************
     /**
-     * The union of the card's "Action Abilities" (i.e. abilities that enable an action, `SWU 7.2.1`)
-     * and any other general card actions such as playing a card
+     * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
+     * abilities have a cost in brackets that must be paid in order to use the ability.
+     */
+    public get actionAbilities() {
+        return this.isBlank() ? []
+            : this._actionAbilities;
+    }
+
+    /**
+     * Any actions that a player could legally invoke with this card as the source. This includes "default"
+     * actions such as playing a card or attacking, as well as any action abilities from card text.
      */
     public get actions(): PlayerOrCardAbility[] {
         return this.isBlank() ? []
-            : this.defaultActions;
+            : this.actionAbilities;
     }
 
     public get keywords(): Set<Keyword> {
@@ -64,6 +76,8 @@ export class NewCard extends OngoingEffectSource {
         return this._upgrades;
     }
 
+
+    // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
         public readonly owner: Player,
         private readonly cardData: any
@@ -77,6 +91,7 @@ export class NewCard extends OngoingEffectSource {
         this.title = cardData.title;
         this.unique = cardData.unique;
 
+        this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords);
         this.id = cardData.id;
         this.printedTraits = new Set(checkConvertToEnum(cardData.traits, Trait));
         this.printedTypes = new Set(checkConvertToEnum(cardData.types, CardType));
@@ -128,6 +143,15 @@ export class NewCard extends OngoingEffectSource {
         Contract.assertArraySize(args, 2);
 
         return [args[0] as Player, args[1]];
+    }
+
+    protected actionAbility(properties: IActionAbilityProps<this>): void {
+        this.actions.push(this.createActionAbility(properties));
+    }
+
+    private createActionAbility(properties: IActionAbilityProps): CardActionAbility {
+        properties.cardName = this.title;
+        return new CardActionAbility(this.game, this.generateOriginalCard(), properties);
     }
 
 
@@ -282,12 +306,10 @@ export class NewCard extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentLocation(prevLocation: Location) {
-        // TODO THIS PR: "Playable" mixin which adds addPlayAction and enteredPlayThisTurn
         switch (this.location) {
             case Location.SpaceArena:
             case Location.GroundArena:
                 this.controller = this.owner;
-                // this.playedThisTurn = false;
                 this.facedown = false;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = false;
@@ -296,7 +318,6 @@ export class NewCard extends OngoingEffectSource {
             case Location.Base:
             case Location.Leader:
                 this.controller = this.owner;
-                // this.playedThisTurn = false;
                 this.facedown = false;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = false;
@@ -304,7 +325,6 @@ export class NewCard extends OngoingEffectSource {
 
             case Location.Resource:
                 this.controller = this.owner;
-                // this.playedThisTurn = false;
                 this.facedown = true;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = true;
@@ -312,7 +332,6 @@ export class NewCard extends OngoingEffectSource {
 
             case Location.Deck:
                 this.controller = this.owner;
-                // this.playedThisTurn = false;
                 this.facedown = true;
                 this.hiddenForController = true;
                 this.hiddenForOpponent = true;
@@ -320,7 +339,6 @@ export class NewCard extends OngoingEffectSource {
 
             case Location.Hand:
                 this.controller = this.owner;
-                // this.playedThisTurn = false;
                 this.facedown = false;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = true;
@@ -331,7 +349,6 @@ export class NewCard extends OngoingEffectSource {
             case Location.OutsideTheGame:
             case Location.BeingPlayed:
                 this.controller = this.owner;
-                // this.playedThisTurn = false;
                 this.facedown = false;
                 this.hiddenForController = false;
                 this.hiddenForOpponent = false;
@@ -538,6 +555,14 @@ export class NewCard extends OngoingEffectSource {
 
 
     // ******************************************* MISC *******************************************
+    protected resetLimits() {
+        for (const action of this._actionAbilities) {
+            if (action.limit) {
+                action.limit.reset();
+            }
+        }
+    }
+
     public setDefaultController(player) {
         this.defaultController = player;
     }

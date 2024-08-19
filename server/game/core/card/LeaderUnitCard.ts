@@ -1,20 +1,18 @@
 import Player from '../Player';
-import { Hp } from './propertyMixins/Hp';
-import { Power } from './propertyMixins/Power';
+import { PrintedPower } from './propertyMixins/PrintedPower';
 import { LeaderCardNew } from './LeaderCardNew';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import Contract from '../utils/Contract';
 import { CardType, Location } from '../Constants';
+import { Damage } from './propertyMixins/Damage';
+import { Cost } from './propertyMixins/Cost';
 
-const LeaderUnitCardParent = Power(Hp(LeaderCardNew));
+const LeaderUnitCardParent = PrintedPower(Damage(Cost(LeaderCardNew)));
 
 export class LeaderUnitCard extends LeaderUnitCardParent {
     public readonly isDeployed: boolean = false;
 
-    public constructor(
-        owner: Player,
-        cardData: any
-    ) {
+    public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertTrue(this.printedTypes.has(CardType.Unit));
 

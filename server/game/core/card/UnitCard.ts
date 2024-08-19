@@ -1,16 +1,17 @@
 import Player from '../Player';
-import { Hp } from './propertyMixins/Hp';
+import { PrintedHp } from './propertyMixins/PrintedHp';
 import { NewCard } from './NewCard';
-import { Exhaust } from './propertyMixins/Exhaust';
 import { Cost } from './propertyMixins/Cost';
-import { ArenaAbilities } from './propertyMixins/ArenaAbilities';
-import { Power } from './propertyMixins/Power';
+import { OngoingAbilities } from './propertyMixins/OngoingAbilities';
+import { PrintedPower } from './propertyMixins/PrintedPower';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import Contract from '../utils/Contract';
 import { CardType, Location } from '../Constants';
+import { Damage } from './propertyMixins/Damage';
+import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 
-const UnitCardParent = ArenaAbilities(Power(Hp(Cost(Exhaust(NewCard)))));
+const UnitCardParent = OngoingAbilities(PrintedPower(Damage(Cost(PlayableOrDeployableCard))));
 
 export class UnitCard extends UnitCardParent {
     public constructor(
@@ -18,7 +19,7 @@ export class UnitCard extends UnitCardParent {
         cardData: any
     ) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedTypes.has(CardType.Unit));
+        Contract.assertFalse(this.printedTypes.has(CardType.Unit));
 
         this.defaultActions.push(new InitiateAttackAction(this.generateOriginalCard()));
         this.defaultActions.push(new PlayUnitAction(this.generateOriginalCard()));

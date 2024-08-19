@@ -1,16 +1,16 @@
 import Player from '../Player';
-import { Hp } from './propertyMixins/Hp';
+import { PrintedHp } from './propertyMixins/PrintedHp';
 import { NewCard } from './NewCard';
-import { Exhaust } from './propertyMixins/Exhaust';
 import { Cost } from './propertyMixins/Cost';
-import { ArenaAbilities } from './propertyMixins/ArenaAbilities';
-import { Power } from './propertyMixins/Power';
+import { OngoingAbilities } from './propertyMixins/OngoingAbilities';
+import { PrintedPower } from './propertyMixins/PrintedPower';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import Contract from '../utils/Contract';
 import { CardType, Location } from '../Constants';
+import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 
-const UpgradeCardParent = ArenaAbilities(Power(Hp(Cost(Exhaust(NewCard)))));
+const UpgradeCardParent = OngoingAbilities(PrintedPower(PrintedHp(Cost(PlayableOrDeployableCard))));
 
 export class UpgradeCard extends UpgradeCardParent {
     public constructor(

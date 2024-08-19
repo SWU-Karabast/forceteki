@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
-import { CardActionAbility } from '../../ability/CardActionAbility';
+import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { Duration, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -10,28 +9,12 @@ import Card from '../Card';
 import { CardConstructor } from '../NewCard';
 import * as KeywordHelpers from '../KeywordHelpers';
 
-export function ArenaAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    return class WithArenaAbilities extends BaseClass {
-        protected _actionAbilities: CardActionAbility[];
+export function OngoingAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+    return class WithOngoingAbilities extends BaseClass {
         protected _triggeredAbilities: TriggeredAbility[];
         protected _constantAbilities: IConstantAbility[];
 
         // **************************************** ABILITY GETTERS ****************************************
-        // TODO THIS PR: move this higher in the inheritance chain for smuggle
-        public override get actions() {
-            return this.isBlank() ? []
-                : this.defaultActions.concat(this.actionAbilities);
-        }
-
-        /**
-         * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action abilities have
-         * a cost in brackets that must be paid in order to use the ability.
-         */
-        public get actionAbilities() {
-            return this.isBlank() ? []
-                : this._actionAbilities;
-        }
-
         /**
          * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
          * don’t have any special styling
@@ -57,41 +40,12 @@ export function ArenaAbilities<TBaseClass extends CardConstructor>(BaseClass: TB
         public constructor(...args: any[]) {
             super(...args);
 
-            this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords);
-            this._triggeredAbilities = KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords);
             this._constantAbilities = KeywordHelpers.GenerateConstantAbilitiesFromKeywords(this.printedKeywords);
+            this._triggeredAbilities = KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords);
         }
 
 
         // ********************************************* ABILITY SETUP *********************************************
-        // TODO THIS PR: consolidate these down to "add*" abilities
-        protected actionAbility(properties: IActionAbilityProps<this>): void {
-            this.actions.push(this.createActionAbility(properties));
-        }
-
-        private createActionAbility(properties: IActionAbilityProps): CardActionAbility {
-            properties.cardName = this.title;
-            return new CardActionAbility(this.game, this.generateOriginalCard(), properties);
-        }
-
-        protected triggeredAbility(properties: ITriggeredAbilityProps): void {
-            this._triggeredAbilities.push(this.createTriggeredAbility(properties));
-        }
-
-        protected whenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
-            const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
-            this.triggeredAbility(triggeredProperties);
-        }
-
-        private createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
-            properties.cardName = this.title;
-            return new TriggeredAbility(this.game, this.generateOriginalCard(), properties);
-        }
-
-        /**
-         * Applies an effect that continues as long as the card providing the effect
-         * is both in play and not blank.
-         */
         protected constantAbility(properties: IConstantAbilityProps<this>): void {
             const allowedLocationFilters = [
                 WildcardLocation.Any,
@@ -115,6 +69,21 @@ export function ArenaAbilities<TBaseClass extends CardConstructor>(BaseClass: TB
             }
             properties.cardName = this.title;
             this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties });
+        }
+
+        // TODO THIS PR: consolidate these down to "add*" abilities (also in NewCard.ts). Also add docstr
+        protected triggeredAbility(properties: ITriggeredAbilityProps): void {
+            this._triggeredAbilities.push(this.createTriggeredAbility(properties));
+        }
+
+        protected whenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+            const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
+            this.triggeredAbility(triggeredProperties);
+        }
+
+        private createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
+            properties.cardName = this.title;
+            return new TriggeredAbility(this.game, this.generateOriginalCard(), properties);
         }
 
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************
@@ -181,12 +150,9 @@ export function ArenaAbilities<TBaseClass extends CardConstructor>(BaseClass: TB
             }
         }
 
-        private resetLimits() {
-            for (const action of this._actionAbilities) {
-                if (action.limit) {
-                    action.limit.reset();
-                }
-            }
+        protected override resetLimits() {
+            super.resetLimits();
+
             for (const triggeredAbility of this._triggeredAbilities) {
                 if (triggeredAbility.limit) {
                     triggeredAbility.limit.reset();

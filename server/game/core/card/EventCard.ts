@@ -1,13 +1,11 @@
 import Player from '../Player';
-import { EpicAction } from './propertyMixins/EpicAction';
-import { Hp } from './propertyMixins/Hp';
 import { NewCard } from './NewCard';
-import { Exhaust } from './propertyMixins/Exhaust';
 import { Cost } from './propertyMixins/Cost';
 import { CardType, Location } from '../Constants';
 import Contract from '../utils/Contract';
+import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 
-const EventCardParent = Cost(Exhaust(NewCard));
+const EventCardParent = Cost(PlayableOrDeployableCard);
 
 export class EventCard extends EventCardParent {
     public constructor(
