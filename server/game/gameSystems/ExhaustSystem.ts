@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EventName } from '../core/Constants';
-import { isArena } from '../core/utils/EnumHelpers';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { PlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import * as CardHelpers from '../core/card/CardHelpers';
@@ -24,7 +24,7 @@ export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
-        if (!isArena(card.location)) {
+        if (!EnumHelpers.isArena(card.location)) {
             return false;
         }
 

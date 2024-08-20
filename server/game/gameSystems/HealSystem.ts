@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, EventName } from '../core/Constants';
-import { isArena, isAttackableLocation } from '../core/utils/EnumHelpers';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Contract from '../core/utils/Contract';
 import * as CardHelpers from '../core/card/CardHelpers';
@@ -31,7 +31,7 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
         if (!card.canBeDamaged()) {
             return false;
         }
-        if (!isAttackableLocation(card.location)) {
+        if (!EnumHelpers.isAttackableLocation(card.location)) {
             return false;
         }
         if (properties.isCost && (properties.amount === 0 || (card as CardWithDamageProperty).damage === 0)) {

@@ -1,6 +1,6 @@
 const { Location, RelativePlayer, WildcardLocation } = require('../Constants');
 const { default: Contract } = require('../utils/Contract');
-const { cardLocationMatches } = require('../utils/EnumHelpers');
+const EnumHelpers = require('../utils/EnumHelpers');
 
 // TODO: once converted to TS, make this abstract
 class BaseCardSelector {
@@ -120,7 +120,7 @@ class BaseCardSelector {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!cardLocationMatches(card.location, this.locationFilter)) {
+        if (!EnumHelpers.cardLocationMatches(card.location, this.locationFilter)) {
             return false;
         }
         if (card.location === Location.Hand && card.controller !== choosingPlayer) {

@@ -20,7 +20,7 @@ const {
     PlayType
 } = require('./Constants');
 
-const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
+const EnumHelpers = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
 const { shuffle, defaultLegalLocationsForCardTypes } = require('../../Util');
 const AbilityHelper = require('../AbilityHelper');
@@ -259,7 +259,7 @@ class Player extends GameObject {
                 card.controller === this &&
                 card.hasSomeTrait(trait) &&
                 card.isFaceup() &&
-                isArena(card.location)
+                EnumHelpers.isArena(card.location)
             );
         });
     }
@@ -270,7 +270,7 @@ class Player extends GameObject {
      */
     anyCardsInPlay(predicate) {
         return this.game.allCards.some(
-            (card) => card.controller === this && isArena(card.location) && predicate(card)
+            (card) => card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)
         );
     }
 
@@ -288,7 +288,7 @@ class Player extends GameObject {
      */
     filterCardsInPlay(predicate) {
         return this.game.allCards.filter(
-            (card) => card.controller === this && isArena(card.location) && predicate(card)
+            (card) => card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)
         );
     }
 
@@ -479,7 +479,7 @@ class Player extends GameObject {
      */
     getNumberOfCardsInPlay(predicate) {
         return this.game.allCards.reduce((num, card) => {
-            if (card.controller === this && isArena(card.location) && predicate(card)) {
+            if (card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)) {
                 return num + 1;
             }
 
@@ -998,7 +998,7 @@ class Player extends GameObject {
             return false;
         }
 
-        return legalLocationsForType && cardLocationMatches(location, legalLocationsForType);
+        return legalLocationsForType && EnumHelpers.cardLocationMatches(location, legalLocationsForType);
     }
 
     // TODO UPGRADES
@@ -1101,7 +1101,7 @@ class Player extends GameObject {
 
         let currentLocation = card.location;
 
-        if (isArena(currentLocation)) {
+        if (EnumHelpers.isArena(currentLocation)) {
             if (card.owner !== this) {
                 card.owner.moveCard(card, targetLocation, options);
                 return;
@@ -1114,7 +1114,7 @@ class Player extends GameObject {
             }
 
             card.controller = this;
-        } else if (isArena(targetLocation)) {
+        } else if (EnumHelpers.isArena(targetLocation)) {
             card.setDefaultController(this);
             card.controller = this;
             // // This should only be called when an upgrade is dragged into play

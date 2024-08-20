@@ -1,7 +1,7 @@
 import { CardType } from '../Constants';
 import Player from '../Player';
 import Contract from '../utils/Contract';
-import { checkConvertToEnum } from '../utils/EnumHelpers';
+import * as EnumHelpers from '../utils/EnumHelpers';
 import { BaseCard } from './BaseCard';
 import { Card } from './Card';
 import { AnyCard, CardWithConstantAbilities, CardWithExhaustProperty, CardWithDamageProperty, CardWithTriggeredAbilities, InPlayCard, UnitCard } from './CardTypes';
@@ -19,7 +19,7 @@ import { UpgradeCard } from './UpgradeCard';
  */
 export function createUnimplementedCard(owner: Player, cardData: any): Card {
     Contract.assertNotNullLike(cardData.types);
-    const cardTypes = new Set(checkConvertToEnum(cardData.types, CardType));
+    const cardTypes = new Set(EnumHelpers.checkConvertToEnum(cardData.types, CardType));
 
     if (cardTypes.has(CardType.Event)) {
         return new EventCard(owner, cardData);

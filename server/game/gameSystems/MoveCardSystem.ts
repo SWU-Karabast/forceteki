@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EffectName, Location } from '../core/Constants';
-import { isArena } from '../core/utils/EnumHelpers';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Contract from '../core/utils/Contract';
 
@@ -91,7 +91,7 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
                 (!card.hasRestriction(EffectName.TakeControl, context) &&
                     !card.anotherUniqueInPlay(context.player))) &&
             (!destination || context.player.isLegalLocationForCardTypes(card.types, destination)) &&
-            !isArena(card.location) &&
+            !EnumHelpers.isArena(card.location) &&
             super.canAffect(card, context)
         );
     }

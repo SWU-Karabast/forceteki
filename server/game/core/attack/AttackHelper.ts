@@ -2,7 +2,7 @@ import AbilityHelper from '../../AbilityHelper';
 import CardAbilityStep from '../ability/CardAbilityStep';
 import { Location, CardType, EffectName, RelativePlayer } from '../Constants';
 import { IInitiateAttack } from '../../Interfaces';
-import { isArena, isAttackableLocation } from '../utils/EnumHelpers';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 export const addInitiateAttackProperties = (properties) => {
     if (!properties.initiateAttack) {
@@ -65,7 +65,7 @@ const getBaselineAttackTargetProperties = (attacker, properties) => {
 
             // default target condition
             if (!targetCondition) {
-                return isAttackableLocation(card.location) && (card.location === attackerCard.location || card.location === Location.Base);
+                return EnumHelpers.isAttackableLocation(card.location) && (card.location === attackerCard.location || card.location === Location.Base);
             }
 
             return targetCondition(card, context);

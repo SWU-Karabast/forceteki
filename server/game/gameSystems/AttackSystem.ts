@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { AbilityRestriction, CardType, EventName, Location } from '../core/Constants';
-import { isAttackableLocation, isArena } from '../core/utils/EnumHelpers';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
 import { AttackFlow } from '../core/attack/AttackFlow';
@@ -45,7 +45,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (
-            !isArena(properties.attacker.location) || !isAttackableLocation(target.location)
+            !EnumHelpers.isArena(properties.attacker.location) || !EnumHelpers.isAttackableLocation(target.location)
         ) {
             context.game.addMessage(
                 'The attack cannot proceed as the attacker or defender is no longer in play'
@@ -111,7 +111,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         return (
             properties.attacker &&
-            isAttackableLocation(targetCard.location)
+            EnumHelpers.isAttackableLocation(targetCard.location)
         );
     }
 

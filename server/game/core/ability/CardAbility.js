@@ -2,7 +2,7 @@ const AbilityLimit = require('./AbilityLimit.js');
 const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
 const { Location, CardType, EffectName, WildcardLocation, AbilityType, PhaseName } = require('../Constants.js');
-const { cardLocationMatches } = require('../utils/EnumHelpers.js');
+const EnumHelpers = require('../utils/EnumHelpers.js');
 const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
 
 class CardAbility extends CardAbilityStep {
@@ -120,7 +120,7 @@ class CardAbility extends CardAbilityStep {
     isInValidLocation(context) {
         return this.card.isEvent()
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
-            : cardLocationMatches(this.card.location, this.location);
+            : EnumHelpers.cardLocationMatches(this.card.location, this.location);
     }
 
     getLocationMessage(location, context) {

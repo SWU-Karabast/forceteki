@@ -2,7 +2,7 @@ import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import { CardType, EventName, Location } from '../../Constants';
 import Player from '../../Player';
 import Contract from '../../utils/Contract';
-import { isArena } from '../../utils/EnumHelpers';
+import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
 
 // required for mixins to be based on this class

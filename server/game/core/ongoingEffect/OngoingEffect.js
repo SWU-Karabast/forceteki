@@ -1,5 +1,5 @@
 const { Location, Duration, WildcardLocation } = require('../Constants');
-const { isArena } = require('../utils/EnumHelpers');
+const EnumHelpers = require('../utils/EnumHelpers');
 
 /**
  * Represents a card based effect applied to one or more targets.

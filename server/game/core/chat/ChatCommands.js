@@ -91,7 +91,7 @@ class ChatCommands {
     //     this.game.promptForSelect(player, {
     //         activePromptTitle: 'Select a card',
     //         waitingPromptTitle: 'Waiting for opponent to set token',
-    //         cardCondition: card => (isArena(card.location) || card.location === 'plot') && card.controller === player,
+    //         cardCondition: card => (EnumHelpers.isArena(card.location) || card.location === 'plot') && card.controller === player,
     //         onSelect: (p, card) => {
     //             var numTokens = card.tokens[token] || 0;
 

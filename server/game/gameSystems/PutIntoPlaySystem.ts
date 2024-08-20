@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { AbilityRestriction, CardType, EventName, Location, RelativePlayer } from '../core/Constants';
-import { isArena } from '../core/utils/EnumHelpers';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
@@ -60,7 +60,7 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
         if (!context || !super.canAffect(card, context)) {
             return false;
         // TODO SMUGGLE: impl here
-        } else if (isArena(card.location) || card.facedown) {
+        } else if (EnumHelpers.isArena(card.location) || card.facedown) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;

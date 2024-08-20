@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EventName, Location } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { isArena } from '../core/utils/EnumHelpers';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDefeatCardProperties extends ICardTargetSystemProperties {}
@@ -27,7 +27,7 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
     }
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
-        if (!isArena(card.location)) {
+        if (!EnumHelpers.isArena(card.location)) {
             return false;
         }
         return super.canAffect(card, context);

@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardType, EventName, Location, WildcardLocation } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
-import { cardLocationMatches } from '../core/utils/EnumHelpers';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { ReturnToHandFromPlaySystem } from './ReturnToHandFromPlaySystem';
 
 type ReturnableLocation = Location.Discard | WildcardLocation.AnyArena;
@@ -31,7 +31,7 @@ export class ReturnToHandSystem extends CardTargetSystem<IReturnToHandProperties
 
     public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         const properties = super.generatePropertiesFromContext(context);
-        return cardLocationMatches(card.location, properties.locationFilter) && super.canAffect(card, context, additionalProperties);
+        return EnumHelpers.cardLocationMatches(card.location, properties.locationFilter) && super.canAffect(card, context, additionalProperties);
     }
 
     protected override updateEvent(event, card: Card, context: AbilityContext, additionalProperties): void {

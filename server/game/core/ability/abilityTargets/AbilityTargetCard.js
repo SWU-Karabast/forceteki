@@ -2,7 +2,7 @@ const { defaultLegalLocationsForCardTypes, asArray } = require('../../../../Util
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer, EffectName, TargetMode } = require('../../Constants.js');
 const { default: Contract } = require('../../utils/Contract.js');
-const { cardLocationMatches } = require('../../utils/EnumHelpers.js');
+const EnumHelpers = require('../../utils/EnumHelpers.js');
 
 // TODO: the AbilityTarget* classes need a base class and then converted to TS
 class AbilityTargetCard {
@@ -205,7 +205,7 @@ class AbilityTargetCard {
 
         for (const type of Array.isArray(properties.cardType) ? properties.cardType : [properties.cardType]) {
             const legalLocations = defaultLegalLocationsForCardTypes(type);
-            if (legalLocations.some((location) => cardLocationMatches(location, properties.locationFilter))) {
+            if (legalLocations.some((location) => EnumHelpers.cardLocationMatches(location, properties.locationFilter))) {
                 return;
             }
         }

@@ -5,7 +5,7 @@ import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import Contract from '../utils/Contract';
 import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
-import { checkConvertToEnum, isArena } from '../utils/EnumHelpers';
+import * as EnumHelpers from '../utils/EnumHelpers';
 import * as KeywordHelpers from './KeywordHelpers';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import AbilityHelper from '../../AbilityHelper';
@@ -86,7 +86,7 @@ export class Card extends OngoingEffectSource {
         this.validateCardData(cardData);
         this.validateImplementationId(cardData);
 
-        this.aspects = checkConvertToEnum(cardData.aspects, Aspect);
+        this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this.internalName = cardData.internalName;
         this.subtitle = cardData.subtitle;
         this.title = cardData.title;
@@ -96,8 +96,8 @@ export class Card extends OngoingEffectSource {
         this.controller = owner;
         this.defaultController = owner;
         this.id = cardData.id;
-        this.printedTraits = new Set(checkConvertToEnum(cardData.traits, Trait));
-        this.printedTypes = new Set(checkConvertToEnum(cardData.types, CardType));
+        this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
+        this.printedTypes = new Set(EnumHelpers.checkConvertToEnum(cardData.types, CardType));
 
         this._location = Location.Deck;
 
@@ -435,9 +435,9 @@ export class Card extends OngoingEffectSource {
         this.defaultController = player;
     }
 
-    // TODO THIS PR: switch to using "Helper.*" form for stuff like isArena
+    // TODO THIS PR: switch to using "Helper.*" form for stuff like EnumHelpers.isArena
     public getModifiedController() {
-        if (isArena(this.location)) {
+        if (EnumHelpers.isArena(this.location)) {
             return this.mostRecentEffect(EffectName.TakeControl) || this.defaultController;
         }
         return this.owner;

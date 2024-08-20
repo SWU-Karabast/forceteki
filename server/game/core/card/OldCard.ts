@@ -22,7 +22,7 @@ import {
     AbilityRestriction,
     LocationFilter
 } from '../Constants.js';
-import { isArena, cardLocationMatches, checkConvertToEnum } from '../utils/EnumHelpers.js';
+import * as EnumHelpers from '../utils/EnumHelpers.js';
 import {
     IActionAbilityProps,
     // IAttachmentConditionProps,
@@ -184,7 +184,7 @@ class OldCard extends OngoingEffectSource {
     }
 
     public get showStats() {
-        return isArena(this.location) && this.isUnit();
+        return EnumHelpers.isArena(this.location) && this.isUnit();
     }
 
     public constructor(
@@ -203,9 +203,9 @@ class OldCard extends OngoingEffectSource {
         this.printedTitle = cardData.title;
         this.printedSubtitle = cardData.subtitle;
         this.internalName = cardData.internalName;
-        this.printedTypes = new Set(checkConvertToEnum(cardData.types, CardType));
-        this.traits = checkConvertToEnum(cardData.traits, Trait);
-        this.aspects = checkConvertToEnum(cardData.aspects, Aspect);
+        this.printedTypes = new Set(EnumHelpers.checkConvertToEnum(cardData.types, CardType));
+        this.traits = EnumHelpers.checkConvertToEnum(cardData.traits, Trait);
+        this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this.printedKeywords = cardData.keywords; // TODO: enum for these
 
         this.setupCardAbilities(AbilityHelper);
@@ -369,7 +369,7 @@ class OldCard extends OngoingEffectSource {
 
         // TODO EVENTS: this block prevents any PlayCardAction from being generated for event cards
         // if card is already in play or is an event, return the default actions
-        if (isArena(location) || this.isEvent()) {
+        if (EnumHelpers.isArena(location) || this.isEvent()) {
             return allAbilities;
         }
 
@@ -641,9 +641,9 @@ class OldCard extends OngoingEffectSource {
                 } else {
                     triggeredAbility.unregisterEvents();
                 }
-            } else if (cardLocationMatches(to, triggeredAbility.location) && !cardLocationMatches(from, triggeredAbility.location)) {
+            } else if (EnumHelpers.cardLocationMatches(to, triggeredAbility.location) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.location)) {
                 triggeredAbility.registerEvents();
-            } else if (!cardLocationMatches(to, triggeredAbility.location) && cardLocationMatches(from, triggeredAbility.location)) {
+            } else if (!EnumHelpers.cardLocationMatches(to, triggeredAbility.location) && EnumHelpers.cardLocationMatches(from, triggeredAbility.location)) {
                 triggeredAbility.unregisterEvents();
             }
         }
@@ -651,7 +651,7 @@ class OldCard extends OngoingEffectSource {
 
     private updateEffects(from: Location, to: Location) {
         // removing any lasting effects from ourself
-        if (!isArena(from) && !isArena(to)) {
+        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
             this.removeLastingEffects();
         }
 
@@ -664,13 +664,13 @@ class OldCard extends OngoingEffectSource {
                 continue;
             }
             if (
-                !cardLocationMatches(from, constantAbility.locationFilter) &&
-                cardLocationMatches(to, constantAbility.locationFilter)
+                !EnumHelpers.cardLocationMatches(from, constantAbility.locationFilter) &&
+                EnumHelpers.cardLocationMatches(to, constantAbility.locationFilter)
             ) {
                 constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
             } else if (
-                cardLocationMatches(from, constantAbility.locationFilter) &&
-                !cardLocationMatches(to, constantAbility.locationFilter)
+                EnumHelpers.cardLocationMatches(from, constantAbility.locationFilter) &&
+                !EnumHelpers.cardLocationMatches(to, constantAbility.locationFilter)
             ) {
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];
@@ -1441,7 +1441,7 @@ class OldCard extends OngoingEffectSource {
     }
 
     public getModifiedController() {
-        if (isArena(this.location)) {
+        if (EnumHelpers.isArena(this.location)) {
             return this.mostRecentEffect(EffectName.TakeControl) || this.defaultController;
         }
         return this.owner;

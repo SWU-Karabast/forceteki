@@ -3,7 +3,7 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { AbilityRestriction, AbilityType, Arena, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import Player from '../../Player';
-import { cardLocationMatches, checkConvertToEnum, isArena } from '../../utils/EnumHelpers';
+import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as KeywordHelpers from '../KeywordHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import Contract from '../../utils/Contract';
@@ -161,7 +161,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.updateTriggeredAbilityEvents(prevLocation, this.location);
         this.updateConstantAbilityEffects(prevLocation, this.location);
 
-        this._enteredPlayThisRound = isArena(this.location) ? true : null;
+        this._enteredPlayThisRound = EnumHelpers.isArena(this.location) ? true : null;
 
         // register a handler to reset the enteredPlayThisRound flag after the end of the round
         this.game.on(EventName.OnRoundEndedCleanup, this.resetEnteredPlayThisRound);
@@ -185,9 +185,9 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 } else {
                     triggeredAbility.unregisterEvents();
                 }
-            } else if (cardLocationMatches(to, triggeredAbility.location) && !cardLocationMatches(from, triggeredAbility.location)) {
+            } else if (EnumHelpers.cardLocationMatches(to, triggeredAbility.location) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.location)) {
                 triggeredAbility.registerEvents();
-            } else if (!cardLocationMatches(to, triggeredAbility.location) && cardLocationMatches(from, triggeredAbility.location)) {
+            } else if (!EnumHelpers.cardLocationMatches(to, triggeredAbility.location) && EnumHelpers.cardLocationMatches(from, triggeredAbility.location)) {
                 triggeredAbility.unregisterEvents();
             }
         }
@@ -195,7 +195,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     private updateConstantAbilityEffects(from: Location, to: Location) {
         // removing any lasting effects from ourself
-        if (!isArena(from) && !isArena(to)) {
+        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
             this.removeLastingEffects();
         }
 
@@ -208,13 +208,13 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 continue;
             }
             if (
-                !cardLocationMatches(from, constantAbility.locationFilter) &&
-                    cardLocationMatches(to, constantAbility.locationFilter)
+                !EnumHelpers.cardLocationMatches(from, constantAbility.locationFilter) &&
+                    EnumHelpers.cardLocationMatches(to, constantAbility.locationFilter)
             ) {
                 constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
             } else if (
-                cardLocationMatches(from, constantAbility.locationFilter) &&
-                    !cardLocationMatches(to, constantAbility.locationFilter)
+                EnumHelpers.cardLocationMatches(from, constantAbility.locationFilter) &&
+                    !EnumHelpers.cardLocationMatches(to, constantAbility.locationFilter)
             ) {
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];
