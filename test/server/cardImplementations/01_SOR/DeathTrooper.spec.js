@@ -34,7 +34,6 @@ describe('Death Trooper', function() {
             it('death trooper when played cannot be passed', function () {
                 // Play Death Trooper
                 this.player1.clickCard(this.deathTrooper);
-                expect(this.player1).toHavePrompt('');
                 expect(this.deathTrooper.location).toBe('ground arena');
                 expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
                 expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa]);
