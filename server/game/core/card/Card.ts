@@ -409,6 +409,10 @@ export class Card extends OngoingEffectSource {
     }
 
     // ******************************************* MISC *******************************************
+    protected assertPropertyEnabled(propertyVal: any, propertyName: string) {
+        Contract.assertNotNullLike(propertyVal, `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in location '${this.location}' where the property does not apply`);
+    }
+
     protected resetLimits() {
         for (const action of this._actionAbilities) {
             if (action.limit) {

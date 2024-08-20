@@ -16,16 +16,17 @@ export function Damage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass
         private damageEnabled = false;
 
         public get damage(): number {
-            Contract.assertTrue(this.damageEnabled);
+            this.assertPropertyEnabled(this._damage, 'damage');
             return this._damage;
         }
 
         protected set damage(value: number) {
-            Contract.assertTrue(this.damageEnabled);
+            this.assertPropertyEnabled(this._damage, 'damage');
             this._damage = value;
         }
 
         public addDamage(amount: number) {
+            this.assertPropertyEnabled(this._damage, 'damage');
             if (
                 !Contract.assertNotNullLikeOrNan(this.damage) ||
                 !Contract.assertNotNullLikeOrNan(this.hp) ||
@@ -52,6 +53,7 @@ export function Damage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass
 
         /** @returns True if any damage was healed, false otherwise */
         public removeDamage(amount: number): boolean {
+            this.assertPropertyEnabled(this._damage, 'damage');
             if (
                 !Contract.assertNotNullLikeOrNan(this.damage) ||
                 !Contract.assertNotNullLikeOrNan(this.hp) ||

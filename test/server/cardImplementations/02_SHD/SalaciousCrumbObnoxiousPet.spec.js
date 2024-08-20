@@ -65,7 +65,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
 
                 this.player1.clickCard(this.atrt);
                 expect(this.atrt.damage).toBe(1);
-                expect(this.crumb.exhausted).toBe(null);    // since card is no longer in play
+                expect(() => this.crumb.exhausted).toThrow();    // since card is no longer in play
                 expect(this.crumb.location).toBe('hand');
             });
 
