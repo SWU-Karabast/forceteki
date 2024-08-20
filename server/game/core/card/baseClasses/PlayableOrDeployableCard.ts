@@ -22,11 +22,6 @@ export class PlayableOrDeployableCard extends Card {
 
     private _exhausted?: boolean = null;
 
-    public override get actions(): PlayerOrCardAbility[] {
-        return this.isBlank() ? []
-            : this.defaultActions.concat(super.actions);
-    }
-
     public get exhausted(): boolean {
         Contract.assertNotNullLike(this._exhausted);
         return this._exhausted;
@@ -38,6 +33,11 @@ export class PlayableOrDeployableCard extends Card {
 
         // this class is for all card types other than Base
         Contract.assertFalse(this.printedTypes.has(CardType.Base));
+    }
+
+    public override getActions(): PlayerOrCardAbility[] {
+        return this.isBlank() ? []
+            : this.defaultActions.concat(super.getActions());
     }
 
     public exhaust() {

@@ -25,33 +25,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     private _enteredPlayThisRound?: boolean = null;
 
-
-    // **************************************** ABILITY GETTERS ****************************************
-    /**
-     * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
-     * don’t have any special styling
-     */
-    public get constantAbilities(): IConstantAbility[] {
-        return this.isBlank() ? []
-            : this._constantAbilities;
-    }
-
     public get enteredPlayThisRound(): boolean {
         Contract.assertNotNullLike(this._enteredPlayThisRound);
         return this._enteredPlayThisRound;
     }
-
-    // TODO THIS PR: go through and fix SWU rule reference numbers
-    /**
-     * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
-     * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
-     * “When Defeated,” and “On Attack” abilities
-     */
-    public get triggeredAbilities(): TriggeredAbility[] {
-        return this.isBlank() ? []
-            : this._triggeredAbilities;
-    }
-
 
     // ********************************************** CONSTRUCTOR **********************************************
     public constructor(owner: Player, cardData: any) {
@@ -62,6 +39,28 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         this._constantAbilities = KeywordHelpers.GenerateConstantAbilitiesFromKeywords(this.printedKeywords);
         this._triggeredAbilities = KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords);
+    }
+
+
+    // **************************************** ABILITY GETTERS ****************************************
+    /**
+     * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
+     * don’t have any special styling
+     */
+    public getConstantAbilities(): IConstantAbility[] {
+        return this.isBlank() ? []
+            : this._constantAbilities;
+    }
+
+    // TODO THIS PR: go through and fix SWU rule reference numbers
+    /**
+     * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
+     * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
+     * “When Defeated,” and “On Attack” abilities
+     */
+    public getTriggeredAbilities(): TriggeredAbility[] {
+        return this.isBlank() ? []
+            : this._triggeredAbilities;
     }
 
 

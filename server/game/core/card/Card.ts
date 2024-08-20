@@ -42,24 +42,6 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
-    /**
-     * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
-     * abilities have a cost in brackets that must be paid in order to use the ability.
-     */
-    public get actionAbilities(): CardActionAbility[] {
-        return this.isBlank() ? []
-            : this._actionAbilities;
-    }
-
-    /**
-     * Any actions that a player could legally invoke with this card as the source. This includes "default"
-     * actions such as playing a card or attacking, as well as any action abilities from card text.
-     */
-    public get actions(): PlayerOrCardAbility[] {
-        return this.isBlank() ? []
-            : this.actionAbilities;
-    }
-
     public get facedown(): boolean {
         return this._facedown;
     }
@@ -114,6 +96,26 @@ export class Card extends OngoingEffectSource {
     }
 
 
+    // ******************************************* ABILITY GETTERS *******************************************
+    /**
+     * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
+     * abilities have a cost in brackets that must be paid in order to use the ability.
+     */
+    public getActionAbilities(): CardActionAbility[] {
+        return this.isBlank() ? []
+            : this._actionAbilities;
+    }
+
+    /**
+     * Any actions that a player could legally invoke with this card as the source. This includes "default"
+     * actions such as playing a card or attacking, as well as any action abilities from card text.
+     */
+    public getActions(): PlayerOrCardAbility[] {
+        return this.isBlank() ? []
+            : this.getActionAbilities();
+    }
+
+
     // **************************************** INITIALIZATION HELPERS ****************************************
     private validateCardData(cardData: any) {
         Contract.assertNotNullLike(cardData);
@@ -163,7 +165,7 @@ export class Card extends OngoingEffectSource {
     }
 
     protected actionAbility(properties: IActionAbilityProps<this>): void {
-        this.actions.push(this.createActionAbility(properties));
+        this._actionAbilities.push(this.createActionAbility(properties));
     }
 
     private createActionAbility(properties: IActionAbilityProps): CardActionAbility {

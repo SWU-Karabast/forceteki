@@ -39,7 +39,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
     // TODO UPGRADES: this was in the L5R code as "updateEffectContext()", not sure yet what the need is
     protected updateConstantAbilityContexts() {
-        for (const constantAbility of this.constantAbilities) {
+        for (const constantAbility of this._constantAbilities) {
             if (constantAbility.registeredEffects) {
                 for (const effect of constantAbility.registeredEffects) {
                     effect.refreshContext();

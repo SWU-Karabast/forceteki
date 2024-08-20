@@ -26,6 +26,6 @@ export class BaseCard extends BaseCardParent {
             limit: AbilityHelper.limit.perGame(1),
         });
 
-        this.actions.push(new CardActionAbility(this.game, this, propertiesWithLimit));
+        this._actionAbilities.push(new CardActionAbility(this.game, this, propertiesWithLimit));
     }
 }
