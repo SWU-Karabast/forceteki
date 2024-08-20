@@ -54,7 +54,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this._constantAbilities.push(...KeywordHelpers.GenerateConstantAbilitiesFromKeywords(this.printedKeywords));
         this._triggeredAbilities.push(...KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords));
 
-        this.activateAbilityInitializersForTypes([AbilityType.Persistent, AbilityType.TriggeredAbility]);
+        this.activateAbilityInitializersForTypes([AbilityType.Constant, AbilityType.Triggered]);
     }
 
 
@@ -113,7 +113,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         properties.cardName = this.title;
 
         this.abilityInitializers.push({
-            abilityType: AbilityType.Persistent,
+            abilityType: AbilityType.Constant,
             initialize: () => this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties })
         });
     }
@@ -121,7 +121,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     // TODO THIS PR: consolidate these down to "add*" abilities (also in Card.ts). Also add docstr
     protected triggeredAbility(properties: ITriggeredAbilityProps): void {
         this.abilityInitializers.push({
-            abilityType: AbilityType.TriggeredAbility,
+            abilityType: AbilityType.Triggered,
             initialize: () => this._triggeredAbilities.push(this.createTriggeredAbility(properties))
         });
     }
@@ -175,7 +175,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         for (const triggeredAbility of this._triggeredAbilities) {
             if (this.isEvent()) {
-                // TODO EVENT: this block is here because jigoku would would register a 'bluff' triggered ability window in the UI, do we still need that?
+                // TODO EVENTS: this block is here because jigoku would would register a 'bluff' triggered ability window in the UI, do we still need that?
                 // normal event abilities have their own category so this is the only 'triggered ability' for event cards
                 if (
                     to === Location.Deck ||

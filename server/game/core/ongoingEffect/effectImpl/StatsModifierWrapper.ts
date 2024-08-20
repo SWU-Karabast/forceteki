@@ -64,8 +64,7 @@ export default class StatsModifierWrapper {
         );
     }
 
-    // TODO THIS PR: standardize on TODO UPGRADE(S), likewise for others
-    // TODO UPGRADE: should we use this for generating stat modifiers from attached upgrades or use the effect system?
+    // TODO UPGRADES: should we use this for generating stat modifiers from attached upgrades or use the effect system?
     // static fromStatusToken(amount: number, name, overrides = false) {
     //     return new this(
     //         amount,

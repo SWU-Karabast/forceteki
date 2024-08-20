@@ -36,8 +36,7 @@ class Game extends EventEmitter {
     constructor(details, options = {}) {
         super();
 
-        // TODO THIS PR: fix this typo
-        this.ongoingEffectEnginer = new OngoingEffectEngine(this);
+        this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.playersAndSpectators = {};
         this.gameChat = new GameChat();
         this.chatCommands = new ChatCommands(this);
@@ -1067,7 +1066,7 @@ class Game extends EventEmitter {
     resolveGameState(hasChanged = false, events = []) {
         // check for a game state change (recalculating attack stats if necessary)
         if (
-            (!this.currentAttack && this.ongoingEffectEnginer.resolveEffects(hasChanged)) ||
+            (!this.currentAttack && this.ongoingEffectEngine.resolveEffects(hasChanged)) ||
             (this.currentAttack && this.currentAttack.calculateSkill(hasChanged)) ||
             hasChanged
         ) {
@@ -1085,7 +1084,7 @@ class Game extends EventEmitter {
         }
         if (events.length > 0) {
             // check for any delayed effects which need to fire
-            this.ongoingEffectEnginer.checkDelayedEffects(events);
+            this.ongoingEffectEngine.checkDelayedEffects(events);
         }
     }
 

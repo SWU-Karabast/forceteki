@@ -51,7 +51,7 @@ export default class TriggeredAbility extends CardAbility {
     public eventRegistrations?: IEventRegistration[];
 
     public constructor(game: Game, card: Card, properties: ITriggeredAbilityProps) {
-        super(game, card, properties, AbilityType.TriggeredAbility);
+        super(game, card, properties, AbilityType.Triggered);
 
         if (!card.canRegisterTriggeredAbilities()) {
             throw Error(`Card '${card.internalName}' cannot have triggered abilities`);
@@ -87,7 +87,7 @@ export default class TriggeredAbility extends CardAbility {
     public override meetsRequirements(context, ignoredRequirements = []) {
         const canOpponentTrigger =
             this.card.anyEffect(EffectName.CanBeTriggeredByOpponent) &&
-            this.abilityType !== AbilityType.TriggeredAbility;
+            this.abilityType !== AbilityType.Triggered;
         const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
 
         if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {

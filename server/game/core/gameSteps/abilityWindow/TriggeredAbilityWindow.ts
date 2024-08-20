@@ -238,9 +238,9 @@ export class TriggeredAbilityWindow extends BaseStep {
 
         const events = this.eventWindow.events.filter((event) => !this.eventsToExclude.includes(event));
         events.forEach((event) => {
-            this.game.emit(event.name + ':' + AbilityType.TriggeredAbility, event, this);
+            this.game.emit(event.name + ':' + AbilityType.Triggered, event, this);
         });
-        this.game.emit('aggregateEvent:' + AbilityType.TriggeredAbility, events, this);
+        this.game.emit('aggregateEvent:' + AbilityType.Triggered, events, this);
 
         this.triggeringEvents = events;
     }

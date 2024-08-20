@@ -367,7 +367,7 @@ class OldCard extends OngoingEffectSource {
         //     allAbilities.push(new InitiateAttackAction(this));
         // }
 
-        // TODO EVENT: this block prevents any PlayCardAction from being generated for event cards
+        // TODO EVENTS: this block prevents any PlayCardAction from being generated for event cards
         // if card is already in play or is an event, return the default actions
         if (isArena(location) || this.isEvent()) {
             return allAbilities;
@@ -412,9 +412,9 @@ class OldCard extends OngoingEffectSource {
     }
 
     protected setupPlayAbilities() {
-        // TODO UPGRADE: add play upgrade here
+        // TODO UPGRADES: add play upgrade here
 
-        // TODO EVENT: this block *also* prevents the PlayCardAction from being generated for event cards
+        // TODO EVENTS: this block *also* prevents the PlayCardAction from being generated for event cards
         if (this.isEvent()) {
             return;
         }
@@ -631,7 +631,7 @@ class OldCard extends OngoingEffectSource {
         }
         for (const triggeredAbility of this.getTriggeredAbilities()) {
             if (this.isEvent()) {
-                // TODO EVENT: this is block is here because the only reaction to register on an event was the bluff window 'reaction', we have real ones now
+                // TODO EVENTS: this is block is here because the only reaction to register on an event was the bluff window 'reaction', we have real ones now
                 if (
                     to === Location.Deck ||
                     this.controller.isCardInPlayableLocation(this) ||

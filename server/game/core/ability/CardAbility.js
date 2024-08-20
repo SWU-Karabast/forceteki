@@ -30,7 +30,7 @@ class CardAbility extends CardAbilityStep {
             this.abilityIdentifier = this.printedAbility ? this.card.internalName + '1' : '';
         }
 
-        // TODO EVENT: this is where the actual payment and activation of an event card happens, this needs to be
+        // TODO EVENTS: this is where the actual payment and activation of an event card happens, this needs to be
         // changed to behave more like a unit card in terms of how it's played
         if (card.isEvent() && !this.isKeywordAbility()) {
             this.cost = this.cost.concat(Costs.payAdjustableResourceCost());
@@ -229,7 +229,7 @@ class CardAbility extends CardAbilityStep {
 
     /** @override */
     isActivatedAbility() {
-        return [AbilityType.Action, AbilityType.TriggeredAbility].includes(this.abilityType);
+        return [AbilityType.Action, AbilityType.Triggered].includes(this.abilityType);
     }
 
     /** @override */

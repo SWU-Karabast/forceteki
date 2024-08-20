@@ -1122,7 +1122,7 @@ class Player extends GameObject {
             //     this.promptForUpgrade(card);
             //     return;
             // }
-        // TODO EVENT: this moves an event card to the "Being Played" zone while active. In swu, it goes directly
+        // TODO EVENTS: this moves an event card to the "Being Played" zone while active. In swu, it goes directly
         // to discard then activates. We can probably remove Location.BeingPlayed entirely
         } else if (currentLocation === Location.BeingPlayed && card.owner !== this) {
             card.owner.moveCard(card, targetLocation, options);

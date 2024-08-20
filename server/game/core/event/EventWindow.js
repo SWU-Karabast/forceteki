@@ -32,7 +32,7 @@ class EventWindow extends BaseStepWithPipeline {
             // new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordReaction)),
             // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps(), 'checkAdditionalAbilitySteps'),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.TriggeredAbility), 'open TriggeredAbility window'),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.Triggered), 'open TriggeredAbility window'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
         ]);
     }
@@ -68,7 +68,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        if (abilityType === AbilityType.TriggeredAbility) {
+        if (abilityType === AbilityType.Triggered) {
             this.queueStep(new TriggeredAbilityWindow(this.game, this));
         }
     }

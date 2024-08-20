@@ -33,9 +33,9 @@ class GainAbility extends OngoingEffectValueWrapper {
         } else {
             this.properties = Object.assign({ printedAbility: false }, ability);
         }
-        if (abilityType === AbilityType.Persistent && !this.properties.location) {
+        if (abilityType === AbilityType.Constant && !this.properties.location) {
             this.properties.location = WildcardLocation.AnyArena;
-            this.properties.abilityType = AbilityType.Persistent;
+            this.properties.abilityType = AbilityType.Constant;
         }
     }
 
@@ -60,7 +60,7 @@ class GainAbility extends OngoingEffectValueWrapper {
      */
     apply(target) {
         let properties = Object.assign({ origin: this.context.source }, this.properties);
-        if (this.abilityType === AbilityType.Persistent) {
+        if (this.abilityType === AbilityType.Constant) {
             const activeLocation = {
                 'play area': [WildcardLocation.AnyArena],
                 // province: this.context.game.getProvinceArray()
@@ -94,13 +94,13 @@ class GainAbility extends OngoingEffectValueWrapper {
         if (
             [
                 // AbilityType.ForcedInterrupt,
-                AbilityType.TriggeredAbility,
+                AbilityType.Triggered,
                 // AbilityType.Interrupt,
                 // AbilityType.WouldInterrupt
             ].includes(this.abilityType)
         ) {
             this.value.unregisterEvents();
-        } else if (this.abilityType === AbilityType.Persistent && this.value.ref) {
+        } else if (this.abilityType === AbilityType.Constant && this.value.ref) {
             target.removeEffectFromEngine(this.value.ref);
             delete this.value.ref;
         }

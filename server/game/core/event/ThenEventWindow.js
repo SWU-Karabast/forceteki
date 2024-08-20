@@ -12,7 +12,7 @@ const { AbilityType } = require('../Constants.js');
 class ThenEventWindow extends EventWindow {
     /** @override */
     openWindow(abilityType) {
-        if (abilityType !== AbilityType.TriggeredAbility) {
+        if (abilityType !== AbilityType.Triggered) {
             super.openWindow(abilityType);
         }
     }

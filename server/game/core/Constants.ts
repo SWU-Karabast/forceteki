@@ -164,12 +164,11 @@ export enum EventName {
     OnCardReturnedToHand = 'onCardReturnedToHand',
 }
 
-// TODO THIS PR: rename 'Persistent' to 'ConstantAbility'?
-// TODO THIS PR: remove 'ability' from 'triggeredability', it's redundant
 export enum AbilityType {
     Action = 'action',
-    TriggeredAbility = 'triggeredAbility',
-    Persistent = 'persistent'
+    Triggered = 'triggered',
+    Constant = 'constant',
+    Event = 'event'
 }
 
 export enum Aspect {
