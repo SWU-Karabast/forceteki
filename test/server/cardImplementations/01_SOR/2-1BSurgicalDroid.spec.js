@@ -13,7 +13,7 @@ describe('2-1B Surgical Droid', function() {
                             { card: 'c3po#protocol-droid', damage: 1 }],
                     },
                     player2: {
-                        groundArena: ['wampa']
+                        groundArena: [{ card: 'wampa', damage: 2 }]
                     }
                 });
 
@@ -61,6 +61,24 @@ describe('2-1B Surgical Droid', function() {
                 // Confirm Results
                 expect(this.surgicalDroid.exhausted).toBe(true);
                 expect(this.r2d2.damage).toBe(1);
+            });
+
+            it('surgical droid should heal enemy unit', function () {
+                // Attack
+                this.player1.clickCard(this.surgicalDroid);
+                expect(this.wampa.damage).toBe(2);
+                expect(this.surgicalDroid.location).toBe('ground arena');
+                expect(this.player1).toBeAbleToSelectAllOf([this.p2Base, this.wampa]);
+                this.player1.clickCard(this.p2Base);
+
+                // Healing Target
+                expect(this.player1).toBeAbleToSelectAllOf([this.r2d2, this.c3p0, this.wampa]);
+                expect(this.player1).toBeAbleToSelectNoneOf([this.surgicalDroid]);
+                this.player1.clickCard(this.wampa);
+
+                // Confirm Results
+                expect(this.surgicalDroid.exhausted).toBe(true);
+                expect(this.wampa.damage).toBe(0);
             });
 
             it('surgical droid ability can be passed', function () {
