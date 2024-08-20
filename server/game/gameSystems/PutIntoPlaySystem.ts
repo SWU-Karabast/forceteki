@@ -3,7 +3,7 @@ import { AbilityRestriction, CardType, EventName, Location, RelativePlayer } fro
 import { isArena } from '../core/utils/EnumHelpers';
 import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import Card from '../core/card/Card';
+import { Card } from '../core/card/Card';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: RelativePlayer;

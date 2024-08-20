@@ -1,4 +1,4 @@
-import Card from '../../card/Card';
+import { Card } from '../../card/Card';
 import { UnitCard } from '../../card/CardTypes';
 import type { CardType } from '../../Constants';
 import OngoingEffect from '../OngoingEffect';

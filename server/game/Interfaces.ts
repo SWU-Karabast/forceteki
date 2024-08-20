@@ -1,7 +1,7 @@
 import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
-import type Card from './core/card/Card';
+import type { Card } from './core/card/Card';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';

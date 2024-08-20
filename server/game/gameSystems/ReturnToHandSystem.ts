@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardType, EventName, Location, WildcardLocation } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import Card from '../core/card/Card';
+import { Card } from '../core/card/Card';
 import { cardLocationMatches } from '../core/utils/EnumHelpers';
 import type { ReturnToHandFromPlaySystem } from './ReturnToHandFromPlaySystem';
 

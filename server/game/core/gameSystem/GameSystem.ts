@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type Card from '../card/Card';
+import type { Card } from '../card/Card';
 import { CardType, EventName, Stage } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type Player from '../Player';

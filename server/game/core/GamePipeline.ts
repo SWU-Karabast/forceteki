@@ -1,5 +1,5 @@
 import type Player from './Player';
-import type Card from './card/Card';
+import type { Card } from './card/Card';
 import type { IStep } from './gameSteps/IStep';
 
 type StepFactory = () => IStep;

@@ -2,7 +2,7 @@ import { AbilityContext } from '../../ability/AbilityContext';
 import Player from '../../Player';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import { restrictionDsl } from '../../../ongoingEffects/RestrictionDsl';
-import type Card from '../../card/Card';
+import type { Card } from '../../card/Card';
 
 const leavePlayTypes = new Set(['discardFromPlay', 'returnToHand', 'returnToDeck', 'removeFromGame']);
 

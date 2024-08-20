@@ -1,6 +1,6 @@
 import { AbilityContext } from '../ability/AbilityContext';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import Card from '../card/Card';
+import { Card } from '../card/Card';
 import { Duration, EffectName, EventName, Location, WildcardLocation } from '../Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from './CardTargetSystem';
 import type { ILastingEffectGeneralProperties } from './LastingEffectSystem';

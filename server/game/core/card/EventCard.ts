@@ -1,5 +1,5 @@
 import Player from '../Player';
-import Card from './Card';
+import { Card } from './Card';
 import { Cost } from './propertyMixins/Cost';
 import { CardType, Location } from '../Constants';
 import Contract from '../utils/Contract';

@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type Card from '../card/Card';
+import type { Card } from '../card/Card';
 import { CardType, EffectName, Location } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';

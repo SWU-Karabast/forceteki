@@ -2,7 +2,7 @@
 
 const util = require('util');
 
-const BaseCard = require('../../build/game/core/card/Card.js');
+const { Card } = require('../../build/game/core/card/Card.js');
 const Game = require('../../build/game/core/Game.js');
 const Player = require('../../build/game/core/Player.js');
 
@@ -18,7 +18,7 @@ function formatObject(keys) {
     };
 }
 
-BaseCard.prototype.toString = formatObject(['name', 'location']);
+Card.prototype.toString = formatObject(['name', 'location']);
 Player.prototype.toString = formatObject(['name']);
 
 Game.prototype.toString = function () {

@@ -5,7 +5,7 @@ import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
 import type Player from '../Player';
 import { AbilityContext } from '../ability/AbilityContext';
-import type Card from '../card/Card';
+import type { Card } from '../card/Card';
 import Contract from '../utils/Contract';
 import { NonLeaderUnitCard } from '../card/NonLeaderUnitCard';
 

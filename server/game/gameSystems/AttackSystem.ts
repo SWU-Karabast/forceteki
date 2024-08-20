@@ -7,7 +7,7 @@ import { AttackFlow } from '../core/attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { damage } from './GameSystemLibrary.js';
-import type Card from '../core/card/Card';
+import type { Card } from '../core/card/Card';
 import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';

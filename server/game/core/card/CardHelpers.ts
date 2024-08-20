@@ -3,7 +3,7 @@ import Player from '../Player';
 import Contract from '../utils/Contract';
 import { checkConvertToEnum } from '../utils/EnumHelpers';
 import { BaseCard } from './BaseCard';
-import Card from './Card';
+import { Card } from './Card';
 import { AnyCard, CardWithExhaustProperty, UnitCard } from './CardTypes';
 import { EventCard } from './EventCard';
 import { LeaderCard } from './LeaderCard';

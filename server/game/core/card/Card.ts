@@ -14,7 +14,7 @@ import { LeaderUnitCard } from './LeaderUnitCard';
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
 
-export default class Card extends OngoingEffectSource {
+export class Card extends OngoingEffectSource {
     public static implemented = false;
 
     public readonly aspects: Aspect[] = [];
@@ -23,7 +23,7 @@ export default class Card extends OngoingEffectSource {
     public readonly title: string;
     public readonly unique: boolean;
 
-    public controller?: Player = null;
+    public controller: Player;
 
     protected override readonly id: string;
     protected readonly printedKeywords: Set<Keyword>;   // TODO KEYWORDS: enum of keywords
@@ -31,6 +31,7 @@ export default class Card extends OngoingEffectSource {
     protected readonly printedTypes: Set<CardType>;
 
     protected _actionAbilities: CardActionAbility[];
+    protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
@@ -101,6 +102,7 @@ export default class Card extends OngoingEffectSource {
         this.unique = cardData.unique;
 
         this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords);
+        this.controller = owner;
         this.defaultController = owner;
         this.id = cardData.id;
         this.printedTraits = new Set(checkConvertToEnum(cardData.traits, Trait));

@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type Card from '../core/card/Card';
+import type { Card } from '../core/card/Card';
 import { CardType, EventName } from '../core/Constants';
 import { isArena } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';

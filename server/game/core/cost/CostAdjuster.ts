@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
-import type Card from '../card/Card';
+import type { Card } from '../card/Card';
 import { CardType, PlayType, Aspect } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';

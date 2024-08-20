@@ -5,7 +5,7 @@ import { AbilityType, WildcardLocation } from '../../Constants';
 import Contract from '../../utils/Contract';
 import { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import Card from '../../card/Card';
+import { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import { AbilityContext } from '../../ability/AbilityContext';

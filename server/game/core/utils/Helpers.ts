@@ -1,4 +1,4 @@
-import Card from '../card/Card';
+import { Card } from '../card/Card';
 import { Aspect } from '../Constants';
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
