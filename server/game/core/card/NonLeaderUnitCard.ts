@@ -11,9 +11,9 @@ import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard
 import { UnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 
-const UnitCardParent = UnitProperties(Cost(InPlayCard));
+const NonLeaderUnitCardParent = UnitProperties(Cost(InPlayCard));
 
-export class UnitCard extends UnitCardParent {
+export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 

@@ -1,10 +1,10 @@
 import AbilityHelper from '../../AbilityHelper';
 import { AbilityContext } from '../../core/ability/AbilityContext';
 import { Attack } from '../../core/attack/Attack';
-import { UnitCard } from '../../core/card/UnitCard';
+import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../core/Constants';
 
-export default class FleetLieutenant extends UnitCard {
+export default class FleetLieutenant extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '3038238423',

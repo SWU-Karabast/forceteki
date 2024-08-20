@@ -4,6 +4,7 @@ import { LeaderCard } from './core/card/LeaderCard';
 import Card from './core/card/Card';
 import { cards } from './cardImplementations/Index';
 import Player from './core/Player';
+import * as CardHelpers from './core/card/CardHelpers';
 
 export class Deck {
     public constructor(public data: any) {}
@@ -21,10 +22,9 @@ export class Deck {
         //deck
         for (const { count, card } of this.data.deckCards ?? []) {
             for (let i = 0; i < count; i++) {
-                const CardConstructor = cards.get(card.id) ?? Card;
+                const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
                 // @ts-expect-error
                 const deckCard: Card = new CardConstructor(player, card);
-                deckCard.location = Location.Deck;
                 result.deckCards.push(deckCard);
             }
         }
@@ -33,10 +33,9 @@ export class Deck {
         for (const { count, card } of this.data.base ?? []) {
             for (let i = 0; i < count; i++) {
                 if (card?.types.includes(CardType.Base)) {
-                    const CardConstructor = cards.get(card.id) ?? BaseCard;
+                    const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
                     // @ts-expect-error
                     const baseCard: BaseCard = new CardConstructor(player, card);
-                    baseCard.location = '' as any;
                     result.base = baseCard;
                 }
             }
@@ -44,20 +43,12 @@ export class Deck {
         for (const { count, card } of this.data.leader ?? []) {
             for (let i = 0; i < count; i++) {
                 if (card?.types.includes(CardType.Leader)) {
-                    const CardConstructor = cards.get(card.id) ?? LeaderCard;
+                    const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
                     // @ts-expect-error
                     const leaderCard: LeaderCard = new CardConstructor(player, card);
                     result.leader = leaderCard;
                 }
             }
-        }
-
-        for (const cardData of this.data.outsideTheGameCards ?? []) {
-            const CardConstructor = cards.get(cardData.id) ?? Card;
-            // @ts-expect-error
-            const card: Card = new CardConstructor(player, cardData);
-            card.location = Location.OutsideTheGame;
-            result.outsideTheGameCards.push(card);
         }
 
         result.allCards.push(...result.deckCards);

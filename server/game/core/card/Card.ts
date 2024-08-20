@@ -1,29 +1,18 @@
 import { IActionAbilityProps } from '../../Interfaces';
 import { CardActionAbility } from '../ability/CardActionAbility';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import TriggeredAbility from '../ability/TriggeredAbility';
-import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import Contract from '../utils/Contract';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
-import { PlayUnitAction } from '../../actions/PlayUnitAction';
-import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { checkConvertToEnum, isArena } from '../utils/EnumHelpers';
 import * as KeywordHelpers from './KeywordHelpers';
-import { EventCard } from './EventCard';
-import { BaseCard } from './BaseCard';
-import { TokenUnitCard, TokenUpgradeCard } from './TokenCardTypes';
-import { UpgradeCard } from './UpgradeCard';
-import { LeaderCard } from './LeaderCard';
-import { UnitCard } from './UnitCard';
+import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import AbilityHelper from '../../AbilityHelper';
 import { LeaderUnitCard } from './LeaderUnitCard';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
-
-export type UnitOrLeaderUnitCard = UnitCard | LeaderUnitCard;
 
 export default class Card extends OngoingEffectSource {
     public static implemented = false;
@@ -95,37 +84,6 @@ export default class Card extends OngoingEffectSource {
     }
 
 
-    // *********************************************** STATIC METHODS ***********************************************
-    public static createUnimplementedCard(owner: Player, cardData: any): Card {
-        Contract.assertNotNullLike(cardData.types);
-        const cardTypes = new Set(checkConvertToEnum(cardData.types, CardType));
-
-        if (cardTypes.has(CardType.Event)) {
-            return new EventCard(owner, cardData);
-        }
-        if (cardTypes.has(CardType.Base)) {
-            return new BaseCard(owner, cardData);
-        }
-        if (cardTypes.has(CardType.Upgrade)) {
-            if (cardTypes.has(CardType.Token)) {
-                return new TokenUpgradeCard(owner, cardData);
-            }
-            return new UpgradeCard(owner, cardData);
-        }
-        if (cardTypes.has(CardType.Leader)) {
-            return new LeaderCard(owner, cardData);
-        }
-        if (cardTypes.has(CardType.Unit)) {
-            if (cardTypes.has(CardType.Token)) {
-                return new TokenUnitCard(owner, cardData);
-            }
-            return new UnitCard(owner, cardData);
-        }
-
-        throw new Error(`Invalid card type set: ${cardTypes}`);
-    }
-
-
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
         public readonly owner: Player,
@@ -143,11 +101,12 @@ export default class Card extends OngoingEffectSource {
         this.unique = cardData.unique;
 
         this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords);
+        this.defaultController = owner;
         this.id = cardData.id;
         this.printedTraits = new Set(checkConvertToEnum(cardData.traits, Trait));
         this.printedTypes = new Set(checkConvertToEnum(cardData.types, CardType));
 
-        this.defaultController = owner;
+        this._location = Location.Deck;
 
         this.setupCardAbilities(AbilityHelper);
     }

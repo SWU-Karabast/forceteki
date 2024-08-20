@@ -1,10 +1,11 @@
-import Card, { UnitOrLeaderUnitCard } from '../../card/Card';
+import Card from '../../card/Card';
+import { UnitCard } from '../../card/CardTypes';
 import type { CardType } from '../../Constants';
 import OngoingEffect from '../OngoingEffect';
 import { IOngoingCardEffect } from '../IOngoingCardEffect';
 import StatsModifier from './StatsModifier';
 import { LeaderUnitCard } from '../../card/LeaderUnitCard';
-import { UnitCard } from '../../card/UnitCard';
+import { NonLeaderUnitCard } from '../../card/NonLeaderUnitCard';
 import { UnitPropertiesCard } from '../../card/propertyMixins/UnitProperties';
 
 export default class StatsModifierWrapper {
@@ -52,7 +53,7 @@ export default class StatsModifierWrapper {
         );
     }
 
-    public static fromPrintedValues(card: UnitOrLeaderUnitCard, name, overrides = false) {
+    public static fromPrintedValues(card: UnitCard, name, overrides = false) {
         return new this({
             hp: card.printedHp,
             power: card.printedPower

@@ -7,7 +7,7 @@ import type Player from '../Player';
 import { AbilityContext } from '../ability/AbilityContext';
 import type Card from '../card/Card';
 import Contract from '../utils/Contract';
-import { UnitCard } from '../card/UnitCard';
+import { NonLeaderUnitCard } from '../card/NonLeaderUnitCard';
 
 export interface IAttackAbilities {
     saboteur: boolean;
@@ -36,8 +36,8 @@ export class Attack extends GameObject {
 
     public constructor(
         game: Game,
-        public attacker: UnitCard,
-        public target: UnitCard
+        public attacker: NonLeaderUnitCard,
+        public target: NonLeaderUnitCard
     ) {
         super(game, 'Attack');
     }
@@ -57,7 +57,7 @@ export class Attack extends GameObject {
         return `${this.attacker.name}: ${typeof rawAttacker === 'number' ? rawAttacker : 0} vs ${typeof rawTarget === 'number' ? rawTarget : 0}: ${this.target.name}`;
     }
 
-    private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
+    private getUnitPower(involvedUnit: NonLeaderUnitCard): StatisticTotal {
         if (!Contract.assertTrue(isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
             return null;
         }

@@ -12,7 +12,7 @@ import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
 import Contract from '../core/utils/Contract';
-import { UnitCard } from '../core/card/UnitCard';
+import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
 
@@ -141,7 +141,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         if (!Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`)) {
             return;
         }
-        const attacker = properties.attacker as UnitCard;
+        const attacker = properties.attacker as NonLeaderUnitCard;
 
         if (isArray(target)) {
             if (target.length !== 1) {
