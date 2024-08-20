@@ -14,7 +14,7 @@ describe('Death Trooper', function() {
                         leader: ['director-krennic#aspiring-to-authority']
                     },
                     player2: {
-                        groundArena: ['wampa'],
+                        groundArena: ['wampa', 'superlaser-technician'],
                         spaceArena: ['imperial-interceptor']
                     }
                 });
@@ -24,6 +24,7 @@ describe('Death Trooper', function() {
                 this.cartepSpacer = this.player1.findCardByName('cartel-spacer');
 
                 this.wampa = this.player2.findCardByName('wampa');
+                this.superlaserTech = this.player2.findCardByName('superlaser-technician');
                 this.interceptor = this.player2.findCardByName('imperial-interceptor');
 
                 this.p1Base = this.player1.base;
@@ -37,7 +38,7 @@ describe('Death Trooper', function() {
                 this.player1.clickCard(this.deathTrooper);
                 expect(this.deathTrooper.location).toBe('ground arena');
                 expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa]);
+                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa, this.superlaserTech]);
                 expect(this.player1).toNotHavePassAbilityPrompt();
             });
 
@@ -48,15 +49,15 @@ describe('Death Trooper', function() {
 
                 // Choose Friendly
                 expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa]);
+                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa, this.superlaserTech]);
                 expect(this.player1).toNotHavePassAbilityPrompt();
                 this.player1.clickCard(this.deathTrooper);
 
                 // Choose Enemy
-                expect(this.deathTrooper.damage).toEqual(2);
-                expect(this.player1).toBeAbleToSelectAllOf([this.wampa]);
+                expect(this.player1).toBeAbleToSelectAllOf([this.wampa, this.superlaserTech]);
                 expect(this.player1).toBeAbleToSelectNoneOf([this.pykeSentinel, this.deathTrooper, this.interceptor, this.cartepSpacer]);
                 this.player1.clickCard(this.wampa);
+                expect(this.deathTrooper.damage).toEqual(2);
                 expect(this.wampa.damage).toEqual(2);
             });
         });
