@@ -1,6 +1,6 @@
 import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
+import { AbilityType, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import Player from '../../Player';
 import { cardLocationMatches, isArena } from '../../utils/EnumHelpers';
@@ -20,8 +20,8 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. The ability to be defeated as an overridable method
  */
 export class InPlayCard extends PlayableOrDeployableCard {
-    protected _triggeredAbilities: TriggeredAbility[];
-    protected _constantAbilities: IConstantAbility[];
+    protected _triggeredAbilities: TriggeredAbility[] = [];
+    protected _constantAbilities: IConstantAbility[] = [];
 
     private _enteredPlayThisRound?: boolean = null;
 
@@ -37,8 +37,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedTypes.has(CardType.Event));
 
-        this._constantAbilities = KeywordHelpers.GenerateConstantAbilitiesFromKeywords(this.printedKeywords);
-        this._triggeredAbilities = KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords);
+        this._constantAbilities.push(...KeywordHelpers.GenerateConstantAbilitiesFromKeywords(this.printedKeywords));
+        this._triggeredAbilities.push(...KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords));
+
+        this.activateAbilityInitializersForTypes([AbilityType.Persistent, AbilityType.TriggeredAbility]);
     }
 
 
@@ -87,12 +89,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
             throw new Error(`Illegal effect location(s) specified: '${notAllowedLocations.join(', ')}'`);
         }
         properties.cardName = this.title;
-        this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties });
+
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Persistent,
+            initialize: () => this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties })
+        });
     }
 
     // TODO THIS PR: consolidate these down to "add*" abilities (also in Card.ts). Also add docstr
     protected triggeredAbility(properties: ITriggeredAbilityProps): void {
-        this._triggeredAbilities.push(this.createTriggeredAbility(properties));
+        this.abilityInitializers.push({
+            abilityType: AbilityType.TriggeredAbility,
+            initialize: () => this._triggeredAbilities.push(this.createTriggeredAbility(properties))
+        });
     }
 
     protected whenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {

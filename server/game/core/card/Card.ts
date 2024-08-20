@@ -4,15 +4,21 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import Contract from '../utils/Contract';
-import { AbilityRestriction, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
+import { AbilityRestriction, AbilityType, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
 import { checkConvertToEnum, isArena } from '../utils/EnumHelpers';
 import * as KeywordHelpers from './KeywordHelpers';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import AbilityHelper from '../../AbilityHelper';
 import { LeaderUnitCard } from './LeaderUnitCard';
+import { asArray } from '../../../Util';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
+
+export interface IAbilityInitializer {
+    abilityType: AbilityType,
+    initialize: () => void
+}
 
 export class Card extends OngoingEffectSource {
     public static implemented = false;
@@ -26,6 +32,7 @@ export class Card extends OngoingEffectSource {
     public controller: Player;
 
     protected override readonly id: string;
+    protected abilityInitializers: IAbilityInitializer[] = [];
     protected readonly printedKeywords: Set<Keyword>;   // TODO KEYWORDS: enum of keywords
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedTypes: Set<CardType>;
@@ -93,6 +100,7 @@ export class Card extends OngoingEffectSource {
         this._location = Location.Deck;
 
         this.setupCardAbilities(AbilityHelper);
+        this.activateAbilityInitializersForTypes(AbilityType.Action);
     }
 
 
@@ -164,8 +172,30 @@ export class Card extends OngoingEffectSource {
     protected setupCardAbilities(ability) {
     }
 
-    protected actionAbility(properties: IActionAbilityProps<this>): void {
-        this._actionAbilities.push(this.createActionAbility(properties));
+    /**
+     * Works through the list of queued ability initializers and activates any for the corresponding type.
+     * We need to initialize this way because subclass ability initializers might be called before their
+     * constructors have executed, so we have to delay execution of their initializers until they're ready.
+     */
+    protected activateAbilityInitializersForTypes(abilityTypes: AbilityType | AbilityType[]) {
+        const abilityTypesAra = asArray(abilityTypes);
+
+        const skippedInitializers: IAbilityInitializer[] = [];
+        for (const abilityInitializer of this.abilityInitializers) {
+            if (abilityTypesAra.includes(abilityInitializer.abilityType)) {
+                abilityInitializer.initialize();
+            } else {
+                skippedInitializers.push(abilityInitializer);
+            }
+        }
+        this.abilityInitializers = skippedInitializers;
+    }
+
+    protected actionAbility(properties: IActionAbilityProps<this>) {
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Action,
+            initialize: () => this._actionAbilities.push(this.createActionAbility(properties))
+        });
     }
 
     private createActionAbility(properties: IActionAbilityProps): CardActionAbility {
