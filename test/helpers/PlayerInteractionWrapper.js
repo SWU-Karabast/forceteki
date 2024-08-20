@@ -166,6 +166,7 @@ class PlayerInteractionWrapper {
         newContents.reverse().forEach((name) => {
             var card = this.findCardByName(name, ['deck', 'hand']);
             this.moveCard(card, 'resource');
+            card.exhausted = false;
         });
     }
 

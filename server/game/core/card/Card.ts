@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
+import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
 import { checkConvertToEnum, isArena } from '../utils/EnumHelpers';
 import * as KeywordHelpers from './KeywordHelpers';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';

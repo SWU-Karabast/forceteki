@@ -35,7 +35,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {
-            case Location.GroundArena || Location.SpaceArena:
+            case Location.GroundArena:
+            case Location.SpaceArena:
                 this._isDeployed = true;
                 this.enableDamage(true);
                 break;

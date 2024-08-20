@@ -23,8 +23,13 @@ export class PlayableOrDeployableCard extends Card {
     private _exhausted?: boolean = null;
 
     public get exhausted(): boolean {
-        this.checkExhaustedEnabled();
+        this.checkExhaustEnabled();
         return this._exhausted;
+    }
+
+    public set exhausted(val: boolean) {
+        this.checkExhaustEnabled();
+        this._exhausted = val;
     }
 
     // see Card constructor for list of expected args
@@ -41,12 +46,12 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public exhaust() {
-        this.checkExhaustedEnabled();
+        this.checkExhaustEnabled();
         this._exhausted = true;
     }
 
     public ready() {
-        this.checkExhaustedEnabled();
+        this.checkExhaustEnabled();
         this._exhausted = false;
     }
 
@@ -54,7 +59,7 @@ export class PlayableOrDeployableCard extends Card {
         this._exhausted = enabledStatus ? true : null;
     }
 
-    private checkExhaustedEnabled() {
+    private checkExhaustEnabled() {
         Contract.assertNotNullLike(this._exhausted, `Attempting to read property "exhausted" on "${this.internalName}" but it is in location '${this.location}' where exhaust does not apply`);
     }
 }

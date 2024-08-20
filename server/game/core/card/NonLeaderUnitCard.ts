@@ -31,7 +31,8 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {
-            case Location.GroundArena || Location.SpaceArena:
+            case Location.GroundArena:
+            case Location.SpaceArena:
                 this.enableDamage(true);
                 this.enableExhaust(true);
                 break;
