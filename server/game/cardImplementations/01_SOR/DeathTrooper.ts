@@ -35,4 +35,4 @@ export default class DeathTrooper extends Card {
     }
 }
 
-DeathTrooper.implemented = false;
+DeathTrooper.implemented = true;

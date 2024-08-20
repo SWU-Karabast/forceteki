@@ -42,7 +42,7 @@ describe('Death Trooper', function() {
                 expect(this.player1).toNotHavePassAbilityPrompt();
             });
 
-            it('death trooper can deal damage to itself', function () {
+            it('death trooper can only target ground units & can damage itself', function () {
                 // Play Death Trooper
                 this.player1.clickCard(this.deathTrooper);
                 expect(this.deathTrooper.location).toBe('ground arena');
