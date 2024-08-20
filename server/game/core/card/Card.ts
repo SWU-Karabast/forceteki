@@ -11,6 +11,7 @@ import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import AbilityHelper from '../../AbilityHelper';
 import { LeaderUnitCard } from './LeaderUnitCard';
 import { asArray } from '../../../Util';
+import { AbilityContext } from '../ability/AbilityContext';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -325,6 +326,14 @@ export class Card extends OngoingEffectSource {
     // *************************************** EFFECT HELPERS ***************************************
     public isBlank(): boolean {
         return this.anyEffect(EffectName.Blank);
+    }
+
+    public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
+        return (
+            !this.facedown &&
+            (ignoredRequirements.includes('triggeringRestrictions') ||
+                !this.hasRestriction(AbilityRestriction.TriggerAbilities, context))
+        );
     }
 
 

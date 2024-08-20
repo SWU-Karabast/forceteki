@@ -655,7 +655,7 @@ class Player extends GameObject {
             // register event reactions in case event-in-deck bluff window is enabled
             // TODO EVENTS: probably we need to do this differently since we have actual reactions on our events
             if (card.isEvent()) {
-                for (let reaction of card.abilities.triggeredAbilities) {
+                for (let reaction of card.abilities.getTriggeredAbilities()) {
                     reaction.registerEvents();
                 }
             }

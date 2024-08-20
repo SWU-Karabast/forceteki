@@ -24,7 +24,7 @@ class AbilityTargetAbility {
 
     getSelector(properties) {
         let cardCondition = (card, context) => {
-            let abilities = card.actions.concat(card.triggeredAbilities).filter((ability) => ability.isActivatedAbility() && this.abilityCondition(ability));
+            let abilities = card.actions.concat(card.getTriggeredAbilities()).filter((ability) => ability.isActivatedAbility() && this.abilityCondition(ability));
             return abilities.some((ability) => {
                 let contextCopy = context.copy();
                 contextCopy.targetAbility = ability;
@@ -81,7 +81,7 @@ class AbilityTargetAbility {
             context: context,
             selector: this.selector,
             onSelect: (player, card) => {
-                let abilities = card.actions.concat(card.triggeredAbilities).filter((ability) => ability.isActivatedAbility() && this.abilityCondition(ability));
+                let abilities = card.actions.concat(card.getTriggeredAbilities()).filter((ability) => ability.isActivatedAbility() && this.abilityCondition(ability));
                 if (abilities.length === 1) {
                     context.targetAbility = abilities[0];
                 } else if (abilities.length > 1) {

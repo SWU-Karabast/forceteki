@@ -629,7 +629,7 @@ class OldCard extends OngoingEffectSource {
         if (reset) {
             this.resetLimits();
         }
-        for (const triggeredAbility of this.triggeredAbilities) {
+        for (const triggeredAbility of this.getTriggeredAbilities()) {
             if (this.isEvent()) {
                 // TODO EVENT: this is block is here because the only reaction to register on an event was the bluff window 'reaction', we have real ones now
                 if (
@@ -772,7 +772,7 @@ class OldCard extends OngoingEffectSource {
     }
 
     // getReactions(): any[] {
-    //     return this.triggeredAbilities.slice();
+    //     return this.getTriggeredAbilities().slice();
     // }
 
     public readiesDuringReadyPhase(): boolean {

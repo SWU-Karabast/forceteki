@@ -95,7 +95,7 @@ class OngoingEffect {
         if (this.duration !== Duration.Persistent) {
             return true;
         }
-        let effectOnSource = this.source.constantAbilities.some((effect) => effect.registeredEffects && effect.registeredEffects.includes(this));
+        let effectOnSource = this.source.getConstantAbilities().some((effect) => effect.registeredEffects && effect.registeredEffects.includes(this));
         return !this.source.facedown && effectOnSource;
     }
 
