@@ -30,7 +30,7 @@ export default class DeathTrooper extends Card {
                 }
             },
             effect: 'deal 2 damage to {1} and {2}',
-            effectArgs: (context) => [context.target.myGroundUnit, context.target.theirGroundUnit]
+            effectArgs: (context) => [context.targets.myGroundUnit, context.targets.theirGroundUnit]
         });
     }
 }

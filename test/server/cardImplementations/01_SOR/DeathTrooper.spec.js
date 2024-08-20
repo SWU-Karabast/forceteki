@@ -10,6 +10,7 @@ describe('Death Trooper', function() {
                         hand: ['death-trooper'],
                         groundArena: ['pyke-sentinel'],
                         spaceArena: ['cartel-spacer'],
+                        resources: ['atst', 'atst', 'atst'],
                         leader: ['director-krennic#aspiring-to-authority']
                     },
                     player2: {
@@ -40,25 +41,24 @@ describe('Death Trooper', function() {
                 expect(this.player1).toNotHavePassAbilityPrompt();
             });
 
-            // it('death trooper can deal damage to itself', function () {
-            //     // Play Death Trooper
-            //     this.player1.clickCard(this.deathTrooper);
-            //     expect(this.deathTrooper.location).toBe('ground arena');
+            it('death trooper can deal damage to itself', function () {
+                // Play Death Trooper
+                this.player1.clickCard(this.deathTrooper);
+                expect(this.deathTrooper.location).toBe('ground arena');
 
+                // Choose Friendly
+                expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
+                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa]);
+                expect(this.player1).toNotHavePassAbilityPrompt();
+                this.player1.clickCard(this.deathTrooper);
 
-            //     // Choose Friendly
-            //     expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
-            //     expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa]);
-            //     expect(this.player1).toNotHavePassAbilityPrompt();
-            //     this.player1.clickCard(this.deathTrooper);
-
-            //     // Choose Enemy
-            //     expect(this.deathTrooper.damage).toEqual(2);
-            //     expect(this.player1).toBeABleToSelectAllof([this.wampa]);
-            //     expect(this.player1).toBeABleToSelectNoneOf([this.pykeSentinel, this.deathTrooper, this.interceptor, this.cartepSpacer]);
-            //     this.player1.clickCard(this.wampa);
-            //     expect(this.wampa.damage).toEqual(2);
-            // });
+                // Choose Enemy
+                expect(this.deathTrooper.damage).toEqual(2);
+                expect(this.player1).toBeAbleToSelectAllOf([this.wampa]);
+                expect(this.player1).toBeAbleToSelectNoneOf([this.pykeSentinel, this.deathTrooper, this.interceptor, this.cartepSpacer]);
+                this.player1.clickCard(this.wampa);
+                expect(this.wampa.damage).toEqual(2);
+            });
         });
     });
 });
