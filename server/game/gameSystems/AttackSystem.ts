@@ -13,6 +13,7 @@ import { GameEvent } from '../core/event/GameEvent';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
 import Contract from '../core/utils/Contract';
 import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
+import * as CardHelpers from '../core/card/CardHelpers';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
 
@@ -154,7 +155,8 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             event.target = target;
         }
 
-        if (!Contract.assertTrue(event.target.isUnit(), `Attack target card '${event.target.internalName}' is not a unit`)) {
+        const targetCard = CardHelpers.asCardWithHpOrNull(event.target);
+        if (!Contract.assertNotNullLike(targetCard, `Attack target card '${event.target.internalName}' is not a unit or base`)) {
             return;
         }
 
@@ -165,7 +167,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         event.attack = new Attack(
             context.game,
             attacker,
-            event.target
+            targetCard
         );
     }
 
@@ -179,7 +181,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         // event for damage dealt to attacker by defender, if any
         if (!attack.targetIsBase) {
-            damageEvents.push(damage({ amount: attack.defenderTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
+            damageEvents.push(damage({ amount: attack.targetTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
         }
 
         context.game.openEventWindow(damageEvents);

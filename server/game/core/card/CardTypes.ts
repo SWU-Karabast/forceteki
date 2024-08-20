@@ -11,6 +11,12 @@ export type UnitCard =
     LeaderUnitCard |
     TokenNonLeaderUnitCard;
 
+export type CardWithHp =
+    NonLeaderUnitCard |
+    LeaderUnitCard |
+    TokenNonLeaderUnitCard |
+    BaseCard;
+
 export type CardWithExhaustProperty = PlayableOrDeployableCard;
 
 export type AnyCard =

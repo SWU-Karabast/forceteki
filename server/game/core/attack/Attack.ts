@@ -8,6 +8,7 @@ import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import Contract from '../utils/Contract';
 import { NonLeaderUnitCard } from '../card/NonLeaderUnitCard';
+import { CardWithHp, UnitCard } from '../card/CardTypes';
 
 export interface IAttackAbilities {
     saboteur: boolean;
@@ -26,8 +27,10 @@ export class Attack extends GameObject {
         return this.getUnitPower(this.attacker);
     }
 
-    public get defenderTotalPower(): number | null {
-        return this.targetIsBase ? null : this.getUnitPower(this.target);
+    public get targetTotalPower(): number | null {
+        return this.targetIsBase
+            ? null
+            : this.getUnitPower(this.target as UnitCard);
     }
 
     public get targetIsBase(): boolean {
@@ -36,8 +39,8 @@ export class Attack extends GameObject {
 
     public constructor(
         game: Game,
-        public attacker: NonLeaderUnitCard,
-        public target: NonLeaderUnitCard
+        public attacker: UnitCard,
+        public target: CardWithHp
     ) {
         super(game, 'Attack');
     }
@@ -50,14 +53,12 @@ export class Attack extends GameObject {
         );
     }
 
+    // TODO: if we end up using this we need to refactor it to reflect attacks in SWU (i.e., show HP)
     public getTotalsForDisplay(): string {
-        const rawAttacker = this.getUnitPower(this.attacker);
-        const rawTarget = this.getUnitPower(this.target);
-
-        return `${this.attacker.name}: ${typeof rawAttacker === 'number' ? rawAttacker : 0} vs ${typeof rawTarget === 'number' ? rawTarget : 0}: ${this.target.name}`;
+        return `${this.attacker.name}: ${this.attackerTotalPower} vs ${this.targetTotalPower}: ${this.target.name}`;
     }
 
-    private getUnitPower(involvedUnit: NonLeaderUnitCard): StatisticTotal {
+    private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
         if (!Contract.assertTrue(isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
             return null;
         }
