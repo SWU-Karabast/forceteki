@@ -1,6 +1,6 @@
 import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { AbilityType, Arena, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
+import { AbilityRestriction, AbilityType, Arena, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import Player from '../../Player';
 import { cardLocationMatches, checkConvertToEnum, isArena } from '../../utils/EnumHelpers';

@@ -10,6 +10,7 @@ const { Stage, AbilityType } = require('../Constants.js');
  * effects will not resolve until after the entire "Then" chain is done (see `ThenEventWindow` or SWU 29.2 for details)
  */
 class CardAbilityStep extends PlayerOrCardAbility {
+    /** @param {import('../card/Card').Card} card - The card this ability is attached to */
     constructor(game, card, properties, abilityType = AbilityType.Action) {
         super(properties, abilityType);
 

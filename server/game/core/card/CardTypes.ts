@@ -17,6 +17,12 @@ export type CardWithHp =
     TokenNonLeaderUnitCard |
     BaseCard;
 
+export type InPlayCard =
+    Exclude<AnyCard, BaseCard | EventCard>;
+
+export type CardWithTriggeredAbilities = InPlayCard;
+export type CardWithConstantAbilities = InPlayCard;
+
 export type CardWithExhaustProperty = PlayableOrDeployableCard;
 
 export type AnyCard =

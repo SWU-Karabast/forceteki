@@ -12,6 +12,7 @@ import AbilityHelper from '../../AbilityHelper';
 import { LeaderUnitCard } from './LeaderUnitCard';
 import { asArray } from '../../../Util';
 import { AbilityContext } from '../ability/AbilityContext';
+import CardAbility from '../ability/CardAbility';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -336,6 +337,10 @@ export class Card extends OngoingEffectSource {
         );
     }
 
+    public canInitiateKeywords(context: AbilityContext): boolean {
+        return !this.facedown && !this.hasRestriction(AbilityRestriction.InitiateKeywords, context);
+    }
+
 
     // ******************************************* LOCATION MANAGEMENT *******************************************
     public moveTo(targetLocation: Location) {
@@ -513,6 +518,21 @@ export class Card extends OngoingEffectSource {
             return [valueOrValuesToCheck];
         }
         return valueOrValuesToCheck;
+    }
+
+    public getModifiedAbilityLimitMax(player: Player, ability: CardAbility, max: number): number {
+        const effects = this.getEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
+        let total = max;
+        effects.forEach((effect) => {
+            const value = effect.getValue(this);
+            const applyingPlayer = value.applyingPlayer || effect.context.player;
+            const targetAbility = value.targetAbility;
+            if ((!targetAbility || targetAbility === ability) && applyingPlayer === player) {
+                total++;
+            }
+        });
+
+        return total;
     }
 
     /**

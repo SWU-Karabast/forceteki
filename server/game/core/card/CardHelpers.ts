@@ -4,7 +4,7 @@ import Contract from '../utils/Contract';
 import { checkConvertToEnum } from '../utils/EnumHelpers';
 import { BaseCard } from './BaseCard';
 import { Card } from './Card';
-import { AnyCard, CardWithExhaustProperty, CardWithHp, UnitCard } from './CardTypes';
+import { AnyCard, CardWithConstantAbilities, CardWithExhaustProperty, CardWithHp, CardWithTriggeredAbilities, InPlayCard, UnitCard } from './CardTypes';
 import { EventCard } from './EventCard';
 import { LeaderCard } from './LeaderCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
@@ -73,6 +73,24 @@ export function asCardWithHpOrNull(card: Card): CardWithHp | null {
     }
 
     return null;
+}
+
+export function asCardWithTriggeredAbilitiesOrNull(card: Card): CardWithTriggeredAbilities | null {
+    return asInPlayCardOrNull(card);
+}
+
+export function asCardWithConstantAbilitiesOrNull(card: Card): CardWithConstantAbilities | null {
+    return asInPlayCardOrNull(card);
+}
+
+export function asInPlayCardOrNull(card: Card): InPlayCard | null {
+    const concreteCard = cardAsConcrete(card);
+
+    if (concreteCard instanceof BaseCard || concreteCard instanceof EventCard) {
+        return null;
+    }
+
+    return concreteCard;
 }
 
 export function asUnitCardOrNull(card: Card): UnitCard | null {

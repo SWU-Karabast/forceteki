@@ -8,6 +8,8 @@ import Game from '../Game';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import Contract from '../utils/Contract';
 import type CardAbilityStep from './CardAbilityStep';
+import * as CardHelpers from '../card/CardHelpers';
+import { CardWithTriggeredAbilities } from '../card/CardTypes';
 
 interface IEventRegistration {
     name: string;
@@ -69,7 +71,7 @@ export default class TriggeredAbility extends CardAbility {
             const context = this.createContext(player, event);
             //console.log(event.name, this.card.name, this.isTriggeredByEvent(event, context), this.meetsRequirements(context));
             if (
-                this.card.getTriggeredAbilities().includes(this) &&
+                this.getCardTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
                 this.meetsRequirements(context) === ''
             ) {
@@ -153,12 +155,21 @@ export default class TriggeredAbility extends CardAbility {
             const context = this.createContext(player, events);
             //console.log(events.map(event => event.name), this.card.name, this.aggregateWhen(events, context), this.meetsRequirements(context));
             if (
-                this.card.getTriggeredAbilities().includes(this) &&
+                this.getCardTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {
                 window.addToWindow(context);
             }
         }
+    }
+
+    private getCardTriggeredAbilities() {
+        const cardWithTriggeredAbilities = CardHelpers.asCardWithTriggeredAbilitiesOrNull(this.card);
+        if (!Contract.assertNotNullLike(cardWithTriggeredAbilities, `Card '${this.card.internalName}' cannot be the source of a triggered ability`)) {
+            return null;
+        }
+
+        return cardWithTriggeredAbilities.getTriggeredAbilities();
     }
 }
