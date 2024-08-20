@@ -62,7 +62,7 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         } else if (typeof restriction === 'function') {
             return restriction(context, this, card);
         } else if (!restrictionDsl[restriction]) {
-            return context.source.hasTrait(restriction);
+            return context.source.hasSomeTrait(restriction);
         }
         return restrictionDsl[restriction](context, this, card);
     }

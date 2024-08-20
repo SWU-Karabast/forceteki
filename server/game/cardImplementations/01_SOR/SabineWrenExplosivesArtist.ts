@@ -12,7 +12,7 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
     }
 
     protected override setupCardAbilities() {
-        this.constantAbility({
+        this.addConstantAbility({
             title: 'Sabine passive',
             condition: () => countUniqueAspects(this.controller.getOtherUnitsInPlay(this, null)) >= 3,
 

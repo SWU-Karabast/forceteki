@@ -110,7 +110,7 @@ export class UpgradeCard extends UpgradeCardParent {
     //             }
     //             case EffectName.AttachmentTraitRestriction: {
     //                 const traits = effect.getValue<string[]>(this as any);
-    //                 if (!traits.some((trait) => parent.hasTrait(trait))) {
+    //                 if (!traits.some((trait) => parent.hasSomeTrait(trait))) {
     //                     return false;
     //                 }
     //                 break;

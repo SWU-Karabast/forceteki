@@ -55,9 +55,9 @@ export const restrictionDsl = {
     //     context.source.type === CardTypes.Event &&
     //     context.source.getPrintedFaction() !== 'neutral' &&
     //     card.isFaction(context.source.getPrintedFaction()),
-    // nonMonstrousEvents: (context) => context.source.type === CardTypes.Event && !context.source.hasTrait('monstrous'),
+    // nonMonstrousEvents: (context) => context.source.type === CardTypes.Event && !context.source.hasSomeTrait('monstrous'),
     // nonDynastyPhase: (context) => context.game.phase !== Phases.Dynasty,
-    // nonSpellEvents: (context) => context.source.type === CardTypes.Event && !context.source.hasTrait('spell'),
+    // nonSpellEvents: (context) => context.source.type === CardTypes.Event && !context.source.hasSomeTrait('spell'),
     // opponentsAttachments: (context, effect) =>
     //     context.player &&
     //     context.player === getApplyingPlayer(effect).opponent &&

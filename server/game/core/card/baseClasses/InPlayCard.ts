@@ -89,7 +89,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
 
     // ********************************************* ABILITY SETUP *********************************************
-    protected constantAbility(properties: IConstantAbilityProps<this>): void {
+    protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
         const allowedLocationFilters = [
             WildcardLocation.Any,
             Location.Discard,
@@ -118,25 +118,24 @@ export class InPlayCard extends PlayableOrDeployableCard {
         });
     }
 
-    // TODO THIS PR: consolidate these down to "add*" abilities (also in Card.ts). Also add docstr
-    protected triggeredAbility(properties: ITriggeredAbilityProps): void {
+    protected addTriggeredAbility(properties: ITriggeredAbilityProps): void {
         this.abilityInitializers.push({
             abilityType: AbilityType.Triggered,
             initialize: () => this._triggeredAbilities.push(this.createTriggeredAbility(properties))
         });
     }
 
-    protected attackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+    protected addAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
         const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event) => event.attacker === this } });
-        this.triggeredAbility(triggeredProperties);
+        this.addTriggeredAbility(triggeredProperties);
     }
 
-    protected whenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+    protected addWhenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
         const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
-        this.triggeredAbility(triggeredProperties);
+        this.addTriggeredAbility(triggeredProperties);
     }
 
-    private createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
+    public createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
         properties.cardName = this.title;
         return new TriggeredAbility(this.game, this, properties);
     }

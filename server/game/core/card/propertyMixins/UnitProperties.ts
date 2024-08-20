@@ -95,7 +95,7 @@ export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseCla
         //  * attach the passed attachment card.
         //  */
         // public allowAttachment(attachment) {
-        //     if (this.allowedAttachmentTraits.some((trait) => attachment.hasTrait(trait))) {
+        //     if (this.allowedAttachmentTraits.some((trait) => attachment.hasSomeTrait(trait))) {
         //         return true;
         //     }
 
@@ -214,7 +214,7 @@ export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseCla
         //         []
         //     )) {
         //         for (const trait of Object.keys(object)) {
-        //             const matchingAttachments = this.upgrades.filter((attachment) => attachment.hasTrait(trait));
+        //             const matchingAttachments = this.upgrades.filter((attachment) => attachment.hasSomeTrait(trait));
         //             for (const card of matchingAttachments.slice(0, -object[trait])) {
         //                 illegalAttachments.add(card);
         //             }

@@ -257,7 +257,7 @@ class Player extends GameObject {
         return this.game.allCards.some((card) => {
             return (
                 card.controller === this &&
-                card.hasTrait(trait) &&
+                card.hasSomeTrait(trait) &&
                 card.isFaceup() &&
                 isArena(card.location)
             );

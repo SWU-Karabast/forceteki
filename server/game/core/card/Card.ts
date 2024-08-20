@@ -193,14 +193,14 @@ export class Card extends OngoingEffectSource {
         this.abilityInitializers = skippedInitializers;
     }
 
-    protected actionAbility(properties: IActionAbilityProps<this>) {
+    protected addActionAbility(properties: IActionAbilityProps<this>) {
         this.abilityInitializers.push({
             abilityType: AbilityType.Action,
             initialize: () => this._actionAbilities.push(this.createActionAbility(properties))
         });
     }
 
-    private createActionAbility(properties: IActionAbilityProps): CardActionAbility {
+    public createActionAbility(properties: IActionAbilityProps): CardActionAbility {
         properties.cardName = this.title;
         return new CardActionAbility(this.game, this, properties);
     }
@@ -283,25 +283,6 @@ export class Card extends OngoingEffectSource {
         return keywords;
     }
 
-    // TODO THIS PR: remove this
-    public hasKeyword(keyword: Keyword): boolean {
-        const targetKeyword = keyword.valueOf().toLowerCase();
-
-        const addKeywordEffects = this.getEffectValues(EffectName.AddKeyword).filter(
-            (effectValue: Keyword) => effectValue === targetKeyword
-        );
-        const loseKeywordEffects = this.getEffectValues(EffectName.LoseKeyword).filter(
-            (effectValue: Keyword) => effectValue === targetKeyword
-        );
-
-        return addKeywordEffects.length > loseKeywordEffects.length;
-    }
-
-    // TODO THIS PR: remove this
-    public hasPrintedKeyword(keyword: Keyword) {
-        return this.printedKeywords.has(keyword);
-    }
-
     public hasSomeKeyword(keywords: Set<Keyword> | Keyword | Keyword[]): boolean {
         return this.hasSome(keywords, this.keywords);
     }
@@ -328,11 +309,6 @@ export class Card extends OngoingEffectSource {
         }
 
         return traits;
-    }
-
-    // TODO THIS PR: remove this
-    public hasTrait(trait: Trait): boolean {
-        return this.hasSomeTrait(trait);
     }
 
     public hasSomeTrait(traits: Set<Trait> | Trait | Trait[]): boolean {
