@@ -1,8 +1,8 @@
-import { Token } from './propertyMixins/Token';
+import { AsToken } from './propertyMixins/Token';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 
-const TokenUnitParent = Token(NonLeaderUnitCard);
-const TokenUpgradeParent = Token(NonLeaderUnitCard);
+const TokenUnitParent = AsToken(NonLeaderUnitCard);
+const TokenUpgradeParent = AsToken(NonLeaderUnitCard);
 
 export class TokenNonLeaderUnitCard extends TokenUnitParent {
 }

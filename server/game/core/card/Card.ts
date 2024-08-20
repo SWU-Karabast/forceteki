@@ -22,6 +22,13 @@ export interface IAbilityInitializer {
     initialize: () => void
 }
 
+/**
+ * The base class for all card types. Any shared properties among all cards will be present here.
+ *
+ * To access properties / methods of specific subclass types, use check methods such as {@link Card.isUnit}
+ * or {@link Card.canBeExhausted} to confirm that the card has the expected properties and then cast
+ * to the specific card type or one of the union types in `CardTypes.js` as needed.
+ */
 export class Card extends OngoingEffectSource {
     public static implemented = false;
 

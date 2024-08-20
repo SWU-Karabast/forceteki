@@ -1,11 +1,11 @@
 import Player from '../Player';
 import { Card } from './Card';
-import { Cost } from './propertyMixins/Cost';
+import { WithCost } from './propertyMixins/Cost';
 import { CardType, Location } from '../Constants';
 import Contract from '../utils/Contract';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 
-const EventCardParent = Cost(PlayableOrDeployableCard);
+const EventCardParent = WithCost(PlayableOrDeployableCard);
 
 export class EventCard extends EventCardParent {
     public constructor(owner: Player, cardData: any) {
@@ -22,6 +22,7 @@ export class EventCard extends EventCardParent {
     protected override initializeForCurrentLocation(prevLocation: Location): void {
         super.initializeForCurrentLocation(prevLocation);
 
+        // event cards can only be exhausted when resourced
         switch (this.location) {
             case Location.Resource:
                 this.enableExhaust(true);

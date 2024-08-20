@@ -1,7 +1,8 @@
 import Contract from '../../utils/Contract';
 import { CardConstructor } from '../Card';
 
-export function PrintedPower<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+/** Mixin function that adds the `printedPower` property to a base class. */
+export function WithPrintedPower<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithPrintedPower extends BaseClass {
         public readonly printedPower: number;
 

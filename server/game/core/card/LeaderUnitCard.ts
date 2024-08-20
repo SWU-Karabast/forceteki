@@ -2,11 +2,12 @@ import Player from '../Player';
 import { LeaderCard } from './LeaderCard';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { Location } from '../Constants';
-import { Cost } from './propertyMixins/Cost';
-import { UnitProperties } from './propertyMixins/UnitProperties';
+import { WithCost } from './propertyMixins/Cost';
+import { WithUnitProperties } from './propertyMixins/UnitProperties';
 
-const LeaderUnitCardParent = UnitProperties(Cost(LeaderCard));
+const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
+// TODO LEADERS: add custom defeat logic
 export class LeaderUnitCard extends LeaderUnitCardParent {
     private _isDeployed = false;
 
@@ -47,6 +48,4 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 break;
         }
     }
-
-    // TODO: where to put code that handles defeat for leader vs token vs normal card?
 }

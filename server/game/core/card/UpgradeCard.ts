@@ -1,12 +1,12 @@
 import Player from '../Player';
-import { PrintedHp } from './propertyMixins/PrintedHp';
-import { Cost } from './propertyMixins/Cost';
+import { WithPrintedHp } from './propertyMixins/PrintedHp';
+import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
-import { PrintedPower } from './propertyMixins/PrintedPower';
+import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import Contract from '../utils/Contract';
 import { CardType, Location } from '../Constants';
 
-const UpgradeCardParent = PrintedPower(PrintedHp(Cost(InPlayCard)));
+const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(InPlayCard)));
 
 export class UpgradeCard extends UpgradeCardParent {
     public constructor(
@@ -48,6 +48,7 @@ export class UpgradeCard extends UpgradeCardParent {
         }
     }
 
+    // TODO UPGRADES: all of the below came from L5R attachments
     // /**
     //  * Applies an effect with the specified properties while the current card is
     //  * attached to another card. By default the effect will target the parent

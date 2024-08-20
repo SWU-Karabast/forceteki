@@ -1,13 +1,13 @@
 import Contract from '../../utils/Contract';
 import { CardConstructor } from '../Card';
-import { PrintedHp } from './PrintedHp';
+import { WithPrintedHp } from './PrintedHp';
 
 /**
  * Mixin function that adds the `damage` property and corresponding methods to a base class.
- * This is effectively a subclass of the mixin {@link PrintedHp}.
+ * This is effectively a subclass of the mixin {@link WithPrintedHp}.
  */
-export function Damage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    const HpClass = PrintedHp(BaseClass);
+export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+    const HpClass = WithPrintedHp(BaseClass);
 
     return class WithDamage extends HpClass {
         private _damage?: number;

@@ -25,9 +25,6 @@ export type CardWithPrintedHp =
     UpgradeCard |
     TokenUpgradeCard;
 
-export type InPlayCard =
-    Exclude<AnyCard, BaseCard | EventCard>;
-
 export type CardWithTriggeredAbilities = InPlayCard;
 export type CardWithConstantAbilities = InPlayCard;
 
@@ -45,3 +42,5 @@ export type AnyCard =
 
 // Base is the only type of card that isn't in the PlayableOrDeployable subclass
 type PlayableOrDeployableCard = Exclude<AnyCard, BaseCard>;
+
+type InPlayCard = Exclude<AnyCard, BaseCard | EventCard>;

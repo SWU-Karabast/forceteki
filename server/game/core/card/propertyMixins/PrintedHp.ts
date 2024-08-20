@@ -1,12 +1,12 @@
 import Contract from '../../utils/Contract';
 import { CardConstructor } from '../Card';
-import type { Damage } from './Damage';
+import type { WithDamage } from './Damage';
 
 /**
  * Mixin function that adds the `printedHp` and `hp` properties to a base class.
- * Note that this _does not_ add the damage property. See {@link Damage} for that.
+ * Note that this _does not_ add the damage property. See {@link WithDamage} for that.
  */
-export function PrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+export function WithPrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithPrintedHp extends BaseClass {
         public readonly printedHp: number;
 

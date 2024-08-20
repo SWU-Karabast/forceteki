@@ -5,14 +5,23 @@ import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import Contract from '../../utils/Contract';
 import { InPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { UnitCard } from '../CardTypes';
-import { Damage } from './Damage';
-import { PrintedPower } from './PrintedPower';
+import { WithDamage } from './Damage';
+import { WithPrintedPower } from './PrintedPower';
+import type { WithPrintedHp } from './PrintedHp';
 
-export const UnitPropertiesCard = UnitProperties(InPlayCard);
+export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
-export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
+/**
+ * Mixin function that adds the standard properties for a unit (leader or non-leader) to a base class.
+ * Specifically it gains:
+ * - hp, damage, and power (from the corresponding mixins {@link WithPrintedHp}, {@link WithDamage}, and {@link WithPrintedPower})
+ * - the ability for hp and power to be modified by effects
+ * - the {@link InitiateAttackAction} ability so that the card can attack
+ * - the ability to have attached upgrades
+ */
+export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
     // create a "base" class that has the damage, hp, and power properties from other mixins
-    const StatsAndDamageClass = Damage(PrintedPower(BaseClass));
+    const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
     return class AsUnit extends StatsAndDamageClass {
         // *************************************** PROPERTY GETTERS ***************************************

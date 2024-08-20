@@ -1,17 +1,17 @@
 import Player from '../Player';
-import { PrintedHp } from './propertyMixins/PrintedHp';
-import { Cost } from './propertyMixins/Cost';
-import { PrintedPower } from './propertyMixins/PrintedPower';
+import { WithPrintedHp } from './propertyMixins/PrintedHp';
+import { WithCost } from './propertyMixins/Cost';
+import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import Contract from '../utils/Contract';
 import { CardType, Location } from '../Constants';
-import { Damage } from './propertyMixins/Damage';
+import { WithDamage } from './propertyMixins/Damage';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
-import { UnitProperties } from './propertyMixins/UnitProperties';
+import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 
-const NonLeaderUnitCardParent = UnitProperties(Cost(InPlayCard));
+const NonLeaderUnitCardParent = WithUnitProperties(WithCost(InPlayCard));
 
 export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
     public constructor(owner: Player, cardData: any) {

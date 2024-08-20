@@ -2,13 +2,14 @@ import Player from '../Player';
 import { Card } from './Card';
 import { CardType } from '../Constants';
 import Contract from '../utils/Contract';
-import { Damage } from './propertyMixins/Damage';
+import { WithDamage } from './propertyMixins/Damage';
 import { CardActionAbility } from '../ability/CardActionAbility';
 import AbilityHelper from '../../AbilityHelper';
 import { IActionAbilityProps, IEpicActionProps } from '../../Interfaces';
 
-const BaseCardParent = Damage(Card);
+const BaseCardParent = WithDamage(Card);
 
+/** A Base card (as in, the card you put in your base zone) */
 export class BaseCard extends BaseCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
