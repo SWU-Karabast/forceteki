@@ -239,6 +239,26 @@ export class Card extends OngoingEffectSource {
         return false;
     }
 
+    /** Returns true if the card is in a location where it can legally be damaged */
+    public canBeDamaged(): boolean {
+        return false;
+    }
+
+    /** Returns true if the card is in a location where it can legally be exhausted */
+    public canBeExhausted(): boolean {
+        return false;
+    }
+
+    /** Returns true if the card is a type that can legally have triggered abilities */
+    public canRegisterTriggeredAbilities(): boolean {
+        return false;
+    }
+
+    /** Returns true if the card is a type that can legally have constant abilities */
+    public canRegisterConstantAbilities(): boolean {
+        return false;
+    }
+
     public hasSomeType(types: Set<CardType> | CardType | CardType[]): boolean {
         return this.hasSome(types, this.types);
     }

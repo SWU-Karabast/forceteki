@@ -11,11 +11,19 @@ export type UnitCard =
     LeaderUnitCard |
     TokenNonLeaderUnitCard;
 
-export type CardWithHp =
+export type CardWithDamageProperty =
     NonLeaderUnitCard |
     LeaderUnitCard |
     TokenNonLeaderUnitCard |
     BaseCard;
+
+export type CardWithPrintedHp =
+    NonLeaderUnitCard |
+    LeaderUnitCard |
+    TokenNonLeaderUnitCard |
+    BaseCard |
+    UpgradeCard |
+    TokenUpgradeCard;
 
 export type InPlayCard =
     Exclude<AnyCard, BaseCard | EventCard>;

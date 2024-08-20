@@ -4,7 +4,7 @@ import Contract from '../utils/Contract';
 import { checkConvertToEnum } from '../utils/EnumHelpers';
 import { BaseCard } from './BaseCard';
 import { Card } from './Card';
-import { AnyCard, CardWithConstantAbilities, CardWithExhaustProperty, CardWithHp, CardWithTriggeredAbilities, InPlayCard, UnitCard } from './CardTypes';
+import { AnyCard, CardWithConstantAbilities, CardWithExhaustProperty, CardWithDamageProperty, CardWithTriggeredAbilities, InPlayCard, UnitCard } from './CardTypes';
 import { EventCard } from './EventCard';
 import { LeaderCard } from './LeaderCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
@@ -44,100 +44,4 @@ export function createUnimplementedCard(owner: Player, cardData: any): Card {
     }
 
     throw new Error(`Invalid card type set: ${cardTypes}`);
-}
-
-export function asCardWithExhaustPropertyOrNull(card: Card): CardWithExhaustProperty | null {
-    const concreteCard = cardAsConcrete(card);
-
-    if (concreteCard instanceof BaseCard) {
-        return null;
-    }
-
-    return concreteCard;
-}
-
-export function asCardWithHpOrNull(card: Card): CardWithHp | null {
-    const concreteCard = cardAsConcrete(card);
-
-    if (
-        concreteCard instanceof NonLeaderUnitCard ||
-        concreteCard instanceof TokenNonLeaderUnitCard ||
-        concreteCard instanceof BaseCard
-    ) {
-        return concreteCard;
-    }
-    if (concreteCard instanceof LeaderUnitCard) {
-        if (concreteCard.isDeployed) {
-            return concreteCard;
-        }
-    }
-
-    return null;
-}
-
-export function asCardWithTriggeredAbilitiesOrNull(card: Card): CardWithTriggeredAbilities | null {
-    return asInPlayCardOrNull(card);
-}
-
-export function asCardWithConstantAbilitiesOrNull(card: Card): CardWithConstantAbilities | null {
-    return asInPlayCardOrNull(card);
-}
-
-export function asInPlayCardOrNull(card: Card): InPlayCard | null {
-    const concreteCard = cardAsConcrete(card);
-
-    if (concreteCard instanceof BaseCard || concreteCard instanceof EventCard) {
-        return null;
-    }
-
-    return concreteCard;
-}
-
-export function asUnitCardOrNull(card: Card): UnitCard | null {
-    const concreteCard = cardAsConcrete(card);
-
-    if (
-        concreteCard instanceof NonLeaderUnitCard ||
-        concreteCard instanceof TokenNonLeaderUnitCard
-    ) {
-        return concreteCard;
-    }
-    if (concreteCard instanceof LeaderUnitCard) {
-        if (concreteCard.isDeployed) {
-            return concreteCard;
-        }
-    }
-
-    return null;
-}
-
-function cardAsConcrete(card: Card): AnyCard {
-    if (card.isEvent()) {
-        return card as EventCard;
-    }
-    if (card.isBase()) {
-        return card as BaseCard;
-    }
-    if (card.isUpgrade()) {
-        if (card.isToken()) {
-            return card as TokenUpgradeCard;
-        }
-        return card as UpgradeCard;
-    }
-    if (card.isLeader()) {
-        if (card.isLeaderUnit) {
-            return card as LeaderUnitCard;
-        }
-
-        return card as LeaderCard;
-    }
-    if (card.isUnit()) {
-        if (card.isToken()) {
-            return card as TokenNonLeaderUnitCard;
-        }
-        return card as NonLeaderUnitCard;
-    }
-
-    Contract.fail(`Invalid card type set: ${card.types}`);
-    return null;
 }

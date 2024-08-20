@@ -79,6 +79,14 @@ export class InPlayCard extends PlayableOrDeployableCard {
             : this._triggeredAbilities;
     }
 
+    public override canRegisterConstantAbilities(): boolean {
+        return true;
+    }
+
+    public override canRegisterTriggeredAbilities(): boolean {
+        return true;
+    }
+
 
     // ********************************************* ABILITY SETUP *********************************************
     protected constantAbility(properties: IConstantAbilityProps<this>): void {

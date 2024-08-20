@@ -14,6 +14,7 @@ import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/g
 import Contract from '../core/utils/Contract';
 import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
 import * as CardHelpers from '../core/card/CardHelpers';
+import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
 
@@ -142,7 +143,6 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         if (!Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`)) {
             return;
         }
-        const attacker = properties.attacker as NonLeaderUnitCard;
 
         if (isArray(target)) {
             if (target.length !== 1) {
@@ -155,19 +155,17 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             event.target = target;
         }
 
-        const targetCard = CardHelpers.asCardWithHpOrNull(event.target);
-        if (!Contract.assertNotNullLike(targetCard, `Attack target card '${event.target.internalName}' is not a unit or base`)) {
+        if (!Contract.assertTrue(event.target.isUnit() || event.target.isBase(), `Attack target card '${event.target.internalName}' is not a unit or base`)) {
             return;
         }
 
-
         event.context = context;
-        event.attacker = attacker;
+        event.attacker = properties.attacker;
 
         event.attack = new Attack(
             context.game,
-            attacker,
-            targetCard
+            properties.attacker as UnitCard,
+            event.target as CardWithDamageProperty
         );
     }
 

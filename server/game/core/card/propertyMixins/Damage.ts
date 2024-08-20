@@ -25,6 +25,10 @@ export function Damage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass
             this._damage = value;
         }
 
+        public override canBeDamaged(): boolean {
+            return true;
+        }
+
         public addDamage(amount: number) {
             this.assertPropertyEnabled(this._damage, 'damage');
             if (

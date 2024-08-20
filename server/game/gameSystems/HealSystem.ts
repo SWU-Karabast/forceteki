@@ -5,6 +5,7 @@ import { isArena, isAttackableLocation } from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Contract from '../core/utils/Contract';
 import * as CardHelpers from '../core/card/CardHelpers';
+import { CardWithDamageProperty } from '../core/card/CardTypes';
 
 export interface IHealProperties extends ICardTargetSystemProperties {
     amount: number;
@@ -26,16 +27,14 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
     }
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
-        const unitCard = CardHelpers.asUnitCardOrNull(card);
-        if (unitCard === null) {
+        const properties = this.generatePropertiesFromContext(context);
+        if (!card.canBeDamaged()) {
             return false;
         }
-
-        const properties = this.generatePropertiesFromContext(context);
         if (!isAttackableLocation(card.location)) {
             return false;
         }
-        if (properties.isCost && (properties.amount === 0 || unitCard.damage === 0)) {
+        if (properties.isCost && (properties.amount === 0 || (card as CardWithDamageProperty).damage === 0)) {
             return false;
         }
         if (card.hasRestriction(AbilityRestriction.BeHealed, context)) {

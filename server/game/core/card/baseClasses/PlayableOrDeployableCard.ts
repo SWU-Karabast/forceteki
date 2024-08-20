@@ -55,6 +55,11 @@ export class PlayableOrDeployableCard extends Card {
         this._exhausted = false;
     }
 
+    public override canBeExhausted(): boolean {
+        return true;
+    }
+
+
     protected enableExhaust(enabledStatus: boolean) {
         this._exhausted = enabledStatus ? true : null;
     }

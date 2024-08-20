@@ -53,6 +53,10 @@ export default class TriggeredAbility extends CardAbility {
     public constructor(game: Game, card: Card, properties: ITriggeredAbilityProps) {
         super(game, card, properties, AbilityType.TriggeredAbility);
 
+        if (!card.canRegisterTriggeredAbilities()) {
+            throw Error(`Card '${card.internalName}' cannot have triggered abilities`);
+        }
+
         if ('when' in properties) {
             this.when = properties.when;
         } else if ('aggregateWhen' in properties) {
@@ -71,7 +75,7 @@ export default class TriggeredAbility extends CardAbility {
             const context = this.createContext(player, event);
             //console.log(event.name, this.card.name, this.isTriggeredByEvent(event, context), this.meetsRequirements(context));
             if (
-                this.getCardTriggeredAbilities().includes(this) &&
+                (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
                 this.meetsRequirements(context) === ''
             ) {
@@ -155,21 +159,12 @@ export default class TriggeredAbility extends CardAbility {
             const context = this.createContext(player, events);
             //console.log(events.map(event => event.name), this.card.name, this.aggregateWhen(events, context), this.meetsRequirements(context));
             if (
-                this.getCardTriggeredAbilities().includes(this) &&
+                (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {
                 window.addToWindow(context);
             }
         }
-    }
-
-    private getCardTriggeredAbilities() {
-        const cardWithTriggeredAbilities = CardHelpers.asCardWithTriggeredAbilitiesOrNull(this.card);
-        if (!Contract.assertNotNullLike(cardWithTriggeredAbilities, `Card '${this.card.internalName}' cannot be the source of a triggered ability`)) {
-            return null;
-        }
-
-        return cardWithTriggeredAbilities.getTriggeredAbilities();
     }
 }

@@ -6,6 +6,7 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import { PlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import * as CardHelpers from '../core/card/CardHelpers';
 import CardSelector from '../core/cardSelector/CardSelector';
+import { CardWithExhaustProperty } from '../core/card/CardTypes';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExhaustSystemProperties extends ICardTargetSystemProperties {}
@@ -27,14 +28,13 @@ export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
             return false;
         }
 
-        const concreteCard = CardHelpers.asCardWithExhaustPropertyOrNull(card);
-        if (concreteCard === null) {
+        if (!card.canBeExhausted()) {
             return false;
         }
 
         // if exhausting is a cost, then the card must not be already exhausted
         // otherwise exhausting is a legal effect, even if the target is already exhausted
-        if (properties.isCost && concreteCard.exhausted) {
+        if (properties.isCost && (card as CardWithExhaustProperty).exhausted) {
             return false;
         }
 

@@ -8,7 +8,7 @@ import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import Contract from '../utils/Contract';
 import { NonLeaderUnitCard } from '../card/NonLeaderUnitCard';
-import { CardWithHp, UnitCard } from '../card/CardTypes';
+import { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
 
 export interface IAttackAbilities {
     saboteur: boolean;
@@ -40,7 +40,7 @@ export class Attack extends GameObject {
     public constructor(
         game: Game,
         public attacker: UnitCard,
-        public target: CardWithHp
+        public target: CardWithDamageProperty
     ) {
         super(game, 'Attack');
     }
