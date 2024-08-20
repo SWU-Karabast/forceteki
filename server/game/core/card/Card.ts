@@ -435,7 +435,6 @@ export class Card extends OngoingEffectSource {
         this.defaultController = player;
     }
 
-    // TODO THIS PR: switch to using "Helper.*" form for stuff like EnumHelpers.isArena
     public getModifiedController() {
         if (EnumHelpers.isArena(this.location)) {
             return this.mostRecentEffect(EffectName.TakeControl) || this.defaultController;

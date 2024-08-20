@@ -7,6 +7,7 @@ import StatsModifier from './StatsModifier';
 import { LeaderUnitCard } from '../../card/LeaderUnitCard';
 import { NonLeaderUnitCard } from '../../card/NonLeaderUnitCard';
 import { UnitPropertiesCard } from '../../card/propertyMixins/UnitProperties';
+import Contract from '../../utils/Contract';
 
 export default class StatsModifierWrapper {
     public readonly modifier: StatsModifier;
@@ -53,12 +54,16 @@ export default class StatsModifierWrapper {
         );
     }
 
-    public static fromPrintedValues(card: UnitCard, name, overrides = false) {
+    public static fromPrintedValues(card: Card, overrides = false) {
+        if (!Contract.assertTrue(card.isUnit())) {
+            return null;
+        }
+
         return new this({
-            hp: card.printedHp,
-            power: card.printedPower
+            hp: (card as UnitCard).printedHp,
+            power: (card as UnitCard).printedPower
         },
-        name,
+        `${card.name} base`,
         overrides,
         this.getCardType(card)
         );

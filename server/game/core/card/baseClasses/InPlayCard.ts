@@ -68,7 +68,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
             : this._constantAbilities;
     }
 
-    // TODO THIS PR: go through and fix SWU rule reference numbers
     /**
      * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
      * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”

@@ -17,7 +17,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     /** Already resolved effects / abilities */
     protected resolved: { ability: TriggeredAbilityContext, event: GameEvent }[] = [];
 
-    /** Chosen order of players to resolve in (SWU 6.10), null if not yet chosen */
+    /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
 
     /** The events that were triggered as part of this window */
@@ -53,7 +53,7 @@ export class TriggeredAbilityWindow extends BaseStep {
                 return true;
             }
 
-            // if more than one player has triggered abilities, need to prompt for resolve order (SWU 6.10)
+            // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
             if (this.unresolved.size > 1) {
                 this.promptForResolvePlayerOrder();
                 return false;

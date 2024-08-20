@@ -4,6 +4,7 @@ import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWr
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import Contract from '../../utils/Contract';
 import { InPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import { UnitCard } from '../CardTypes';
 import { Damage } from './Damage';
 import { PrintedPower } from './PrintedPower';
 
@@ -40,9 +41,9 @@ export function UnitProperties<TBaseClass extends InPlayCardConstructor>(BaseCla
         private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
             const wrappedModifiers = this.getWrappedStatModifiers(excludeModifiers);
 
-            // TODO THIS PR: switch to using a modifier wrapper for the base stats as well
-            const baseStatValue = statType === StatType.Hp ? this.printedHp : this.printedPower;
-            const stat = wrappedModifiers.reduce((total, wrappedModifier) => total + wrappedModifier.modifier[statType], baseStatValue);
+            const baseStatValue = StatsModifierWrapper.fromPrintedValues(this);
+
+            const stat = wrappedModifiers.reduce((total, wrappedModifier) => total + wrappedModifier.modifier[statType], baseStatValue.modifier[statType]);
             if (isNaN(stat)) {
                 return 0;
             }

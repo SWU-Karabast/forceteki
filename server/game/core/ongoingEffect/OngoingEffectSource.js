@@ -29,7 +29,7 @@ class OngoingEffectSource extends GameObject {
     }
 
     /**
-     * Applies a 'lasting effect' (SWU 7.3) which lasts until an event contained in the `until` property for the effect has occurred.
+     * Applies a 'lasting effect' (SWU 7.7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */
     lastingEffect(propertyFactory) {
         let properties = propertyFactory(AbilityHelper);

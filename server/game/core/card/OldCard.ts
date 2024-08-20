@@ -140,7 +140,7 @@ class OldCard extends OngoingEffectSource {
     }
 
     /**
-     * The union of the card's "Action Abilities" (ie abilities that enable an action, SWU 2.1) and
+     * The union of the card's "Action Abilities" (ie abilities that enable an action, SWU 7.2) and
      * any other general card actions such as playing a card
      */
     public get actions(): any[] {
@@ -157,7 +157,7 @@ class OldCard extends OngoingEffectSource {
     }
 
     /**
-     * "Constant abilities" are any non-triggered passive ongoing abilities (SWU 3.1)
+     * "Constant abilities" are any non-triggered passive ongoing abilities (SWU 7.3)
      */
     public get constantAbilities(): IConstantAbility[] {
         return this.getConstantAbilities();
