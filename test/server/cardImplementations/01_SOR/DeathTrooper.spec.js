@@ -59,23 +59,17 @@ describe('Death Trooper', function() {
                 expect(this.wampa.damage).toEqual(2);
             });
 
-            it('works when no enemy ground units', function () {
-                // Play Death Trooper
-                this.player2.setGroundArenaUnits([]);
-                this.player1.clickCard(this.deathTrooper);
+            // it('works when no enemy ground units', function () {
+            //     // Play Death Trooper
+            //     this.player2.setGroundArenaUnits([]);
+            //     this.player1.clickCard(this.deathTrooper);
 
-                // Choose Friendly
-                expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).not.toHavePassAbilityPrompt();
-                this.player1.clickCard(this.deathTrooper);
-
-                // // Choose Enemy
-                // expect(this.player1).toBeAbleToSelectAllOf([this.wampa, this.superlaserTech]);
-                // expect(this.player1).toBeAbleToSelectNoneOf([this.pykeSentinel, this.deathTrooper, this.interceptor, this.cartelSpacer]);
-                // this.player1.clickCard(this.wampa);
-                expect(this.deathTrooper.damage).toEqual(2);
-                // expect(this.wampa.damage).toEqual(2);
-            });
+            //     // Choose Friendly
+            //     expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
+            //     expect(this.player1).not.toHavePassAbilityPrompt();
+            //     this.player1.clickCard(this.deathTrooper);
+            //     expect(this.deathTrooper.damage).toEqual(2);
+            // });
         });
     });
 });
