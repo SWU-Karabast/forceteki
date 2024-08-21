@@ -1,9 +1,9 @@
 import AbilityHelper from '../../AbilityHelper';
-import Card from '../../core/card/Card';
+import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
 import { AbilityRestriction } from '../../core/Constants';
 import { countUniqueAspects } from '../../core/utils/Helpers';
 
-export default class SabineWrenExplosivesArtist extends Card {
+export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '3646264648',
@@ -12,7 +12,7 @@ export default class SabineWrenExplosivesArtist extends Card {
     }
 
     protected override setupCardAbilities() {
-        this.constantAbility({
+        this.addConstantAbility({
             title: 'Sabine passive',
             condition: () => countUniqueAspects(this.controller.getOtherUnitsInPlay(this, null)) >= 3,
 

@@ -1,8 +1,8 @@
 import type { AbilityContext } from './AbilityContext.js';
 import CardAbility from './CardAbility.js';
 import { AbilityType, CardType, EffectName, PhaseName } from '../Constants.js';
-import type { IActionProps } from '../../Interfaces.js';
-import type Card from '../card/Card.js';
+import type { IActionAbilityProps } from '../../Interfaces.js';
+import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
 
 /**
@@ -24,9 +24,6 @@ import type Game from '../Game.js';
  *                to activate the action. Defaults to 'play area'.
  * limit        - optional AbilityLimit object that represents the max number of
  *                uses for the action as well as when it resets.
- * max          - optional AbilityLimit object that represents the max number of
- *                times the ability by card title can be used. Contrast with
- *                `limit` which limits per individual card.
  * anyPlayer    - boolean indicating that the action may be executed by a player
  *                other than the card's controller. Defaults to false.
  * clickToActivate - boolean that indicates the action should be activated when
@@ -41,7 +38,7 @@ export class CardActionAbility extends CardAbility {
 
     public readonly condition?: (context?: AbilityContext) => boolean;
 
-    public constructor(game: Game, card: Card, properties: IActionProps) {
+    public constructor(game: Game, card: Card, properties: IActionAbilityProps) {
         super(game, card, properties);
 
         this.phase = properties.phase ?? 'any';
@@ -61,7 +58,7 @@ export class CardActionAbility extends CardAbility {
 
         const canOpponentTrigger =
             this.card.anyEffect(EffectName.CanBeTriggeredByOpponent) &&
-            this.abilityType !== AbilityType.TriggeredAbility;
+            this.abilityType !== AbilityType.Triggered;
         const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
         if (!ignoredRequirements.includes('player') && !this.card.isEvent() && !canPlayerTrigger) {
             return 'player';

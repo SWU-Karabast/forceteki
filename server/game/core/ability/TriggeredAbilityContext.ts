@@ -1,4 +1,4 @@
-import Card from '../card/Card';
+import { Card } from '../card/Card';
 import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
 
 interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {

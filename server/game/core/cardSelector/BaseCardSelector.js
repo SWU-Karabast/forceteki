@@ -1,6 +1,6 @@
 const { Location, RelativePlayer, WildcardLocation } = require('../Constants');
 const { default: Contract } = require('../utils/Contract');
-const { cardLocationMatches } = require('../utils/EnumHelpers');
+const EnumHelpers = require('../utils/EnumHelpers');
 
 // TODO: once converted to TS, make this abstract
 class BaseCardSelector {
@@ -12,15 +12,15 @@ class BaseCardSelector {
         }
 
         this.cardCondition = properties.cardCondition;
-        this.cardType = properties.cardType;
+        this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.locationFilter = this.buildLocationFilter(properties.locationFilter);
         this.controller = properties.controller || RelativePlayer.Any;
         this.checkTarget = !!properties.targets;
         this.sameDiscardPile = !!properties.sameDiscardPile;
 
-        if (!Array.isArray(properties.cardType)) {
-            this.cardType = [properties.cardType];
+        if (!Array.isArray(properties.cardTypeFilter)) {
+            this.cardTypeFilter = [properties.cardTypeFilter];
         }
     }
 
@@ -120,13 +120,13 @@ class BaseCardSelector {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!cardLocationMatches(card.location, this.locationFilter)) {
+        if (!EnumHelpers.cardLocationMatches(card.location, this.locationFilter)) {
             return false;
         }
         if (card.location === Location.Hand && card.controller !== choosingPlayer) {
             return false;
         }
-        return card.hasSomeType(this.cardType) && this.cardCondition(card, context);
+        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardCondition(card, context);
     }
 
     getAllLegalTargets(context, choosingPlayer) {

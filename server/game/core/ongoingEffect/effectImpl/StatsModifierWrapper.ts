@@ -1,8 +1,13 @@
-import Card from '../../card/Card';
+import { Card } from '../../card/Card';
+import { UnitCard } from '../../card/CardTypes';
 import type { CardType } from '../../Constants';
 import OngoingEffect from '../OngoingEffect';
 import { IOngoingCardEffect } from '../IOngoingCardEffect';
 import StatsModifier from './StatsModifier';
+import { LeaderUnitCard } from '../../card/LeaderUnitCard';
+import { NonLeaderUnitCard } from '../../card/NonLeaderUnitCard';
+import { UnitPropertiesCard } from '../../card/propertyMixins/UnitProperties';
+import Contract from '../../utils/Contract';
 
 export default class StatsModifierWrapper {
     public readonly modifier: StatsModifier;
@@ -49,18 +54,22 @@ export default class StatsModifierWrapper {
         );
     }
 
-    public static fromPrintedValues(card: Card, name, overrides = false) {
+    public static fromPrintedValues(card: Card, overrides = false) {
+        if (!Contract.assertTrue(card.isUnit())) {
+            return null;
+        }
+
         return new this({
-            hp: card.printedHp,
-            power: card.printedPower
+            hp: (card as UnitCard).printedHp,
+            power: (card as UnitCard).printedPower
         },
-        name,
+        `${card.name} base`,
         overrides,
         this.getCardType(card)
         );
     }
 
-    // TODO UPGRADE: should we use this for generating stat modifiers from attached upgrades or use the effect system?
+    // TODO UPGRADES: should we use this for generating stat modifiers from attached upgrades or use the effect system?
     // static fromStatusToken(amount: number, name, overrides = false) {
     //     return new this(
     //         amount,

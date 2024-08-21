@@ -65,12 +65,13 @@ describe('Basic attack', function() {
                 this.player1.clickCard(this.wampa);
                 this.player1.clickCard(this.enfysNest);
 
-                expect(this.wampa.damage).toBe(null);
-                expect(this.wampa.exhausted).toBe(null);
+                // these properties should throw because they're disabled when the card is not in an arena
+                expect(() => this.wampa.damage).toThrow();
+                expect(() => this.wampa.exhausted).toThrow();
                 expect(this.wampa.location).toBe('discard');
 
-                expect(this.enfysNest.damage).toBe(null);
-                expect(this.enfysNest.exhausted).toBe(null);
+                expect(() => this.enfysNest.damage).toThrow();
+                expect(() => this.enfysNest.exhausted).toThrow();
                 expect(this.enfysNest.location).toBe('discard');
             });
 
@@ -78,12 +79,13 @@ describe('Basic attack', function() {
                 this.player1.clickCard(this.wampa);
                 this.player1.clickCard(this.enfysNest);
 
-                expect(this.wampa.damage).toBe(null);
-                expect(this.wampa.exhausted).toBe(null);
+                // these properties should throw because they're disabled when the card is not in an arena
+                expect(() => this.wampa.damage).toThrow();
+                expect(() => this.wampa.exhausted).toThrow();
                 expect(this.wampa.location).toBe('discard');
 
-                expect(this.enfysNest.damage).toBe(null);
-                expect(this.enfysNest.exhausted).toBe(null);
+                expect(() => this.enfysNest.damage).toThrow();
+                expect(() => this.enfysNest.exhausted).toThrow();
                 expect(this.enfysNest.location).toBe('discard');
             });
 

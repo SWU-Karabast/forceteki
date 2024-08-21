@@ -1,16 +1,20 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, EventName, Location } from '../core/Constants';
-import { isAttackableLocation, isArena } from '../core/utils/EnumHelpers';
+import { AbilityRestriction, CardType, CardTypeFilter, EventName, Location, WildcardCardType } from '../core/Constants';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
 import { AttackFlow } from '../core/attack/AttackFlow';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { damage } from './GameSystemLibrary.js';
-import type Card from '../core/card/Card';
+import type { Card } from '../core/card/Card';
 import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
+import Contract from '../core/utils/Contract';
+import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
+import * as CardHelpers from '../core/card/CardHelpers';
+import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
 
@@ -33,7 +37,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     public override readonly name = 'attack';
     public override readonly eventName = EventName.Unnamed;
     protected override readonly defaultProperties: IAttackProperties = {};
-    protected override readonly targetType = [CardType.Unit, CardType.Base];
+    protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event, additionalProperties): void {
         const context = event.context;
@@ -41,7 +45,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (
-            !isArena(properties.attacker.location) || !isAttackableLocation(target.location)
+            !EnumHelpers.isArena(properties.attacker.location) || !EnumHelpers.isAttackableLocation(target.location)
         ) {
             context.game.addMessage(
                 'The attack cannot proceed as the attacker or defender is no longer in play'
@@ -107,7 +111,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         return (
             properties.attacker &&
-            isAttackableLocation(targetCard.location)
+            EnumHelpers.isAttackableLocation(targetCard.location)
         );
     }
 
@@ -136,6 +140,10 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     public override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
+        if (!Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`)) {
+            return;
+        }
+
         if (isArray(target)) {
             if (target.length !== 1) {
                 context.game.addMessage(`Attack requires exactly one target, cannot attack ${target.length} targets`);
@@ -147,13 +155,17 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             event.target = target;
         }
 
+        if (!Contract.assertTrue(event.target.isUnit() || event.target.isBase(), `Attack target card '${event.target.internalName}' is not a unit or base`)) {
+            return;
+        }
+
         event.context = context;
         event.attacker = properties.attacker;
 
         event.attack = new Attack(
             context.game,
-            properties.attacker,
-            event.target
+            properties.attacker as UnitCard,
+            event.target as CardWithDamageProperty
         );
     }
 
@@ -172,7 +184,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         // event for damage dealt to attacker by defender, if any
         if (!attack.targetIsBase) {
-            damageEvents.push(damage({ amount: attack.defenderTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
+            damageEvents.push(damage({ amount: attack.targetTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
         }
 
         context.game.openEventWindow(damageEvents);

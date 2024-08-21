@@ -22,5 +22,6 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
-  "bookmarks.saveBookmarksInProject": false
+  "bookmarks.saveBookmarksInProject": false,
+  "files.eol": "\n"
 }

@@ -1,8 +1,8 @@
 import AbilityHelper from '../../AbilityHelper';
 import CardAbilityStep from '../ability/CardAbilityStep';
-import { Location, CardType, EffectName, RelativePlayer } from '../Constants';
+import { Location, CardType, EffectName, RelativePlayer, WildcardCardType } from '../Constants';
 import { IInitiateAttack } from '../../Interfaces';
-import { isArena, isAttackableLocation } from '../utils/EnumHelpers';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 export const addInitiateAttackProperties = (properties) => {
     if (!properties.initiateAttack) {
@@ -11,7 +11,7 @@ export const addInitiateAttackProperties = (properties) => {
 
     properties.targetResolvers = {
         attacker: {
-            cardType: CardType.Unit,
+            cardTypeFilter: WildcardCardType.Unit,
             player: (context) => {
                 const opponentChoosesAttacker = getProperty(properties, context, 'opponentChoosesAttacker');
                 return opponentChoosesAttacker ? RelativePlayer.Opponent : RelativePlayer.Self;
@@ -22,6 +22,7 @@ export const addInitiateAttackProperties = (properties) => {
             // this is to pay the exhaust cost for the attacker
             // TODO: need to investigate to see if this resolves at the right point in the attack
             // (experiment with something that would trigger off of the exhaust to make sure it happens at the right time)
+            // if not, try splitting the two with a "then" clause to get exhaust to fire first
             immediateEffect: AbilityHelper.immediateEffects.exhaust({ isCost: true })
         },
         attackTarget: {
@@ -64,7 +65,7 @@ const getBaselineAttackTargetProperties = (attacker, properties) => {
 
             // default target condition
             if (!targetCondition) {
-                return isAttackableLocation(card.location) && (card.location === attackerCard.location || card.location === Location.Base);
+                return EnumHelpers.isAttackableLocation(card.location) && (card.location === attackerCard.location || card.location === Location.Base);
             }
 
             return targetCondition(card, context);

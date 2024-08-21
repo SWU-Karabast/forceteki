@@ -27,13 +27,12 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
             // new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordInterrupt)),
-            new SimpleStep(this.game, () => this.checkForOtherEffects(), 'checkForOtherEffects'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
             // new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
             // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordReaction)),
             // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps(), 'checkAdditionalAbilitySteps'),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.TriggeredAbility), 'open TriggeredAbility window'),
+            new SimpleStep(this.game, () => this.openWindow(AbilityType.Triggered), 'open TriggeredAbility window'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
         ]);
     }
@@ -69,7 +68,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        if (abilityType === AbilityType.TriggeredAbility) {
+        if (abilityType === AbilityType.Triggered) {
             this.queueStep(new TriggeredAbilityWindow(this.game, this));
         }
     }
@@ -87,11 +86,6 @@ class EventWindow extends BaseStepWithPipeline {
     //         _.each(contingentEvents, (event) => this.addEvent(event));
     //     }
     // }
-
-    // This catches any persistent/delayed effect cancels
-    checkForOtherEffects() {
-        this.events.forEach((event) => this.game.emit(event.name + ':' + AbilityType.OtherEffects, event));
-    }
 
     preResolutionEffects() {
         this.events.forEach((event) => event.preResolutionEffect());

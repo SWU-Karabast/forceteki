@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, EventName, Location, RelativePlayer } from '../core/Constants';
-import { isArena } from '../core/utils/EnumHelpers';
+import { AbilityRestriction, CardType, EventName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import Card from '../core/card/Card';
+import { Card } from '../core/card/Card';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: RelativePlayer;
@@ -15,7 +15,7 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
     public override readonly eventName = EventName.OnUnitEntersPlay;
     public override readonly costDescription = 'putting {0} into play';
 
-    protected override readonly targetType = [CardType.Unit];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit];
     protected override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
         overrideLocation: null
@@ -60,7 +60,7 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
         if (!context || !super.canAffect(card, context)) {
             return false;
         // TODO SMUGGLE: impl here
-        } else if (isArena(card.location) || card.facedown) {
+        } else if (EnumHelpers.isArena(card.location) || card.facedown) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;

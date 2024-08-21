@@ -1,5 +1,6 @@
-import Card from '../card/Card';
-import { Aspect } from '../Constants';
+import { Card } from '../card/Card';
+import { Aspect, CardType, Location } from '../Constants';
+import Contract from './Contract';
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export function shuffleArray<T>(array: T[]): void {
@@ -29,4 +30,52 @@ export function countUniqueAspects(cards: Card | Card[]): number {
         card.aspects.forEach((aspect) => aspects.add(aspect));
     });
     return aspects.size;
+}
+
+export function shuffle<T>(array: T[]): T[] {
+    const shuffleArray = [...array];
+    for (let i = shuffleArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffleArray[i], shuffleArray[j]] = [shuffleArray[j], shuffleArray[i]];
+    }
+    return shuffleArray;
+}
+
+export function defaultLegalLocationsForCardType(cardType: CardType) {
+    const drawCardLocations = [
+        Location.Hand,
+        Location.Deck,
+        Location.Discard,
+        Location.RemovedFromGame,
+        Location.SpaceArena,
+        Location.GroundArena,
+        Location.Resource
+    ];
+
+    switch (cardType) {
+        case CardType.TokenUnit:
+        case CardType.TokenUpgrade:
+        case CardType.LeaderUnit:
+            return [Location.SpaceArena, Location.GroundArena];
+        case CardType.Base:
+            return [Location.Base];
+        case CardType.NonLeaderUnit:
+        case CardType.Upgrade:
+            return drawCardLocations;
+        case CardType.Leader:
+            return [Location.Leader];
+        case CardType.Event:
+            return [...drawCardLocations, Location.BeingPlayed];
+        default:
+            Contract.fail(`Unknown card type: ${cardType}`);
+            return null;
+    }
+}
+
+export function asArray(val: any) {
+    if (val == null) {
+        return [];
+    }
+
+    return Array.isArray(val) ? val : [val];
 }

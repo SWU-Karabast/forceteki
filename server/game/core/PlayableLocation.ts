@@ -1,6 +1,6 @@
 import type { Location, PlayType } from './Constants';
 import type Player from './Player';
-import Card from './card/Card';
+import { Card } from './card/Card';
 
 export class PlayableLocation {
     public constructor(

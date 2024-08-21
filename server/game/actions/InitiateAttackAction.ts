@@ -1,11 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import PlayerAction from '../core/ability/PlayerAction.js';
 import { AbilityRestriction, EffectName, EventName, Location, PhaseName, PlayType, TargetMode, WildcardLocation } from '../core/Constants.js';
-import { isArena } from '../core/utils/EnumHelpers.js';
+import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import { attack } from '../gameSystems/GameSystemLibrary.js';
 import type Player from '../core/Player.js';
-import Card from '../core/card/Card.js';
+import { Card } from '../core/card/Card';
 import { unlimited } from '../core/ability/AbilityLimit.js';
 
 export class InitiateAttackAction extends PlayerAction {
@@ -25,7 +25,7 @@ export class InitiateAttackAction extends PlayerAction {
             return 'phase';
         }
         if (
-            !isArena(context.source.location) &&
+            !EnumHelpers.isArena(context.source.location) &&
             !ignoredRequirements.includes('location')
         ) {
             return 'location';

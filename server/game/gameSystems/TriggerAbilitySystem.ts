@@ -1,5 +1,5 @@
 import type CardAbility from '../core/ability/CardAbility';
-import type Card from '../core/card/Card';
+import type { Card } from '../core/card/Card';
 import type { GameEvent } from '../core/event/GameEvent';
 import AbilityResolver from '../core/gameSteps/AbilityResolver';
 import type Player from '../core/Player';
@@ -45,7 +45,7 @@ export class TriggerAbilitySystem extends CardTargetSystem<ITriggerAbilityProper
         if (
             !super.canAffect(card, context) ||
             !ability ||
-            (!properties.subResolution && player.isAbilityAtMax(ability.maxIdentifier))
+            (!properties.subResolution)
         ) {
             return false;
         }

@@ -1,13 +1,14 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
-import type Card from '../card/Card';
-import { CardType, PlayType, Aspect } from '../Constants';
+import type { Card } from '../card/Card';
+import { CardType, PlayType, Aspect, CardTypeFilter } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 export interface CostAdjusterProperties {
     penaltyAspect?: Aspect;
-    cardType?: CardType;
+    cardTypeFilter?: CardType;
     costFloor?: number;
     limit?: IAbilityLimit;
     playingTypes?: PlayType;
@@ -21,7 +22,7 @@ export class CostAdjuster {
     private amount: number | ((card: Card, player: Player) => number);
     private costFloor: number; // TODO: is this needed?
     private match?: (card: Card, source: Card) => boolean;
-    private cardType?: CardType;
+    private cardTypeFilter?: CardTypeFilter;
     private targetCondition?: (target: Card, source: Card, context: AbilityContext<any>) => boolean;
     private limit?: IAbilityLimit;
     private playingTypes?: PlayType[];
@@ -35,7 +36,7 @@ export class CostAdjuster {
         this.amount = properties.amount || 1;
         this.costFloor = properties.costFloor || 0;
         this.match = properties.match;
-        this.cardType = properties.cardType;
+        this.cardTypeFilter = properties.cardTypeFilter;
         this.targetCondition = properties.targetCondition;
         this.playingTypes =
             properties.playingTypes &&
@@ -49,7 +50,7 @@ export class CostAdjuster {
     public canAdjust(playingType: PlayType, card: Card, target?: Card, ignoreType = false, penaltyAspect?: Aspect): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
-        } else if (!ignoreType && this.cardType && card.hasSomeType(this.cardType)) {
+        } else if (!ignoreType && this.cardTypeFilter && EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter)) {
             return false;
         } else if (this.playingTypes && !this.playingTypes.includes(playingType)) {
             return false;
