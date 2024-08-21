@@ -1067,7 +1067,6 @@ class Game extends EventEmitter {
         // check for a game state change (recalculating attack stats if necessary)
         if (
             (!this.currentAttack && this.ongoingEffectEnginer.resolveEffects(hasChanged)) ||
-            (this.currentAttack && this.currentAttack.calculateSkill(hasChanged)) ||
             hasChanged
         ) {
             // this.checkWinCondition();

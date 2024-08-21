@@ -443,7 +443,7 @@ class Card extends OngoingEffectSource {
     }
 
     protected attackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
-        const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event) => event.attacker === this } });
+        const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event) => event.attack.attacker === this } });
         this.triggeredAbility(triggeredProperties);
     }
 

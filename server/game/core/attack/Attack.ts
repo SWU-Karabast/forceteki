@@ -1,6 +1,6 @@
 import { GameObject } from '../GameObject';
 import { EffectName, EventName, Location } from '../Constants';
-import { isArena } from '../utils/EnumHelpers';
+import * as EnumHelpers from '../utils/EnumHelpers';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
 import type Player from '../Player';
@@ -47,9 +47,19 @@ export class Attack extends GameObject {
         super(game, 'Attack');
     }
 
+    public isValid(): boolean {
+        if (!EnumHelpers.isArena(this.attacker.location)) {
+            return false;
+        }
+        if (!this.target.isBase() && !EnumHelpers.isArena(this.target.location)) {
+            return false;
+        }
+        return true;
+    }
+
     public isInvolved(card: Card): boolean {
         return (
-            isArena(card.location) &&
+            EnumHelpers.isArena(card.location) &&
             ([this.attacker as Card, this.target as Card].includes(card))
         );
     }
@@ -62,7 +72,7 @@ export class Attack extends GameObject {
     }
 
     private getUnitPower(involvedUnit: Card): StatisticTotal {
-        if (!Contract.assertTrue(isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
+        if (!Contract.assertTrue(EnumHelpers.isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
             return null;
         }
 
