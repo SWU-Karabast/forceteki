@@ -66,13 +66,14 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 this.player2.clickCard(this.p2Avenger);
                 this.player2.clickCard(this.interceptor);
 
+                // Interceptor not yet destroyed
                 expect(this.interceptor.location).toBe('space arena');
 
                 // Player 1 must choose its own unit
                 expect(this.player1).toBeAbleToSelectAllOf([this.interceptor, this.pykeSentinel]);
                 expect(this.player1).toBeAbleToSelectNoneOf([this.wampa, this.cartelSpacer, this.p2Avenger]);
 
-                // Choose the defender
+                // Choose the defender and check it was destroyed
                 this.player1.clickCard(this.interceptor);
                 expect(this.interceptor.location).toBe('discard');
 

@@ -1,7 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { CardType, RelativePlayer, TargetMode, WildcardCardType } from '../../core/Constants';
-import Player from '../../core/Player';
+import { CardType, RelativePlayer } from '../../core/Constants';
 
 export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -18,7 +17,7 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
             targetResolver: {
                 player: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
-                cardTypeFilter: WildcardCardType.Unit,
+                cardTypeFilter: CardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             }
         });
@@ -29,7 +28,7 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
             targetResolver: {
                 player: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
-                cardTypeFilter: WildcardCardType.Unit,
+                cardTypeFilter: CardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             }
         });
