@@ -1,4 +1,6 @@
+import { Card } from '../card/Card';
 import { CardType, CardTypeFilter, Location, LocationFilter, WildcardCardType, WildcardLocation } from '../Constants';
+import Contract from './Contract';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -99,4 +101,17 @@ export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilt
                 return cardType === allowedCardType;
         }
     });
+};
+
+export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[] => {
+    switch (cardTypeFilter) {
+        case WildcardCardType.Any:
+            return [CardType.Base, CardType.Event, CardType.Leader, CardType.NonLeaderUnit, CardType.Upgrade, CardType.TokenUnit, CardType.TokenUpgrade, CardType.LeaderUnit];
+        case WildcardCardType.Unit:
+            return [CardType.NonLeaderUnit, CardType.LeaderUnit, CardType.TokenUnit];
+        case WildcardCardType.Token:
+            return [CardType.TokenUnit, CardType.TokenUpgrade];
+        default:
+            return [cardTypeFilter];
+    }
 };

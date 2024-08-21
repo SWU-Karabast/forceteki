@@ -204,7 +204,7 @@ class AbilityTargetCard {
         }
 
         for (const type of Array.isArray(properties.cardTypeFilter) ? properties.cardTypeFilter : [properties.cardTypeFilter]) {
-            const legalLocations = Helpers.defaultLegalLocationsForCardType(type);
+            const legalLocations = Helpers.defaultLegalLocationsForCardTypeFilter(type);
             if (legalLocations.some((location) => EnumHelpers.cardLocationMatches(location, properties.locationFilter))) {
                 return;
             }

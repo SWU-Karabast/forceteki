@@ -1,6 +1,7 @@
 import { Card } from '../card/Card';
-import { Aspect, CardType, Location } from '../Constants';
+import { Aspect, CardType, CardTypeFilter, Location } from '../Constants';
 import Contract from './Contract';
+import * as EnumHelpers from './EnumHelpers';
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export function shuffleArray<T>(array: T[]): void {
@@ -39,6 +40,19 @@ export function shuffle<T>(array: T[]): T[] {
         [shuffleArray[i], shuffleArray[j]] = [shuffleArray[j], shuffleArray[i]];
     }
     return shuffleArray;
+}
+
+export function defaultLegalLocationsForCardTypeFilter(cardTypeFilter: CardTypeFilter) {
+    const cardTypes = EnumHelpers.getCardTypesForFilter(cardTypeFilter);
+
+    const locations = new Set<Location>();
+
+    cardTypes.forEach((cardType) => {
+        const legalLocations = defaultLegalLocationsForCardType(cardType);
+        legalLocations.forEach((location) => locations.add(location));
+    });
+
+    return Array.from(locations);
 }
 
 export function defaultLegalLocationsForCardType(cardType: CardType) {
