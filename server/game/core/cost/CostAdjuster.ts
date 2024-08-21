@@ -8,7 +8,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 
 export interface CostAdjusterProperties {
     penaltyAspect?: Aspect;
-    cardType?: CardType;
+    cardTypeFilter?: CardType;
     costFloor?: number;
     limit?: IAbilityLimit;
     playingTypes?: PlayType;
@@ -36,7 +36,7 @@ export class CostAdjuster {
         this.amount = properties.amount || 1;
         this.costFloor = properties.costFloor || 0;
         this.match = properties.match;
-        this.cardTypeFilter = properties.cardType;
+        this.cardTypeFilter = properties.cardTypeFilter;
         this.targetCondition = properties.targetCondition;
         this.playingTypes =
             properties.playingTypes &&

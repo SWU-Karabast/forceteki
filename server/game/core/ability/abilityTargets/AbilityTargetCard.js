@@ -199,18 +199,18 @@ class AbilityTargetCard {
      * provided, which would cause target resolution to always silently fail to find any legal targets.
      */
     validateLocationLegalForTarget(properties) {
-        if (!properties.locationFilter || !properties.cardType) {
+        if (!properties.locationFilter || !properties.cardTypeFilter) {
             return;
         }
 
-        for (const type of Array.isArray(properties.cardType) ? properties.cardType : [properties.cardType]) {
+        for (const type of Array.isArray(properties.cardTypeFilter) ? properties.cardTypeFilter : [properties.cardTypeFilter]) {
             const legalLocations = Helpers.defaultLegalLocationsForCardType(type);
             if (legalLocations.some((location) => EnumHelpers.cardLocationMatches(location, properties.locationFilter))) {
                 return;
             }
         }
 
-        Contract.fail(`Target location filters '${properties.locationFilter}' for ability has no overlap with legal locations for target card types '${properties.cardType}', so target resolution is guaranteed to find no legal targets`);
+        Contract.fail(`Target location filters '${properties.locationFilter}' for ability has no overlap with legal locations for target card types '${properties.cardTypeFilter}', so target resolution is guaranteed to find no legal targets`);
     }
 }
 

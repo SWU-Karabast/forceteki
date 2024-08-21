@@ -63,4 +63,9 @@ export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
         }
         return events;
     }
+
+    // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
+    protected override isTargetTypeValid(target: any): boolean {
+        return false;
+    }
 }

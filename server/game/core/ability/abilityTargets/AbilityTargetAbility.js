@@ -1,6 +1,7 @@
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
 const { default: Contract } = require('../../utils/Contract.js');
+const EnumHelpers = require('../../utils/EnumHelpers.js');
 
 class AbilityTargetAbility {
     constructor(name, properties, ability) {
@@ -119,7 +120,7 @@ class AbilityTargetAbility {
         if (!context.targetAbility || context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
             return false;
         }
-        return context.targetAbility.card.hasSomeType(this.properties.cardType) &&
+        return EnumHelpers.cardTypeMatches(context.targetAbility.card, this.properties.cardTypeFilter) &&
                (!this.properties.cardCondition || this.properties.cardCondition(context.targetAbility.card, context)) &&
                this.abilityCondition(context.targetAbility);
     }
