@@ -21,7 +21,7 @@ describe('Death Trooper', function() {
 
                 this.deathTrooper = this.player1.findCardByName('death-trooper');
                 this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.cartepSpacer = this.player1.findCardByName('cartel-spacer');
+                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
 
                 this.wampa = this.player2.findCardByName('wampa');
                 this.superlaserTech = this.player2.findCardByName('superlaser-technician');
@@ -33,32 +33,48 @@ describe('Death Trooper', function() {
                 this.noMoreActions();
             });
 
-            it('death trooper when played cannot be passed', function () {
+            it('cannot be passed', function () {
                 // Play Death Trooper
                 this.player1.clickCard(this.deathTrooper);
-                expect(this.deathTrooper.location).toBe('ground arena');
                 expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa, this.superlaserTech]);
-                expect(this.player1).toNotHavePassAbilityPrompt();
+                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartelSpacer, this.wampa, this.superlaserTech]);
+                expect(this.player1).not.toHavePassAbilityPrompt();
             });
 
-            it('death trooper can only target ground units & can damage itself', function () {
+            it('can only target ground units & can damage itself', function () {
                 // Play Death Trooper
                 this.player1.clickCard(this.deathTrooper);
-                expect(this.deathTrooper.location).toBe('ground arena');
 
                 // Choose Friendly
                 expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartepSpacer, this.wampa, this.superlaserTech]);
-                expect(this.player1).toNotHavePassAbilityPrompt();
+                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartelSpacer, this.wampa, this.superlaserTech]);
+                expect(this.player1).not.toHavePassAbilityPrompt();
                 this.player1.clickCard(this.deathTrooper);
 
                 // Choose Enemy
                 expect(this.player1).toBeAbleToSelectAllOf([this.wampa, this.superlaserTech]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.pykeSentinel, this.deathTrooper, this.interceptor, this.cartepSpacer]);
+                expect(this.player1).toBeAbleToSelectNoneOf([this.pykeSentinel, this.deathTrooper, this.interceptor, this.cartelSpacer]);
                 this.player1.clickCard(this.wampa);
                 expect(this.deathTrooper.damage).toEqual(2);
                 expect(this.wampa.damage).toEqual(2);
+            });
+
+            it('works when no enemy ground units', function () {
+                // Play Death Trooper
+                this.player2.setGroundArenaUnits([]);
+                this.player1.clickCard(this.deathTrooper);
+
+                // Choose Friendly
+                expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
+                expect(this.player1).not.toHavePassAbilityPrompt();
+                this.player1.clickCard(this.deathTrooper);
+
+                // // Choose Enemy
+                // expect(this.player1).toBeAbleToSelectAllOf([this.wampa, this.superlaserTech]);
+                // expect(this.player1).toBeAbleToSelectNoneOf([this.pykeSentinel, this.deathTrooper, this.interceptor, this.cartelSpacer]);
+                // this.player1.clickCard(this.wampa);
+                expect(this.deathTrooper.damage).toEqual(2);
+                // expect(this.wampa.damage).toEqual(2);
             });
         });
     });

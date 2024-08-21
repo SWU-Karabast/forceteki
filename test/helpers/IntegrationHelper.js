@@ -252,24 +252,6 @@ var customMatchers = {
                 return result;
             }
         };
-    },
-    toNotHavePassAbilityPrompt: function () {
-        return {
-            compare: function (player) {
-                var result = {};
-                const passPromptText = 'Do you want to trigger this ability or pass?';
-                var currentPrompt = player.currentPrompt();
-                result.pass = !player.hasPrompt(passPromptText);
-
-                if (result.pass) {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it had menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
-                } else {
-                    result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
-                }
-
-                return result;
-            }
-        };
     }
 };
 
