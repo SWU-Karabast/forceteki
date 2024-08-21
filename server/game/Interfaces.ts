@@ -1,7 +1,7 @@
 import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
-import type Card from './core/card/Card';
+import type { Card } from './core/card/Card';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
@@ -17,7 +17,6 @@ export interface IAbilityProps<Context> {
     locationFilter?: Location | Location[];
     cost?: any;
     limit?: any;
-    max?: any;
     targetResolver?: IActionTargetResolver;
     targetResolvers?: IActionTargetsResolver;
     cardName?: string;
@@ -41,7 +40,7 @@ export interface IAbilityProps<Context> {
 export interface IConstantAbilityProps<Source = any> {
     title: string;
     locationFilter?: LocationFilter | LocationFilter[];
-    // TODO: what's the difference between condition and match?
+    // TODO: what's the difference between condition and match? document it here
     condition?: (context: AbilityContext<Source>) => boolean;
     match?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: RelativePlayer;
@@ -62,7 +61,7 @@ export interface IInitiateAttack extends IAttackProperties {
     targetCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
 }
 
-export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
+export interface IActionAbilityProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
         condition?: (context?: AbilityContext<Source>) => boolean;
 
         /**
@@ -71,6 +70,8 @@ export interface IActionProps<Source = any> extends IAbilityProps<AbilityContext
         anyPlayer?: boolean;
         phase?: PhaseName | 'any';
     }
+
+export type IEpicActionProps<Source = any> = Omit<IAbilityProps<AbilityContext<Source>>, 'cost' | 'limit'>;
 
 export type traitLimit = Record<string, number>;
 

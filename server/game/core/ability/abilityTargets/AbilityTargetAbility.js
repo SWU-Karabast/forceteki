@@ -1,6 +1,7 @@
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
 const { default: Contract } = require('../../utils/Contract.js');
+const EnumHelpers = require('../../utils/EnumHelpers.js');
 
 class AbilityTargetAbility {
     constructor(name, properties, ability) {
@@ -24,7 +25,7 @@ class AbilityTargetAbility {
 
     getSelector(properties) {
         let cardCondition = (card, context) => {
-            let abilities = card.actions.concat(card.triggeredAbilities).filter((ability) => ability.isActivatedAbility() && this.abilityCondition(ability));
+            let abilities = card.actions.concat(card.getTriggeredAbilities()).filter((ability) => ability.isActivatedAbility() && this.abilityCondition(ability));
             return abilities.some((ability) => {
                 let contextCopy = context.copy();
                 contextCopy.targetAbility = ability;
@@ -81,7 +82,7 @@ class AbilityTargetAbility {
             context: context,
             selector: this.selector,
             onSelect: (player, card) => {
-                let abilities = card.actions.concat(card.triggeredAbilities).filter((ability) => ability.isActivatedAbility() && this.abilityCondition(ability));
+                let abilities = card.actions.concat(card.getTriggeredAbilities()).filter((ability) => ability.isActivatedAbility() && this.abilityCondition(ability));
                 if (abilities.length === 1) {
                     context.targetAbility = abilities[0];
                 } else if (abilities.length > 1) {
@@ -119,7 +120,7 @@ class AbilityTargetAbility {
         if (!context.targetAbility || context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
             return false;
         }
-        return context.targetAbility.card.hasSomeType(this.properties.cardType) &&
+        return EnumHelpers.cardTypeMatches(context.targetAbility.card, this.properties.cardTypeFilter) &&
                (!this.properties.cardCondition || this.properties.cardCondition(context.targetAbility.card, context)) &&
                this.abilityCondition(context.targetAbility);
     }

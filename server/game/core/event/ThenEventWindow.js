@@ -2,7 +2,7 @@ const EventWindow = require('./EventWindow.js');
 const { AbilityType } = require('../Constants.js');
 
 /**
- * This window type is designed to handle "Then" abilities (SWU 29.2), in which
+ * This window type is designed to handle "Then" abilities (SWU 8.29), in which
  * there are multiple steps to an ability ("Do X, then do Y") and all steps need
  * to resolve before any triggered events / effects are resolved.
  *
@@ -12,7 +12,7 @@ const { AbilityType } = require('../Constants.js');
 class ThenEventWindow extends EventWindow {
     /** @override */
     openWindow(abilityType) {
-        if (abilityType !== AbilityType.TriggeredAbility) {
+        if (abilityType !== AbilityType.Triggered) {
             super.openWindow(abilityType);
         }
     }

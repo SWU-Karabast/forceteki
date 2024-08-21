@@ -1,9 +1,9 @@
 import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
-import type Card from './core/card/Card';
+import type { Card } from './core/card/Card';
 import type CardAbility from './core/ability/CardAbility';
-import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
+import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, WildcardCardType, CardTypeFilter } from './core/Constants';
 
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityTargetResolver =
@@ -39,14 +39,14 @@ interface ISelectTargetResolver extends ITargetResolverBase {
 
 interface IAbilityTargetResolver extends ITargetResolverBase {
     mode: TargetMode.Ability;
-    cardType?: CardType | CardType[];
+    cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardCondition?: (card: Card, context?: AbilityContext) => boolean;
     abilityCondition?: (ability: CardAbility) => boolean;
 }
 
 interface ICardTargetResolverBase extends ITargetResolverBase {
-    cardType?: CardType | CardType[];
-    locationFilter?: Location | Location[];
+    cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
+    locationFilter?: LocationFilter | LocationFilter[];
     optional?: boolean;
 }
 

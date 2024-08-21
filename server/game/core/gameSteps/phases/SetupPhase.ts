@@ -1,6 +1,6 @@
 import { Location } from '../../Constants';
 import { randomItem } from '../../utils/Helpers';
-import type Card from '../../card/Card';
+import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';

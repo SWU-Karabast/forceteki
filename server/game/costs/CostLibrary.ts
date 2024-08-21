@@ -8,7 +8,7 @@ import { ExecuteHandlerSystem } from '../gameSystems/ExecuteHandlerSystem';
 import { ISelectCardProperties } from '../gameSystems/SelectCardSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Derivable, derive } from '../core/utils/Helpers';
-import Card from '../core/card/Card';
+import { Card } from '../core/card/Card';
 import { ICost } from '../core/cost/ICost';
 import { GameActionCost } from '../core/cost/GameActionCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';

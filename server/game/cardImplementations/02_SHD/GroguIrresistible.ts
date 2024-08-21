@@ -1,7 +1,7 @@
 import AbilityHelper from '../../AbilityHelper';
-import Card from '../../core/card/Card';
+import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
 
-export default class GroguIrresistible extends Card {
+export default class GroguIrresistible extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '6536128825',
@@ -10,7 +10,7 @@ export default class GroguIrresistible extends Card {
     }
 
     public override setupCardAbilities() {
-        this.actionAbility({
+        this.addActionAbility({
             title: 'Exhaust an enemy unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

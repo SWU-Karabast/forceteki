@@ -29,7 +29,7 @@ class OngoingEffectSource extends GameObject {
     }
 
     /**
-     * Applies a 'lasting effect' (SWU 7.3) which lasts until an event contained in the `until` property for the effect has occurred.
+     * Applies a 'lasting effect' (SWU 7.7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */
     lastingEffect(propertyFactory) {
         let properties = propertyFactory(AbilityHelper);
@@ -56,17 +56,17 @@ class OngoingEffectSource extends GameObject {
         }
 
         if (Array.isArray(ongoingEffect)) {
-            return ongoingEffect.map((factory) => this.game.ongoingEffectEnginer.add(factory(this.game, this, propertiesWithoutEffect)));
+            return ongoingEffect.map((factory) => this.game.ongoingEffectEngine.add(factory(this.game, this, propertiesWithoutEffect)));
         }
-        return [this.game.ongoingEffectEnginer.add(ongoingEffect(this.game, this, propertiesWithoutEffect))];
+        return [this.game.ongoingEffectEngine.add(ongoingEffect(this.game, this, propertiesWithoutEffect))];
     }
 
     removeEffectFromEngine(effectArray) {
-        this.game.ongoingEffectEnginer.unapplyAndRemove((effect) => effectArray.includes(effect));
+        this.game.ongoingEffectEngine.unapplyAndRemove((effect) => effectArray.includes(effect));
     }
 
     removeLastingEffects() {
-        this.game.ongoingEffectEnginer.removeLastingEffects(this);
+        this.game.ongoingEffectEngine.removeLastingEffects(this);
     }
 }
 

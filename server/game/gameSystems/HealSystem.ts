@@ -1,9 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type Card from '../core/card/Card';
-import { AbilityRestriction, CardType, EventName } from '../core/Constants';
-import { isArena, isAttackableLocation } from '../core/utils/EnumHelpers';
+import type { Card } from '../core/card/Card';
+import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Contract from '../core/utils/Contract';
+import * as CardHelpers from '../core/card/CardHelpers';
+import { CardWithDamageProperty } from '../core/card/CardTypes';
 
 export interface IHealProperties extends ICardTargetSystemProperties {
     amount: number;
@@ -12,7 +14,7 @@ export interface IHealProperties extends ICardTargetSystemProperties {
 export class HealSystem extends CardTargetSystem<IHealProperties> {
     public override readonly name = 'heal';
     public override readonly eventName = EventName.OnDamageRemoved;
-    protected override readonly targetType = [CardType.Unit, CardType.Base];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
         event.card.removeDamage(event.healAmount);
@@ -26,10 +28,13 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
-        if (!isAttackableLocation(card.location)) {
+        if (!card.canBeDamaged()) {
             return false;
         }
-        if (properties.isCost && (properties.amount === 0 || card.hp === 0 || card.hp === null)) {
+        if (!EnumHelpers.isAttackableLocation(card.location)) {
+            return false;
+        }
+        if (properties.isCost && (properties.amount === 0 || (card as CardWithDamageProperty).damage === 0)) {
             return false;
         }
         if (card.hasRestriction(AbilityRestriction.BeHealed, context)) {

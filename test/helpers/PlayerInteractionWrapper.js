@@ -43,8 +43,8 @@ class PlayerInteractionWrapper {
     /**
      * Sets the player's base card
      */
-    set base(newCard) {
-        this.player.base = newCard;
+    set base(Card) {
+        this.player.base = Card;
     }
 
     /**
@@ -170,6 +170,7 @@ class PlayerInteractionWrapper {
         newContents.reverse().forEach((name) => {
             var card = this.findCardByName(name, ['deck', 'hand']);
             this.moveCard(card, 'resource');
+            card.exhausted = false;
         });
     }
 

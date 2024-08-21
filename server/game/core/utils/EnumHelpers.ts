@@ -1,4 +1,4 @@
-import { Location, LocationFilter, WildcardLocation } from '../Constants';
+import { CardType, CardTypeFilter, Location, LocationFilter, WildcardCardType, WildcardLocation } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -54,6 +54,49 @@ export const cardLocationMatches = (cardLocation: Location, locationFilter: Loca
                 return isAttackableLocation(cardLocation);
             default:
                 return cardLocation === allowedLocation;
+        }
+    });
+};
+
+export const isUnit = (cardType: CardTypeFilter) => {
+    switch (cardType) {
+        case WildcardCardType.Unit:
+        case CardType.NonLeaderUnit:
+        case CardType.LeaderUnit:
+        case CardType.TokenUnit:
+            return true;
+        default:
+            return false;
+    }
+};
+
+export const isToken = (cardType: CardTypeFilter) => {
+    switch (cardType) {
+        case WildcardCardType.Token:
+        case CardType.TokenUpgrade:
+        case CardType.TokenUnit:
+            return true;
+        default:
+            return false;
+    }
+};
+
+// return true if the card location matches one of the allowed location filters
+export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilter | CardTypeFilter[]) => {
+    if (!Array.isArray(cardTypeFilter)) {
+        cardTypeFilter = [cardTypeFilter];
+    }
+
+    return cardTypeFilter.some((allowedCardType) => {
+        switch (allowedCardType) {
+            case WildcardCardType.Any:
+                return true;
+            case WildcardCardType.Unit:
+                return isUnit(cardType);
+            case WildcardCardType.Token:
+                return isToken(cardType);
+            default:
+                return cardType === allowedCardType;
         }
     });
 };

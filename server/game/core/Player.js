@@ -6,8 +6,6 @@ const { CostAdjuster } = require('./cost/CostAdjuster');
 const GameSystems = require('../gameSystems/GameSystemLibrary');
 const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
-const { BaseCard } = require('./card/BaseCard');
-const { LeaderCard } = require('./card/LeaderCard');
 const Contract = require('./utils/Contract');
 
 const {
@@ -22,9 +20,12 @@ const {
     PlayType
 } = require('./Constants');
 
-const { cardLocationMatches, isArena } = require('./utils/EnumHelpers');
+const EnumHelpers = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
-const { shuffle, defaultLegalLocationsForCardTypes } = require('../../Util');
+const Helpers = require('./utils/Helpers');
+const AbilityHelper = require('../AbilityHelper');
+const { BaseCard } = require('./card/BaseCard');
+const { LeaderCard } = require('./card/LeaderCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -131,7 +132,7 @@ class Player extends GameObject {
 
     /**
      * Get all cards in designated play arena(s) other than the passed card owned by this player.
-     * @param { Card } ignoreUnit Unit to filter from the returned results
+     * @param { any } ignoreUnit Unit to filter from the returned results
      * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
      */
     getOtherUnitsInPlay(ignoreUnit, arena = null, cardCondition = (card) => true) {
@@ -256,9 +257,9 @@ class Player extends GameObject {
         return this.game.allCards.some((card) => {
             return (
                 card.controller === this &&
-                card.hasTrait(trait) &&
+                card.hasSomeTrait(trait) &&
                 card.isFaceup() &&
-                isArena(card.location)
+                EnumHelpers.isArena(card.location)
             );
         });
     }
@@ -269,7 +270,7 @@ class Player extends GameObject {
      */
     anyCardsInPlay(predicate) {
         return this.game.allCards.some(
-            (card) => card.controller === this && isArena(card.location) && predicate(card)
+            (card) => card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)
         );
     }
 
@@ -287,7 +288,7 @@ class Player extends GameObject {
      */
     filterCardsInPlay(predicate) {
         return this.game.allCards.filter(
-            (card) => card.controller === this && isArena(card.location) && predicate(card)
+            (card) => card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)
         );
     }
 
@@ -478,7 +479,7 @@ class Player extends GameObject {
      */
     getNumberOfCardsInPlay(predicate) {
         return this.game.allCards.reduce((num, card) => {
-            if (card.controller === this && isArena(card.location) && predicate(card)) {
+            if (card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)) {
                 return num + 1;
             }
 
@@ -633,7 +634,7 @@ class Player extends GameObject {
             this.game.addMessage('{0} is shuffling their dynasty deck', this);
         }
         this.game.emitEvent(EventName.OnDeckShuffled, { player: this });
-        this.drawDeck = shuffle(this.drawDeck);
+        this.drawDeck = Helpers.shuffle(this.drawDeck);
     }
 
     /**
@@ -647,13 +648,14 @@ class Player extends GameObject {
         if (preparedDecklist.leader instanceof BaseCard) {
             this.leader = preparedDecklist.leader;
         }
+
         this.drawDeck = preparedDecklist.deckCards;
         this.decklist = preparedDecklist;
         this.drawDeck.forEach((card) => {
             // register event reactions in case event-in-deck bluff window is enabled
             // TODO EVENTS: probably we need to do this differently since we have actual reactions on our events
             if (card.isEvent()) {
-                for (let reaction of card.abilities.triggeredAbilities) {
+                for (let reaction of card.abilities.getTriggeredAbilities()) {
                     reaction.registerEvents();
                 }
             }
@@ -876,46 +878,6 @@ class Player extends GameObject {
     }
 
     /**
-     * Registers a card ability max limit on this Player
-     * @param {String} maxIdentifier
-     * @param limit FixedAbilityLimit
-     */
-    registerAbilityMax(maxIdentifier, limit) {
-        if (this.abilityMaxByIdentifier[maxIdentifier]) {
-            return;
-        }
-
-        this.abilityMaxByIdentifier[maxIdentifier] = limit;
-        limit.registerEvents(this.game);
-    }
-
-    /**
-     * Checks whether a max ability is at max
-     * @param {String} maxIdentifier
-     */
-    isAbilityAtMax(maxIdentifier) {
-        let limit = this.abilityMaxByIdentifier[maxIdentifier];
-
-        if (!limit) {
-            return false;
-        }
-
-        return limit.isAtMax(this);
-    }
-
-    /**
-     * Marks the use of a max ability
-     * @param {String} maxIdentifier
-     */
-    incrementAbilityMax(maxIdentifier) {
-        let limit = this.abilityMaxByIdentifier[maxIdentifier];
-
-        if (limit) {
-            limit.increment(this);
-        }
-    }
-
-    /**
      * Called at the start of the Action Phase.  Resets a lot of the single round parameters
      */
     beginAction() {
@@ -1019,24 +981,19 @@ class Player extends GameObject {
     // }
 
     /**
-     * Checks whether card type set (usually from {@link Card.types}) is consistent with location,
-     * checking for custom out-of-play locations
-     * @param {Set<CardType>} cardTypes
+     * Checks whether card type is consistent with location, checking for custom out-of-play locations
+     * @param {CardType} cardType
      * @param {Location} location
      */
-    isLegalLocationForCardTypes(cardTypes, location) {
+    isLegalLocationForCardType(cardType, location) {
         //if we're trying to go into an additional pile, we're probably supposed to be there
         if (this.additionalPiles[location]) {
             return true;
         }
 
-        const legalLocationsForType = defaultLegalLocationsForCardTypes(cardTypes);
+        const legalLocationsForType = Helpers.defaultLegalLocationsForCardType(cardType);
 
-        if (!Contract.assertNotNullLike(legalLocationsForType, `Unexpected unit type set: ${Array.from(cardTypes).join(', ')}`)) {
-            return false;
-        }
-
-        return legalLocationsForType && cardLocationMatches(location, legalLocationsForType);
+        return legalLocationsForType && EnumHelpers.cardLocationMatches(location, legalLocationsForType);
     }
 
     // TODO UPGRADES
@@ -1132,14 +1089,14 @@ class Player extends GameObject {
 
         var targetPile = this.getCardPile(targetLocation);
 
-        if (!this.isLegalLocationForCardTypes(card.types, targetLocation) || (targetPile && targetPile.includes(card))) {
+        if (!this.isLegalLocationForCardType(card.type, targetLocation) || (targetPile && targetPile.includes(card))) {
             Contract.fail(`Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
             return;
         }
 
         let currentLocation = card.location;
 
-        if (isArena(currentLocation)) {
+        if (EnumHelpers.isArena(currentLocation)) {
             if (card.owner !== this) {
                 card.owner.moveCard(card, targetLocation, options);
                 return;
@@ -1152,7 +1109,7 @@ class Player extends GameObject {
             }
 
             card.controller = this;
-        } else if (isArena(targetLocation)) {
+        } else if (EnumHelpers.isArena(targetLocation)) {
             card.setDefaultController(this);
             card.controller = this;
             // // This should only be called when an upgrade is dragged into play
@@ -1160,7 +1117,7 @@ class Player extends GameObject {
             //     this.promptForUpgrade(card);
             //     return;
             // }
-        // TODO EVENT: this moves an event card to the "Being Played" zone while active. In swu, it goes directly
+        // TODO EVENTS: this moves an event card to the "Being Played" zone while active. In swu, it goes directly
         // to discard then activates. We can probably remove Location.BeingPlayed entirely
         } else if (currentLocation === Location.BeingPlayed && card.owner !== this) {
             card.owner.moveCard(card, targetLocation, options);

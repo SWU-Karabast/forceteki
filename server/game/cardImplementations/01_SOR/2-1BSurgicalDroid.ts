@@ -1,8 +1,9 @@
 import AbilityHelper from '../../AbilityHelper';
-import Card from '../../core/card/Card';
-import { CardType } from '../../core/Constants';
+import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
+import { CardType, WildcardCardType } from '../../core/Constants';
 
-export default class _21BSurgicalDroid extends Card {
+
+export default class _21BSurgicalDroid extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '5449704164',
@@ -11,12 +12,12 @@ export default class _21BSurgicalDroid extends Card {
     }
 
     public override setupCardAbilities() {
-        this.attackAbility({
+        this.addAttackAbility({
             title: 'Heal 2 damage from another unit',
             optional: true,
             targetResolver: {
                 cardCondition: (card) => card !== this,
-                cardType: CardType.Unit,
+                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 2 })
             }
         });

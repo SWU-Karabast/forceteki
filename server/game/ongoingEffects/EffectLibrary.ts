@@ -52,7 +52,7 @@ export = {
     registerToPlayFromOutOfPlay: () =>
         OngoingEffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
             apply: (card) => {
-                for (const triggeredAbility of card.triggeredAbilities) {
+                for (const triggeredAbility of card.getTriggeredAbilities()) {
                     triggeredAbility.registerEvents();
                 }
             },
@@ -176,7 +176,7 @@ export = {
     //             for (const card of cards.filter(
     //                 (card) => card.isEvent() && card.location === location
     //             )) {
-    //                 for (const reaction of card.triggeredAbilities) {
+    //                 for (const reaction of card.getTriggeredAbilities()) {
     //                     reaction.registerEvents();
     //                 }
     //             }

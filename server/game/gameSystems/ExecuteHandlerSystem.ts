@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import Card from '../core/card/Card';
+import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent';
 
 export interface IExecuteHandlerSystemProperties extends IGameSystemProperties {
@@ -42,5 +42,10 @@ export class ExecuteHandlerSystem extends GameSystem {
             additionalProperties
         ) as IExecuteHandlerSystemProperties;
         return hasTargetsChosenByInitiatingPlayer;
+    }
+
+    // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
+    protected override isTargetTypeValid(target: any): boolean {
+        return false;
     }
 }

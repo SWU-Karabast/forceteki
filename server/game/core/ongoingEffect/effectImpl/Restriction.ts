@@ -2,7 +2,7 @@ import { AbilityContext } from '../../ability/AbilityContext';
 import Player from '../../Player';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import { restrictionDsl } from '../../../ongoingEffects/RestrictionDsl';
-import type Card from '../../card/Card';
+import type { Card } from '../../card/Card';
 
 const leavePlayTypes = new Set(['discardFromPlay', 'returnToHand', 'returnToDeck', 'removeFromGame']);
 
@@ -62,7 +62,7 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         } else if (typeof restriction === 'function') {
             return restriction(context, this, card);
         } else if (!restrictionDsl[restriction]) {
-            return context.source.hasTrait(restriction);
+            return context.source.hasSomeTrait(restriction);
         }
         return restrictionDsl[restriction](context, this, card);
     }

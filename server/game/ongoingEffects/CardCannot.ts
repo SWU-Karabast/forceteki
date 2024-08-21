@@ -1,4 +1,4 @@
-import type Card from '../core/card/Card';
+import type { Card } from '../core/card/Card';
 import { EffectName } from '../core/Constants';
 import type Player from '../core/Player';
 import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';

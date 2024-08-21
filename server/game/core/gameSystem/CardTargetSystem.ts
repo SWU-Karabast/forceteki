@@ -1,8 +1,9 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type Card from '../card/Card';
-import { CardType, EffectName, Location } from '../Constants';
+import { Card } from '../card/Card';
+import { CardType, CardTypeFilter, EffectName, Location, WildcardCardType } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
+import * as EnumHelpers from '../utils/EnumHelpers';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -15,13 +16,16 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
 // TODO: mixin for Action types (CardAction, PlayerAction)?
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
 export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TProperties> {
-    protected override readonly targetType = [
-        CardType.Unit,
-        CardType.Upgrade,
-        CardType.Event,
-        CardType.Leader,
-        CardType.Base,
-    ];
+    /** The set of card types that can be legally targeted by the system. Defaults to {@link WildcardCardType.Any} unless overriden. */
+    protected readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Any];
+
+    protected override isTargetTypeValid(target: any): boolean {
+        if (!(target instanceof Card)) {
+            return false;
+        }
+
+        return EnumHelpers.cardTypeMatches((target as Card).type, this.targetTypeFilter);
+    }
 
     public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         const events: GameEvent[] = [];
@@ -177,7 +181,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
     }
 
     protected leavesPlayEventHandler(event, additionalProperties = {}): void {
-        if (!event.card.owner.isLegalLocationForCardTypes(event.card.types, event.destination)) {
+        if (!event.card.owner.isLegalLocationForCardType(event.card.type, event.destination)) {
             event.card.game.addMessage(
                 '{0} is not a legal location for {1} and it is discarded',
                 event.destination,

@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type Card from '../core/card/Card';
+import type { Card } from '../core/card/Card';
 import CardSelector from '../core/cardSelector/CardSelector';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import { CardType, EffectName, Location, RelativePlayer, TargetMode } from '../core/Constants';

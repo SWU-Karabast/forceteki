@@ -59,9 +59,7 @@ export enum EffectName {
     AdditionalPlayCost = 'additionalPlaycost',
     ModifyStats = 'modifyStats',
     ModifyPower = 'modifyPower',
-    SetBasePower = 'setBasePower',
     SetPower = 'setPower',
-    CalculatePrintedPower = 'calculatePrintedPower',
     ModifyHp = 'modifyHp',
     UpgradePowerModifier = 'upgradePowerModifier',
     UpgradeHpModifier = 'upgradeHpModifier',
@@ -71,7 +69,6 @@ export enum EffectName {
     LoseTrait = 'loseTrait',
     DelayedEffect = 'delayedEffect',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
-    LoseAllNonKeywordAbilities = 'loseAllNonKeywordAbilities',
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotBeAttacked = 'cannotBeAttacked',
     GainAbility = 'gainAbility'
@@ -118,13 +115,25 @@ export enum PhaseName {
 }
 
 export enum CardType {
-    Unit = 'unit',
+    NonLeaderUnit = 'nonLeaderUnit',
+    LeaderUnit = 'leaderUnit',
     Leader = 'leader',
     Base = 'base',
     Event = 'event',
     Upgrade = 'upgrade',
-    Token = 'token'
+    TokenUnit = 'tokenUnit',
+    TokenUpgrade = 'tokenUpgrade',
 }
+
+export enum WildcardCardType {
+    Unit = 'unit',
+    Token = 'token',
+    Any = 'any'
+}
+
+export type CardTypeFilter = CardType | WildcardCardType;
+export type Unit = CardType.NonLeaderUnit | CardType.LeaderUnit;
+export type Token = CardType.TokenUnit | CardType.TokenUpgrade;
 
 export enum EventName {
     OnBeginRound = 'onBeginRound',
@@ -135,7 +144,9 @@ export enum EventName {
     OnPhaseCreated = 'onPhaseCreated',
     OnPhaseStarted = 'onPhaseStarted',
     OnPhaseEnded = 'onPhaseEnded',
+    OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnRoundEnded = 'onRoundEnded',
+    OnRoundEndedCleanup = 'onRoundEndedCleanup',
     OnCardExhausted = 'onCardExhausted',
     OnCardReadied = 'onCardReadied',
     OnCardsDiscarded = 'onCardsDiscarded',
@@ -165,12 +176,11 @@ export enum EventName {
     OnCardReturnedToHand = 'onCardReturnedToHand',
 }
 
-// TODO: rename 'Persistent' to 'ConstantAbility'?
 export enum AbilityType {
     Action = 'action',
-    TriggeredAbility = 'triggeredAbility',
-    Persistent = 'persistent',
-    OtherEffects = 'otherEffects'
+    Triggered = 'triggered',
+    Constant = 'constant',
+    Event = 'event'
 }
 
 export enum Aspect {
@@ -180,6 +190,11 @@ export enum Aspect {
     Command = 'command',
     Cunning = 'cunning',
     Vigilance = 'vigilance'
+}
+
+export enum Keyword {
+    /** @deprecated This is not implemented yet */
+    Sentinel = 'sentinel',
 }
 
 export enum Trait {

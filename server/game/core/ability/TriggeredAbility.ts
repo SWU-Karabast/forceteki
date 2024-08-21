@@ -3,11 +3,13 @@ import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { Stage, CardType, EffectName, AbilityType } from '../Constants';
 import { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
 import { GameEvent } from '../event/GameEvent';
-import Card from '../card/Card';
+import { Card } from '../card/Card';
 import Game from '../Game';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import Contract from '../utils/Contract';
 import type CardAbilityStep from './CardAbilityStep';
+import * as CardHelpers from '../card/CardHelpers';
+import { CardWithTriggeredAbilities } from '../card/CardTypes';
 
 interface IEventRegistration {
     name: string;
@@ -49,7 +51,11 @@ export default class TriggeredAbility extends CardAbility {
     public eventRegistrations?: IEventRegistration[];
 
     public constructor(game: Game, card: Card, properties: ITriggeredAbilityProps) {
-        super(game, card, properties, AbilityType.TriggeredAbility);
+        super(game, card, properties, AbilityType.Triggered);
+
+        if (!card.canRegisterTriggeredAbilities()) {
+            throw Error(`Card '${card.internalName}' cannot have triggered abilities`);
+        }
 
         if ('when' in properties) {
             this.when = properties.when;
@@ -69,7 +75,7 @@ export default class TriggeredAbility extends CardAbility {
             const context = this.createContext(player, event);
             //console.log(event.name, this.card.name, this.isTriggeredByEvent(event, context), this.meetsRequirements(context));
             if (
-                this.card.triggeredAbilities.includes(this) &&
+                (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
                 this.meetsRequirements(context) === ''
             ) {
@@ -81,7 +87,7 @@ export default class TriggeredAbility extends CardAbility {
     public override meetsRequirements(context, ignoredRequirements = []) {
         const canOpponentTrigger =
             this.card.anyEffect(EffectName.CanBeTriggeredByOpponent) &&
-            this.abilityType !== AbilityType.TriggeredAbility;
+            this.abilityType !== AbilityType.Triggered;
         const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
 
         if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
@@ -153,7 +159,7 @@ export default class TriggeredAbility extends CardAbility {
             const context = this.createContext(player, events);
             //console.log(events.map(event => event.name), this.card.name, this.aggregateWhen(events, context), this.meetsRequirements(context));
             if (
-                this.card.triggeredAbilities.includes(this) &&
+                (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {

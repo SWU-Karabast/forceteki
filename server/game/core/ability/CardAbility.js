@@ -2,7 +2,7 @@ const AbilityLimit = require('./AbilityLimit.js');
 const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
 const { Location, CardType, EffectName, WildcardLocation, AbilityType, PhaseName } = require('../Constants.js');
-const { cardLocationMatches } = require('../utils/EnumHelpers.js');
+const EnumHelpers = require('../utils/EnumHelpers.js');
 const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
 
 class CardAbility extends CardAbilityStep {
@@ -24,19 +24,13 @@ class CardAbility extends CardAbilityStep {
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.cannotBeMirrored = !!properties.cannotBeMirrored;
         this.optional = !!properties.optional;
-        this.max = properties.max;
         this.abilityIdentifier = properties.abilityIdentifier;
         this.origin = properties.origin;
         if (!this.abilityIdentifier) {
-            this.abilityIdentifier = this.printedAbility ? this.card.id + '1' : '';
-        }
-        this.maxIdentifier = this.card.name + this.abilityIdentifier;
-
-        if (this.max) {
-            this.card.owner.registerAbilityMax(this.maxIdentifier, this.max);
+            this.abilityIdentifier = this.printedAbility ? this.card.internalName + '1' : '';
         }
 
-        // TODO EVENT: this is where the actual payment and activation of an event card happens, this needs to be
+        // TODO EVENTS: this is where the actual payment and activation of an event card happens, this needs to be
         // changed to behave more like a unit card in terms of how it's played
         if (card.isEvent() && !this.isKeywordAbility()) {
             this.cost = this.cost.concat(Costs.payAdjustableResourceCost());
@@ -79,10 +73,6 @@ class CardAbility extends CardAbilityStep {
 
         if (!ignoredRequirements.includes('limit') && this.limit.isAtMax(context.player)) {
             return 'limit';
-        }
-
-        if (!ignoredRequirements.includes('max') && this.max && context.player.isAbilityAtMax(this.maxIdentifier)) {
-            return 'max';
         }
 
         // TODO: enum for ignoredRequirements strings?
@@ -130,7 +120,7 @@ class CardAbility extends CardAbilityStep {
     isInValidLocation(context) {
         return this.card.isEvent()
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
-            : cardLocationMatches(this.card.location, this.location);
+            : EnumHelpers.cardLocationMatches(this.card.location, this.location);
     }
 
     getLocationMessage(location, context) {
@@ -239,7 +229,7 @@ class CardAbility extends CardAbilityStep {
 
     /** @override */
     isActivatedAbility() {
-        return [AbilityType.Action, AbilityType.TriggeredAbility].includes(this.abilityType);
+        return [AbilityType.Action, AbilityType.Triggered].includes(this.abilityType);
     }
 
     /** @override */

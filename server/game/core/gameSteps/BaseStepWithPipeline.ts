@@ -1,7 +1,7 @@
 import { GamePipeline } from '../GamePipeline';
 import { BaseStep } from './BaseStep';
 import type { IStep } from './IStep';
-import type Card from '../card/Card';
+import type { Card } from '../card/Card';
 import type Player from '../Player';
 
 export abstract class BaseStepWithPipeline extends BaseStep implements IStep {

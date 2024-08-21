@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type Card from '../core/card/Card';
-import { AbilityRestriction, CardType, EventName } from '../core/Constants';
-import { isArena, isAttackableLocation } from '../core/utils/EnumHelpers';
+import type { Card } from '../core/card/Card';
+import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
 export interface IDamageProperties extends ICardTargetSystemProperties {
@@ -11,12 +11,12 @@ export interface IDamageProperties extends ICardTargetSystemProperties {
 
 // TODO: for this and the heal system, need to figure out how to handle the situation where 0 damage
 // is dealt / healed. Since the card is technically still a legal target but no damage was technically
-// dealth / healed per the rules (SWU 31.3)
+// dealt / healed per the rules (SWU 8.31.3)
 export class DamageSystem extends CardTargetSystem<IDamageProperties> {
     public override readonly name = 'damage';
     public override readonly eventName = EventName.OnDamageDealt;
 
-    protected override readonly targetType = [CardType.Unit, CardType.Base];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
         event.card.addDamage(event.damage);
@@ -32,7 +32,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
     }
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
-        if (!isAttackableLocation(card.location)) {
+        if (!EnumHelpers.isAttackableLocation(card.location)) {
             return false;
         }
         if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {

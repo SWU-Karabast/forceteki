@@ -1,6 +1,6 @@
 const { UiPrompt } = require('./prompts/UiPrompt.js');
 const { EventName, Location, RelativePlayer, EffectName, WildcardLocation } = require('../Constants.js');
-const { isArena } = require('../utils/EnumHelpers.js');
+const EnumHelpers = require('../utils/EnumHelpers.js');
 const Contract = require('../utils/Contract');
 
 class ActionWindow extends UiPrompt {
@@ -41,7 +41,7 @@ class ActionWindow extends UiPrompt {
             }
         }
         this.game.promptWithHandlerMenu(player, {
-            activePromptTitle: (isArena(card.location) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
+            activePromptTitle: (EnumHelpers.isArena(card.location) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
             source: card,
             choices: legalActions.map((action) => action.title).concat('Cancel'),
             handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)

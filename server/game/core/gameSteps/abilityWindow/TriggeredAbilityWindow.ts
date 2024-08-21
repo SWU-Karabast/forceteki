@@ -5,7 +5,7 @@ import { AbilityType, WildcardLocation } from '../../Constants';
 import Contract from '../../utils/Contract';
 import { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import Card from '../../card/Card';
+import { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import { AbilityContext } from '../../ability/AbilityContext';
@@ -17,7 +17,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     /** Already resolved effects / abilities */
     protected resolved: { ability: TriggeredAbilityContext, event: GameEvent }[] = [];
 
-    /** Chosen order of players to resolve in (SWU 6.10), null if not yet chosen */
+    /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
 
     /** The events that were triggered as part of this window */
@@ -53,7 +53,7 @@ export class TriggeredAbilityWindow extends BaseStep {
                 return true;
             }
 
-            // if more than one player has triggered abilities, need to prompt for resolve order (SWU 6.10)
+            // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
             if (this.unresolved.size > 1) {
                 this.promptForResolvePlayerOrder();
                 return false;
@@ -238,9 +238,9 @@ export class TriggeredAbilityWindow extends BaseStep {
 
         const events = this.eventWindow.events.filter((event) => !this.eventsToExclude.includes(event));
         events.forEach((event) => {
-            this.game.emit(event.name + ':' + AbilityType.TriggeredAbility, event, this);
+            this.game.emit(event.name + ':' + AbilityType.Triggered, event, this);
         });
-        this.game.emit('aggregateEvent:' + AbilityType.TriggeredAbility, events, this);
+        this.game.emit('aggregateEvent:' + AbilityType.Triggered, events, this);
 
         this.triggeringEvents = events;
     }
