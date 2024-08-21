@@ -1,8 +1,8 @@
 import AbilityHelper from '../../AbilityHelper';
-import Card from '../../core/card/Card';
-import { CardType, Location, RelativePlayer } from '../../core/Constants';
+import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
+import { Location, RelativePlayer, WildcardCardType } from '../../core/Constants';
 
-export default class DeathTrooper extends Card {
+export default class DeathTrooper extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '6458912354',
@@ -11,18 +11,18 @@ export default class DeathTrooper extends Card {
     }
 
     public override setupCardAbilities() {
-        this.whenPlayedAbility({
+        this.addWhenPlayedAbility({
             title: 'Deal 2 damage to a friendly ground unit and an enemy ground unit',
             optional: false,
             targetResolvers: {
                 myGroundUnit: {
-                    cardType: CardType.Unit,
+                    cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     locationFilter: Location.GroundArena,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 },
                 theirGroundUnit: {
-                    cardType: CardType.Unit,
+                    cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
                     locationFilter: Location.GroundArena,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
