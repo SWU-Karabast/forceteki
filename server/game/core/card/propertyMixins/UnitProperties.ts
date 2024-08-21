@@ -8,6 +8,7 @@ import { UnitCard } from '../CardTypes';
 import { WithDamage } from './Damage';
 import { WithPrintedPower } from './PrintedPower';
 import type { WithPrintedHp } from './PrintedHp';
+import * as EnumHelpers from '../../utils/EnumHelpers';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -37,7 +38,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
-            Contract.assertTrue(this.printedTypes.has(CardType.Unit));
+            Contract.assertTrue(EnumHelpers.isUnit(this.printedType));
 
             this.defaultActions.push(new InitiateAttackAction(this));
         }

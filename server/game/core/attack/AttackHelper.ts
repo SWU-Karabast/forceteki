@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import CardAbilityStep from '../ability/CardAbilityStep';
-import { Location, CardType, EffectName, RelativePlayer } from '../Constants';
+import { Location, CardType, EffectName, RelativePlayer, WildcardCardType } from '../Constants';
 import { IInitiateAttack } from '../../Interfaces';
 import * as EnumHelpers from '../utils/EnumHelpers';
 
@@ -11,7 +11,7 @@ export const addInitiateAttackProperties = (properties) => {
 
     properties.targetResolvers = {
         attacker: {
-            cardType: CardType.Unit,
+            cardTypeFilter: WildcardCardType.Unit,
             player: (context) => {
                 const opponentChoosesAttacker = getProperty(properties, context, 'opponentChoosesAttacker');
                 return opponentChoosesAttacker ? RelativePlayer.Opponent : RelativePlayer.Self;

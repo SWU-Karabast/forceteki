@@ -1,4 +1,4 @@
-const { defaultLegalLocationsForCardTypes, asArray } = require('../../../../Util.js');
+const Helpers = require('../../utils/Helpers.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer, EffectName, TargetMode } = require('../../Constants.js');
 const { default: Contract } = require('../../utils/Contract.js');
@@ -62,7 +62,7 @@ class AbilityTargetCard {
     }
 
     getGameSystem(context) {
-        return asArray(this.properties.immediateEffect).filter((gameSystem) => gameSystem.hasLegalTarget(context));
+        return Helpers.asArray(this.properties.immediateEffect).filter((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
     getAllLegalTargets(context) {
@@ -204,7 +204,7 @@ class AbilityTargetCard {
         }
 
         for (const type of Array.isArray(properties.cardType) ? properties.cardType : [properties.cardType]) {
-            const legalLocations = defaultLegalLocationsForCardTypes(type);
+            const legalLocations = Helpers.defaultLegalLocationsForCardType(type);
             if (legalLocations.some((location) => EnumHelpers.cardLocationMatches(location, properties.locationFilter))) {
                 return;
             }

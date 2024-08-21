@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, EventName, Location, RelativePlayer } from '../core/Constants';
+import { AbilityRestriction, CardType, EventName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -15,7 +15,7 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
     public override readonly eventName = EventName.OnUnitEntersPlay;
     public override readonly costDescription = 'putting {0} into play';
 
-    protected override readonly targetType = [CardType.Unit];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit];
     protected override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
         overrideLocation: null

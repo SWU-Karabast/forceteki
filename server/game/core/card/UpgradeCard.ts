@@ -14,7 +14,7 @@ export class UpgradeCard extends UpgradeCardParent {
         cardData: any
     ) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedTypes.has(CardType.Upgrade));
+        Contract.assertTrue(this.printedType === CardType.Upgrade);
 
         // TODO UPGRADES: add play event action to this._actions (see Unit.ts for reference)
     }

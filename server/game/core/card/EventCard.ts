@@ -10,7 +10,7 @@ const EventCardParent = WithCost(PlayableOrDeployableCard);
 export class EventCard extends EventCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedTypes.has(CardType.Event));
+        Contract.assertTrue(this.printedType === CardType.Event);
 
         // TODO EVENTS: add play event action to this._actions (see Unit.ts for reference)
     }

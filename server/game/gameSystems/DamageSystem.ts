@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, EventName } from '../core/Constants';
+import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
@@ -16,7 +16,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
     public override readonly name = 'damage';
     public override readonly eventName = EventName.OnDamageDealt;
 
-    protected override readonly targetType = [CardType.Unit, CardType.Base];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
         event.card.addDamage(event.damage);

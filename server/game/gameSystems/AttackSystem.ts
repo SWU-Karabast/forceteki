@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, EventName, Location } from '../core/Constants';
+import { AbilityRestriction, CardType, CardTypeFilter, EventName, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
@@ -37,7 +37,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     public override readonly name = 'attack';
     public override readonly eventName = EventName.OnAttackDeclared;
     protected override readonly defaultProperties: IAttackProperties = {};
-    protected override readonly targetType = [CardType.Unit, CardType.Base];
+    protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event, additionalProperties): void {
         const context = event.context;

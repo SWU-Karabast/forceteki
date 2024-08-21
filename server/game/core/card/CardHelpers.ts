@@ -1,7 +1,6 @@
 import { CardType } from '../Constants';
 import Player from '../Player';
 import Contract from '../utils/Contract';
-import * as EnumHelpers from '../utils/EnumHelpers';
 import { BaseCard } from './BaseCard';
 import { Card } from './Card';
 import { EventCard } from './EventCard';
@@ -17,29 +16,24 @@ import { UpgradeCard } from './UpgradeCard';
  */
 export function createUnimplementedCard(owner: Player, cardData: any): Card {
     Contract.assertNotNullLike(cardData.types);
-    const cardTypes = new Set(EnumHelpers.checkConvertToEnum(cardData.types, CardType));
+    const cardType = Card.buildTypeFromPrinted(cardData.types);
 
-    if (cardTypes.has(CardType.Event)) {
-        return new EventCard(owner, cardData);
-    }
-    if (cardTypes.has(CardType.Base)) {
-        return new BaseCard(owner, cardData);
-    }
-    if (cardTypes.has(CardType.Upgrade)) {
-        if (cardTypes.has(CardType.Token)) {
-            return new TokenUpgradeCard(owner, cardData);
-        }
-        return new UpgradeCard(owner, cardData);
-    }
-    if (cardTypes.has(CardType.Leader)) {
-        return new LeaderCard(owner, cardData);
-    }
-    if (cardTypes.has(CardType.Unit)) {
-        if (cardTypes.has(CardType.Token)) {
+    switch (cardType) {
+        case CardType.Event:
+            return new EventCard(owner, cardData);
+        case CardType.Base:
+            return new BaseCard(owner, cardData);
+        case CardType.Upgrade:
+            return new UpgradeCard(owner, cardData);
+        case CardType.Leader:
+            return new LeaderCard(owner, cardData);
+        case CardType.NonLeaderUnit:
+            return new NonLeaderUnitCard(owner, cardData);
+        case CardType.TokenUnit:
             return new TokenNonLeaderUnitCard(owner, cardData);
-        }
-        return new NonLeaderUnitCard(owner, cardData);
+        case CardType.TokenUpgrade:
+            return new TokenUpgradeCard(owner, cardData);
+        default:
+            throw new Error(`Unexpected card type: ${cardType}`);
     }
-
-    throw new Error(`Invalid card type set: ${cardTypes}`);
 }

@@ -6,7 +6,7 @@ import { CardType } from '../Constants';
 export class LeaderCard extends InPlayCard {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedTypes.has(CardType.Leader));
+        Contract.assertTrue(this.printedType === CardType.Leader);
 
         // TODO LEADER: add deploy epic action (see Base.ts for reference)
     }

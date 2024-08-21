@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, Location } from '../core/Constants';
+import { CardType, EffectName, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Contract from '../core/utils/Contract';
@@ -19,7 +19,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 /** @deprecated This system was imported from L5R but has not been tested */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public override readonly name = 'move';
-    public override targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
+    public override targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade, CardType.Event];
 
     protected override defaultProperties: IMoveCardProperties = {
         destination: null,
@@ -90,7 +90,7 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
             (!changePlayer ||
                 (!card.hasRestriction(EffectName.TakeControl, context) &&
                     !card.anotherUniqueInPlay(context.player))) &&
-            (!destination || context.player.isLegalLocationForCardTypes(card.types, destination)) &&
+            (!destination || context.player.isLegalLocationForCardType(card.type, destination)) &&
             !EnumHelpers.isArena(card.location) &&
             super.canAffect(card, context)
         );

@@ -22,7 +22,7 @@ const {
 
 const EnumHelpers = require('./utils/EnumHelpers');
 const Card = require('./card/Card');
-const { shuffle, defaultLegalLocationsForCardTypes } = require('../../Util');
+const Helpers = require('./utils/Helpers');
 const AbilityHelper = require('../AbilityHelper');
 const { BaseCard } = require('./card/BaseCard');
 const { LeaderCard } = require('./card/LeaderCard');
@@ -634,7 +634,7 @@ class Player extends GameObject {
             this.game.addMessage('{0} is shuffling their dynasty deck', this);
         }
         this.game.emitEvent(EventName.OnDeckShuffled, { player: this });
-        this.drawDeck = shuffle(this.drawDeck);
+        this.drawDeck = Helpers.shuffle(this.drawDeck);
     }
 
     /**
@@ -981,22 +981,17 @@ class Player extends GameObject {
     // }
 
     /**
-     * Checks whether card type set (usually from {@link Card.types}) is consistent with location,
-     * checking for custom out-of-play locations
-     * @param {Set<CardType>} cardTypes
+     * Checks whether card type is consistent with location, checking for custom out-of-play locations
+     * @param {CardType} cardType
      * @param {Location} location
      */
-    isLegalLocationForCardTypes(cardTypes, location) {
+    isLegalLocationForCardType(cardType, location) {
         //if we're trying to go into an additional pile, we're probably supposed to be there
         if (this.additionalPiles[location]) {
             return true;
         }
 
-        const legalLocationsForType = defaultLegalLocationsForCardTypes(cardTypes);
-
-        if (!Contract.assertNotNullLike(legalLocationsForType, `Unexpected unit type set: ${Array.from(cardTypes).join(', ')}`)) {
-            return false;
-        }
+        const legalLocationsForType = Helpers.defaultLegalLocationsForCardType(cardType);
 
         return legalLocationsForType && EnumHelpers.cardLocationMatches(location, legalLocationsForType);
     }
@@ -1094,7 +1089,7 @@ class Player extends GameObject {
 
         var targetPile = this.getCardPile(targetLocation);
 
-        if (!this.isLegalLocationForCardTypes(card.types, targetLocation) || (targetPile && targetPile.includes(card))) {
+        if (!this.isLegalLocationForCardType(card.type, targetLocation) || (targetPile && targetPile.includes(card))) {
             Contract.fail(`Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
             return;
         }

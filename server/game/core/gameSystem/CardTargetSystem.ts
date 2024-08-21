@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import { CardType, EffectName, Location } from '../Constants';
+import { CardType, CardTypeFilter, EffectName, Location, WildcardCardType } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 // import { LoseFateAction } from './LoseFateAction';
@@ -15,13 +15,7 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
 // TODO: mixin for Action types (CardAction, PlayerAction)?
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
 export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TProperties> {
-    protected override readonly targetType = [
-        CardType.Unit,
-        CardType.Upgrade,
-        CardType.Event,
-        CardType.Leader,
-        CardType.Base,
-    ];
+    protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Any];
 
     public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         const events: GameEvent[] = [];

@@ -115,13 +115,25 @@ export enum PhaseName {
 }
 
 export enum CardType {
-    Unit = 'unit',
+    NonLeaderUnit = 'nonLeaderUnit',
+    LeaderUnit = 'leaderUnit',
     Leader = 'leader',
     Base = 'base',
     Event = 'event',
     Upgrade = 'upgrade',
-    Token = 'token'
+    TokenUnit = 'tokenUnit',
+    TokenUpgrade = 'tokenUpgrade',
 }
+
+export enum WildcardCardType {
+    Unit = 'unit',
+    Token = 'token',
+    Any = 'any'
+}
+
+export type CardTypeFilter = CardType | WildcardCardType;
+export type Unit = CardType.NonLeaderUnit | CardType.LeaderUnit;
+export type Token = CardType.TokenUnit | CardType.TokenUpgrade;
 
 export enum EventName {
     OnBeginRound = 'onBeginRound',

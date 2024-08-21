@@ -5,13 +5,13 @@ const SingleCardSelector = require('./SingleCardSelector');
 const UnlimitedCardSelector = require('./UnlimitedCardSelector');
 const UpToXCardSelector = require('./UpToXCardSelector');
 const UpToVariableXCardSelector = require('./UpToVariableXCardSelector');
-const { TargetMode, CardType } = require('../Constants');
+const { TargetMode, CardType, WildcardCardType } = require('../Constants');
 
 const defaultProperties = {
     numCards: 1,
     cardCondition: () => true,
     numCardsFunc: () => 1,
-    cardType: [CardType.Upgrade, CardType.Unit, CardType.Event, CardType.Leader, CardType.Base],
+    cardTypeFilter: [WildcardCardType.Any],
     multiSelect: false,
     sameDiscardPile: false
 };

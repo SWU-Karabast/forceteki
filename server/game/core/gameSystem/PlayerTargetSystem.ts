@@ -9,7 +9,7 @@ export interface IPlayerTargetSystemProperties extends IGameSystemProperties {}
  * A {@link GameSystem} which targets a player for its effect
  */
 export abstract class PlayerTargetSystem<TProperties extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends GameSystem<TProperties> {
-    public override readonly targetType = ['player'];
+    public override readonly targetTypeFilter = ['player'];
 
     public override defaultTargets(context: AbilityContext): Player[] {
         return context.player ? [context.player.opponent] : [];

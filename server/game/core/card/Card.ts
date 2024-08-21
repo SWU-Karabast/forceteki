@@ -7,10 +7,8 @@ import Contract from '../utils/Contract';
 import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as KeywordHelpers from './KeywordHelpers';
-import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import AbilityHelper from '../../AbilityHelper';
-import { LeaderUnitCard } from './LeaderUnitCard';
-import { asArray } from '../../../Util';
+import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import CardAbility from '../ability/CardAbility';
 
@@ -44,7 +42,7 @@ export class Card extends OngoingEffectSource {
     protected abilityInitializers: IAbilityInitializer[] = [];
     protected readonly printedKeywords: Set<Keyword>;   // TODO KEYWORDS: enum of keywords
     protected readonly printedTraits: Set<Trait>;
-    protected readonly printedTypes: Set<CardType>;
+    protected readonly printedType: CardType;
 
     protected _actionAbilities: CardActionAbility[];
     protected _controller: Player;
@@ -74,8 +72,8 @@ export class Card extends OngoingEffectSource {
         return this.getTraits();
     }
 
-    public get types(): Set<CardType> {
-        return this.printedTypes;
+    public get type(): CardType {
+        return this.printedType;
     }
 
     public get upgrades(): Card[] {
@@ -104,7 +102,7 @@ export class Card extends OngoingEffectSource {
         this.defaultController = owner;
         this.id = cardData.id;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
-        this.printedTypes = new Set(EnumHelpers.checkConvertToEnum(cardData.types, CardType));
+        this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         this._location = Location.Deck;
 
@@ -134,6 +132,39 @@ export class Card extends OngoingEffectSource {
 
 
     // **************************************** INITIALIZATION HELPERS ****************************************
+    public static buildTypeFromPrinted(printedTypes: string[]): CardType {
+        if (printedTypes.length === 2) {
+            if (printedTypes[0] !== 'token') {
+                throw new Error(`Unexpected card types: ${printedTypes}`);
+            }
+
+            switch (printedTypes[1]) {
+                case 'unit':
+                    return CardType.TokenUnit;
+                case 'upgrade':
+                    return CardType.TokenUpgrade;
+                default:
+                    throw new Error(`Unexpected token types: ${printedTypes}`);
+            }
+        }
+
+        Contract.assertArraySize(printedTypes, 1, `Unexpected card types: ${printedTypes}`);
+        switch (printedTypes[0]) {
+            case 'event':
+                return CardType.Event;
+            case 'unit':
+                return CardType.NonLeaderUnit;
+            case 'leader':
+                return CardType.Leader;
+            case 'base':
+                return CardType.Base;
+            case 'upgrade':
+                return CardType.Upgrade;
+            default:
+                throw new Error(`Unexpected card type: ${printedTypes[0]}`);
+        }
+    }
+
     private validateCardData(cardData: any) {
         Contract.assertNotNullLike(cardData);
         Contract.assertNotNullLike(cardData.id);
@@ -187,7 +218,7 @@ export class Card extends OngoingEffectSource {
      * constructors have executed, so we have to delay execution of their initializers until they're ready.
      */
     protected activateAbilityInitializersForTypes(abilityTypes: AbilityType | AbilityType[]) {
-        const abilityTypesAra = asArray(abilityTypes);
+        const abilityTypesAra = Helpers.asArray(abilityTypes);
 
         const skippedInitializers: IAbilityInitializer[] = [];
         for (const abilityInitializer of this.abilityInitializers) {
@@ -215,35 +246,35 @@ export class Card extends OngoingEffectSource {
 
     // ******************************************* CARD TYPE HELPERS *******************************************
     public isEvent(): boolean {
-        return false;
+        return this.type === CardType.Event;
     }
 
     public isUnit(): boolean {
-        return false;
+        return this.type === CardType.NonLeaderUnit || this.type === CardType.LeaderUnit;
     }
 
     public isUpgrade(): boolean {
-        return false;
+        return this.type === CardType.Upgrade || this.type === CardType.TokenUpgrade;
     }
 
     public isBase(): boolean {
-        return false;
+        return this.type === CardType.Base;
     }
 
     public isLeader(): boolean {
-        return false;
+        return this.type === CardType.Leader || this.type === CardType.LeaderUnit;
     }
 
     public isLeaderUnit(): boolean {
-        return false;
+        return this.type === CardType.LeaderUnit;
     }
 
     public isNonLeaderUnit(): boolean {
-        return false;
+        return this.type === CardType.NonLeaderUnit;
     }
 
     public isToken(): boolean {
-        return false;
+        return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
     }
 
     /** Returns true if the card is in a location where it can legally be damaged */
@@ -264,14 +295,6 @@ export class Card extends OngoingEffectSource {
     /** Returns true if the card is a type that can legally have constant abilities */
     public canRegisterConstantAbilities(): boolean {
         return false;
-    }
-
-    public hasSomeType(types: Set<CardType> | CardType | CardType[]): boolean {
-        return this.hasSome(types, this.types);
-    }
-
-    public hasEveryType(types: Set<CardType> | CardType[]): boolean {
-        return this.hasEvery(types, this.types);
     }
 
 

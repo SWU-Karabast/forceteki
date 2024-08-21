@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { CardType, EventName, Location, WildcardLocation } from '../core/Constants';
+import { CardType, EventName, Location, WildcardCardType, WildcardLocation } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
@@ -20,7 +20,7 @@ export class ReturnToHandSystem extends CardTargetSystem<IReturnToHandProperties
     public override readonly eventName = EventName.OnCardReturnedToHand;
     public override readonly effectDescription = 'return {0} to their hand';
     public override readonly costDescription = 'returning {0} to their hand';
-    protected override readonly targetType = [CardType.Unit, CardType.Upgrade, CardType.Event];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade, CardType.Event];
     protected override readonly defaultProperties: IReturnToHandProperties = {
         locationFilter: [WildcardLocation.AnyArena, Location.Discard]
     };

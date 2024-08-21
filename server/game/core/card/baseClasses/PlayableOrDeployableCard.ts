@@ -37,7 +37,7 @@ export class PlayableOrDeployableCard extends Card {
         super(owner, cardData);
 
         // this class is for all card types other than Base
-        Contract.assertFalse(this.printedTypes.has(CardType.Base));
+        Contract.assertFalse(this.printedType === CardType.Base);
     }
 
     public override getActions(): PlayerOrCardAbility[] {

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, EventName } from '../core/Constants';
+import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import Contract from '../core/utils/Contract';
@@ -14,7 +14,7 @@ export interface IHealProperties extends ICardTargetSystemProperties {
 export class HealSystem extends CardTargetSystem<IHealProperties> {
     public override readonly name = 'heal';
     public override readonly eventName = EventName.OnDamageRemoved;
-    protected override readonly targetType = [CardType.Unit, CardType.Base];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
         event.card.removeDamage(event.healAmount);

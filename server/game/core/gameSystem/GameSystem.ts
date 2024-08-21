@@ -32,7 +32,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
 
     protected readonly propertyFactory?: (context?: AbilityContext) => TProperties;
     protected readonly properties?: TProperties;
-    protected readonly targetType: string[] = [];
+    protected readonly targetTypeFilter: string[] = [];
     protected readonly eventName: EventName = EventName.Unnamed;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
     protected getDefaultTargets: (context: AbilityContext) => any = (context) => this.defaultTargets(context);
@@ -103,7 +103,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     public canAffect(target: any, context: AbilityContext, additionalProperties = {}): boolean {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
         return (
-            target.hasSomeType(this.targetType) &&
+            target.hasSomeType(this.targetTypeFilter) &&
             !context.gameActionsResolutionChain.includes(this) &&
             ((context.stage === Stage.EffectTmp && cannotBeCancelled) || !target.hasRestriction(this.name, context))
         );

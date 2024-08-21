@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { CardType } from '../../core/Constants';
+import { CardType, WildcardCardType } from '../../core/Constants';
 
 
 export default class _21BSurgicalDroid extends NonLeaderUnitCard {
@@ -17,7 +17,7 @@ export default class _21BSurgicalDroid extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardCondition: (card) => card !== this,
-                cardType: CardType.Unit,
+                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 2 })
             }
         });

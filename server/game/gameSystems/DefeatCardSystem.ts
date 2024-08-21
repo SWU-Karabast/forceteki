@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EventName, Location } from '../core/Constants';
+import { CardType, EventName, Location, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
@@ -11,7 +11,7 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
     public override readonly name = 'defeat';
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
-    protected override readonly targetType = [CardType.Unit, CardType.Upgrade];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade];
 
     public constructor(propertyFactory) {
         super(propertyFactory);

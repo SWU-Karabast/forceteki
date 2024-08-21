@@ -1,7 +1,7 @@
 import Player from '../Player';
 import { LeaderCard } from './LeaderCard';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
-import { Location } from '../Constants';
+import { CardType, Location } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 
@@ -13,6 +13,10 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
     public get isDeployed() {
         return this._isDeployed;
+    }
+
+    public override get type() {
+        return this._isDeployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: any) {
