@@ -556,7 +556,7 @@ export class Card extends OngoingEffectSource {
 
     /**
      * Deals with the engine effects of leaving play, making sure all statuses are removed. Anything which changes
-     * the state of the card should be here. This is also called in some strange corner cases e.g. for attachments
+     * the state of the card should be here. This is also called in some strange corner cases e.g. for upgrades
      * which aren't actually in play themselves when their parent (which is in play) leaves play.
      */
     public leavesPlay() {

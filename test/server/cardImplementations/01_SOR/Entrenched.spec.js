@@ -5,10 +5,9 @@ describe('Entrenched', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['entrenched'],
-                        groundArena: ['wampa'],
-                        spaceArena: ['tieln-fighter'],
-                        leader: ['luke-skywalker#faithful-friend']
+                        // hand: ['entrenched'],
+                        groundArena: [{ card: 'wampa', upgrades: ['entrenched'] }],
+                        spaceArena: ['tieln-fighter']
                     },
                     player2: {
                         spaceArena: ['bright-hope#the-last-transport']
@@ -25,9 +24,19 @@ describe('Entrenched', function() {
                 this.noMoreActions();
             });
 
-            it('should prevent a unit with no opposing arena units from being able to attack', function () {
-                this.player1.clickCard(this.entrenched);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tieLn]);
+            // it('should prevent a unit from being able to attack base', function () {
+            //     // play upgrade
+            //     this.player1.clickCard(this.entrenched);
+            //     this.player1.clickCard(this.tieLn);
+
+            //     this.player2.passAction();
+
+            //     // attack with wampa
+            //     expect(this.wampa).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+            // });
+
+            it('should prevent a unit with no opposing arena units from having the option to attack', function () {
+                expect(this.wampa).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
             });
         });
     });

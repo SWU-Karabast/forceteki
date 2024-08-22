@@ -138,6 +138,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._upgrades = this.upgrades.filter((card) => card.uuid !== upgrade.uuid);
         }
 
+        /** Attach the passed upgrade to this card, ignoring event windows. This should only be used for manual mode or debugging. */
+        public manualAttach(upgrade) {
+            upgrade.moveTo(this.location);
+            this._upgrades.push(upgrade);
+            upgrade.parentCard = this;
+        }
+
         public override leavesPlay() {
             // TODO CAPTURE: use this for capture logic
             // // Remove any cards underneath from the game

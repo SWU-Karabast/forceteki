@@ -28,7 +28,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
-            // new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),    // TODO EFFECTS: uncomment this (and other places the method is used, + missing ones from l5r)
+            new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),    // TODO EFFECTS: uncomment this (and other places the method is used, + missing ones from l5r)
             // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps(), 'checkAdditionalAbilitySteps'),
             new SimpleStep(this.game, () => this.openWindow(AbilityType.Triggered), 'open TriggeredAbility window'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
@@ -101,10 +101,12 @@ class EventWindow extends BaseStepWithPipeline {
         });
     }
 
-    // resolveGameState() {
-    //     this.eventsToExecute = this.eventsToExecute.filter((event) => !event.cancelled);
-    //     this.game.resolveGameState(_.any(this.eventsToExecute, (event) => event.handler), this.eventsToExecute);
-    // }
+    resolveGameState() {
+        this.eventsToExecute = this.eventsToExecute.filter((event) => !event.cancelled);
+
+        // TODO: understand if this needs to be called with the eventsToExecute array
+        this.game.resolveGameState(this.eventsToExecute.some((event) => event.handler), this.eventsToExecute);
+    }
 
     // TODO: what's up with 'then' abilities
     // checkAdditionalAbilitySteps() {

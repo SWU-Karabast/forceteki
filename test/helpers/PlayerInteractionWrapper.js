@@ -129,7 +129,7 @@ class PlayerInteractionWrapper {
                 });
                 // Attach to the card
                 upgrades.forEach((upgrade) => {
-                    this.player.attach(upgrade, card);
+                    card.manualAttach(upgrade);
                 });
             }
             if (options.damage !== undefined) {

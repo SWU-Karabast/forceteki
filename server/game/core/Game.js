@@ -272,7 +272,7 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Returns if a card is in play (characters, attachments, provinces, holdings) that has the passed trait
+     * Returns if a card is in play (units, upgrades, base, leader) that has the passed trait
      * @param {string} trait
      * @returns {boolean} true/false if the trait is in pay
      */
@@ -1067,7 +1067,6 @@ class Game extends EventEmitter {
         // check for a game state change (recalculating attack stats if necessary)
         if (
             (!this.currentAttack && this.ongoingEffectEngine.resolveEffects(hasChanged)) ||
-            (this.currentAttack && this.currentAttack.calculateSkill(hasChanged)) ||
             hasChanged
         ) {
             // this.checkWinCondition();

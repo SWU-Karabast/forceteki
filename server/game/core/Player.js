@@ -222,7 +222,7 @@ class Player extends GameObject {
     }
 
     /**
-     * Returns an Array of BaseCard which match (or whose attachments match) passed predicate in the passed list
+     * Returns an Array of BaseCard which match (or whose upgrades match) passed predicate in the passed list
      * @param cardList _(Array)
      * @param {Function} predicate - BaseCard => Boolean
      */
@@ -238,8 +238,8 @@ class Player extends GameObject {
                 cardsToReturn.push(card);
             }
 
-            if (card.attachments) {
-                cardsToReturn = cardsToReturn.concat(card.attachments.filter(predicate));
+            if (card.upgrades) {
+                cardsToReturn = cardsToReturn.concat(card.upgrades.filter(predicate));
             }
 
             return cardsToReturn;
@@ -249,7 +249,7 @@ class Player extends GameObject {
     }
 
     /**
-     * Returns if a card is in play (characters, attachments, provinces, holdings) that has the passed trait
+     * Returns if a card is in play (unots, upgrades, provinces, holdings) that has the passed trait
      * @param {string} trait
      * @returns {boolean} true/false if the trait is in pay
      */
@@ -265,7 +265,7 @@ class Player extends GameObject {
     }
 
     /**
-     * Returns true if any characters or attachments controlled by this playe match the passed predicate
+     * Returns true if any unots or upgrades controlled by this playe match the passed predicate
      * @param {Function} predicate - DrawCard => Boolean
      */
     anyCardsInPlay(predicate) {
@@ -275,15 +275,7 @@ class Player extends GameObject {
     }
 
     /**
-     * Returns an array of all conflict cards matching the predicate owned by this player
-     * @param {Function} predicate - DrawCard => Boolean
-     */
-    getAllConflictCards(predicate = () => true) {
-        return this.game.allCards.filter((card) => card.owner === this && card.isConflict && predicate(card));
-    }
-
-    /**
-     * Returns an Array of all characters and attachments matching the predicate controlled by this player
+     * Returns an Array of all unots and upgrades matching the predicate controlled by this player
      * @param {Function} predicate  - DrawCard => Boolean
      */
     filterCardsInPlay(predicate) {
@@ -474,7 +466,7 @@ class Player extends GameObject {
     // }
 
     /**
-     * Returns the total number of characters and attachments controlled by this player which match the passed predicate
+     * Returns the total number of units and upgrades controlled by this player which match the passed predicate
      * @param {Function} predicate - DrawCard => Int
      */
     getNumberOfCardsInPlay(predicate) {

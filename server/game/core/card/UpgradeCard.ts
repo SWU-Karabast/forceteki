@@ -4,7 +4,7 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import Contract from '../utils/Contract';
-import { CardType, Location, RelativePlayer } from '../Constants';
+import { AbilityType, CardType, Location, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IConstantAbilityProps } from '../../Interfaces';

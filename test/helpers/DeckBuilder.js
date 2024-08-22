@@ -97,9 +97,9 @@ class DeckBuilder {
             } else {
                 //Add the card itself
                 inPlayCards.push(card.card);
-                //Add any attachments
-                if (card.attachments) {
-                    inPlayCards.push(...card.attachments);
+                //Add any upgrades
+                if (card.upgrades) {
+                    inPlayCards.push(...card.upgrades);
                 }
             }
         }
