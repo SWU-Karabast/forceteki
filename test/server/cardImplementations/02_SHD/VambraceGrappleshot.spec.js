@@ -28,5 +28,30 @@ describe('Vambrace Grappleshot', function() {
                 expect(this.snowspeeder.exhausted).toBe(true);
             });
         });
+
+        describe('Vambrace Grappleshot', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['vambrace-grappleshot'],
+                        groundArena: ['snowspeeder', 'battlefield-marine']
+                    },
+                    player2: {
+                    }
+                });
+
+                this.vambraceGrappleshot = this.player1.findCardByName('vambrace-grappleshot');
+                this.marine = this.player1.findCardByName('battlefield-marine');
+                this.snowspeeder = this.player1.findCardByName('snowspeeder');
+
+                this.noMoreActions();
+            });
+
+            it('should not be playable on vehicles', function () {
+                this.player1.clickCard(this.vambraceGrappleshot);
+                expect(this.marine.upgrades).toContain(this.vambraceGrappleshot);
+            });
+        });
     });
 });
