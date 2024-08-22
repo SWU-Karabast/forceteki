@@ -174,6 +174,7 @@ export enum EventName {
     OnDamageRemoved = 'onDamageRemoved',
     OnAttackCompleted = 'onAttackCompleted',
     OnCardReturnedToHand = 'onCardReturnedToHand',
+    OnCardRevealed = 'onCardRevealed',
 }
 
 export enum AbilityType {

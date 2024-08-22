@@ -1,12 +1,12 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { CardType, Location } from '../../core/Constants';
+import { Location, Trait } from '../../core/Constants';
 
-export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
+export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '6884078296',
-            internalName: 'greef-karga#affable-commissioner'
+            id: '3498814896',
+            internalName: 'mon-mothma#voice-of-the-rebellion'
         };
     }
 
@@ -17,7 +17,7 @@ export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                     amount: 5,
-                    cardCondition: (card) => card.type === CardType.Upgrade,
+                    cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
                     gameAction: AbilityHelper.immediateEffects.moveCard({
                         destination: Location.Hand
                     })
@@ -27,4 +27,4 @@ export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
     }
 }
 
-GreefKargaAffableCommissioner.implemented = false;
+MonMothmaVoiceoftheRebellion.implemented = false;

@@ -14,7 +14,7 @@ import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 // import { ChosenReturnToDeckAction, ChosenReturnToDeckProperties } from './ChosenReturnToDeckAction';
 import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
 // import { CreateTokenAction, CreateTokenProperties } from './CreateTokenAction';
-// import { DeckSearchAction, DeckSearchProperties } from './DeckSearchAction';
+import { DeckSearchSystem, IDeckSearchProperties } from './DeckSearchSystem';
 // import { DetachAction, DetachActionProperties } from './DetachAction';
 // import { DiscardCardAction, DiscardCardProperties } from './DiscardCardAction';
 // import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
@@ -46,7 +46,7 @@ import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 // import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
 import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
 import { ReturnToHandFromPlaySystem, IReturnToHandFromPlayProperties } from './ReturnToHandFromPlaySystem';
-// import { RevealAction, RevealProperties } from './RevealAction';
+import { RevealSystem, IRevealProperties } from './RevealSystem';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
 // import { SequentialAction } from './SequentialAction';
@@ -149,12 +149,13 @@ export function returnToHand(propertyFactory: PropsFactory<IReturnToHandProperti
 export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties> = {}): CardTargetSystem {
     return new ReturnToHandFromPlaySystem(propertyFactory);
 }
-// /**
-//  * default chatMessage = false
-//  */
-// export function reveal(propertyFactory: PropsFactory<RevealProperties> = {}): CardGameAction {
-//     return new RevealAction(propertyFactory);
-// }
+
+/**
+ * default chatMessage = false
+ */
+export function reveal(propertyFactory: PropsFactory<IRevealProperties> = {}): CardTargetSystem {
+    return new RevealSystem(propertyFactory);
+}
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): CardGameAction {
 //     return new DiscardFromPlayAction(propertyFactory, true);
 // }
@@ -192,14 +193,16 @@ export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHand
 // export function chosenReturnToDeck(propertyFactory: PropsFactory<ChosenReturnToDeckProperties> = {}): GameSystem {
 //     return new ChosenReturnToDeckAction(propertyFactory);
 // }
-// /**
-//  * default amount = -1 (whole deck)
-//  * default reveal = true
-//  * default cardCondition = always true
-//  */
-// export function deckSearch(propertyFactory: PropsFactory<DeckSearchProperties>): GameSystem {
-//     return new DeckSearchAction(propertyFactory);
-// }
+
+/**
+ * default amount = -1 (whole deck)
+ * default reveal = true
+ * default cardCondition = always true
+ */
+export function deckSearch(propertyFactory: PropsFactory<IDeckSearchProperties>): GameSystem {
+    return new DeckSearchSystem(propertyFactory);
+}
+
 /**
  * default amount = 1
  */

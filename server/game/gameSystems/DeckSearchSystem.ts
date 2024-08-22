@@ -16,14 +16,13 @@ export interface IDeckSearchProperties extends IPlayerTargetSystemProperties {
     amount?: number | ((context: AbilityContext) => number); // Number of cards to search through
     numCards?: number | ((context: AbilityContext) => number);
     reveal?: boolean;
-    deck?: Deck;
     shuffle?: boolean | ((context: AbilityContext) => boolean);
     title?: string;
     gameAction?: GameSystem<IGameSystemProperties>; // What should be done with the selected cards?
     message?: string;
     uniqueNames?: boolean;
-    player?: RelativePlayer;
-    choosingPlayer?: RelativePlayer;
+    player?: Player;
+    choosingPlayer?: Player;
     placeOnBottomInRandomOrder?: boolean;
     messageArgs?: (context: AbilityContext, cards: Card[]) => any | any[];
     selectedCardsHandler?: (context: AbilityContext, event: any, cards: Card[]) => void;
@@ -39,7 +38,17 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     public override readonly effectDescription: string = '';
 
     protected override defaultProperties: IDeckSearchProperties = {
-        //TODO: Add default properties
+        amount: -1,
+        numCards: 1,
+        targetMode: TargetMode.Single,
+        selectedCardsHandler: null,
+        remainingCardsHandler: null,
+        takesNothingGameAction: null,
+        shuffle: true,
+        reveal: true,
+        uniqueNames: false,
+        placeOnBottomInRandomOrder: false,
+        cardCondition: () => true
     };
 
     public eventHandler(event): void {
@@ -91,10 +100,12 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         event.amount = fAmount;
     }
 
-    public override addEventsToArray(events: any[], context: AbilityContext, additionalProperties = {}): void {
+    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
+        const events: GameEvent[] = [];
+
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
         const player = properties.player || context.player;
-        const event = this.getEvent(player, context) as any;
+        const event = this.generateEvent(player, context, additionalProperties) as any;
         const amount = event.amount > -1 ? event.amount : this.getDeck(player, properties).length;
         let cards = this.getDeck(player, properties).slice(0, amount);
         if (event.amount === -1) {
@@ -102,6 +113,8 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         }
         events.push(event);
         this.selectCard(event, additionalProperties, cards, new Set());
+
+        return events;
     }
 
     private getNumCards(numCards: Derivable<number>, context: AbilityContext): number {
