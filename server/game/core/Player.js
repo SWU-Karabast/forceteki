@@ -113,7 +113,7 @@ class Player extends GameObject {
         this.clock.reset();
     }
 
-    // TODO UPGRADES: this should retrieve upgrades, but we need to confirm once they're implemented
+    // TODO THIS PR: this should retrieve upgrades, but we need to confirm once they're implemented
     /**
      * Get all cards in designated play arena(s) owned by this player
      * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
@@ -996,15 +996,14 @@ class Player extends GameObject {
         return legalLocationsForType && EnumHelpers.cardLocationMatches(location, legalLocationsForType);
     }
 
-    // TODO UPGRADES
-    // /**
-    //  * This is only used when an upgrade is dragged into play.  Usually,
-    //  * upgrades are played by playCard()
-    //  * @deprecated
-    //  */
-    // promptForUpgrade(card, playingType) {
-    //     this.game.queueStep(new AttachmentPrompt(this.game, this, card, playingType));
-    // }
+    /**
+     * This is only used when an upgrade is dragged into play.  Usually,
+     * upgrades are played by playCard()
+     * @deprecated
+     */
+    promptForUpgrade(card, playingType) {
+        this.game.queueStep(new UpgradePrompt(this.game, this, card, playingType));
+    }
 
     // get skillModifier() {
     //     return this.getEffectValues(EffectName.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);

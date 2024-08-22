@@ -3,8 +3,6 @@ import { IAbilityLimit } from '../core/ability/AbilityLimit';
 // const Restriction = require('./Effects/restriction.js');
 // const { SuppressEffect } = require('./Effects/SuppressEffect');
 import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
-// const { attachmentMilitarySkillModifier } = require('./Effects/Library/attachmentMilitarySkillModifier');
-// const { attachmentPoliticalSkillModifier } = require('./Effects/Library/attachmentPoliticalSkillModifier');
 // const { canPlayFromOwn } = require('./Effects/Library/canPlayFromOwn');
 import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
@@ -123,7 +121,6 @@ export = {
     modifyStats: (modifier: StatsModifier) => OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
-    // attachmentMilitarySkillModifier,
     // modifyMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkillMultiplier, value),
     // modifyPoliticalSkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyPoliticalSkill, value),

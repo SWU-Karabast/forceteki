@@ -58,7 +58,6 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         } else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
             card.facedown = false;
         }
-        card.checkForIllegalAttachments();
     }
 
     public override getCostMessage(context: AbilityContext): [string, any[]] {

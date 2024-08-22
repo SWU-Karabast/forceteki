@@ -87,18 +87,6 @@ export type WhenType = {
         [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext) => boolean;
     };
 
-// TODO UPGRADES
-// export interface IAttachmentConditionProps {
-//     limit?: number;
-//     myControl?: boolean;
-//     opponentControlOnly?: boolean;
-//     unique?: boolean;
-//     faction?: string | string[];
-//     trait?: string | string[];
-//     limitTrait?: traitLimit | traitLimit[];
-//     cardCondition?: (card: Card) => boolean;
-// }
-
 // ********************************************** INTERNAL TYPES **********************************************
 interface ITriggeredAbilityWhenProps extends ITriggeredAbilityBaseProps {
     when: WhenType;

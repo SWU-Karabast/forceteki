@@ -25,12 +25,10 @@ class EventWindow extends BaseStepWithPipeline {
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.setCurrentEventWindow(), 'setCurrentEventWindow'),
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
-            // new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
-            // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordInterrupt)),
+            new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
-            // new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
-            // new SimpleStep(this.game, () => this.checkKeywordAbilities(AbilityType.KeywordReaction)),
+            // new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),    // TODO EFFECTS: uncomment this (and other places the method is used, + missing ones from l5r)
             // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps(), 'checkAdditionalAbilitySteps'),
             new SimpleStep(this.game, () => this.openWindow(AbilityType.Triggered), 'open TriggeredAbility window'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
@@ -73,19 +71,18 @@ class EventWindow extends BaseStepWithPipeline {
         }
     }
 
-    // TODO: do we need this?
-    // // This is primarily for LeavesPlayEvents
-    // createContingentEvents() {
-    //     let contingentEvents = [];
-    //     this.events.forEach((event) => {
-    //         contingentEvents = contingentEvents.concat(event.createContingentEvents());
-    //     });
-    //     if (contingentEvents.length > 0) {
-    //         // Exclude current events from the new window, we just want to give players opportunities to respond to the contingent events
-    //         this.queueStep(new TriggeredAbilityWindow(this.game, AbilityType.WouldInterrupt, this, this.events.slice(0)));
-    //         _.each(contingentEvents, (event) => this.addEvent(event));
-    //     }
-    // }
+    /**
+     * Creates any "contingent" events which will happen in the same window as the primary event
+     * but will be resolved after it in order. The main use case for this is upgrades being
+     * defeated at the same time as the parent card holding them.
+     */
+    createContingentEvents() {
+        let contingentEvents = [];
+        this.events.forEach((event) => {
+            contingentEvents = contingentEvents.concat(event.createContingentEvents());
+        });
+        contingentEvents.forEach((event) => this.addEvent(event));
+    }
 
     preResolutionEffects() {
         this.events.forEach((event) => event.preResolutionEffect());
@@ -107,14 +104,6 @@ class EventWindow extends BaseStepWithPipeline {
     // resolveGameState() {
     //     this.eventsToExecute = this.eventsToExecute.filter((event) => !event.cancelled);
     //     this.game.resolveGameState(_.any(this.eventsToExecute, (event) => event.handler), this.eventsToExecute);
-    // }
-
-    // checkKeywordAbilities(abilityType) {
-    //     if(_.isEmpty(this.events)) {
-    //         return;
-    //     }
-
-    //     this.queueStep(new KeywordAbilityWindow(this.game, abilityType, this));
     // }
 
     // TODO: what's up with 'then' abilities

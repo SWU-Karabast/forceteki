@@ -12,9 +12,6 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
     return class WithDamage extends HpClass {
         private _damage?: number;
 
-        /** Used to flag whether the card is in a zone where damage can be applied */
-        private damageEnabled = false;
-
         public get damage(): number {
             this.assertPropertyEnabled(this._damage, 'damage');
             return this._damage;
@@ -75,7 +72,6 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         protected enableDamage(enabledStatus: boolean) {
-            this.damageEnabled = enabledStatus;
             this._damage = enabledStatus ? 0 : null;
         }
     };

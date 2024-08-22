@@ -35,7 +35,7 @@ export class ReturnToHandSystem extends CardTargetSystem<IReturnToHandProperties
     }
 
     protected override updateEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        this.updateLeavesPlayEvent(event, card, context, additionalProperties);
+        this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         event.destination = Location.Hand;
     }
 }

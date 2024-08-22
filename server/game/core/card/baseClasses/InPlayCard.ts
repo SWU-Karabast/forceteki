@@ -152,6 +152,17 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
+    /** Update the context of each constant ability. Used when the card's controller has changed. */
+    public updateConstantAbilityContexts() {
+        for (const constantAbility of this._constantAbilities) {
+            if (constantAbility.registeredEffects) {
+                for (const effect of constantAbility.registeredEffects) {
+                    effect.refreshContext();
+                }
+            }
+        }
+    }
+
     protected override initializeForCurrentLocation(prevLocation: Location) {
         super.initializeForCurrentLocation(prevLocation);
 
@@ -197,9 +208,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
         if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
             this.removeLastingEffects();
         }
-
-        // TODO UPGRADES: is this needed for upgrades?
-        // this.updateStatusTokenEffects();
 
         // check to register / unregister any effects that we are the source of
         for (const constantAbility of this._constantAbilities) {

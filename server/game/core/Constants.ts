@@ -132,8 +132,6 @@ export enum WildcardCardType {
 }
 
 export type CardTypeFilter = CardType | WildcardCardType;
-export type Unit = CardType.NonLeaderUnit | CardType.LeaderUnit;
-export type Token = CardType.TokenUnit | CardType.TokenUpgrade;
 
 export enum EventName {
     OnBeginRound = 'onBeginRound',
@@ -174,6 +172,7 @@ export enum EventName {
     OnDamageRemoved = 'onDamageRemoved',
     OnAttackCompleted = 'onAttackCompleted',
     OnCardReturnedToHand = 'onCardReturnedToHand',
+    OnUpgradeAttached = 'onUpgradeAttached'
 }
 
 export enum AbilityType {
@@ -260,7 +259,7 @@ export enum AbilityRestriction {
     PutIntoPlay = 'putIntoPlay',
     /** Restricts a card from being played. Typically used for event cards, see {@link AbilityRestriction.PutIntoPlay} for other card types */
     Play = 'play',
-    /** Restricts a card or card type from being able to enter play. See {@link AbilityRestriction.Play} for event cards */
+    /** Restricts a card or card type from being able to enter play. Typically used for non-events. See {@link AbilityRestriction.Play} for event cards */
     EnterPlay = 'enterPlay',
     /** Restricts a game object from being targetable by abilities */
     Target = 'target',  // TODO: rename to AbilityTarget

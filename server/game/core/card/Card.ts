@@ -39,18 +39,17 @@ export class Card extends OngoingEffectSource {
     public controller: Player;
 
     protected override readonly id: string;
-    protected abilityInitializers: IAbilityInitializer[] = [];
     protected readonly printedKeywords: Set<Keyword>;   // TODO KEYWORDS: enum of keywords
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
+    protected abilityInitializers: IAbilityInitializer[] = [];
     protected _actionAbilities: CardActionAbility[];
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
-    protected _upgrades: Card[] = [];
 
     private _location: Location;
 
@@ -75,11 +74,6 @@ export class Card extends OngoingEffectSource {
     public get type(): CardType {
         return this.printedType;
     }
-
-    public get upgrades(): Card[] {
-        return this._upgrades;
-    }
-
 
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
