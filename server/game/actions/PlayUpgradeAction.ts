@@ -55,7 +55,7 @@ export class PlayUpgradeAction extends PlayerAction {
             return 'cannotTrigger';
         }
         if (
-            context.player.hasRestriction(AbilityRestriction.PlayUnit, context) ||
+            context.player.hasRestriction(AbilityRestriction.PlayUpgrade, context) ||
             context.player.hasRestriction(AbilityRestriction.PutIntoPlay, context)
         ) {
             return 'restriction';

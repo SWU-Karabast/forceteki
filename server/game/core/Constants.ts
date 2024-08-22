@@ -259,6 +259,8 @@ export enum AbilityRestriction {
 
     /** Restricts a player's ability to play units */
     PlayUnit = 'playUnit',
+    /** Restricts a player's ability to play upgrades */
+    PlayUpgrade = 'playUpgrade',
     /** Restricts a player's ability to put a certain card or type of card into play */
     PutIntoPlay = 'putIntoPlay',
     /** Restricts a card from being played. Typically used for event cards, see {@link AbilityRestriction.PutIntoPlay} for other card types */
