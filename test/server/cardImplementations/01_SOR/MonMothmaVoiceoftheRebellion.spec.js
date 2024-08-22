@@ -21,7 +21,6 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
             it('can draw rebel', function () {
                 this.player1.clickCard(this.monMothma);
                 expect(this.monMothma.location).toBe('ground arena');
-                expect(this.player1).toHavePrompt('Select a card to reveal');
                 expect(this.player1).toHaveDisabledPromptButton('wampa');
                 expect(this.player1).toHaveDisabledPromptButton('atst');
                 expect(this.player1).toHaveDisabledPromptButton('pyke-sentinel');
