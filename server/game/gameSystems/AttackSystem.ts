@@ -85,32 +85,41 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     }
 
     public override canAffect(targetCard: Card, context: AbilityContext, additionalProperties = {}): boolean {
-        if (!context.player.opponent) {
+        if (!('printedHp' in targetCard)) {
             return false;
         }
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        if (
+            !Contract.assertNotNullLike(properties.attacker) ||
+            !Contract.assertTrue(properties.attacker.isUnit()) ||
+            !EnumHelpers.isArena(properties.attacker.location)
+        ) {
+            return false;
+        }
         if (!super.canAffect(targetCard, context)) {
             return false;
         }
         if (targetCard === properties.attacker || targetCard.controller === properties.attacker.controller) {
             return false; //cannot attack yourself or your controller's cards
         }
-        if (targetCard.hasRestriction(AbilityRestriction.BeAttacked, context)) {
+        if (
+            targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) ||
+            !(properties.attacker as UnitCard).canAttack(targetCard)
+        ) {
             return false;
         }
         // TODO SENTINEL: check will go here
         if (
             targetCard.location !== properties.attacker.location &&
             targetCard.location !== Location.Base &&
-            !(targetCard.location === Location.SpaceArena && context.source.anyEffect(EffectName.CanAttackGroundArenaFromSpaceArena)) &&
-            !(targetCard.location === Location.GroundArena && context.source.anyEffect(EffectName.CanAttackSpaceArenaFromGroundArena))
+            !(targetCard.location === Location.SpaceArena && context.source.hasEffect(EffectName.CanAttackGroundArenaFromSpaceArena)) &&
+            !(targetCard.location === Location.GroundArena && context.source.hasEffect(EffectName.CanAttackSpaceArenaFromGroundArena))
         ) {
             return false;
         }
 
         return (
-            properties.attacker &&
             EnumHelpers.isAttackableLocation(targetCard.location)
         );
     }

@@ -68,6 +68,7 @@ export = {
     //     OngoingEffectBuilder.card.static(EffectName.CannotParticipateAsAttacker, type),
     // cannotParticipateAsDefender: (type = 'both') =>
     //     OngoingEffectBuilder.card.static(EffectName.CannotParticipateAsDefender, type),
+    cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     cardCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
     // changeType: (type) => OngoingEffectBuilder.card.static(EffectName.ChangeType, type),

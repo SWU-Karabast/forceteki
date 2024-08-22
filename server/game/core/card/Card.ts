@@ -346,7 +346,7 @@ export class Card extends OngoingEffectSource {
 
     // *************************************** EFFECT HELPERS ***************************************
     public isBlank(): boolean {
-        return this.anyEffect(EffectName.Blank);
+        return this.hasEffect(EffectName.Blank);
     }
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
@@ -640,7 +640,7 @@ export class Card extends OngoingEffectSource {
     //     if (
     //         isActivePlayer
     //             ? this.isFacedown() && this.hideWhenFacedown()
-    //             : this.isFacedown() || hideWhenFaceup || this.anyEffect(EffectName.HideWhenFaceUp)
+    //             : this.isFacedown() || hideWhenFaceup || this.hasEffect(EffectName.HideWhenFaceUp)
     //     ) {
     //         let state = {
     //             controller: this.controller.getShortSummary(),

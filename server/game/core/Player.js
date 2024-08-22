@@ -1281,7 +1281,7 @@ class Player extends GameObject {
     }
 
     // eventsCannotBeCancelled() {
-    //     return this.anyEffect(EffectName.EventsCannotBeCancelled);
+    //     return this.hasEffect(EffectName.EventsCannotBeCancelled);
     // }
 
     // // TODO STATE SAVE: what stats are we interested in?

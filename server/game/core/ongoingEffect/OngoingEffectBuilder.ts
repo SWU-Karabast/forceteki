@@ -38,7 +38,7 @@ interface Props {
 
 export const OngoingEffectBuilder = {
     card: {
-        static: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
+        static: (type: EffectName, value?) => (game: Game, source: Card, props: Props) =>
             new OngoingCardEffect(game, source, props, new StaticOngoingEffectImpl(type, value)),
         dynamic: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new OngoingCardEffect(game, source, props, new DynamicOngoingEffectImpl(type, value)),
@@ -50,13 +50,13 @@ export const OngoingEffectBuilder = {
                 : OngoingEffectBuilder.card.static(type, value))
     },
     player: {
-        static: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
+        static: (type: EffectName, value?) => (game: Game, source: Card, props: Props) =>
             new OngoingPlayerEffect(game, source, props, new StaticOngoingEffectImpl(type, value)),
         dynamic: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new OngoingPlayerEffect(game, source, props, new DynamicOngoingEffectImpl(type, value)),
         detached: (type: EffectName, value) => (game: Game, source: Card, props: Props) =>
             new OngoingPlayerEffect(game, source, props, new DetachedOngoingEffectImpl(type, value.apply, value.unapply)),
-        flexible: (type: EffectName, value) =>
+        flexible: (type: EffectName, value?) =>
             (typeof value === 'function'
                 ? OngoingEffectBuilder.player.dynamic(type, value)
                 : OngoingEffectBuilder.player.static(type, value))

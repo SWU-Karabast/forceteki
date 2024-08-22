@@ -91,19 +91,19 @@ class CardAbility extends CardAbilityStep {
     /** @override */
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = super.getCosts(context, playCosts);
-        if (!context.subResolution && triggerCosts && context.player.anyEffect(EffectName.AdditionalTriggerCost)) {
+        if (!context.subResolution && triggerCosts && context.player.hasEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.player
                 .getEffectValues(EffectName.AdditionalTriggerCost)
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
-        if (!context.subResolution && triggerCosts && context.source.anyEffect(EffectName.AdditionalTriggerCost)) {
+        if (!context.subResolution && triggerCosts && context.source.hasEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.source
                 .getEffectValues(EffectName.AdditionalTriggerCost)
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
-        if (!context.subResolution && playCosts && context.player.anyEffect(EffectName.AdditionalPlayCost)) {
+        if (!context.subResolution && playCosts && context.player.hasEffect(EffectName.AdditionalPlayCost)) {
             const additionalPlayCosts = context.player
                 .getEffectValues(EffectName.AdditionalPlayCost)
                 .map((effect) => effect(context));

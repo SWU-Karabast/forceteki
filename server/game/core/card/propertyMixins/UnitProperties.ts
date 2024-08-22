@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { CardType, EffectName, StatType } from '../../Constants';
+import { AbilityRestriction, Arena, CardType, EffectName, Location, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import Contract from '../../utils/Contract';
@@ -11,6 +11,7 @@ import type { WithPrintedHp } from './PrintedHp';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { UpgradeCard } from '../UpgradeCard';
 import AbilityHelper from '../../../AbilityHelper';
+import { Card } from '../Card';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -28,6 +29,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
     return class AsUnit extends StatsAndDamageClass {
         // ************************************* FIELDS AND PROPERTIES *************************************
+        public readonly defaultArena: Arena;
+
         protected _upgrades: UpgradeCard[] = [];
 
         public override get hp(): number {
@@ -46,12 +49,39 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
+            const [Player, cardData] = this.unpackConstructorArgs(...args);
+
             Contract.assertTrue(EnumHelpers.isUnit(this.printedType));
+
+            Contract.assertNotNullLike(cardData.arena);
+            switch (cardData.arena) {
+                case 'space':
+                    this.defaultArena = Location.SpaceArena;
+                    break;
+                case 'ground':
+                    this.defaultArena = Location.GroundArena;
+                    break;
+                default:
+                    Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
+            }
 
             this.defaultActions.push(new InitiateAttackAction(this));
         }
 
         public override isUnit() {
+            return true;
+        }
+
+        // ***************************************** ATTACK HELPERS *****************************************
+        /**
+         * Check if there are any effect restrictions preventing this unit from attacking the passed target.
+         * Only checks effects, **does not** check basic attack rules (e.g. target card type).
+         */
+        public canAttack(target: Card) {
+            if (this.hasEffect(EffectName.CannotAttackBase) && target.isBase()) {
+                return false;
+            }
+
             return true;
         }
 

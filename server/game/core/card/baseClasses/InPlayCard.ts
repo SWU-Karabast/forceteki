@@ -20,8 +20,6 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. The ability to be defeated as an overridable method
  */
 export class InPlayCard extends PlayableOrDeployableCard {
-    public readonly defaultArena: Arena;
-
     protected _triggeredAbilities: TriggeredAbility[] = [];
     protected _constantAbilities: IConstantAbility[] = [];
 
@@ -35,18 +33,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     // ********************************************** CONSTRUCTOR **********************************************
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-
-        Contract.assertNotNullLike(cardData.arena);
-        switch (cardData.arena) {
-            case 'space':
-                this.defaultArena = Location.SpaceArena;
-                break;
-            case 'ground':
-                this.defaultArena = Location.GroundArena;
-                break;
-            default:
-                Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
-        }
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
