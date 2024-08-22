@@ -60,9 +60,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 this.player1.clickPrompt('Deal 1 damage to a ground unit');
 
                 // can target any ground unit
-                // TODO BUG: crumb itself is also selectable and it shouldn't be
-                // expect(this.player1).toBeAbleToSelectExactly([this.atrt, this.wampa]);
-                expect(this.player1).toBeAbleToSelectAllOf([this.atrt, this.wampa]);
+                expect(this.player1).toBeAbleToSelectExactly([this.atrt, this.wampa]);
 
                 this.player1.clickCard(this.atrt);
                 expect(this.atrt.damage).toBe(1);

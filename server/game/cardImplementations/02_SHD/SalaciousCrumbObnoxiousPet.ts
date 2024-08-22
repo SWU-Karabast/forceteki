@@ -27,6 +27,7 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.returnSelfToHandFromPlay()
             ],
+            cannotTargetFirst: true,
             targetResolver: {
                 cardCondition: (card) => card.location === Location.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
