@@ -10,8 +10,8 @@ import { WithPrintedPower } from './PrintedPower';
 import type { WithPrintedHp } from './PrintedHp';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { UpgradeCard } from '../UpgradeCard';
-import AbilityHelper from '../../../AbilityHelper';
 import { Card } from '../Card';
+import { ITriggeredAbilityProps } from '../../../Interfaces';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -83,6 +83,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             return true;
+        }
+
+        protected addAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+            const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event) => event.attack.attacker === this } });
+            this.addTriggeredAbility(triggeredProperties);
         }
 
         // ***************************************** STAT HELPERS *****************************************

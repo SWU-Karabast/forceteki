@@ -45,10 +45,18 @@ export class Attack extends GameObject {
         super(game, 'Attack');
     }
 
+    public isValid(): boolean {
+        if (!EnumHelpers.isArena(this.attacker.location)) {
+            return false;
+        }
+        if (!this.target.isBase() && !EnumHelpers.isArena(this.target.location)) {
+            return false;
+        }
+        return true;
+    }
+
     public isInvolved(card: Card): boolean {
         return (
-            (card.isUnit() || card.isBase()) &&
-            EnumHelpers.isArena(card.location) &&
             ([this.attacker as Card, this.target as Card].includes(card))
         );
     }
