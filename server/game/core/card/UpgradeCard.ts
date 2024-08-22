@@ -7,9 +7,10 @@ import Contract from '../utils/Contract';
 import { AbilityType, CardType, Location, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import { IConstantAbilityProps } from '../../Interfaces';
+import { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import AbilityHelper from '../../AbilityHelper';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(InPlayCard)));
 
@@ -50,8 +51,8 @@ export class UpgradeCard extends UpgradeCardParent {
      * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
      * implementations must override this if they have specific attachment conditions.
      */
-    public canAttach(parentCard: Card, controller: Player = this.controller): boolean {
-        if (!parentCard.isUnit()) {
+    public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+        if (!targetCard.isUnit()) {
             return false;
         }
 
@@ -72,22 +73,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * Helper that adds an effect that applies to the attached unit. Yyou can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addAttachedUnitEffectAbility(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'match' | 'ongoingEffect'>) {
-        this.addConstantAbility({
-            title: properties.title,
-            condition: properties.condition || (() => true),
-            match: (card, context) => card === this.parentCard && (!properties.match || properties.match(card, context)),
-            targetController: RelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
-            ongoingEffect: properties.ongoingEffect
-        });
-    }
-
-    /**
-     * Helper that adds an "Attached unit gains:" ability. By default the effect will
-     * target the parent unit, but you can provide a match function to narrow down whether the
-     * effect is applied (for cases where the effect has conditions).
-     */
-    protected addAttachedUnitGainsTriggeredAbilityAbility(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'match' | 'ongoingEffect'>) {
+    protected addConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'match' | 'ongoingEffect'>) {
         this.addConstantAbility({
             title: properties.title,
             condition: properties.condition || (() => true),

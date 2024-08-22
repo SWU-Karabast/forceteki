@@ -112,7 +112,8 @@ export class Card extends OngoingEffectSource {
      */
     public getActionAbilities(): CardActionAbility[] {
         return this.isBlank() ? []
-            : this._actionAbilities;
+            : this._actionAbilities
+                .concat(this.getGainedAbilityEffects<CardActionAbility>(AbilityType.Action));
     }
 
     /**
@@ -359,6 +360,10 @@ export class Card extends OngoingEffectSource {
 
     public canInitiateKeywords(context: AbilityContext): boolean {
         return !this.facedown && !this.hasRestriction(AbilityRestriction.InitiateKeywords, context);
+    }
+
+    protected getGainedAbilityEffects<TAbility>(abilityType: AbilityType): TAbility[] {
+        return this.getEffectValues(EffectName.GainAbility).filter((ability) => ability.abilityType === abilityType);
     }
 
 

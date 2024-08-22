@@ -7,12 +7,13 @@ import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder
 import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
-// const { gainAbility } = require('./Effects/Library/gainAbility');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import { EffectName, PlayType } from '../core/Constants';
+import { AbilityType, EffectName, PlayType } from '../core/Constants';
 import StatsModifier from '../core/ongoingEffect/effectImpl/StatsModifier';
+import { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../Interfaces';
+import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -89,7 +90,10 @@ export = {
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
-    // gainAbility,
+    gainAbility: (
+        abilityType: AbilityType,
+        properties: IActionAbilityProps | ITriggeredAbilityProps | IConstantAbilityProps
+    ) => OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(abilityType, properties)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),

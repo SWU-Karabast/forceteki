@@ -13,7 +13,7 @@ export default class Entrenched extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
-        this.addAttachedUnitEffectAbility({
+        this.addConstantAbilityTargetingAttached({
             title: 'Attached unit cannot attack bases',
             ongoingEffect: AbilityHelper.ongoingEffects.cannotAttackBase(),
         });

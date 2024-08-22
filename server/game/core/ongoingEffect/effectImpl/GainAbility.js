@@ -62,8 +62,7 @@ class GainAbility extends OngoingEffectValueWrapper {
         let properties = Object.assign({ origin: this.context.source }, this.properties);
         if (this.abilityType === AbilityType.Constant) {
             const activeLocation = {
-                'play area': [WildcardLocation.AnyArena],
-                // province: this.context.game.getProvinceArray()
+                'play area': [WildcardLocation.AnyArena]
             };
             this.value = properties;
             if (activeLocation[this.value.location].includes(target.location)) {
@@ -73,7 +72,7 @@ class GainAbility extends OngoingEffectValueWrapper {
         } else if (this.abilityType === AbilityType.Action) {
             this.value = target.createActionAbility(properties);
         } else {
-            this.value = target.createTriggeredAbility(this.abilityType, properties);
+            this.value = target.createTriggeredAbility(properties);
             this.value.registerEvents();
         }
         if (!this.grantedAbilityLimits[target.uuid]) {
@@ -91,14 +90,7 @@ class GainAbility extends OngoingEffectValueWrapper {
         if (this.grantedAbilityLimits[target.uuid]) {
             this.grantedAbilityLimits[target.uuid].currentUser = null;
         }
-        if (
-            [
-                // AbilityType.ForcedInterrupt,
-                AbilityType.Triggered,
-                // AbilityType.Interrupt,
-                // AbilityType.WouldInterrupt
-            ].includes(this.abilityType)
-        ) {
+        if (this.abilityType === AbilityType.Triggered) {
             this.value.unregisterEvents();
         } else if (this.abilityType === AbilityType.Constant && this.value.ref) {
             target.removeEffectFromEngine(this.value.ref);

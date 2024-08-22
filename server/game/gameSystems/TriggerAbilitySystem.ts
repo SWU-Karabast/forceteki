@@ -7,6 +7,7 @@ import type TriggeredAbility from '../core/ability/TriggeredAbility';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 
+/** @deprecated Need to rename this so I stop confusing it with {@link ITriggeredAbilityProps} lol */
 export interface ITriggerAbilityProperties extends ICardTargetSystemProperties {
     ability: CardAbility;
     subResolution?: boolean;

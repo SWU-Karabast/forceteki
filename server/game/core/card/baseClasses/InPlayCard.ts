@@ -51,7 +51,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
      */
     public getConstantAbilities(): IConstantAbility[] {
         return this.isBlank() ? []
-            : this._constantAbilities;
+            : this._constantAbilities
+                .concat(this.getGainedAbilityEffects<IConstantAbility>(AbilityType.Constant));
     }
 
     /**
@@ -61,7 +62,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
      */
     public getTriggeredAbilities(): TriggeredAbility[] {
         return this.isBlank() ? []
-            : this._triggeredAbilities;
+            : this._triggeredAbilities
+                .concat(this.getGainedAbilityEffects<TriggeredAbility>(AbilityType.Triggered));
     }
 
     public override canRegisterConstantAbilities(): boolean {
