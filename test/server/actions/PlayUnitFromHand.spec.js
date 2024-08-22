@@ -6,7 +6,7 @@ describe('Play unit from hand', function() {
                     phase: 'action',
                     player1: {
                         hand: ['cartel-spacer', 'first-legion-snowtrooper', 'battlefield-marine'],
-                        resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                        resources: 6,   // TODO THIS PR: change all existing tests to reflect resource changes
                         leader: 'boba-fett#collecting-the-bounty',
                         base: 'jabbas-palace'
                     },
