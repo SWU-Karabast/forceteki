@@ -32,7 +32,7 @@ export interface IAbilityProps<Context> {
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: Context) => EffectArg);
-    gameSystem?: GameSystem | GameSystem[];
+    immediateEffect?: GameSystem | GameSystem[];
     handler?: (context?: Context) => void;
     then?: ((context?: AbilityContext) => object) | object;
 }

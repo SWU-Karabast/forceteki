@@ -17,7 +17,7 @@ export interface IDeckSearchProperties extends IPlayerTargetSystemProperties {
     reveal?: boolean;
     shuffle?: boolean | ((context: AbilityContext) => boolean);
     title?: string;
-    gameAction?: GameSystem<IGameSystemProperties>; // What should be done with the selected cards?
+    immediateEffect?: GameSystem<IGameSystemProperties>; // What should be done with the selected cards?
     message?: string;
     uniqueNames?: boolean;
     player?: Player;
@@ -172,7 +172,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
             cardCondition: (card: Card, context: AbilityContext) =>
                 properties.cardCondition(card, context) &&
                 (!properties.uniqueNames || !Array.from(selectedCards).some((sel) => sel.name === card.name)) &&
-                (!properties.gameAction || properties.gameAction.canAffect(card, context, additionalProperties)),
+                (!properties.immediateEffect || properties.immediateEffect.canAffect(card, context, additionalProperties)),
             choices: canCancel ? (selectedCards.size > 0 ? ['Done'] : ['Take nothing']) : [],
             handlers: [() => this.handleDone(properties, context, event, selectedCards, cards)],
             cardHandler: (card: Card) => {
@@ -250,7 +250,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     ): void {
         this.doneMessage(properties, context, event, selectedCards);
 
-        const gameAction = this.generatePropertiesFromContext(event.context).gameAction;
+        const gameAction = this.generatePropertiesFromContext(event.context).immediateEffect;
         if (gameAction) {
             const selectedArray = Array.from(selectedCards);
             event.context.targets = selectedArray;

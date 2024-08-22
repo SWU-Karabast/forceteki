@@ -14,15 +14,15 @@ export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Search the top 5 cards of your deck for an upgrade, then reveal and draw it.',
             optional: false,
-            targetResolver: {
-                immediateEffect: AbilityHelper.immediateEffects.deckSearch({
-                    amount: 5,
-                    cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
-                    gameAction: AbilityHelper.immediateEffects.moveCard({
-                        destination: Location.Hand
-                    })
-                })
-            }
+            immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                amount: 5,
+                cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
+                immediateEffect: AbilityHelper.immediateEffects.moveCard({
+                    destination: Location.Hand
+                }),
+                shuffle: false,
+                placeOnBottomInRandomOrder: true
+            })
         });
     }
 }
