@@ -35,7 +35,7 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
 
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     public override readonly name = 'attack';
-    public override readonly eventName = EventName.OnAttackDeclared;
+    public override readonly eventName = EventName.Unnamed;
     protected override readonly defaultProperties: IAttackProperties = {};
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
 
@@ -174,6 +174,11 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     }
 
     private resolveAttack(attack: Attack, context: AbilityContext): void {
+        if (!attack.isValid()) {
+            context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
+            return;
+        }
+
         // event for damage dealt to target by attacker
         const damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).generateEvent(attack.target, context)];
 

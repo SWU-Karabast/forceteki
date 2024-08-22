@@ -1,5 +1,3 @@
-const exp = require('constants');
-
 describe('2-1B Surgical Droid', function() {
     integration(function() {
         describe('2-1B Surgical Droid\'s healing', function() {

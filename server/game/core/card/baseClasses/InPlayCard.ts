@@ -124,11 +124,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
         });
     }
 
-    protected addAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
-        const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event) => event.attacker === this } });
-        this.addTriggeredAbility(triggeredProperties);
-    }
-
     protected addWhenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
         const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
         this.addTriggeredAbility(triggeredProperties);
