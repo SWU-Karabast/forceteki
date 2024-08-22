@@ -7,7 +7,8 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                     player1: {
                         hand: ['mon-mothma#voice-of-the-rebellion'],
                         deck: ['wampa', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
-                        leader: ['leia-organa#alliance-general']
+                        leader: ['leia-organa#alliance-general'],
+                        resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst']
                     }
                 });
 
@@ -19,6 +20,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
             it('can draw rebel', function () {
                 this.player1.clickCard(this.monMothma);
+                expect(this.monMothma.location).toBe('ground arena');
                 expect(this.player1).toHavePrompt('Select a card to reveal');
                 expect(this.player1).toHaveDisabledPromptButton('wampa');
                 expect(this.player1).toHaveDisabledPromptButton('atst');

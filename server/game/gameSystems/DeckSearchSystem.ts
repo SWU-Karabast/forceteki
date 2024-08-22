@@ -1,12 +1,11 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import { EventName, Location, RelativePlayer, TargetMode } from '../core/Constants';
+import { EventName, Location, TargetMode } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import Player from '../core/Player';
 import { shuffleArray } from '../core/utils/Helpers';
-import { Deck } from '../Deck';
 
 type Derivable<T> = T | ((context: AbilityContext) => T);
 
@@ -44,16 +43,15 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         selectedCardsHandler: null,
         remainingCardsHandler: null,
         takesNothingGameAction: null,
-        shuffle: true,
+        shuffle: false,
         reveal: true,
         uniqueNames: false,
-        placeOnBottomInRandomOrder: false,
+        placeOnBottomInRandomOrder: true,
         cardCondition: () => true
     };
 
-    public eventHandler(event): void {
-        console.log('Event is -> ' + event);
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public eventHandler(event): void { }
 
     public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
