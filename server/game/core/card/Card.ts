@@ -558,16 +558,8 @@ export class Card extends OngoingEffectSource {
      * Deals with the engine effects of leaving play, making sure all statuses are removed. Anything which changes
      * the state of the card should be here. This is also called in some strange corner cases e.g. for attachments
      * which aren't actually in play themselves when their parent (which is in play) leaves play.
-     *
-     * Note that a card becoming a resource is _not_ leaving play.
      */
     public leavesPlay() {
-        // // If this is an attachment and is attached to another card, we need to remove all links between them
-        // if (this.parent && this.parent.attachments) {
-        //     this.parent.removeAttachment(this);
-        //     this.parent = null;
-        // }
-
         // TODO: reuse this for capture logic
         // // Remove any cards underneath from the game
         // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
@@ -622,7 +614,7 @@ export class Card extends OngoingEffectSource {
     //     clone.exhausted = this.exhausted;
     //     // clone.statusTokens = [...this.statusTokens];
     //     clone.location = this.location;
-    //     clone.parent = this.parent;
+    //     clone.parentCard = this.parentCard;
     //     clone.aspects = [...this.aspects];
     //     // clone.fate = this.fate;
     //     // clone.inConflict = this.inConflict;

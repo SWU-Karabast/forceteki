@@ -11,7 +11,7 @@ type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 export class PlayUpgradeAction extends PlayerAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(card: Card) {
-        super(card, 'Play this upgrade', [payAdjustableResourceCost()], { gameSystem: attachUpgrade((context) => ({
+        super(card, 'Play this upgrade', [payAdjustableResourceCost()], { immediateEffect: attachUpgrade((context) => ({
             upgrade: context.source
         })) });
     }

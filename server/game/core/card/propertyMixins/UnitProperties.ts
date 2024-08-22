@@ -132,10 +132,29 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         /**
          * This removes an attachment from this card's attachment Array.  It doesn't open any windows for
          * game effects to respond to.
-         * @param {Card} attachment
+         * @param {Card} upgrade
          */
-        public removeAttachment(attachment) {
-            this._upgrades = this.upgrades.filter((card) => card.uuid !== attachment.uuid);
+        public removeUpgrade(upgrade) {
+            this._upgrades = this.upgrades.filter((card) => card.uuid !== upgrade.uuid);
+        }
+
+        public override leavesPlay() {
+            // TODO CAPTURE: use this for capture logic
+            // // Remove any cards underneath from the game
+            // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
+            // if (cardsUnderneath.length > 0) {
+            //     cardsUnderneath.forEach((card) => {
+            //         this.controller.moveCard(card, Location.RemovedFromGame);
+            //     });
+            //     this.game.addMessage(
+            //         '{0} {1} removed from the game due to {2} leaving play',
+            //         cardsUnderneath,
+            //         cardsUnderneath.length === 1 ? 'is' : 'are',
+            //         this
+            //     );
+            // }
+
+            super.leavesPlay();
         }
     };
 }

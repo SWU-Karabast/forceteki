@@ -9,6 +9,7 @@ import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IConstantAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(InPlayCard)));
 
@@ -29,8 +30,42 @@ export class UpgradeCard extends UpgradeCardParent {
     // TODO CAPTURE: we may need to use the "parent" concept for captured cards as well
     /** The card that this card is underneath */
     public get parentCard(): UnitCard {
-        this.assertPropertyEnabled(this._parentCard, 'parentCard');
+        if (!Contract.assertNotNullLike(this._parentCard) || !Contract.assertTrue(EnumHelpers.isArena(this.location))) {
+            return null;
+        }
+
         return this._parentCard;
+    }
+
+    /** The card that this card is underneath */
+    public set parentCard(card: Card) {
+        if (!Contract.assertTrue(card.isUnit()) || !Contract.assertTrue(EnumHelpers.isArena(this.location))) {
+            return;
+        }
+
+        this._parentCard = card as UnitCard;
+    }
+
+    /**
+     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
+     * implementations must override this if they have specific attachment conditions.
+     */
+    public canAttach(parentCard: Card, controller: Player = this.controller): boolean {
+        if (!parentCard.isUnit()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public override leavesPlay() {
+        // If this is an attachment and is attached to another card, we need to remove all links between them
+        if (this._parentCard && this._parentCard.upgrades) {
+            this._parentCard.removeUpgrade(this);
+            this._parentCard = null;
+        }
+
+        super.leavesPlay();
     }
 
     /**
@@ -74,17 +109,5 @@ export class UpgradeCard extends UpgradeCardParent {
                 this.enableExhaust(false);
                 break;
         }
-    }
-
-    /**
-     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
-     * implementations must override this if they have specific attachment conditions.
-     */
-    public canAttach(parentCard: Card, controller: Player = this.controller): boolean {
-        if (!parentCard.isUnit()) {
-            return false;
-        }
-
-        return true;
     }
 }

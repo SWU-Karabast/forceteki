@@ -24,6 +24,10 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
     };
 
     public override eventHandler(event, additionalProperties = {}): void {
+        if (!Contract.assertTrue(event.card.isUpgrade()) || !Contract.assertTrue(event.parentCard.isUnit())) {
+            return;
+        }
+
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
         event.originalLocation = event.card.location;
 
@@ -82,13 +86,11 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         if (!properties.upgrade.canAttach((card as UnitCard), this.getFinalController(properties, context))) {
             return false;
         } else if (
-            !properties.controlSwitchOptional &&
             properties.takeControl &&
             properties.upgrade.controller === context.player
         ) {
             return false;
         } else if (
-            !properties.controlSwitchOptional &&
             properties.giveControl &&
             properties.upgrade.controller !== context.player
         ) {
@@ -102,18 +104,18 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
     }
 
     public override checkEventCondition(event, additionalProperties): boolean {
-        return this.canAffect(event.parent, event.context, additionalProperties);
+        return this.canAffect(event.parentCard, event.context, additionalProperties);
     }
 
     public override isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
-        return event.parent === card && event.card === upgrade && event.name === this.eventName && !event.cancelled;
+        return event.parentCard === card && event.card === upgrade && event.name === this.eventName && !event.cancelled;
     }
 
     public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
         event.name = this.eventName;
-        event.parent = card;
+        event.parentCard = card;
         event.card = upgrade;
         event.context = context;
     }
@@ -125,6 +127,6 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
             return context.player.opponent;
         }
 
-        return properties.attachment.controller;
+        return properties.upgrade.controller;
     }
 }
