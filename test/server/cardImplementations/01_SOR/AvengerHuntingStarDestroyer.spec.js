@@ -82,6 +82,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 expect(this.p1Base.damage).toBe(0);
             });
 
+            // TODO once leaders are implemented
             // it('Deployed leader units may not be chosen for Avenger ability', function () {
             //     this.player1.clickCard(this.p1Avenger);
             //     expect(this.p1Avenger.location).toBe('space arena');

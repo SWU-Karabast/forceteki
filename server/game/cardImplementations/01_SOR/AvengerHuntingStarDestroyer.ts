@@ -35,4 +35,4 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
     }
 }
 
-AvengerHuntingStarDestroyer.implemented = false;
+AvengerHuntingStarDestroyer.implemented = true;
