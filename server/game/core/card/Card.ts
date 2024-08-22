@@ -80,7 +80,7 @@ export class Card extends OngoingEffectSource {
         public readonly owner: Player,
         private readonly cardData: any
     ) {
-        super(owner.game);
+        super(owner.game, cardData.title);
 
         this.validateCardData(cardData);
         this.validateImplementationId(cardData);

@@ -19,6 +19,7 @@ describe('Entrenched', function() {
                 this.wampa = this.player1.findCardByName('wampa');
                 this.tieLn = this.player1.findCardByName('tieln-fighter');
                 this.cartelSpacer = this.player2.findCardByName('bright-hope#the-last-transport');
+                this.p1Base = this.player2.base;
                 this.p2Base = this.player2.base;
 
                 this.noMoreActions();
@@ -26,7 +27,7 @@ describe('Entrenched', function() {
 
             it('should prevent a unit with no opposing arena units from being able to attack', function () {
                 this.player1.clickCard(this.entrenched);
-                expect(this.player1).toHavePrompt('ground arena');
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tieLn]);
             });
         });
     });

@@ -31,8 +31,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.wampa);
 
-                expect(this.player2).toBeAbleToSelectAllOf([this.marine, this.p1Base]);
-                expect(this.player2).not.toBeAbleToSelect(this.sabine);
+                expect(this.player2).toBeAbleToSelectExactly([this.marine, this.p1Base]);
             });
 
             it('should be targetable when less than 3 friendly aspects are in play', function () {
@@ -40,7 +39,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.wampa);
 
-                expect(this.player2).toBeAbleToSelectAllOf([this.marine, this.p1Base, this.sabine]);
+                expect(this.player2).toBeAbleToSelectExactly([this.marine, this.p1Base, this.sabine]);
             });
         });
     });

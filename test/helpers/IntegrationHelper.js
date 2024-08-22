@@ -1,6 +1,7 @@
 /* global describe, beforeEach, jasmine */
 /* eslint camelcase: 0, no-invalid-this: 0 */
 
+const { select } = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
 
@@ -187,6 +188,51 @@ var customMatchers = {
                     } else {
                         result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${selectable.map((card) => card.name).join(', ')}`;
                     }
+                }
+
+                return result;
+            }
+        };
+    },
+    toBeAbleToSelectExactly: function () {
+        return {
+            compare: function (player, cards) {
+                if (!Array.isArray(cards)) {
+                    cards = [cards];
+                }
+
+                let cardsPopulated = [];
+                for (let card of cards) {
+                    if (typeof card === 'string') {
+                        cardsPopulated.push(player.findCardByName(card));
+                    } else {
+                        cardsPopulated.push(card);
+                    }
+                }
+
+                let result = {};
+
+                let expectedSelectable = cardsPopulated.filter((x) => player.currentActionTargets.includes(x));
+                let unexpectedUnselectable = cardsPopulated.filter((x) => !player.currentActionTargets.includes(x));
+                let unexpectedSelectable = player.currentActionTargets.filter((x) => !cardsPopulated.includes(x));
+
+                result.pass = unexpectedUnselectable.length === 0 && unexpectedSelectable.length === 0;
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${expectedSelectable.map((card) => card.name).join(', ')}`;
+                } else {
+                    let message = '';
+
+                    if (unexpectedUnselectable.length > 0) {
+                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${unexpectedUnselectable.map((card) => card.name).join(', ')}`;
+                    }
+                    if (unexpectedSelectable.length > 0) {
+                        if (message.length > 0) {
+                            message += '\n';
+                        }
+                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${unexpectedSelectable.map((card) => card.name).join(', ')}`;
+                    }
+                    result.message = message;
                 }
 
                 return result;
