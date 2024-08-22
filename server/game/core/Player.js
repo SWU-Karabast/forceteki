@@ -1103,8 +1103,10 @@ class Player extends GameObject {
 
             // In normal play, all upgrades should already have been removed, but in manual play we may need to remove them.
             // This won't trigger any leaves play effects
-            for (const upgrade of card.upgrades) {
-                upgrade.owner.moveCard(upgrade, Location.Discard);
+            if (card.isUnit()) {
+                for (const upgrade of card.upgrades) {
+                    upgrade.owner.moveCard(upgrade, Location.Discard);
+                }
             }
 
             card.controller = this;
