@@ -4,6 +4,7 @@ import { CardType, CardTypeFilter, EffectName, Location, WildcardCardType } from
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import { UpgradeCard } from '../card/UpgradeCard';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -139,10 +140,33 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return [context.source];
     }
 
-    protected updateLeavesPlayEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected addLeavesPlayPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
         super.updateEvent(event, card, context, additionalProperties);
-        event.destination = Location.Discard;
+        event.destination = properties.destination || Location.Discard;
+
+        event.createContingentEvents = () => {
+            const contingentEvents = [];
+
+            // add events to defeat any upgrades attached to this card. the events will be added as "contingent events"
+            // in the event window, so they'll resolve in the same window but after the primary event
+            for (const upgrade of (event.card.upgrades ?? []) as UpgradeCard[]) {
+                if (EnumHelpers.isArena(upgrade.location)) {
+                    const attachmentEvent = context.game.actions
+                        .defeat()
+                        .generateEvent(upgrade, context.game.getFrameworkContext());
+                    attachmentEvent.order = event.order - 1;
+                    const previousCondition = attachmentEvent.condition;
+                    attachmentEvent.condition = (attachmentEvent) =>
+                        previousCondition(attachmentEvent) && upgrade.parentCard === event.card;
+                    attachmentEvent.isContingent = true;
+                    contingentEvents.push(attachmentEvent);
+                }
+            }
+
+            return contingentEvents;
+        };
+
         // TODO GAR SAXON: the L5R 'ancestral' keyword behaves exactly like Gar's deployed ability, we can reuse this code for him
         // event.preResolutionEffect = () => {
         //     event.cardStateWhenLeftPlay = event.card.createSnapshot();
@@ -155,29 +179,6 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         //         );
         //     }
         // };
-        event.createContingentEvents = () => {
-            const contingentEvents = [];
-
-            // TODO UPGRADES: uncomment below code
-            // Add an imminent triggering condition for all attachments leaving play
-
-            // for (const attachment of (event.card.attachments ?? []) as BaseCard[]) {
-            //     // we only need to add events for attachments that are in play.
-            //     if (attachment.location === Location.PlayArea) {
-            //         let attachmentEvent = context.game.actions
-            //             .discardFromPlay()
-            //             .generateEvent(attachment, context.game.getFrameworkContext());
-            //         attachmentEvent.order = event.order - 1;
-            //         let previousCondition = attachmentEvent.condition;
-            //         attachmentEvent.condition = (attachmentEvent) =>
-            //             previousCondition(attachmentEvent) && attachment.parent === event.card;
-            //         attachmentEvent.isContingent = true;
-            //         contingentEvents.push(attachmentEvent);
-            //     }
-            // }
-
-            return contingentEvents;
-        };
     }
 
     protected leavesPlayEventHandler(event, additionalProperties = {}): void {

@@ -36,8 +36,7 @@ describe('Death Trooper', function() {
             it('cannot be passed', function () {
                 // Play Death Trooper
                 this.player1.clickCard(this.deathTrooper);
-                expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartelSpacer, this.wampa, this.superlaserTech]);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
                 expect(this.player1).not.toHavePassAbilityPrompt();
             });
 
@@ -46,14 +45,12 @@ describe('Death Trooper', function() {
                 this.player1.clickCard(this.deathTrooper);
 
                 // Choose Friendly
-                expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.interceptor, this.cartelSpacer, this.wampa, this.superlaserTech]);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
                 expect(this.player1).not.toHavePassAbilityPrompt();
                 this.player1.clickCard(this.deathTrooper);
 
                 // Choose Enemy
-                expect(this.player1).toBeAbleToSelectAllOf([this.wampa, this.superlaserTech]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.pykeSentinel, this.deathTrooper, this.interceptor, this.cartelSpacer]);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.superlaserTech]);
                 this.player1.clickCard(this.wampa);
                 expect(this.deathTrooper.damage).toEqual(2);
                 expect(this.wampa.damage).toEqual(2);
@@ -65,7 +62,7 @@ describe('Death Trooper', function() {
             //     this.player1.clickCard(this.deathTrooper);
 
             //     // Choose Friendly
-            //     expect(this.player1).toBeAbleToSelectAllOf([this.pykeSentinel, this.deathTrooper]);
+            //     expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
             //     expect(this.player1).not.toHavePassAbilityPrompt();
             //     this.player1.clickCard(this.deathTrooper);
             //     expect(this.deathTrooper.damage).toEqual(2);

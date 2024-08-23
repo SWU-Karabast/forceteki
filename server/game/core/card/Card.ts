@@ -39,18 +39,17 @@ export class Card extends OngoingEffectSource {
     public controller: Player;
 
     protected override readonly id: string;
-    protected abilityInitializers: IAbilityInitializer[] = [];
     protected readonly printedKeywords: Set<Keyword>;   // TODO KEYWORDS: enum of keywords
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
+    protected abilityInitializers: IAbilityInitializer[] = [];
     protected _actionAbilities: CardActionAbility[];
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
-    protected _upgrades: Card[] = [];
 
     private _location: Location;
 
@@ -75,11 +74,6 @@ export class Card extends OngoingEffectSource {
     public get type(): CardType {
         return this.printedType;
     }
-
-    public get upgrades(): Card[] {
-        return this._upgrades;
-    }
-
 
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
@@ -352,7 +346,7 @@ export class Card extends OngoingEffectSource {
 
     // *************************************** EFFECT HELPERS ***************************************
     public isBlank(): boolean {
-        return this.anyEffect(EffectName.Blank);
+        return this.hasEffect(EffectName.Blank);
     }
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
@@ -562,18 +556,10 @@ export class Card extends OngoingEffectSource {
 
     /**
      * Deals with the engine effects of leaving play, making sure all statuses are removed. Anything which changes
-     * the state of the card should be here. This is also called in some strange corner cases e.g. for attachments
+     * the state of the card should be here. This is also called in some strange corner cases e.g. for upgrades
      * which aren't actually in play themselves when their parent (which is in play) leaves play.
-     *
-     * Note that a card becoming a resource is _not_ leaving play.
      */
     public leavesPlay() {
-        // // If this is an attachment and is attached to another card, we need to remove all links between them
-        // if (this.parent && this.parent.attachments) {
-        //     this.parent.removeAttachment(this);
-        //     this.parent = null;
-        // }
-
         // TODO: reuse this for capture logic
         // // Remove any cards underneath from the game
         // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
@@ -628,7 +614,7 @@ export class Card extends OngoingEffectSource {
     //     clone.exhausted = this.exhausted;
     //     // clone.statusTokens = [...this.statusTokens];
     //     clone.location = this.location;
-    //     clone.parent = this.parent;
+    //     clone.parentCard = this.parentCard;
     //     clone.aspects = [...this.aspects];
     //     // clone.fate = this.fate;
     //     // clone.inConflict = this.inConflict;
@@ -646,7 +632,7 @@ export class Card extends OngoingEffectSource {
     //     if (
     //         isActivePlayer
     //             ? this.isFacedown() && this.hideWhenFacedown()
-    //             : this.isFacedown() || hideWhenFaceup || this.anyEffect(EffectName.HideWhenFaceUp)
+    //             : this.isFacedown() || hideWhenFaceup || this.hasEffect(EffectName.HideWhenFaceUp)
     //     ) {
     //         let state = {
     //             controller: this.controller.getShortSummary(),

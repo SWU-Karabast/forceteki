@@ -91,7 +91,7 @@ export const restrictionDsl = {
     // opponentsCharacterAbilitiesWithLowerGlory: (context, effect) =>
     //     context.source.type === CardTypes.Character &&
     //     context.source.controller === getApplyingPlayer(effect).opponent &&
-    //     context.source.glory < effect.context.source.parent.glory,
+    //     context.source.glory < effect.context.source.parentCard.glory,
     // reactions: (context) => context.ability.abilityType === AbilityTypes.Reaction,
     // actionEvents: (context) =>
     //     context.ability.card.type === CardTypes.Event && context.ability.abilityType === AbilityTypes.Action,

@@ -16,6 +16,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     discardDestinationCards?: boolean;
 }
 
+/** @deprecated This system was imported from L5R but has not been tested */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public override readonly name = 'move';
     public override targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade, CardType.Event];
@@ -57,7 +58,6 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         } else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
             card.facedown = false;
         }
-        // card.checkForIllegalAttachments();
     }
 
     public override getCostMessage(context: AbilityContext): [string, any[]] {

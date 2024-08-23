@@ -36,8 +36,7 @@ describe('Basic attack', function() {
 
                 // TODO: test helper for managing attacks
                 // can target opponent's ground units and base but not space units
-                expect(this.player1).toBeAbleToSelectAllOf([this.atrt, this.enfysNest, this.p2Base]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.allianceXWing, this.wampa, this.cartelSpacer, this.p1Base]);
+                expect(this.player1).toBeAbleToSelectExactly([this.atrt, this.enfysNest, this.p2Base]);
             });
 
             it('from space arena to another unit in the space arena, attack should resolve correctly', function () {

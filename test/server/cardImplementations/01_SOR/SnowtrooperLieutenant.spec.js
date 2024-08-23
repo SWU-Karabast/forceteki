@@ -31,12 +31,10 @@ describe('Snowtrooper Lieutenant', function() {
             it('should allowing triggering an attack by a unit when played', function () {
                 this.player1.clickCard(this.snowtrooperLieutenant);
                 expect(this.snowtrooperLieutenant.location).toBe('ground arena');
-                expect(this.player1).toBeAbleToSelectAllOf([this.wampa, this.piett]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.p1Base, this.p2Base, this.peacekeeper, this.cartelSpacer]);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.piett]);
 
                 this.player1.clickCard(this.wampa);
-                expect(this.player1).toBeAbleToSelectAllOf([this.p2Base, this.peacekeeper]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.p1Base, this.wampa, this.piett, this.cartelSpacer]);
+                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.peacekeeper]);
 
                 this.player1.clickCard(this.peacekeeper);
                 expect(this.wampa.exhausted).toBe(true);

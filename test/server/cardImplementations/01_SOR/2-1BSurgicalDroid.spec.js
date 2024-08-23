@@ -31,12 +31,11 @@ describe('2-1B Surgical Droid', function() {
                 // Attack
                 this.player1.clickCard(this.surgicalDroid);
                 expect(this.surgicalDroid.location).toBe('ground arena');
-                expect(this.player1).toBeAbleToSelectAllOf([this.p2Base, this.wampa]);
+                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
                 this.player1.clickCard(this.p2Base);
 
                 // Healing Target
-                expect(this.player1).toBeAbleToSelectAllOf([this.r2d2, this.c3p0, this.wampa]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.surgicalDroid]);
+                expect(this.player1).toBeAbleToSelectExactly([this.r2d2, this.c3p0, this.wampa]);
                 this.player1.clickCard(this.c3p0);
 
                 // Confirm Results
@@ -48,12 +47,11 @@ describe('2-1B Surgical Droid', function() {
                 // Attack
                 this.player1.clickCard(this.surgicalDroid);
                 expect(this.surgicalDroid.location).toBe('ground arena');
-                expect(this.player1).toBeAbleToSelectAllOf([this.p2Base, this.wampa]);
+                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
                 this.player1.clickCard(this.p2Base);
 
                 // Healing Target
-                expect(this.player1).toBeAbleToSelectAllOf([this.r2d2, this.c3p0, this.wampa]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.surgicalDroid]);
+                expect(this.player1).toBeAbleToSelectExactly([this.r2d2, this.c3p0, this.wampa]);
                 this.player1.clickCard(this.r2d2);
 
                 // Confirm Results
@@ -66,12 +64,11 @@ describe('2-1B Surgical Droid', function() {
                 this.player1.clickCard(this.surgicalDroid);
                 expect(this.wampa.damage).toBe(2);
                 expect(this.surgicalDroid.location).toBe('ground arena');
-                expect(this.player1).toBeAbleToSelectAllOf([this.p2Base, this.wampa]);
+                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
                 this.player1.clickCard(this.p2Base);
 
                 // Healing Target
-                expect(this.player1).toBeAbleToSelectAllOf([this.r2d2, this.c3p0, this.wampa]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.surgicalDroid]);
+                expect(this.player1).toBeAbleToSelectExactly([this.r2d2, this.c3p0, this.wampa]);
                 this.player1.clickCard(this.wampa);
 
                 // Confirm Results
@@ -82,8 +79,8 @@ describe('2-1B Surgical Droid', function() {
             it('surgical droid ability can be passed', function () {
                 expect(this.r2d2.damage).toBe(3);
                 this.player1.clickCard(this.surgicalDroid);
-                expect(this.player1).toBeAbleToSelectAllOf([this.p2Base]);
                 this.player1.clickCard(this.p2Base);
+
                 this.player1.clickPrompt('Pass ability');
                 expect(this.surgicalDroid.exhausted).toBe(true);
                 expect(this.r2d2.damage).toBe(3);

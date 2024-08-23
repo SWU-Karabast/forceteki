@@ -4,23 +4,97 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import Contract from '../utils/Contract';
-import { CardType, Location } from '../Constants';
+import { AbilityType, CardType, Location, RelativePlayer } from '../Constants';
+import { UnitCard } from './CardTypes';
+import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
+import { IConstantAbilityProps } from '../../Interfaces';
+import { Card } from './Card';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(InPlayCard)));
 
 export class UpgradeCard extends UpgradeCardParent {
-    public constructor(
-        owner: Player,
-        cardData: any
-    ) {
+    protected _parentCard?: UnitCard = null;
+
+    public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertTrue(this.printedType === CardType.Upgrade);
 
-        // TODO UPGRADES: add play event action to this._actions (see Unit.ts for reference)
+        this.defaultActions.push(new PlayUpgradeAction(this));
     }
 
     public override isUpgrade() {
         return true;
+    }
+
+    // TODO CAPTURE: we may need to use the "parent" concept for captured cards as well
+    /** The card that this card is underneath */
+    public get parentCard(): UnitCard {
+        if (!Contract.assertNotNullLike(this._parentCard) || !Contract.assertTrue(EnumHelpers.isArena(this.location))) {
+            return null;
+        }
+
+        return this._parentCard;
+    }
+
+    /** The card that this card is underneath */
+    public set parentCard(card: Card) {
+        if (!Contract.assertTrue(card.isUnit()) || !Contract.assertTrue(EnumHelpers.isArena(this.location))) {
+            return;
+        }
+
+        this._parentCard = card as UnitCard;
+    }
+
+    /**
+     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
+     * implementations must override this if they have specific attachment conditions.
+     */
+    public canAttach(parentCard: Card, controller: Player = this.controller): boolean {
+        if (!parentCard.isUnit()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public override leavesPlay() {
+        // If this is an attachment and is attached to another card, we need to remove all links between them
+        if (this._parentCard && this._parentCard.upgrades) {
+            this._parentCard.removeUpgrade(this);
+            this._parentCard = null;
+        }
+
+        super.leavesPlay();
+    }
+
+    /**
+     * Helper that adds an effect that applies to the attached unit. Yyou can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addAttachedUnitEffectAbility(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'match' | 'ongoingEffect'>) {
+        this.addConstantAbility({
+            title: properties.title,
+            condition: properties.condition || (() => true),
+            match: (card, context) => card === this.parentCard && (!properties.match || properties.match(card, context)),
+            targetController: RelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+            ongoingEffect: properties.ongoingEffect
+        });
+    }
+
+    /**
+     * Helper that adds an "Attached unit gains:" ability. By default the effect will
+     * target the parent unit, but you can provide a match function to narrow down whether the
+     * effect is applied (for cases where the effect has conditions).
+     */
+    protected addAttachedUnitGainsTriggeredAbilityAbility(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'match' | 'ongoingEffect'>) {
+        this.addConstantAbility({
+            title: properties.title,
+            condition: properties.condition || (() => true),
+            match: (card, context) => card === this.parentCard && (!properties.match || properties.match(card, context)),
+            targetController: RelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+            ongoingEffect: properties.ongoingEffect
+        });
     }
 
     protected override initializeForCurrentLocation(prevLocation: Location): void {
@@ -36,122 +110,4 @@ export class UpgradeCard extends UpgradeCardParent {
                 break;
         }
     }
-
-    // TODO UPGRADES: this was in the L5R code as "updateEffectContext()", not sure yet what the need is
-    protected updateConstantAbilityContexts() {
-        for (const constantAbility of this._constantAbilities) {
-            if (constantAbility.registeredEffects) {
-                for (const effect of constantAbility.registeredEffects) {
-                    effect.refreshContext();
-                }
-            }
-        }
-    }
-
-    // TODO UPGRADES: all of the below came from L5R attachments
-    // /**
-    //  * Applies an effect with the specified properties while the current card is
-    //  * attached to another card. By default the effect will target the parent
-    //  * card, but you can provide a match function to narrow down whether the
-    //  * effect is applied (for cases where the effect only applies to specific
-    //  * characters).
-    //  */
-    // whileAttached(properties: Pick<PersistentEffectProps<this>, 'condition' | 'match' | 'effect'>) {
-    //     this.persistentEffect({
-    //         condition: properties.condition || (() => true),
-    //         match: (card, context) => card === this.parent && (!properties.match || properties.match(card, context)),
-    //         targetController: RelativePlayer.Any,
-    //         effect: properties.effect
-    //     });
-    // }
-
-    // /**
-    //  * Checks whether the passed card meets the attachment restrictions (e.g.
-    //  * Opponent cards only, specific factions, etc) for this card.
-    //  */
-    // canAttach(parent?: BaseCard, properties = { ignoreType: false, controller: this.controller }) {
-    //     if (!(parent instanceof BaseCard)) {
-    //         return false;
-    //     }
-
-    //     if (
-    //         parent.getType() !== CardType.Character ||
-    //         (!properties.ignoreType && this.getType() !== CardType.Attachment)
-    //     ) {
-    //         return false;
-    //     }
-
-    //     const attachmentController = properties.controller ?? this.controller;
-    //     for (const effect of this.getEffects() as OngoingCardEffect[]) {
-    //         switch (effect.type) {
-    //             case EffectName.AttachmentMyControlOnly: {
-    //                 if (attachmentController !== parent.controller) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentOpponentControlOnly: {
-    //                 if (attachmentController === parent.controller) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentUniqueRestriction: {
-    //                 if (!parent.isUnique()) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentFactionRestriction: {
-    //                 const factions = effect.getValue<Faction[]>(this as any);
-    //                 if (!factions.some((faction) => parent.isFaction(faction))) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentTraitRestriction: {
-    //                 const traits = effect.getValue<string[]>(this as any);
-    //                 if (!traits.some((trait) => parent.hasSomeTrait(trait))) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //             case EffectName.AttachmentCardCondition: {
-    //                 const cardCondition = effect.getValue<(card: BaseCard) => boolean>(this as any);
-    //                 if (!cardCondition(parent)) {
-    //                     return false;
-    //                 }
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     return true;
-    // }
-
-
-    // TODO UPGRADES: these status token modifier methods could be reused for upgrades maybe? unclear how relevant they are
-    // getStatusTokenSkill() {
-    //     const modifiers = this.getStatusTokenModifiers();
-    //     const skill = modifiers.reduce((total, modifier) => total + modifier.amount, 0);
-    //     if (isNaN(skill)) {
-    //         return 0;
-    //     }
-    //     return skill;
-    // }
-
-    // getStatusTokenModifiers() {
-    //     let modifiers = [];
-    //     let modifierEffects = this.getEffects().filter((effect) => effect.type === EffectName.ModifyBothSkills);
-
-    //     // skill modifiers
-    //     modifierEffects.forEach((modifierEffect) => {
-    //         const value = modifierEffect.getValue(this);
-    //         modifiers.push(StatModifier.fromEffect(value, modifierEffect));
-    //     });
-    //     modifiers = modifiers.filter((modifier) => modifier.type === 'token');
-
-    //     // adjust honor status effects
-    //     this.adjustHonorStatusModifiers(modifiers);
-    //     return modifiers;
-    // }
 }

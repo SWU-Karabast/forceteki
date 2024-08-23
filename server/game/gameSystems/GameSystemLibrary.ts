@@ -2,7 +2,7 @@ import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
-// import { AttachAction, AttachActionProperties } from './AttachAction';
+import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttackSystem, IAttackProperties } from './AttackSystem';
 // import { CancelAction, CancelActionProperties } from './CancelAction';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -64,9 +64,9 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 // export function addToken(propertyFactory: PropsFactory<AddTokenProperties> = {}): GameSystem {
 //     return new AddTokenAction(propertyFactory);
 // }
-// export function attach(propertyFactory: PropsFactory<AttachActionProperties> = {}): GameSystem {
-//     return new AttachAction(propertyFactory);
-// }
+export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProperties> = {}): GameSystem {
+    return new AttachUpgradeSystem(propertyFactory);
+}
 export function attack(propertyFactory: PropsFactory<IAttackProperties>): GameSystem {
     return new AttackSystem(propertyFactory);
 }

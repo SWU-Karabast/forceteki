@@ -129,7 +129,7 @@ class PlayerInteractionWrapper {
                 });
                 // Attach to the card
                 upgrades.forEach((upgrade) => {
-                    this.player.attach(upgrade, card);
+                    card.manualAttach(upgrade);
                 });
             }
             if (options.damage !== undefined) {
@@ -149,7 +149,14 @@ class PlayerInteractionWrapper {
         return this.player.resources;
     }
 
-    // TODO: helper method for this
+    /**
+     * Sets the player's resource count to the specified number, using
+     * a default card name
+     */
+    setResourceCount(count) {
+        this.setResourceCards(Array(count).fill('underworld-thug'));
+    }
+
     /**
      * List of objects describing cards in resource area
      * Either as Object:

@@ -20,8 +20,6 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. The ability to be defeated as an overridable method
  */
 export class InPlayCard extends PlayableOrDeployableCard {
-    public readonly defaultArena: Arena;
-
     protected _triggeredAbilities: TriggeredAbility[] = [];
     protected _constantAbilities: IConstantAbility[] = [];
 
@@ -35,18 +33,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     // ********************************************** CONSTRUCTOR **********************************************
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-
-        Contract.assertNotNullLike(cardData.arena);
-        switch (cardData.arena) {
-            case 'space':
-                this.defaultArena = Location.SpaceArena;
-                break;
-            case 'ground':
-                this.defaultArena = Location.GroundArena;
-                break;
-            default:
-                Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
-        }
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
@@ -147,6 +133,17 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
+    /** Update the context of each constant ability. Used when the card's controller has changed. */
+    public updateConstantAbilityContexts() {
+        for (const constantAbility of this._constantAbilities) {
+            if (constantAbility.registeredEffects) {
+                for (const effect of constantAbility.registeredEffects) {
+                    effect.refreshContext();
+                }
+            }
+        }
+    }
+
     protected override initializeForCurrentLocation(prevLocation: Location) {
         super.initializeForCurrentLocation(prevLocation);
 
@@ -192,9 +189,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
         if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
             this.removeLastingEffects();
         }
-
-        // TODO UPGRADES: is this needed for upgrades?
-        // this.updateStatusTokenEffects();
 
         // check to register / unregister any effects that we are the source of
         for (const constantAbility of this._constantAbilities) {

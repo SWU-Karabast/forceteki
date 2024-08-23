@@ -272,7 +272,7 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Returns if a card is in play (characters, attachments, provinces, holdings) that has the passed trait
+     * Returns if a card is in play (units, upgrades, base, leader) that has the passed trait
      * @param {string} trait
      * @returns {boolean} true/false if the trait is in pay
      */

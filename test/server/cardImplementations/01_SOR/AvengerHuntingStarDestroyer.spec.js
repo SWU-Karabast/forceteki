@@ -36,8 +36,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 this.player1.clickCard(this.p1Avenger);
 
                 // Player 2 must choose its own unit
-                expect(this.player2).toBeAbleToSelectAllOf([this.wampa, this.cartelSpacer, this.p2Avenger]);
-                expect(this.player2).toBeAbleToSelectNoneOf([this.p1Avenger, this.interceptor, this.pykeSentinel]);
+                expect(this.player2).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer, this.p2Avenger]);
                 this.player2.clickCard(this.cartelSpacer);
 
                 // Chosen unit defeated
@@ -52,8 +51,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 this.player2.clickCard(this.p1Base);
 
                 // Player 1 must choose its own unit
-                expect(this.player1).toBeAbleToSelectAllOf([this.interceptor, this.pykeSentinel]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.wampa, this.cartelSpacer, this.p2Avenger]);
+                expect(this.player1).toBeAbleToSelectExactly([this.interceptor, this.pykeSentinel]);
                 this.player1.clickCard(this.pykeSentinel);
                 expect(this.pykeSentinel.location).toBe('discard');
                 expect(this.p1Base.damage).toBe(8);
@@ -70,8 +68,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 expect(this.interceptor.location).toBe('space arena');
 
                 // Player 1 must choose its own unit
-                expect(this.player1).toBeAbleToSelectAllOf([this.interceptor, this.pykeSentinel]);
-                expect(this.player1).toBeAbleToSelectNoneOf([this.wampa, this.cartelSpacer, this.p2Avenger]);
+                expect(this.player1).toBeAbleToSelectExactly([this.interceptor, this.pykeSentinel]);
 
                 // Choose the defender and check it was destroyed
                 this.player1.clickCard(this.interceptor);

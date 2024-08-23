@@ -44,7 +44,7 @@ export abstract class GameObject {
         return filteredEffects.reduce((total, effect) => total + effect, 0);
     }
 
-    public anyEffect(type: EffectName) {
+    public hasEffect(type: EffectName) {
         return this.getEffectValues(type).length > 0;
     }
 
