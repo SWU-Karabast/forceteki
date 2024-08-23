@@ -6,7 +6,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                     phase: 'action',
                     player1: {
                         hand: ['mon-mothma#voice-of-the-rebellion'],
-                        deck: ['wampa', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
+                        deck: ['cell-block-guard', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
                         leader: ['leia-organa#alliance-general'],
                         resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst']
                     }
@@ -21,11 +21,12 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
             it('can draw rebel', function () {
                 this.player1.clickCard(this.monMothma);
                 expect(this.monMothma.location).toBe('ground arena');
-                expect(this.player1).toHaveDisabledPromptButton('wampa');
-                expect(this.player1).toHaveDisabledPromptButton('atst');
-                expect(this.player1).toHaveDisabledPromptButton('pyke-sentinel');
-                expect(this.player1).toHaveDisabledPromptButton('cartel-spacer');
-                expect(this.player1).toHavePrompt('battlefield-marine');
+                expect(this.player1).toHavePrompt('Select a card to reveal');
+                expect(this.player1).toHaveDisabledPromptButton('Wampa');
+                expect(this.player1).toHaveDisabledPromptButton('AT-ST');
+                expect(this.player1).toHaveDisabledPromptButton('Pyke Sentinel');
+                expect(this.player1).toHaveDisabledPromptButton('Cartel Spacer');
+                expect(this.player1).toHavePromptButton('Battlefield Marine');
                 this.player1.clickCard(this.battlefieldMarine);
                 expect(this.battlefieldMarine.location).toBe('hand');
                 expect(this.getChatLogs(2)).toContain('player1 takes Battlefield Marine');
