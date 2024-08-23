@@ -194,8 +194,12 @@ export function reveal(propertyFactory: PropsFactory<IRevealProperties> = {}): C
 // }
 
 /**
- * default amount = -1 (whole deck)
- * default reveal = true
+ * default cardsToSearch = -1 (whole deck)
+ * default selectCardCount = 1 (number of cards to retrieve)
+ * default targetMode = TargetMode.UpTo (retrieve 0 up to the selectCardCount)
+ * default shuffle = false (set to true if deck should be shuffled after search)
+ * default reveal = true (set to false if the cards chosen should not be revealed)
+ * default placeOnBottomInRandomOrder = true (place unchosen cards on the bottom of the deck in random order)
  * default cardCondition = always true
  */
 export function deckSearch(propertyFactory: PropsFactory<IDeckSearchProperties>): GameSystem {

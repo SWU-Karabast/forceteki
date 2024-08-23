@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import { EventName, Location, TargetMode } from '../core/Constants';
+import { DeckSearchEvent } from '../core/event/DeckSearchEvent';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
@@ -24,8 +25,8 @@ export interface IDeckSearchProperties extends IPlayerTargetSystemProperties {
     choosingPlayer?: Player;
     placeOnBottomInRandomOrder?: boolean;
     messageArgs?: (context: AbilityContext, cards: Card[]) => any | any[];
-    selectedCardsHandler?: (context: AbilityContext, event: any, cards: Card[]) => void;
-    remainingCardsHandler?: (context: AbilityContext, event: any, cards: Card[]) => void;
+    selectedCardsHandler?: (context: AbilityContext, event: DeckSearchEvent, cards: Card[]) => void;
+    remainingCardsHandler?: (context: AbilityContext, event: DeckSearchEvent, cards: Card[]) => void;
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
     chooseNothingImmediateEffect?: GameSystem<IGameSystemProperties>;
 }
@@ -59,7 +60,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
             return false;
         }
         const player = properties.player || context.player;
-        return this.getDeck(player, properties).length > 0 && super.canAffect(player, context);
+        return this.getDeck(player).length > 0 && super.canAffect(player, context);
     }
 
     public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IDeckSearchProperties {
@@ -84,14 +85,14 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     public override canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
         const amount = this.getAmount(properties.cardsToSearch, context);
-        return amount !== 0 && this.getDeck(player, properties).length > 0 && super.canAffect(player, context);
+        return amount !== 0 && this.getDeck(player).length > 0 && super.canAffect(player, context);
     }
 
     public override defaultTargets(context: AbilityContext): Player[] {
         return [context.player];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: AbilityContext, additionalProperties: unknown): void {
+    public override addPropertiesToEvent(event: DeckSearchEvent, player: Player, context: AbilityContext, additionalProperties: unknown): void {
         const { cardsToSearch: amount } = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
         const fAmount = this.getAmount(amount, context);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
@@ -103,9 +104,9 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
         const player = properties.player || context.player;
-        const event = this.generateEvent(player, context, additionalProperties) as any;
-        const amount = event.amount > -1 ? event.amount : this.getDeck(player, properties).length;
-        let cards = this.getDeck(player, properties).slice(0, amount);
+        const event = this.generateEvent(player, context, additionalProperties) as DeckSearchEvent;
+        const amount = event.amount > -1 ? event.amount : this.getDeck(player).length;
+        let cards = this.getDeck(player).slice(0, amount);
         if (event.amount === -1) {
             cards = cards.filter((card) => properties.cardCondition(card, context));
         }
@@ -127,11 +128,11 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         return typeof shuffle === 'function' ? shuffle(context) : shuffle;
     }
 
-    private getDeck(player: Player, properties: IDeckSearchProperties): any[] {
+    private getDeck(player: Player): Card[] {
         return player.drawDeck;
     }
 
-    private selectCard(event: any, additionalProperties: unknown, cards: Card[], selectedCards: Set<Card>): void {
+    private selectCard(event: DeckSearchEvent, additionalProperties: unknown, cards: Card[], selectedCards: Set<Card>): void {
         const context: AbilityContext = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
         const canCancel = properties.targetMode !== TargetMode.Exactly;
@@ -191,17 +192,11 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         });
     }
 
-    private handleDone(
-        properties: IDeckSearchProperties,
-        context: AbilityContext,
-        event: any,
-        selectedCards: Set<Card>,
-        allCards: Card[]
-    ): void {
+    private handleDone(properties: IDeckSearchProperties, context: AbilityContext, event: DeckSearchEvent, selectedCards: Set<Card>, allCards: Card[]): void {
         event.selectedCards = Array.from(selectedCards);
         context.selects['deckSearch'] = Array.from(selectedCards);
         if (properties.selectedCardsHandler === null) {
-            this.defaultHandleDone(properties, context, event, selectedCards);
+            this.defaultDoneHandle(properties, context, event, selectedCards);
         } else {
             properties.selectedCardsHandler(context, event, Array.from(selectedCards));
         }
@@ -214,13 +209,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         }
     }
 
-    private defaultRemainingCardsHandler(
-        properties: IDeckSearchProperties,
-        context: AbilityContext,
-        event: any,
-        selectedCards: Set<Card>,
-        allCards: Card[]
-    ) {
+    private defaultRemainingCardsHandler(properties: IDeckSearchProperties, context: AbilityContext, event: DeckSearchEvent, selectedCards: Set<Card>, allCards: Card[]) {
         if (this.shouldShuffle(properties.shuffle, context)) {
             return event.player.shuffleDeck();
         }
@@ -242,13 +231,8 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         }
     }
 
-    private defaultHandleDone(
-        properties: IDeckSearchProperties,
-        context: AbilityContext,
-        event: any,
-        selectedCards: Set<Card>
-    ): void {
-        this.doneMessage(properties, context, event, selectedCards);
+    private defaultDoneHandle(properties: IDeckSearchProperties, context: AbilityContext, event: DeckSearchEvent, selectedCards: Set<Card>): void {
+        this.handleDoneMessage(properties, context, event, selectedCards);
 
         const gameAction = this.generatePropertiesFromContext(event.context).immediateEffect;
         if (gameAction) {
@@ -263,12 +247,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         }
     }
 
-    private doneMessage(
-        properties: IDeckSearchProperties,
-        context: AbilityContext,
-        event: any,
-        selectedCards: Set<Card>
-    ): void {
+    private handleDoneMessage(properties: IDeckSearchProperties, context: AbilityContext, event: DeckSearchEvent, selectedCards: Set<Card>): void {
         const choosingPlayer = properties.choosingPlayer || event.player;
         if (selectedCards.size > 0 && properties.message) {
             const args = properties.messageArgs ? properties.messageArgs(context, Array.from(selectedCards)) : [];
@@ -276,7 +255,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         }
 
         if (selectedCards.size === 0) {
-            return this.takesNothing(properties, context, event);
+            return this.handleTakeNothing(properties, context, event);
         }
 
         if (properties.reveal) {
@@ -291,7 +270,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         );
     }
 
-    private takesNothing(properties: IDeckSearchProperties, context: AbilityContext, event: any) {
+    private handleTakeNothing(properties: IDeckSearchProperties, context: AbilityContext, event: DeckSearchEvent) {
         const choosingPlayer = properties.choosingPlayer || event.player;
         context.game.addMessage('{0} takes nothing', choosingPlayer);
         if (properties.chooseNothingImmediateEffect) {

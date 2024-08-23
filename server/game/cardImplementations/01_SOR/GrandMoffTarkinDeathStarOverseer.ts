@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { Location, TargetMode, Trait } from '../../core/Constants';
+import { Location, Trait } from '../../core/Constants';
 
 export default class GrandMoffTarkinDeathStarOverseer extends NonLeaderUnitCard {
     protected override getImplementationId() {
