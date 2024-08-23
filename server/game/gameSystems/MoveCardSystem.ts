@@ -3,20 +3,22 @@ import type { Card } from '../core/card/Card';
 import { CardType, EffectName, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import Contract from '../core/utils/Contract';
 
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
     destination?: Location;
     switch?: boolean;
     switchTarget?: Card;
     shuffle?: boolean;
-    faceup?: boolean;
+    // TODO: remove completely if faceup logic is not needed
+    // faceup?: boolean;
     bottom?: boolean;
     changePlayer?: boolean;
     discardDestinationCards?: boolean;
 }
 
-/** @deprecated This system was imported from L5R but has not been tested */
+/**
+ * This system has been partially tested.
+ */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public override readonly name = 'move';
     public override targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade, CardType.Event];
@@ -26,7 +28,8 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         switch: false,
         switchTarget: null,
         shuffle: false,
-        faceup: false,
+        // TODO: remove completely if faceup logic is not needed
+        // faceup: false,
         bottom: false,
         changePlayer: false,
     };
@@ -56,9 +59,11 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
 
         if (properties.shuffle && (Array.isArray(target) && (target.length === 0 || card === target[target.length - 1]))) {
             card.owner.shuffleDeck();
-        } else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
-            card.facedown = false;
         }
+        // TODO: remove completely if faceup logic is not needed
+        // else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
+        //     card.facedown = false;
+        // }
     }
 
     public override getCostMessage(context: AbilityContext): [string, any[]] {

@@ -52,7 +52,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(event): void { }
+    public override eventHandler(event): void { }
 
     public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
