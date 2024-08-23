@@ -44,17 +44,17 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
         player.moveCard(card, properties.destination, { bottom: !!properties.bottom });
 
-        let target = properties.target;
-        if (Array.isArray(target)) {
-            // TODO: should we allow this to move multiple cards at once?
-            if (!Contract.assertArraySize(target, 1)) {
-                return;
-            }
+        const target = properties.target;
+        // if (Array.isArray(target)) {
+        //     // TODO: should we allow this to move multiple cards at once?
+        //     if (!Contract.assertArraySize(target, 1)) {
+        //         return;
+        //     }
 
-            target = target[0];
-        }
+        //     target = target[0];
+        // }
 
-        if (properties.shuffle) {
+        if (properties.shuffle && (Array.isArray(target) && (target.length === 0 || card === target[target.length - 1]))) {
             card.owner.shuffleDeck();
         } else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
             card.facedown = false;

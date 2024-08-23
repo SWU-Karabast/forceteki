@@ -145,6 +145,13 @@ class PlayerInteractionWrapper {
         return this.player.drawDeck;
     }
 
+    setDeck(newContents = []) {
+        newContents.reverse().forEach((name) => {
+            var card = this.findCardByName(name);
+            this.moveCard(card, 'deck');
+        });
+    }
+
     get resources() {
         return this.player.resources;
     }

@@ -298,6 +298,37 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toBeInBottomOfDeck: function () {
+        return {
+            compare: function (card, player, numCards) {
+                var result = {};
+                const deck = player.deck;
+                const L = deck.length;
+                result.pass = L >= numCards;
+                if (result.pass) {
+                    result.pass = card.location === 'deck';
+                    if (!result.pass) {
+                        result.message = `Expected ${card.title} to be in the deck.`;
+                    } else {
+                        var onBottom = false;
+                        for (let i = 1; i <= numCards; i++) {
+                            if (deck[L - i] === card) {
+                                onBottom = true;
+                                break;
+                            }
+                        }
+                        result.pass = onBottom;
+                        if (!onBottom) {
+                            result.message = `Expected ${card.title} to be on the bottom of the deck.`;
+                        }
+                    }
+                } else {
+                    result.message = 'Deck is smaller than parameter numCards';
+                }
+                return result;
+            }
+        };
     }
 };
 
@@ -384,6 +415,9 @@ global.integration = function (definitions) {
                 this.player2.setHand(options.player2.hand);
                 this.player1.setDiscard(options.player1.discard);
                 this.player2.setDiscard(options.player2.discard);
+                // Deck
+                this.player1.setDeck(options.player1.deck);
+                this.player2.setDeck(options.player2.deck);
 
                 // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {

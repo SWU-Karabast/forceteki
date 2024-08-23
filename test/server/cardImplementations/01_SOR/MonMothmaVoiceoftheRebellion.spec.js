@@ -6,8 +6,8 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                     phase: 'action',
                     player1: {
                         hand: ['mon-mothma#voice-of-the-rebellion'],
-                        deck: ['cell-block-guard', 'pyke-sentinel', 'volunteer-soldier', 'cartel-spacer', 'battlefield-marine'],
-                        deckSize: 5,
+                        deck: ['cell-block-guard', 'pyke-sentinel', 'volunteer-soldier', 'cartel-spacer', 'battlefield-marine', 'wampa', 'viper-probe-droid', 'snowtrooper-lieutenant'],
+                        deckSize: 8,
                         leader: ['leia-organa#alliance-general'],
                         resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst']
                     }
@@ -28,34 +28,45 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 this.player1.clickCard(this.monMothma);
                 expect(this.monMothma.location).toBe('ground arena');
                 expect(this.player1).toHavePrompt('Select a card to reveal');
-                expect(this.player1).toHaveDisabledPromptButton('Cell Block Guard');
-                expect(this.player1).toHaveDisabledPromptButton('Volunteer Soldier');
-                expect(this.player1).toHaveDisabledPromptButton('Pyke Sentinel');
-                expect(this.player1).toHaveDisabledPromptButton('Cartel Spacer');
-                expect(this.player1).toHavePromptButton('Battlefield Marine');
+                expect(this.player1).toHaveDisabledPromptButton(this.cellBlockGuard.title);
+                expect(this.player1).toHaveDisabledPromptButton(this.volunteerSoldier.title);
+                expect(this.player1).toHaveDisabledPromptButton(this.pykeSentinel.title);
+                expect(this.player1).toHaveDisabledPromptButton(this.cartelSpacer.title);
+                expect(this.player1).toHavePromptButton(this.battlefieldMarine.title);
+                expect(this.player1).toHavePromptButton('Take nothing');
             });
 
             it('should reveal the chosen Rebel', function() {
                 this.player1.clickCard(this.monMothma);
-                this.player1.clickPrompt('Battlefield Marine');
+                this.player1.clickPrompt(this.battlefieldMarine.title);
                 expect(this.getChatLogs(2)).toContain('player1 takes Battlefield Marine');
             });
 
             it('should add the chosen card to your hand', function() {
                 this.player1.clickCard(this.monMothma);
-                this.player1.clickPrompt('Battlefield Marine');
+                this.player1.clickPrompt(this.battlefieldMarine.title);
                 expect(this.battlefieldMarine.location).toBe('hand');
+            });
+
+            it('should be allowed to choose nothing and place all cards on the bottom of the deck', function() {
+                this.player1.clickCard(this.monMothma);
+                this.player1.clickPrompt('Take nothing');
+
+                expect(this.battlefieldMarine).toBeInBottomOfDeck(this.player1, 5);
+                expect(this.cartelSpacer).toBeInBottomOfDeck(this.player1, 5);
+                expect(this.cellBlockGuard).toBeInBottomOfDeck(this.player1, 5);
+                expect(this.pykeSentinel).toBeInBottomOfDeck(this.player1, 5);
+                expect(this.volunteerSoldier).toBeInBottomOfDeck(this.player1, 5);
             });
 
             it('should place the remaining cards on the bottom of the deck', function() {
                 this.player1.clickCard(this.monMothma);
-                this.player1.clickPrompt('Battlefield Marine');
-                expect(this.player1.deck.length).toBe(4);
+                this.player1.clickPrompt(this.battlefieldMarine.title);
 
-                expect(this.cartelSpacer.location).toBe('deck');
-                expect(this.cellBlockGuard.location).toBe('deck');
-                expect(this.pykeSentinel.location).toBe('deck');
-                expect(this.volunteerSoldier.location).toBe('deck');
+                expect(this.cartelSpacer).toBeInBottomOfDeck(this.player1, 4);
+                expect(this.cellBlockGuard).toBeInBottomOfDeck(this.player1, 4);
+                expect(this.pykeSentinel).toBeInBottomOfDeck(this.player1, 4);
+                expect(this.volunteerSoldier).toBeInBottomOfDeck(this.player1, 4);
             });
         });
     });
