@@ -19,12 +19,10 @@ export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
                 cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
                 immediateEffect: AbilityHelper.immediateEffects.moveCard({
                     destination: Location.Hand
-                }),
-                shuffle: false,
-                placeOnBottomInRandomOrder: true
+                })
             })
         });
     }
 }
 
-MonMothmaVoiceoftheRebellion.implemented = false;
+MonMothmaVoiceoftheRebellion.implemented = true;
