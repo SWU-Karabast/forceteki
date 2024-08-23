@@ -259,7 +259,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
                 if (gameAction.hasLegalTarget(context)) {
                     gameAction.resolve(null, context);
                 }
-            });
+            }, 'resolve deck search');
         }
     }
 

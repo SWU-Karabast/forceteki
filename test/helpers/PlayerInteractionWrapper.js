@@ -142,7 +142,7 @@ class PlayerInteractionWrapper {
     }
 
     get deck() {
-        return this.player.deck;
+        return this.player.drawDeck;
     }
 
     get resources() {

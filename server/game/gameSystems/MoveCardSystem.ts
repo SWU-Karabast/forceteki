@@ -34,7 +34,8 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public eventHandler(event, additionalProperties = {}): void {
         const context = event.context;
         const card = event.card;
-        event.cardStateWhenMoved = card.createSnapshot();
+        // TODO: remove this completely if determinmed we don't need card snapshots
+        // event.cardStateWhenMoved = card.createSnapshot();
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         if (properties.switch && properties.switchTarget) {
             const otherCard = properties.switchTarget;
