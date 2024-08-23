@@ -18,8 +18,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                     }
                 });
 
-                this.tarkin = this.player1.findCardByName('grand-moff-tarkin#death-star-overseer');
-                this.p2tarkin = this.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
+                this.p1Tarkin = this.player1.findCardByName('grand-moff-tarkin#death-star-overseer');
 
                 this.academyDefenseWalker = this.player1.findCardByName('academy-defense-walker');
                 this.cellBlockGuard = this.player1.findCardByName('cell-block-guard');
@@ -28,6 +27,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
                 this.wampa = this.player1.findCardByName('wampa');
 
+                this.p2tarkin = this.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
                 this.clanWrenRescuer = this.player2.findCardByName('clan-wren-rescuer');
                 this.concordDawnInterceptors = this.player2.findCardByName('concord-dawn-interceptors');
                 this.gentleGiant = this.player2.findCardByName('gentle-giant');
@@ -38,7 +38,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             });
 
             it('should prompt to choose up to 2 Imperials from the top 5 cards', function () {
-                this.player1.clickCard(this.tarkin);
+                this.player1.clickCard(this.p1Tarkin);
                 expect(this.player1).toHavePrompt('Select up to 2 cards to reveal');
                 expect(this.player1).toHavePromptButton(this.academyDefenseWalker.title);
                 expect(this.player1).toHavePromptButton(this.cellBlockGuard.title);
@@ -49,7 +49,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             });
 
             it('should reveal the chosen Imperials', function() {
-                this.player1.clickCard(this.tarkin);
+                this.player1.clickCard(this.p1Tarkin);
 
                 this.player1.clickPrompt(this.cellBlockGuard.title);
                 this.player1.clickPrompt(this.scoutBikePursuer.title);
@@ -57,30 +57,52 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             });
 
             it('should add the chosen cards to your hand', function() {
-                this.player1.clickCard(this.tarkin);
+                this.player1.clickCard(this.p1Tarkin);
                 this.player1.clickPrompt(this.cellBlockGuard.title);
                 this.player1.clickPrompt(this.scoutBikePursuer.title);
                 expect(this.cellBlockGuard.location).toBe('hand');
                 expect(this.scoutBikePursuer.location).toBe('hand');
             });
 
+            it('should place the remaining cards on the bottom of the deck', function() {
+                this.player1.clickCard(this.p1Tarkin);
+                this.player1.clickPrompt(this.academyDefenseWalker.title);
+                this.player1.clickPrompt(this.cellBlockGuard.title);
+                expect(this.player1.deck.length).toBe(6);
+
+                expect(this.battlefieldMarine).toBeInBottomOfDeck(this.player1, 5);
+                expect(this.scoutBikePursuer).toBeInBottomOfDeck(this.player1, 5);
+                expect(this.wampa).toBeInBottomOfDeck(this.player1, 5);
+            });
+
             it('should be allowed to pick just one card', function() {
-                this.player1.clickCard(this.tarkin);
+                this.player1.clickCard(this.p1Tarkin);
+                expect(this.player1).toHavePromptButton(this.academyDefenseWalker.title);
+                expect(this.player1).toHavePromptButton(this.cellBlockGuard.title);
+                expect(this.player1).toHavePromptButton(this.scoutBikePursuer.title);
 
                 // Done prompt doesn't show up til one card selected
                 expect(this.player1).not.toHavePromptButton('Done');
                 this.player1.clickPrompt(this.cellBlockGuard.title);
 
+                // Cell Block Guard should no longer be present
+                expect(this.player1).toHavePromptButton(this.academyDefenseWalker.title);
+                expect(this.player1).toHavePromptButton(this.scoutBikePursuer.title);
+                expect(this.player1).not.toHavePromptButton(this.cellBlockGuard.title);
+                expect(this.player1).not.toHaveDisabledPromptButton(this.cellBlockGuard.title);
+
                 // Click Done
                 expect(this.player1).toHavePromptButton('Done');
                 this.player1.clickPrompt('Done');
 
+                // Check card location and that player 2 now active
                 expect(this.cellBlockGuard.location).toBe('hand');
                 expect(this.player1.deck.length).toBe(7);
+                expect(this.player2).toBeActivePlayer();
             });
 
             it('should be able to choose no cards', function() {
-                this.player1.clickCard(this.tarkin);
+                this.player1.clickCard(this.p1Tarkin);
                 this.player1.clickPrompt('Take nothing');
 
                 expect(this.academyDefenseWalker).toBeInBottomOfDeck(this.player1, 5);
@@ -88,6 +110,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 expect(this.cellBlockGuard).toBeInBottomOfDeck(this.player1, 5);
                 expect(this.scoutBikePursuer).toBeInBottomOfDeck(this.player1, 5);
                 expect(this.wampa).toBeInBottomOfDeck(this.player1, 5);
+                expect(this.player2).toBeActivePlayer();
             });
 
             it('no cards matching criteria', function() {
@@ -107,17 +130,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 expect(this.gentleGiant).toBeInBottomOfDeck(this.player2, 5);
                 expect(this.systemPatrolCraft).toBeInBottomOfDeck(this.player2, 5);
                 expect(this.villageProtectors).toBeInBottomOfDeck(this.player2, 5);
-            });
-
-            it('should place the remaining cards on the bottom of the deck', function() {
-                this.player1.clickCard(this.tarkin);
-                this.player1.clickPrompt(this.academyDefenseWalker.title);
-                this.player1.clickPrompt(this.cellBlockGuard.title);
-                expect(this.player1.deck.length).toBe(6);
-
-                expect(this.battlefieldMarine.location).toBe('deck');
-                expect(this.scoutBikePursuer.location).toBe('deck');
-                expect(this.wampa.location).toBe('deck');
+                expect(this.player1).toBeActivePlayer();
             });
         });
     });
