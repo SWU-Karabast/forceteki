@@ -70,7 +70,7 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     /**
-     * Helper that adds an effect that applies to the attached unit. Yyou can provide a match function
+     * Helper that adds an effect that applies to the attached unit. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
     protected addConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'match' | 'ongoingEffect'>) {
@@ -80,6 +80,17 @@ export class UpgradeCard extends UpgradeCardParent {
             match: (card, context) => card === this.parentCard && (!properties.match || properties.match(card, context)),
             targetController: RelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
             ongoingEffect: properties.ongoingEffect
+        });
+    }
+
+    /**
+     * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps) {
+        this.addConstantAbility({
+            title: 'Give ability to the attached card',
+            ongoingEffect: AbilityHelper.ongoingEffects.gainTriggeredAbility(properties)
         });
     }
 

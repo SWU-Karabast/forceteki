@@ -1,9 +1,8 @@
 import AbilityHelper from '../../AbilityHelper';
 import { Card } from '../../core/card/Card';
 import { UpgradeCard } from '../../core/card/UpgradeCard';
-import { AbilityType, Trait } from '../../core/Constants';
+import { Trait } from '../../core/Constants';
 import Player from '../../core/Player';
-import { ITriggeredAbilityProps } from '../../Interfaces';
 
 export default class VambraceGrappleshot extends UpgradeCard {
     protected override getImplementationId() {
@@ -22,18 +21,13 @@ export default class VambraceGrappleshot extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
-        const abilityProps: ITriggeredAbilityProps = {
+        this.addGainTriggeredAbilityTargetingAttached({
             title: 'Exhaust the defender on attack',
             when: { onAttackDeclared: (event) => event.attack.attacker === this.parentCard },
             targetResolver: {
                 cardCondition: (card, context) => card === context.event.attack.target,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
-        };
-
-        this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(AbilityType.Triggered, abilityProps)
         });
     }
 }
