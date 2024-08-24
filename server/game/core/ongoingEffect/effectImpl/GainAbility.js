@@ -1,9 +1,7 @@
 const { OngoingEffectValueWrapper } = require('./OngoingEffectValueWrapper');
 const { AbilityType, Location, WildcardLocation } = require('../../Constants');
+const EnumHelpers = require('../../utils/EnumHelpers');
 
-/**
- * @deprecated This will be needed for Tech's ability but not yet tested (TODO TECH ABILITY)
- */
 class GainAbility extends OngoingEffectValueWrapper {
     constructor(abilityType, ability) {
         super(true);
@@ -61,11 +59,8 @@ class GainAbility extends OngoingEffectValueWrapper {
     apply(target) {
         let properties = Object.assign({ origin: this.context.source }, this.properties);
         if (this.abilityType === AbilityType.Constant) {
-            const activeLocation = {
-                'play area': [WildcardLocation.AnyArena]
-            };
             this.value = properties;
-            if (activeLocation[this.value.location].includes(target.location)) {
+            if (EnumHelpers.isArena(target.location)) {
                 this.value.ref = target.addEffectToEngine(this.value);
             }
             return;
