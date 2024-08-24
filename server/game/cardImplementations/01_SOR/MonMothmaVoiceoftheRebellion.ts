@@ -15,7 +15,7 @@ export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
             title: 'Search the top 5 cards of your deck for a Rebel card, then reveal and draw it.',
             optional: false,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
-                cardsToSearch: 5,
+                searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
                 immediateEffect: AbilityHelper.immediateEffects.moveCard({
                     destination: Location.Hand

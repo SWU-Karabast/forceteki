@@ -15,8 +15,8 @@ export default class GrandMoffTarkinDeathStarOverseer extends NonLeaderUnitCard 
             title: 'Search the top 5 cards of your deck for up to 2 Imperial cards, then reveal and draw it.',
             optional: false,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
-                selectCardCount: 2,
-                cardsToSearch: 5,
+                selectCount: 2,
+                searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
                 immediateEffect: AbilityHelper.immediateEffects.moveCard({
                     destination: Location.Hand

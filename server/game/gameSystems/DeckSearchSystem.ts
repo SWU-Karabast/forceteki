@@ -1,3 +1,6 @@
+// allow block comments without spaces so we can have compact jsdoc descriptions in this file
+/* eslint @stylistic/js/lines-around-comment: off */
+
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import { EventName, Location, TargetMode } from '../core/Constants';
@@ -11,14 +14,17 @@ import { shuffleArray } from '../core/utils/Helpers';
 type Derivable<T> = T | ((context: AbilityContext) => T);
 
 export interface IDeckSearchProperties extends IPlayerTargetSystemProperties {
-    targetMode?: TargetMode;
+    targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited | TargetMode.Exactly | TargetMode.ExactlyVariable;
     activePromptTitle?: string;
-    cardsToSearch?: number | ((context: AbilityContext) => number); // Number of cards to search through
-    selectCardCount?: number | ((context: AbilityContext) => number);
-    reveal?: boolean;
-    shuffle?: boolean | ((context: AbilityContext) => boolean);
+    /** The number of cards from the top of the deck to search. Default is -1, which indicates the whole deck. */
+    searchCount?: number | ((context: AbilityContext) => number);
+    /** The number of cards to select from the search. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
+    selectCount?: number | ((context: AbilityContext) => number);
+    revealSelected?: boolean;
+    shuffleWhenDone?: boolean | ((context: AbilityContext) => boolean);
     title?: string;
-    immediateEffect?: GameSystem<IGameSystemProperties>; // What should be done with the selected cards?
+    /** This determines what to do with the selected cards. */
+    immediateEffect?: GameSystem<IGameSystemProperties>;
     message?: string;
     uniqueNames?: boolean;
     player?: Player;
@@ -38,14 +44,14 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     public override readonly effectDescription: string = '';
 
     protected override defaultProperties: IDeckSearchProperties = {
-        cardsToSearch: -1,
-        selectCardCount: 1,
+        searchCount: -1,
+        selectCount: 1,
         targetMode: TargetMode.UpTo,
         selectedCardsHandler: null,
         remainingCardsHandler: null,
         chooseNothingImmediateEffect: null,
-        shuffle: false,
-        reveal: true,
+        shuffleWhenDone: false,
+        revealSelected: true,
         uniqueNames: false,
         placeOnBottomInRandomOrder: true,
         cardCondition: () => true
@@ -56,7 +62,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
 
     public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
-        if (this.getAmount(properties.cardsToSearch, context) === 0) {
+        if (this.getAmount(properties.searchCount, context) === 0) {
             return false;
         }
         const player = properties.player || context.player;
@@ -65,8 +71,8 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
 
     public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IDeckSearchProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
-        if (properties.reveal === undefined) {
-            properties.reveal = properties.cardCondition !== undefined;
+        if (properties.revealSelected === undefined) {
+            properties.revealSelected = properties.cardCondition !== undefined;
         }
         properties.cardCondition = properties.cardCondition || (() => true);
         return properties;
@@ -74,7 +80,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
 
     public override getEffectMessage(context: AbilityContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        const amount = this.getAmount(properties.cardsToSearch, context);
+        const amount = this.getAmount(properties.searchCount, context);
         const message =
             amount > 0
                 ? `look at the top ${amount === 1 ? 'card' : `${amount} cards`} of their deck`
@@ -84,7 +90,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
 
     public override canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
-        const amount = this.getAmount(properties.cardsToSearch, context);
+        const amount = this.getAmount(properties.searchCount, context);
         return amount !== 0 && this.getDeck(player).length > 0 && super.canAffect(player, context);
     }
 
@@ -93,7 +99,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     }
 
     public override addPropertiesToEvent(event: DeckSearchEvent, player: Player, context: AbilityContext, additionalProperties: unknown): void {
-        const { cardsToSearch: amount } = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
+        const { searchCount: amount } = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
         const fAmount = this.getAmount(amount, context);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = fAmount;
@@ -140,13 +146,13 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         const choosingPlayer = properties.choosingPlayer || event.player;
 
         if (properties.targetMode === TargetMode.UpTo || properties.targetMode === TargetMode.UpToVariable) {
-            selectAmount = this.getNumCards(properties.selectCardCount, context);
+            selectAmount = this.getNumCards(properties.selectCount, context);
         }
         if (properties.targetMode === TargetMode.Single) {
             selectAmount = 1;
         }
         if (properties.targetMode === TargetMode.Exactly || properties.targetMode === TargetMode.ExactlyVariable) {
-            selectAmount = this.getNumCards(properties.selectCardCount, context);
+            selectAmount = this.getNumCards(properties.selectCount, context);
         }
         if (properties.targetMode === TargetMode.Unlimited) {
             selectAmount = -1;
@@ -154,15 +160,15 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
 
         let title = properties.activePromptTitle;
         if (!properties.activePromptTitle) {
-            title = 'Select a card' + (properties.reveal ? ' to reveal' : '');
+            title = 'Select a card' + (properties.revealSelected ? ' to reveal' : '');
             if (selectAmount < 0 || selectAmount > 1) {
                 title =
                     `Select ${selectAmount < 0 ? 'all' : 'up to ' + selectAmount} cards` +
-                    (properties.reveal ? ' to reveal' : '');
+                    (properties.revealSelected ? ' to reveal' : '');
             }
         }
 
-        if (properties.shuffle) {
+        if (properties.shuffleWhenDone) {
             cards.sort((a, b) => a.name.localeCompare(b.name));
         }
 
@@ -210,7 +216,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     }
 
     private defaultRemainingCardsHandler(properties: IDeckSearchProperties, context: AbilityContext, event: DeckSearchEvent, selectedCards: Set<Card>, allCards: Card[]) {
-        if (this.shouldShuffle(properties.shuffle, context)) {
+        if (this.shouldShuffle(properties.shuffleWhenDone, context)) {
             return event.player.shuffleDeck();
         }
 
@@ -258,7 +264,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
             return this.handleTakeNothing(properties, context, event);
         }
 
-        if (properties.reveal) {
+        if (properties.revealSelected) {
             return context.game.addMessage('{0} takes {1}', choosingPlayer, Array.from(selectedCards));
         }
 
