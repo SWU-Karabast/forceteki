@@ -157,6 +157,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this._enteredPlayThisRound = EnumHelpers.isArena(this.location) ? true : null;
 
         // register a handler to reset the enteredPlayThisRound flag after the end of the round
+        // TODO: we need a way to remove these handlers when the card leaves play
         this.game.on(EventName.OnRoundEndedCleanup, this.resetEnteredPlayThisRound);
     }
 
@@ -187,6 +188,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     private updateConstantAbilityEffects(from: Location, to: Location) {
+        let effectAdded = false;
+
         // removing any lasting effects from ourself
         if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
             this.removeLastingEffects();
@@ -202,6 +205,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
                     EnumHelpers.cardLocationMatches(to, constantAbility.locationFilter)
             ) {
                 constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
+                effectAdded = true;
             } else if (
                 EnumHelpers.cardLocationMatches(from, constantAbility.locationFilter) &&
                     !EnumHelpers.cardLocationMatches(to, constantAbility.locationFilter)
@@ -209,6 +213,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];
             }
+        }
+
+        if (this.internalName === 'vambrace-grappleshot' && to === Location.GroundArena && !effectAdded) {
+            debugger;
         }
     }
 

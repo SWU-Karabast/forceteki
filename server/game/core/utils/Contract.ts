@@ -84,7 +84,7 @@ export function assertFalse(cond: boolean, message?: string): boolean {
     return true;
 }
 
-export function assertEqual(val1: object, val2: object, message?: string): boolean {
+export function assertEqual(val1: any, val2: any, message?: string): boolean {
     if (!(val1 === val2)) {
         contractCheckImpl.fail(message ?? `Value ${val1} is not equal to ${val2}`);
         return false;

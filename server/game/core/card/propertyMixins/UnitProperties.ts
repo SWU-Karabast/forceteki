@@ -135,17 +135,23 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         /**
-         * This removes an attachment from this card's attachment Array.  It doesn't open any windows for
-         * game effects to respond to.
+         * This removes an attachment from this card's attachment Array and sets its parentCard to null
          * @param {Card} upgrade
          */
         public removeUpgrade(upgrade) {
             this._upgrades = this.upgrades.filter((card) => card.uuid !== upgrade.uuid);
+            upgrade.parentCard = null;
         }
 
-        /** Attach the passed upgrade to this card, ignoring event windows. This should only be used for manual mode or debugging. */
-        public manualAttach(upgrade) {
-            upgrade.moveTo(this.location);
+        /**
+         * Attach the passed upgrade to this card and set the upgrade's parentCard to this card.
+         * Upgrade must already be moved to the correct arena.
+         */
+        public attachUpgrade(upgrade) {
+            if (!Contract.assertEqual(upgrade.location, this.location)) {
+                return;
+            }
+
             this._upgrades.push(upgrade);
             upgrade.parentCard = this;
         }

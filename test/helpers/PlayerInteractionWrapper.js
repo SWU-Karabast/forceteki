@@ -113,7 +113,7 @@ class PlayerInteractionWrapper {
             // Move card to play
             this.moveCard(card, arenaName);
             // Set exhausted state (false by default)
-            if (options.exhausted !== undefined) {
+            if (options.exhausted != null) {
                 options.exhausted ? card.exhaust() : card.ready();
             } else {
                 card.ready();
@@ -122,14 +122,11 @@ class PlayerInteractionWrapper {
             //card.applyPersistentEffects();
             // Get the upgrades
             if (options.upgrades) {
-                var upgrades = [];
-                options.upgrades.forEach((card) => {
-                    var upgrade = this.findCardByName(card, ['deck', 'hand']);
-                    upgrades.push(upgrade);
-                });
-                // Attach to the card
-                upgrades.forEach((upgrade) => {
-                    card.manualAttach(upgrade);
+                options.upgrades.forEach((upgrade) => {
+                    var upgrade = this.findCardByName(upgrade, ['deck', 'hand']);
+
+                    this.moveCard(upgrade, arenaName);
+                    card.attachUpgrade(upgrade);
                 });
             }
             if (options.damage !== undefined) {

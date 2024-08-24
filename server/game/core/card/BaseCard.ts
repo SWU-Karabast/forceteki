@@ -13,7 +13,7 @@ const BaseCardParent = WithDamage(Card);
 export class BaseCard extends BaseCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedType === CardType.Base);
+        Contract.assertEqual(this.printedType, CardType.Base);
 
         this.enableDamage(true);
     }

@@ -19,7 +19,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedType === CardType.Upgrade);
+        Contract.assertEqual(this.printedType, CardType.Upgrade);
 
         this.defaultActions.push(new PlayUpgradeAction(this));
     }
@@ -63,7 +63,6 @@ export class UpgradeCard extends UpgradeCardParent {
         // If this is an attachment and is attached to another card, we need to remove all links between them
         if (this._parentCard && this._parentCard.upgrades) {
             this._parentCard.removeUpgrade(this);
-            this._parentCard = null;
         }
 
         super.leavesPlay();
