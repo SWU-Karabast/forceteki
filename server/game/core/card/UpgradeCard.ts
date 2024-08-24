@@ -39,7 +39,12 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     /** The card that this card is underneath */
-    public set parentCard(card: Card) {
+    public set parentCard(card: Card | null) {
+        if (card === null) {
+            this._parentCard = null;
+            return;
+        }
+
         if (!Contract.assertTrue(card.isUnit()) || !Contract.assertTrue(EnumHelpers.isArena(this.location))) {
             return;
         }

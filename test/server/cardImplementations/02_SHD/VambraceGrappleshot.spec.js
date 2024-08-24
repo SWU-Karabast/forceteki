@@ -27,6 +27,18 @@ describe('Vambrace Grappleshot', function() {
                 expect(this.marine.damage).toBe(3);
                 expect(this.snowspeeder.exhausted).toBe(true);
             });
+
+            it('should not have any effect after being removed', function () {
+                this.marine.removeUpgrade(this.vambraceGrappleshot);
+                this.vambraceGrappleshot.moveTo('discard');
+
+                this.player1.clickCard(this.marine);
+                this.player1.clickCard(this.snowspeeder);
+
+                expect(this.snowspeeder.damage).toBe(3);
+                expect(this.marine.location).toBe('discard');
+                expect(this.snowspeeder.exhausted).toBe(false);
+            });
         });
 
         describe('Vambrace Grappleshot', function() {
