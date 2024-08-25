@@ -222,7 +222,7 @@ class CardAbility extends CardAbilityStep {
 
     /** @override */
     isActivatedAbility() {
-        return [AbilityType.Action, AbilityType.Triggered].includes(this.abilityType);
+        return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.abilityType);
     }
 
     /** @override */
