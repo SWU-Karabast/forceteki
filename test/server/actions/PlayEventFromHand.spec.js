@@ -5,9 +5,9 @@ describe('Play event from hand', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['daring-raid'],
+                        hand: ['daring-raid', 'repair'],
                         groundArena: ['pyke-sentinel'],
-                        spaceArena: ['cartel-spacer']
+                        spaceArena: ['cartel-spacer'],
                     },
                     player2: {
                         groundArena: ['wampa'],
@@ -15,6 +15,7 @@ describe('Play event from hand', function() {
                     }
                 });
 
+                this.repair = this.player1.findCardByName('repair');
                 this.daringRaid = this.player1.findCardByName('daring-raid');
                 this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
                 this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
@@ -35,7 +36,14 @@ describe('Play event from hand', function() {
                 expect(this.daringRaid.location).toBe('discard');
                 expect(this.player1.countExhaustedResources()).toBe(1);
 
-                // TODO THIS PR: implement repair and check aspect penalty is paid
+                this.player2.passAction();
+
+                // play a second event with an aspect penalty
+                this.player1.clickCard(this.repair);
+                this.player1.clickCard(this.wampa);
+
+                expect(this.repair.location).toBe('discard');
+                expect(this.player1.countExhaustedResources()).toBe(4);
             });
 
             // TODO: add a test of Restock to make sure it can target itself in the discard pile
