@@ -9,13 +9,11 @@ describe('Basic attack', function() {
                     player1: {
                         groundArena: ['wampa'],
                         spaceArena: ['cartel-spacer'],
-                        resources: ['atst', 'atst'],
                         base: ['kestro-city']
                     },
                     player2: {
                         groundArena: ['frontier-atrt', 'enfys-nest#marauder'],
                         spaceArena: ['alliance-xwing'],
-                        resources: ['atst', 'atst'],
                         base: ['jabbas-palace']
                     }
                 });

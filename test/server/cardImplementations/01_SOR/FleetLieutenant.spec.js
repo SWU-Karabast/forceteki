@@ -6,9 +6,7 @@ describe('Fleet Lieutenant', function() {
                     phase: 'action',
                     player1: {
                         hand: ['fleet-lieutenant'],
-                        groundArena: ['wampa', 'mon-mothma#voice-of-the-rebellion'],
-                        resources: ['atst', 'atst', 'atst'],
-                        leader: ['leia-organa#alliance-general']
+                        groundArena: ['wampa', 'mon-mothma#voice-of-the-rebellion']
                     },
                     player2: {
                         groundArena: ['sundari-peacekeeper'],

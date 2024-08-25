@@ -9,9 +9,7 @@ describe('Death Trooper', function() {
                     player1: {
                         hand: ['death-trooper'],
                         groundArena: ['pyke-sentinel'],
-                        spaceArena: ['cartel-spacer'],
-                        resources: ['atst', 'atst', 'atst'],
-                        leader: ['director-krennic#aspiring-to-authority']
+                        spaceArena: ['cartel-spacer']
                     },
                     player2: {
                         groundArena: ['wampa', 'superlaser-technician'],
