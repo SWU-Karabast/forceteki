@@ -27,8 +27,8 @@ describe('Restore keyword', function() {
                 expect(this.p2Base.damage).toBe(3);
                 expect(this.regionalSympathizers.exhausted).toBe(true);
             });
-
-            // TODO THIS PR: test "stacking" of restore ability with Devotion
         });
+
+        // TODO: add a test confirm that multiple restore effects are cumulative (requires that we get multiple triggers from same card working)
     });
 });
