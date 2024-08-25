@@ -166,6 +166,7 @@ export enum EventName {
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
+    OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
     OnRoundEnded = 'onRoundEnded',
     OnRoundEndedCleanup = 'onRoundEndedCleanup',
     OnSpendResources = 'onSpendResources',

@@ -90,7 +90,8 @@ class ActionWindow extends UiPrompt {
     /** @override */
     activePrompt() {
         let buttons = [
-            { text: 'Pass', arg: 'pass' }
+            { text: 'Pass', arg: 'pass' },
+            { text: 'Claim Initiative', arg: 'claimInitiative' },
         ];
         if (this.game.manualMode) {
             buttons.unshift({ text: 'Manual Action', arg: 'manual' });
@@ -129,6 +130,10 @@ class ActionWindow extends UiPrompt {
                 this.pass();
                 return true;
 
+            case 'claimInitiative':
+                this.claimInitiative();
+                return true;
+
             default:
                 Contract.fail(`Unknown menu choice: ${choice}`);
                 return false;
@@ -137,6 +142,17 @@ class ActionWindow extends UiPrompt {
 
     pass() {
         this.game.addMessage('{0} passes', this.activePlayer);
+
+        if (this.prevPlayerPassed) {
+            // in the (unusual) case that both players pass without claiming initiative, phase ends and initiative stays where it is
+            this.activePlayer.passedActionPhase = true;
+            this.activePlayer.opponent.passedActionPhase = true;
+        } else if (this.activePlayer.opponent.passedActionPhase) {
+            // if opponent already claimed initiative, we're done
+            this.activePlayer.passedActionPhase = true;
+        } else {
+            this.prevPlayerPassed = true;
+        }
 
         this.complete();
 
@@ -149,6 +165,12 @@ class ActionWindow extends UiPrompt {
         // if (this.activePlayerConsecutiveActions > 1) {
         //     this.markBonusActionsTaken();
         // }
+    }
+
+    claimInitiative() {
+        this.game.claimInitiative(this.activePlayer);
+
+        this.complete();
     }
 
     /** @override */
