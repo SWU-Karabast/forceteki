@@ -1,17 +1,15 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import PlayerAction from '../core/ability/PlayerAction.js';
-import { AbilityRestriction, EffectName, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants.js';
-import { payAdjustableResourceCost } from '../costs/CostLibrary.js';
+import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
-import type Player from '../core/Player.js';
 import { GameEvent } from '../core/event/GameEvent.js';
+import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 
 type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 
-export class PlayUnitAction extends PlayerAction {
+export class PlayUnitAction extends PlayCardAction {
     public constructor(card: Card) {
-        super(card, 'Play this unit', [payAdjustableResourceCost()]);
+        super(card, 'Play this unit');
     }
 
     public override executeHandler(context: ExecutionContext): void {
@@ -23,7 +21,7 @@ export class PlayUnitAction extends PlayerAction {
             originallyOnTopOfDeck:
                 context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
             onPlayCardSource: context.onPlayCardSource,
-            playType: PlayType.PlayFromHand
+            playType: context.playType
         });
 
         context.game.addMessage(
@@ -43,40 +41,12 @@ export class PlayUnitAction extends PlayerAction {
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
-            !ignoredRequirements.includes('phase') &&
-            context.game.currentPhase !== PhaseName.Action
-        ) {
-            return 'phase';
-        }
-        if (
-            !ignoredRequirements.includes('location') &&
-            !context.player.isCardInPlayableLocation(context.source, PlayType.PlayFromHand)
-        ) {
-            return 'location';
-        }
-        if (
-            !ignoredRequirements.includes('cannotTrigger') &&
-            !context.source.canPlay(context, PlayType.PlayFromHand)
-        ) {
-            return 'cannotTrigger';
-        }
-        if (
             context.player.hasRestriction(AbilityRestriction.PlayUnit, context) ||
             context.player.hasRestriction(AbilityRestriction.PutIntoPlay, context) ||
             context.source.hasRestriction(AbilityRestriction.EnterPlay, context)
         ) {
             return 'restriction';
         }
-        return super.meetsRequirements(context);
-    }
-
-    public override createContext(player: RelativePlayer = this.card.controller) {
-        const context = super.createContext(player);
-        context.costAspects = this.card.aspects;
-        return context;
-    }
-
-    public override isCardPlayed(): boolean {
-        return true;
+        return super.meetsRequirements(context, ignoredRequirements);
     }
 }

@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import PlayerAction from '../core/ability/PlayerAction';
+import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { Card } from '../core/card/Card';
 import { AbilityRestriction, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
@@ -8,10 +8,10 @@ import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
 type ExecutionContext = AbilityContext & { onPlayCardSource: any };
 
-export class PlayUpgradeAction extends PlayerAction {
+export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(card: Card) {
-        super(card, 'Play this upgrade', [payAdjustableResourceCost()], { immediateEffect: attachUpgrade((context) => ({
+        super(card, 'Play this upgrade', [], { immediateEffect: attachUpgrade((context) => ({
             upgrade: context.source
         })) });
     }
@@ -37,24 +37,6 @@ export class PlayUpgradeAction extends PlayerAction {
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
-            !ignoredRequirements.includes('phase') &&
-            context.game.currentPhase !== PhaseName.Action
-        ) {
-            return 'phase';
-        }
-        if (
-            !ignoredRequirements.includes('location') &&
-            !context.player.isCardInPlayableLocation(context.source, PlayType.PlayFromHand)
-        ) {
-            return 'location';
-        }
-        if (
-            !ignoredRequirements.includes('cannotTrigger') &&
-            !context.source.canPlay(context, PlayType.PlayFromHand)
-        ) {
-            return 'cannotTrigger';
-        }
-        if (
             context.player.hasRestriction(AbilityRestriction.PlayUpgrade, context) ||
             context.player.hasRestriction(AbilityRestriction.PutIntoPlay, context)
         ) {
@@ -63,17 +45,7 @@ export class PlayUpgradeAction extends PlayerAction {
         return super.meetsRequirements(context);
     }
 
-    public override createContext(player: RelativePlayer = this.card.controller) {
-        const context = super.createContext(player);
-        context.costAspects = this.card.aspects;
-        return context;
-    }
-
     public override displayMessage(context: AbilityContext) {
         context.game.addMessage('{0} plays {1}, attaching it to {2}', context.player, context.source, context.target);
-    }
-
-    public override isCardPlayed() {
-        return true;
     }
 }
