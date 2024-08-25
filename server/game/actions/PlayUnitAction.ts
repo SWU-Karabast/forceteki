@@ -3,16 +3,14 @@ import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } f
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
-import { PlayCardAction } from '../core/ability/PlayCardAction.js';
-
-type ExecutionContext = AbilityContext & { onPlayCardSource: any };
+import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.js';
 
 export class PlayUnitAction extends PlayCardAction {
     public constructor(card: Card) {
         super(card, 'Play this unit');
     }
 
-    public override executeHandler(context: ExecutionContext): void {
+    public override executeHandler(context: PlayCardContext): void {
         const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, {
             player: context.player,
             card: context.source,

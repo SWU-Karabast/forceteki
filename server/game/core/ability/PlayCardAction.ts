@@ -6,6 +6,8 @@ import { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 
+export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
+
 export abstract class PlayCardAction extends PlayerAction {
     public constructor(card: Card, title: string, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
         super(card, title, additionalCosts.concat(CostLibrary.payAdjustableResourceCost()), targetResolver);
@@ -53,4 +55,3 @@ export abstract class PlayCardAction extends PlayerAction {
         return resourceCost ? resourceCost.getReducedCost(context) : 0;
     }
 }
-
