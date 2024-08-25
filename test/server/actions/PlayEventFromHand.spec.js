@@ -1,5 +1,3 @@
-const exp = require('constants');
-
 describe('Play event from hand', function() {
     integration(function() {
         describe('When an event is played', function() {

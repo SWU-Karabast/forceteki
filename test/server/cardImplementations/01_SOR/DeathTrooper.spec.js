@@ -1,5 +1,3 @@
-const exp = require('constants');
-
 describe('Death Trooper', function() {
     integration(function() {
         describe('Death Trooper\'s When Played ability', function() {

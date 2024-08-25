@@ -1,24 +1,24 @@
 import AbilityHelper from '../../AbilityHelper';
 import { EventCard } from '../../core/card/EventCard';
 
-export default class DaringRaid extends EventCard {
+export default class Repair extends EventCard {
     protected override getImplementationId() {
         return {
-            id: '7826408293',
-            internalName: 'daring-raid',
+            id: '8679831560',
+            internalName: 'repair',
         };
     }
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Deal 2 damage to a friendly ground unit and an enemy ground unit',
+            title: 'Heal 3 damage from a unit or base',
             targetResolver: {
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 3 })
             },
-            effect: 'deal 2 damage to {1}',
+            effect: 'heal 3 damage from {1}',
             effectArgs: (context) => [context.target]
         });
     }
 }
 
-DaringRaid.implemented = true;
+Repair.implemented = true;

@@ -1,11 +1,11 @@
-describe('Daring Raid', function() {
+describe('Repair', function() {
     integration(function() {
-        describe('Daring Raid\'s ability', function() {
+        describe('Repair\'s ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['daring-raid'],
+                        hand: ['repair'],
                         groundArena: ['pyke-sentinel'],
                         spaceArena: ['cartel-spacer']
                     },
@@ -15,7 +15,7 @@ describe('Daring Raid', function() {
                     }
                 });
 
-                this.daringRaid = this.player1.findCardByName('daring-raid');
+                this.repair = this.player1.findCardByName('repair');
                 this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
                 this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
 
@@ -28,20 +28,41 @@ describe('Daring Raid', function() {
                 this.noMoreActions();
             });
 
-            it('can deal damage to a unit', function () {
-                this.player1.clickCard(this.daringRaid);
+            it('can heal a unit', function () {
+                this.wampa.damage = 3;
+                this.player1.clickCard(this.repair);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.interceptor, this.p2Base]);
 
                 this.player1.clickCard(this.wampa);
-                expect(this.wampa.damage).toBe(2);
+                expect(this.wampa.damage).toBe(0);
             });
 
-            it('can deal damage to a base', function () {
-                this.player1.clickCard(this.daringRaid);
+            it('can heal a base', function () {
+                this.p1Base.damage = 3;
+
+                this.player1.clickCard(this.repair);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.interceptor, this.p2Base]);
 
                 this.player1.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(2);
+                expect(this.p1Base.damage).toBe(0);
+            });
+
+            it('can select a target with no damage', function () {
+                this.player1.clickCard(this.repair);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.interceptor, this.p2Base]);
+
+                this.player1.clickCard(this.p1Base);
+                expect(this.p1Base.damage).toBe(0);
+            });
+
+            it('will heal a target with 1 or 2 damage to full', function () {
+                this.p1Base.damage = 2;
+
+                this.player1.clickCard(this.repair);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.interceptor, this.p2Base]);
+
+                this.player1.clickCard(this.p1Base);
+                expect(this.p1Base.damage).toBe(0);
             });
         });
     });
