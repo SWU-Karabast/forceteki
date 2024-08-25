@@ -23,10 +23,6 @@ class GainAbility extends OngoingEffectValueWrapper {
                 // If the copied ability has a limit, we need to create a new instantiation of it, with the same max and reset event
                 newProps.limit = ability.properties.limit.clone();
             }
-            if (ability.properties.max) {
-                // Same for max
-                newProps.max = ability.properties.max.clone();
-            }
             this.properties = Object.assign({}, ability.properties, newProps);
         } else {
             this.properties = Object.assign({ printedAbility: false }, ability);

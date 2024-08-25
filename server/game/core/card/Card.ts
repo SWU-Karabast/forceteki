@@ -1,5 +1,5 @@
 import { IActionAbilityProps } from '../../Interfaces';
-import { CardActionAbility } from '../ability/CardActionAbility';
+import { ActionAbility } from '../ability/ActionAbility';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
@@ -44,7 +44,7 @@ export class Card extends OngoingEffectSource {
     protected readonly printedType: CardType;
 
     protected abilityInitializers: IAbilityInitializer[] = [];
-    protected _actionAbilities: CardActionAbility[];
+    protected _actionAbilities: ActionAbility[];
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
@@ -110,10 +110,10 @@ export class Card extends OngoingEffectSource {
      * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
      * abilities have a cost in brackets that must be paid in order to use the ability.
      */
-    public getActionAbilities(): CardActionAbility[] {
+    public getActionAbilities(): ActionAbility[] {
         return this.isBlank() ? []
             : this._actionAbilities
-                .concat(this.getGainedAbilityEffects<CardActionAbility>(AbilityType.Action));
+                .concat(this.getGainedAbilityEffects<ActionAbility>(AbilityType.Action));
     }
 
     /**
@@ -233,9 +233,9 @@ export class Card extends OngoingEffectSource {
         });
     }
 
-    public createActionAbility(properties: IActionAbilityProps): CardActionAbility {
+    public createActionAbility(properties: IActionAbilityProps): ActionAbility {
         properties.cardName = this.title;
-        return new CardActionAbility(this.game, this, properties);
+        return new ActionAbility(this.game, this, properties);
     }
 
 
@@ -435,7 +435,6 @@ export class Card extends OngoingEffectSource {
             case Location.Discard:
             case Location.RemovedFromGame:
             case Location.OutsideTheGame:
-            case Location.BeingPlayed:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;

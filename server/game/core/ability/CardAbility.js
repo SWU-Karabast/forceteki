@@ -30,12 +30,6 @@ class CardAbility extends CardAbilityStep {
             // TODO: improve this so it at least increments the ability number
             this.abilityIdentifier = this.printedAbility ? this.card.internalName + '_1' : '';
         }
-
-        // TODO EVENTS: this is where the actual payment and activation of an event card happens, this needs to be
-        // changed to behave more like a unit card in terms of how it's played
-        if (card.isEvent() && !this.isKeywordAbility()) {
-            this.cost = this.cost.concat(Costs.payAdjustableResourceCost());
-        }
     }
 
     buildLocation(card, location) {
@@ -140,9 +134,7 @@ class CardAbility extends CardAbilityStep {
     displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if (
             context.source.isEvent() &&
-            context.source.isConflict &&
-            context.source.location !== Location.Hand &&
-            context.source.location !== Location.BeingPlayed
+            context.source.location !== Location.Hand
         ) {
             this.game.addMessage(
                 '{0} plays {1} from {2} {3}',

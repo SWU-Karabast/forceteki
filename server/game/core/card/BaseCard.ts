@@ -3,7 +3,7 @@ import { Card } from './Card';
 import { CardType } from '../Constants';
 import Contract from '../utils/Contract';
 import { WithDamage } from './propertyMixins/Damage';
-import { CardActionAbility } from '../ability/CardActionAbility';
+import { ActionAbility } from '../ability/ActionAbility';
 import AbilityHelper from '../../AbilityHelper';
 import { IActionAbilityProps, IEpicActionProps } from '../../Interfaces';
 
@@ -27,6 +27,6 @@ export class BaseCard extends BaseCardParent {
             limit: AbilityHelper.limit.perGame(1),
         });
 
-        this._actionAbilities.push(new CardActionAbility(this.game, this, propertiesWithLimit));
+        this._actionAbilities.push(new ActionAbility(this.game, this, propertiesWithLimit));
     }
 }

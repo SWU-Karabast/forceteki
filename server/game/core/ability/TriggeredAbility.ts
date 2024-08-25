@@ -85,16 +85,10 @@ export default class TriggeredAbility extends CardAbility {
     }
 
     public override meetsRequirements(context, ignoredRequirements = []) {
-        const canOpponentTrigger =
-            this.card.hasEffect(EffectName.CanBeTriggeredByOpponent) &&
-            this.abilityType !== AbilityType.Triggered;
-        const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
+        const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller;
 
         if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
-            if (
-                !this.card.isEvent() ||
-                !context.player.isCardInPlayableLocation(this.card, context.playType)
-            ) {
+            if (!context.player.isCardInPlayableLocation(this.card, context.playType)) {
                 return 'player';
             }
         }

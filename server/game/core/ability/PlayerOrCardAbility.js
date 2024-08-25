@@ -246,7 +246,7 @@ class PlayerOrCardAbility {
         return this.abilityType === AbilityType.Action;
     }
 
-    /** Indicates whether this ability is an ability represents a card being played */
+    /** Indicates whether a card is played as part of the resolution this ability */
     isCardPlayed() {
         return false;
     }

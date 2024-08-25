@@ -1,11 +1,11 @@
-import { CardActionAbility } from '../ability/CardActionAbility';
+import { ActionAbility } from '../ability/ActionAbility';
 import TriggeredAbility from '../ability/TriggeredAbility';
 import { Keyword } from '../Constants';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 
 // TODO KEYWORDS: populate these methods
 
-export function GenerateActionAbilitiesFromKeywords(keywords: Set<Keyword>): CardActionAbility[] {
+export function GenerateActionAbilitiesFromKeywords(keywords: Set<Keyword>): ActionAbility[] {
     return [];
 }
 
