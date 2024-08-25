@@ -39,7 +39,7 @@ export class Card extends OngoingEffectSource {
     public controller: Player;
 
     protected override readonly id: string;
-    protected readonly printedKeywords: Set<Keyword>;   // TODO KEYWORDS: enum of keywords
+    protected readonly printedKeywords: Set<Keyword>;
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
@@ -100,7 +100,7 @@ export class Card extends OngoingEffectSource {
 
         this._location = Location.Deck;
 
-        this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords, this.game, this, cardData.text);
+        this._actionAbilities = KeywordHelpers.generateActionAbilitiesFromKeywords(this.printedKeywords, this.game, this, cardData.text);
 
         this.setupCardAbilities(AbilityHelper);
         this.activateAbilityInitializersForTypes(AbilityType.Action);
@@ -242,6 +242,7 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* CARD TYPE HELPERS *******************************************
+    // TODO: convert these to use ts type narrowing for simpler conversions to derived types (see https://www.typescriptlang.org/docs/handbook/2/classes.html#this-based-type-guards)
     public isEvent(): boolean {
         return this.type === CardType.Event;
     }

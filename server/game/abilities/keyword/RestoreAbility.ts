@@ -9,20 +9,24 @@ import { ITriggeredAbilityProps } from '../../Interfaces';
 export class RestoreAbility extends TriggeredAbility {
     public override readonly keyword: Keyword | null = Keyword.Restore;
 
-    public constructor(game: Game, card: Card, restoreAmount: number) {
-        if (!Contract.assertTrue(card.isUnit())) {
-            return;
-        }
-
-        const properties: ITriggeredAbilityProps = {
+    public static buildRestoreAbilityProperties(restoreAmount: number): ITriggeredAbilityProps {
+        return {
             title: `Restore ${restoreAmount}`,
-            when: { onAttackDeclared: (event) => event.attack.attacker === card },
+            when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             targetResolver: {
                 cardTypeFilter: CardType.Base,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.heal({ amount: restoreAmount })
             }
         };
+    }
+
+    public constructor(game: Game, card: Card, restoreAmount: number) {
+        if (!Contract.assertTrue(card.isUnit()) || !Contract.assertNonNegative(restoreAmount)) {
+            return;
+        }
+
+        const properties = RestoreAbility.buildRestoreAbilityProperties(restoreAmount);
 
         super(game, card, properties);
     }

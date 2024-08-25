@@ -1,4 +1,3 @@
-import { IAbilityLimit } from '../core/ability/AbilityLimit';
 // const GainAllAbiliitesDynamic = require('./Effects/GainAllAbilitiesDynamic.js');
 // const Restriction = require('./Effects/restriction.js');
 // const { SuppressEffect } = require('./Effects/SuppressEffect');
@@ -12,8 +11,9 @@ import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import { AbilityType, EffectName, PlayType } from '../core/Constants';
 import StatsModifier from '../core/ongoingEffect/effectImpl/StatsModifier';
-import { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../Interfaces';
+import { IActionAbilityProps, ITriggeredAbilityProps } from '../Interfaces';
 import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
+import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -90,8 +90,8 @@ export = {
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
-    gainTriggeredAbility: (
-        properties: ITriggeredAbilityProps
+    gainAbility: (
+        properties: ITriggeredAbilityProps | IActionAbilityProps | IConstantAbility
     ) => OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(AbilityType.Triggered, properties)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>

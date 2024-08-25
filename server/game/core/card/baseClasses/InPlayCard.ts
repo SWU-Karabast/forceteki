@@ -37,8 +37,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
 
-        this._constantAbilities.push(...KeywordHelpers.GenerateConstantAbilitiesFromKeywords(this.printedKeywords, this.game, this, cardData.text));
-        this._triggeredAbilities.push(...KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords, this.game, this, cardData.text));
+        this._constantAbilities.push(...KeywordHelpers.generateConstantAbilitiesFromKeywords(this.printedKeywords, this.game, this, cardData.text));
+        this._triggeredAbilities.push(...KeywordHelpers.generateTriggeredAbilitiesFromKeywords(this.printedKeywords, this.game, this, cardData.text));
 
         this.activateAbilityInitializersForTypes([AbilityType.Constant, AbilityType.Triggered]);
     }

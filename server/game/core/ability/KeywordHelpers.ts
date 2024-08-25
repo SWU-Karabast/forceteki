@@ -1,15 +1,17 @@
 import { CardActionAbility } from './CardActionAbility';
 import TriggeredAbility from './TriggeredAbility';
-import { Keyword } from '../Constants';
+import { AbilityType, Keyword } from '../Constants';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import Contract from '../utils/Contract';
 import { RestoreAbility } from '../../abilities/keyword/RestoreAbility';
 import { Card } from '../card/Card';
 import Game from '../Game';
+import { IAbilityProps, IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import { AbilityContext } from './AbilityContext';
 
 // TODO KEYWORDS: populate these methods
 
-export function GenerateActionAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): CardActionAbility[] {
+export function generateActionAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): CardActionAbility[] {
     const generatedAbilities = [];
 
     if (keywords.has(Keyword.Smuggle)) {
@@ -19,7 +21,7 @@ export function GenerateActionAbilitiesFromKeywords(keywords: Set<Keyword>, game
     return generatedAbilities;
 }
 
-export function GenerateTriggeredAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): TriggeredAbility[] {
+export function generateTriggeredAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): TriggeredAbility[] {
     const generatedAbilities = [];
 
     if (keywords.has(Keyword.Ambush)) {
@@ -50,7 +52,7 @@ export function GenerateTriggeredAbilitiesFromKeywords(keywords: Set<Keyword>, g
     return generatedAbilities;
 }
 
-export function GenerateConstantAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): IConstantAbility[] {
+export function generateConstantAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): IConstantAbility[] {
     const generatedAbilities = [];
 
     if (keywords.has(Keyword.Grit)) {
@@ -61,6 +63,15 @@ export function GenerateConstantAbilitiesFromKeywords(keywords: Set<Keyword>, ga
     }
 
     return generatedAbilities;
+}
+
+export function generateAbilityPropertiesForKeyword(keywordProperties: IKeywordProperties): ITriggeredAbilityProps | IActionAbilityProps | IConstantAbility {
+    switch (keywordProperties.keyword) {
+        case Keyword.Restore:
+            return RestoreAbility.buildRestoreAbilityProperties(keywordProperties.amount);
+        default:
+            throw new Error(`Dynamically gaining keyword ${keywordProperties.keyword} is not yet implemented`);
+    }
 }
 
 /**
@@ -105,32 +116,3 @@ function getRegexForKeyword(keyword: Keyword) {
     }
 }
 
-// TODO: would something like this be helpful for swu? (see jigoku basecard.ts for reference)
-// export function parseCommonTextAbilities(text: string) {
-//     const potentialKeywords = [];
-//     for (const line of text.split('\n')) {
-//         for (const k of line.slice(0, -1).split('.')) {
-//             potentialKeywords.push(k.trim());
-//         }
-//     }
-
-//     for (const keyword of potentialKeywords) {
-//         if (ValidKeywords.has(keyword)) {
-//             this.printedKeywords.push(keyword);
-//         } else if (keyword.startsWith('disguised ')) {
-//             this.disguisedKeywordTraits.push(keyword.replace('disguised ', ''));
-//         } else if (keyword.startsWith('no attachments except')) {
-//             var traits = keyword.replace('no attachments except ', '');
-//             this.allowedAttachmentTraits = traits.split(' or ');
-//         } else if (keyword.startsWith('no attachments,')) {
-//             //catch all for statements that are to hard to parse automatically
-//         } else if (keyword.startsWith('no attachments')) {
-//             this.allowedAttachmentTraits = ['none'];
-//         }
-//     }
-
-//     TODO: uncomment
-//     for (const keyword of this.printedKeywords) {
-//         this.persistentEffect({ effect: AbilityHelper.effects.addKeyword(keyword) });
-//     }
-// }
