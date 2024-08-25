@@ -363,7 +363,7 @@ export class Card extends OngoingEffectSource {
     }
 
     protected getGainedAbilityEffects<TAbility>(abilityType: AbilityType): TAbility[] {
-        return this.getEffectValues(EffectName.GainAbility).filter((ability) => ability.abilityType === abilityType);
+        return this.getEffectValues(EffectName.GainAbility).filter((ability) => ability.type === abilityType);
     }
 
 

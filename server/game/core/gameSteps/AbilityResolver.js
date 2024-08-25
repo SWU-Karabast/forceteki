@@ -222,7 +222,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         if (this.context.ability.isActivatedAbility()) {
             // If this is an event, move it to discard before resolving the ability
-            if (this.context.ability.abilityType === AbilityType.Event) {
+            if (this.context.ability.type === AbilityType.Event) {
                 this.game.actions.moveCard({ destination: Location.Discard }).resolve(this.context.source, this.context);
             }
             this.game.openThenEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));

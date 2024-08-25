@@ -112,7 +112,7 @@ export default class TriggeredAbility extends CardAbility {
             return;
         } else if (this.aggregateWhen) {
             const event = {
-                name: 'aggregateEvent:' + this.abilityType,
+                name: 'aggregateEvent:' + this.type,
                 handler: (events, window) => this.checkAggregateWhen(events, window)
             };
             this.eventRegistrations = [event];
@@ -125,7 +125,7 @@ export default class TriggeredAbility extends CardAbility {
         this.eventRegistrations = [];
         eventNames.forEach((eventName) => {
             const event = {
-                name: eventName + ':' + this.abilityType,
+                name: eventName + ':' + this.type,
                 handler: (event, window) => this.eventHandler(event, window)
             };
             this.game.on(event.name, event.handler);

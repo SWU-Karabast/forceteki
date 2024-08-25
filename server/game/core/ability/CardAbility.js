@@ -6,11 +6,11 @@ const EnumHelpers = require('../utils/EnumHelpers.js');
 const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
 
 class CardAbility extends CardAbilityStep {
-    constructor(game, card, properties, abilityType = AbilityType.Action) {
+    constructor(game, card, properties, type = AbilityType.Action) {
         if (properties.initiateAttack) {
             addInitiateAttackProperties(properties);
         }
-        super(game, card, properties, abilityType);
+        super(game, card, properties, type);
 
         this.title = properties.title;
 
@@ -222,7 +222,7 @@ class CardAbility extends CardAbilityStep {
 
     /** @override */
     isActivatedAbility() {
-        return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.abilityType);
+        return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.type);
     }
 
     /** @override */
