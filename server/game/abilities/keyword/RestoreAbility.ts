@@ -7,6 +7,8 @@ import Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class RestoreAbility extends TriggeredAbility {
+    public override readonly keyword: Keyword | null = Keyword.Restore;
+
     public constructor(game: Game, card: Card, restoreAmount: number) {
         if (!Contract.assertTrue(card.isUnit())) {
             return;
@@ -15,7 +17,6 @@ export class RestoreAbility extends TriggeredAbility {
         const properties: ITriggeredAbilityProps = {
             title: `Restore ${restoreAmount}`,
             when: { onAttackDeclared: (event) => event.attack.attacker === card },
-            keyword: Keyword.Restore,
             targetResolver: {
                 cardTypeFilter: CardType.Base,
                 controller: RelativePlayer.Self,

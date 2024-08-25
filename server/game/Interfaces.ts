@@ -35,7 +35,6 @@ export interface IAbilityProps<Context> {
     immediateEffect?: GameSystem | GameSystem[];
     handler?: (context?: Context) => void;
     then?: ((context?: AbilityContext) => object) | object;
-    keyword?: Keyword | null;
 }
 
 export interface IConstantAbilityProps<Source = any> {

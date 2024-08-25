@@ -94,6 +94,9 @@ function parseNumericKeywordValueIfEnabled(keyword: Keyword, card: Card, cardTex
 }
 
 function getRegexForKeyword(keyword: Keyword) {
+    // these regexes check that the keyword is starting on its own line, indicating that it's not part of an ability text
+    // for numeric keywords, the regex also grabs the numeric value after the keyword as a capture group
+
     switch (keyword) {
         case Keyword.Restore:
             return /(?:^|(?:\n))Restore ([\d]+)/g;
