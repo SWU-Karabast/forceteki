@@ -195,8 +195,25 @@ export enum Aspect {
 }
 
 export enum Keyword {
-    /** @deprecated This is not implemented yet */
+    /** @deprecated Not implemented yet */
+    Ambush = 'ambush',
+    /** @deprecated Not implemented yet */
+    Bounty = 'bounty',
+    /** @deprecated Not implemented yet */
+    Grit = 'grit',
+    /** @deprecated Not implemented yet */
+    Overwhelm = 'overwhelm',
+    /** @deprecated Not implemented yet */
+    Raid = 'raid',
+    Restore = 'restore',
+    /** @deprecated Not implemented yet */
+    Saboteur = 'saboteur',
+    /** @deprecated Not implemented yet */
     Sentinel = 'sentinel',
+    /** @deprecated Not implemented yet */
+    Shielded = 'shielded',
+    /** @deprecated Not implemented yet */
+    Smuggle = 'smuggle',
 }
 
 export enum Trait {

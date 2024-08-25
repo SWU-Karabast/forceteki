@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityCon
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
-import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
+import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, Keyword } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 
@@ -35,6 +35,7 @@ export interface IAbilityProps<Context> {
     immediateEffect?: GameSystem | GameSystem[];
     handler?: (context?: Context) => void;
     then?: ((context?: AbilityContext) => object) | object;
+    keyword?: Keyword | null;
 }
 
 export interface IConstantAbilityProps<Source = any> {

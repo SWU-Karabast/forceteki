@@ -6,7 +6,7 @@ import type Player from '../Player';
 import Contract from '../utils/Contract';
 import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import * as KeywordHelpers from './KeywordHelpers';
+import * as KeywordHelpers from '../ability/KeywordHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
@@ -91,14 +91,16 @@ export class Card extends OngoingEffectSource {
         this.title = cardData.title;
         this.unique = cardData.unique;
 
-        this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords);
         this.controller = owner;
         this.defaultController = owner;
         this.id = cardData.id;
+        this.printedKeywords = new Set(EnumHelpers.checkConvertToEnum(cardData.keywords, Keyword));
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         this._location = Location.Deck;
+
+        this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords, this.game, this, cardData.text);
 
         this.setupCardAbilities(AbilityHelper);
         this.activateAbilityInitializersForTypes(AbilityType.Action);
