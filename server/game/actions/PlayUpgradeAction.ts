@@ -1,7 +1,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import PlayerAction from '../core/ability/PlayerAction';
 import { Card } from '../core/card/Card';
-import { AbilityRestriction, EventName, Location, PhaseName, PlayType } from '../core/Constants';
+import { AbilityRestriction, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { payAdjustableResourceCost } from '../costs/CostLibrary';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
@@ -61,6 +61,12 @@ export class PlayUpgradeAction extends PlayerAction {
             return 'restriction';
         }
         return super.meetsRequirements(context);
+    }
+
+    public override createContext(player: RelativePlayer = this.card.controller) {
+        const context = super.createContext(player);
+        context.costAspects = this.card.aspects;
+        return context;
     }
 
     public override displayMessage(context: AbilityContext) {

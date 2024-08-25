@@ -46,7 +46,6 @@ describe('Entrenched', function() {
                 expect(this.tieLn.power).toBe(4);
                 expect(this.tieLn.hp).toBe(3);
 
-                // TODO BUG FIX: academy training aspect penalty not getting applied?
                 expect(this.player1.countExhaustedResources()).toBe(6);
 
                 this.player2.passAction();

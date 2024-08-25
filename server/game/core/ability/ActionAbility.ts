@@ -54,7 +54,6 @@ export class ActionAbility extends CardAbility {
             return 'phase';
         }
 
-        // TODO THIS PR: rename this.type to this.type
         const canOpponentTrigger =
             this.card.hasEffect(EffectName.CanBeTriggeredByOpponent) &&
             this.type !== AbilityType.Triggered;
