@@ -8,7 +8,7 @@ describe('Entrenched', function() {
                         hand: ['entrenched', 'academy-training', 'resilient', 'foundling'],
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
-                        leader: ['director-krennic#aspiring-to-authority']
+                        leader: 'director-krennic#aspiring-to-authority'
                     },
                     player2: {
                         spaceArena: ['bright-hope#the-last-transport']

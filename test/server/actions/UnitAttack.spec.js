@@ -9,12 +9,12 @@ describe('Basic attack', function() {
                     player1: {
                         groundArena: ['wampa'],
                         spaceArena: ['cartel-spacer'],
-                        base: ['kestro-city']
+                        base: 'kestro-city'
                     },
                     player2: {
                         groundArena: ['frontier-atrt', 'enfys-nest#marauder'],
                         spaceArena: ['alliance-xwing'],
-                        base: ['jabbas-palace']
+                        base: 'jabbas-palace'
                     }
                 });
                 this.wampa = this.player1.findCardByName('wampa');
