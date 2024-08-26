@@ -131,17 +131,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public getNumericKeywordSum(keywordName: KeywordName.Restore | KeywordName.Raid): number | null {
             let keywordValueTotal = 0;
 
-            // value from printed keyword, if present
-            const printedKeywords = this.keywords.filter((keyword) => keyword.name === keywordName);
-            if (printedKeywords.length !== 0) {
-                keywordValueTotal += (printedKeywords[0] as KeywordWithNumericValue).value;
-            }
-
-            // values from gain keyword effects, if any
-            for (const gainedKeyword of this.getEffectValues(EffectName.GainKeyword)) {
-                if (gainedKeyword.name === keywordName) {
-                    keywordValueTotal += (gainedKeyword as KeywordWithNumericValue).value;
-                }
+            for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
+                keywordValueTotal += (keyword as KeywordWithNumericValue).value;
             }
 
             return keywordValueTotal > 0 ? keywordValueTotal : null;

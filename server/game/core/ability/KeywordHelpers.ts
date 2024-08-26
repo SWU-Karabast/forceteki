@@ -1,3 +1,4 @@
+import { IKeywordProperties } from '../../Interfaces';
 import { AbilityType, KeywordName } from '../Constants';
 import Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -9,33 +10,46 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
     const keywords: KeywordInstance[] = [];
 
     for (const keywordName of expectedKeywords) {
-        switch (keywordName) {
-            case KeywordName.Ambush:
-            case KeywordName.Bounty:
-            case KeywordName.Grit:
-            case KeywordName.Overwhelm:
-            case KeywordName.Saboteur:
-            case KeywordName.Sentinel:
-            case KeywordName.Shielded:
-                if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                    keywords.push(new KeywordInstance(keywordName));
-                }
-                break;
-            case KeywordName.Raid:
-            case KeywordName.Restore:
-                const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, cardName);
-                if (keywordValueOrNull != null) {
-                    keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
-                }
-                break;
-            case KeywordName.Smuggle:
-                // TODO: smuggle impl
-                break;
+        if (isNumericType[keywordName]) {
+            const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, cardName);
+            if (keywordValueOrNull != null) {
+                keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
+            }
+        } else if (keywordName === KeywordName.Smuggle) {
+            // TODO SMUGGLE: smuggle keyword creation
+        } else {
+            // default case is a keyword with no params
+            if (isKeywordEnabled(keywordName, cardText, cardName)) {
+                keywords.push(new KeywordInstance(keywordName));
+            }
         }
     }
 
     return keywords;
 }
+
+export function keywordFromProperties(properties: IKeywordProperties) {
+    if (properties.keyword === KeywordName.Restore || properties.keyword === KeywordName.Raid) {
+        return new KeywordWithNumericValue(properties.keyword, properties.amount);
+    }
+
+    // TODO SMUGGLE: add smuggle here for "gain smuggle" abilities
+
+    return new KeywordInstance(properties.keyword);
+}
+
+export const isNumericType: Record<KeywordName, boolean> = {
+    [KeywordName.Ambush]: false,
+    [KeywordName.Bounty]: false,
+    [KeywordName.Grit]: false,
+    [KeywordName.Overwhelm]: false,
+    [KeywordName.Raid]: true,
+    [KeywordName.Restore]: true,
+    [KeywordName.Saboteur]: false,
+    [KeywordName.Sentinel]: false,
+    [KeywordName.Shielded]: false,
+    [KeywordName.Smuggle]: false
+};
 
 export const keywordToAbilityType: Record<KeywordName, AbilityType> = {
     [KeywordName.Ambush]: AbilityType.Triggered,

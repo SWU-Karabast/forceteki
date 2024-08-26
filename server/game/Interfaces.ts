@@ -54,8 +54,11 @@ export interface IConstantAbilityProps<Source = any> {
     createCopies?: boolean;
 }
 
-// TODO KEYWORDS: create a union here and add more keywords to this type as they're implemented
-export type IKeywordProperties = IRestoreKeywordProperties | ISentinelKeywordProperties;
+// TODO KEYWORDS: add remaining keywords to this type
+export type IKeywordProperties =
+    | IRaidKeywordProperties
+    | IRestoreKeywordProperties
+    | ISentinelKeywordProperties;
 
 export interface IInitiateAttack extends IAttackProperties {
     opponentChoosesAttackTarget?: boolean;
@@ -127,6 +130,10 @@ interface IKeywordPropertiesBase {
 
 interface INumericKeywordProperties extends IKeywordPropertiesBase {
     amount: number;
+}
+
+interface IRaidKeywordProperties extends INumericKeywordProperties {
+    keyword: KeywordName.Raid;
 }
 
 interface IRestoreKeywordProperties extends INumericKeywordProperties {

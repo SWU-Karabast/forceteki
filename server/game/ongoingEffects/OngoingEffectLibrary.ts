@@ -14,6 +14,8 @@ import StatsModifier from '../core/ongoingEffect/effectImpl/StatsModifier';
 import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../Interfaces';
 import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
 import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
+import { KeywordInstance } from '../core/ability/KeywordInstance';
+import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -95,7 +97,7 @@ export = {
     ) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(abilityType, properties)),
     gainKeyword: (keywordProperties: IKeywordProperties) =>
-        OngoingEffectBuilder.card.static(EffectName.GainKeyword, keywordProperties),
+        OngoingEffectBuilder.card.static(EffectName.GainKeyword, KeywordHelpers.keywordFromProperties(keywordProperties)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
