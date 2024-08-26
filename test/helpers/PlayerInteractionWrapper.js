@@ -144,8 +144,8 @@ class PlayerInteractionWrapper {
 
     setDeck(newContents = []) {
         this.player.drawDeck = [];
-        newContents.reverse().forEach((name) => {
-            var card = this.findCardByName(name);
+        newContents.reverse().forEach((nameOrCard) => {
+            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard) : nameOrCard;
             this.moveCard(card, 'deck');
         });
     }

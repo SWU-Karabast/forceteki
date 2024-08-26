@@ -53,6 +53,32 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 expect(this.pykeSentinel).toBeInBottomOfDeck(this.player1, 5);
                 expect(this.volunteerSoldier).toBeInBottomOfDeck(this.player1, 5);
             });
+
+            it('should allow selection when deck has less than five cards', function() {
+                this.player1.setDeck([this.battlefieldMarine, this.cellBlockGuard, this.cartelSpacer]);
+                this.player1.clickCard(this.monMothma);
+                expect(this.player1).toHavePromptButtons([this.battlefieldMarine.title, 'Take nothing']);
+                expect(this.player1).toHaveDisabledPromptButtons([this.cartelSpacer.title, this.cellBlockGuard.title]);
+                this.player1.clickPrompt(this.battlefieldMarine.title);
+
+                // Ensure that cards have moved to bottom of deck
+                expect(this.player1.deck.length).toBe(2);
+                expect(this.cartelSpacer).toBeInBottomOfDeck(this.player1, 2);
+                expect(this.cellBlockGuard).toBeInBottomOfDeck(this.player1, 2);
+            });
+
+            it('when the deck is empty', function() {
+                this.player1.setDeck([]);
+                expect(this.player1.deck.length).toBe(0);
+
+                // Check results
+                this.player1.clickCard(this.monMothma);
+                expect(this.monMothma.location).toBe('ground arena');
+                expect(this.player1.deck.length).toBe(0);
+
+                // Player 2 now active
+                expect(this.player2).toBeActivePlayer();
+            });
         });
 
         describe('Mon Mothma\'s Ability', function() {
