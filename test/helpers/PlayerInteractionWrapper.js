@@ -146,6 +146,7 @@ class PlayerInteractionWrapper {
     }
 
     setDeck(newContents = []) {
+        this.player.drawDeck = [];
         newContents.reverse().forEach((name) => {
             var card = this.findCardByName(name);
             this.moveCard(card, 'deck');

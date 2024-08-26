@@ -30,8 +30,6 @@ describe('Greef Karga, Affable Commissioner', function() {
                 expect(this.foundling.location).toBe('hand');
                 expect(this.getChatLogs(2)).toContain('player1 takes Foundling');
             });
-
-            //TODO: do we need more tests?
         });
     });
 });
