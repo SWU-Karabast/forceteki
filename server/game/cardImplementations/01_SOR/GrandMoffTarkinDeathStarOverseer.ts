@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { Location, Trait } from '../../core/Constants';
+import { Trait } from '../../core/Constants';
 
 export default class GrandMoffTarkinDeathStarOverseer extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,9 +17,7 @@ export default class GrandMoffTarkinDeathStarOverseer extends NonLeaderUnitCard 
                 selectCount: 2,
                 searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
-                immediateEffect: AbilityHelper.immediateEffects.moveCard({
-                    destination: Location.Hand
-                })
+                immediateEffect: AbilityHelper.immediateEffects.drawSpecificCard({})
             })
         });
     }

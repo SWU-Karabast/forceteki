@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { Location, TargetMode, Trait } from '../../core/Constants';
+import { Trait } from '../../core/Constants';
 
 export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,6 @@ export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
                 searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
                 immediateEffect: AbilityHelper.immediateEffects.drawSpecificCard({})
-                // immediateEffect: AbilityHelper.immediateEffects.moveCard({ destination: Location.Hand })
             })
         });
     }

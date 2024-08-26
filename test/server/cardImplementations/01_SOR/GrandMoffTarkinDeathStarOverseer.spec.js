@@ -37,36 +37,24 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 this.noMoreActions();
             });
 
-            it('should prompt to choose up to 2 Imperials from the top 5 cards', function () {
+            it('should prompt to choose up to 2 Imperials from the top 5 cards, reveal chosen, draw them, and put the rest on the bottom of the deck', function () {
                 this.player1.clickCard(this.p1Tarkin);
                 expect(this.player1).toHavePrompt('Select up to 2 cards to reveal');
                 expect(this.player1).toHavePromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title, 'Take nothing']);
-            });
 
-            it('should reveal the chosen Imperials', function() {
-                this.player1.clickCard(this.p1Tarkin);
-
+                // Choose Cell Block Guard and Scout Bike Pursuer
                 this.player1.clickPrompt(this.cellBlockGuard.title);
                 this.player1.clickPrompt(this.scoutBikePursuer.title);
                 expect(this.getChatLogs(2)).toContain('player1 takes Cell Block Guard and Scout Bike Pursuer');
-            });
 
-            it('should add the chosen cards to your hand', function() {
-                this.player1.clickCard(this.p1Tarkin);
-                this.player1.clickPrompt(this.cellBlockGuard.title);
-                this.player1.clickPrompt(this.scoutBikePursuer.title);
+                // Check cards in hand
                 expect(this.cellBlockGuard.location).toBe('hand');
                 expect(this.scoutBikePursuer.location).toBe('hand');
-            });
 
-            it('should place the remaining cards on the bottom of the deck', function() {
-                this.player1.clickCard(this.p1Tarkin);
-                this.player1.clickPrompt(this.academyDefenseWalker.title);
-                this.player1.clickPrompt(this.cellBlockGuard.title);
+                // Check cards in deck
                 expect(this.player1.deck.length).toBe(6);
-
+                expect(this.academyDefenseWalker).toBeInBottomOfDeck(this.player1, 5);
                 expect(this.battlefieldMarine).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.scoutBikePursuer).toBeInBottomOfDeck(this.player1, 5);
                 expect(this.wampa).toBeInBottomOfDeck(this.player1, 5);
             });
 
