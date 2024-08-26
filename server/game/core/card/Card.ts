@@ -519,7 +519,9 @@ export class Card extends OngoingEffectSource {
 
     private hasSome<T>(valueOrValuesToCheck: T | Set<T> | T[], cardValues: Set<T> | T[]): boolean {
         const valuesToCheck = this.asSetOrArray(valueOrValuesToCheck);
-        const cardValuesContains = Array.isArray(cardValues) ? cardValues.includes : cardValues.has;
+        const cardValuesContains = Array.isArray(cardValues)
+            ? (value: T) => cardValues.includes(value)
+            : (value: T) => cardValues.has(value);
 
         for (const value of valuesToCheck) {
             if (cardValuesContains(value)) {
@@ -531,7 +533,9 @@ export class Card extends OngoingEffectSource {
 
     private hasEvery<T>(valueOrValuesToCheck: T | Set<T> | T[], cardValues: Set<T> | T[]): boolean {
         const valuesToCheck = this.asSetOrArray(valueOrValuesToCheck);
-        const cardValuesContains = Array.isArray(cardValues) ? cardValues.includes : cardValues.has;
+        const cardValuesContains = Array.isArray(cardValues)
+            ? (value: T) => cardValues.includes(value)
+            : (value: T) => cardValues.has(value);
 
         for (const value of valuesToCheck) {
             if (!cardValuesContains(value)) {

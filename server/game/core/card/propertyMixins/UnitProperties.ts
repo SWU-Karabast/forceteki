@@ -120,7 +120,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public registerAttackKeywords() {
             if (!Contract.assertTrue(
                 this._attackKeywordAbilities === null,
-                `Failed to unregister attack abilities from previous attack: ${this._attackKeywordAbilities.map((ability) => ability.title).join(', ')}`
+                `Failed to unregister attack abilities from previous attack: ${this._attackKeywordAbilities?.map((ability) => ability.title).join(', ')}`
             )) {
                 return;
             }
