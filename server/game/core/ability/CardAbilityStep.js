@@ -11,8 +11,8 @@ const { Stage, AbilityType } = require('../Constants.js');
  */
 class CardAbilityStep extends PlayerOrCardAbility {
     /** @param {import('../card/Card').Card} card - The card this ability is attached to */
-    constructor(game, card, properties, abilityType = AbilityType.Action) {
-        super(properties, abilityType);
+    constructor(game, card, properties, type = AbilityType.Action) {
+        super(properties, type);
 
         this.game = game;
         this.card = card;

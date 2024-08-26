@@ -5,9 +5,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['salacious-crumb#obnoxious-pet'],
-                        leader: ['jabba-the-hutt#his-high-exaltedness'],
-                        resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                        hand: ['salacious-crumb#obnoxious-pet']
                     }
                 });
 

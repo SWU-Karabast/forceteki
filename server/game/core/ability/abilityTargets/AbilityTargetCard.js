@@ -107,7 +107,7 @@ class AbilityTargetCard {
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;
             }
-            if (context.ability.abilityType === 'action') {
+            if (context.ability.type === 'action') {
                 waitingPromptTitle = 'Waiting for opponent to take an action or pass';
             } else {
                 waitingPromptTitle = 'Waiting for opponent';

@@ -1,4 +1,4 @@
-import { CardActionAbility } from './CardActionAbility';
+import { ActionAbility } from './ActionAbility';
 import type TriggeredAbility from './TriggeredAbility';
 import { AbilityType, Keyword } from '../Constants';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
@@ -10,7 +10,7 @@ import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from 
 
 // TODO KEYWORDS: populate these methods
 
-export function generateActionAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): CardActionAbility[] {
+export function generateActionAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): ActionAbility[] {
     const generatedAbilities = [];
 
     if (keywords.has(Keyword.Smuggle)) {

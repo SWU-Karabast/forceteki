@@ -1,6 +1,6 @@
 describe('2-1B Surgical Droid', function() {
     integration(function() {
-        describe('2-1B Surgical Droid\'s healing', function() {
+        describe('2-1B Surgical Droid\'s ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
@@ -27,7 +27,7 @@ describe('2-1B Surgical Droid', function() {
                 this.noMoreActions();
             });
 
-            it('surgical droid should heal c3p0 to full', function () {
+            it('should heal a target with 1 damage to full', function () {
                 // Attack
                 this.player1.clickCard(this.surgicalDroid);
                 expect(this.surgicalDroid.location).toBe('ground arena');
@@ -43,7 +43,7 @@ describe('2-1B Surgical Droid', function() {
                 expect(this.c3p0.damage).toBe(0);
             });
 
-            it('surgical droid should heal r2d2 to 1', function () {
+            it('should heal 2 damage from a unit', function () {
                 // Attack
                 this.player1.clickCard(this.surgicalDroid);
                 expect(this.surgicalDroid.location).toBe('ground arena');
@@ -59,7 +59,7 @@ describe('2-1B Surgical Droid', function() {
                 expect(this.r2d2.damage).toBe(1);
             });
 
-            it('surgical droid should heal enemy unit', function () {
+            it('should be able to heal an enemy unit', function () {
                 // Attack
                 this.player1.clickCard(this.surgicalDroid);
                 expect(this.wampa.damage).toBe(2);
@@ -76,7 +76,7 @@ describe('2-1B Surgical Droid', function() {
                 expect(this.wampa.damage).toBe(0);
             });
 
-            it('surgical droid ability can be passed', function () {
+            it('should be able to be passed', function () {
                 expect(this.r2d2.damage).toBe(3);
                 this.player1.clickCard(this.surgicalDroid);
                 this.player1.clickCard(this.p2Base);

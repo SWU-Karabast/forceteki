@@ -16,7 +16,6 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     discardDestinationCards?: boolean;
 }
 
-/** @deprecated This system was imported from L5R but has not been tested */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public override readonly name = 'move';
     public override targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade, CardType.Event];
@@ -34,7 +33,7 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public eventHandler(event, additionalProperties = {}): void {
         const context = event.context;
         const card = event.card;
-        event.cardStateWhenMoved = card.createSnapshot();
+        // event.cardStateWhenMoved = card.createSnapshot();
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         if (properties.switch && properties.switchTarget) {
             const otherCard = properties.switchTarget;

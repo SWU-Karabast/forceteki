@@ -29,9 +29,7 @@ import type Game from '../Game.js';
  * clickToActivate - boolean that indicates the action should be activated when
  *                   the card is clicked.
  */
-export class CardActionAbility extends CardAbility {
-    public override readonly abilityType: AbilityType = AbilityType.Action;
-
+export class ActionAbility extends CardAbility {
     protected anyPlayer: boolean;
     protected doesNotTarget: boolean;
     protected phase: string;
@@ -41,7 +39,7 @@ export class CardActionAbility extends CardAbility {
     public constructor(game: Game, card: Card, properties: IActionAbilityProps) {
         super(game, card, properties);
 
-        this.phase = properties.phase ?? 'any';
+        this.phase = properties.phase ?? PhaseName.Action;
         this.condition = properties.condition;
         this.anyPlayer = properties.anyPlayer ?? false;
         this.doesNotTarget = (properties as any).doesNotTarget;
@@ -58,7 +56,7 @@ export class CardActionAbility extends CardAbility {
 
         const canOpponentTrigger =
             this.card.hasEffect(EffectName.CanBeTriggeredByOpponent) &&
-            this.abilityType !== AbilityType.Triggered;
+            this.type !== AbilityType.Triggered;
         const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
         if (!ignoredRequirements.includes('player') && !this.card.isEvent() && !canPlayerTrigger) {
             return 'player';
@@ -69,9 +67,5 @@ export class CardActionAbility extends CardAbility {
         }
 
         return super.meetsRequirements(context, ignoredRequirements);
-    }
-
-    public override isAction() {
-        return true;
     }
 }

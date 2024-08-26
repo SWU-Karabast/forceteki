@@ -6,9 +6,7 @@ describe('Snowtrooper Lieutenant', function() {
                     phase: 'action',
                     player1: {
                         hand: ['snowtrooper-lieutenant'],
-                        groundArena: ['wampa', 'admiral-piett#captain-of-the-executor'],
-                        resources: ['atst', 'atst', 'atst'],
-                        leader: ['jabba-the-hutt#his-high-exaltedness']
+                        groundArena: ['wampa', 'admiral-piett#captain-of-the-executor']
                     },
                     player2: {
                         groundArena: ['sundari-peacekeeper'],

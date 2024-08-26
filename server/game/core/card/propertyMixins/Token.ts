@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { IActionAbilityProps, IEpicActionProps } from '../../../Interfaces';
-import { CardActionAbility } from '../../ability/CardActionAbility';
+import { ActionAbility } from '../../ability/ActionAbility';
 import { Card } from '../Card';
 import { InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { CardConstructor } from '../Card';

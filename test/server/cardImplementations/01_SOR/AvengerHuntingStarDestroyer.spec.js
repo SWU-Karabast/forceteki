@@ -7,9 +7,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                     player1: {
                         hand: ['avenger#hunting-star-destroyer'],
                         groundArena: ['pyke-sentinel'],
-                        spaceArena: ['imperial-interceptor'],
-                        resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
-                        leader: ['director-krennic#aspiring-to-authority']
+                        spaceArena: ['imperial-interceptor']
                     },
                     player2: {
                         groundArena: ['wampa'],
