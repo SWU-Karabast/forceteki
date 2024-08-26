@@ -6,9 +6,9 @@ import { Card } from '../core/card/Card';
 import { EventName, Location, TargetMode } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import { shuffleDeck } from '../gameSystems/GameSystemLibrary.js';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import Player from '../core/Player';
-import Contract from '../core/utils/Contract';
 import { shuffleArray } from '../core/utils/Helpers';
 
 type Derivable<T> = T | ((context: AbilityContext) => T);
@@ -48,13 +48,13 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         selectCount: 1,
         targetMode: TargetMode.UpTo,
         selectedCardsHandler: null,
-        remainingCardsHandler: null,
         chooseNothingImmediateEffect: null,
         shuffleWhenDone: false,
         revealSelected: true,
         chosenCardsMustHaveUniqueNames: false,
         placeOnBottomInRandomOrder: true,
-        cardCondition: () => true
+        cardCondition: () => true,
+        remainingCardsHandler: this.handleRemainingCardsDefault
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -71,13 +71,6 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
 
     public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IDeckSearchProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
-
-        // if (Contract.assertTrue(this.computeSearchCount(properties.searchCount, context) > 0)) {
-        //     return;
-        // }
-        // if (Contract.assertTrue(properties.cardCondition !== (() => true))) {
-        //     return;
-        // }
 
         properties.cardCondition = properties.cardCondition || (() => true);
         return properties;
@@ -174,9 +167,10 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
             }
         }
 
-        if (properties.shuffleWhenDone) {
-            cards.sort((a, b) => a.name.localeCompare(b.name));
-        }
+        // TODO: I don't think this actually does anything. Further research needed
+        // if (properties.shuffleWhenDone) {
+        //     cards.sort((a, b) => a.name.localeCompare(b.name));
+        // }
 
         context.game.promptWithHandlerMenu(choosingPlayer, {
             activePromptTitle: title,
@@ -213,33 +207,28 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
             properties.selectedCardsHandler(context, event, Array.from(selectedCards));
         }
 
-        if (typeof properties.remainingCardsHandler === 'function') {
-            const cardsToMove = allCards.filter((card) => !selectedCards.has(card));
-            properties.remainingCardsHandler(context, event, cardsToMove);
-        } else {
-            this.defaultRemainingCardsHandler(properties, context, event, selectedCards, allCards);
+        const cardsToMove = allCards.filter((card) => !selectedCards.has(card));
+        properties.remainingCardsHandler(context, event, cardsToMove);
+
+        if (this.shouldShuffle(this.properties.shuffleWhenDone, context)) {
+            context.game.openEventWindow([
+                shuffleDeck().generateEvent(context.target, context)
+            ]);
         }
     }
 
-    private defaultRemainingCardsHandler(properties: IDeckSearchProperties, context: AbilityContext, event: any, selectedCards: Set<Card>, allCards: Card[]) {
-        if (this.shouldShuffle(properties.shuffleWhenDone, context)) {
-            return event.player.shuffleDeck();
-        }
-
-        if (properties.placeOnBottomInRandomOrder) {
-            const cardsToMove = allCards.filter((card) => !selectedCards.has(card));
-            if (cardsToMove.length > 0) {
-                shuffleArray(cardsToMove);
-                for (const card of cardsToMove) {
-                    event.player.moveCard(card, Location.Deck, { bottom: true });
-                }
-                context.game.addMessage(
-                    '{0} puts {1} card{2} on the bottom of their deck',
-                    event.player,
-                    cardsToMove.length,
-                    cardsToMove.length > 1 ? 's' : ''
-                );
+    private handleRemainingCardsDefault(context: AbilityContext, event: any, cardsToMove: Card[]) {
+        if (cardsToMove.length > 0) {
+            shuffleArray(cardsToMove);
+            for (const card of cardsToMove) {
+                event.player.moveCard(card, Location.Deck, { bottom: true });
             }
+            context.game.addMessage(
+                '{0} puts {1} card{2} on the bottom of their deck',
+                event.player,
+                cardsToMove.length,
+                cardsToMove.length > 1 ? 's' : ''
+            );
         }
     }
 

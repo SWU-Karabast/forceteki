@@ -52,7 +52,8 @@ import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
 // import { SequentialAction } from './SequentialAction';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
-// import { ShuffleDeckAction, ShuffleDeckProperties } from './ShuffleDeckAction';
+import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -315,3 +316,7 @@ export function selectCard(propertyFactory: PropsFactory<ISelectCardProperties>)
 // export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }
+
+export function shuffleDeck(propertyFactory: PropsFactory<IShuffleDeckProperties> = {}): PlayerTargetSystem {
+    return new ShuffleDeckSystem(propertyFactory);
+}
