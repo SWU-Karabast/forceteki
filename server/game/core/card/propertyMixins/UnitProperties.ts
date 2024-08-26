@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { AbilityRestriction, Arena, CardType, EffectName, KeywordName, Location, StatType } from '../../Constants';
+import { AbilityRestriction, AbilityType, Arena, CardType, EffectName, KeywordName, Location, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import Contract from '../../utils/Contract';
@@ -13,6 +13,10 @@ import { UpgradeCard } from '../UpgradeCard';
 import { Card } from '../Card';
 import { ITriggeredAbilityProps } from '../../../Interfaces';
 import { KeywordWithCostValues, KeywordWithNumericValue } from '../../ability/KeywordInstance';
+import * as KeywordHelpers from '../../ability/KeywordHelpers';
+import TriggeredAbility from '../../ability/TriggeredAbility';
+import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -33,6 +37,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public readonly defaultArena: Arena;
 
         protected _upgrades: UpgradeCard[] = [];
+
+        private _attackKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
 
         public override get hp(): number {
             return this.getModifiedStatValue(StatType.Hp);
@@ -105,6 +111,54 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 }
             }
             return effectTotal > 0 ? effectTotal : null;
+        }
+
+        /**
+         * Registers any keywords which need to be explicitly registered for the attack process.
+         * These should be unregistered after the end of the attack.
+         */
+        public registerAttackKeywords() {
+            if (!Contract.assertTrue(
+                this._attackKeywordAbilities === null,
+                `Failed to unregister attack abilities from previous attack: ${this._attackKeywordAbilities.map((ability) => ability.title).join(', ')}`
+            )) {
+                return;
+            }
+
+            this._attackKeywordAbilities = [];
+
+            // restore
+            const restoreAmount = this.getNumericKeywordSum(KeywordName.Restore);
+            if (restoreAmount !== null) {
+                const restoreAbility = this.createTriggeredAbility(RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
+                restoreAbility.registerEvents();
+                this._attackKeywordAbilities.push(restoreAbility);
+            }
+
+            // TODO KEYWORDS: add grit and raid registration here (others such as sentinel will be managed inside the attack pipeline)
+        }
+
+        /**
+         * Unegisters any keywords which need to be explicitly registered for the attack process.
+         * These should be unregistered after the end of the attack.
+         */
+        public unregisterAttackKeywords() {
+            if (!Contract.assertTrue(
+                Array.isArray(this._attackKeywordAbilities),
+                'Ability attack registration was skipped'
+            )) {
+                return;
+            }
+
+            for (const ability of this._attackKeywordAbilities) {
+                if (ability instanceof TriggeredAbility) {
+                    ability.unregisterEvents();
+                } else {
+                    this.removeEffectFromEngine(ability.registeredEffects[0]);
+                }
+            }
+
+            this._attackKeywordAbilities = null;
         }
 
         // ***************************************** STAT HELPERS *****************************************

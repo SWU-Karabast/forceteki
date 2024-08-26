@@ -45,7 +45,7 @@ export class Card extends OngoingEffectSource {
     protected readonly printedType: CardType;
 
     protected abilityInitializers: IAbilityInitializer[] = [];
-    protected _actionAbilities: ActionAbility[];
+    protected _actionAbilities: ActionAbility[] = [];
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;

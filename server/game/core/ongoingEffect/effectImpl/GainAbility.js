@@ -57,7 +57,7 @@ class GainAbility extends OngoingEffectValueWrapper {
         if (this.abilityType === AbilityType.Constant) {
             this.value = properties;
             if (EnumHelpers.isArena(target.location)) {
-                this.value.ref = target.addEffectToEngine(this.value);
+                this.value.registeredEffects = [target.addEffectToEngine(this.value)];
             }
             return;
         } else if (this.abilityType === AbilityType.Action) {
@@ -83,9 +83,9 @@ class GainAbility extends OngoingEffectValueWrapper {
         }
         if (this.abilityType === AbilityType.Triggered) {
             this.value.unregisterEvents();
-        } else if (this.abilityType === AbilityType.Constant && this.value.ref) {
-            target.removeEffectFromEngine(this.value.ref);
-            delete this.value.ref;
+        } else if (this.abilityType === AbilityType.Constant && this.value.registeredEffects) {
+            target.removeEffectFromEngine(this.value.registeredEffects[0]);
+            delete this.value.registeredEffects;
         }
     }
 }

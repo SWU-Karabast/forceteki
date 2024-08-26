@@ -1,4 +1,4 @@
-import { KeywordName } from '../Constants';
+import { AbilityType, KeywordName } from '../Constants';
 import Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { KeywordInstance, KeywordWithNumericValue } from './KeywordInstance';
@@ -36,6 +36,26 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
 
     return keywords;
 }
+
+export const keywordToAbilityType: Record<KeywordName, AbilityType> = {
+    [KeywordName.Ambush]: AbilityType.Triggered,
+    [KeywordName.Bounty]: AbilityType.Triggered,
+    [KeywordName.Grit]: AbilityType.Constant,
+    [KeywordName.Overwhelm]: AbilityType.Constant,
+    [KeywordName.Raid]: AbilityType.Constant,
+    [KeywordName.Restore]: AbilityType.Triggered,
+    [KeywordName.Saboteur]: AbilityType.Triggered,
+    [KeywordName.Sentinel]: AbilityType.Constant,
+    [KeywordName.Shielded]: AbilityType.Triggered,
+    [KeywordName.Smuggle]: AbilityType.Action
+};
+
+export const abilityTypeToKeyword: Record<AbilityType, KeywordName[]> = {
+    [AbilityType.Action]: [KeywordName.Smuggle],
+    [AbilityType.Constant]: [KeywordName.Grit, KeywordName.Overwhelm, KeywordName.Raid, KeywordName.Sentinel],
+    [AbilityType.Triggered]: [KeywordName.Ambush, KeywordName.Bounty, KeywordName.Restore, KeywordName.Saboteur, KeywordName.Shielded],
+    [AbilityType.Event]: []
+};
 
 /**
  * Checks if the specific keyword is "enabled" in the text, i.e., if it is on by default
