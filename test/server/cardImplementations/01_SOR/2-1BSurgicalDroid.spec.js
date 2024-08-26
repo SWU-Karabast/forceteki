@@ -23,8 +23,6 @@ describe('2-1B Surgical Droid', function() {
 
                 this.p1Base = this.player1.base;
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('should heal a target with 1 damage to full', function () {

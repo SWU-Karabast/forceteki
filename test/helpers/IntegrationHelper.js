@@ -20,7 +20,7 @@ const ProxiedGameFlowWrapperMethods = [
     'keepConflict',
     'skipSetupPhase',
     'selectInitiativePlayer',
-    'noMoreActions',
+    'moveToNextActionPhase',
     'advancePhases',
     'getPromptedPlayer',
     'nextPhase',
@@ -360,14 +360,14 @@ global.integration = function (definitions) {
 
                 // set cards below - the playerinteractionwrapper will convert string names to real cards
 
+                // Resources
+                this.player1.setResourceCards(options.player1.resources);
+                this.player2.setResourceCards(options.player2.resources);
                 // Arenas
                 this.player1.setGroundArenaUnits(options.player1.groundArena);
                 this.player2.setGroundArenaUnits(options.player2.groundArena);
                 this.player1.setSpaceArenaUnits(options.player1.spaceArena);
                 this.player2.setSpaceArenaUnits(options.player2.spaceArena);
-                // Resources
-                this.player1.setResourceCards(options.player1.resources);
-                this.player2.setResourceCards(options.player2.resources);
                 // Hand + discard
                 this.player1.setHand(options.player1.hand);
                 this.player2.setHand(options.player2.hand);

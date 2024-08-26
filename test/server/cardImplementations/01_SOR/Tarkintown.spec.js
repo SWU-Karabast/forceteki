@@ -17,8 +17,6 @@ describe('Tarkintown', function() {
 
                 this.tarkintown = this.player1.base;
                 this.atrt = this.player2.findCardByName('frontier-atrt');
-
-                this.noMoreActions();
             });
 
             it('should deal 3 damage to a damaged enemy unit', function () {
@@ -32,6 +30,9 @@ describe('Tarkintown', function() {
                 this.player2.passAction();
                 this.player1.clickCard(this.tarkintown);
                 expect(this.tarkintown).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+
+                // skip to next turn so we can confirm that the ability is still unusable
+                this.moveToNextActionPhase();
             });
         });
     });

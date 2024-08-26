@@ -5,7 +5,7 @@ import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
-import ResourcePrompt from '../prompts/ResourcePrompt';
+import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';
 import { CardWithExhaustProperty } from '../../card/CardTypes';
 import { GameEvent } from '../../event/GameEvent';
 
@@ -14,7 +14,7 @@ export class RegroupPhase extends Phase {
         super(game, PhaseName.Regroup);
         this.pipeline.initialise([
             new SimpleStep(game, () => this.drawTwo(), 'drawTwo'),
-            new ResourcePrompt(game, 0, 1),
+            new VariableResourcePrompt(game, 0, 1),
             new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards'),
             new SimpleStep(game, () => this.endPhase(), 'endPhase')
         ]);

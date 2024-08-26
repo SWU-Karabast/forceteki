@@ -8,15 +8,26 @@ import ActionWindow from '../ActionWindow';
 export class ActionPhase extends Phase {
     public activePlayer?: Player;
 
+    private readonly passStatusHandler = (passed: boolean) => this.prevPlayerPassed = passed;
+    private prevPlayerPassed = false;
+
     public constructor(game: Game) {
         super(game, PhaseName.Action);
         this.initialise([
-            new SimpleStep(this.game, () => this.queueNextAction(), 'queueNextAction')
+            new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'),
+            new SimpleStep(this.game, () => this.queueNextAction(), 'queueNextAction'),
+            new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
         ]);
     }
 
+    private setupActionPhase() {
+        for (const player of this.game.getPlayers()) {
+            player.resetForActionPhase();
+        }
+    }
+
     private queueNextAction() {
-        this.game.queueStep(new ActionWindow(this.game, 'Action Window', 'action'));
+        this.game.queueStep(new ActionWindow(this.game, 'Action Window', 'action', this.prevPlayerPassed, this.passStatusHandler));
         this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
     }
 
@@ -28,5 +39,11 @@ export class ActionPhase extends Phase {
                 this.game.queueSimpleStep(() => this.queueNextAction(), 'queueNextAction');
             }
         }, 'check active player queue next action');
+    }
+
+    private tearDownActionPhase() {
+        for (const player of this.game.getPlayers()) {
+            player.cleanupFromActionPhase();
+        }
     }
 }

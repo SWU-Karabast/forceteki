@@ -884,17 +884,21 @@ class Player extends GameObject {
     }
 
     /**
-     * Called at the start of the Action Phase.  Resets a lot of the single round parameters
+     * Called at the start of the Action Phase.  Resets some of the single round parameters
      */
-    beginAction() {
+    resetForActionPhase() {
         if (this.resetTimerAtEndOfRound) {
             this.noTimer = false;
         }
 
-        this.getCardsInPlay().forEach((card) => {
-            card.new = false;
-        });
         this.passedActionPhase = false;
+    }
+
+    /**
+     * Called at the end of the Action Phase.  Resets some of the single round parameters
+     */
+    cleanupFromActionPhase() {
+        this.passedActionPhase = null;
     }
 
     // showDeck() {
@@ -1105,8 +1109,11 @@ class Player extends GameObject {
 
         var targetPile = this.getCardPile(targetLocation);
 
-        if (!this.isLegalLocationForCardType(card.type, targetLocation) || (targetPile && targetPile.includes(card))) {
-            Contract.fail(`Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
+        if (!Contract.assertTrue(this.isLegalLocationForCardType(card.type, targetLocation), `Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`)) {
+            return;
+        }
+
+        if (!Contract.assertFalse(targetPile.includes(card), `Tried to move card ${card.name} to ${targetLocation} but it is already there`)) {
             return;
         }
 
@@ -1190,6 +1197,9 @@ class Player extends GameObject {
                     break;
                 case Location.Leader:
                     this.leaderZone = updatedPile;
+                    break;
+                case Location.Resource:
+                    this.resources = updatedPile;
                     break;
                 default:
                     if (this.additionalPiles[originalPile]) {

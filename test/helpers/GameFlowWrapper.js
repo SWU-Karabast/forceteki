@@ -84,54 +84,35 @@ class GameFlowWrapper {
      * Both players pass for the rest of the action window
      */
     noMoreActions() {
-        // if(this.game.currentPhase === 'dynasty') {
-        //     // RelativePlayer that have already passed aren't prompted again in dynasty
-        //     this.eachPlayerStartingWithPrompted(player => {
-        //         if(!player.player.passedDynasty) {
-        //             player.clickPrompt('Pass');
-        //         }
-        //     });
-        // } else {
-        //     this.eachPlayerStartingWithPrompted(player => player.clickPrompt('Pass'));
-        // }
+        this.eachPlayerStartingWithPrompted((player) => {
+            if (!player.player.passedActionPhase) {
+                player.clickPrompt('Pass');
+            }
+        });
     }
 
     /**
-     * Skips any remaining conflicts, skips the action window
+     * Pass any remaining player actions
      */
-    finishConflictPhase() {
-        this.guardCurrentPhase('conflict');
-        while (this.player1.player.getConflictOpportunities() > 0 ||
-            this.player2.player.getConflictOpportunities() > 0) {
-            try {
-                this.noMoreActions();
-            } catch (e) {
-                // Case: handle skipping a player's conflict
-                var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to declare conflict'));
-                playersInPromptedOrder[0].clickPrompt('Pass Conflict');
-                playersInPromptedOrder[0].clickPrompt('yes');
-            }
-        }
+    finishActionPhase() {
+        this.guardCurrentPhase('action');
         this.noMoreActions();
-        // Resolve claiming imperial favor, if any
-        var claimingPlayer = this.allPlayers.find((player) => player.hasPrompt('Which side of the Imperial Favor would you like to claim?'));
-        if (claimingPlayer) {
-            claimingPlayer.clickPrompt('military');
-        }
-        // this.guardCurrentPhase('fate');
+        this.guardCurrentPhase('regroup');
+    }
+
+    moveToNextActionPhase() {
+        this.finishActionPhase();
+        this.skipRegroupPhase();
     }
 
     /**
      * Completes the regroup phase
      */
-    finishRegroupPhase() {
+    skipRegroupPhase() {
         this.guardCurrentPhase('regroup');
-        var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to discard dynasty cards'));
-        playersInPromptedOrder.forEach((player) => player.clickPrompt('Done'));
-        // End the round
-        var promptedToEnd = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to end the round'));
-        promptedToEnd.forEach((player) => player.clickPrompt('End Round'));
-        this.guardCurrentPhase('dynasty');
+        var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to choose cards to resource'));
+        playersInPromptedOrder.forEach((player) => player.clickPrompt('Pass'));
+        this.guardCurrentPhase('action');
     }
 
     /**
@@ -147,11 +128,11 @@ class GameFlowWrapper {
                 this.skipSetupPhase();
                 break;
             case 'action':
-                this.finishConflictPhase();
+                this.finishActionPhase();
                 phaseChange = -1;
                 break;
             case 'regroup':
-                this.finishRegroupPhase();
+                this.skipRegroupPhase();
                 phaseChange = 4; //New turn
                 break;
             default:

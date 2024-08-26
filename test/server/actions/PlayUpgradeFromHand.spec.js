@@ -21,8 +21,6 @@ describe('Entrenched', function() {
                 this.wampa = this.player1.findCardByName('wampa');
                 this.tieLn = this.player1.findCardByName('tieln-fighter');
                 this.brightHope = this.player2.findCardByName('bright-hope#the-last-transport');
-
-                this.noMoreActions();
             });
 
             it('it should be able to be attached to any ground or space unit and apply a stat bonus to it', function () {
@@ -83,8 +81,6 @@ describe('Entrenched', function() {
                 this.wampa = this.player1.findCardByName('wampa');
                 this.tieLn = this.player1.findCardByName('tieln-fighter');
                 this.brightHope = this.player2.findCardByName('bright-hope#the-last-transport');
-
-                this.noMoreActions();
             });
 
 

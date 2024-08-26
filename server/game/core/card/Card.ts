@@ -670,6 +670,9 @@ export class Card extends OngoingEffectSource {
     //     return Object.assign(state, selectionState);
     // }
 
+    public override toString() {
+        return this.internalName;
+    }
 
     public override getShortSummaryForControls(activePlayer: Player): any {
         if (!this.isHiddenForPlayer(activePlayer)) {

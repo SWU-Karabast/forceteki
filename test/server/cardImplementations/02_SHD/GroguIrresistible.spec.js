@@ -22,8 +22,6 @@ describe('Grogu, Irresistible', function() {
 
                 this.p1Base = this.player1.base;
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('should exhaust a selected enemy unit', function () {

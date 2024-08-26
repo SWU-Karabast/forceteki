@@ -17,6 +17,7 @@ describe('Basic attack', function() {
                         base: 'jabbas-palace'
                     }
                 });
+
                 this.wampa = this.player1.findCardByName('wampa');
                 this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
                 this.atrt = this.player2.findCardByName('frontier-atrt');
@@ -24,8 +25,6 @@ describe('Basic attack', function() {
                 this.allianceXWing = this.player2.findCardByName('alliance-xwing');
                 this.p1Base = this.player1.base;
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('the player should only be able to select opponent\'s units in the same arena and base', function () {
