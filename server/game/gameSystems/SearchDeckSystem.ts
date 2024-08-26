@@ -1,19 +1,19 @@
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
 
-import type { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
-import { EventName, Location, TargetMode } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
-import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { shuffleDeck } from '../gameSystems/GameSystemLibrary.js';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import Player from '../core/Player';
-import { shuffleArray } from '../core/utils/Helpers';
+import type { AbilityContext } from '../core/ability/AbilityContext.js';
+import { Card } from '../core/card/Card.js';
+import { EventName, Location, TargetMode } from '../core/Constants.js';
+import { GameEvent } from '../core/event/GameEvent.js';
+import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem.js';
+import { shuffleDeck } from './GameSystemLibrary.js';
+import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
+import Player from '../core/Player.js';
+import { shuffleArray } from '../core/utils/Helpers.js';
 
 type Derivable<T> = T | ((context: AbilityContext) => T);
 
-export interface IDeckSearchProperties extends IPlayerTargetSystemProperties {
+export interface ISearchDeckProperties extends IPlayerTargetSystemProperties {
     targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited | TargetMode.Exactly | TargetMode.ExactlyVariable;
     activePromptTitle?: string;
     /** The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck. */
@@ -37,13 +37,13 @@ export interface IDeckSearchProperties extends IPlayerTargetSystemProperties {
     chooseNothingImmediateEffect?: GameSystem<IGameSystemProperties>;
 }
 
-export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> {
+export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> {
     public override readonly name = 'deckSearch';
     public override readonly eventName = EventName.OnDeckSearch;
     public override readonly costDescription: string = '';
     public override readonly effectDescription: string = '';
 
-    protected override defaultProperties: IDeckSearchProperties = {
+    protected override defaultProperties: ISearchDeckProperties = {
         searchCount: -1,
         selectCount: 1,
         targetMode: TargetMode.UpTo,
@@ -61,7 +61,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     public override eventHandler(event): void { }
 
     public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
         if (this.computeSearchCount(properties.searchCount, context) === 0) {
             return false;
         }
@@ -69,8 +69,8 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         return this.getDeck(player).length > 0 && super.canAffect(player, context);
     }
 
-    public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IDeckSearchProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
+    public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ISearchDeckProperties {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
 
         properties.cardCondition = properties.cardCondition || (() => true);
         return properties;
@@ -87,7 +87,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     }
 
     public override canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
         const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
         return searchCountAmount !== 0 && this.getDeck(player).length > 0 && super.canAffect(player, context);
     }
@@ -97,7 +97,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
     }
 
     public override addPropertiesToEvent(event: any, player: Player, context: AbilityContext, additionalProperties: any): void {
-        const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
+        const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
         const searchCountAmount = this.computeSearchCount(searchCount, context);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = searchCountAmount;
@@ -139,7 +139,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
 
     private selectCard(event: any, additionalProperties: any, cards: Card[], selectedCards: Set<Card>): void {
         const context: AbilityContext = event.context;
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDeckSearchProperties;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
         const canCancel = properties.targetMode !== TargetMode.Exactly;
         let selectAmount = 1;
         const choosingPlayer = properties.choosingPlayer || event.player;
@@ -198,7 +198,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         });
     }
 
-    private handleDone(properties: IDeckSearchProperties, context: AbilityContext, event: any, selectedCards: Set<Card>, allCards: Card[]): void {
+    private handleDone(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>, allCards: Card[]): void {
         event.selectedCards = Array.from(selectedCards);
         context.selects['deckSearch'] = Array.from(selectedCards);
         if (properties.selectedCardsHandler === null) {
@@ -232,7 +232,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         }
     }
 
-    private defaultDoneHandle(properties: IDeckSearchProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
+    private defaultDoneHandle(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
         this.handleDoneMessage(properties, context, event, selectedCards);
 
         const gameSystem = this.generatePropertiesFromContext(event.context).immediateEffect;
@@ -248,7 +248,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         }
     }
 
-    private handleDoneMessage(properties: IDeckSearchProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
+    private handleDoneMessage(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
         const choosingPlayer = properties.choosingPlayer || event.player;
         if (selectedCards.size > 0 && properties.message) {
             const args = properties.messageArgs ? properties.messageArgs(context, Array.from(selectedCards)) : [];
@@ -271,7 +271,7 @@ export class DeckSearchSystem extends PlayerTargetSystem<IDeckSearchProperties> 
         );
     }
 
-    private handleTakeNothing(properties: IDeckSearchProperties, context: AbilityContext, event: any) {
+    private handleTakeNothing(properties: ISearchDeckProperties, context: AbilityContext, event: any) {
         const choosingPlayer = properties.choosingPlayer || event.player;
         context.game.addMessage('{0} takes nothing', choosingPlayer);
         if (properties.chooseNothingImmediateEffect) {

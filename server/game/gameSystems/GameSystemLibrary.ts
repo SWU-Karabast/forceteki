@@ -14,7 +14,7 @@ import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 // import { ChosenReturnToDeckAction, ChosenReturnToDeckProperties } from './ChosenReturnToDeckAction';
 import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
 // import { CreateTokenAction, CreateTokenProperties } from './CreateTokenAction';
-import { DeckSearchSystem, IDeckSearchProperties } from './DeckSearchSystem';
+import { SearchDeckSystem, ISearchDeckProperties } from './SearchDeckSystem';
 // import { DetachAction, DetachActionProperties } from './DetachAction';
 // import { DiscardCardAction, DiscardCardProperties } from './DiscardCardAction';
 // import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
@@ -204,8 +204,8 @@ export function reveal(propertyFactory: PropsFactory<IRevealProperties> = {}): C
  * default placeOnBottomInRandomOrder = true (place unchosen cards on the bottom of the deck in random order)
  * default cardCondition = always true
  */
-export function deckSearch(propertyFactory: PropsFactory<IDeckSearchProperties>): GameSystem {
-    return new DeckSearchSystem(propertyFactory);
+export function deckSearch(propertyFactory: PropsFactory<ISearchDeckProperties>): GameSystem {
+    return new SearchDeckSystem(propertyFactory);
 }
 
 /**

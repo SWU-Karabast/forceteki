@@ -6,14 +6,14 @@ import Player from '../core/Player';
 export interface IShuffleDeckProperties extends IPlayerTargetSystemProperties {}
 
 export class ShuffleDeckSystem extends PlayerTargetSystem<IShuffleDeckProperties> {
-    public override readonly name = 'refill';
-    public override readonly effectDescription = 'refill its province faceup';
+    public override readonly name = 'shuffle';
+    public override readonly effectDescription = 'shuffle deck';
 
     public override defaultTargets(context: AbilityContext): Player[] {
         return [context.player];
     }
 
     public eventHandler(event): void {
-        event.player.shuffleDeck();
+        event.context.player.shuffleDeck();
     }
 }
