@@ -73,7 +73,7 @@ export interface IActionAbilityProps<Source = any> extends IAbilityProps<Ability
 
 export type IEventAbilityProps<Source = any> = IAbilityProps<AbilityContext<Source>>;
 
-export type IEpicActionProps<Source = any> = Omit<IAbilityProps<AbilityContext<Source>>, 'cost' | 'limit'>;
+export type IEpicActionProps<Source = any> = Omit<IAbilityProps<AbilityContext<Source>>, 'cost' | 'limit' | 'handler'>;
 
 export type traitLimit = Record<string, number>;
 
