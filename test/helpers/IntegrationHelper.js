@@ -69,6 +69,35 @@ var customMatchers = {
             }
         };
     },
+    toHavePromptButtons: function (util, customEqualityMatchers) {
+        return {
+            compare: function (actual, expecteds) {
+                if (!Array.isArray(expecteds)) {
+                    expecteds = [expecteds];
+                }
+
+                var buttons = actual.currentPrompt().buttons;
+                var result = {};
+
+                for (let expected of expecteds) {
+                    result.pass = buttons.some(
+                        (button) => !button.disabled && util.equals(button.text, expected, customEqualityMatchers)
+                    );
+
+                    if (result.pass) {
+                        result.message = `Expected ${actual.name} not to have enabled prompt button '${expected}' but it did.`;
+                    } else {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                    }
+                }
+
+                return result;
+            }
+        };
+    },
     toHaveDisabledPromptButton: function (util, customEqualityMatchers) {
         return {
             compare: function (actual, expected) {
@@ -86,6 +115,35 @@ var customMatchers = {
                         (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
                     ).join('\n');
                     result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toHaveDisabledPromptButtons: function (util, customEqualityMatchers) {
+        return {
+            compare: function (actual, expecteds) {
+                if (!Array.isArray(expecteds)) {
+                    expecteds = [expecteds];
+                }
+
+                var buttons = actual.currentPrompt().buttons;
+                var result = {};
+
+                for (let expected of expecteds) {
+                    result.pass = buttons.some(
+                        (button) => button.disabled && util.equals(button.text, expected, customEqualityMatchers)
+                    );
+
+                    if (result.pass) {
+                        result.message = `Expected ${actual.name} not to have disabled prompt button '${expected}' but it did.`;
+                    } else {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                    }
                 }
 
                 return result;

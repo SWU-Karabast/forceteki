@@ -16,9 +16,6 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     discardDestinationCards?: boolean;
 }
 
-/**
- * This system has been partially tested.
- */
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public override readonly name = 'move';
     public override targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade, CardType.Event];

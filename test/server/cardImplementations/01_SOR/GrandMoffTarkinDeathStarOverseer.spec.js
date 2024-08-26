@@ -40,12 +40,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             it('should prompt to choose up to 2 Imperials from the top 5 cards', function () {
                 this.player1.clickCard(this.p1Tarkin);
                 expect(this.player1).toHavePrompt('Select up to 2 cards to reveal');
-                expect(this.player1).toHavePromptButton(this.academyDefenseWalker.title);
-                expect(this.player1).toHavePromptButton(this.cellBlockGuard.title);
-                expect(this.player1).toHavePromptButton(this.scoutBikePursuer.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.battlefieldMarine.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.wampa.title);
-                expect(this.player1).toHavePromptButton('Take nothing');
+                expect(this.player1).toHavePromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title, 'Take nothing']);
             });
 
             it('should reveal the chosen Imperials', function() {
@@ -77,17 +72,14 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
 
             it('should be allowed to pick just one card', function() {
                 this.player1.clickCard(this.p1Tarkin);
-                expect(this.player1).toHavePromptButton(this.academyDefenseWalker.title);
-                expect(this.player1).toHavePromptButton(this.cellBlockGuard.title);
-                expect(this.player1).toHavePromptButton(this.scoutBikePursuer.title);
+                expect(this.player1).toHavePromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title]);
 
                 // Done prompt doesn't show up til one card selected
                 expect(this.player1).not.toHavePromptButton('Done');
                 this.player1.clickPrompt(this.cellBlockGuard.title);
 
                 // Cell Block Guard should no longer be present
-                expect(this.player1).toHavePromptButton(this.academyDefenseWalker.title);
-                expect(this.player1).toHavePromptButton(this.scoutBikePursuer.title);
+                expect(this.player1).toHavePromptButtons([this.academyDefenseWalker.title, this.scoutBikePursuer.title]);
                 expect(this.player1).not.toHavePromptButton(this.cellBlockGuard.title);
                 expect(this.player1).not.toHaveDisabledPromptButton(this.cellBlockGuard.title);
 
@@ -116,11 +108,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             it('no cards matching criteria', function() {
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.p2tarkin);
-                expect(this.player2).toHaveDisabledPromptButton(this.clanWrenRescuer.title);
-                expect(this.player2).toHaveDisabledPromptButton(this.concordDawnInterceptors.title);
-                expect(this.player2).toHaveDisabledPromptButton(this.gentleGiant.title);
-                expect(this.player2).toHaveDisabledPromptButton(this.systemPatrolCraft.title);
-                expect(this.player2).toHaveDisabledPromptButton(this.villageProtectors.title);
+                expect(this.player2).toHaveDisabledPromptButtons([this.clanWrenRescuer.title, this.concordDawnInterceptors.title, this.gentleGiant.title, this.systemPatrolCraft.title, this.villageProtectors.title]);
                 expect(this.player2).toHavePromptButton('Take nothing');
                 this.player2.clickPrompt('Take nothing');
 

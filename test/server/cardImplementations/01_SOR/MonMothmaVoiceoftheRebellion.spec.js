@@ -27,12 +27,8 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
             it('should prompt to choose a Rebel from the top 5 cards', function () {
                 this.player1.clickCard(this.monMothma);
                 expect(this.player1).toHavePrompt('Select a card to reveal');
-                expect(this.player1).toHaveDisabledPromptButton(this.cellBlockGuard.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.volunteerSoldier.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.pykeSentinel.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.cartelSpacer.title);
-                expect(this.player1).toHavePromptButton(this.battlefieldMarine.title);
-                expect(this.player1).toHavePromptButton('Take nothing');
+                expect(this.player1).toHaveDisabledPromptButtons([this.cartelSpacer.title, this.cellBlockGuard.title, this.pykeSentinel.title, this.volunteerSoldier.title]);
+                expect(this.player1).toHavePromptButtons([this.battlefieldMarine.title, 'Take nothing']);
             });
 
             it('should reveal the chosen Rebel', function() {
@@ -99,11 +95,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 // No valid targets, all should be disabled
                 this.player1.clickCard(this.monMothma);
                 expect(this.player1).toHavePrompt('Select a card to reveal');
-                expect(this.player1).toHaveDisabledPromptButton(this.academyDefenseWalker.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.cartelSpacer.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.cellBlockGuard.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.pykeSentinel.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.volunteerSoldier.title);
+                expect(this.player1).toHaveDisabledPromptButtons([this.academyDefenseWalker.title, this.cartelSpacer.title, this.cellBlockGuard.title, this.pykeSentinel.title, this.volunteerSoldier.title]);
                 expect(this.player1).toHavePromptButton('Take nothing');
 
                 this.player1.clickPrompt('Take nothing');

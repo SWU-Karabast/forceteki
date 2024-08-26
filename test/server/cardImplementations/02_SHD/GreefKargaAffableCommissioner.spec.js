@@ -25,10 +25,7 @@ describe('Greef Karga, Affable Commissioner', function() {
                 this.player1.clickCard(this.greefKarga);
                 expect(this.player1).toHavePrompt('Select a card to reveal');
                 expect(this.player1).toHavePromptButton(this.foundling.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.atst.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.pykeSentinel.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.cartelSpacer.title);
-                expect(this.player1).toHaveDisabledPromptButton(this.battlefieldMarine.title);
+                expect(this.player1).toHaveDisabledPromptButtons([this.atst.title, this.battlefieldMarine.title, this.cartelSpacer.title, this.pykeSentinel.title]);
                 this.player1.clickPrompt(this.foundling.title);
                 expect(this.foundling.location).toBe('hand');
                 expect(this.getChatLogs(2)).toContain('player1 takes Foundling');
