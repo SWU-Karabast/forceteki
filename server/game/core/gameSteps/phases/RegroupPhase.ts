@@ -12,7 +12,7 @@ import { GameEvent } from '../../event/GameEvent';
 export class RegroupPhase extends Phase {
     public constructor(game: Game) {
         super(game, PhaseName.Regroup);
-        this.pipeline.initialise([
+        this.initialise([
             new SimpleStep(game, () => this.drawTwo(), 'drawTwo'),
             new VariableResourcePrompt(game, 0, 1),
             new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards'),

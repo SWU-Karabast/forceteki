@@ -85,7 +85,7 @@ class GameFlowWrapper {
      */
     noMoreActions() {
         this.eachPlayerStartingWithPrompted((player) => {
-            if (!player.player.passedActionPhase) {
+            if (player.player.passedActionPhase === false) {
                 player.clickPrompt('Pass');
             }
         });
@@ -111,7 +111,7 @@ class GameFlowWrapper {
     skipRegroupPhase() {
         this.guardCurrentPhase('regroup');
         var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to choose cards to resource'));
-        playersInPromptedOrder.forEach((player) => player.clickPrompt('Pass'));
+        playersInPromptedOrder.forEach((player) => player.clickPrompt('Done'));
         this.guardCurrentPhase('action');
     }
 
