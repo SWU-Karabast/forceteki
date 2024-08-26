@@ -4,14 +4,13 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import Contract from '../utils/Contract';
-import { AbilityType, CardType, Keyword, Location, RelativePlayer } from '../Constants';
+import { AbilityType, CardType, KeywordName, Location, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IAbilityProps, IActionAbilityProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
-import * as KeywordHelpers from '../ability/KeywordHelpers';
 import GainAbility from '../ongoingEffect/effectImpl/GainAbility';
 import { AbilityContext } from '../ability/AbilityContext';
 
@@ -105,13 +104,10 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is a keyword ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainKeywordAbilityTargetingAttached(properties: IKeywordProperties) {
-        const abilityType = KeywordHelpers.keywordToAbilityType[properties.keyword];
-        const abilityProperties = KeywordHelpers.generateAbilityPropertiesForKeyword(properties);
-
+    protected addGainKeywordTargetingAttached(properties: IKeywordProperties) {
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(abilityType, abilityProperties)
+            title: 'Give keyword to the attached card',
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(properties)
         });
     }
 

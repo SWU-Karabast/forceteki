@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityCon
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
-import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, Keyword, AbilityType } from './core/Constants';
+import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, KeywordName, AbilityType } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 
@@ -122,7 +122,7 @@ interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityConte
 }
 
 interface IKeywordPropertiesBase {
-    keyword: Keyword;
+    keyword: KeywordName;
 }
 
 interface INumericKeywordProperties extends IKeywordPropertiesBase {
@@ -130,9 +130,9 @@ interface INumericKeywordProperties extends IKeywordPropertiesBase {
 }
 
 interface IRestoreKeywordProperties extends INumericKeywordProperties {
-    keyword: Keyword.Restore;
+    keyword: KeywordName.Restore;
 }
 
 interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
-    keyword: Keyword.Sentinel;
+    keyword: KeywordName.Sentinel;
 }

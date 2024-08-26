@@ -1,7 +1,5 @@
-import { Card } from '../../core/card/Card';
 import { UpgradeCard } from '../../core/card/UpgradeCard';
-import { Keyword, Trait } from '../../core/Constants';
-import Player from '../../core/Player';
+import { KeywordName } from '../../core/Constants';
 
 export default class Devotion extends UpgradeCard {
     protected override getImplementationId() {
@@ -12,8 +10,8 @@ export default class Devotion extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
-        this.addGainKeywordAbilityTargetingAttached({
-            keyword: Keyword.Restore,
+        this.addGainKeywordTargetingAttached({
+            keyword: KeywordName.Restore,
             amount: 2
         });
     }

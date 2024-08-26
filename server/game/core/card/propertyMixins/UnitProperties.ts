@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { AbilityRestriction, Arena, CardType, EffectName, Location, StatType } from '../../Constants';
+import { AbilityRestriction, Arena, CardType, EffectName, KeywordName, Location, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import Contract from '../../utils/Contract';
@@ -12,6 +12,7 @@ import * as EnumHelpers from '../../utils/EnumHelpers';
 import { UpgradeCard } from '../UpgradeCard';
 import { Card } from '../Card';
 import { ITriggeredAbilityProps } from '../../../Interfaces';
+import { KeywordWithCostValues, KeywordWithNumericValue } from '../../ability/KeywordInstance';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -88,6 +89,22 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected addAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
             const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event) => event.attack.attacker === this } });
             this.addTriggeredAbility(triggeredProperties);
+        }
+
+        // *************************************** KEYWORD HELPERS ***************************************
+        /**
+         * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
+         * for this card and adds up the total of their effect values.
+         * @returns value of the total effect if enabled, `null` if the effect is not present
+         */
+        public getNumericKeywordSum(keywordName: KeywordName.Restore | KeywordName.Raid): number | null {
+            let effectTotal = 0;
+            for (const gainedKeyword of this.getEffectValues(EffectName.GainKeyword)) {
+                if (gainedKeyword.name === keywordName) {
+                    effectTotal += (gainedKeyword as KeywordWithNumericValue).value;
+                }
+            }
+            return effectTotal > 0 ? effectTotal : null;
         }
 
         // ***************************************** STAT HELPERS *****************************************

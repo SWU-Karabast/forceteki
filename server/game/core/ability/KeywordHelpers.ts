@@ -1,97 +1,41 @@
-import { ActionAbility } from './ActionAbility';
-import type TriggeredAbility from './TriggeredAbility';
-import { AbilityType, Keyword } from '../Constants';
-import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import { KeywordName } from '../Constants';
 import Contract from '../utils/Contract';
-import { RestoreAbility } from '../../abilities/keyword/RestoreAbility';
-import { Card } from '../card/Card';
-import Game from '../Game';
-import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import * as EnumHelpers from '../utils/EnumHelpers';
+import { KeywordInstance, KeywordWithNumericValue } from './KeywordInstance';
 
-// TODO KEYWORDS: populate these methods
+export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, cardName: string): KeywordInstance[] {
+    const expectedKeywords = EnumHelpers.checkConvertToEnum(expectedKeywordsRaw, KeywordName);
 
-export function generateActionAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): ActionAbility[] {
-    const generatedAbilities = [];
+    const keywords: KeywordInstance[] = [];
 
-    if (keywords.has(Keyword.Smuggle)) {
-        // TODO: smuggle impl
-    }
-
-    return generatedAbilities;
-}
-
-export function generateTriggeredAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): TriggeredAbility[] {
-    const generatedAbilities = [];
-
-    if (keywords.has(Keyword.Ambush)) {
-        // TODO: ambush impl
-    }
-    if (keywords.has(Keyword.Bounty)) {
-        // TODO: bounty impl
-    }
-    if (keywords.has(Keyword.Restore)) {
-        const restoreValueOrNull = parseNumericKeywordValueIfEnabled(Keyword.Restore, card, cardText);
-        if (restoreValueOrNull != null) {
-            generatedAbilities.push(new RestoreAbility(game, card, restoreValueOrNull as number));
+    for (const keywordName in expectedKeywords) {
+        switch (keywordName) {
+            case KeywordName.Ambush:
+            case KeywordName.Bounty:
+            case KeywordName.Grit:
+            case KeywordName.Overwhelm:
+            case KeywordName.Saboteur:
+            case KeywordName.Sentinel:
+            case KeywordName.Shielded:
+                if (isKeywordEnabled(keywordName, cardText, cardName)) {
+                    keywords.push(new KeywordInstance(keywordName));
+                }
+                break;
+            case KeywordName.Raid:
+            case KeywordName.Restore:
+                const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, cardName);
+                if (keywordValueOrNull != null) {
+                    keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
+                }
+                break;
+            case KeywordName.Smuggle:
+                // TODO: smuggle impl
+                break;
         }
     }
-    if (keywords.has(Keyword.Saboteur)) {
-        // TODO: restore impl
-    }
-    if (keywords.has(Keyword.Shielded)) {
-        // TODO: restore impl
-    }
 
-    return generatedAbilities;
+    return keywords;
 }
-
-export function generateConstantAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): IConstantAbility[] {
-    const generatedAbilities = [];
-
-    if (keywords.has(Keyword.Overwhelm)) {
-        // TODO: overwhelm impl
-    }
-    if (keywords.has(Keyword.Grit)) {
-        // TODO: grit impl
-    }
-    if (keywords.has(Keyword.Raid)) {
-        // TODO: raid impl
-    }
-    if (keywords.has(Keyword.Sentinel)) {
-        // TODO: sentinel impl
-    }
-
-    return generatedAbilities;
-}
-
-export function generateAbilityPropertiesForKeyword(keywordProperties: IKeywordProperties): ITriggeredAbilityProps | IActionAbilityProps | IConstantAbility {
-    switch (keywordProperties.keyword) {
-        case Keyword.Restore:
-            return RestoreAbility.buildRestoreAbilityProperties(keywordProperties.amount);
-        default:
-            throw new Error(`Dynamically gaining keyword ${keywordProperties.keyword} is not yet implemented`);
-    }
-}
-
-export const keywordToAbilityType: Record<Keyword, AbilityType> = {
-    [Keyword.Ambush]: AbilityType.Triggered,
-    [Keyword.Bounty]: AbilityType.Triggered,
-    [Keyword.Grit]: AbilityType.Constant,
-    [Keyword.Overwhelm]: AbilityType.Constant,
-    [Keyword.Raid]: AbilityType.Constant,
-    [Keyword.Restore]: AbilityType.Triggered,
-    [Keyword.Saboteur]: AbilityType.Triggered,
-    [Keyword.Sentinel]: AbilityType.Constant,
-    [Keyword.Shielded]: AbilityType.Triggered,
-    [Keyword.Smuggle]: AbilityType.Action
-};
-
-export const abilityTypeToKeyword: Record<AbilityType, Keyword[]> = {
-    [AbilityType.Action]: [Keyword.Smuggle],
-    [AbilityType.Constant]: [Keyword.Grit, Keyword.Overwhelm, Keyword.Raid, Keyword.Sentinel],
-    [AbilityType.Triggered]: [Keyword.Ambush, Keyword.Bounty, Keyword.Restore, Keyword.Saboteur, Keyword.Shielded],
-    [AbilityType.Event]: []
-};
 
 /**
  * Checks if the specific keyword is "enabled" in the text, i.e., if it is on by default
@@ -100,9 +44,32 @@ export const abilityTypeToKeyword: Record<AbilityType, Keyword[]> = {
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
-function parseNumericKeywordValueIfEnabled(keyword: Keyword, card: Card, cardText: string): number | null {
+function isKeywordEnabled(keyword: KeywordName, cardText: string, cardName: string): boolean {
+    const regex = getRegexForKeyword(keyword);
+    const matchIter = cardText.matchAll(regex);
+
+    const match = matchIter.next();
+    if (match.done) {
+        return false;
+    }
+
+    if (matchIter.next().done !== true) {
+        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${cardName}, but found multiple`);
+    }
+
+    return true;
+}
+
+/**
+ * Checks if the specific keyword is "enabled" in the text, i.e., if it is on by default
+ * or is enabled as part of an ability effect. Only checks for "numeric" keywords, meaning
+ * keywords that have a numberic value like "Raid 2" or "Restore 1".
+ *
+ * @returns null if the keyword is not enabled, or the numeric value if enabled
+ */
+function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: string, cardName: string): number | null {
     if (!Contract.assertTrue(
-        [Keyword.Raid, Keyword.Restore].includes(keyword)
+        [KeywordName.Raid, KeywordName.Restore].includes(keyword)
     )) {
         return null;
     }
@@ -116,20 +83,36 @@ function parseNumericKeywordValueIfEnabled(keyword: Keyword, card: Card, cardTex
     }
 
     if (matchIter.next().done !== true) {
-        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${card.internalName}, but found multiple`);
+        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${cardName}, but found multiple`);
     }
 
     // regex capture group will be numeric keyword value
     return Number(match.value[1]);
 }
 
-function getRegexForKeyword(keyword: Keyword) {
+function getRegexForKeyword(keyword: KeywordName) {
     // these regexes check that the keyword is starting on its own line, indicating that it's not part of an ability text
     // for numeric keywords, the regex also grabs the numeric value after the keyword as a capture group
 
     switch (keyword) {
-        case Keyword.Restore:
+        case KeywordName.Ambush:
+            return /(?:^|(?:\n))Ambush/g;
+        case KeywordName.Bounty:
+            return /(?:^|(?:\n))Bounty/g;
+        case KeywordName.Grit:
+            return /(?:^|(?:\n))Grit/g;
+        case KeywordName.Overwhelm:
+            return /(?:^|(?:\n))Overwhelm/g;
+        case KeywordName.Raid:
+            return /(?:^|(?:\n))Raid ([\d]+)/g;
+        case KeywordName.Restore:
             return /(?:^|(?:\n))Restore ([\d]+)/g;
+        case KeywordName.Saboteur:
+            return /(?:^|(?:\n))Saboteur/g;
+        case KeywordName.Sentinel:
+            return /(?:^|(?:\n))Sentinel/g;
+        case KeywordName.Shielded:
+            return /(?:^|(?:\n))Shielded/g;
         default:
             throw new Error(`Keyword '${keyword}' is not implemented yet`);
     }

@@ -42,7 +42,6 @@ export enum EffectName {
     AdditionalActionAfterWindowCompleted = 'additionalActionsAfterWindowCompleted',
     AdditionalPlayCost = 'additionalPlaycost',
     AdditionalTriggerCost = 'additionalTriggercost',
-    AddKeyword = 'addKeyword',
     AddTrait = 'addTrait',
     Blank = 'blank',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
@@ -55,6 +54,7 @@ export enum EffectName {
     DoesNotReady = 'doesNotReady',
     EntersPlayForOpponent = 'entersPlayForOpponent',
     GainAbility = 'gainAbility',
+    GainKeyword = 'gainKeyword',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
@@ -193,7 +193,7 @@ export enum Aspect {
     Villainy = 'villainy',
 }
 
-export enum Keyword {
+export enum KeywordName {
     /** @deprecated Not implemented yet */
     Ambush = 'ambush',
     /** @deprecated Not implemented yet */

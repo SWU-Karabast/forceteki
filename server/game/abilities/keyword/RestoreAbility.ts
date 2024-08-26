@@ -1,13 +1,13 @@
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import { Card } from '../../core/card/Card';
-import { CardType, Keyword, RelativePlayer } from '../../core/Constants';
+import { CardType, KeywordName, RelativePlayer } from '../../core/Constants';
 import Game from '../../core/Game';
 import Contract from '../../core/utils/Contract';
 import * as GameSystemLibrary from '../../gameSystems/GameSystemLibrary';
 import { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class RestoreAbility extends TriggeredAbility {
-    public override readonly keyword: Keyword | null = Keyword.Restore;
+    public override readonly keyword: KeywordName | null = KeywordName.Restore;
 
     public static buildRestoreAbilityProperties(restoreAmount: number): ITriggeredAbilityProps {
         return {

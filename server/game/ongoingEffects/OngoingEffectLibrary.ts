@@ -11,7 +11,7 @@ import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import { AbilityType, EffectName, PlayType } from '../core/Constants';
 import StatsModifier from '../core/ongoingEffect/effectImpl/StatsModifier';
-import { IActionAbilityProps, ITriggeredAbilityProps } from '../Interfaces';
+import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../Interfaces';
 import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
 import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 
@@ -24,7 +24,6 @@ import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 export = {
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
-    addKeyword: (keyword) => OngoingEffectBuilder.card.static(EffectName.AddKeyword, keyword),
     // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
     // additionalTriggerCostForCard: (func) => OngoingEffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
     // attachmentCardCondition: (func) => OngoingEffectBuilder.card.static(EffectName.AttachmentCardCondition, func),
@@ -95,6 +94,8 @@ export = {
         properties: ITriggeredAbilityProps | IActionAbilityProps | IConstantAbility
     ) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(abilityType, properties)),
+    gainKeyword: (keywordProperties: IKeywordProperties) =>
+        OngoingEffectBuilder.card.static(EffectName.GainKeyword, keywordProperties),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
