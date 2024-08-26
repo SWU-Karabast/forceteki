@@ -19,7 +19,8 @@ import { DeckSearchSystem, IDeckSearchProperties } from './DeckSearchSystem';
 // import { DiscardCardAction, DiscardCardProperties } from './DiscardCardAction';
 // import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
 // import { DiscardStatusAction, DiscardStatusProperties } from './DiscardStatusAction';
-// import { DrawAction, DrawProperties } from './DrawAction';
+import { DrawSystem, IDrawProperties } from './DrawSystem';
+import { DrawSpecificCardSystem, IDrawSpecificCardProperties } from './DrawSpecificCardSystem';
 import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
 // import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
 import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './ExecuteHandlerSystem';
@@ -218,12 +219,19 @@ export function deckSearch(propertyFactory: PropsFactory<IDeckSearchProperties>)
 // export function discardMatching(propertyFactory: PropsFactory<MatchingDiscardProperties> = {}): GameSystem {
 //     return new MatchingDiscardAction(propertyFactory);
 // }
-// /**
-//  * default amount = 1
-//  */
-// export function draw(propertyFactory: PropsFactory<DrawProperties> = {}): GameSystem {
-//     return new DrawAction(propertyFactory);
-// }
+/**
+ * default amount = 1
+ */
+export function draw(propertyFactory: PropsFactory<IDrawProperties> = {}): GameSystem {
+    return new DrawSystem(propertyFactory);
+}
+
+/**
+ * default amount = 1
+ */
+export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCardProperties>): CardTargetSystem {
+    return new DrawSpecificCardSystem(propertyFactory);
+}
 // export function playerLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
 //     return new LastingEffectAction(propertyFactory);
 // } // duration = 'untilEndOfConflict', effect, targetController, condition, until
