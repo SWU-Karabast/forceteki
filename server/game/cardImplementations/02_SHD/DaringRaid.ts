@@ -11,7 +11,7 @@ export default class DaringRaid extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Deal 2 damage to a friendly ground unit and an enemy ground unit',
+            title: 'Deal 2 damage to a unit or base',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
             },
