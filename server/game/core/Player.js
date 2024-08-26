@@ -660,11 +660,11 @@ class Player extends GameObject {
         this.drawDeck.forEach((card) => {
             // register event reactions in case event-in-deck bluff window is enabled
             // TODO EVENTS: probably we need to do this differently since we have actual reactions on our events
-            if (card.isEvent()) {
-                for (let reaction of card.abilities.getTriggeredAbilities()) {
-                    reaction.registerEvents();
-                }
-            }
+            // if (card.isEvent()) {
+            //     for (let reaction of card.abilities.getTriggeredAbilities()) {
+            //         reaction.registerEvents();
+            //     }
+            // }
         });
         this.outsideTheGameCards = preparedDecklist.outsideTheGameCards;
     }
@@ -1135,11 +1135,6 @@ class Player extends GameObject {
             //     this.promptForUpgrade(card);
             //     return;
             // }
-        // TODO EVENTS: this moves an event card to the "Being Played" zone while active. In swu, it goes directly
-        // to discard then activates. We can probably remove Location.BeingPlayed entirely
-        } else if (currentLocation === Location.BeingPlayed && card.owner !== this) {
-            card.owner.moveCard(card, targetLocation, options);
-            return;
         } else {
             card.controller = card.owner;
         }

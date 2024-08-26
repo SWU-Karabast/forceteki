@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 // defaults to fill in with if not explicitly provided by the test case
-const defaultLeader = 'darth-vader#dark-lord-of-the-sith';
-const defaultBase = 'kestro-city';
+const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
+const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
 const deckFillerCard = 'underworld-thug';
 const deckBufferSize = 8; // buffer decks to prevent re-shuffling
 
@@ -35,9 +35,9 @@ class DeckBuilder {
     /*
         options: as player1 and player2 are described in setupTest #1514
     */
-    customDeck(playerCards = {}) {
-        let leader = defaultLeader;
-        let base = defaultBase;
+    customDeck(playerNumber, playerCards = {}) {
+        let leader = defaultLeader[playerNumber];
+        let base = defaultBase[playerNumber];
         let allCards = [];
         let deckSize = deckBufferSize;
         let inPlayCards = [];
@@ -47,6 +47,13 @@ class DeckBuilder {
         }
         if (playerCards.base) {
             base = playerCards.base;
+        }
+
+        // if user didn't provide explicit resource cards, create default ones to be added to deck
+        if (playerCards.resources == null) {
+            playerCards.resources = Array(20).fill(deckFillerCard);
+        } else if (typeof playerCards.resources === 'number') {
+            playerCards.resources = Array(playerCards.resources).fill(deckFillerCard);
         }
 
         /**

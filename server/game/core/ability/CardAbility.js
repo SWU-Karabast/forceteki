@@ -6,11 +6,11 @@ const EnumHelpers = require('../utils/EnumHelpers.js');
 const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
 
 class CardAbility extends CardAbilityStep {
-    constructor(game, card, properties, abilityType = AbilityType.Action) {
+    constructor(game, card, properties, type = AbilityType.Action) {
         if (properties.initiateAttack) {
             addInitiateAttackProperties(properties);
         }
-        super(game, card, properties, abilityType);
+        super(game, card, properties, type);
 
         this.title = properties.title;
 
@@ -29,12 +29,6 @@ class CardAbility extends CardAbilityStep {
         if (!this.abilityIdentifier) {
             // TODO: improve this so it at least increments the ability number
             this.abilityIdentifier = this.printedAbility ? this.card.internalName + '_1' : '';
-        }
-
-        // TODO EVENTS: this is where the actual payment and activation of an event card happens, this needs to be
-        // changed to behave more like a unit card in terms of how it's played
-        if (card.isEvent() && !this.isKeywordAbility()) {
-            this.cost = this.cost.concat(Costs.payAdjustableResourceCost());
         }
     }
 
@@ -140,9 +134,7 @@ class CardAbility extends CardAbilityStep {
     displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if (
             context.source.isEvent() &&
-            context.source.isConflict &&
-            context.source.location !== Location.Hand &&
-            context.source.location !== Location.BeingPlayed
+            context.source.location !== Location.Hand
         ) {
             this.game.addMessage(
                 '{0} plays {1} from {2} {3}',
@@ -230,7 +222,7 @@ class CardAbility extends CardAbilityStep {
 
     /** @override */
     isActivatedAbility() {
-        return [AbilityType.Action, AbilityType.Triggered].includes(this.abilityType);
+        return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.type);
     }
 
     /** @override */

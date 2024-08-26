@@ -7,7 +7,8 @@ describe('Entrenched', function() {
                     player1: {
                         hand: ['entrenched', 'academy-training', 'resilient', 'foundling'],
                         groundArena: ['wampa'],
-                        spaceArena: ['tieln-fighter']
+                        spaceArena: ['tieln-fighter'],
+                        leader: ['director-krennic#aspiring-to-authority']
                     },
                     player2: {
                         spaceArena: ['bright-hope#the-last-transport']
@@ -33,6 +34,8 @@ describe('Entrenched', function() {
                 expect(this.wampa.power).toBe(7);
                 expect(this.wampa.hp).toBe(8);
 
+                expect(this.player1.countExhaustedResources()).toBe(2);
+
                 this.player2.passAction();
 
                 // upgrade attaches to friendly space unit
@@ -42,6 +45,8 @@ describe('Entrenched', function() {
                 expect(this.tieLn.upgrades).toContain(this.academyTraining);
                 expect(this.tieLn.power).toBe(4);
                 expect(this.tieLn.hp).toBe(3);
+
+                expect(this.player1.countExhaustedResources()).toBe(6);
 
                 this.player2.passAction();
 

@@ -3,7 +3,6 @@
 
 export enum Location {
     Base = 'base',
-    BeingPlayed = 'being played',
     Deck = 'deck',
     Discard = 'discard',
     GroundArena = 'ground arena',
@@ -262,6 +261,8 @@ export enum AbilityRestriction {
     PlayUnit = 'playUnit',
     /** Restricts a player's ability to play upgrades */
     PlayUpgrade = 'playUpgrade',
+    /** Restricts a player's ability to play events */
+    PlayEvent = 'playEvent',
     /** Restricts a player's ability to put a certain card or type of card into play */
     PutIntoPlay = 'putIntoPlay',
     /** Restricts a card from being played. Typically used for event cards, see {@link AbilityRestriction.PutIntoPlay} for other card types */
