@@ -97,6 +97,31 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.addTriggeredAbility(triggeredProperties);
         }
 
+        public override getTriggeredAbilities(): TriggeredAbility[] {
+            let triggeredAbilities = super.getTriggeredAbilities();
+
+            // add any temporarily registered attack abilities from keywords
+            if (this._attackKeywordAbilities !== null || this.isBlank()) {
+                triggeredAbilities = triggeredAbilities.concat(this._attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
+            }
+
+            return triggeredAbilities;
+        }
+
+        public override getConstantAbilities(): IConstantAbility[] {
+            let constantAbilities = super.getConstantAbilities();
+
+            // add any temporarily registered attack abilities from keywords
+            if (this._attackKeywordAbilities !== null) {
+                constantAbilities = constantAbilities.concat(
+                    this._attackKeywordAbilities.filter((ability) => !(ability instanceof TriggeredAbility))
+                        .map((ability) => ability as IConstantAbility)
+                );
+            }
+
+            return constantAbilities;
+        }
+
         // *************************************** KEYWORD HELPERS ***************************************
         /**
          * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
@@ -104,13 +129,22 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * @returns value of the total effect if enabled, `null` if the effect is not present
          */
         public getNumericKeywordSum(keywordName: KeywordName.Restore | KeywordName.Raid): number | null {
-            let effectTotal = 0;
+            let keywordValueTotal = 0;
+
+            // value from printed keyword, if present
+            const printedKeywords = this.keywords.filter((keyword) => keyword.name === keywordName);
+            if (printedKeywords.length !== 0) {
+                keywordValueTotal += (printedKeywords[0] as KeywordWithNumericValue).value;
+            }
+
+            // values from gain keyword effects, if any
             for (const gainedKeyword of this.getEffectValues(EffectName.GainKeyword)) {
                 if (gainedKeyword.name === keywordName) {
-                    effectTotal += (gainedKeyword as KeywordWithNumericValue).value;
+                    keywordValueTotal += (gainedKeyword as KeywordWithNumericValue).value;
                 }
             }
-            return effectTotal > 0 ? effectTotal : null;
+
+            return keywordValueTotal > 0 ? keywordValueTotal : null;
         }
 
         /**

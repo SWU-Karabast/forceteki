@@ -8,7 +8,7 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
 
     const keywords: KeywordInstance[] = [];
 
-    for (const keywordName in expectedKeywords) {
+    for (const keywordName of expectedKeywords) {
         switch (keywordName) {
             case KeywordName.Ambush:
             case KeywordName.Bounty:
