@@ -55,6 +55,15 @@ describe('Restore keyword', function() {
                 expect(this.p1Base.damage).toBe(1);
                 expect(this.p2Base.damage).toBe(4);
                 expect(this.regionalSympathizers.exhausted).toBe(true);
+
+                // second attack to ensure ability deregistration is working
+                this.player2.passAction();
+
+                this.regionalSympathizers.exhausted = false;
+                this.player1.clickCard(this.regionalSympathizers);
+                expect(this.p1Base.damage).toBe(0);
+                expect(this.p2Base.damage).toBe(8);
+                expect(this.regionalSympathizers.exhausted).toBe(true);
             });
         });
     });

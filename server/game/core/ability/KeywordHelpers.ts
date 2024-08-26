@@ -51,32 +51,14 @@ export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Smuggle]: false
 };
 
-export const keywordToAbilityType: Record<KeywordName, AbilityType> = {
-    [KeywordName.Ambush]: AbilityType.Triggered,
-    [KeywordName.Bounty]: AbilityType.Triggered,
-    [KeywordName.Grit]: AbilityType.Constant,
-    [KeywordName.Overwhelm]: AbilityType.Constant,
-    [KeywordName.Raid]: AbilityType.Constant,
-    [KeywordName.Restore]: AbilityType.Triggered,
-    [KeywordName.Saboteur]: AbilityType.Triggered,
-    [KeywordName.Sentinel]: AbilityType.Constant,
-    [KeywordName.Shielded]: AbilityType.Triggered,
-    [KeywordName.Smuggle]: AbilityType.Action
-};
-
-export const abilityTypeToKeyword: Record<AbilityType, KeywordName[]> = {
-    [AbilityType.Action]: [KeywordName.Smuggle],
-    [AbilityType.Constant]: [KeywordName.Grit, KeywordName.Overwhelm, KeywordName.Raid, KeywordName.Sentinel],
-    [AbilityType.Triggered]: [KeywordName.Ambush, KeywordName.Bounty, KeywordName.Restore, KeywordName.Saboteur, KeywordName.Shielded],
-    [AbilityType.Event]: []
-};
-
 /**
  * Checks if the specific keyword is "enabled" in the text, i.e., if it is on by default
- * or is enabled as part of an ability effect. Only checks for "numeric" keywords, meaning
- * keywords that have a numberic value like "Raid 2" or "Restore 1".
+ * or is enabled as part of an ability effect.
+ *
+ * Should not be used for "numeric" keywords like raid and restore, see {@link parseNumericKeywordValueIfEnabled}.
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
+ * @deprecated this is implemented but not yet tested on an actual keyword
  */
 function isKeywordEnabled(keyword: KeywordName, cardText: string, cardName: string): boolean {
     const regex = getRegexForKeyword(keyword);
@@ -147,6 +129,7 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Sentinel/g;
         case KeywordName.Shielded:
             return /(?:^|(?:\n))Shielded/g;
+        case KeywordName.Smuggle:   // TODO SMUGGLE: regex
         default:
             throw new Error(`Keyword '${keyword}' is not implemented yet`);
     }
