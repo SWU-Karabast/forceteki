@@ -97,7 +97,7 @@ export class UpgradeCard extends UpgradeCardParent {
     protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps) {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(properties)
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(AbilityType.Triggered, properties)
         });
     }
 
@@ -106,11 +106,12 @@ export class UpgradeCard extends UpgradeCardParent {
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
     protected addGainKeywordAbilityTargetingAttached(properties: IKeywordProperties) {
-        const abilityProps = KeywordHelpers.generateAbilityPropertiesForKeyword(properties);
+        const abilityType = KeywordHelpers.keywordToAbilityType[properties.keyword];
+        const abilityProperties = KeywordHelpers.generateAbilityPropertiesForKeyword(properties);
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(abilityProps)
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(abilityType, abilityProperties)
         });
     }
 

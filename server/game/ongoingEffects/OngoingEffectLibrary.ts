@@ -91,8 +91,10 @@ export = {
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
     gainAbility: (
+        abilityType: AbilityType,
         properties: ITriggeredAbilityProps | IActionAbilityProps | IConstantAbility
-    ) => OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(AbilityType.Triggered, properties)),
+    ) =>
+        OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(abilityType, properties)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),

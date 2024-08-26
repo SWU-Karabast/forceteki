@@ -1,13 +1,12 @@
 import { CardActionAbility } from './CardActionAbility';
-import TriggeredAbility from './TriggeredAbility';
+import type TriggeredAbility from './TriggeredAbility';
 import { AbilityType, Keyword } from '../Constants';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import Contract from '../utils/Contract';
 import { RestoreAbility } from '../../abilities/keyword/RestoreAbility';
 import { Card } from '../card/Card';
 import Game from '../Game';
-import { IAbilityProps, IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
-import { AbilityContext } from './AbilityContext';
+import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 
 // TODO KEYWORDS: populate these methods
 
@@ -30,12 +29,6 @@ export function generateTriggeredAbilitiesFromKeywords(keywords: Set<Keyword>, g
     if (keywords.has(Keyword.Bounty)) {
         // TODO: bounty impl
     }
-    if (keywords.has(Keyword.Overwhelm)) {
-        // TODO: overwhelm impl
-    }
-    if (keywords.has(Keyword.Raid)) {
-        // TODO: raid impl
-    }
     if (keywords.has(Keyword.Restore)) {
         const restoreValueOrNull = parseNumericKeywordValueIfEnabled(Keyword.Restore, card, cardText);
         if (restoreValueOrNull != null) {
@@ -55,8 +48,14 @@ export function generateTriggeredAbilitiesFromKeywords(keywords: Set<Keyword>, g
 export function generateConstantAbilitiesFromKeywords(keywords: Set<Keyword>, game: Game, card: Card, cardText: string): IConstantAbility[] {
     const generatedAbilities = [];
 
+    if (keywords.has(Keyword.Overwhelm)) {
+        // TODO: overwhelm impl
+    }
     if (keywords.has(Keyword.Grit)) {
         // TODO: grit impl
+    }
+    if (keywords.has(Keyword.Raid)) {
+        // TODO: raid impl
     }
     if (keywords.has(Keyword.Sentinel)) {
         // TODO: sentinel impl
@@ -73,6 +72,26 @@ export function generateAbilityPropertiesForKeyword(keywordProperties: IKeywordP
             throw new Error(`Dynamically gaining keyword ${keywordProperties.keyword} is not yet implemented`);
     }
 }
+
+export const keywordToAbilityType: Record<Keyword, AbilityType> = {
+    [Keyword.Ambush]: AbilityType.Triggered,
+    [Keyword.Bounty]: AbilityType.Triggered,
+    [Keyword.Grit]: AbilityType.Constant,
+    [Keyword.Overwhelm]: AbilityType.Constant,
+    [Keyword.Raid]: AbilityType.Constant,
+    [Keyword.Restore]: AbilityType.Triggered,
+    [Keyword.Saboteur]: AbilityType.Triggered,
+    [Keyword.Sentinel]: AbilityType.Constant,
+    [Keyword.Shielded]: AbilityType.Triggered,
+    [Keyword.Smuggle]: AbilityType.Action
+};
+
+export const abilityTypeToKeyword: Record<AbilityType, Keyword[]> = {
+    [AbilityType.Action]: [Keyword.Smuggle],
+    [AbilityType.Constant]: [Keyword.Grit, Keyword.Overwhelm, Keyword.Raid, Keyword.Sentinel],
+    [AbilityType.Triggered]: [Keyword.Ambush, Keyword.Bounty, Keyword.Restore, Keyword.Saboteur, Keyword.Shielded],
+    [AbilityType.Event]: []
+};
 
 /**
  * Checks if the specific keyword is "enabled" in the text, i.e., if it is on by default
