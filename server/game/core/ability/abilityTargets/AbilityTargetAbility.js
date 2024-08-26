@@ -70,7 +70,7 @@ class AbilityTargetAbility {
         let waitingPromptTitle = '';
         if (context.stage === Stage.PreTarget) {
             buttons.push({ text: 'Cancel', arg: 'cancel' });
-            if (context.ability.abilityType === 'action') {
+            if (context.ability.type === 'action') {
                 waitingPromptTitle = 'Waiting for opponent to take an action or pass';
             } else {
                 waitingPromptTitle = 'Waiting for opponent';

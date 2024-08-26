@@ -40,8 +40,7 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
             event.card.moveTo(event.parentCard.location);
         }
 
-        event.parentCard.upgrades.push(event.card);
-        event.card.parentCard = event.parentCard;
+        event.parentCard.attachUpgrade(event.card);
         if (properties.takeControl) {
             event.card.controller = event.context.player;
             event.card.updateConstantAbilityContexts();

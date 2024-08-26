@@ -429,20 +429,9 @@ global.integration = function (definitions) {
                 }
                 this.game.gameMode = GameMode.Premier;
 
-                // if user didn't provide explicit resource cards, create default ones to be added to deck
-                const setDefaultResourceCards = (options) => {
-                    if (options.resources == null) {
-                        options.resources = Array(20).fill('underworld-thug');
-                    } else if (typeof options.resources === 'number') {
-                        options.resources = Array(options.resources).fill('underworld-thug');
-                    }
-                };
-                setDefaultResourceCards(options.player1);
-                setDefaultResourceCards(options.player2);
-
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
-                this.player1.selectDeck(deckBuilder.customDeck(options.player1));
-                this.player2.selectDeck(deckBuilder.customDeck(options.player2));
+                this.player1.selectDeck(deckBuilder.customDeck(1, options.player1));
+                this.player2.selectDeck(deckBuilder.customDeck(2, options.player2));
 
                 this.startGame();
 

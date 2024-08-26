@@ -14,7 +14,7 @@ export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbil
 // for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
 export interface IAbilityProps<Context> {
     title: string;
-    locationFilter?: Location | Location[];
+    locationFilter?: LocationFilter | LocationFilter[];
     cost?: any;
     limit?: any;
     targetResolver?: IActionTargetResolver;
@@ -70,6 +70,8 @@ export interface IActionAbilityProps<Source = any> extends IAbilityProps<Ability
         anyPlayer?: boolean;
         phase?: PhaseName | 'any';
     }
+
+export type IEventAbilityProps<Source = any> = IAbilityProps<AbilityContext<Source>>;
 
 export type IEpicActionProps<Source = any> = Omit<IAbilityProps<AbilityContext<Source>>, 'cost' | 'limit'>;
 

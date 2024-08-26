@@ -85,16 +85,10 @@ export default class TriggeredAbility extends CardAbility {
     }
 
     public override meetsRequirements(context, ignoredRequirements = []) {
-        const canOpponentTrigger =
-            this.card.hasEffect(EffectName.CanBeTriggeredByOpponent) &&
-            this.abilityType !== AbilityType.Triggered;
-        const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
+        const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller;
 
         if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
-            if (
-                !this.card.isEvent() ||
-                !context.player.isCardInPlayableLocation(this.card, context.playType)
-            ) {
+            if (!context.player.isCardInPlayableLocation(this.card, context.playType)) {
                 return 'player';
             }
         }
@@ -118,7 +112,7 @@ export default class TriggeredAbility extends CardAbility {
             return;
         } else if (this.aggregateWhen) {
             const event = {
-                name: 'aggregateEvent:' + this.abilityType,
+                name: 'aggregateEvent:' + this.type,
                 handler: (events, window) => this.checkAggregateWhen(events, window)
             };
             this.eventRegistrations = [event];
@@ -131,7 +125,7 @@ export default class TriggeredAbility extends CardAbility {
         this.eventRegistrations = [];
         eventNames.forEach((eventName) => {
             const event = {
-                name: eventName + ':' + this.abilityType,
+                name: eventName + ':' + this.type,
                 handler: (event, window) => this.eventHandler(event, window)
             };
             this.game.on(event.name, event.handler);

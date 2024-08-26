@@ -6,13 +6,12 @@ describe('Play unit from hand', function() {
                     phase: 'action',
                     player1: {
                         hand: ['cartel-spacer', 'first-legion-snowtrooper', 'battlefield-marine'],
-                        resources: 6,   // TODO THIS PR: change all existing tests to reflect resource changes
+                        resources: 6,
                         leader: 'boba-fett#collecting-the-bounty',
                         base: 'jabbas-palace'
                     },
                     player2: {
                         groundArena: ['wampa'],
-                        resources: ['atst', 'atst']
                     }
                 });
                 this.cartelSpacer = this.player1.findCardByName('cartel-spacer');

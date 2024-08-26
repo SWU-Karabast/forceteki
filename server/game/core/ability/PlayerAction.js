@@ -27,11 +27,6 @@ class PlayerAction extends PlayerOrCardAbility {
         let resourceCost = this.cost.find((cost) => cost.getReducedCost);
         return resourceCost ? resourceCost.getReducedCost(context) : 0;
     }
-
-    /** @override */
-    isAction() {
-        return true;
-    }
 }
 
 module.exports = PlayerAction;

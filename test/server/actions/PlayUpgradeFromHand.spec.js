@@ -7,7 +7,8 @@ describe('Entrenched', function() {
                     player1: {
                         hand: ['entrenched', 'academy-training', 'resilient', 'foundling'],
                         groundArena: ['wampa'],
-                        spaceArena: ['tieln-fighter']
+                        spaceArena: ['tieln-fighter'],
+                        leader: ['director-krennic#aspiring-to-authority']
                     },
                     player2: {
                         spaceArena: ['bright-hope#the-last-transport']
@@ -33,6 +34,8 @@ describe('Entrenched', function() {
                 expect(this.wampa.power).toBe(7);
                 expect(this.wampa.hp).toBe(8);
 
+                expect(this.player1.countExhaustedResources()).toBe(2);
+
                 this.player2.passAction();
 
                 // upgrade attaches to friendly space unit
@@ -43,15 +46,20 @@ describe('Entrenched', function() {
                 expect(this.tieLn.power).toBe(4);
                 expect(this.tieLn.hp).toBe(3);
 
+                expect(this.player1.countExhaustedResources()).toBe(6);
+
                 this.player2.passAction();
 
-                // upgrade attaches to friendly space unit
+                // upgrade attaches to enemy unit
                 this.player1.clickCard(this.resilient);
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tieLn, this.brightHope]);
                 this.player1.clickCard(this.brightHope);
                 expect(this.brightHope.upgrades).toContain(this.resilient);
                 expect(this.brightHope.power).toBe(2);
                 expect(this.brightHope.hp).toBe(9);
+
+                // confirm that the upgrade is still controlled by the player who played it
+                expect(this.resilient.controller).toBe(this.player1.player);
             });
         });
 

@@ -51,7 +51,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
      */
     public getConstantAbilities(): IConstantAbility[] {
         return this.isBlank() ? []
-            : this._constantAbilities;
+            : this._constantAbilities
+                .concat(this.getGainedAbilityEffects<IConstantAbility>(AbilityType.Constant));
     }
 
     /**
@@ -61,7 +62,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
      */
     public getTriggeredAbilities(): TriggeredAbility[] {
         return this.isBlank() ? []
-            : this._triggeredAbilities;
+            : this._triggeredAbilities
+                .concat(this.getGainedAbilityEffects<TriggeredAbility>(AbilityType.Triggered));
     }
 
     public override canRegisterConstantAbilities(): boolean {
@@ -155,6 +157,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this._enteredPlayThisRound = EnumHelpers.isArena(this.location) ? true : null;
 
         // register a handler to reset the enteredPlayThisRound flag after the end of the round
+        // TODO: we need a way to remove these handlers when the card leaves play
         this.game.on(EventName.OnRoundEndedCleanup, this.resetEnteredPlayThisRound);
     }
 

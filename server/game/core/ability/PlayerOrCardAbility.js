@@ -30,12 +30,12 @@ class PlayerOrCardAbility {
      * @param {string} [properties.title] - Name to use for ability display and debugging
      * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
      */
-    constructor(properties, abilityType = AbilityType.Action) {
+    constructor(properties, type = AbilityType.Action) {
         Contract.assertStringValue(properties.title);
 
         this.title = properties.title;
         this.limit = null;
-        this.abilityType = abilityType;
+        this.type = type;
         this.gameSystem = properties.immediateEffect || [];
         if (!Array.isArray(this.gameSystem)) {
             this.gameSystem = [this.gameSystem];
@@ -243,10 +243,10 @@ class PlayerOrCardAbility {
     executeHandler(context) {}
 
     isAction() {
-        return this.abilityType === AbilityType.Action;
+        return this.type === AbilityType.Action;
     }
 
-    /** Indicates whether this ability is an ability represents a card being played */
+    /** Indicates whether a card is played as part of the resolution this ability */
     isCardPlayed() {
         return false;
     }

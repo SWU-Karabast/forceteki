@@ -2,10 +2,9 @@ const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
 const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js');
 const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
-const { Location, Stage, CardType, EventName } = require('../Constants.js');
+const { Location, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 
-// TODO: convert to TS
 class AbilityResolver extends BaseStepWithPipeline {
     constructor(game, context) {
         super(game);
@@ -20,9 +19,9 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.costResults = this.getCostResults();
         this.initialise();
 
-        // TODO: add interface for this in Interfaces.ts when we convert to TS
         // this is used when a triggerd ability is marked optional to ensure that a "Pass" button
         // appears at all times during the prompt flow for that ability
+        // TODO: add interface for this in Interfaces.ts when we convert to TS
         this.passAbilityHandler = this.context.ability.optional ? {
             buttonText: 'Pass ability',
             arg: 'passAbility',
@@ -71,7 +70,8 @@ class AbilityResolver extends BaseStepWithPipeline {
                     card: this.context.source,
                     context: this.context,
                     originalLocation: this.context.source.location,
-                    originallyOnTopOfConflictDeck: this.context.player && this.context.player.conflictDeck && this.context.player.conflictDeck.first() === this.context.source,
+                    originallyOnTopOfDeck:
+                        this.context.player && this.context.player.drawDeck && this.context.player.drawDeck[0] === this.context.source,
                     onPlayCardSource: this.context.onPlayCardSource,
                     playType: this.context.playType,
                     resolver: this
@@ -97,7 +97,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.game.queueSimpleStep(() => this.checkForCancelOrPass(), 'checkForCancelOrPass');
         this.game.queueSimpleStep(() => this.initiateAbilityEffects(), 'initiateAbilityEffects');
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
-        this.game.queueSimpleStep(() => this.moveEventCardToDiscard(), 'moveEventCardToDiscard');
     }
 
     resolveEarlyTargets() {
@@ -219,16 +218,12 @@ class AbilityResolver extends BaseStepWithPipeline {
            (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.location === this.context.source.location)) {
             this.context.ability.limit.increment(this.context.player);
         }
-        if (this.context.ability.max) {
-            this.context.player.incrementAbilityMax(this.context.ability.maxIdentifier);
-        }
         this.context.ability.displayMessage(this.context);
 
         if (this.context.ability.isActivatedAbility()) {
-            // TODO EVENTS: need to remove 'BeingPlayed' reference here and just send directly to discard (should already be there since this is triggering off an already-played card)
-            // If this is an event, move it to 'being played', and queue a step to send it to the discard pile after it resolves
-            if (this.context.ability.isCardPlayed()) {
-                this.game.actions.moveCard({ destination: Location.BeingPlayed }).resolve(this.context.source, this.context);
+            // If this is an event, move it to discard before resolving the ability
+            if (this.context.ability.type === AbilityType.Event) {
+                this.game.actions.moveCard({ destination: Location.Discard }).resolve(this.context.source, this.context);
             }
             this.game.openThenEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
         } else {
@@ -242,12 +237,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
         this.context.stage = Stage.EffectTmp;
         this.context.ability.executeHandler(this.context);
-    }
-
-    moveEventCardToDiscard() {
-        if (this.context.source.location === Location.BeingPlayed) {
-            this.context.player.moveCard(this.context.source, Location.Discard);
-        }
     }
 
     /** @override */

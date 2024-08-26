@@ -1,22 +1,36 @@
 import Player from '../Player';
-import { Card } from './Card';
 import { WithCost } from './propertyMixins/Cost';
-import { CardType, Location } from '../Constants';
+import { AbilityType, CardType, Location } from '../Constants';
 import Contract from '../utils/Contract';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import { IEventAbilityProps } from '../../Interfaces';
+import { EventAbility } from '../ability/EventAbility';
+import { PlayEventAction } from '../../actions/PlayEventAction';
 
 const EventCardParent = WithCost(PlayableOrDeployableCard);
 
 export class EventCard extends EventCardParent {
+    private _eventAbility: EventAbility;
+
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        Contract.assertTrue(this.printedType === CardType.Event);
+        Contract.assertEqual(this.printedType, CardType.Event);
 
-        // TODO EVENTS: add play event action to this._actions (see Unit.ts for reference)
+        this.defaultActions.push(new PlayEventAction(this));
+
+        this.activateAbilityInitializersForTypes([AbilityType.Event]);
+
+        Contract.assertNotNullLike(this._eventAbility, 'Event card\'s ability was not initialized');
     }
 
     public override isEvent() {
         return true;
+    }
+
+    /** Ability of event card when played. Will be null if disabled by an effect. */
+    public getEventAbility(): EventAbility | null {
+        return this.isBlank() ? null
+            : this._eventAbility;
     }
 
     protected override initializeForCurrentLocation(prevLocation: Location): void {
@@ -34,5 +48,12 @@ export class EventCard extends EventCardParent {
         }
     }
 
-    // TODO EVENTS: populate this with an addEventAbility() method (see Unit.ts for reference)
+    protected setEventAbility(properties: IEventAbilityProps) {
+        properties.cardName = this.title;
+
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Event,
+            initialize: () => this._eventAbility = new EventAbility(this.game, this, properties)
+        });
+    }
 }

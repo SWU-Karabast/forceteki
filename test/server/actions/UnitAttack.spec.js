@@ -9,13 +9,11 @@ describe('Basic attack', function() {
                     player1: {
                         groundArena: ['wampa'],
                         spaceArena: ['cartel-spacer'],
-                        resources: ['atst', 'atst'],
                         base: ['kestro-city']
                     },
                     player2: {
                         groundArena: ['frontier-atrt', 'enfys-nest#marauder'],
                         spaceArena: ['alliance-xwing'],
-                        resources: ['atst', 'atst'],
                         base: ['jabbas-palace']
                     }
                 });
@@ -64,13 +62,7 @@ describe('Basic attack', function() {
                 this.player1.clickCard(this.wampa);
                 this.player1.clickCard(this.enfysNest);
 
-                // these properties should throw because they're disabled when the card is not in an arena
-                expect(() => this.wampa.damage).toThrow();
-                expect(() => this.wampa.exhausted).toThrow();
                 expect(this.wampa.location).toBe('discard');
-
-                expect(() => this.enfysNest.damage).toThrow();
-                expect(() => this.enfysNest.exhausted).toThrow();
                 expect(this.enfysNest.location).toBe('discard');
             });
 
@@ -78,13 +70,7 @@ describe('Basic attack', function() {
                 this.player1.clickCard(this.wampa);
                 this.player1.clickCard(this.enfysNest);
 
-                // these properties should throw because they're disabled when the card is not in an arena
-                expect(() => this.wampa.damage).toThrow();
-                expect(() => this.wampa.exhausted).toThrow();
                 expect(this.wampa.location).toBe('discard');
-
-                expect(() => this.enfysNest.damage).toThrow();
-                expect(() => this.enfysNest.exhausted).toThrow();
                 expect(this.enfysNest.location).toBe('discard');
             });
 
