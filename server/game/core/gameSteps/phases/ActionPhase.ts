@@ -8,6 +8,7 @@ import ActionWindow from '../ActionWindow';
 export class ActionPhase extends Phase {
     public activePlayer?: Player;
 
+    // each ActionWindow will use this handler to indicate if the window was passed or not
     private readonly passStatusHandler = (passed: boolean) => this.prevPlayerPassed = passed;
     private prevPlayerPassed = false;
 

@@ -1035,17 +1035,6 @@ class Player extends GameObject {
         }
     }
 
-    /** Ready all available cards for end of regroup phase */
-    readyAllCards() {
-        for (const unit of this.getUnitsInPlay()) {
-            unit.ready();
-        }
-        for (const resource of this.getResourceCards()) {
-            resource.ready();
-        }
-        this.leader.ready();
-    }
-
     /**
      * Returns the number of resources available to spend
      */
