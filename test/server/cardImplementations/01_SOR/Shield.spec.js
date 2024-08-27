@@ -26,6 +26,12 @@ describe('Shield', function() {
 
                 // TODO THIS PR: token defeat logic
                 expect(this.shield.location).toBe('discard');
+
+                // second attack to confirm that shield effect is off
+                this.player2.clickCard(this.tieLn);
+                this.player2.clickCard(this.cartelSpacer);
+                expect(this.cartelSpacer.location).toBe('discard');
+                expect(this.tieLn.location).toBe('discard');
             });
         });
     });

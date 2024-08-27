@@ -22,13 +22,13 @@ export class ReplacementEffectSystem extends GameSystem<IReplacementEffectSystem
                 Object.assign({ replacementEffect: true }, additionalProperties)
             );
             event.context.game.queueSimpleStep(() => {
-                if (!event.context.event.isSacrifice && events.length === 1) {
+                if (events.length === 1) {
                     event.context.event.replacementEvent = events[0];
                 }
                 for (const newEvent of events) {
                     eventWindow.addEvent(newEvent);
                 }
-            });
+            }, 'replacementEffect: replace window event');
         }
 
         event.context.cancel();
