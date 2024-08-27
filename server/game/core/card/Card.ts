@@ -11,6 +11,7 @@ import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import CardAbility from '../ability/CardAbility';
+import type Shield from '../../cardImplementations/01_SOR/Shield';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -270,6 +271,10 @@ export class Card extends OngoingEffectSource {
 
     public isToken(): boolean {
         return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
+    }
+
+    public isShield(): this is Shield {
+        return false;
     }
 
     /** Returns true if the card is in a location where it can legally be damaged */

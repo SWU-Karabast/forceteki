@@ -11,15 +11,27 @@ export default class Shield extends TokenUpgradeCard {
         };
     }
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(
+        owner: Player,
+        cardData: any,
+
+        /** Indicates that the shield be prioritized for removal if multiple shields are present (currently only for Jetpack) */
+        public readonly highPriorityRemoval: boolean = false
+    ) {
+        const cardDataWithStats = { ...cardData };
+
         // even though shield is printed as 0/0 its cardData has nulls for these, which requires special handling
-        Contract.assertTrue(cardData.power === null);
-        Contract.assertTrue(cardData.hp === null);
+        Contract.assertTrue(cardDataWithStats.power === null);
+        Contract.assertTrue(cardDataWithStats.hp === null);
 
-        cardData.power = 0;
-        cardData.hp = 0;
+        cardDataWithStats.power = 0;
+        cardDataWithStats.hp = 0;
 
-        super(owner, cardData);
+        super(owner, cardDataWithStats);
+    }
+
+    public override isShield(): this is Shield {
+        return true;
     }
 
     public override setupCardAbilities() {

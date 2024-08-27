@@ -191,6 +191,15 @@ class Player extends GameObject {
     }
 
     /**
+     * Returns a list of cards matching passed name
+     * @param list _(Array)
+     * @param {String} name
+     */
+    findCardsByName(list, name) {
+        return this.findCards(list, (card) => card.name === name);
+    }
+
+    /**
      * Returns a card with the passed uuid in the passed list
      * @param list _(Array)
      * @param {String} uuid
@@ -222,7 +231,7 @@ class Player extends GameObject {
     }
 
     /**
-     * Returns an Array of BaseCard which match (or whose upgrades match) passed predicate in the passed list
+     * Returns an Array of BaseCard which match passed predicate in the passed list
      * @param cardList _(Array)
      * @param {Function} predicate - BaseCard => Boolean
      */
@@ -236,10 +245,6 @@ class Player extends GameObject {
         cardList.forEach((card) => {
             if (predicate(card)) {
                 cardsToReturn.push(card);
-            }
-
-            if (card.upgrades) {
-                cardsToReturn = cardsToReturn.concat(card.upgrades.filter(predicate));
             }
 
             return cardsToReturn;

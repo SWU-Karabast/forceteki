@@ -10,6 +10,7 @@ import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import { AbilityContext } from '../../ability/AbilityContext';
 import Game from '../../Game';
+import Shield from '../../../cardImplementations/01_SOR/Shield';
 
 export class TriggeredAbilityWindow extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -53,6 +54,11 @@ export class TriggeredAbilityWindow extends BaseStep {
             // if no abilities trigged, continue with game flow
             if (this.unresolved.size === 0) {
                 return true;
+            }
+
+            // see if consolidating shields gets us down to one trigger
+            if (this.unresolved.size === 1 && this.triggerAbilityType === AbilityType.ReplacementEffect) {
+                this.consolidateShieldTriggers();
             }
 
             // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
@@ -233,6 +239,44 @@ export class TriggeredAbilityWindow extends BaseStep {
                 }
             ]
         });
+    }
+
+    /**
+     * If there are multiple Shield triggers present, consolidate down to one of them to reduce prompt noise.
+     * Will randomly choose the Shield to trigger unless any have {@link Shield.highPriorityRemoval}` = true`,
+     * in which case one of those will be selected randomly.
+     */
+    private consolidateShieldTriggers() {
+        if (!Contract.assertEqual(this.triggerAbilityType, AbilityType.ReplacementEffect)) {
+            return;
+        }
+
+        const postConsolidateUnresolved = new Map<Player, TriggeredAbilityContext[]>();
+
+        this.unresolved.forEach((triggeredAbilities: TriggeredAbilityContext[], player: Player) => {
+            let selectedShieldEffect: TriggeredAbilityContext<Shield> | null = null;
+
+            for (const triggeredAbility of triggeredAbilities) {
+                const abilitySource = triggeredAbility.source;
+
+                if (abilitySource.isShield()) {
+                    if (selectedShieldEffect === null) {
+                        selectedShieldEffect = (triggeredAbility as TriggeredAbilityContext<Shield>);
+                    } else if (abilitySource.highPriorityRemoval && !selectedShieldEffect.source.highPriorityRemoval) {
+                        selectedShieldEffect = (triggeredAbility as TriggeredAbilityContext<Shield>);
+                    }
+                }
+            }
+
+            let postConsolidateAbilities = triggeredAbilities;
+            if (selectedShieldEffect !== null) {
+                postConsolidateAbilities = postConsolidateAbilities.filter((ability) => !ability.source.isShield() || ability === selectedShieldEffect);
+            }
+
+            postConsolidateUnresolved.set(player, postConsolidateAbilities);
+        });
+
+        this.unresolved = postConsolidateUnresolved;
     }
 
     private emitEvents() {

@@ -276,6 +276,10 @@ class PlayerInteractionWrapper {
         return this.filterCardsByName(name, locations, side)[0];
     }
 
+    findCardsByName(name, locations = 'any', side) {
+        return this.filterCardsByName(name, locations, side);
+    }
+
     findAllCardsByName(name, locations = 'any', side) {
         return this.filterCardsByName(name, locations, side);
     }
