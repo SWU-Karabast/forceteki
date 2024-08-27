@@ -95,31 +95,6 @@ var customMatchers = {
             }
         };
     },
-    toHaveDisabledPromptButtons: function (util, customEqualityMatchers) {
-        return {
-            compare: function (actual, expected) {
-                var buttons = actual.currentPrompt().buttons;
-                var result = {};
-
-                result.pass = _.any(
-                    buttons,
-                    (button) => button.disabled && util.equals(button.text, expected, customEqualityMatchers)
-                );
-
-                if (result.pass) {
-                    result.message = `Expected ${actual.name} not to have disabled prompt button "${expected}" but it did.`;
-                } else {
-                    var buttonText = _.map(
-                        buttons,
-                        (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
-                    ).join('\n');
-                    result.message = `Expected ${actual.name} to have disabled prompt button "${expected}" but it had buttons:\n${buttonText}`;
-                }
-
-                return result;
-            }
-        };
-    },
     toBeAbleToSelect: function () {
         return {
             compare: function (player, card) {

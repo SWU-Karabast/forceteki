@@ -7,14 +7,12 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                     player1: {
                         hand: ['grand-moff-tarkin#death-star-overseer'],
                         deck: ['cell-block-guard', 'scout-bike-pursuer', 'academy-defense-walker', 'battlefield-marine', 'wampa', 'alliance-dispatcher', 'echo-base-defender', 'frontline-shuttle'],
-                        deckSize: 8,
-                        leader: ['grand-moff-tarkin#oversector-governor']
+                        deckSize: 8
                     },
                     player2: {
                         hand: ['grand-moff-tarkin#death-star-overseer'],
                         deck: ['system-patrol-craft', 'clan-wren-rescuer', 'village-protectors', 'concord-dawn-interceptors', 'gentle-giant', 'wampa', 'cargo-juggernaut', 'public-enemy'],
-                        deckSize: 8,
-                        leader: ['grand-moff-tarkin#oversector-governor']
+                        deckSize: 8
                     }
                 });
 
@@ -66,9 +64,10 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 expect(this.player1).not.toHavePromptButton('Done');
                 this.player1.clickPrompt(this.cellBlockGuard.title);
 
-                // Cell Block Guard should no longer be present
+                // Cell Block Guard and Take nothing should no longer be present
                 expect(this.player1).toHavePromptButtons([this.academyDefenseWalker.title, this.scoutBikePursuer.title]);
                 expect(this.player1).not.toHavePromptButton(this.cellBlockGuard.title);
+                expect(this.player1).not.toHavePromptButton('Take nothing');
                 expect(this.player1).not.toHaveDisabledPromptButton(this.cellBlockGuard.title);
 
                 // Click Done

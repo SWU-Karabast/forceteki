@@ -16,7 +16,7 @@ export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
-                immediateEffect: AbilityHelper.immediateEffects.drawSpecificCard({})
+                chosenCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
             })
         });
     }

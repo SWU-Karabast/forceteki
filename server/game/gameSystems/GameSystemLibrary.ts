@@ -230,7 +230,7 @@ export function draw(propertyFactory: PropsFactory<IDrawProperties> = {}): GameS
 /**
  * default amount = 1
  */
-export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCardProperties>): CardTargetSystem {
+export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCardProperties> = {}): CardTargetSystem {
     return new DrawSpecificCardSystem(propertyFactory);
 }
 // export function playerLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {

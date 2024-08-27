@@ -24,12 +24,11 @@ export interface ISearchDeckProperties extends IPlayerTargetSystemProperties {
     shuffleWhenDone?: boolean | ((context: AbilityContext) => boolean);
     title?: string;
     /** This determines what to do with the selected cards. */
-    immediateEffect?: GameSystem<IGameSystemProperties>;
+    chosenCardsImmediateEffect?: GameSystem<IGameSystemProperties>;
     message?: string;
     chosenCardsMustHaveUniqueNames?: boolean;
     player?: Player;
     choosingPlayer?: Player;
-    placeOnBottomInRandomOrder?: boolean;
     messageArgs?: (context: AbilityContext, cards: Card[]) => any | any[];
     selectedCardsHandler?: (context: AbilityContext, event: any, cards: Card[]) => void;
     remainingCardsHandler?: (context: AbilityContext, event: any, cards: Card[]) => void;
@@ -52,7 +51,6 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         shuffleWhenDone: false,
         revealSelected: true,
         chosenCardsMustHaveUniqueNames: false,
-        placeOnBottomInRandomOrder: true,
         cardCondition: () => true,
         remainingCardsHandler: this.handleRemainingCardsDefault
     };
@@ -179,7 +177,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
             cardCondition: (card: Card, context: AbilityContext) =>
                 properties.cardCondition(card, context) &&
                 (!properties.chosenCardsMustHaveUniqueNames || !Array.from(selectedCards).some((sel) => sel.name === card.name)) &&
-                (!properties.immediateEffect || properties.immediateEffect.canAffect(card, context, additionalProperties)),
+                (!properties.chosenCardsImmediateEffect || properties.chosenCardsImmediateEffect.canAffect(card, context, additionalProperties)),
             choices: canCancel ? (selectedCards.size > 0 ? ['Done'] : ['Take nothing']) : [],
             handlers: [() => this.handleDone(properties, context, event, selectedCards, cards)],
             cardHandler: (card: Card) => {
@@ -235,7 +233,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
     private defaultDoneHandle(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
         this.handleDoneMessage(properties, context, event, selectedCards);
 
-        const gameSystem = this.generatePropertiesFromContext(event.context).immediateEffect;
+        const gameSystem = this.generatePropertiesFromContext(event.context).chosenCardsImmediateEffect;
         if (gameSystem) {
             const selectedArray = Array.from(selectedCards);
             event.context.targets = selectedArray;
