@@ -31,14 +31,13 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 this.gentleGiant = this.player2.findCardByName('gentle-giant');
                 this.systemPatrolCraft = this.player2.findCardByName('system-patrol-craft');
                 this.villageProtectors = this.player2.findCardByName('village-protectors');
-
-                this.noMoreActions();
             });
 
             it('should prompt to choose up to 2 Imperials from the top 5 cards, reveal chosen, draw them, and put the rest on the bottom of the deck', function () {
                 this.player1.clickCard(this.p1Tarkin);
                 expect(this.player1).toHavePrompt('Select up to 2 cards to reveal');
                 expect(this.player1).toHaveEnabledPromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title, 'Take nothing']);
+                expect(this.player1).toHaveDisabledPromptButtons([this.battlefieldMarine.title, this.wampa.title]);
 
                 // Choose Cell Block Guard and Scout Bike Pursuer
                 this.player1.clickPrompt(this.cellBlockGuard.title);
@@ -51,14 +50,13 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
 
                 // Check cards in deck
                 expect(this.player1.deck.length).toBe(6);
-                expect(this.academyDefenseWalker).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.battlefieldMarine).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.wampa).toBeInBottomOfDeck(this.player1, 5);
+                expect([this.academyDefenseWalker, this.battlefieldMarine, this.wampa]).toAllBeInBottomOfDeck(this.player1, 3);
             });
 
             it('should be allowed to pick just one card', function() {
                 this.player1.clickCard(this.p1Tarkin);
                 expect(this.player1).toHaveEnabledPromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title]);
+                expect(this.player1).toHaveDisabledPromptButtons([this.battlefieldMarine.title, this.wampa.title]);
 
                 // Done prompt doesn't show up til one card selected
                 expect(this.player1).not.toHaveEnabledPromptButton('Done');
@@ -84,11 +82,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 this.player1.clickCard(this.p1Tarkin);
                 this.player1.clickPrompt('Take nothing');
 
-                expect(this.academyDefenseWalker).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.battlefieldMarine).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.cellBlockGuard).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.scoutBikePursuer).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.wampa).toBeInBottomOfDeck(this.player1, 5);
+                expect([this.academyDefenseWalker, this.battlefieldMarine, this.cellBlockGuard, this.scoutBikePursuer, this.wampa]).toAllBeInBottomOfDeck(this.player1, 5);
                 expect(this.player2).toBeActivePlayer();
             });
 
@@ -100,11 +94,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 this.player2.clickPrompt('Take nothing');
 
                 // Check that top 5 cards are now on the bottom of the deck
-                expect(this.clanWrenRescuer).toBeInBottomOfDeck(this.player2, 5);
-                expect(this.concordDawnInterceptors).toBeInBottomOfDeck(this.player2, 5);
-                expect(this.gentleGiant).toBeInBottomOfDeck(this.player2, 5);
-                expect(this.systemPatrolCraft).toBeInBottomOfDeck(this.player2, 5);
-                expect(this.villageProtectors).toBeInBottomOfDeck(this.player2, 5);
+                expect([this.clanWrenRescuer, this.concordDawnInterceptors, this.gentleGiant, this.systemPatrolCraft, this.villageProtectors]).toAllBeInBottomOfDeck(this.player2, 5);
                 expect(this.player1).toBeActivePlayer();
             });
         });

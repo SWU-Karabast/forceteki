@@ -21,8 +21,6 @@ describe('Search Your Feelings', function() {
 
                 this.p1Base = this.player1.base;
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('should be able to retrieve ANY card from the deck', function () {

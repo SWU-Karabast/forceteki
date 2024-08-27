@@ -387,6 +387,39 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toAllBeInBottomOfDeck: function () {
+        return {
+            compare: function (cards, player, numCards) {
+                var result = {};
+                const deck = player.deck;
+                const L = deck.length;
+                result.pass = L >= numCards;
+                if (result.pass) {
+                    for (let card of cards) {
+                        result.pass = card.location === 'deck';
+                        if (!result.pass) {
+                            result.message = `Expected ${card.title} to be in the deck.`;
+                        } else {
+                            var onBottom = false;
+                            for (let i = 1; i <= numCards; i++) {
+                                if (deck[L - i] === card) {
+                                    onBottom = true;
+                                    break;
+                                }
+                            }
+                            result.pass = onBottom;
+                            if (!onBottom) {
+                                result.message = `Expected ${card.title} to be on the bottom of the deck.`;
+                            }
+                        }
+                    }
+                } else {
+                    result.message = 'Deck is smaller than parameter numCards';
+                }
+                return result;
+            }
+        };
     }
 };
 

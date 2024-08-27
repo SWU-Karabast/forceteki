@@ -18,8 +18,6 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 this.cellBlockGuard = this.player1.findCardByName('cell-block-guard');
                 this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
                 this.volunteerSoldier = this.player1.findCardByName('volunteer-soldier');
-
-                this.noMoreActions();
             });
 
             it('should prompt to choose a Rebel from the top 5 cards, reveal it, draw it, and move the rest to the bottom of the deck', function () {
@@ -45,11 +43,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 this.player1.clickPrompt('Take nothing');
 
                 // Ensure that cards have moved to bottom of deck
-                expect(this.battlefieldMarine).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.cartelSpacer).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.cellBlockGuard).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.pykeSentinel).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.volunteerSoldier).toBeInBottomOfDeck(this.player1, 5);
+                expect([this.battlefieldMarine, this.cartelSpacer, this.cellBlockGuard, this.pykeSentinel, this.volunteerSoldier]).toAllBeInBottomOfDeck(this.player1, 5);
             });
 
             it('should allow selection when deck has less than five cards', function() {
@@ -61,8 +55,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 // Ensure that cards have moved to bottom of deck
                 expect(this.player1.deck.length).toBe(2);
-                expect(this.cartelSpacer).toBeInBottomOfDeck(this.player1, 2);
-                expect(this.cellBlockGuard).toBeInBottomOfDeck(this.player1, 2);
+                expect([this.cartelSpacer, this.cellBlockGuard]).toAllBeInBottomOfDeck(this.player1, 2);
             });
 
             it('when the deck is empty', function() {
@@ -99,8 +92,6 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 this.cellBlockGuard = this.player1.findCardByName('cell-block-guard');
                 this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
                 this.volunteerSoldier = this.player1.findCardByName('volunteer-soldier');
-
-                this.noMoreActions();
             });
 
             it('no cards matching criteria', function() {
@@ -113,11 +104,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 this.player1.clickPrompt('Take nothing');
 
                 // Ensure that cards have moved to bottom of deck
-                expect(this.academyDefenseWalker).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.cartelSpacer).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.cellBlockGuard).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.pykeSentinel).toBeInBottomOfDeck(this.player1, 5);
-                expect(this.volunteerSoldier).toBeInBottomOfDeck(this.player1, 5);
+                expect([this.academyDefenseWalker, this.cartelSpacer, this.cellBlockGuard, this.pykeSentinel, this.volunteerSoldier]).toAllBeInBottomOfDeck(this.player1, 5);
             });
         });
     });
