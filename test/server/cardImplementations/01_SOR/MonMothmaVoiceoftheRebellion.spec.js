@@ -26,7 +26,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 this.player1.clickCard(this.monMothma);
                 expect(this.player1).toHavePrompt('Select a card to reveal');
                 expect(this.player1).toHaveDisabledPromptButtons([this.cartelSpacer.title, this.cellBlockGuard.title, this.pykeSentinel.title, this.volunteerSoldier.title]);
-                expect(this.player1).toHavePromptButtons([this.battlefieldMarine.title, 'Take nothing']);
+                expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine.title, 'Take nothing']);
 
                 // Choose Battlefield Marine
                 this.player1.clickPrompt(this.battlefieldMarine.title);
@@ -55,7 +55,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
             it('should allow selection when deck has less than five cards', function() {
                 this.player1.setDeck([this.battlefieldMarine, this.cellBlockGuard, this.cartelSpacer]);
                 this.player1.clickCard(this.monMothma);
-                expect(this.player1).toHavePromptButtons([this.battlefieldMarine.title, 'Take nothing']);
+                expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine.title, 'Take nothing']);
                 expect(this.player1).toHaveDisabledPromptButtons([this.cartelSpacer.title, this.cellBlockGuard.title]);
                 this.player1.clickPrompt(this.battlefieldMarine.title);
 
@@ -108,7 +108,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 this.player1.clickCard(this.monMothma);
                 expect(this.player1).toHavePrompt('Select a card to reveal');
                 expect(this.player1).toHaveDisabledPromptButtons([this.academyDefenseWalker.title, this.cartelSpacer.title, this.cellBlockGuard.title, this.pykeSentinel.title, this.volunteerSoldier.title]);
-                expect(this.player1).toHavePromptButton('Take nothing');
+                expect(this.player1).toHaveEnabledPromptButton('Take nothing');
 
                 this.player1.clickPrompt('Take nothing');
 

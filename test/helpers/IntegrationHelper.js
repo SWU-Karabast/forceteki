@@ -46,7 +46,7 @@ var customMatchers = {
             }
         };
     },
-    toHavePromptButton: function (util, customEqualityMatchers) {
+    toHaveEnabledPromptButton: function (util, customEqualityMatchers) {
         return {
             compare: function (actual, expected) {
                 var buttons = actual.currentPrompt().buttons;
@@ -69,7 +69,7 @@ var customMatchers = {
             }
         };
     },
-    toHavePromptButtons: function (util, customEqualityMatchers) {
+    toHaveEnabledPromptButtons: function (util, customEqualityMatchers) {
         return {
             compare: function (actual, expecteds) {
                 if (!Array.isArray(expecteds)) {

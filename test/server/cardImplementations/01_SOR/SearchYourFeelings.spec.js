@@ -29,7 +29,7 @@ describe('Search Your Feelings', function() {
                 // Play card
                 this.player1.clickCard(this.searchYourFeelings);
                 expect(this.searchYourFeelings.location).toBe('discard');
-                expect(this.player1).toHavePromptButtons([this.battlefieldMarine, this.cartelSpacer.title, this.cellBlockGuard.title,
+                expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, this.cartelSpacer.title, this.cellBlockGuard.title,
                     this.pykeSentinel.title, this.volunteerSoldier.title, 'Take nothing']);
 
                 // Choose card
@@ -43,7 +43,7 @@ describe('Search Your Feelings', function() {
                 // Play card
                 this.player1.clickCard(this.searchYourFeelings);
                 expect(this.searchYourFeelings.location).toBe('discard');
-                expect(this.player1).toHavePromptButtons([this.battlefieldMarine, this.cartelSpacer.title, this.cellBlockGuard.title,
+                expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, this.cartelSpacer.title, this.cellBlockGuard.title,
                     this.pykeSentinel.title, this.volunteerSoldier.title, 'Take nothing']);
 
                 // Choose card
@@ -59,7 +59,7 @@ describe('Search Your Feelings', function() {
                 // Play card
                 this.player1.clickCard(this.searchYourFeelings);
                 expect(this.searchYourFeelings.location).toBe('discard');
-                expect(this.player1).toHavePromptButtons([this.battlefieldMarine, 'Take nothing']);
+                expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, 'Take nothing']);
 
                 // Choose card
                 this.player1.clickPrompt(this.battlefieldMarine.title);
@@ -75,7 +75,7 @@ describe('Search Your Feelings', function() {
                 expect(this.searchYourFeelings.location).toBe('discard');
 
                 // Choose nothing
-                expect(this.player1).toHavePromptButtons(['Take nothing']);
+                expect(this.player1).toHaveEnabledPromptButtons(['Take nothing']);
                 this.player1.clickPrompt('Take nothing');
                 expect(this.player2).toBeActivePlayer();
             });

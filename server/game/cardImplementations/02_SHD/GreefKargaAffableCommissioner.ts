@@ -16,7 +16,7 @@ export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.type === CardType.Upgrade,
-                chosenCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
             })
         });
     }

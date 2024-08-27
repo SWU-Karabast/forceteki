@@ -15,7 +15,7 @@ export default class SearchYourFeelings extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 shuffleWhenDone: true,
                 revealSelected: false,
-                chosenCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
             })
         });
     }

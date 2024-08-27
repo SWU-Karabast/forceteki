@@ -38,7 +38,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             it('should prompt to choose up to 2 Imperials from the top 5 cards, reveal chosen, draw them, and put the rest on the bottom of the deck', function () {
                 this.player1.clickCard(this.p1Tarkin);
                 expect(this.player1).toHavePrompt('Select up to 2 cards to reveal');
-                expect(this.player1).toHavePromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title, 'Take nothing']);
+                expect(this.player1).toHaveEnabledPromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title, 'Take nothing']);
 
                 // Choose Cell Block Guard and Scout Bike Pursuer
                 this.player1.clickPrompt(this.cellBlockGuard.title);
@@ -58,20 +58,20 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
 
             it('should be allowed to pick just one card', function() {
                 this.player1.clickCard(this.p1Tarkin);
-                expect(this.player1).toHavePromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title]);
+                expect(this.player1).toHaveEnabledPromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title]);
 
                 // Done prompt doesn't show up til one card selected
-                expect(this.player1).not.toHavePromptButton('Done');
+                expect(this.player1).not.toHaveEnabledPromptButton('Done');
                 this.player1.clickPrompt(this.cellBlockGuard.title);
 
                 // Cell Block Guard and Take nothing should no longer be present
-                expect(this.player1).toHavePromptButtons([this.academyDefenseWalker.title, this.scoutBikePursuer.title]);
-                expect(this.player1).not.toHavePromptButton(this.cellBlockGuard.title);
-                expect(this.player1).not.toHavePromptButton('Take nothing');
+                expect(this.player1).toHaveEnabledPromptButtons([this.academyDefenseWalker.title, this.scoutBikePursuer.title]);
+                expect(this.player1).not.toHaveEnabledPromptButton(this.cellBlockGuard.title);
+                expect(this.player1).not.toHaveEnabledPromptButton('Take nothing');
                 expect(this.player1).not.toHaveDisabledPromptButton(this.cellBlockGuard.title);
 
                 // Click Done
-                expect(this.player1).toHavePromptButton('Done');
+                expect(this.player1).toHaveEnabledPromptButton('Done');
                 this.player1.clickPrompt('Done');
 
                 // Check card location and that player 2 now active
@@ -96,7 +96,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.p2tarkin);
                 expect(this.player2).toHaveDisabledPromptButtons([this.clanWrenRescuer.title, this.concordDawnInterceptors.title, this.gentleGiant.title, this.systemPatrolCraft.title, this.villageProtectors.title]);
-                expect(this.player2).toHavePromptButton('Take nothing');
+                expect(this.player2).toHaveEnabledPromptButton('Take nothing');
                 this.player2.clickPrompt('Take nothing');
 
                 // Check that top 5 cards are now on the bottom of the deck
