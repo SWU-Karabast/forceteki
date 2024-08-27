@@ -78,5 +78,43 @@ describe('Search Your Feelings', function() {
                 expect(this.player2).toBeActivePlayer();
             });
         });
+
+        describe('Search Your Feelings\' ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['search-your-feelings'],
+                        deck: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst',
+                            'atst', 'atst', 'atst', 'atst', 'cartel-spacer', 'atst', 'atst', 'atst', 'atst', 'atst',
+                            'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'wampa', 'pyke-sentinel', 'battlefield-marine'],
+                        deckSize: 30
+                    }
+                });
+
+                this.searchYourFeelings = this.player1.findCardByName('search-your-feelings');
+
+                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
+                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
+                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
+                this.wampa = this.player1.findCardByName('wampa');
+
+                this.p1Base = this.player1.base;
+                this.p2Base = this.player2.base;
+            });
+
+            it('ensure large deck will be shuffled', function () {
+                let preShuffleDeck = this.player1.deck;
+
+                // Sanity check for the comparison
+                expect(preShuffleDeck).toEqual(this.player1.deck);
+
+                // Take nothing (deck will still shuffle)
+                this.player1.clickCard(this.searchYourFeelings);
+                this.player1.clickPrompt('Take nothing');
+
+                expect(preShuffleDeck).not.toEqual(this.player1.deck);
+            });
+        });
     });
 });
