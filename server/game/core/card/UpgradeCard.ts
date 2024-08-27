@@ -4,13 +4,15 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import Contract from '../utils/Contract';
-import { AbilityType, CardType, Location, RelativePlayer } from '../Constants';
+import { AbilityType, CardType, KeywordName, Location, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import { IAbilityProps, IActionAbilityProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
+import GainAbility from '../ongoingEffect/effectImpl/GainAbility';
+import { AbilityContext } from '../ability/AbilityContext';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(InPlayCard)));
 
@@ -92,9 +94,20 @@ export class UpgradeCard extends UpgradeCardParent {
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
     protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps) {
-        this.addConstantAbility({
+        this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            ongoingEffect: AbilityHelper.ongoingEffects.gainTriggeredAbility(properties)
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(AbilityType.Triggered, properties)
+        });
+    }
+
+    /**
+     * Adds an "attached card gains [X]" ability, where X is a keyword ability. You can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addGainKeywordTargetingAttached(properties: IKeywordProperties) {
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give keyword to the attached card',
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(properties)
         });
     }
 

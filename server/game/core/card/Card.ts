@@ -4,13 +4,14 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, EffectName, EventName, Keyword, Location, Trait } from '../Constants';
+import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, EffectName, EventName, KeywordName, Location, Trait } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import * as KeywordHelpers from './KeywordHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import CardAbility from '../ability/CardAbility';
+import { KeywordInstance } from '../ability/KeywordInstance';
+import * as KeywordHelpers from '../ability/KeywordHelpers';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -39,12 +40,12 @@ export class Card extends OngoingEffectSource {
     public controller: Player;
 
     protected override readonly id: string;
-    protected readonly printedKeywords: Set<Keyword>;   // TODO KEYWORDS: enum of keywords
+    protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
     protected abilityInitializers: IAbilityInitializer[] = [];
-    protected _actionAbilities: ActionAbility[];
+    protected _actionAbilities: ActionAbility[] = [];
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
@@ -59,7 +60,7 @@ export class Card extends OngoingEffectSource {
         return this._facedown;
     }
 
-    public get keywords(): Set<Keyword> {
+    public get keywords(): KeywordInstance[] {
         return this.getKeywords();
     }
 
@@ -91,10 +92,10 @@ export class Card extends OngoingEffectSource {
         this.title = cardData.title;
         this.unique = cardData.unique;
 
-        this._actionAbilities = KeywordHelpers.GenerateActionAbilitiesFromKeywords(this.printedKeywords);
         this.controller = owner;
         this.defaultController = owner;
         this.id = cardData.id;
+        this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords, cardData.text, this.internalName);
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
@@ -240,6 +241,7 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* CARD TYPE HELPERS *******************************************
+    // TODO: convert these to use ts type narrowing for simpler conversions to derived types (see https://www.typescriptlang.org/docs/handbook/2/classes.html#this-based-type-guards)
     public isEvent(): boolean {
         return this.type === CardType.Event;
     }
@@ -296,24 +298,25 @@ export class Card extends OngoingEffectSource {
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
     private getKeywords() {
-        const keywords = this.printedKeywords;
+        let keywords = [...this.printedKeywords];
 
-        for (const gainedTrait of this.getEffectValues(EffectName.AddKeyword)) {
-            keywords.add(gainedTrait);
+        // TODO: this is currently wrong, lost keywords should be able to be re-added by later effects
+        for (const gainedKeyword of this.getEffectValues(EffectName.GainKeyword)) {
+            keywords.push(gainedKeyword);
         }
-        for (const lostTrait of this.getEffectValues(EffectName.LoseKeyword)) {
-            keywords.delete(lostTrait);
+        for (const lostKeyword of this.getEffectValues(EffectName.LoseKeyword)) {
+            keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
         }
 
         return keywords;
     }
 
-    public hasSomeKeyword(keywords: Set<Keyword> | Keyword | Keyword[]): boolean {
-        return this.hasSome(keywords, this.keywords);
+    public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {
+        return this.hasSome(keywords, this.keywords.map((keyword) => keyword.name));
     }
 
-    public hasEveryKeyword(keywords: Set<Keyword> | Keyword[]): boolean {
-        return this.hasEvery(keywords, this.keywords);
+    public hasEveryKeyword(keywords: Set<KeywordName> | KeywordName[]): boolean {
+        return this.hasEvery(keywords, this.keywords.map((keyword) => keyword.name));
     }
 
 
@@ -514,22 +517,28 @@ export class Card extends OngoingEffectSource {
         );
     }
 
-    private hasSome<T>(valueOrValuesToCheck: T | Set<T> | T[], cardValues: Set<T>): boolean {
+    private hasSome<T>(valueOrValuesToCheck: T | Set<T> | T[], cardValues: Set<T> | T[]): boolean {
         const valuesToCheck = this.asSetOrArray(valueOrValuesToCheck);
+        const cardValuesContains = Array.isArray(cardValues)
+            ? (value: T) => cardValues.includes(value)
+            : (value: T) => cardValues.has(value);
 
         for (const value of valuesToCheck) {
-            if (cardValues.has(value)) {
+            if (cardValuesContains(value)) {
                 return true;
             }
         }
         return false;
     }
 
-    private hasEvery<T>(valueOrValuesToCheck: T | Set<T> | T[], cardValues: Set<T>): boolean {
+    private hasEvery<T>(valueOrValuesToCheck: T | Set<T> | T[], cardValues: Set<T> | T[]): boolean {
         const valuesToCheck = this.asSetOrArray(valueOrValuesToCheck);
+        const cardValuesContains = Array.isArray(cardValues)
+            ? (value: T) => cardValues.includes(value)
+            : (value: T) => cardValues.has(value);
 
         for (const value of valuesToCheck) {
-            if (!cardValues.has(value)) {
+            if (!cardValuesContains(value)) {
                 return false;
             }
         }

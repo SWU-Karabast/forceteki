@@ -42,7 +42,6 @@ export enum EffectName {
     AdditionalActionAfterWindowCompleted = 'additionalActionsAfterWindowCompleted',
     AdditionalPlayCost = 'additionalPlaycost',
     AdditionalTriggerCost = 'additionalTriggercost',
-    AddKeyword = 'addKeyword',
     AddTrait = 'addTrait',
     Blank = 'blank',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
@@ -55,6 +54,7 @@ export enum EffectName {
     DoesNotReady = 'doesNotReady',
     EntersPlayForOpponent = 'entersPlayForOpponent',
     GainAbility = 'gainAbility',
+    GainKeyword = 'gainKeyword',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
@@ -194,9 +194,26 @@ export enum Aspect {
     Villainy = 'villainy',
 }
 
-export enum Keyword {
-    /** @deprecated This is not implemented yet */
+export enum KeywordName {
+    /** @deprecated Not implemented yet */
+    Ambush = 'ambush',
+    /** @deprecated Not implemented yet */
+    Bounty = 'bounty',
+    /** @deprecated Not implemented yet */
+    Grit = 'grit',
+    /** @deprecated Not implemented yet */
+    Overwhelm = 'overwhelm',
+    /** @deprecated Not implemented yet */
+    Raid = 'raid',
+    Restore = 'restore',
+    /** @deprecated Not implemented yet */
+    Saboteur = 'saboteur',
+    /** @deprecated Not implemented yet */
     Sentinel = 'sentinel',
+    /** @deprecated Not implemented yet */
+    Shielded = 'shielded',
+    /** @deprecated Not implemented yet */
+    Smuggle = 'smuggle',
 }
 
 export enum Trait {

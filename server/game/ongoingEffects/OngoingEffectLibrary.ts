@@ -1,4 +1,3 @@
-import { IAbilityLimit } from '../core/ability/AbilityLimit';
 // const GainAllAbiliitesDynamic = require('./Effects/GainAllAbilitiesDynamic.js');
 // const Restriction = require('./Effects/restriction.js');
 // const { SuppressEffect } = require('./Effects/SuppressEffect');
@@ -12,8 +11,11 @@ import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import { AbilityType, EffectName, PlayType } from '../core/Constants';
 import StatsModifier from '../core/ongoingEffect/effectImpl/StatsModifier';
-import { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../Interfaces';
+import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../Interfaces';
 import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
+import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
+import { KeywordInstance } from '../core/ability/KeywordInstance';
+import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -24,7 +26,6 @@ import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
 export = {
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
-    addKeyword: (keyword) => OngoingEffectBuilder.card.static(EffectName.AddKeyword, keyword),
     // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
     // additionalTriggerCostForCard: (func) => OngoingEffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
     // attachmentCardCondition: (func) => OngoingEffectBuilder.card.static(EffectName.AttachmentCardCondition, func),
@@ -90,9 +91,13 @@ export = {
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
-    gainTriggeredAbility: (
-        properties: ITriggeredAbilityProps
-    ) => OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(AbilityType.Triggered, properties)),
+    gainAbility: (
+        abilityType: AbilityType,
+        properties: ITriggeredAbilityProps | IActionAbilityProps | IConstantAbility
+    ) =>
+        OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(abilityType, properties)),
+    gainKeyword: (keywordProperties: IKeywordProperties) =>
+        OngoingEffectBuilder.card.static(EffectName.GainKeyword, KeywordHelpers.keywordFromProperties(keywordProperties)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
