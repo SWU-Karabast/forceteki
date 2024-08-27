@@ -118,13 +118,15 @@ export enum PhaseName {
 
 export enum CardType {
     Base = 'base',
+    /** non-leader, non-token unit */
+    BasicUnit = 'basicUnit',
+    /** non-token upgrade */
+    BasicUpgrade = 'basicUpgrade',
     Event = 'event',
     Leader = 'leader',
     LeaderUnit = 'leaderUnit',
-    BasicUnit = 'basicUnit',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
-    Upgrade = 'upgrade',
 }
 
 export enum WildcardCardType {
@@ -132,6 +134,7 @@ export enum WildcardCardType {
     NonLeaderUnit = 'nonLeaderUnit',
     Token = 'token',
     Unit = 'unit',
+    Upgrade = 'upgrade',
 }
 
 export type CardTypeFilter = CardType | WildcardCardType;

@@ -12,7 +12,7 @@ class SingleCardSelector extends BaseCardSelector {
     /** @override */
     defaultActivePromptTitle() {
         if (this.cardTypeFilter.length === 1 && this.cardTypeFilter[0] !== WildcardCardType.Any) {
-            if (this.cardTypeFilter[0] === CardType.Upgrade) {
+            if (this.cardTypeFilter[0] === CardType.BasicUpgrade) {
                 return 'Choose an upgrade';
             }
             return 'Choose a ' + this.cardTypeFilter[0];

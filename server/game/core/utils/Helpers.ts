@@ -75,7 +75,7 @@ export function defaultLegalLocationsForCardType(cardType: CardType) {
         case CardType.Base:
             return [Location.Base];
         case CardType.BasicUnit:
-        case CardType.Upgrade:
+        case CardType.BasicUpgrade:
         case CardType.Event:
             return drawCardLocations;
         case CardType.Leader:

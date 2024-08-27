@@ -154,7 +154,7 @@ export class Card extends OngoingEffectSource {
             case 'base':
                 return CardType.Base;
             case 'upgrade':
-                return CardType.Upgrade;
+                return CardType.BasicUpgrade;
             default:
                 throw new Error(`Unexpected card type: ${printedTypes[0]}`);
         }
@@ -249,7 +249,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public isUpgrade(): boolean {
-        return this.type === CardType.Upgrade || this.type === CardType.TokenUpgrade;
+        return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade;
     }
 
     public isBase(): boolean {

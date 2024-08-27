@@ -18,7 +18,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 
 export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
     public override readonly name = 'move';
-    public override targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade, CardType.Event];
+    public override targetTypeFilter = [WildcardCardType.Unit, CardType.BasicUpgrade, CardType.Event];
 
     protected override defaultProperties: IMoveCardProperties = {
         destination: null,

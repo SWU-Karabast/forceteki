@@ -23,7 +23,7 @@ export function createUnimplementedCard(owner: Player, cardData: any): Card {
             return new EventCard(owner, cardData);
         case CardType.Base:
             return new BaseCard(owner, cardData);
-        case CardType.Upgrade:
+        case CardType.BasicUpgrade:
             return new UpgradeCard(owner, cardData);
         case CardType.Leader:
             return new LeaderCard(owner, cardData);
