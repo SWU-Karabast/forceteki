@@ -67,9 +67,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        if (abilityType === AbilityType.Triggered) {
-            this.queueStep(new TriggeredAbilityWindow(this.game, this));
-        }
+        this.queueStep(new TriggeredAbilityWindow(this.game, this, abilityType));
     }
 
     /**

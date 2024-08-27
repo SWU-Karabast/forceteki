@@ -9,6 +9,7 @@ import { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import { AbilityContext } from '../../ability/AbilityContext';
+import Game from '../../Game';
 
 export class TriggeredAbilityWindow extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -23,8 +24,6 @@ export class TriggeredAbilityWindow extends BaseStep {
     /** The events that were triggered as part of this window */
     private triggeringEvents: GameEvent[];
 
-    private eventWindow: EventWindow;
-    private eventsToExclude: GameEvent[];
     private eventsEmitted = false;
     private choosePlayerResolutionOrderComplete = false;
     private readonly toStringName: string;
@@ -33,10 +32,13 @@ export class TriggeredAbilityWindow extends BaseStep {
         return this.resolvePlayerOrder?.[0] ?? null;
     }
 
-    public constructor(game, window, eventsToExclude = []) {
+    public constructor(
+        game: Game,
+        private readonly eventWindow: EventWindow,
+        private readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect,
+        private readonly eventsToExclude = []
+    ) {
         super(game);
-        this.eventWindow = window;
-        this.eventsToExclude = eventsToExclude ?? [];
 
         this.toStringName = `'TriggeredAbilityWindow: ${this.eventWindow.events.map((event) => event.name).join(', ')}'`;
     }
@@ -238,9 +240,9 @@ export class TriggeredAbilityWindow extends BaseStep {
 
         const events = this.eventWindow.events.filter((event) => !this.eventsToExclude.includes(event));
         events.forEach((event) => {
-            this.game.emit(event.name + ':' + AbilityType.Triggered, event, this);
+            this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
         });
-        this.game.emit('aggregateEvent:' + AbilityType.Triggered, events, this);
+        this.game.emit('aggregateEvent:' + this.triggerAbilityType, events, this);
 
         this.triggeringEvents = events;
     }

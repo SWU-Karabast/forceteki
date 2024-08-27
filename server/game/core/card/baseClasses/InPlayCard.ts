@@ -7,6 +7,7 @@ import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as KeywordHelpers from '../KeywordHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import Contract from '../../utils/Contract';
+import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -109,8 +110,13 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
         this.abilityInitializers.push({
             abilityType: AbilityType.Triggered,
-            initialize: () => this._triggeredAbilities.push(this.createTriggeredAbility(properties))
+            initialize: () => this._triggeredAbilities.push(this.createReplacementEffectAbility(properties))
         });
+    }
+
+    private createReplacementEffectAbility(properties: IReplacementEffectAbilityProps): ReplacementEffectAbility {
+        properties.cardName = this.title;
+        return new ReplacementEffectAbility(this.game, this, properties);
     }
 
     protected addTriggeredAbility(properties: ITriggeredAbilityProps): void {

@@ -815,9 +815,10 @@ class Game extends EventEmitter {
     }
 
     openSimultaneousEffectWindow(choices) {
-        let window = new SimultaneousEffectWindow(this);
-        choices.forEach((choice) => window.addToWindow(choice));
-        this.queueStep(window);
+        throw new Error('Simultaneous effects not implemented yet');
+        // let window = new SimultaneousEffectWindow(this);
+        // choices.forEach((choice) => window.addToWindow(choice));
+        // this.queueStep(window);
     }
 
     /**

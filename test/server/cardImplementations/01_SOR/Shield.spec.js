@@ -17,7 +17,7 @@ describe('Shield', function() {
                 this.shield = this.player2.findCardByName('shield');
             });
 
-            it('should prevent a unit from being able to attack base', function () {
+            it('should defeat itself to prevent damage to the attached unit', function () {
                 this.player1.clickCard(this.cartelSpacer);
                 this.player1.clickCard(this.tieLn);
 
