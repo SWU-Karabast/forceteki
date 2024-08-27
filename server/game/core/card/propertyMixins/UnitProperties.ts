@@ -4,7 +4,6 @@ import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWr
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import Contract from '../../utils/Contract';
 import { InPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
-import { UnitCard } from '../CardTypes';
 import { WithDamage } from './Damage';
 import { WithPrintedPower } from './PrintedPower';
 import type { WithPrintedHp } from './PrintedHp';

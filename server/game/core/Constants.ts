@@ -121,7 +121,7 @@ export enum CardType {
     Event = 'event',
     Leader = 'leader',
     LeaderUnit = 'leaderUnit',
-    NonLeaderUnit = 'nonLeaderUnit',
+    BasicUnit = 'basicUnit',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
     Upgrade = 'upgrade',
@@ -129,6 +129,7 @@ export enum CardType {
 
 export enum WildcardCardType {
     Any = 'any',
+    NonLeaderUnit = 'nonLeaderUnit',
     Token = 'token',
     Unit = 'unit',
 }

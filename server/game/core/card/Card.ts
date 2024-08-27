@@ -148,7 +148,7 @@ export class Card extends OngoingEffectSource {
             case 'event':
                 return CardType.Event;
             case 'unit':
-                return CardType.NonLeaderUnit;
+                return CardType.BasicUnit;
             case 'leader':
                 return CardType.Leader;
             case 'base':
@@ -245,7 +245,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public isUnit(): boolean {
-        return this.type === CardType.NonLeaderUnit || this.type === CardType.LeaderUnit;
+        return this.type === CardType.BasicUnit || this.type === CardType.LeaderUnit || this.type === CardType.TokenUnit;
     }
 
     public isUpgrade(): boolean {
@@ -265,7 +265,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public isNonLeaderUnit(): boolean {
-        return this.type === CardType.NonLeaderUnit;
+        return this.type === CardType.BasicUnit || this.type === CardType.TokenUnit;
     }
 
     public isToken(): boolean {

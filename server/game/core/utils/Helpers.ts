@@ -74,7 +74,7 @@ export function defaultLegalLocationsForCardType(cardType: CardType) {
             return [Location.SpaceArena, Location.GroundArena, Location.Discard];
         case CardType.Base:
             return [Location.Base];
-        case CardType.NonLeaderUnit:
+        case CardType.BasicUnit:
         case CardType.Upgrade:
         case CardType.Event:
             return drawCardLocations;

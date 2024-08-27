@@ -11,7 +11,7 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
     public override readonly name = 'defeat';
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade];
 
     public constructor(propertyFactory) {
         super(propertyFactory);
