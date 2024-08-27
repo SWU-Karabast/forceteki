@@ -1,4 +1,4 @@
-import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import { IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { AbilityRestriction, AbilityType, Arena, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -102,6 +102,14 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.abilityInitializers.push({
             abilityType: AbilityType.Constant,
             initialize: () => this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties })
+        });
+    }
+
+    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps): void {
+        // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Triggered,
+            initialize: () => this._triggeredAbilities.push(this.createTriggeredAbility(properties))
         });
     }
 

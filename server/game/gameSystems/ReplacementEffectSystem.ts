@@ -2,16 +2,18 @@ import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import Contract from '../core/utils/Contract';
 
-export interface ICancelActionProperties extends IGameSystemProperties {
-    replacementGameAction?: GameSystem;
+export interface IReplacementEffectSystemProperties extends IGameSystemProperties {
     effect?: string;
+
+    /** Either: the immediate effect to replace the original effect with or `null` to indicate that the original effect should be cancelled with no replacement */
+    replacementImmediateEffect: GameSystem | null;
 }
 
 // UP NEXT: convert this into a subclass of TriggeredAbilitySystem as TriggeredReplacementEffectSystem
 
-export class ModifyEventResolutionSystem extends GameSystem {
+export class ReplacementEffectSystem extends GameSystem<IReplacementEffectSystemProperties> {
     public override eventHandler(event, additionalProperties = {}): void {
-        const { replacementGameAction } = this.generatePropertiesFromContext(event.context, additionalProperties);
+        const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(event.context, additionalProperties);
 
         if (replacementGameAction) {
             const eventWindow = event.context.event.window;
@@ -42,20 +44,20 @@ export class ModifyEventResolutionSystem extends GameSystem {
     }
 
     public override getEffectMessage(context: TriggeredAbilityContext): [string, any[]] {
-        const { replacementGameAction, effect } = this.generatePropertiesFromContext(context);
+        const { replacementImmediateEffect, effect } = this.generatePropertiesFromContext(context);
         if (effect) {
             return [effect, []];
         }
-        if (replacementGameAction) {
-            return ['{1} {0} instead of {2}', [context.target, replacementGameAction.name, context.event.card]];
+        if (replacementImmediateEffect) {
+            return ['{1} {0} instead of {2}', [context.target, replacementImmediateEffect.name, context.event.card]];
         }
         return ['cancel the effects of {0}', [context.event.card]];
     }
 
-    public override generatePropertiesFromContext(context: TriggeredAbilityContext, additionalProperties = {}): ICancelActionProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties) as ICancelActionProperties;
-        if (properties.replacementGameAction) {
-            properties.replacementGameAction.setDefaultTargetFn(() => properties.target);
+    public override generatePropertiesFromContext(context: TriggeredAbilityContext, additionalProperties = {}): IReplacementEffectSystemProperties {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties) as IReplacementEffectSystemProperties;
+        if (properties.replacementImmediateEffect) {
+            properties.replacementImmediateEffect.setDefaultTargetFn(() => properties.target);
         }
         return properties;
     }
@@ -69,7 +71,7 @@ export class ModifyEventResolutionSystem extends GameSystem {
             return false;
         }
 
-        const { replacementGameAction } = this.generatePropertiesFromContext(context);
+        const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context);
 
         return (
             (!replacementGameAction || replacementGameAction.hasLegalTarget(context, additionalProperties))
@@ -77,7 +79,7 @@ export class ModifyEventResolutionSystem extends GameSystem {
     }
 
     public override canAffect(target: any, context: TriggeredAbilityContext, additionalProperties = {}): boolean {
-        const { replacementGameAction } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context, additionalProperties);
         return (
             (!context.event.cannotBeCancelled && !replacementGameAction) ||
             replacementGameAction.canAffect(target, context, additionalProperties)
@@ -89,7 +91,7 @@ export class ModifyEventResolutionSystem extends GameSystem {
     }
 
     public override hasTargetsChosenByInitiatingPlayer(context: TriggeredAbilityContext, additionalProperties = {}): boolean {
-        const { replacementGameAction } = this.generatePropertiesFromContext(context);
+        const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context);
         return (
             replacementGameAction &&
             replacementGameAction.hasTargetsChosenByInitiatingPlayer(context, additionalProperties)

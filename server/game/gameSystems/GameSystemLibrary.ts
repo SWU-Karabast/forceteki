@@ -4,7 +4,6 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttackSystem, IAttackProperties } from './AttackSystem';
-// import { CancelAction, CancelActionProperties } from './CancelAction';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { DamageSystem, IDamageProperties } from './DamageSystem';
 import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
@@ -42,6 +41,7 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 // import { ReadyAction, ReadyProperties } from './ReadyAction';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
+import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
 // import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
 import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
@@ -242,14 +242,14 @@ export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHand
 // //////////////
 // // GENERIC
 // //////////////
-// export function cancel(propertyFactory: PropsFactory<CancelActionProperties> = {}): GameSystem {
-//     return new CancelAction(propertyFactory);
-// }
 export function handler(propertyFactory: PropsFactory<IExecuteHandlerSystemProperties>): GameSystem {
     return new ExecuteHandlerSystem(propertyFactory);
 }
 export function noAction(): GameSystem {
     return new ExecuteHandlerSystem({});
+}
+export function replacementEffect(propertyFactory: PropsFactory<IReplacementEffectSystemProperties>): GameSystem {
+    return new ReplacementEffectSystem(propertyFactory);
 }
 
 //////////////

@@ -50,8 +50,13 @@ export default class TriggeredAbility extends CardAbility {
     public collectiveTrigger: boolean;
     public eventRegistrations?: IEventRegistration[];
 
-    public constructor(game: Game, card: Card, properties: ITriggeredAbilityProps) {
-        super(game, card, properties, AbilityType.Triggered);
+    public constructor(
+        game: Game,
+        card: Card,
+        properties: ITriggeredAbilityProps,
+        abilityType: AbilityType = AbilityType.Triggered
+    ) {
+        super(game, card, properties, abilityType);
 
         if (!card.canRegisterTriggeredAbilities()) {
             throw Error(`Card '${card.internalName}' cannot have triggered abilities`);
@@ -62,7 +67,6 @@ export default class TriggeredAbility extends CardAbility {
         } else if ('aggregateWhen' in properties) {
             this.aggregateWhen = properties.aggregateWhen;
         }
-        this.anyPlayer = !!properties.anyPlayer;
         this.collectiveTrigger = !!properties.collectiveTrigger;
     }
 

@@ -70,7 +70,8 @@ export function defaultLegalLocationsForCardType(cardType: CardType) {
         case CardType.TokenUnit:
         case CardType.TokenUpgrade:
         case CardType.LeaderUnit:
-            return [Location.SpaceArena, Location.GroundArena];
+            // TODO THIS PR: undo the Location.Discard!!
+            return [Location.SpaceArena, Location.GroundArena, Location.Discard];
         case CardType.Base:
             return [Location.Base];
         case CardType.NonLeaderUnit:

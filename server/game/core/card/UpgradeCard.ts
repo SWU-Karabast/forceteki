@@ -19,7 +19,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        Contract.assertEqual(this.printedType, CardType.Upgrade);
+        Contract.assertTrue([CardType.Upgrade, CardType.TokenUpgrade].includes(this.printedType));
 
         this.defaultActions.push(new PlayUpgradeAction(this));
     }
