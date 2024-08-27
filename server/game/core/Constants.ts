@@ -181,6 +181,7 @@ export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
     Event = 'event',
+    ReplacementEffect = 'replacementEffect',
     Triggered = 'triggered',
 }
 
