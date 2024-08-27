@@ -47,7 +47,5 @@ export class RevealSystem extends CardTargetSystem {
                 event.context.source
             );
         }
-        // TODO determine if this does anything/is needed
-        // event.card.facedown = false;
     }
 }
