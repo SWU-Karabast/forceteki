@@ -5,7 +5,7 @@ import { BaseCard } from './BaseCard';
 import { Card } from './Card';
 import { EventCard } from './EventCard';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
-import { TokenBasicUnitCard, TokenUpgradeCard } from './TokenCards';
+import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import { UpgradeCard } from './UpgradeCard';
 import { LeaderCard } from './LeaderCard';
 
@@ -30,7 +30,7 @@ export function createUnimplementedCard(owner: Player, cardData: any): Card {
         case CardType.BasicUnit:
             return new NonLeaderUnitCard(owner, cardData);
         case CardType.TokenUnit:
-            return new TokenBasicUnitCard(owner, cardData);
+            return new TokenUnitCard(owner, cardData);
         case CardType.TokenUpgrade:
             return new TokenUpgradeCard(owner, cardData);
         default:

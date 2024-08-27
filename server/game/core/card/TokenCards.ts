@@ -5,7 +5,7 @@ import { UpgradeCard } from './UpgradeCard';
 const TokenUnitParent = AsToken(NonLeaderUnitCard);
 const TokenUpgradeParent = AsToken(UpgradeCard);
 
-export class TokenBasicUnitCard extends TokenUnitParent {
+export class TokenUnitCard extends TokenUnitParent {
 }
 
 export class TokenUpgradeCard extends TokenUpgradeParent {

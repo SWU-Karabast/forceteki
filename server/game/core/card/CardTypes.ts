@@ -3,24 +3,24 @@ import { EventCard } from './EventCard';
 import { LeaderCard } from './LeaderCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
-import { TokenBasicUnitCard, TokenUpgradeCard } from './TokenCards';
+import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import { UpgradeCard } from './UpgradeCard';
 
 export type UnitCard =
     NonLeaderUnitCard |
     LeaderUnitCard |
-    TokenBasicUnitCard;
+    TokenUnitCard;
 
 export type CardWithDamageProperty =
     NonLeaderUnitCard |
     LeaderUnitCard |
-    TokenBasicUnitCard |
+    TokenUnitCard |
     BaseCard;
 
 export type CardWithPrintedHp =
     NonLeaderUnitCard |
     LeaderUnitCard |
-    TokenBasicUnitCard |
+    TokenUnitCard |
     BaseCard |
     UpgradeCard |
     TokenUpgradeCard;
@@ -28,7 +28,7 @@ export type CardWithPrintedHp =
 export type CardWithPrintedPower =
     NonLeaderUnitCard |
     LeaderUnitCard |
-    TokenBasicUnitCard |
+    TokenUnitCard |
     UpgradeCard |
     TokenUpgradeCard;
 
@@ -45,7 +45,7 @@ export type AnyCard =
     LeaderCard |
     NonLeaderUnitCard |
     LeaderUnitCard |
-    TokenBasicUnitCard;
+    TokenUnitCard;
 
 // Base is the only type of card that isn't in the PlayableOrDeployable subclass
 type PlayableOrDeployableCard = Exclude<AnyCard, BaseCard>;

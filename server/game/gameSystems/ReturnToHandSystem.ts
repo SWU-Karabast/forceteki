@@ -20,7 +20,7 @@ export class ReturnToHandSystem extends CardTargetSystem<IReturnToHandProperties
     public override readonly eventName = EventName.OnCardReturnedToHand;
     public override readonly effectDescription = 'return {0} to their hand';
     public override readonly costDescription = 'returning {0} to their hand';
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.BasicUpgrade, CardType.Event];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
     protected override readonly defaultProperties: IReturnToHandProperties = {
         locationFilter: [WildcardLocation.AnyArena, Location.Discard]
     };
