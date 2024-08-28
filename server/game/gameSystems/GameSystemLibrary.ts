@@ -30,7 +30,7 @@ import { HealSystem, IHealProperties } from './HealSystem';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
 // import { LastingEffectCardAction, LastingEffectCardProperties } from './LastingEffectCardAction';
 // import { LastingEffectRingAction, LastingEffectRingProperties } from './LastingEffectRingAction';
-// import { LookAtAction, LookAtProperties } from './LookAtAction';
+import { LookAtSystem, ILookAtProperties } from './LookAtSystem';
 // import { MatchingDiscardAction, MatchingDiscardProperties } from './MatchingDiscardAction';
 // import { MenuPromptAction, MenuPromptProperties } from './MenuPromptAction';
 import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
@@ -99,9 +99,10 @@ export function exhaust(propertyFactory: PropsFactory<IExhaustSystemProperties> 
 export function heal(propertyFactory: PropsFactory<IHealProperties>): GameSystem {
     return new HealSystem(propertyFactory);
 }
-// export function lookAt(propertyFactory: PropsFactory<LookAtProperties> = {}): GameSystem {
-//     return new LookAtAction(propertyFactory);
-// }
+export function lookAt(propertyFactory: PropsFactory<ILookAtProperties> = {}): GameSystem {
+    return new LookAtSystem(propertyFactory);
+}
+
 /**
  * default switch = false
  * default shuffle = false
