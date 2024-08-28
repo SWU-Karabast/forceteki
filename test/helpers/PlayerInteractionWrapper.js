@@ -1,6 +1,5 @@
 const { detectBinary } = require('../../build/Util.js');
 const { GameMode } = require('../../build/GameMode.js');
-const Shield = require('../../build/game/cardImplementations/01_SOR/Shield.js');
 
 class PlayerInteractionWrapper {
     constructor(game, player) {
@@ -142,13 +141,11 @@ class PlayerInteractionWrapper {
             //card.applyPersistentEffects();
             // Get the upgrades
             if (options.upgrades) {
-                const shieldFactory = Shield.factory;
-
                 options.upgrades.forEach((upgradeName) => {
-                    const isShield = upgradeName === 'shield' || (upgradeName.internalName && upgradeName.internalName === 'shield');
+                    const isToken = ['shield', 'experience'].includes(upgradeName);
                     let upgrade;
-                    if (isShield) {
-                        upgrade = this.game.generateToken(this.player, 'shield');
+                    if (isToken) {
+                        upgrade = this.game.generateToken(this.player, upgradeName);
                     } else {
                         upgrade = this.findCardByName(upgradeName, prevLocations);
                     }

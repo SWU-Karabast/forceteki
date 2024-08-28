@@ -99,8 +99,7 @@ class DeckBuilder {
                 //Add any upgrades
                 if (card.upgrades) {
                     let nonTokenUpgrades = card.upgrades.filter((upgrade) =>
-                        upgrade !== 'shield' &&
-                        !(upgrade.internalName && upgrade.internalName === 'shield')
+                        !['shield', 'experience'].includes(upgrade)
                     );
 
                     inPlayCards.push(...nonTokenUpgrades);

@@ -63,7 +63,7 @@ describe('Search Your Feelings', function() {
                 expect(this.player2).toBeActivePlayer();
             });
 
-            it('do nothing if deck is empty', function () {
+            it('does nothing if deck is empty', function () {
                 // Set up deck
                 this.player1.setDeck([]);
 
@@ -84,24 +84,14 @@ describe('Search Your Feelings', function() {
                     phase: 'action',
                     player1: {
                         hand: ['search-your-feelings'],
-                        deck: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst',
-                            'atst', 'atst', 'atst', 'atst', 'cartel-spacer', 'atst', 'atst', 'atst', 'atst', 'atst',
-                            'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'wampa', 'pyke-sentinel', 'battlefield-marine']
+                        deck: 30
                     }
                 });
 
                 this.searchYourFeelings = this.player1.findCardByName('search-your-feelings');
-
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.wampa = this.player1.findCardByName('wampa');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
-            it('ensure large deck will be shuffled', function () {
+            it('shuffles the deck', function () {
                 let preShuffleDeck = this.player1.deck;
 
                 // Sanity check for the comparison

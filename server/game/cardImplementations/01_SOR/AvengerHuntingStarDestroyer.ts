@@ -13,7 +13,6 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Choose a friendly non-leader unit to defeat',
-            optional: false,
             targetResolver: {
                 player: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
@@ -24,7 +23,6 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
 
         this.addAttackAbility({
             title: 'Choose a friendly non-leader unit to defeat',
-            optional: false,
             targetResolver: {
                 player: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
