@@ -7,7 +7,7 @@ class ChatCommands {
         this.commands = {
             '/draw': this.draw,
             // '/discard': this.discard,
-            // '/reveal': this.reveal,
+            '/reveal': this.reveal,
             '/move-to-bottom-deck': this.moveCardToDeckBottom,
             '/stop-clocks': this.stopClocks,
             '/start-clocks': this.startClocks,
@@ -103,20 +103,20 @@ class ChatCommands {
     //     });
     // }
 
-    // reveal(player) {
-    //     this.game.promptForSelect(player, {
-    //         activePromptTitle: 'Select a card to reveal',
-    //         waitingPromptTitle: 'Waiting for opponent to reveal a facedown card',
-    //         location: Location.Provinces,
-    //         controller: RelativePlayer.Self,
-    //         cardCondition: card => card.isFacedown(),
-    //         onSelect: (player, card) => {
-    //             GameSystems.reveal({ target: card }).resolve(player, this.game.getFrameworkContext());
-    //             this.game.addMessage('{0} reveals {1}', player, card);
-    //             return true;
-    //         }
-    //     });
-    // }
+    reveal(player) {
+        this.game.promptForSelect(player, {
+            activePromptTitle: 'Select a card to reveal',
+            waitingPromptTitle: 'Waiting for opponent to reveal a card',
+            location: WildcardLocation.Any,
+            controller: RelativePlayer.Self,
+            cardCondition: (card) => card.isFacedown(),
+            onSelect: (player, card) => {
+                GameSystems.reveal({ target: card }).resolve(player, this.game.getFrameworkContext());
+                this.game.addMessage('{0} reveals {1}', player, card);
+                return true;
+            }
+        });
+    }
 
     // TODO: add some SWU stuff in here like add shields
 

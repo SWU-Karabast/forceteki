@@ -17,7 +17,6 @@ describe('Entrenched', function() {
                 this.wampa = this.player1.findCardByName('wampa');
                 this.tieLn = this.player1.findCardByName('tieln-fighter');
                 this.brightHope = this.player2.findCardByName('bright-hope#the-last-transport');
-                this.p1Base = this.player2.base;
                 this.p2Base = this.player2.base;
             });
 
@@ -50,7 +49,6 @@ describe('Entrenched', function() {
                 this.entrenched = this.player1.findCardByName('entrenched');
                 this.brightHope = this.player1.findCardByName('bright-hope#the-last-transport');
                 this.tieLn = this.player2.findCardByName('tieln-fighter');
-                this.p1Base = this.player2.base;
                 this.p2Base = this.player2.base;
             });
 

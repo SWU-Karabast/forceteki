@@ -4,7 +4,6 @@ import { AbilityRestriction, AbilityType, Arena, CardType, Duration, EventName, 
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import * as KeywordHelpers from '../KeywordHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import Contract from '../../utils/Contract';
 
@@ -36,9 +35,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
-
-        this._constantAbilities.push(...KeywordHelpers.GenerateConstantAbilitiesFromKeywords(this.printedKeywords));
-        this._triggeredAbilities.push(...KeywordHelpers.GenerateTriggeredAbilitiesFromKeywords(this.printedKeywords));
 
         this.activateAbilityInitializersForTypes([AbilityType.Constant, AbilityType.Triggered]);
     }

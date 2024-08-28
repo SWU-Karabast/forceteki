@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityCon
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
-import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter } from './core/Constants';
+import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, KeywordName, AbilityType } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 
@@ -53,6 +53,12 @@ export interface IConstantAbilityProps<Source = any> {
 
     createCopies?: boolean;
 }
+
+// TODO KEYWORDS: add remaining keywords to this type
+export type IKeywordProperties =
+    | IRaidKeywordProperties
+    | IRestoreKeywordProperties
+    | ISentinelKeywordProperties;
 
 export interface IInitiateAttack extends IAttackProperties {
     opponentChoosesAttackTarget?: boolean;
@@ -116,4 +122,24 @@ interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityConte
      * 'Pass' button on resolution) or if it is mandatory
      */
     optional?: boolean;
+}
+
+interface IKeywordPropertiesBase {
+    keyword: KeywordName;
+}
+
+interface INumericKeywordProperties extends IKeywordPropertiesBase {
+    amount: number;
+}
+
+interface IRaidKeywordProperties extends INumericKeywordProperties {
+    keyword: KeywordName.Raid;
+}
+
+interface IRestoreKeywordProperties extends INumericKeywordProperties {
+    keyword: KeywordName.Restore;
+}
+
+interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Sentinel;
 }

@@ -144,7 +144,15 @@ class PlayerInteractionWrapper {
     }
 
     get deck() {
-        return this.player.deck;
+        return this.player.drawDeck;
+    }
+
+    setDeck(newContents = []) {
+        this.player.drawDeck = [];
+        newContents.reverse().forEach((nameOrCard) => {
+            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard) : nameOrCard;
+            this.moveCard(card, 'deck');
+        });
     }
 
     get resources() {
