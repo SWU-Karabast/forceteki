@@ -19,7 +19,7 @@ describe('Experience', function() {
                 this.p2Base = this.player2.base;
             });
 
-            it('should defeat itself to prevent damage to the attached unit', function () {
+            it('should grant the attached unit +1/+1 and be removed from game when unit is defeated', function () {
                 this.player1.clickCard(this.cartelSpacer);
                 this.player1.clickCard(this.assaultShip);
 
