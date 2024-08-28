@@ -1,6 +1,6 @@
-describe('Mon Mothma, Voice of the Rebellion', function() {
+describe('Viper Probe Droid', function() {
     integration(function() {
-        describe('Mon Mothma\'s Ability', function() {
+        describe('Viper Probe Droid\'s Ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
@@ -13,16 +13,23 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 });
 
                 this.viperProbeDroid = this.player1.findCardByName('viper-probe-droid');
+
+                this.wampa = this.player2.findCardByName('wampa');
+                this.battlefieldMarine = this.player2.findCardByName('battlefield-marine');
+                this.pykeSentinel = this.player2.findCardByName('pyke-sentinel');
             });
 
             it('should reveal enemy hand', function () {
                 this.player1.clickCard(this.viperProbeDroid);
-                expect(this.player1).toHavePrompt('tbd');
+                expect(this.viperProbeDroid.location).toBe('ground arena');
+                expect(this.getChatLogs(1)).toContain('Viper Probe Droid sees Battlefield Marine, Pyke Sentinel, and Wampa');
+                expect(this.player2).toBeActivePlayer();
             });
 
-            it('should work when enemy hand is empty', function () {
+            it('should be playable when enemy hand is empty', function () {
+                this.player2.setHand([]);
                 this.player1.clickCard(this.viperProbeDroid);
-                expect(this.player1).toHavePrompt('tbd');
+                expect(this.player2).toBeActivePlayer();
             });
         });
     });

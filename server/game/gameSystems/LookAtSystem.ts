@@ -2,15 +2,14 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { BaseCard } from '../core/card/BaseCard';
 import { EventName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 
-
-export interface ILookAtProperties extends IPlayerTargetSystemProperties {
+export interface ILookAtProperties extends ICardTargetSystemProperties {
     message?: string | ((context) => string);
     messageArgs?: (cards: any) => any[];
 }
 
-export class LookAtSystem extends PlayerTargetSystem<ILookAtProperties> {
+export class LookAtSystem extends CardTargetSystem<ILookAtProperties> {
     public override readonly name = 'lookAt';
     public override readonly eventName = EventName.OnLookAtCards;
     public override readonly effectDescription = 'look at a facedown card';
@@ -33,7 +32,7 @@ export class LookAtSystem extends PlayerTargetSystem<ILookAtProperties> {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         const cards = (target as BaseCard[]).filter((card) => this.canAffect(card, context));
         if (cards.length === 0) {
-            return;
+            return [];
         }
         const event = this.createEvent(null, context, additionalProperties);
         this.updateEvent(event, cards, context, additionalProperties);
@@ -57,7 +56,7 @@ export class LookAtSystem extends PlayerTargetSystem<ILookAtProperties> {
         event.context = context;
     }
 
-    public eventHandler(event, additionalProperties = {}): void {
+    public override eventHandler(event, additionalProperties = {}): void {
         const context = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as ILookAtProperties;
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [context.source, event.cards];
