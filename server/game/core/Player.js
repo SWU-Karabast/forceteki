@@ -74,6 +74,7 @@ class Player extends GameObject {
 
         this.limitedPlayed = 0;
         this.decklist = {};
+        this.decklistNames = {};
         this.costAdjusters = [];
         this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
@@ -85,6 +86,9 @@ class Player extends GameObject {
         this.timerSettings.windowTimer = user.settings.windowTimer;
         this.optionSettings = user.settings.optionSettings;
         this.resetTimerAtEndOfRound = false;
+
+        // mainly used for staging new tokens when they are created
+        this.outsideTheGameCards = [];
 
         // TODO: this should be a user setting at some point
         this.autoSingleTarget = true;
@@ -638,7 +642,7 @@ class Player extends GameObject {
      * Takes a decklist passed from the lobby, creates all the cards in it, and puts references to them in the relevant lists
      */
     prepareDecks() {
-        var preparedDecklist = new Deck(this.decklist).prepare(this);
+        var preparedDecklist = new Deck(this.decklistNames).prepare(this);
         if (preparedDecklist.base instanceof BaseCard) {
             this.base = preparedDecklist.base;
         }
@@ -657,7 +661,6 @@ class Player extends GameObject {
             //     }
             // }
         });
-        this.outsideTheGameCards = preparedDecklist.outsideTheGameCards;
     }
 
     /**
@@ -916,6 +919,8 @@ class Player extends GameObject {
                 return this.baseZone;
             case Location.Leader:
                 return this.leaderZone;
+            case Location.OutsideTheGame:
+                return this.outsideTheGameCards;
             default:
                 if (source) {
                     if (!this.additionalPiles[source]) {
@@ -1011,9 +1016,9 @@ class Player extends GameObject {
      * @param {*} deck
      */
     selectDeck(deck) {
-        this.decklist.selected = false;
-        this.decklist = deck;
-        this.decklist.selected = true;
+        this.decklistNames.selected = false;
+        this.decklistNames = deck;
+        this.decklistNames.selected = true;
         if (deck.base.length > 0) {
             this.base = new BaseCard(this, deck.base[0].card);
         }

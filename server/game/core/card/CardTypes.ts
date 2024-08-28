@@ -11,6 +11,10 @@ export type UnitCard =
     LeaderUnitCard |
     TokenUnitCard;
 
+export type TokenCard =
+    TokenUpgradeCard |
+    TokenUnitCard;
+
 export type CardWithDamageProperty =
     NonLeaderUnitCard |
     LeaderUnitCard |

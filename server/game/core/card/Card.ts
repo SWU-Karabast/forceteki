@@ -99,7 +99,11 @@ export class Card extends OngoingEffectSource {
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
-        this._location = Location.Deck;
+        if (this.isToken()) {
+            this._location = Location.OutsideTheGame;
+        } else {
+            this._location = Location.Deck;
+        }
 
         this.setupCardAbilities(AbilityHelper);
         this.activateAbilityInitializersForTypes(AbilityType.Action);

@@ -18,12 +18,8 @@ export default class Shield extends TokenUpgradeCard {
         /** Indicates that the shield be prioritized for removal if multiple shields are present (currently only for Jetpack) */
         public readonly highPriorityRemoval: boolean = false
     ) {
+        // even though shield is printed as 0/0 its cardData has nulls for stats
         const cardDataWithStats = { ...cardData };
-
-        // even though shield is printed as 0/0 its cardData has nulls for these, which requires special handling
-        Contract.assertTrue(cardDataWithStats.power === null);
-        Contract.assertTrue(cardDataWithStats.hp === null);
-
         cardDataWithStats.power = 0;
         cardDataWithStats.hp = 0;
 

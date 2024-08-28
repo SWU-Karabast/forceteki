@@ -106,7 +106,12 @@ class DeckBuilder {
                 inPlayCards.push(card.card);
                 //Add any upgrades
                 if (card.upgrades) {
-                    inPlayCards.push(...card.upgrades);
+                    let nonTokenUpgrades = card.upgrades.filter((upgrade) =>
+                        upgrade !== 'shield' &&
+                        !(upgrade.internalName && upgrade.internalName === 'shield')
+                    );
+
+                    inPlayCards.push(...nonTokenUpgrades);
                 }
             }
         }
@@ -132,6 +137,13 @@ class DeckBuilder {
             leader: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('leader')),
             base: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('base')),
             deckCards: this.filterPropertiesToArray(cardCounts, (count) => !count.card.types.includes('leader') && !count.card.types.includes('base'))
+        };
+    }
+
+    getTokenData() {
+        return {
+            shield: this.getCard('shield'),
+            // TODO EXPERIENCE: add here
         };
     }
 

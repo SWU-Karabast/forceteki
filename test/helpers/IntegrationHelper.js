@@ -344,6 +344,9 @@ global.integration = function (definitions) {
                 this.player1.selectDeck(deckBuilder.customDeck(1, options.player1));
                 this.player2.selectDeck(deckBuilder.customDeck(2, options.player2));
 
+                // pass the data for token cards to the game so it can generate them
+                this.game.initialiseTokens(deckBuilder.getTokenData());
+
                 this.startGame();
 
                 if (options.phase !== 'setup') {

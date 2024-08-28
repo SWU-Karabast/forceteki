@@ -25,12 +25,14 @@ const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { SimultaneousEffectWindow } = require('./gameSteps/SimultaneousEffectWindow.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract');
+const { cards } = require('../cardImplementations/Index.js');
 // const { Conflict } = require('./conflict.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
 // const MenuCommands = require('./MenuCommands');
 
 const { EffectName, EventName, Location } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
+const { default: Shield } = require('../cardImplementations/01_SOR/Shield.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -63,6 +65,7 @@ class Game extends EventEmitter {
         this.initialFirstPlayer = null;
         this.initiativePlayer = null;
         this.actionPhaseActivePlayer = null;
+        this.tokenFactories = null;
 
         this.shortCardData = options.shortCardData || [];
 
@@ -1090,6 +1093,36 @@ class Game extends EventEmitter {
 
     continue() {
         this.pipeline.continue();
+    }
+
+    /**
+     * Receives data for the token cards and builds a factory method for each type
+     * @param {*} tokenCardsData object in the form `{ tokenName: tokenCardData }`
+     */
+    initialiseTokens(tokenCardsData) {
+        this.tokenFactories = {};
+
+        for (const [tokenName, cardData] of Object.entries(tokenCardsData)) {
+            const tokenConstructor = cards.get(cardData.id);
+
+            this.tokenFactories[tokenName] = (player) => new tokenConstructor(player, cardData);
+        }
+    }
+
+    /**
+     * Creates a new shield token in an out of play zone owned by the player
+     * @param {Player} player
+     * @returns {Shield}
+     */
+    generateShieldToken(player) {
+        const shieldToken = this.tokenFactories.shield(player);
+
+        this.allCards.push(shieldToken);
+        player.decklist.tokens.push(shieldToken);
+        player.decklist.allCards.push(shieldToken);
+        player.outsideTheGameCards.push(shieldToken);
+
+        return shieldToken;
     }
 
     // formatDeckForSaving(deck) {
