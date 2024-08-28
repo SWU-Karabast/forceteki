@@ -10,6 +10,7 @@ import { shuffleDeck } from './GameSystemLibrary.js';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import Player from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
+import Contract from '../core/utils/Contract.js';
 
 type Derivable<T> = T | ((context: AbilityContext) => T);
 
@@ -154,8 +155,10 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
                 selectAmount = -1;
                 break;
             case TargetMode.Single:
-            default:
                 selectAmount = 1;
+                break;
+            default:
+                Contract.fail(`Invalid targetMode: ${properties.targetMode}`);
                 break;
         }
 
@@ -203,7 +206,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
     private onSearchComplete(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>, allCards: Card[]): void {
         event.selectedCards = Array.from(selectedCards);
         context.selects['deckSearch'] = Array.from(selectedCards);
-        this.searchCompleteMessageHandler(properties, context, event, selectedCards);
+        this.searchCompleteHandler(properties, context, event, selectedCards);
         if (properties.selectedCardsHandler === null) {
             this.selectedCardsDefaultHandler(properties, context, event, selectedCards);
         } else {
@@ -249,7 +252,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         }
     }
 
-    private searchCompleteMessageHandler(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
+    private searchCompleteHandler(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
         const choosingPlayer = properties.choosingPlayer || event.player;
         if (selectedCards.size > 0 && properties.message) {
             const args = properties.messageArgs ? properties.messageArgs(context, Array.from(selectedCards)) : [];

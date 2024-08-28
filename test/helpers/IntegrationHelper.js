@@ -396,10 +396,13 @@ var customMatchers = {
                 const L = deck.length;
                 result.pass = L >= numCards;
                 if (result.pass) {
+                    var notInDeck = [];
+                    var notOnBottom = [];
                     for (let card of cards) {
-                        result.pass = card.location === 'deck';
-                        if (!result.pass) {
-                            result.message = `Expected ${card.title} to be in the deck.`;
+                        thisCardPass = card.location === 'deck';
+                        if (!thisCardPass) {
+                            result.pass = thisCardPass;
+                            notInDeck.push(card.title);
                         } else {
                             var onBottom = false;
                             for (let i = 1; i <= numCards; i++) {
@@ -408,10 +411,21 @@ var customMatchers = {
                                     break;
                                 }
                             }
-                            result.pass = onBottom;
+                            thisCardPass = onBottom;
                             if (!onBottom) {
-                                result.message = `Expected ${card.title} to be on the bottom of the deck.`;
+                                result.pass = onBottom;
+                                notOnBottom.push(card.title);
                             }
+                        }
+                    }
+
+                    if (!result.pass) {
+                        result.message = '';
+                        if (notInDeck.length > 0) {
+                            result.message += `Expected ${notInDeck.join(', ')} to be in the deck.`;
+                        }
+                        if (notOnBottom.length > 0) {
+                            result.message += ` Expected ${notOnBottom.join(', ')} to be on the bottom of the deck`;
                         }
                     }
                 } else {

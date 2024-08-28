@@ -25,6 +25,8 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
                 this.wampa = this.player1.findCardByName('wampa');
 
+                this.allianceDispatcher = this.player1.findCardByName('alliance-dispatcher');
+
                 this.p2tarkin = this.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
                 this.clanWrenRescuer = this.player2.findCardByName('clan-wren-rescuer');
                 this.concordDawnInterceptors = this.player2.findCardByName('concord-dawn-interceptors');
