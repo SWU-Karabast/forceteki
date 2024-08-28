@@ -78,10 +78,6 @@ describe('Shield', function() {
 
                 expect(getShieldLocationsSorted(this.shields)).toEqual(['outside the game', 'outside the game']);
             });
-
-            // UP NEXT:
-            // - defeat (including fixing general upgrades to unattach themselves on defeat)
-            // - shield creation helper on UnitProperties
         });
     });
 });

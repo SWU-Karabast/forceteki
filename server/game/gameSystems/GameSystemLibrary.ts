@@ -23,6 +23,7 @@ import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
 // import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
 import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './ExecuteHandlerSystem';
 // import { IfAbleAction, IfAbleActionProperties } from './IfAbleAction';
+import { GiveShieldSystem, IGiveShieldProperties } from './GiveShieldSystem';
 import { HealSystem, IHealProperties } from './HealSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
@@ -93,6 +94,9 @@ export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}
 // }
 export function exhaust(propertyFactory: PropsFactory<IExhaustSystemProperties> = {}): CardTargetSystem {
     return new ExhaustSystem(propertyFactory);
+}
+export function giveShield(propertyFactory: PropsFactory<IGiveShieldProperties> = {}): CardTargetSystem {
+    return new GiveShieldSystem(propertyFactory);
 }
 export function heal(propertyFactory: PropsFactory<IHealProperties>): GameSystem {
     return new HealSystem(propertyFactory);
