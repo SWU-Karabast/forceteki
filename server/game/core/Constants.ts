@@ -275,6 +275,7 @@ export enum AbilityRestriction {
 
     BeHealed = 'beHealed',
     InitiateKeywords = 'initiateKeywords',
+    Ready = 'ready',
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
 }
