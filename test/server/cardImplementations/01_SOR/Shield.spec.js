@@ -33,11 +33,6 @@ describe('Shield', function() {
                 expect(this.cartelSpacer.location).toBe('discard');
                 expect(this.tieLn.location).toBe('discard');
             });
-
-            // UP NEXT:
-            // - shield creation system
-            // - shielded property
-            // - example give shield ability
         });
 
         describe('Shield\'s ability', function() {
