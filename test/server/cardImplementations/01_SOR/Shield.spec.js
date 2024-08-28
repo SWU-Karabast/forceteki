@@ -5,6 +5,7 @@ describe('Shield', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
+                        hand: ['vanquish'],
                         spaceArena: ['cartel-spacer']
                     },
                     player2: {
@@ -13,6 +14,7 @@ describe('Shield', function() {
                 });
 
                 this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
+                this.vanquish = this.player1.findCardByName('vanquish');
                 this.tieLn = this.player2.findCardByName('tieln-fighter');
                 this.shield = this.player2.findCardByName('shield');
             });
@@ -32,6 +34,14 @@ describe('Shield', function() {
                 this.player2.clickCard(this.cartelSpacer);
                 expect(this.cartelSpacer.location).toBe('discard');
                 expect(this.tieLn.location).toBe('discard');
+            });
+
+            it('should be removed from the game when the attached unit is defeated', function () {
+                this.player1.clickCard(this.vanquish);
+                this.player1.clickCard(this.tieLn);
+
+                expect(this.tieLn.location).toBe('discard');
+                expect(this.shield.location).toBe('outside the game');
             });
         });
 
