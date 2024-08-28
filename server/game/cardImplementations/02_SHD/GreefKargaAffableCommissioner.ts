@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { CardType } from '../../core/Constants';
+import { CardType, WildcardCardType } from '../../core/Constants';
 
 export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
             title: 'Search the top 5 cards of your deck for an upgrade, then reveal and draw it.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
-                cardCondition: (card) => card.type === CardType.Upgrade,
+                cardCondition: (card) => card.isUpgrade(),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
             })
         });
