@@ -6,8 +6,7 @@ describe('Search Your Feelings', function() {
                     phase: 'action',
                     player1: {
                         hand: ['search-your-feelings'],
-                        deck: ['battlefield-marine', 'cartel-spacer', 'cell-block-guard', 'pyke-sentinel', 'volunteer-soldier'],
-                        deckSize: 5
+                        deck: ['battlefield-marine', 'cartel-spacer', 'cell-block-guard', 'pyke-sentinel', 'volunteer-soldier']
                     }
                 });
 
@@ -87,8 +86,7 @@ describe('Search Your Feelings', function() {
                         hand: ['search-your-feelings'],
                         deck: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst',
                             'atst', 'atst', 'atst', 'atst', 'cartel-spacer', 'atst', 'atst', 'atst', 'atst', 'atst',
-                            'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'wampa', 'pyke-sentinel', 'battlefield-marine'],
-                        deckSize: 30
+                            'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'wampa', 'pyke-sentinel', 'battlefield-marine']
                     }
                 });
 

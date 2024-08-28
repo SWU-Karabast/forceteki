@@ -510,8 +510,12 @@ global.integration = function (definitions) {
                 this.player1.setDiscard(options.player1.discard);
                 this.player2.setDiscard(options.player2.discard);
                 // Deck
-                this.player1.setDeck(options.player1.deck);
-                this.player2.setDeck(options.player2.deck);
+                if (options.player1.deck !== undefined) {
+                    this.player1.setDeck(options.player1.deck);
+                }
+                if (options.player2.deck !== undefined) {
+                    this.player2.setDeck(options.player2.deck);
+                }
 
                 // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {
