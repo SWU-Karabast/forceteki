@@ -497,28 +497,29 @@ global.integration = function (definitions) {
                 this.player1.damageToBase = options.player1.damageToBase ?? 0;
                 this.player2.damageToBase = options.player2.damageToBase ?? 0;
 
-                // set cards below - the playerinteractionwrapper will convert string names to real cards
+                // return all zone cards to deck and then set them below - the playerinteractionwrapper will convert string names to real cards
+                this.player1.moveAllNonBaseZonesToRemoved();
+                this.player2.moveAllNonBaseZonesToRemoved();
 
                 // Resources
-                this.player1.setResourceCards(options.player1.resources);
-                this.player2.setResourceCards(options.player2.resources);
+                this.player1.setResourceCards(options.player1.resources, ['removed from game']);
+                this.player2.setResourceCards(options.player2.resources, ['removed from game']);
+
                 // Arenas
-                this.player1.setGroundArenaUnits(options.player1.groundArena);
-                this.player2.setGroundArenaUnits(options.player2.groundArena);
-                this.player1.setSpaceArenaUnits(options.player1.spaceArena);
-                this.player2.setSpaceArenaUnits(options.player2.spaceArena);
+                this.player1.setGroundArenaUnits(options.player1.groundArena, ['removed from game']);
+                this.player2.setGroundArenaUnits(options.player2.groundArena, ['removed from game']);
+                this.player1.setSpaceArenaUnits(options.player1.spaceArena, ['removed from game']);
+                this.player2.setSpaceArenaUnits(options.player2.spaceArena, ['removed from game']);
+
                 // Hand + discard
-                this.player1.setHand(options.player1.hand);
-                this.player2.setHand(options.player2.hand);
-                this.player1.setDiscard(options.player1.discard);
-                this.player2.setDiscard(options.player2.discard);
+                this.player1.setHand(options.player1.hand, ['removed from game']);
+                this.player2.setHand(options.player2.hand, ['removed from game']);
+                this.player1.setDiscard(options.player1.discard, ['removed from game']);
+                this.player2.setDiscard(options.player2.discard, ['removed from game']);
+
                 // Deck
-                if (options.player1.deck !== undefined) {
-                    this.player1.setDeck(options.player1.deck);
-                }
-                if (options.player2.deck !== undefined) {
-                    this.player2.setDeck(options.player2.deck);
-                }
+                this.player1.setDeck(options.player1.deck, ['removed from game']);
+                this.player2.setDeck(options.player2.deck, ['removed from game']);
 
                 // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {
