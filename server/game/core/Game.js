@@ -30,7 +30,7 @@ const { cards } = require('../cardImplementations/Index.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
 // const MenuCommands = require('./MenuCommands');
 
-const { EffectName, EventName, Location } = require('./Constants.js');
+const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cardImplementations/01_SOR/Shield.js');
 
@@ -1112,6 +1112,12 @@ class Game extends EventEmitter {
      * @param {*} tokenCardsData object in the form `{ tokenName: tokenCardData }`
      */
     initialiseTokens(tokenCardsData) {
+        for (const tokenName of Object.values(TokenName)) {
+            if (!(tokenName in tokenCardsData)) {
+                throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
+            }
+        }
+
         this.tokenFactories = {};
 
         for (const [tokenName, cardData] of Object.entries(tokenCardsData)) {
@@ -1125,17 +1131,18 @@ class Game extends EventEmitter {
      * Creates a new shield token in an out of play zone owned by the player and
      * adds it to all relevant card lists
      * @param {Player} player
+     * @param {TokenName} tokenName
      * @returns {Shield}
      */
-    generateShieldToken(player) {
-        const shieldToken = this.tokenFactories.shield(player);
+    generateToken(player, tokenName) {
+        const token = this.tokenFactories[tokenName](player);
 
-        this.allCards.push(shieldToken);
-        player.decklist.tokens.push(shieldToken);
-        player.decklist.allCards.push(shieldToken);
-        player.outsideTheGameCards.push(shieldToken);
+        this.allCards.push(token);
+        player.decklist.tokens.push(token);
+        player.decklist.allCards.push(token);
+        player.outsideTheGameCards.push(token);
 
-        return shieldToken;
+        return token;
     }
 
     /**

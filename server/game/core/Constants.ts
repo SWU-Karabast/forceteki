@@ -139,6 +139,11 @@ export enum WildcardCardType {
 
 export type CardTypeFilter = CardType | WildcardCardType;
 
+export enum TokenName {
+    Shield = 'shield',
+    Experience = 'experience'
+}
+
 export enum EventName {
     OnAbilityResolved = 'onAbilityResolved',
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',

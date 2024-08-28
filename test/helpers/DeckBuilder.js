@@ -135,7 +135,7 @@ class DeckBuilder {
     getTokenData() {
         return {
             shield: this.getCard('shield'),
-            // TODO EXPERIENCE: add here
+            experience: this.getCard('experience')
         };
     }
 

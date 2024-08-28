@@ -148,7 +148,7 @@ class PlayerInteractionWrapper {
                     const isShield = upgradeName === 'shield' || (upgradeName.internalName && upgradeName.internalName === 'shield');
                     let upgrade;
                     if (isShield) {
-                        upgrade = this.game.generateShieldToken(this.player);
+                        upgrade = this.game.generateToken(this.player, 'shield');
                     } else {
                         upgrade = this.findCardByName(upgradeName, prevLocations);
                     }

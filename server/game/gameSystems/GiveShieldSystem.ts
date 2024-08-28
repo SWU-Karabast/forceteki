@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import { CardTypeFilter, EventName, WildcardCardType } from '../core/Constants';
+import { CardTypeFilter, EventName, TokenName, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
@@ -23,7 +23,7 @@ export class GiveShieldSystem extends CardTargetSystem<IGiveShieldProperties> {
             return;
         }
 
-        const shieldToken = event.context.game.generateShieldToken(cardReceivingShield.controller);
+        const shieldToken = event.context.game.generateToken(cardReceivingShield.controller, TokenName.Shield);
         shieldToken.owner.moveCard(shieldToken, cardReceivingShield.location);
         cardReceivingShield.attachUpgrade(shieldToken);
     }
