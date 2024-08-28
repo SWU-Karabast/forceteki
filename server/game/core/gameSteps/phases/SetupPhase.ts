@@ -4,7 +4,7 @@ import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
-import ResourcePrompt from '../prompts/ResourcePrompt';
+import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import Player from '../../Player';
 
 export class SetupPhase extends Phase {
@@ -18,7 +18,7 @@ export class SetupPhase extends Phase {
             new SimpleStep(game, () => this.chooseFirstPlayer(), 'chooseFirstPlayer'),
             new SimpleStep(game, () => this.drawStartingHands(), 'drawStartingHands'),
             new SimpleStep(game, () => this.chooseMulligan(), 'chooseMulligan'),
-            new ResourcePrompt(game, 2, 2),
+            new ResourcePrompt(game, 2),
 
             // there aren't clear game rules yet for resolving events that trigger during the setup step, so we skip the event window here
             new SimpleStep(game, () => this.endPhase(true), 'endPhase')

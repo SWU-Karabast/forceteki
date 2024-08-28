@@ -13,12 +13,13 @@ import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 // import { ChosenReturnToDeckAction, ChosenReturnToDeckProperties } from './ChosenReturnToDeckAction';
 import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
 // import { CreateTokenAction, CreateTokenProperties } from './CreateTokenAction';
-// import { DeckSearchAction, DeckSearchProperties } from './DeckSearchAction';
+import { SearchDeckSystem, ISearchDeckProperties } from './SearchDeckSystem';
 // import { DetachAction, DetachActionProperties } from './DetachAction';
 // import { DiscardCardAction, DiscardCardProperties } from './DiscardCardAction';
 // import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
 // import { DiscardStatusAction, DiscardStatusProperties } from './DiscardStatusAction';
-// import { DrawAction, DrawProperties } from './DrawAction';
+import { DrawSystem, IDrawProperties } from './DrawSystem';
+import { DrawSpecificCardSystem, IDrawSpecificCardProperties } from './DrawSpecificCardSystem';
 import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
 // import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
 import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './ExecuteHandlerSystem';
@@ -40,19 +41,20 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
 // import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
 import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
-// import { ReadyAction, ReadyProperties } from './ReadyAction';
+import { ReadySystem, IReadySystemProperties } from './ReadySystem';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
 import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
 // import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
 import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
 import { ReturnToHandFromPlaySystem, IReturnToHandFromPlayProperties } from './ReturnToHandFromPlaySystem';
-// import { RevealAction, RevealProperties } from './RevealAction';
+import { RevealSystem, IRevealProperties } from './RevealSystem';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
 // import { SequentialAction } from './SequentialAction';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
-// import { ShuffleDeckAction, ShuffleDeckProperties } from './ShuffleDeckAction';
+import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -108,7 +110,6 @@ export function heal(propertyFactory: PropsFactory<IHealProperties>): GameSystem
  * default switch = false
  * default shuffle = false
  * default faceup = false
- * @deprecated This system was imported from L5R but has not been tested
  */
 export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): CardTargetSystem {
     return new MoveCardSystem(propertyFactory);
@@ -131,9 +132,9 @@ export function putIntoPlay(propertyFactory: PropsFactory<IPutIntoPlayProperties
 // export function opponentPutIntoPlay(propertyFactory: PropsFactory<OpponentPutIntoPlayProperties> = {}): GameSystem {
 //     return new OpponentPutIntoPlayAction(propertyFactory, false);
 // }
-// export function ready(propertyFactory: PropsFactory<ReadyProperties> = {}): GameSystem {
-//     return new ReadyAction(propertyFactory);
-// }
+export function ready(propertyFactory: PropsFactory<IReadySystemProperties> = {}): GameSystem {
+    return new ReadySystem(propertyFactory);
+}
 // export function removeFromGame(propertyFactory: PropsFactory<RemoveFromGameProperties> = {}): CardGameAction {
 //     return new RemoveFromGameAction(propertyFactory);
 // }
@@ -153,12 +154,13 @@ export function returnToHand(propertyFactory: PropsFactory<IReturnToHandProperti
 export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties> = {}): CardTargetSystem {
     return new ReturnToHandFromPlaySystem(propertyFactory);
 }
-// /**
-//  * default chatMessage = false
-//  */
-// export function reveal(propertyFactory: PropsFactory<RevealProperties> = {}): CardGameAction {
-//     return new RevealAction(propertyFactory);
-// }
+
+/**
+ * default chatMessage = false
+ */
+export function reveal(propertyFactory: PropsFactory<IRevealProperties> = {}): CardTargetSystem {
+    return new RevealSystem(propertyFactory);
+}
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): CardGameAction {
 //     return new DiscardFromPlayAction(propertyFactory, true);
 // }
@@ -196,14 +198,20 @@ export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHand
 // export function chosenReturnToDeck(propertyFactory: PropsFactory<ChosenReturnToDeckProperties> = {}): GameSystem {
 //     return new ChosenReturnToDeckAction(propertyFactory);
 // }
-// /**
-//  * default amount = -1 (whole deck)
-//  * default reveal = true
-//  * default cardCondition = always true
-//  */
-// export function deckSearch(propertyFactory: PropsFactory<DeckSearchProperties>): GameSystem {
-//     return new DeckSearchAction(propertyFactory);
-// }
+
+/**
+ * default cardsToSearch = -1 (whole deck)
+ * default selectCardCount = 1 (number of cards to retrieve)
+ * default targetMode = TargetMode.UpTo (retrieve 0 up to the selectCardCount)
+ * default shuffle = false (set to true if deck should be shuffled after search)
+ * default reveal = true (set to false if the cards chosen should not be revealed)
+ * default placeOnBottomInRandomOrder = true (place unchosen cards on the bottom of the deck in random order)
+ * default cardCondition = always true
+ */
+export function deckSearch(propertyFactory: PropsFactory<ISearchDeckProperties>): GameSystem {
+    return new SearchDeckSystem(propertyFactory);
+}
+
 /**
  * default amount = 1
  */
@@ -216,12 +224,19 @@ export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHand
 // export function discardMatching(propertyFactory: PropsFactory<MatchingDiscardProperties> = {}): GameSystem {
 //     return new MatchingDiscardAction(propertyFactory);
 // }
-// /**
-//  * default amount = 1
-//  */
-// export function draw(propertyFactory: PropsFactory<DrawProperties> = {}): GameSystem {
-//     return new DrawAction(propertyFactory);
-// }
+/**
+ * default amount = 1
+ */
+export function draw(propertyFactory: PropsFactory<IDrawProperties> = {}): GameSystem {
+    return new DrawSystem(propertyFactory);
+}
+
+/**
+ * default amount = 1
+ */
+export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCardProperties> = {}): CardTargetSystem {
+    return new DrawSpecificCardSystem(propertyFactory);
+}
 // export function playerLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
 //     return new LastingEffectAction(propertyFactory);
 // } // duration = 'untilEndOfConflict', effect, targetController, condition, until
@@ -305,3 +320,7 @@ export function selectCard(propertyFactory: PropsFactory<ISelectCardProperties>)
 // export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }
+
+export function shuffleDeck(propertyFactory: PropsFactory<IShuffleDeckProperties> = {}): PlayerTargetSystem {
+    return new ShuffleDeckSystem(propertyFactory);
+}

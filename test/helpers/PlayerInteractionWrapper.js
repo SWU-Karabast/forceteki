@@ -119,6 +119,11 @@ class PlayerInteractionWrapper {
             } else {
                 card.ready();
             }
+
+            if (options.damage != null) {
+                card.damage = options.damage;
+            }
+
             // Activate persistent effects of the card
             //card.applyPersistentEffects();
             // Get the upgrades
@@ -148,7 +153,15 @@ class PlayerInteractionWrapper {
     }
 
     get deck() {
-        return this.player.deck;
+        return this.player.drawDeck;
+    }
+
+    setDeck(newContents = []) {
+        this.player.drawDeck = [];
+        newContents.reverse().forEach((nameOrCard) => {
+            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard) : nameOrCard;
+            this.moveCard(card, 'deck');
+        });
     }
 
     get resources() {
@@ -384,6 +397,7 @@ class PlayerInteractionWrapper {
     passAction() {
         this.clickPrompt('Pass');
     }
+
 
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();

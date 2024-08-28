@@ -154,6 +154,7 @@ export enum EventName {
     OnCardPlayed = 'onCardPlayed',
     OnCardReadied = 'onCardReadied',
     OnCardReturnedToHand = 'onCardReturnedToHand',
+    OnCardRevealed = 'onCardRevealed',
     OnCardsDiscarded = 'onCardsDiscarded',
     OnCardsDiscardedFromHand = 'onCardsDiscardedFromHand',
     OnCardsDrawn = 'onCardsDrawn',
@@ -169,6 +170,7 @@ export enum EventName {
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
+    OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
     OnRoundEnded = 'onRoundEnded',
     OnRoundEndedCleanup = 'onRoundEndedCleanup',
     OnSpendResources = 'onSpendResources',
@@ -296,6 +298,7 @@ export enum AbilityRestriction {
 
     BeHealed = 'beHealed',
     InitiateKeywords = 'initiateKeywords',
+    Ready = 'ready',
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
 }

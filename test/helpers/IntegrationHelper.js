@@ -20,7 +20,7 @@ const ProxiedGameFlowWrapperMethods = [
     'keepConflict',
     'skipSetupPhase',
     'selectInitiativePlayer',
-    'noMoreActions',
+    'moveToNextActionPhase',
     'advancePhases',
     'getPromptedPlayer',
     'nextPhase',
@@ -46,7 +46,7 @@ var customMatchers = {
             }
         };
     },
-    toHavePromptButton: function (util, customEqualityMatchers) {
+    toHaveEnabledPromptButton: function (util, customEqualityMatchers) {
         return {
             compare: function (actual, expected) {
                 var buttons = actual.currentPrompt().buttons;
@@ -63,6 +63,35 @@ var customMatchers = {
                         (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
                     ).join('\n');
                     result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toHaveEnabledPromptButtons: function (util, customEqualityMatchers) {
+        return {
+            compare: function (actual, expecteds) {
+                if (!Array.isArray(expecteds)) {
+                    expecteds = [expecteds];
+                }
+
+                var buttons = actual.currentPrompt().buttons;
+                var result = {};
+
+                for (let expected of expecteds) {
+                    result.pass = buttons.some(
+                        (button) => !button.disabled && util.equals(button.text, expected, customEqualityMatchers)
+                    );
+
+                    if (result.pass) {
+                        result.message = `Expected ${actual.name} not to have enabled prompt button '${expected}' but it did.`;
+                    } else {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                    }
                 }
 
                 return result;
@@ -86,6 +115,35 @@ var customMatchers = {
                         (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
                     ).join('\n');
                     result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toHaveDisabledPromptButtons: function (util, customEqualityMatchers) {
+        return {
+            compare: function (actual, expecteds) {
+                if (!Array.isArray(expecteds)) {
+                    expecteds = [expecteds];
+                }
+
+                var buttons = actual.currentPrompt().buttons;
+                var result = {};
+
+                for (let expected of expecteds) {
+                    result.pass = buttons.some(
+                        (button) => button.disabled && util.equals(button.text, expected, customEqualityMatchers)
+                    );
+
+                    if (result.pass) {
+                        result.message = `Expected ${actual.name} not to have disabled prompt button '${expected}' but it did.`;
+                    } else {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                    }
                 }
 
                 return result;
@@ -298,6 +356,84 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toBeInBottomOfDeck: function () {
+        return {
+            compare: function (card, player, numCards) {
+                var result = {};
+                const deck = player.deck;
+                const L = deck.length;
+                result.pass = L >= numCards;
+                if (result.pass) {
+                    result.pass = card.location === 'deck';
+                    if (!result.pass) {
+                        result.message = `Expected ${card.title} to be in the deck.`;
+                    } else {
+                        var onBottom = false;
+                        for (let i = 1; i <= numCards; i++) {
+                            if (deck[L - i] === card) {
+                                onBottom = true;
+                                break;
+                            }
+                        }
+                        result.pass = onBottom;
+                        if (!onBottom) {
+                            result.message = `Expected ${card.title} to be on the bottom of the deck.`;
+                        }
+                    }
+                } else {
+                    result.message = 'Deck is smaller than parameter numCards';
+                }
+                return result;
+            }
+        };
+    },
+    toAllBeInBottomOfDeck: function () {
+        return {
+            compare: function (cards, player, numCards) {
+                var result = {};
+                const deck = player.deck;
+                const L = deck.length;
+                result.pass = L >= numCards;
+                if (result.pass) {
+                    var notInDeck = [];
+                    var notOnBottom = [];
+                    for (let card of cards) {
+                        thisCardPass = card.location === 'deck';
+                        if (!thisCardPass) {
+                            result.pass = thisCardPass;
+                            notInDeck.push(card.title);
+                        } else {
+                            var onBottom = false;
+                            for (let i = 1; i <= numCards; i++) {
+                                if (deck[L - i] === card) {
+                                    onBottom = true;
+                                    break;
+                                }
+                            }
+                            thisCardPass = onBottom;
+                            if (!onBottom) {
+                                result.pass = onBottom;
+                                notOnBottom.push(card.title);
+                            }
+                        }
+                    }
+
+                    if (!result.pass) {
+                        result.message = '';
+                        if (notInDeck.length > 0) {
+                            result.message += `Expected ${notInDeck.join(', ')} to be in the deck.`;
+                        }
+                        if (notOnBottom.length > 0) {
+                            result.message += ` Expected ${notOnBottom.join(', ')} to be on the bottom of the deck`;
+                        }
+                    }
+                } else {
+                    result.message = 'Deck is smaller than parameter numCards';
+                }
+                return result;
+            }
+        };
     }
 };
 
@@ -363,19 +499,26 @@ global.integration = function (definitions) {
 
                 // set cards below - the playerinteractionwrapper will convert string names to real cards
 
+                // Resources
+                this.player1.setResourceCards(options.player1.resources);
+                this.player2.setResourceCards(options.player2.resources);
                 // Arenas
                 this.player1.setGroundArenaUnits(options.player1.groundArena);
                 this.player2.setGroundArenaUnits(options.player2.groundArena);
                 this.player1.setSpaceArenaUnits(options.player1.spaceArena);
                 this.player2.setSpaceArenaUnits(options.player2.spaceArena);
-                // Resources
-                this.player1.setResourceCards(options.player1.resources);
-                this.player2.setResourceCards(options.player2.resources);
                 // Hand + discard
                 this.player1.setHand(options.player1.hand);
                 this.player2.setHand(options.player2.hand);
                 this.player1.setDiscard(options.player1.discard);
                 this.player2.setDiscard(options.player2.discard);
+                // Deck
+                if (options.player1.deck !== undefined) {
+                    this.player1.setDeck(options.player1.deck);
+                }
+                if (options.player2.deck !== undefined) {
+                    this.player2.setDeck(options.player2.deck);
+                }
 
                 // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {

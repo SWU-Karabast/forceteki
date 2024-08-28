@@ -20,8 +20,6 @@ describe('Sabine Wren, Explosives Artist', function() {
                 this.p1Base = this.player1.base;
                 this.p2Base = this.player2.base;
 
-                this.noMoreActions();
-
                 // sabine is only partially implemented, still need to handle:
                 // - the effect override if she gains sentinel
                 // - her active ability

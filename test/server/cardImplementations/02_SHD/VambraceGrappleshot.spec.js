@@ -15,8 +15,6 @@ describe('Vambrace Grappleshot', function() {
                 this.vambraceGrappleshot = this.player1.findCardByName('vambrace-grappleshot');
                 this.marine = this.player1.findCardByName('battlefield-marine');
                 this.snowspeeder = this.player2.findCardByName('snowspeeder');
-
-                this.noMoreActions();
             });
 
             it('should exhaust the defender on attack', function () {
@@ -56,8 +54,6 @@ describe('Vambrace Grappleshot', function() {
                 this.vambraceGrappleshot = this.player1.findCardByName('vambrace-grappleshot');
                 this.marine = this.player1.findCardByName('battlefield-marine');
                 this.snowspeeder = this.player1.findCardByName('snowspeeder');
-
-                this.noMoreActions();
             });
 
             it('should not be playable on vehicles', function () {

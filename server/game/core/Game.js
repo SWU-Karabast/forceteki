@@ -776,6 +776,18 @@ class Game extends EventEmitter {
         this.createEventAndOpenWindow(EventName.OnRoundEnded);
     }
 
+    claimInitiative(player) {
+        this.addMessage('{0} claims initiative', player);
+
+        this.initiativePlayer = player;
+        player.passedActionPhase = true;
+
+        // TODO: eventually we'll probably need an event window here
+
+        // update game state for the sake of constant abilities that check initiative
+        this.resolveGameState();
+    }
+
     /*
      * Adds a step to the pipeline queue
      * @param {BaseStep} step

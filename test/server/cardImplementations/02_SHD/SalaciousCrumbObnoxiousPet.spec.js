@@ -11,8 +11,6 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
 
                 this.crumb = this.player1.findCardByName('salacious-crumb#obnoxious-pet');
                 this.p1Base = this.player1.base;
-
-                this.noMoreActions();
             });
 
             it('should heal 1 from friendly base', function () {
@@ -49,8 +47,6 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 this.wampa = this.player1.findCardByName('wampa');
                 this.atrt = this.player2.findCardByName('frontier-atrt');
                 this.cartelSpacer = this.player2.findCardByName('cartel-spacer');
-
-                this.noMoreActions();
             });
 
             it('should deal 1 damage to any selected ground unit', function () {

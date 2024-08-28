@@ -36,18 +36,21 @@ class DeckBuilder {
         options: as player1 and player2 are described in setupTest #1514
     */
     customDeck(playerNumber, playerCards = {}) {
+        if (Array.isArray(playerCards.leader)) {
+            throw new Error('Test leader must not be specified as an array');
+        }
+        if (Array.isArray(playerCards.base)) {
+            throw new Error('Test base must not be specified as an array');
+        }
+
         let leader = defaultLeader[playerNumber];
         let base = defaultBase[playerNumber];
         let allCards = [];
         let deckSize = deckBufferSize;
         let inPlayCards = [];
 
-        if (playerCards.leader) {
-            leader = playerCards.leader;
-        }
-        if (playerCards.base) {
-            base = playerCards.base;
-        }
+        allCards.push(playerCards.leader ? playerCards.leader : defaultLeader[playerNumber]);
+        allCards.push(playerCards.base ? playerCards.base : defaultBase[playerNumber]);
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
         if (playerCards.resources == null) {
@@ -86,8 +89,7 @@ class DeckBuilder {
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
 
         //Collect all the cards together
-        allCards = allCards.concat(inPlayCards).concat(leader)
-            .concat(base);
+        allCards = allCards.concat(inPlayCards);
 
         return this.buildDeck(allCards);
     }

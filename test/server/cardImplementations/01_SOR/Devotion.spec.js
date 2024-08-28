@@ -15,8 +15,6 @@ describe('Devotion', function() {
                 this.wampa = this.player1.findCardByName('wampa');
                 this.p1Base = this.player1.base;
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('should cause the attached card to heal 2 damage from base on attack', function () {
