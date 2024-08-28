@@ -18,7 +18,20 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
     }
 
     public eventHandler(event, additionalProperties = {}): void {
-        this.leavesPlayEventHandler(event, additionalProperties);
+        if (event.card.isUpgrade()) {
+            event.card.parentCard.removeUpgrade(event.card);
+        }
+
+        if (event.card.isToken()) {
+            // move the token out of the play area so that effect cleanup happens, then remove it from all card lists
+            event.card.owner.moveCard(event.card, Location.OutsideTheGame, event.options || {});
+            event.context.game.removeTokenFromPlay(event.card);
+        } else if (event.card.isLeader()) {
+            event.card.owner.moveCard(event.card, Location.Leader, event.options || {});
+            event.card.exhaust();
+        } else {
+            event.card.owner.moveCard(event.card, Location.Discard, event.options || {});
+        }
     }
 
     public override getEffectMessage(context: AbilityContext): [string, any[]] {

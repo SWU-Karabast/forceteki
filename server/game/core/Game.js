@@ -1110,7 +1110,8 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Creates a new shield token in an out of play zone owned by the player
+     * Creates a new shield token in an out of play zone owned by the player and
+     * adds it to all relevant card lists
      * @param {Player} player
      * @returns {Shield}
      */
@@ -1123,6 +1124,30 @@ class Game extends EventEmitter {
         player.outsideTheGameCards.push(shieldToken);
 
         return shieldToken;
+    }
+
+    /**
+     * Removes a shield token from all relevant card lists
+     * @param {import('./card/CardTypes.js').TokenCard} token
+     */
+    removeTokenFromPlay(token) {
+        if (
+            !Contract.assertEqual(token.location, Location.OutsideTheGame,
+                `Tokens must be moved to location ${Location.OutsideTheGame} before removing from play, instead found token at ${token.location}`
+            )
+        ) {
+            return;
+        }
+
+        const player = token.owner;
+        this.filterCardFromList(token, this.allCards);
+        this.filterCardFromList(token, player.decklist.tokens);
+        this.filterCardFromList(token, player.decklist.allCards);
+        this.filterCardFromList(token, player.outsideTheGameCards);
+    }
+
+    filterCardFromList(removeCard, list) {
+        list = list.filter((card) => card !== removeCard);
     }
 
     // formatDeckForSaving(deck) {

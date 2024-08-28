@@ -1176,6 +1176,9 @@ class Player extends GameObject {
                 case Location.Leader:
                     this.leaderZone = updatedPile;
                     break;
+                case Location.OutsideTheGame:
+                    this.outsideTheGameCards = updatedPile;
+                    break;
                 default:
                     if (this.additionalPiles[originalPile]) {
                         this.additionalPiles[originalPile].cards = updatedPile;

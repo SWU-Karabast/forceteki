@@ -5,6 +5,7 @@ import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemPropertie
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { UpgradeCard } from '../card/UpgradeCard';
+import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -181,15 +182,19 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         // };
     }
 
+    /**
+     * Manages special rules for cards leaving play. Should be called as the handler for systems
+     * that move a card out of the play areas (arenas).
+     */
     protected leavesPlayEventHandler(event, additionalProperties = {}): void {
-        if (!event.card.owner.isLegalLocationForCardType(event.card.type, event.destination)) {
-            event.card.game.addMessage(
-                '{0} is not a legal location for {1} and it is discarded',
-                event.destination,
-                event.card
-            );
-            event.destination = Location.Deck;
+        // tokens and leaders are defeated if they move out of an arena zone
+        if (
+            (event.card.isToken() || event.card.isLeader()) &&
+            !EnumHelpers.isArena(event.destination)
+        ) {
+            event.context.game.actions.defeat({ target: event.card }).resolve();
         }
+
         event.card.owner.moveCard(event.card, event.destination, event.options || {});
     }
 }

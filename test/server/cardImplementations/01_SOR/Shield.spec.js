@@ -24,9 +24,8 @@ describe('Shield', function() {
                 expect(this.cartelSpacer.damage).toBe(2);
                 expect(this.tieLn.damage).toBe(0);
 
-                expect(this.shield.location).toBe('discard');
-                // TODO THIS PR: token defeat logic
-                // expect(this.tieLn.upgrades.length).toBe(0);
+                expect(this.shield.location).toBe('outside the game');
+                expect(this.tieLn.upgrades.length).toBe(0);
 
                 // second attack to confirm that shield effect is off
                 this.player2.clickCard(this.tieLn);
@@ -36,9 +35,9 @@ describe('Shield', function() {
             });
 
             // UP NEXT:
-            // - defeat
-            // - shield creation helper on UnitProperties
-            // - TriggeredAbilityWindow updates + test with multiple shields
+            // - shield creation system
+            // - shielded property
+            // - example give shield ability
         });
 
         describe('Shield\'s ability', function() {
@@ -66,18 +65,18 @@ describe('Shield', function() {
 
                 expect(this.cartelSpacer.damage).toBe(2);
                 expect(this.tieLn.damage).toBe(0);
-                // expect(this.tieLn.upgrades.length).toBe(1);
+                expect(this.tieLn.upgrades.length).toBe(1);
 
-                expect(getShieldLocationsSorted(this.shields)).toEqual(['discard', 'space arena']);
+                expect(getShieldLocationsSorted(this.shields)).toEqual(['outside the game', 'space arena']);
 
                 // second attack
                 this.player2.clickCard(this.tieLn);
                 this.player2.clickCard(this.cartelSpacer);
                 expect(this.cartelSpacer.location).toBe('discard');
                 expect(this.tieLn.damage).toBe(0);
-                // expect(this.tieLn.upgrades.length).toBe(0);
+                expect(this.tieLn.upgrades.length).toBe(0);
 
-                expect(getShieldLocationsSorted(this.shields)).toEqual(['discard', 'discard']);
+                expect(getShieldLocationsSorted(this.shields)).toEqual(['outside the game', 'outside the game']);
             });
 
             // UP NEXT:
