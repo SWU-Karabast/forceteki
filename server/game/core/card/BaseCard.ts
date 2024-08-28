@@ -30,7 +30,11 @@ export class BaseCard extends BaseCardParent {
     }
 
     public override getActionAbilities(): ActionAbility[] {
-        return super.getActionAbilities().concat(this._epicActionAbility);
+        if (this._epicActionAbility) {
+            return super.getActionAbilities().concat(this._epicActionAbility);
+        }
+
+        return super.getActionAbilities();
     }
 
     public setEpicActionAbility(properties: IEpicActionProps<this>): void {
