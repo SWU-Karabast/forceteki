@@ -4,6 +4,7 @@ import type { Attack } from './Attack';
 import type Game from '../Game';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
+import { handler } from '../../gameSystems/GameSystemLibrary';
 
 /**
 D. Duel Timing
@@ -32,17 +33,19 @@ export class AttackFlow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.dealDamage(), 'dealDamage'),
             new SimpleStep(this.game, () => this.completeAttack(), 'completeAttack'),
             new SimpleStep(this.game, () => this.cleanUpAttack(), 'cleanUpAttack'),
-            // new SimpleStep(this.game, () => this.game.resolveGameState(true))
+            new SimpleStep(this.game, () => this.game.resolveGameState(true), 'resolveGameState')
         ]);
     }
 
     private setCurrentAttack() {
         this.attack.previousAttack = this.game.currentAttack;
         this.game.currentAttack = this.attack;
-        // this.game.resolveGameState(true);
+        this.game.resolveGameState(true);
     }
 
     private declareAttack() {
+        this.attack.attacker.registerAttackKeywords();
+
         this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack });
     }
 
@@ -51,7 +54,10 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private completeAttack() {
-        this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, { attack: this.attack });
+        this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, {
+            attack: this.attack,
+            handler: () => this.attack.attacker.unregisterAttackKeywords()
+        });
     }
 
     private cleanUpAttack() {

@@ -8,7 +8,6 @@ import Game from '../Game';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import Contract from '../utils/Contract';
 import type CardAbilityStep from './CardAbilityStep';
-import * as CardHelpers from '../card/CardHelpers';
 import { CardWithTriggeredAbilities } from '../card/CardTypes';
 
 interface IEventRegistration {

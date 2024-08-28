@@ -35,6 +35,7 @@ class PlayerOrCardAbility {
 
         this.title = properties.title;
         this.limit = null;
+        this.keyword = null;
         this.type = type;
         this.gameSystem = properties.immediateEffect || [];
         if (!Array.isArray(this.gameSystem)) {
