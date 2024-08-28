@@ -45,5 +45,31 @@ describe('Experience', function() {
                 expect(this.experience.location).toBe('outside the game');
             });
         });
+
+        describe('Experience', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['confiscate'],
+                        spaceArena: [{ card: 'cartel-spacer', upgrades: ['experience'] }]
+                    },
+                    player2: {
+                    }
+                });
+
+                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
+                this.experience = this.player1.findCardByName('experience');
+                this.confiscate = this.player1.findCardByName('confiscate');
+            });
+
+            it('should be removed from the game when defeated', function () {
+                this.player1.clickCard(this.confiscate);
+
+                // ability will resolve automatically since there's only one legal target
+                expect(this.cartelSpacer.upgrades.length).toBe(0);
+                expect(this.experience.location).toBe('outside the game');
+            });
+        });
     });
 });
