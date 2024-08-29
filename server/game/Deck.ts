@@ -2,7 +2,7 @@ import { CardType, Location } from './core/Constants';
 import { BaseCard } from './core/card/BaseCard';
 import { LeaderCard } from './core/card/LeaderCard';
 import { Card } from './core/card/Card';
-import { cards } from './cardImplementations/Index';
+import { cards } from './cards/Index';
 import Player from './core/Player';
 import * as CardHelpers from './core/card/CardHelpers';
 
