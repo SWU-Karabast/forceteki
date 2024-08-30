@@ -5,6 +5,7 @@ const { default: Contract } = require('../../utils/Contract.js');
 const EnumHelpers = require('../../utils/EnumHelpers.js');
 
 // TODO: the AbilityTarget* classes need a base class and then converted to TS
+// TODO THIS PR: rename these to be TargetResolvers?
 class AbilityTargetCard {
     constructor(name, properties, ability) {
         this.name = name;
@@ -167,7 +168,7 @@ class AbilityTargetCard {
     }
 
     getChoosingPlayer(context) {
-        let playerProp = this.properties.player;
+        let playerProp = this.properties.choosingPlayer;
         if (typeof playerProp === 'function') {
             playerProp = playerProp(context);
         }

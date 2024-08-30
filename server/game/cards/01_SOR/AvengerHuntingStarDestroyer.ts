@@ -15,7 +15,7 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
             title: 'Choose a friendly non-leader unit to defeat',
             optional: false,
             targetResolver: {
-                player: RelativePlayer.Opponent,
+                choosingPlayer: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: CardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
@@ -26,7 +26,7 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
             title: 'Choose a friendly non-leader unit to defeat',
             optional: false,
             targetResolver: {
-                player: RelativePlayer.Opponent,
+                choosingPlayer: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: CardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()

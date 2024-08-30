@@ -126,7 +126,7 @@ class AbilityTargetAbility {
     }
 
     getChoosingPlayer(context) {
-        let playerProp = this.properties.player;
+        let playerProp = this.properties.choosingPlayer;
         if (typeof playerProp === 'function') {
             playerProp = playerProp(context);
         }
