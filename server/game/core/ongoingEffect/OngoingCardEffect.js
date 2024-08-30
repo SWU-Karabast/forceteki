@@ -9,7 +9,7 @@ class OngoingCardEffect extends OngoingEffect {
     constructor(game, source, properties, effect) {
         if (!properties.matchTarget) {
             properties.matchTarget = (card, context) => card === context.source;
-            if (properties.locationFilter === WildcardLocation.Any) {
+            if (properties.sourceLocationFilter === WildcardLocation.Any) {
                 properties.targetLocationFilter = WildcardLocation.Any;
             }
         }

@@ -81,13 +81,13 @@ export class InPlayCard extends PlayableOrDeployableCard {
             Location.Base,
         ];
 
-        const locationFilter = properties.locationFilter || WildcardLocation.AnyArena;
+        const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
 
         let notAllowedLocations: LocationFilter[];
-        if (Array.isArray(locationFilter)) {
-            notAllowedLocations = allowedLocationFilters.filter((location) => locationFilter.includes(location));
+        if (Array.isArray(sourceLocationFilter)) {
+            notAllowedLocations = allowedLocationFilters.filter((location) => sourceLocationFilter.includes(location));
         } else {
-            notAllowedLocations = allowedLocationFilters.includes(locationFilter) ? [] : [locationFilter];
+            notAllowedLocations = allowedLocationFilters.includes(sourceLocationFilter) ? [] : [sourceLocationFilter];
         }
 
         if (notAllowedLocations.length > 0) {
@@ -97,7 +97,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         this.abilityInitializers.push({
             abilityType: AbilityType.Constant,
-            initialize: () => this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties })
+            initialize: () => this._constantAbilities.push({ duration: Duration.Persistent, sourceLocationFilter, ...properties })
         });
     }
 
@@ -191,17 +191,17 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         // check to register / unregister any effects that we are the source of
         for (const constantAbility of this._constantAbilities) {
-            if (constantAbility.locationFilter === WildcardLocation.Any) {
+            if (constantAbility.sourceLocationFilter === WildcardLocation.Any) {
                 continue;
             }
             if (
-                !EnumHelpers.cardLocationMatches(from, constantAbility.locationFilter) &&
-                    EnumHelpers.cardLocationMatches(to, constantAbility.locationFilter)
+                !EnumHelpers.cardLocationMatches(from, constantAbility.sourceLocationFilter) &&
+                    EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
             ) {
                 constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
             } else if (
-                EnumHelpers.cardLocationMatches(from, constantAbility.locationFilter) &&
-                    !EnumHelpers.cardLocationMatches(to, constantAbility.locationFilter)
+                EnumHelpers.cardLocationMatches(from, constantAbility.sourceLocationFilter) &&
+                    !EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
             ) {
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];

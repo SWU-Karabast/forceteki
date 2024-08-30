@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityCon
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
-import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, KeywordName, AbilityType, CardTypeFilter } from './core/Constants';
+import { type RelativePlayer, type TargetMode, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Aspect } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 
@@ -29,7 +29,7 @@ export interface IActionAbilityProps<Source = any> extends IAbilityProps<Ability
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<Source = any> {
     title: string;
-    locationFilter?: LocationFilter | LocationFilter[];
+    sourceLocationFilter?: LocationFilter | LocationFilter[];
     /** A handler to enable or disable the ability's effects depending on game context */
     condition?: (context: AbilityContext<Source>) => boolean;
     /** A handler to determine if a specific card is impacted by the ability effect */
@@ -190,3 +190,57 @@ export type NonParameterKeywordName =
     | KeywordName.Saboteur
     | KeywordName.Sentinel
     | KeywordName.Shielded;
+
+
+// class CardsPlayedThisPhaseWatcher {
+//     public register();
+//     public getValue();
+// }
+
+
+// // ----------------------------- OPTION 1 ---------------------------
+// // export class DarthVaderLordOfTheSith extends LeaderCard {
+// //     private readonly cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+
+// //     public constructor() {
+// //         super();
+// //         this.cardsPlayedThisPhaseWatcher = new CardsPlayedThisPhaseWatcher();
+// //         this.cardsPlayedThisPhaseWatcher.register();
+// //     }
+
+// //     public override setupCardAbilities() {
+// //         this.addActionAbility({
+// //             title: 'Deal 1 damage to a unit and 1 to a base',
+// //             condition: () => {
+// //                 const cardsPlayedThisPhase = this.cardsPlayedThisPhaseWatcher.getValue();
+// //                 return cardsPlayedThisPhase.some((card) => card.aspects.includes(Aspect.Villainy));
+// //             }
+// //             // ...costs, targets, etc...
+// //         });
+// //     }
+// // }
+
+// export type CardConstructor = new (...args: any[]) => Card;
+
+// function CardsPlayedThisPhaseWatcher<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+//     return class WithPrintedPower extends BaseClass {
+//         public getCardsPlayedThisPhase();
+//     };
+// }
+
+
+// // ----------------------------- OPTION 2 ---------------------------
+// export class DarthVaderLordOfTheSith extends CardsPlayedThisPhaseWatcher(LeaderCard) {
+//     // setup and registration all happens automatically in mixin constructor
+
+//     public override setupCardAbilities() {
+//         this.addActionAbility({
+//             title: 'Deal 1 damage to a unit and 1 to a base',
+//             condition: () => {
+//                 const cardsPlayedThisPhase = this.getCardsPlayedThisPhase();
+//                 return cardsPlayedThisPhase.some((card) => card.aspects.includes(Aspect.Villainy));
+//             }
+//             // ...costs, targets, etc...
+//         });
+//     }
+// }
