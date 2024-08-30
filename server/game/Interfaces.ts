@@ -7,11 +7,53 @@ import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseNa
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 
+// allow block comments without spaces so we can have compact jsdoc descriptions in this file
+/* eslint @stylistic/js/lines-around-comment: off */
+
 // ********************************************** EXPORTED TYPES **********************************************
+
+/** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;
+
+/** Interface definition for addActionAbility */
+export interface IActionAbilityProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
+    condition?: (context?: AbilityContext<Source>) => boolean;
+
+    /**
+     * If true, any player can trigger the ability. If false, only the card's controller can trigger it.
+     */
+    anyPlayer?: boolean;
+    phase?: PhaseName | 'any';
+}
+
+/** Interface definition for addConstantAbility */
+export interface IConstantAbilityProps<Source = any> {
+    title: string;
+    locationFilter?: LocationFilter | LocationFilter[];
+    /** A handler to enable or disable the ability's effects depending on game context */
+    condition?: (context: AbilityContext<Source>) => boolean;
+    /** A handler to determine if a specific card is impacted by the ability effect */
+    match?: (card: Card, context?: AbilityContext<Source>) => boolean;
+    targetController?: RelativePlayer;
+    targetLocation?: Location;
+    cardName?: string;
+
+    // TODO: can we get a real signature here
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    ongoingEffect: Function | Function[];
+
+    createCopies?: boolean;
+}
+
+/** Interface definition for setEventAbility */
+export type IEventAbilityProps<Source = any> = IAbilityProps<AbilityContext<Source>>;
+
+/** Interface definition for setEpicActionAbility */
+export type IEpicActionProps<Source = any> = Omit<IAbilityProps<AbilityContext<Source>>, 'cost' | 'limit' | 'handler'>;
 
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
 // for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
+/** Base interface for triggered and action ability definitions */
 export interface IAbilityProps<Context> {
     title: string;
     locationFilter?: LocationFilter | LocationFilter[];
@@ -37,23 +79,6 @@ export interface IAbilityProps<Context> {
     then?: ((context?: AbilityContext) => object) | object;
 }
 
-export interface IConstantAbilityProps<Source = any> {
-    title: string;
-    locationFilter?: LocationFilter | LocationFilter[];
-    // TODO: what's the difference between condition and match? document it here
-    condition?: (context: AbilityContext<Source>) => boolean;
-    match?: (card: Card, context?: AbilityContext<Source>) => boolean;
-    targetController?: RelativePlayer;
-    targetLocation?: Location;
-    cardName?: string;
-
-    // TODO: can we get a real signature here
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    ongoingEffect: Function | Function[];
-
-    createCopies?: boolean;
-}
-
 // TODO KEYWORDS: add remaining keywords to this type
 export type IKeywordProperties =
     | IRaidKeywordProperties
@@ -66,20 +91,6 @@ export interface IInitiateAttack extends IAttackProperties {
     attackerCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
     targetCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
 }
-
-export interface IActionAbilityProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
-        condition?: (context?: AbilityContext<Source>) => boolean;
-
-        /**
-         * If true, any player can trigger the ability. If false, only the card's controller can trigger it.
-         */
-        anyPlayer?: boolean;
-        phase?: PhaseName | 'any';
-    }
-
-export type IEventAbilityProps<Source = any> = IAbilityProps<AbilityContext<Source>>;
-
-export type IEpicActionProps<Source = any> = Omit<IAbilityProps<AbilityContext<Source>>, 'cost' | 'limit' | 'handler'>;
 
 export type traitLimit = Record<string, number>;
 
