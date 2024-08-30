@@ -407,12 +407,13 @@ this.constantAbility({
 #### Filtering by card type, owner, location
 Note also that, similar to ability targets described below, there are shorthand filters for the card properties location, owner, and card type. See the relevant section below for details. **TODO THIS PR: add section link**
 
-All of these filters are available for filtering target cards (e.g., `targetLocationFilter`), but for checking the condition of the card that owns the ability only `locationFilter` is available:
+
+All of these filters are available for filtering target cards (e.g., `targetLocationFilter`), but for checking the condition of the source card (the card that owns the ability) only `sourceLocationFilter` is available (**TODO THIS PR: update interface to use `sourceLocationFilter` instead of `locationFilter`**):
 
 ```javascript
 // While this card is in the ground arena, all of the opponent's units in the space arena get -1/-1
 this.constantAbility({
-    locationFilter: Location.GroundArena,
+    sourceLocationFilter: Location.GroundArena,
     targetLocationFilter: Location.SpaceArena,
     targetCardType: WildcardCardType.Unit,
     targetController: RelativePlayer.Opponent,
