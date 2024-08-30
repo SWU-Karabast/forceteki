@@ -33,7 +33,7 @@ export interface IConstantAbilityProps<Source = any> {
     /** A handler to enable or disable the ability's effects depending on game context */
     condition?: (context: AbilityContext<Source>) => boolean;
     /** A handler to determine if a specific card is impacted by the ability effect */
-    match?: (card: Card, context?: AbilityContext<Source>) => boolean;
+    matchTarget?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: RelativePlayer;
     targetLocation?: Location;
     cardName?: string;

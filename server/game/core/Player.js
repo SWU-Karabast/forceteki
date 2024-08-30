@@ -858,7 +858,7 @@ class Player extends GameObject {
     //         }
 
     //         for (const playerCostToTarget of playerCostToTargetEffects) {
-    //             if (playerCostToTarget.match(target)) {
+    //             if (playerCostToTarget.matchTarget(target)) {
     //                 targetCost += playerCostToTarget.amount;
     //             }
     //         }

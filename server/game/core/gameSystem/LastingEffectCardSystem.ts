@@ -32,7 +32,7 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
 
         const lastingEffectRestrictions = event.card.getEffectValues(EffectName.CannotApplyLastingEffects);
         const { effect, ...otherProperties } = properties;
-        const effectProperties = Object.assign({ match: event.card, location: WildcardLocation.Any }, otherProperties);
+        const effectProperties = Object.assign({ matchTarget: event.card, location: WildcardLocation.Any }, otherProperties);
         let effects = properties.effect.map((factory) =>
             factory(event.context.game, event.context.source, effectProperties)
         );

@@ -5,7 +5,7 @@ const EnumHelpers = require('../utils/EnumHelpers');
  * Represents a card based effect applied to one or more targets.
  *
  * Properties:
- * match            - function that takes a card/player and context object
+ * matchTarget      - function that takes a card/player and context object
  *                    and returns a boolean about whether the passed object should
  *                    have the effect applied. Alternatively, a card/player can
  *                    be passed as the match property to match that single object.
@@ -32,7 +32,7 @@ class OngoingEffect {
     constructor(game, source, properties, effectImpl) {
         this.game = game;
         this.source = source;
-        this.match = properties.match || (() => true);
+        this.matchTarget = properties.matchTarget || (() => true);
         this.duration = properties.duration;
         this.until = properties.until || {};
         this.condition = properties.condition || (() => true);
@@ -104,9 +104,9 @@ class OngoingEffect {
             stateChanged = this.targets.length > 0 || stateChanged;
             this.cancel();
             return stateChanged;
-        } else if (typeof this.match === 'function') {
+        } else if (typeof this.matchTarget === 'function') {
             // Get any targets which are no longer valid
-            let invalidTargets = this.targets.filter((target) => !this.match(target, this.context) || !this.isValidTarget(target));
+            let invalidTargets = this.targets.filter((target) => !this.matchTarget(target, this.context) || !this.isValidTarget(target));
             // Remove invalid targets
             this.removeTargets(invalidTargets);
             stateChanged = stateChanged || invalidTargets.length > 0;
@@ -117,14 +117,14 @@ class OngoingEffect {
             // Apply the effect to new targets
             newTargets.forEach((target) => this.addTarget(target));
             return stateChanged || newTargets.length > 0;
-        } else if (this.targets.includes(this.match)) {
-            if (!this.isValidTarget(this.match)) {
+        } else if (this.targets.includes(this.matchTarget)) {
+            if (!this.isValidTarget(this.matchTarget)) {
                 this.cancel();
                 return true;
             }
-            return this.impl.recalculate(this.match) || stateChanged;
-        } else if (!this.targets.includes(this.match) && this.isValidTarget(this.match)) {
-            this.addTarget(this.match);
+            return this.impl.recalculate(this.matchTarget) || stateChanged;
+        } else if (!this.targets.includes(this.matchTarget) && this.isValidTarget(this.matchTarget)) {
+            this.addTarget(this.matchTarget);
             return true;
         }
         return stateChanged;

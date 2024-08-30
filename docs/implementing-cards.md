@@ -107,7 +107,7 @@ Most Keywords (sentinel, raid, smuggle, etc.) are automatically parsed from the 
 
 Many cards provide continuous bonuses to other cards you control or detrimental effects to opponents cards in certain situations. These are referred to in SWU as "constant abilities" and can be defined using the `addConstantAbility` method. Cards that enter play while the constant ability is in play will automatically have the effect applied, and cards that leave play will have the effect removed. If the card providing the effect becomes blank, the effect is automatically removed from all previously applied cards.
 
-For a full list of properties that can be set when declaring an effect, look at `/server/game/Effects/effect.js`. To see all the types of effect which you can use (and whether they apply to cards, rings or players), look at `/server/game/effects.js`. Here are some common scenarios:
+For a full list of properties that can be set when declaring an effect, look at [EffectLibrary.js](../server/game/ongoingEffects/OngoingEffectLibrary.ts). To see all the types of effect which you can use (and whether they apply to cards, rings or players), look at `/server/game/effects.js`. Here are some common scenarios:
 
 #### Matching conditions vs matching specific cards
 
