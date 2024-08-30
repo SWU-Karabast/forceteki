@@ -175,9 +175,9 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 } else {
                     triggeredAbility.unregisterEvents();
                 }
-            } else if (EnumHelpers.cardLocationMatches(to, triggeredAbility.location) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.location)) {
+            } else if (EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
                 triggeredAbility.registerEvents();
-            } else if (!EnumHelpers.cardLocationMatches(to, triggeredAbility.location) && EnumHelpers.cardLocationMatches(from, triggeredAbility.location)) {
+            } else if (!EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
                 triggeredAbility.unregisterEvents();
             }
         }
