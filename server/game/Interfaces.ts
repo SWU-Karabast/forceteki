@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityCon
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { IAttackProperties } from './gameSystems/AttackSystem';
-import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, KeywordName, AbilityType } from './core/Constants';
+import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, KeywordName, AbilityType, CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 
@@ -36,6 +36,7 @@ export interface IConstantAbilityProps<Source = any> {
     matchTarget?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: RelativePlayer;
     targetLocationFilter?: LocationFilter;
+    targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardName?: string;
 
     // TODO: can we get a real signature here
@@ -81,9 +82,16 @@ export interface IAbilityProps<Context> {
 
 // TODO KEYWORDS: add remaining keywords to this type
 export type IKeywordProperties =
+    | IAmbushKeywordProperties
+    | IGritKeywordProperties
+    | IOverwhelmKeywordProperties
     | IRaidKeywordProperties
     | IRestoreKeywordProperties
-    | ISentinelKeywordProperties;
+    | ISaboteurKeywordProperties
+    | ISentinelKeywordProperties
+    | IShieldedKeywordProperties;
+
+export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
 
 export interface IInitiateAttack extends IAttackProperties {
     opponentChoosesAttackTarget?: boolean;
@@ -143,6 +151,18 @@ interface INumericKeywordProperties extends IKeywordPropertiesBase {
     amount: number;
 }
 
+interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Ambush;
+}
+
+interface IGritKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Grit;
+}
+
+interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Overwhelm;
+}
+
 interface IRaidKeywordProperties extends INumericKeywordProperties {
     keyword: KeywordName.Raid;
 }
@@ -151,6 +171,22 @@ interface IRestoreKeywordProperties extends INumericKeywordProperties {
     keyword: KeywordName.Restore;
 }
 
+interface ISaboteurKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Saboteur;
+}
+
 interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Sentinel;
 }
+
+interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Shielded;
+}
+
+export type NonParameterKeywordName =
+    | KeywordName.Ambush
+    | KeywordName.Grit
+    | KeywordName.Overwhelm
+    | KeywordName.Saboteur
+    | KeywordName.Sentinel
+    | KeywordName.Shielded;

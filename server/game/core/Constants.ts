@@ -217,6 +217,15 @@ export enum KeywordName {
     Smuggle = 'smuggle',
 }
 
+/** List of keywords that don't have any additional parameters */
+export type NonParameterKeywordName =
+    | KeywordName.Ambush
+    | KeywordName.Grit
+    | KeywordName.Overwhelm
+    | KeywordName.Saboteur
+    | KeywordName.Sentinel
+    | KeywordName.Shielded;
+
 export enum Trait {
     Armor = 'armor',
     Bounty = 'bounty',

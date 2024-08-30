@@ -98,6 +98,261 @@ There are several ability types in SWU, each with its own initialization method.
 
 Additionally, there are specific helper methods that extend the above to make common cases simpler, such as "onAttack" triggers or upgrades that cause the attached card to gain an ability or keyword. See the relevant section below for specific details.
 
+### Using GameSystems for ability effects
+
+In general, the effects of an ability should be implemented using game systems represented by the GameSystem class, which is turn wrapped by helper methods under the AbilityHelper import.
+
+#### Game Systems
+
+All ability types rely on GameSystems for making changes to game state.  Available game systems can be found in [GameSystemLibrary.ts](server\game\gameSystems\GameSystemLibrary.ts), along with any parameters and their defaults.  Game systems as properties in the main ability section default to targeting the card generating the ability (for cards) or the opponent (for players). 
+
+Game systems included in `targetResolver` (or in one of `targetResolvers`) will default to the target chosen by the `targetResolver`'s resolution (see **TODO INCLUDE TARGET RESOLVERS SECTION LINK** for details). You can change the target of a game system or the parameters by passing either an object with the properties you want, or a function which takes `context` and returns those properties.
+
+```javascript
+// Action: During a conflict, bow this attachment – move attached character to the conflict.
+this.action({
+    title: 'Move this character into the conflict',
+    cost: AbilityHelper.costs.bowSelf(),
+    gameAction: AbilityHelper.actions.moveToConflict(context => ({ target: context.source.parent }))
+});
+```
+
+```javascript
+// Reaction: After this character enters play – place 1 fate from an opponent's fate pool on it.
+this.reaction({
+    title: 'Steal a fate',
+    // reaction condition code
+    gameAction: AbilityHelper.actions.placeFate(context => ({ origin: context.player.opponent }))
+});
+```
+
+#### Effect messages
+
+Once costs have been paid and targets chosen (but before the ability resolves), the game automatically displays a message in the chat box which tells both players the ability, costs and targets of the effect.  Game actions will automatically generate their own effect message, although this will only work for a single game action.  If the effects of the ability involve two or more game actions, or the effect is a lasting effect or uses a handler, then an `effect` property is required.  The effect property will be passed the target (card(s) or ring) of the effect (or the source if there are no targets) as its first parameter (and so can be referenced using `'{0}'` in the effect property string).  If other references are required, this can be done using curly bracket references in the effect string(`'{1}', '{2', etc`) and supplying an `effectArgs` property (which generally will be a function taking the `context` object):
+
+```javascript
+this.action({
+    // Action: Return this attachment to your hand and dishonor attached character.
+    title: 'Return court mask to hand',
+    effect: 'return {0} to hand, dishonoring {1}',
+    effectArgs: context => context.source.parent,
+    gameAction: [AbilityHelper.actions.returnToHand(), AbilityHelper.actions.dishonor(context => ({ target: context.source.parent }))]
+});
+```
+
+```javascript
+this.action({
+    // Action: While this character is participating in a conflict, choose another participating character – until the end of the conflict, that character gets +2/+2 for each holding you control.
+    title: 'Give a character a bonus for each holding',
+    condition: context => context.source.isParticipating(),
+    target: {
+        cardType: 'character',
+        cardCondition: (card, context) => card.isParticipating() && card !== context.source,
+        gameAction: AbilityHelper.actions.cardLastingEffect(context => ({
+            effect: AbilityHelper.effects.modifyBothSkills(2 * context.player.getNumberOfHoldingsInPlay())
+        }))
+    },
+    effect: 'give {0} +{1}{2}/+{1}{3}',
+    effectArgs: context => [2 * context.player.getNumberOfHoldingsInPlay(), 'military', 'political']
+});
+```
+
+#### Lasting effects
+
+Unlike constant abilities, lasting effects are typically applied during an action, reaction or interrupt and expire after a specified period of time.  Lasting effect use the same properties as constant abilities, above.  Lasting effects are applied using the `cardLastingEffect`, `ringLastingEffect` or `playerLastingEffect`, depending on what they affect.  They take a `duration:` property which is one of `untilEndOfConflict` (default), `untilEndOfPhase` or `untilEndOfRound`.
+
+```javascript
+// Action: During a conflict, bow this character. Choose another [crane] character – that character 
+// gets +3 [political] until the end of the conflict.
+this.action({
+    title: 'Give a character +0/+3',
+    condition: () => this.game.isDuringConflict(),
+    cost: AbilityHelper.costs.bowSelf(),
+    target: {
+        cardType: 'character',
+        cardCondition: (card, context) => card !== context.source && card.isFaction('crane'),
+        gameAction: AbilityHelper.actions.cardLastingEffect(() => ({
+            duration: 'untilEndOfConflict',
+            effect: AbilityHelper.effects.modifyPoliticalSkill(3)
+        }))
+    },
+    effect: 'give {0} +3{1} skill',
+    effectArgs: () => 'political'
+});
+
+```
+
+To apply an effect to last until the end of the current phase, use `untilEndOfPhase`:
+```javascript
+// Action: Reduce the cost of the next event you play this phase by 1.
+this.action({
+    title: 'Reduce cost of next event by 1',
+    effect: 'reduce the cost of their next event by 1',
+    gameAction: AbilityHelper.actions.playerLastingEffect({
+        duration: 'untilEndOfPhase',
+        effect: AbilityHelper.effects.reduceNextPlayedCardCost(1, card => card.type === 'event')
+    })
+});
+```
+
+To apply an effect to last until the end of the round, use `untilEndOfRound`:
+```javascript
+/// Action: Choose a holding you control – you may trigger each of that holding's triggered abilities an additional time this round (or specified period).
+this.action({
+    title: 'Add an additional ability use to a holding',
+    target: {
+        cardType: 'holding',
+        location: 'province',
+        controller: 'self',
+        gameAction: AbilityHelper.actions.cardLastingEffect({
+            duration: 'untilEndOfPhase',
+            targetLocation: 'province',
+            effect: AbilityHelper.effects.increaseLimitOnAbilities()
+        })
+    },
+    effect: 'add an additional use to each of {0}\'s abilities'
+});
+```
+
+#### Limiting an action to a specific phase
+
+Some actions are limited to a specific phase by their card text. You can pass an optional `phase` property to the action to limit it to just that phase. Valid phases include `'dynasty'`, `'draw'`, `'conflict'`, `'fate'`. The default is `'any'` which allows the action to be triggered in any phase.
+
+```javascript
+this.action({
+    title: 'Sacrifice to discard an attachment',
+    cost: AbilityHelper.costs.sacrificeSelf(),
+    phase: 'conflict',
+    target: {
+        cardType: 'attachment',
+        gameAction: AbilityHelper.actions.discardFromPlay()
+    }
+});
+```
+
+#### Limiting the number of uses
+
+Some actions have text limiting the number of times they may be used in a given period. You can pass an optional `limit` property using one of the duration-specific ability limiters. See `/server/game/abilitylimit.js` for more details.
+
+```javascript
+this.action({
+    title: 'Remove 1 fate',
+    limit: AbilityHelper.limit.perConflict(2),
+    // ...
+});
+```
+
+#### Actions outside of play
+
+Certain actions, such as that of Ancestral Guidance, can only be activated while the character is in the discard pile. Such actions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability by simply clicking the card. If there is a conflict (e.g. both the ability and playing the card normally can occur), then the player will be prompted.
+
+```javascript
+this.action({
+    title: 'Play from discard pile',
+    location: 'conflict discard pile',
+    // ...
+})
+```
+
+### Target resolvers
+
+Most ability types (other than constant, keyword, and replacement abilities) can specify to 'choose' or otherwise target a specific card. This should be implemented using a "target resolver," which defines a set of criteria that will be use to select the set of target cards to allow the player to choose between. Target resolvers are provided using `targetResolver` property. 
+
+The `targetResolver` property should include any limitations set by the ability, using the `cardTypeFilter`, `locationFilter`, `controller` and/or `cardCondition` property. A game system can also be included by using the `immediateEffect` property, which will restrict the card chosen to those for which that game system is legal (e.g. only units in an arena and base can be damaged, only upgrades can be unattached, etc.).  If an array of game systems is specified, then the target only needs to meet the requirements of one of them.
+
+Generally, it's a good idea to pass at least a `cardTypeFilter` property, as that will automatically change the prompt to make it easier for the player to understand what is going on. Most other properties that apply to `Game.promptForSelect` are also valid here.
+
+```javascript
+this.action({
+    title: 'Grant Covert to a character',
+    target: {
+        cardType: 'character',
+        location: 'play area'
+    },
+    // ...
+});
+```
+
+```javascript
+this.action({
+    title: 'Sacrifice to discard an attachment'
+    target: {
+        cardType: 'attachment',
+        gameAction: AbilityHelper.actions.discardFromPlay()
+    },
+    // ...
+});
+```
+
+#### Multiple targets
+
+Some card abilities require multiple targets. These may be specified using the `targets` property. Each sub key under `targets` is the name that will be given to the chosen card, and the value is the prompt properties.
+
+```javascript
+// Action: While this character is participating in a conflict, choose a ready non-participating character with printed 
+// cost 2 or lower controller by each player – move each chosen character to the conflict
+this.action({
+    title: 'Move characters into conflict',
+    condition: context => context.source.isParticipating(),
+    targets: {
+        myChar: {
+            cardType: 'character',
+            controller: 'self',
+            cardCondition: card => !card.bowed && card.getCost() <= 2,
+            gameAction: AbilityHelper.actions.moveToConflict()
+        },
+        oppChar: {
+            cardType: 'character',
+            controller: 'opponent',
+            cardCondition: card => !card.bowed && card.getCost() <= 2,
+            gameAction: AbilityHelper.actions.moveToConflict()                    
+        }
+    }
+});
+```
+
+Once all targets are chosen, they will be set using their specified name under the `targets` property on the handler context object.
+
+#### Select options
+
+Some abilities require the player (or their opponent) to choose between multiple options.  This is done in the same way as targets above, but by using the `mode` property set to `'select'`.  In addition, a `choices` object should be included, which contains key:value pairs where the key is the option to display to the player, and the value is either a function which takes the `context` object and returns a boolean indicating whether this option is legal, or a game action which will be evaluated on the basis of the specified target (or default as detailed below) to determine whether the choice is legal.  The selected option is stored in `context.select.choice` (or `context.selects[targetName].choice` for an ability with multiple targets).
+
+```javascript
+// Action: During a conflict at this province, select one – switch the contested ring with an unclaimed 
+// ring, or switch the conflict type.
+this.action({
+    title: 'Switch the conflict type or ring',
+    condition: context => context.source.isConflictProvince(),
+    target: {
+        player: 'self',
+        mode: 'select',
+        choices: {
+            'Switch the contested ring': () => _.any(this.game.rings, ring => ring.isUnclaimed()),
+            'Switch the conflict type': () => true
+        }
+    },
+    // ...
+});
+```
+
+```javascript
+// Action: If an opponent has declared 2 or more conflicts against you this phase, select one – 
+// take 1 fate or 1 honor from that opponent.
+this.action({
+    title: 'Take 1 fate or 1 honor',
+    phase: 'conflict',
+    condition: context => this.game.getConflicts(context.player.opponent).filter(conflict => !conflict.passed).length > 1,
+    target: {
+        player: 'self',
+        mode: 'select',
+        choices: {
+            'Take 1 fate': AbilityHelper.actions.takeFate(),
+            'Take 1 honor': AbilityHelper.actions.takeHonor()
+        }
+    }
+});
+```
+
 ### Keywords
 
 Most Keywords (sentinel, raid, smuggle, etc.) are automatically parsed from the card text. It isn't necessary to explicitly implement them unless they are provided by a conditional ability. Some examples of keywords requiring explicit implementation:
@@ -110,137 +365,86 @@ Most Keywords (sentinel, raid, smuggle, etc.) are automatically parsed from the 
 
 Many cards provide continuous bonuses to other cards you control or detrimental effects to opponents cards in certain situations. These abilities are referred to in SWU as "constant abilities" and can be defined using the `addConstantAbility` method. Cards that enter play while the constant ability is in play will automatically have the ongoing effect applied, and cards that leave play will have the effect removed. If the card providing the effect becomes blank, the ongoing effect is automatically removed from all previously applied cards.
 
-For a full list of properties that can be set when declaring an ongoing effect, look at [OngoingEffect.js](../server/game/core/ongoingEffect/OngoingEffect.js). To see all the types of effect which you can use (and whether they apply to cards or players), look at [EffectLibrary.js](../server/game/ongoingEffects/OngoingEffectLibrary.ts). Here are some common scenarios:
+For a full list of properties that can be set when declaring an ongoing effect, look at [OngoingEffect.js](../server/game/core/ongoingEffect/OngoingEffect.js) _(NOTE: this is possibly stale)_. To see all the types of effect which you can use (and whether they apply to cards or players), look at [EffectLibrary.js](../server/game/ongoingEffects/OngoingEffectLibrary.ts). Here are some common scenarios:
 
 #### Matching conditions vs matching specific cards
 
-The effect declaration (for card and ring effects) takes a `match` property. In most cases this will be a function that takes a `Card` (or `Ring`) object and should return `true` if the effect should be applied to that card.
+The ongoing effect declaration (for card effects, not player effects) takes a `matchTarget` property. In most cases this will be a function that takes a `Card` object and should return `true` if the ongoing effect should be applied to that card.
 
 ```javascript
-// Each honored Crane character you control gains Sincerity.
-this.persistentEffect({
-    match: card => card.getType() === 'character' && card.isHonored && card.isFaction('crane'),
-    effect: AbilityDsl.effects.addKeyword('sincerity')
+// Each Rebel unit you control gains +1/+1
+this.constantAbility({
+    matchTarget: card => card.hasSomeTrait(Trait.Rebel),
+    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 }),
 });
 ```
 
-In some cases, an effect should be applied to a specific card. While you could write a `match` function to match only that card, you can provide the `Card` (or `Ring`) object as a shorthand.
+In some cases, an ongoing effect should be applied to a specific card. While you could write a `matchTarget` function to match only that card, you can provide the `Card` or `Player` object as a shorthand.
 
 ```javascript
-// This character gets +3P while defending.
-this.persistentEffect({
-    condition: () => this.isDefending(),
-    match: this,
-    effect: AbilityDsl.effects.modifyPoliticalSkill(3)
+// This player's leader unit gets Sentinel while it is deployed (i.e., in the arena)
+this.constantAbility({
+    matchTarget: this.controller.leader,
+    targetLocationFilter: WildcardLocation.AnyArena,
+    ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel),
 });
 ```
 
-#### Conditional effects
+If not provided, `matchTarget` will default to targeting only the card that owns the constant ability.
 
-Some effects have a 'when', 'while' or 'if' clause within their text. These cards can be implemented by passing a `condition` function into the constant ability declaration. The effect will only be applied when the function returns `true`. If the function returns `false` later on, the effect will be automatically unapplied from the cards it matched.
+#### Conditional ongoing effects
+
+Some ongoing effects have a 'when', 'while' or 'if' clause within their text. These cards can be implemented by passing a `condition` function into the constant ability declaration. The ongoing effect will only be applied when the function returns `true`. If the function returns `false` later on, the ongoing effect will be automatically unapplied from the cards it matched.
 
 ```javascript
-// During a conflict in which this character is participating, each other participating Lion 
-// character you control gets +1M.
-this.persistentEffect({
-    condition: () => this.isParticipating(),
-    match: card => card.getType() === 'character' && card.isParticipating() && 
-                   card.isFaction('lion') && card !== this,
-    effect: AbilityDsl.effects.modifyMilitarySkill(1)
+// While this unit is exhausted, it gains +1/+1
+this.constantAbility({
+    condition: () => this.exhausted,
+    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })
 });
 ```
 
-#### Targeting opponent or all matching cards
+#### Filtering by card type, owner, location
+Note also that, similar to ability targets described below, there are shorthand filters for the card properties location, owner, and card type. See the relevant section below for details. **TODO THIS PR: add section link**
 
-By default, an effect will only be applied to cards controlled by the current player. The `targetController` property can be modified to specify which players' cards should be targeted.
-
-To target only opponent cards, set `targetController` to `'opponent'`:
-
-```javascript
-// While  attacking, each defending character gets -1M.
-this.persistentEffect({
-    condition: () => this.isAttacking(),
-    match: card => card.isDefending(),
-    targetController: 'opponent',
-    effect: AbilityDsl.effects.modifyMilitarySkill(-1)
-});
-```
-
-To target all cards regardless of who controls them, set `targetController` to `'any'`:
+All of these filters are available for filtering target cards (e.g., `targetLocationFilter`), but for checking the condition of the card that owns the ability only `locationFilter` is available:
 
 ```javascript
-// While this character is participating in a conflict, characters cannot become dishonored.
-this.persistentEffect({
-    condition: () => this.isParticipating(),
-    targetController: 'any',
-    match: card => card.getType() === 'character' && card.location === 'play area',
-    effect: AbilityDsl.effects.cardCannot('becomeDishonored')
-});
-```
-
-#### Dynamic skill
-
-A few cards provide skill bonuses based on game state. For example, [Beastmaster Matriarch](https://fiveringsdb.com/card/beastmaster-matriarch) gets a bonus to military skill depending on how many rings have been claimed. Where the bonus should be continously updated, pass a function as the effect paramater. In `/server/game/effects.js`, you can see whether an effect is coded as static (expects to be passed an integer), dynamic (expects to be passed a function) or flexible (can take either).
-
-```javascript
-// This character has +2[military] for each ring in each opponent's claimed ring pool.
-this.persistentEffect({
-    match: this,
-    effect: AbilityDsl.effects.modifyMilitarySkill(() => this.getTwiceOpponentsClaimedRings())
-}
-```
-
-
-#### Static bonuses from upgrades
-
-Static attachment bonuses are automatically included in skill calculation.
-
-#### Attachment-based effects
-
-A `whileAttached` method is provided to define constant abilities that are applied to the card an attachment is attached. These effects remain as long as the card is attached to its parent and the attachment has not been blanked.
-
-```javascript
-// Attached character gains Pride.
-this.whileAttached({
-    effect: AbilityDsl.effects.addKeyword('pride')
-});
-```
-
-If the effect has an additional requirement, an optional `match` function can be passed in.
-```javascript
-// If attached character is unicorn, they gain +1M.
-this.whileAttached({
-    match: card => card.isFaction('unicorn'),
-    effect: AbilityDsl.effects.modifyMilitarySkill(1)
+// While this card is in the ground arena, all of the opponent's units in the space arena get -1/-1
+this.constantAbility({
+    locationFilter: Location.GroundArena,
+    targetLocationFilter: Location.SpaceArena,
+    targetCardType: WildcardCardType.Unit,
+    targetController: RelativePlayer.Opponent,
+    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
 });
 ```
 
 #### Applying multiple effects at once
-As a shorthand, it is possible to pass an array into the `effect` property to apply multiple effects that have the same conditions / matching functions.
+As a shorthand, it is possible to pass an array into the `ongoingEffect` property to apply multiple effects that have the same conditions / matching functions.
 
 ```javascript
-// This character gets +1M and +1P while you are less honorable than an opponent..
-this.persistentEffect({
-    condition: () => this.isLessHonorableThanOpponent(),
-    match: this,
+// This character gets Sentinel and +1/+1 while damaged
+this.constantAbility({
+    condition: () => this.damage !== 0,
     effect: [
-        AbilityDsl.effects.modifyMilitarySkill(1),
-        AbilityDsl.effects.modifyPoliticalSkill(1)
+        AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel),
+        AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
     ]
 });
 ```
 
-#### Applying effects to cards which aren't in play
+#### **IGNORE THIS SECTION, STILL WIP**: Applying effects to cards which aren't in play
 
-By default, effects will only be applied to cards in the play area.  Certain cards effects refer to cards in your hand, such as reducing their cost or providing ambush to matching cards. In these cases, set the `targetLocation` property to `'hand'`.
+By default, ongoing effects will only be applied to cards in the play area.  Certain cards effects refer to cards in your hand, such as reducing their cost. In these cases, set the `targetLocation` property to `'hand'`.
 
 ```javascript
 // Each Direwolf card in your hand gains ambush (X). X is that card's printed cost.
-this.persistentEffect({
+this.constantAbility({
     // Explicitly target the effect to cards in hand.
-    targetLocation: 'hand',
+    targetLocationFilter: 'hand',
     match: card => card.hasTrait('Direwolf'),
-    effect: AbilityDsl.effects.gainAmbush()
+    effect: AbilityHelper.effects.modifyCost()
 });
 ```
 
@@ -248,30 +452,74 @@ This also applies to provinces, holdings and strongholds, which the game conside
 
 ```javascript
 // This province gets +5 strength during [political] conflicts.
-this.persistentEffect({
+this.constantAbility({
     match: this,
     targetLocation: 'province',
     condition: () => this.game.isDuringConflict('political'),
-    effect: AbilityDsl.effects.modifyProvinceStrength(5)
+    effect: AbilityHelper.effects.modifyProvinceStrength(5)
 });
 ```
 
-#### Player modifying effects
+#### **IGNORE THIS SECTION, STILL WIP**: Player modifying effects
 
-Certain cards provide bonuses or restrictions on the player itself instead of on any specific cards. These effects are marked as `player` effects in `/server/game/effects.js`. For player effects, `targetController` indicates which players the effect should be applied to (with `'current'` acting as the default). Player effects should not have a `match` property.
+
+
+Certain cards provide bonuses or restrictions on the player itself instead of on any specific cards. These effects are marked as `Player` effects in `/server/game/effects.js`. For player effects, `targetController` indicates which players the effect should be applied to (with `'current'` acting as the default). Player effects should not have a `match` property.
 
 ```javascript
 // While this character is participating in a conflict, opponents cannot play events.
-this.persistentEffect({
+this.constantAbility({
     condition: () => this.isParticipating(),
     targetController: 'opponent',
-    effect: AbilityDsl.effects.playerCannot(context => context.source.type === 'event')
+    effect: AbilityHelper.effects.playerCannot(context => context.source.type === 'event')
+});
+```
+
+#### Upgrade helper methods
+Some helper methods are available to make it easier to declare constant abilities on upgrades, since these are extremely common.
+
+##### Static stat bonuses from upgrades
+
+Static upgrade stat bonuses from the printed upgrade values are automatically included in combat calculations for the attached unit.
+
+##### Effects targeting attached card
+
+Since most upgrade abilities target the attached card, we have helper methods available to declare such abilities succintly:
+
+Most upgrades say that the attached unit gains a triggered ability:
+```javascript
+// Attached character gains ability 'On Attack: Exhaust the defender'
+this.addGainTriggeredAbilityTargetingAttached({
+    title: 'Exhaust the defender on attack',
+    when: { onAttackDeclared: (event) => event.attack.attacker === this.parentCard },
+    targetResolver: {
+        cardCondition: (card, context) => card === context.event.attack.target,
+        immediateEffect: AbilityHelper.immediateEffects.exhaust()
+    }
+});
+```
+
+It is also common for an upgrade to grant a keyword to the attached:
+```javascript
+// Attached character gains keyword 'Restore 2'
+this.addGainKeywordTargetingAttached({
+    keyword: KeywordName.Restore,
+    amount: 2
+});
+```
+
+In some rare cases an upgrade's ability targets the attached card without giving it any new abilities
+```javascript
+// Entrenched ability
+this.addConstantAbilityTargetingAttached({
+    title: 'Attached unit cannot attack bases',
+    ongoingEffect: AbilityHelper.ongoingEffects.cannotAttackBase(),
 });
 ```
 
 ### Actions
 
-Actions are abilities provided by the card text that players may trigger during action windows. They are declared using the `action` method. See `/server/game/cardaction.js` for full documentation. Here are some common scenarios:
+Actions are abilities provided by the card text that players may trigger during action windows. They are declared using the `addActionAbility` method. See [ActionAbility.ts](../server/game/core/ability/ActionAbility.ts) for full documentation (_NOTE: may be stale_). Here are some common scenarios:
 
 #### Declaring an action
 
@@ -282,7 +530,7 @@ class BorderRider extends DrawCard {
     setupCardAbilities() {
         this.action({
             title: 'Ready this character',
-            gameAction: AbilityDsl.actions.ready()
+            gameAction: AbilityHelper.actions.ready()
         });
     }
 }
@@ -343,7 +591,7 @@ For a full list of costs, look at `/server/game/costs.js`.
 this.action({
     title: 'Give a character +0/+3',
     // This card must be bowed as a cost for the action.
-    cost: AbilityDsl.costs.bowSelf(),
+    cost: AbilityHelper.costs.bowSelf(),
     // ...
 });
 ```
@@ -355,279 +603,11 @@ this.action({
     title: 'Give all non-unique participating characters -2/-0',
     // This card must be bowed AND sacrificed as a cost for the action.
     cost: [
-        AbilityDsl.costs.bowSelf(),
-        AbilityDsl.costs.sacrificeSelf()
+        AbilityHelper.costs.bowSelf(),
+        AbilityHelper.costs.sacrificeSelf()
     ],
     // ...
 });
-```
-
-#### Choosing / targeting cards
-
-Cards that specify to 'choose' or otherwise target a specific card should be implemented by passing a `target` property. The target property should include any limitations set by the ability, using the `cardType`, `location`, `controller` and/or `cardCondition` property. A game action can also be included by using the `gameAction` property, which will restrict the card chosen to those for which that game action is legal (e.g. only cards in the play area can be dishonored, only cards with fate can have fate removed from them, etc.).  If an array of game actions is specified, then the target only needs to meet the requirements of one of them.
-
-Generally, it's a good idea to pass at least a `cardType` property, as that will automatically change the prompt to make it easier for the player to understand what is going on. Most other properties that apply to `Game.promptForSelect` are also valid here.
-
-```javascript
-this.action({
-    title: 'Grant Covert to a character',
-    target: {
-        cardType: 'character',
-        location: 'play area'
-    },
-    // ...
-});
-```
-
-```javascript
-this.action({
-    title: 'Sacrifice to discard an attachment'
-    target: {
-        cardType: 'attachment',
-        gameAction: AbilityDsl.actions.discardFromPlay()
-    },
-    // ...
-});
-```
-#### Multiple targets
-
-Some card abilities require multiple targets. These may be specified using the `targets` property. Each sub key under `targets` is the name that will be given to the chosen card, and the value is the prompt properties.
-
-```javascript
-// Action: While this character is participating in a conflict, choose a ready non-participating character with printed 
-// cost 2 or lower controller by each player – move each chosen character to the conflict
-this.action({
-    title: 'Move characters into conflict',
-    condition: context => context.source.isParticipating(),
-    targets: {
-        myChar: {
-            cardType: 'character',
-            controller: 'self',
-            cardCondition: card => !card.bowed && card.getCost() <= 2,
-            gameAction: AbilityDsl.actions.moveToConflict()
-        },
-        oppChar: {
-            cardType: 'character',
-            controller: 'opponent',
-            cardCondition: card => !card.bowed && card.getCost() <= 2,
-            gameAction: AbilityDsl.actions.moveToConflict()                    
-        }
-    }
-});
-```
-
-Once all targets are chosen, they will be set using their specified name under the `targets` property on the handler context object.
-
-#### Targeting rings
-
-Rings are targeted in almost the same way as cards.  For abilities which target rings, set the `mode` property to `'ring'`, and use `ringCondition` instead of `cardCondition`. Most of the ring selection prompt properties are valid here also, see `/server/game/gamesteps/selectringprompt.js` for more details. the chosen ring is stored in `context.ring` (or `context.rings[targetName]` where an ability has multiple targets).
-
-```javascript
-// Action: Choose a ring and an opponent – that player cannot declare conflicts 
-// of that ring's element this phase. (Max 1 per phase.)
-this.action({
-    title: 'Prevent an opponent contesting a ring',
-    condition: context => context.player.opponent,
-    target: {
-        mode: 'ring',
-        ringCondition: () => true
-    },
-    // ...
-});
-```
-
-#### Select options
-
-Some abilities require the player (or their opponent) to choose between multiple options.  This is done in the same way as targets above, but by using the `mode` property set to `'select'`.  In addition, a `choices` object should be included, which contains key:value pairs where the key is the option to display to the player, and the value is either a function which takes the `context` object and returns a boolean indicating whether this option is legal, or a game action which will be evaluated on the basis of the specified target (or default as detailed below) to determine whether the choice is legal.  The selected option is stored in `context.select.choice` (or `context.selects[targetName].choice` for an ability with multiple targets).
-
-```javascript
-// Action: During a conflict at this province, select one – switch the contested ring with an unclaimed 
-// ring, or switch the conflict type.
-this.action({
-    title: 'Switch the conflict type or ring',
-    condition: context => context.source.isConflictProvince(),
-    target: {
-        player: 'self',
-        mode: 'select',
-        choices: {
-            'Switch the contested ring': () => _.any(this.game.rings, ring => ring.isUnclaimed()),
-            'Switch the conflict type': () => true
-        }
-    },
-    // ...
-});
-```
-
-```javascript
-// Action: If an opponent has declared 2 or more conflicts against you this phase, select one – 
-// take 1 fate or 1 honor from that opponent.
-this.action({
-    title: 'Take 1 fate or 1 honor',
-    phase: 'conflict',
-    condition: context => this.game.getConflicts(context.player.opponent).filter(conflict => !conflict.passed).length > 1,
-    target: {
-        player: 'self',
-        mode: 'select',
-        choices: {
-            'Take 1 fate': AbilityDsl.actions.takeFate(),
-            'Take 1 honor': AbilityDsl.actions.takeHonor()
-        }
-    }
-});
-```
-
-### Ability effects
-
-In general, the effects of an ability should be implemented using Game Actions.
-
-#### Game Actions
-
-Actions (and other triggered abilities) often use game actions.  Available game actions can be found in `/server/game/GameActions/GameActions.js`, along with any parameters and their defaults.  Game actions as properties in the main ability section default to targetomg the card generating the ability (for cards), the opponent (for players) and the contested ring (for rings). Game actions included in `target` (or in one of `targets`) will default to the that target. You can change the target of a game action or the parameters by passing either an object with the properties you want, or a function which takes `context` and returns those properties.
-
-```javascript
-// Action: During a conflict, bow this attachment – move attached character to the conflict.
-this.action({
-    title: 'Move this character into the conflict',
-    cost: AbilityDsl.costs.bowSelf(),
-    gameAction: AbilityDsl.actions.moveToConflict(context => ({ target: context.source.parent }))
-});
-```
-
-```javascript
-// Reaction: After this character enters play – place 1 fate from an opponent's fate pool on it.
-this.reaction({
-    title: 'Steal a fate',
-    // reaction condition code
-    gameAction: AbilityDsl.actions.placeFate(context => ({ origin: context.player.opponent }))
-});
-```
-
-#### Effect messages
-
-Once costs have been paid and targets chosen (but before the ability resolves), the game automatically displays a message in the chat box which tells both players the ability, costs and targets of the effect.  Game actions will automatically generate their own effect message, although this will only work for a single game action.  If the effects of the ability involve two or more game actions, or the effect is a lasting effect or uses a handler, then an `effect` property is required.  The effect property will be passed the target (card(s) or ring) of the effect (or the source if there are no targets) as its first parameter (and so can be referenced using `'{0}'` in the effect property string).  If other references are required, this can be done using curly bracket references in the effect string(`'{1}', '{2', etc`) and supplying an `effectArgs` property (which generally will be a function taking the `context` object):
-
-```javascript
-this.action({
-    // Action: Return this attachment to your hand and dishonor attached character.
-    title: 'Return court mask to hand',
-    effect: 'return {0} to hand, dishonoring {1}',
-    effectArgs: context => context.source.parent,
-    gameAction: [AbilityDsl.actions.returnToHand(), AbilityDsl.actions.dishonor(context => ({ target: context.source.parent }))]
-});
-```
-
-```javascript
-this.action({
-    // Action: While this character is participating in a conflict, choose another participating character – until the end of the conflict, that character gets +2/+2 for each holding you control.
-    title: 'Give a character a bonus for each holding',
-    condition: context => context.source.isParticipating(),
-    target: {
-        cardType: 'character',
-        cardCondition: (card, context) => card.isParticipating() && card !== context.source,
-        gameAction: AbilityDsl.actions.cardLastingEffect(context => ({
-            effect: AbilityDsl.effects.modifyBothSkills(2 * context.player.getNumberOfHoldingsInPlay())
-        }))
-    },
-    effect: 'give {0} +{1}{2}/+{1}{3}',
-    effectArgs: context => [2 * context.player.getNumberOfHoldingsInPlay(), 'military', 'political']
-});
-```
-
-#### Lasting effects
-
-Unlike constant abilities, lasting effects are typically applied during an action, reaction or interrupt and expire after a specified period of time.  Lasting effect use the same properties as constant abilities, above.  Lasting effects are applied using the `cardLastingEffect`, `ringLastingEffect` or `playerLastingEffect`, depending on what they affect.  They take a `duration:` property which is one of `untilEndOfConflict` (default), `untilEndOfPhase` or `untilEndOfRound`.
-
-```javascript
-// Action: During a conflict, bow this character. Choose another [crane] character – that character 
-// gets +3 [political] until the end of the conflict.
-this.action({
-    title: 'Give a character +0/+3',
-    condition: () => this.game.isDuringConflict(),
-    cost: AbilityDsl.costs.bowSelf(),
-    target: {
-        cardType: 'character',
-        cardCondition: (card, context) => card !== context.source && card.isFaction('crane'),
-        gameAction: AbilityDsl.actions.cardLastingEffect(() => ({
-            duration: 'untilEndOfConflict',
-            effect: AbilityDsl.effects.modifyPoliticalSkill(3)
-        }))
-    },
-    effect: 'give {0} +3{1} skill',
-    effectArgs: () => 'political'
-});
-
-```
-
-To apply an effect to last until the end of the current phase, use `untilEndOfPhase`:
-```javascript
-// Action: Reduce the cost of the next event you play this phase by 1.
-this.action({
-    title: 'Reduce cost of next event by 1',
-    effect: 'reduce the cost of their next event by 1',
-    gameAction: AbilityDsl.actions.playerLastingEffect({
-        duration: 'untilEndOfPhase',
-        effect: AbilityDsl.effects.reduceNextPlayedCardCost(1, card => card.type === 'event')
-    })
-});
-```
-
-To apply an effect to last until the end of the round, use `untilEndOfRound`:
-```javascript
-/// Action: Choose a holding you control – you may trigger each of that holding's triggered abilities an additional time this round (or specified period).
-this.action({
-    title: 'Add an additional ability use to a holding',
-    target: {
-        cardType: 'holding',
-        location: 'province',
-        controller: 'self',
-        gameAction: AbilityDsl.actions.cardLastingEffect({
-            duration: 'untilEndOfPhase',
-            targetLocation: 'province',
-            effect: AbilityDsl.effects.increaseLimitOnAbilities()
-        })
-    },
-    effect: 'add an additional use to each of {0}\'s abilities'
-});
-```
-
-#### Limiting an action to a specific phase
-
-Some actions are limited to a specific phase by their card text. You can pass an optional `phase` property to the action to limit it to just that phase. Valid phases include `'dynasty'`, `'draw'`, `'conflict'`, `'fate'`. The default is `'any'` which allows the action to be triggered in any phase.
-
-```javascript
-this.action({
-    title: 'Sacrifice to discard an attachment',
-    cost: AbilityDsl.costs.sacrificeSelf(),
-    phase: 'conflict',
-    target: {
-        cardType: 'attachment',
-        gameAction: AbilityDsl.actions.discardFromPlay()
-    }
-});
-```
-
-#### Limiting the number of uses
-
-Some actions have text limiting the number of times they may be used in a given period. You can pass an optional `limit` property using one of the duration-specific ability limiters. See `/server/game/abilitylimit.js` for more details.
-
-```javascript
-this.action({
-    title: 'Remove 1 fate',
-    limit: AbilityDsl.limit.perConflict(2),
-    // ...
-});
-```
-
-#### Actions outside of play
-
-Certain actions, such as that of Ancestral Guidance, can only be activated while the character is in the discard pile. Such actions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability by simply clicking the card. If there is a conflict (e.g. both the ability and playing the card normally can occur), then the player will be prompted.
-
-```javascript
-this.action({
-    title: 'Play from discard pile',
-    location: 'conflict discard pile',
-    // ...
-})
 ```
 
 ### Triggered abilities
@@ -644,7 +624,7 @@ this.reaction({
     when: {
     	onCharacterEntersPlay: (event, context) => event.card === context.source
     },
-    gameAction: AbilityDsl.actions.honor()
+    gameAction: AbilityHelper.actions.honor()
 });
 ```
 
@@ -657,7 +637,7 @@ this.reaction({
         onCharacterEntersPlay: (event, context) => event.card === context.source && context.source.fate > 0,
         onMoveFate: (event, context) => event.recipient === context.source && event.fate > 0
     },
-    gameAction: AbilityDsl.actions.gainHonor()
+    gameAction: AbilityHelper.actions.gainHonor()
 });
 ```
 
@@ -675,11 +655,11 @@ this.forcedReaction({
                                             context.player.honor >= context.player.opponent.honor + 5
     },
     effect: 'stop him being discarded or losing fate in this phase',
-    gameAction: AbilityDsl.actions.cardLastingEffect({
+    gameAction: AbilityHelper.actions.cardLastingEffect({
         duration: 'untilEndOfPhase',    
         effect: [
-            AbilityDsl.effects.cardCannot('removeFate'),
-            AbilityDsl.effects.cardCannot('discardFromPlay')
+            AbilityHelper.effects.cardCannot('removeFate'),
+            AbilityHelper.effects.cardCannot('discardFromPlay')
         ]
     })
 });
@@ -695,7 +675,7 @@ this.forcedInterrupt({
     /// ...
     effect: '{1} draws a card due to {0}\'s Sincerity',
     effectArgs: context => context.player,
-    gameAction: AbilityDsl.actions.draw()
+    gameAction: AbilityHelper.actions.draw()
 });
 ```
 
@@ -710,7 +690,7 @@ this.wouldInterrupt({
     when: {
         onInitiateAbilityEffects: event => event.card.type === 'event'
     },
-    cost: AbilityDsl.costs.dishonor(card => card.hasTrait('courtier')),
+    cost: AbilityHelper.costs.dishonor(card => card.hasTrait('courtier')),
     effect: 'cancel {1}',
     effectArgs: context => context.event.card,
     handler: context => context.cancel()
@@ -727,7 +707,7 @@ this.reaction({
 		afterConflict: (event, context) => context.conflict.loser === context.player && context.conflict.conflictType === 'military'
 	},
     location: 'hand',
-    gameAction: AbilityDsl.actions.putIntoPlay()
+    gameAction: AbilityHelper.actions.putIntoPlay()
 })
 ```
 
@@ -735,11 +715,11 @@ this.reaction({
 
 Actions, reactions, and interrupts can have limits on how many times they may be used within a certain period. These limits can be set by setting the `limit` property on the ability. The `ability` object has a limit helper with methods for the different periods.
 
-To limit an ability per conflict, use `AbilityDsl.limit.perConflict(x)`.
+To limit an ability per conflict, use `AbilityHelper.limit.perConflict(x)`.
 
-To limit an ability per phase, use `AbilityDsl.limit.perPhase(x)`.
+To limit an ability per phase, use `AbilityHelper.limit.perPhase(x)`.
 
-To limit an ability per round, use `AbilityDsl.limit.perRound(x)`.
+To limit an ability per round, use `AbilityHelper.limit.perRound(x)`.
 
 In each case, `x` should be the number of times the ability is allowed to be used.
 
