@@ -180,7 +180,7 @@ export class Card extends OngoingEffectSource {
         if (implementationId) {
             if (cardData.id !== implementationId.id || cardData.internalName !== implementationId.internalName) {
                 throw new Error(
-                    `Implementation { ${implementationId.id}, ${implementationId.internalName} } does not match provided card data { ${cardData.id}, ${cardData.internalName} }`
+                    `Provided card data { ${cardData.id}, ${cardData.internalName} } does not match the data from the card class: { ${implementationId.id}, ${implementationId.internalName} }. Confirm that you are matching the card data to the right card implementation class.`
                 );
             }
         }
