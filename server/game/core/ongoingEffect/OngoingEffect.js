@@ -5,28 +5,28 @@ const EnumHelpers = require('../utils/EnumHelpers');
  * Represents a card based effect applied to one or more targets.
  *
  * Properties:
- * matchTarget      - function that takes a card/player and context object
- *                    and returns a boolean about whether the passed object should
- *                    have the effect applied. Alternatively, a card/player can
- *                    be passed as the match property to match that single object.
- *                    Doesn't apply to attack effects. (TODO: still true?)
- * duration         - string representing how long the effect lasts.
- * condition        - function that returns a boolean determining whether the
- *                    effect can be applied. Use with cards that have a
- *                    condition that must be met before applying a persistent
- *                    effect (e.g. 'when exhausted').
- * location         - location where the source of this effect needs to be for
- *                    the effect to be active. Defaults to 'play area'.
- * targetController - string that determines which player's cards are targeted.
- *                    Can be 'self' (default), 'opponent' or 'any'. For player
- *                    effects it determines which player(s) are affected.
- * targetLocation   - string that determines the location of cards that can be
- *                    applied by the effect. Can be 'play area' (default),
- *                    'province', or a specific location (e.g. 'stronghold province'
- *                    or 'hand'). This has no effect if a specific card is passed
- *                    to match.  Card effects only.
- * impl             - object with details of effect to be applied. Includes duration
- *                    and the numerical value of the effect, if any.
+ * matchTarget          - function that takes a card/player and context object
+ *                        and returns a boolean about whether the passed object should
+ *                        have the effect applied. Alternatively, a card/player can
+ *                        be passed as the match property to match that single object.
+ *                        Doesn't apply to attack effects. (TODO: still true?)
+ * duration             - string representing how long the effect lasts.
+ * condition            - function that returns a boolean determining whether the
+ *                        effect can be applied. Use with cards that have a
+ *                        condition that must be met before applying a persistent
+ *                        effect (e.g. 'when exhausted').
+ * locationFilter       - location where the source of this effect needs to be for
+ *                        the effect to be active. Defaults to 'play area'.
+ * targetController     - string that determines which player's cards are targeted.
+ *                        Can be 'self' (default), 'opponent' or 'any'. For player
+ *                        effects it determines which player(s) are affected.
+ * targetLocationFilter - string that determines the location of cards that can be
+ *                        applied by the effect. Can be 'play area' (default),
+ *                        'province', or a specific location (e.g. 'stronghold province'
+ *                        or 'hand'). This has no effect if a specific card is passed
+ *                        to match.  Card effects only.
+ * impl                 - object with details of effect to be applied. Includes duration
+ *                        and the numerical value of the effect, if any.
  */
 class OngoingEffect {
     constructor(game, source, properties, effectImpl) {

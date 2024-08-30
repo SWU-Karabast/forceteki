@@ -3,6 +3,9 @@
 
 To implement a card, follow these steps:
 
+### Important Note: Legacy L5R Code
+This code was ported from the [Ringteki codebase](https://github.com/ringteki/ringteki) powering the online L5R client, Jigoku. During the initial implementation phase, we have included the legacy code from L5R under the folder [legacy_jigoku/](../legacy_jigoku/). These are included for reference as there is still a lot of useful code that hasn't been fully ported yet, but be careful when making changes or searching for files that you do not accidentally start doing your work in the L5R folder.
+
 ## Set up for implementation
 
 ### Find relevant info
@@ -105,9 +108,9 @@ Most Keywords (sentinel, raid, smuggle, etc.) are automatically parsed from the 
 
 ### Constant abilities
 
-Many cards provide continuous bonuses to other cards you control or detrimental effects to opponents cards in certain situations. These are referred to in SWU as "constant abilities" and can be defined using the `addConstantAbility` method. Cards that enter play while the constant ability is in play will automatically have the effect applied, and cards that leave play will have the effect removed. If the card providing the effect becomes blank, the effect is automatically removed from all previously applied cards.
+Many cards provide continuous bonuses to other cards you control or detrimental effects to opponents cards in certain situations. These abilities are referred to in SWU as "constant abilities" and can be defined using the `addConstantAbility` method. Cards that enter play while the constant ability is in play will automatically have the ongoing effect applied, and cards that leave play will have the effect removed. If the card providing the effect becomes blank, the ongoing effect is automatically removed from all previously applied cards.
 
-For a full list of properties that can be set when declaring an effect, look at [EffectLibrary.js](../server/game/ongoingEffects/OngoingEffectLibrary.ts). To see all the types of effect which you can use (and whether they apply to cards, rings or players), look at `/server/game/effects.js`. Here are some common scenarios:
+For a full list of properties that can be set when declaring an ongoing effect, look at [OngoingEffect.js](../server/game/core/ongoingEffect/OngoingEffect.js). To see all the types of effect which you can use (and whether they apply to cards or players), look at [EffectLibrary.js](../server/game/ongoingEffects/OngoingEffectLibrary.ts). Here are some common scenarios:
 
 #### Matching conditions vs matching specific cards
 

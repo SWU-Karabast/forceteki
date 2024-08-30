@@ -35,7 +35,7 @@ export interface IConstantAbilityProps<Source = any> {
     /** A handler to determine if a specific card is impacted by the ability effect */
     matchTarget?: (card: Card, context?: AbilityContext<Source>) => boolean;
     targetController?: RelativePlayer;
-    targetLocation?: Location;
+    targetLocationFilter?: LocationFilter;
     cardName?: string;
 
     // TODO: can we get a real signature here

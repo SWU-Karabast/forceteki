@@ -17,7 +17,7 @@ import StaticOngoingEffectImpl from './effectImpl/StaticOngoingEffectImpl';
 type PlayerOrCard = Player | Card;
 
 interface Props {
-    targetLocation?: Location | Location[];
+    targetLocationFilter?: Location | Location[];
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;

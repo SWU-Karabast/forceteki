@@ -6,7 +6,7 @@ import { CardTargetSystem, ICardTargetSystemProperties } from './CardTargetSyste
 import type { ILastingEffectGeneralProperties } from './LastingEffectSystem';
 
 export interface ILastingEffectCardProperties extends Omit<ILastingEffectGeneralProperties, 'target'>, ICardTargetSystemProperties {
-    targetLocation?: Location | Location[];
+    targetLocationFilter?: Location | Location[];
 }
 
 // TODO: how is this related to LastingEffectSystem?
@@ -32,7 +32,7 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
 
         const lastingEffectRestrictions = event.card.getEffectValues(EffectName.CannotApplyLastingEffects);
         const { effect, ...otherProperties } = properties;
-        const effectProperties = Object.assign({ matchTarget: event.card, location: WildcardLocation.Any }, otherProperties);
+        const effectProperties = Object.assign({ matchTarget: event.card, locationFilter: WildcardLocation.Any }, otherProperties);
         let effects = properties.effect.map((factory) =>
             factory(event.context.game, event.context.source, effectProperties)
         );
