@@ -12,14 +12,14 @@ export interface ILookAtProperties extends ICardTargetSystemProperties {
 export class LookAtSystem extends CardTargetSystem<ILookAtProperties> {
     public override readonly name = 'lookAt';
     public override readonly eventName = EventName.OnLookAtCards;
-    public override readonly effectDescription = 'look at a facedown card';
+    public override readonly effectDescription = 'look at a card';
 
     protected override defaultProperties: ILookAtProperties = {
         message: '{0} sees {1}'
     };
 
     public override canAffect(card: BaseCard, context: AbilityContext) {
-        // TODO: What situations would mean that an event cannot be looked at?
+        // TODO: What situations would mean that a card cannot be looked at?
         // if (!card.isFacedown() && (card.isInProvince() || card.location === Locations.PlayArea)) {
         //     return false;
         // }
