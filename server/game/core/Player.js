@@ -119,10 +119,10 @@ class Player extends GameObject {
 
     // TODO THIS PR: this should retrieve upgrades, but we need to confirm once they're implemented
     /**
-     * Get all cards in designated play arena(s) owned by this player
+     * Get all cards in this player's arena(s). Any opponent upgrades will be included.
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
-    getCardsInArenaOrArenas(arena = WildcardLocation.AnyArena) {
+    getArenaCards(arena = WildcardLocation.AnyArena) {
         switch (arena) {
             case Location.GroundArena:
                 return [...this.groundArena];
@@ -141,7 +141,7 @@ class Player extends GameObject {
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
     getUnitsInPlay(arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
-        return this.getCardsInArenaOrArenas(arena).filter((card) => card.isUnit() && cardCondition(card));
+        return this.getArenaCards(arena).filter((card) => card.isUnit() && cardCondition(card));
     }
 
     /**
@@ -150,7 +150,7 @@ class Player extends GameObject {
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
     getOtherUnitsInPlay(ignoreUnit, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
-        return this.getCardsInArenaOrArenas(arena).filter((card) => card.isUnit() && card !== ignoreUnit && cardCondition(card));
+        return this.getArenaCards(arena).filter((card) => card.isUnit() && card !== ignoreUnit && cardCondition(card));
     }
 
     getResourceCards() {
@@ -183,7 +183,7 @@ class Player extends GameObject {
      * Checks whether any cards in play are currently marked as selected
      */
     areCardsSelected() {
-        return this.getCardsInArenaOrArenas().some((card) => {
+        return this.getArenaCards().some((card) => {
             return card.selected;
         });
     }
@@ -229,7 +229,7 @@ class Player extends GameObject {
      * @param {String} uuid
      */
     findCardInPlayByUuid(uuid) {
-        return this.findCard(this.getCardsInArenaOrArenas(), (card) => card.uuid === uuid);
+        return this.findCard(this.getArenaCards(), (card) => card.uuid === uuid);
     }
 
     /**

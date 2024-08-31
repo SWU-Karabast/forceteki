@@ -68,10 +68,10 @@ class BaseCardSelector {
                 // TODO: is this ever a case we should have? this would allow targeting deck, discard, etc.
                 throw Error('WildcardLocation.Any is currently not supported for card selectors');
             case WildcardLocation.AnyArena:
-                cards = player.getCardsInArenaOrArenas();
+                cards = player.getArenaCards();
                 break;
             case WildcardLocation.AnyAttackable:
-                cards = player.getCardsInArenaOrArenas();
+                cards = player.getArenaCards();
                 cards = cards.concat(player.getCardPile(Location.Base));
                 break;
             default:

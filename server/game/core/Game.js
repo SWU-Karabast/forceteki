@@ -268,7 +268,7 @@ class Game extends EventEmitter {
         var foundCards = [];
 
         this.getPlayers().forEach((player) => {
-            foundCards = foundCards.concat(player.findCards(player.getCardsInArenaOrArenas(), predicate));
+            foundCards = foundCards.concat(player.findCards(player.getArenaCards(), predicate));
         });
 
         return foundCards;
@@ -1089,7 +1089,7 @@ class Game extends EventEmitter {
             // if the state has changed, check for:
 
             // for (const player of this.getPlayers()) {
-            //     player.getCardsInArenaOrArenas().each((card) => {
+            //     player.getArenaCards().each((card) => {
             //         if (card.getModifiedController() !== player) {
             //             // any card being controlled by the wrong player
             //             this.takeControl(card.getModifiedController(), card);
