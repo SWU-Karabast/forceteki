@@ -65,6 +65,8 @@ var customMatchers = {
                     result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
 
+                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+
                 return result;
             }
         };
@@ -94,6 +96,8 @@ var customMatchers = {
                     }
                 }
 
+                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+
                 return result;
             }
         };
@@ -116,6 +120,8 @@ var customMatchers = {
                     ).join('\n');
                     result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
+
+                result.message += `\n${generatePromptTitlesMessage(actual)}`;
 
                 return result;
             }
@@ -146,6 +152,8 @@ var customMatchers = {
                     }
                 }
 
+                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+
                 return result;
             }
         };
@@ -165,6 +173,8 @@ var customMatchers = {
                 } else {
                     result.message = `Expected ${card.name} to be selectable by ${player.name} but it wasn't.`;
                 }
+
+                result.message += `\n${generatePromptTitlesMessage(player)}`;
 
                 return result;
             }
@@ -207,6 +217,8 @@ var customMatchers = {
                     }
                 }
 
+                result.message += `\n${generatePromptTitlesMessage(player)}`;
+
                 return result;
             }
         };
@@ -247,6 +259,8 @@ var customMatchers = {
                         result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${selectable.map((card) => card.name).join(', ')}`;
                     }
                 }
+
+                result.message += `\n${generatePromptTitlesMessage(player)}`;
 
                 return result;
             }
@@ -292,6 +306,8 @@ var customMatchers = {
                     }
                     result.message = message;
                 }
+
+                result.message += `\n${generatePromptTitlesMessage(player)}`;
 
                 return result;
             }
@@ -434,8 +450,44 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toBeInLocation: function () {
+        return {
+            compare: function (card, location, player = null) {
+                if (typeof card === 'string') {
+                    throw new Error('This expectation requires a card object, not a name');
+                }
+                let result = {};
+
+                const pileOwningPlayer = player?.player || card.owner;
+
+                const correctProperty = card.location === location;
+                const correctPile = pileOwningPlayer.getCardPile(location).includes(card);
+
+                if (correctProperty !== correctPile) {
+                    result.pass = false;
+                    result.message = `Card ${card.internalName} has inconsistent location state, card.location is '${card.location}' but it is not in the corresponding pile for ${pileOwningPlayer.name}'`;
+                    return result;
+                }
+
+                result.pass = correctProperty && correctPile;
+
+                if (result.pass) {
+                    result.message = `Expected ${card.internalName} not to be in location '${location}' but it is`;
+                } else {
+                    result.message = `Expected ${card.internalName} to be in location '${location}' but it is in location '${card.location}'`;
+                }
+
+                return result;
+            }
+        };
     }
 };
+
+function generatePromptTitlesMessage(player) {
+    const currentPrompt = player.currentPrompt();
+    return `Current prompt for ${player.name}: menuTitle = '${currentPrompt.menuTitle}', promptTitle = '${currentPrompt.promptTitle}'`;
+}
 
 beforeEach(function () {
     jasmine.addMatchers(customMatchers);
@@ -480,6 +532,9 @@ global.integration = function (definitions) {
                 this.player1.selectDeck(deckBuilder.customDeck(1, options.player1));
                 this.player2.selectDeck(deckBuilder.customDeck(2, options.player2));
 
+                // pass the data for token cards to the game so it can generate them
+                this.game.initialiseTokens(deckBuilder.getTokenData());
+
                 this.startGame();
 
                 if (options.phase !== 'setup') {
@@ -494,28 +549,29 @@ global.integration = function (definitions) {
                 this.player1.damageToBase = options.player1.damageToBase ?? 0;
                 this.player2.damageToBase = options.player2.damageToBase ?? 0;
 
-                // set cards below - the playerinteractionwrapper will convert string names to real cards
+                // return all zone cards to deck and then set them below - the playerinteractionwrapper will convert string names to real cards
+                this.player1.moveAllNonBaseZonesToRemoved();
+                this.player2.moveAllNonBaseZonesToRemoved();
 
                 // Resources
-                this.player1.setResourceCards(options.player1.resources);
-                this.player2.setResourceCards(options.player2.resources);
+                this.player1.setResourceCards(options.player1.resources, ['removed from game']);
+                this.player2.setResourceCards(options.player2.resources, ['removed from game']);
+
                 // Arenas
-                this.player1.setGroundArenaUnits(options.player1.groundArena);
-                this.player2.setGroundArenaUnits(options.player2.groundArena);
-                this.player1.setSpaceArenaUnits(options.player1.spaceArena);
-                this.player2.setSpaceArenaUnits(options.player2.spaceArena);
+                this.player1.setGroundArenaUnits(options.player1.groundArena, ['removed from game']);
+                this.player2.setGroundArenaUnits(options.player2.groundArena, ['removed from game']);
+                this.player1.setSpaceArenaUnits(options.player1.spaceArena, ['removed from game']);
+                this.player2.setSpaceArenaUnits(options.player2.spaceArena, ['removed from game']);
+
                 // Hand + discard
-                this.player1.setHand(options.player1.hand);
-                this.player2.setHand(options.player2.hand);
-                this.player1.setDiscard(options.player1.discard);
-                this.player2.setDiscard(options.player2.discard);
+                this.player1.setHand(options.player1.hand, ['removed from game']);
+                this.player2.setHand(options.player2.hand, ['removed from game']);
+                this.player1.setDiscard(options.player1.discard, ['removed from game']);
+                this.player2.setDiscard(options.player2.discard, ['removed from game']);
+
                 // Deck
-                if (options.player1.deck !== undefined) {
-                    this.player1.setDeck(options.player1.deck);
-                }
-                if (options.player2.deck !== undefined) {
-                    this.player2.setDeck(options.player2.deck);
-                }
+                this.player1.setDeck(options.player1.deck, ['removed from game']);
+                this.player2.setDeck(options.player2.deck, ['removed from game']);
 
                 // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {

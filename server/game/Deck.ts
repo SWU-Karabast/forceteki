@@ -5,6 +5,7 @@ import { Card } from './core/card/Card';
 import { cards } from './cards/Index';
 import Player from './core/Player';
 import * as CardHelpers from './core/card/CardHelpers';
+import { TokenCard } from './core/card/CardTypes';
 
 export class Deck {
     public constructor(public data: any) {}
@@ -14,6 +15,7 @@ export class Deck {
             deckCards: [] as Card[],
             outOfPlayCards: [],
             outsideTheGameCards: [] as Card[],
+            tokens: [] as TokenCard[],
             base: undefined as BaseCard | undefined,
             leader: undefined as LeaderCard | undefined,
             allCards: [] as Card[]
@@ -23,7 +25,6 @@ export class Deck {
         for (const { count, card } of this.data.deckCards ?? []) {
             for (let i = 0; i < count; i++) {
                 const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
-                // @ts-expect-error
                 const deckCard: Card = new CardConstructor(player, card);
                 result.deckCards.push(deckCard);
             }
@@ -34,7 +35,6 @@ export class Deck {
             for (let i = 0; i < count; i++) {
                 if (card?.types.includes(CardType.Base)) {
                     const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
-                    // @ts-expect-error
                     const baseCard: BaseCard = new CardConstructor(player, card);
                     result.base = baseCard;
                 }
@@ -44,7 +44,6 @@ export class Deck {
             for (let i = 0; i < count; i++) {
                 if (card?.types.includes(CardType.Leader)) {
                     const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
-                    // @ts-expect-error
                     const leaderCard: LeaderCard = new CardConstructor(player, card);
                     result.leader = leaderCard;
                 }

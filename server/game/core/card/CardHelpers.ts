@@ -4,10 +4,10 @@ import Contract from '../utils/Contract';
 import { BaseCard } from './BaseCard';
 import { Card } from './Card';
 import { EventCard } from './EventCard';
-import { LeaderCard } from './LeaderCard';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
-import { TokenNonLeaderUnitCard, TokenUpgradeCard } from './TokenCards';
+import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import { UpgradeCard } from './UpgradeCard';
+import { LeaderCard } from './LeaderCard';
 
 
 /**
@@ -23,14 +23,14 @@ export function createUnimplementedCard(owner: Player, cardData: any): Card {
             return new EventCard(owner, cardData);
         case CardType.Base:
             return new BaseCard(owner, cardData);
-        case CardType.Upgrade:
+        case CardType.BasicUpgrade:
             return new UpgradeCard(owner, cardData);
         case CardType.Leader:
             return new LeaderCard(owner, cardData);
-        case CardType.NonLeaderUnit:
+        case CardType.BasicUnit:
             return new NonLeaderUnitCard(owner, cardData);
         case CardType.TokenUnit:
-            return new TokenNonLeaderUnitCard(owner, cardData);
+            return new TokenUnitCard(owner, cardData);
         case CardType.TokenUpgrade:
             return new TokenUpgradeCard(owner, cardData);
         default:

@@ -45,8 +45,8 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 expect(this.getChatLogs(2)).toContain('player1 takes Cell Block Guard and Scout Bike Pursuer');
 
                 // Check cards in hand
-                expect(this.cellBlockGuard.location).toBe('hand');
-                expect(this.scoutBikePursuer.location).toBe('hand');
+                expect(this.cellBlockGuard).toBeInLocation('hand');
+                expect(this.scoutBikePursuer).toBeInLocation('hand');
 
                 // Check cards in deck
                 expect(this.player1.deck.length).toBe(6);
@@ -73,7 +73,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 this.player1.clickPrompt('Done');
 
                 // Check card location and that player 2 now active
-                expect(this.cellBlockGuard.location).toBe('hand');
+                expect(this.cellBlockGuard).toBeInLocation('hand');
                 expect(this.player1.deck.length).toBe(7);
                 expect(this.player2).toBeActivePlayer();
             });

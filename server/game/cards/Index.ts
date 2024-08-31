@@ -20,7 +20,7 @@ function allJsFiles(path: string): string[] {
     return files;
 }
 
-const cardsMap = new Map<string, unknown>();
+const cardsMap = new Map<string, any>();
 for (const filepath of allJsFiles(__dirname)) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fileImported = require(filepath);

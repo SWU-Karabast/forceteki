@@ -13,7 +13,6 @@ export default class DeathTrooper extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Deal 2 damage to a friendly ground unit and an enemy ground unit',
-            optional: false,
             targetResolvers: {
                 myGroundUnit: {
                     cardTypeFilter: WildcardCardType.Unit,

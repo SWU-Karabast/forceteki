@@ -11,14 +11,27 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
     public override readonly name = 'defeat';
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
     public constructor(propertyFactory) {
         super(propertyFactory);
     }
 
     public eventHandler(event, additionalProperties = {}): void {
-        this.leavesPlayEventHandler(event, additionalProperties);
+        if (event.card.isUpgrade()) {
+            event.card.unattach();
+        }
+
+        if (event.card.isToken()) {
+            // move the token out of the play area so that effect cleanup happens, then remove it from all card lists
+            event.card.owner.moveCard(event.card, Location.OutsideTheGame, event.options || {});
+            event.context.game.removeTokenFromPlay(event.card);
+        } else if (event.card.isLeader()) {
+            event.card.owner.moveCard(event.card, Location.Leader, event.options || {});
+            event.card.exhaust();
+        } else {
+            event.card.owner.moveCard(event.card, Location.Discard, event.options || {});
+        }
     }
 
     public override getEffectMessage(context: AbilityContext): [string, any[]] {

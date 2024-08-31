@@ -9,6 +9,8 @@ import { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import { AbilityContext } from '../../ability/AbilityContext';
+import Game from '../../Game';
+import Shield from '../../../cards/01_SOR/Shield';
 
 export class TriggeredAbilityWindow extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -23,8 +25,6 @@ export class TriggeredAbilityWindow extends BaseStep {
     /** The events that were triggered as part of this window */
     private triggeringEvents: GameEvent[];
 
-    private eventWindow: EventWindow;
-    private eventsToExclude: GameEvent[];
     private eventsEmitted = false;
     private choosePlayerResolutionOrderComplete = false;
     private readonly toStringName: string;
@@ -33,10 +33,13 @@ export class TriggeredAbilityWindow extends BaseStep {
         return this.resolvePlayerOrder?.[0] ?? null;
     }
 
-    public constructor(game, window, eventsToExclude = []) {
+    public constructor(
+        game: Game,
+        private readonly eventWindow: EventWindow,
+        private readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect,
+        private readonly eventsToExclude = []
+    ) {
         super(game);
-        this.eventWindow = window;
-        this.eventsToExclude = eventsToExclude ?? [];
 
         this.toStringName = `'TriggeredAbilityWindow: ${this.eventWindow.events.map((event) => event.name).join(', ')}'`;
     }
@@ -51,6 +54,11 @@ export class TriggeredAbilityWindow extends BaseStep {
             // if no abilities trigged, continue with game flow
             if (this.unresolved.size === 0) {
                 return true;
+            }
+
+            // see if consolidating shields gets us down to one trigger
+            if (this.unresolved.size === 1 && this.triggerAbilityType === AbilityType.ReplacementEffect) {
+                this.consolidateShieldTriggers();
             }
 
             // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
@@ -233,14 +241,52 @@ export class TriggeredAbilityWindow extends BaseStep {
         });
     }
 
+    /**
+     * If there are multiple Shield triggers present, consolidate down to one of them to reduce prompt noise.
+     * Will randomly choose the Shield to trigger unless any have {@link Shield.highPriorityRemoval}` = true`,
+     * in which case one of those will be selected randomly.
+     */
+    private consolidateShieldTriggers() {
+        if (!Contract.assertEqual(this.triggerAbilityType, AbilityType.ReplacementEffect)) {
+            return;
+        }
+
+        const postConsolidateUnresolved = new Map<Player, TriggeredAbilityContext[]>();
+
+        this.unresolved.forEach((triggeredAbilities: TriggeredAbilityContext[], player: Player) => {
+            let selectedShieldEffect: TriggeredAbilityContext<Shield> | null = null;
+
+            for (const triggeredAbility of triggeredAbilities) {
+                const abilitySource = triggeredAbility.source;
+
+                if (abilitySource.isShield()) {
+                    if (selectedShieldEffect === null) {
+                        selectedShieldEffect = (triggeredAbility as TriggeredAbilityContext<Shield>);
+                    } else if (abilitySource.highPriorityRemoval && !selectedShieldEffect.source.highPriorityRemoval) {
+                        selectedShieldEffect = (triggeredAbility as TriggeredAbilityContext<Shield>);
+                    }
+                }
+            }
+
+            let postConsolidateAbilities = triggeredAbilities;
+            if (selectedShieldEffect !== null) {
+                postConsolidateAbilities = postConsolidateAbilities.filter((ability) => !ability.source.isShield() || ability === selectedShieldEffect);
+            }
+
+            postConsolidateUnresolved.set(player, postConsolidateAbilities);
+        });
+
+        this.unresolved = postConsolidateUnresolved;
+    }
+
     private emitEvents() {
         this.eventsEmitted = true;
 
         const events = this.eventWindow.events.filter((event) => !this.eventsToExclude.includes(event));
         events.forEach((event) => {
-            this.game.emit(event.name + ':' + AbilityType.Triggered, event, this);
+            this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
         });
-        this.game.emit('aggregateEvent:' + AbilityType.Triggered, events, this);
+        this.game.emit('aggregateEvent:' + this.triggerAbilityType, events, this);
 
         this.triggeringEvents = events;
     }

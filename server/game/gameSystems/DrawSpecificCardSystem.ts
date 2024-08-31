@@ -15,7 +15,7 @@ export interface IDrawSpecificCardProperties extends ICardTargetSystemProperties
 
 export class DrawSpecificCardSystem extends CardTargetSystem<IDrawSpecificCardProperties> {
     public override readonly name = 'drawSpecific';
-    public override targetTypeFilter = [WildcardCardType.Unit, CardType.Upgrade, CardType.Event];
+    public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
     protected override defaultProperties: IDrawSpecificCardProperties = {
         switch: false,

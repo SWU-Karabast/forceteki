@@ -21,7 +21,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        Contract.assertEqual(this.printedType, CardType.Upgrade);
+        Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
 
         this.defaultActions.push(new PlayUpgradeAction(this));
     }
@@ -42,7 +42,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
     /** The card that this card is underneath */
     public set parentCard(card: Card | null) {
-        if (card === null) {
+        if (card) {
             this._parentCard = null;
             return;
         }
@@ -52,6 +52,47 @@ export class UpgradeCard extends UpgradeCardParent {
         }
 
         this._parentCard = card as UnitCard;
+    }
+
+    public override moveTo(targetLocation: Location) {
+        if (
+            !Contract.assertFalse(this._parentCard && targetLocation !== this._parentCard.location,
+                `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`)
+        ) {
+            return;
+        }
+
+        super.moveTo(targetLocation);
+    }
+
+    public attachTo(newParentCard: UnitCard) {
+        if (
+            !Contract.assertTrue(newParentCard.isUnit()) ||
+            !Contract.assertTrue(EnumHelpers.isArena(newParentCard.location))
+        ) {
+            return;
+        }
+
+        if (this._parentCard) {
+            this.unattach();
+        } else {
+            this.controller.removeCardFromPile(this);
+        }
+
+        this.moveTo(newParentCard.location);
+        newParentCard.controller.putUpgradeInArena(this, newParentCard.location);
+        newParentCard.attachUpgrade(this);
+        this._parentCard = newParentCard;
+    }
+
+    public unattach() {
+        if (!Contract.assertTrue(this._parentCard !== null, 'Attempting to unattach upgrade when already unattached')) {
+            return;
+        }
+
+        this.parentCard.unattachUpgrade(this);
+        this.parentCard.controller.removeCardFromPile(this);
+        this._parentCard = null;
     }
 
     /**
@@ -67,9 +108,8 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     public override leavesPlay() {
-        // If this is an attachment and is attached to another card, we need to remove all links between them
-        if (this._parentCard && this._parentCard.upgrades) {
-            this._parentCard.removeUpgrade(this);
+        if (this._parentCard) {
+            this.unattach();
         }
 
         super.leavesPlay();

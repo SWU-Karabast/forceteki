@@ -1,4 +1,4 @@
-describe('Entrenched', function() {
+describe('Play upgrade from hand', function() {
     integration(function() {
         describe('When an upgrade is played,', function() {
             beforeEach(function () {
@@ -29,6 +29,7 @@ describe('Entrenched', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tieLn, this.brightHope]);
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.upgrades).toContain(this.entrenched);
+                expect(this.entrenched).toBeInLocation('ground arena');
                 expect(this.wampa.power).toBe(7);
                 expect(this.wampa.hp).toBe(8);
 
@@ -41,6 +42,7 @@ describe('Entrenched', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tieLn, this.brightHope]);
                 this.player1.clickCard(this.tieLn);
                 expect(this.tieLn.upgrades).toContain(this.academyTraining);
+                expect(this.academyTraining).toBeInLocation('space arena');
                 expect(this.tieLn.power).toBe(4);
                 expect(this.tieLn.hp).toBe(3);
 
@@ -53,6 +55,7 @@ describe('Entrenched', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tieLn, this.brightHope]);
                 this.player1.clickCard(this.brightHope);
                 expect(this.brightHope.upgrades).toContain(this.resilient);
+                expect(this.resilient).toBeInLocation('space arena', this.player2);
                 expect(this.brightHope.power).toBe(2);
                 expect(this.brightHope.hp).toBe(9);
 
@@ -109,8 +112,8 @@ describe('Entrenched', function() {
                 this.player1.clickCard(this.brightHope);
 
                 expect(this.brightHope.damage).toBe(5);
-                expect(this.tieLn.location).toBe('discard');
-                expect(this.entrenched.location).toBe('discard');
+                expect(this.tieLn).toBeInLocation('discard');
+                expect(this.entrenched).toBeInLocation('discard');
             });
         });
     });

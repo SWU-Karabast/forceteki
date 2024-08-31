@@ -32,9 +32,6 @@ class DeckBuilder {
         return cards;
     }
 
-    /*
-        options: as player1 and player2 are described in setupTest #1514
-    */
     customDeck(playerNumber, playerCards = {}) {
         if (Array.isArray(playerCards.leader)) {
             throw new Error('Test leader must not be specified as an array');
@@ -43,8 +40,6 @@ class DeckBuilder {
             throw new Error('Test base must not be specified as an array');
         }
 
-        let leader = defaultLeader[playerNumber];
-        let base = defaultBase[playerNumber];
         let allCards = [];
         let deckSize = deckBufferSize;
         let inPlayCards = [];
@@ -53,36 +48,21 @@ class DeckBuilder {
         allCards.push(playerCards.base ? playerCards.base : defaultBase[playerNumber]);
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
-        if (playerCards.resources == null) {
-            playerCards.resources = Array(20).fill(deckFillerCard);
-        } else if (typeof playerCards.resources === 'number') {
-            playerCards.resources = Array(playerCards.resources).fill(deckFillerCard);
-        }
+        playerCards.resources = this.padCardListIfNeeded(playerCards.resources, 20);
+        playerCards.deck = this.padCardListIfNeeded(playerCards.deck, 8);
+
+        allCards.push(...playerCards.resources);
+        allCards.push(...playerCards.deck);
 
         /**
          * Create the deck from cards in test - deck consists of cards in decks,
          * hand and discard
          */
-        let initialDeckSize = 0;
-        if (playerCards.deckSize) {   // allow override in case some card has adjusted this
-            deckSize = playerCards.deckSize;
-        }
-        if (playerCards.deck) {
-            allCards.push(...playerCards.deck);
-            initialDeckSize = playerCards.deck.length;
-        }
         if (playerCards.discard) {
             allCards.push(...playerCards.discard);
         }
         if (playerCards.hand) {
             allCards.push(...playerCards.hand);
-        }
-        if (playerCards.resources) {
-            allCards.push(...playerCards.resources);
-        }
-        //Add cards to prevent reshuffling due to running out of cards
-        for (let i = initialDeckSize; i < deckSize; i++) {
-            allCards.push(deckFillerCard);
         }
 
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.groundArena));
@@ -92,6 +72,16 @@ class DeckBuilder {
         allCards = allCards.concat(inPlayCards);
 
         return this.buildDeck(allCards);
+    }
+
+    padCardListIfNeeded(cardList, defaultCount) {
+        if (cardList == null) {
+            return Array(defaultCount).fill(deckFillerCard);
+        }
+        if (typeof cardList === 'number') {
+            return Array(cardList).fill(deckFillerCard);
+        }
+        return cardList;
     }
 
     getInPlayCardsForArena(arenaList) {
@@ -108,7 +98,11 @@ class DeckBuilder {
                 inPlayCards.push(card.card);
                 //Add any upgrades
                 if (card.upgrades) {
-                    inPlayCards.push(...card.upgrades);
+                    let nonTokenUpgrades = card.upgrades.filter((upgrade) =>
+                        !['shield', 'experience'].includes(upgrade)
+                    );
+
+                    inPlayCards.push(...nonTokenUpgrades);
                 }
             }
         }
@@ -134,6 +128,13 @@ class DeckBuilder {
             leader: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('leader')),
             base: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('base')),
             deckCards: this.filterPropertiesToArray(cardCounts, (count) => !count.card.types.includes('leader') && !count.card.types.includes('base'))
+        };
+    }
+
+    getTokenData() {
+        return {
+            shield: this.getCard('shield'),
+            experience: this.getCard('experience')
         };
     }
 

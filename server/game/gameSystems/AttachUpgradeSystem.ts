@@ -31,16 +31,9 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
         event.originalLocation = event.card.location;
 
-        if (EnumHelpers.isArena(event.card.location)) {
-            // if the upgrade is being moved, first remove it from its current parent
-            event.card.parentCard.removeAttachment(event.card);
-        } else {
-            event.card.controller.removeCardFromPile(event.card);
-            event.card.new = true;
-            event.card.moveTo(event.parentCard.location);
-        }
+        // attachTo manages all of the unattach and move zone logic
+        event.card.attachTo(event.parentCard);
 
-        event.parentCard.attachUpgrade(event.card);
         if (properties.takeControl) {
             event.card.controller = event.context.player;
             event.card.updateConstantAbilityContexts();

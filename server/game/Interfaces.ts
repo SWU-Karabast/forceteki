@@ -6,6 +6,7 @@ import type { IAttackProperties } from './gameSystems/AttackSystem';
 import { type RelativePlayer, type TargetMode, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Aspect } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
+import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -14,6 +15,7 @@ import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTa
 
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;
+export type IReplacementEffectAbilityProps = IReplacementEffectAbilityWhenProps | IReplacementEffectAbilityAggregateWhenProps;
 
 /** Interface definition for addActionAbility */
 export interface IActionAbilityProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
@@ -80,6 +82,12 @@ export interface IAbilityProps<Context> {
     then?: ((context?: AbilityContext) => object) | object;
 }
 
+interface IReplacementEffectAbilityBaseProps extends Omit<ITriggeredAbilityBaseProps,
+        'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
+> {
+    replaceWith: IReplacementEffectSystemProperties
+}
+
 // TODO KEYWORDS: add remaining keywords to this type
 export type IKeywordProperties =
     | IAmbushKeywordProperties
@@ -123,18 +131,20 @@ interface ITriggeredAbilityAggregateWhenProps extends ITriggeredAbilityBaseProps
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 }
 
+interface IReplacementEffectAbilityWhenProps extends IReplacementEffectAbilityBaseProps {
+    when: WhenType;
+}
+
+interface IReplacementEffectAbilityAggregateWhenProps extends IReplacementEffectAbilityBaseProps {
+    aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
+}
+
 interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityContext> {
     collectiveTrigger?: boolean;
     targetResolver?: ITriggeredAbilityTargetResolver;
     targetResolvers?: ITriggeredAbilityTargetsResolver;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => object) | object;
-
-    /**
-     * If true, the ability can be triggered by any player. If false, only the card's controller can
-     * trigger it.
-     */
-    anyPlayer?: boolean;
 
     /**
      * Indicates if triggering the ability is optional (in which case the player will be offered the

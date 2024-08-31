@@ -75,7 +75,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
             { target: this.getDefaultTargets(context) },
             this.defaultProperties,
             additionalProperties,
-            this.properties ?? this.propertyFactory?.(context) // ?? {} // TODO: remove this comment once we're sure it's not needed
+            this.properties ?? this.propertyFactory?.(context)
         );
         if (!Array.isArray(properties.target)) {
             properties.target = [properties.target];

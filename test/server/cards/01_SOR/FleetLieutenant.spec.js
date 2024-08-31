@@ -26,7 +26,7 @@ describe('Fleet Lieutenant', function() {
 
             it('should allowing triggering an attack by a unit when played', function () {
                 this.player1.clickCard(this.fleetLieutenant);
-                expect(this.fleetLieutenant.location).toBe('ground arena');
+                expect(this.fleetLieutenant).toBeInLocation('ground arena');
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.monMothma]);
 
                 this.player1.clickCard(this.wampa);
@@ -58,7 +58,7 @@ describe('Fleet Lieutenant', function() {
 
             it('should allow the user to pass on the attack at the attacker select stage', function () {
                 this.player1.clickCard(this.fleetLieutenant);
-                expect(this.fleetLieutenant.location).toBe('ground arena');
+                expect(this.fleetLieutenant).toBeInLocation('ground arena');
 
                 this.player1.clickPrompt('Pass ability');
                 expect(this.player2).toBeActivePlayer();
@@ -66,7 +66,7 @@ describe('Fleet Lieutenant', function() {
 
             it('should allow the user to pass on the attack at the target select stage', function () {
                 this.player1.clickCard(this.fleetLieutenant);
-                expect(this.fleetLieutenant.location).toBe('ground arena');
+                expect(this.fleetLieutenant).toBeInLocation('ground arena');
 
                 this.player1.clickCard(this.monMothma);
 

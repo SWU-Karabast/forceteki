@@ -4,7 +4,6 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttackSystem, IAttackProperties } from './AttackSystem';
-// import { CancelAction, CancelActionProperties } from './CancelAction';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { DamageSystem, IDamageProperties } from './DamageSystem';
 import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
@@ -25,6 +24,8 @@ import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
 // import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
 import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './ExecuteHandlerSystem';
 // import { IfAbleAction, IfAbleActionProperties } from './IfAbleAction';
+import { GiveExperienceSystem, IGiveExperienceProperties } from './GiveExperienceSystem';
+import { GiveShieldSystem, IGiveShieldProperties } from './GiveShieldSystem';
 import { HealSystem, IHealProperties } from './HealSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
@@ -43,6 +44,7 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { ReadySystem, IReadySystemProperties } from './ReadySystem';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
+import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
 // import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
 import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
@@ -95,6 +97,12 @@ export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}
 // }
 export function exhaust(propertyFactory: PropsFactory<IExhaustSystemProperties> = {}): CardTargetSystem {
     return new ExhaustSystem(propertyFactory);
+}
+export function giveExperience(propertyFactory: PropsFactory<IGiveExperienceProperties> = {}): CardTargetSystem {
+    return new GiveExperienceSystem(propertyFactory);
+}
+export function giveShield(propertyFactory: PropsFactory<IGiveShieldProperties> = {}): CardTargetSystem {
+    return new GiveShieldSystem(propertyFactory);
 }
 export function heal(propertyFactory: PropsFactory<IHealProperties>): GameSystem {
     return new HealSystem(propertyFactory);
@@ -257,14 +265,14 @@ export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCard
 // //////////////
 // // GENERIC
 // //////////////
-// export function cancel(propertyFactory: PropsFactory<CancelActionProperties> = {}): GameSystem {
-//     return new CancelAction(propertyFactory);
-// }
 export function handler(propertyFactory: PropsFactory<IExecuteHandlerSystemProperties>): GameSystem {
     return new ExecuteHandlerSystem(propertyFactory);
 }
 export function noAction(): GameSystem {
     return new ExecuteHandlerSystem({});
+}
+export function replacementEffect(propertyFactory: PropsFactory<IReplacementEffectSystemProperties>): GameSystem {
+    return new ReplacementEffectSystem(propertyFactory);
 }
 
 //////////////

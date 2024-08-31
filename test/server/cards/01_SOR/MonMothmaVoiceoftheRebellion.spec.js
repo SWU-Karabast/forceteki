@@ -28,7 +28,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 // Choose Battlefield Marine
                 this.player1.clickPrompt(this.battlefieldMarine.title);
                 expect(this.getChatLogs(2)).toContain('player1 takes Battlefield Marine');
-                expect(this.battlefieldMarine.location).toBe('hand');
+                expect(this.battlefieldMarine).toBeInLocation('hand');
 
                 // Ensure that cards have moved to bottom of deck
                 expect(this.cartelSpacer).toBeInBottomOfDeck(this.player1, 4);
@@ -63,7 +63,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 // Check results
                 this.player1.clickCard(this.monMothma);
-                expect(this.monMothma.location).toBe('ground arena');
+                expect(this.monMothma).toBeInLocation('ground arena');
                 expect(this.player1.deck.length).toBe(0);
 
                 // Player 2 now active
