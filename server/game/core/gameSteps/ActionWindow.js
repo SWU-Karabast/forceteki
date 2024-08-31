@@ -4,7 +4,7 @@ const EnumHelpers = require('../utils/EnumHelpers.js');
 const Contract = require('../utils/Contract');
 
 class ActionWindow extends UiPrompt {
-    constructor(game, title, windowName, activePlayer = null) {
+    constructor(game, title, windowName, prevPlayerPassed, setPassStatus, activePlayer = null) {
         super(game);
 
         this.title = title;
@@ -12,7 +12,12 @@ class ActionWindow extends UiPrompt {
         this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
         this.activePlayerConsecutiveActions = 0;
         this.opportunityCounter = 0;
-        this.prevPlayerPassed = false;
+
+        // whether the previous player passed their action
+        this.prevPlayerPassed = prevPlayerPassed;
+
+        // used to inform the owning ActionPhase of whether this window was passed or not
+        this.setPassStatus = setPassStatus;
     }
 
     /** @override */
@@ -59,7 +64,7 @@ class ActionWindow extends UiPrompt {
     }
 
     postResolutionUpdate(resolver) {
-        this.prevPlayerPassed = false;
+        this.setPassStatus(false);
 
         // if (this.activePlayerConsecutiveActions > 1) {
         //     this.markBonusActionsTaken();
@@ -90,7 +95,8 @@ class ActionWindow extends UiPrompt {
     /** @override */
     activePrompt() {
         let buttons = [
-            { text: 'Pass', arg: 'pass' }
+            { text: 'Pass', arg: 'pass' },
+            { text: 'Claim Initiative', arg: 'claimInitiative' },
         ];
         if (this.game.manualMode) {
             buttons.unshift({ text: 'Manual Action', arg: 'manual' });
@@ -119,7 +125,7 @@ class ActionWindow extends UiPrompt {
                     cardCondition: (card) => card.isFaceup() || card.canBeSmuggled(),
                     onSelect: (player, card) => {
                         this.game.addMessage('{0} uses {1}\'s ability', player, card);
-                        this.prevPlayerPassed = false;
+                        this.setPassStatus(false);
                         return true;
                     }
                 });
@@ -127,6 +133,10 @@ class ActionWindow extends UiPrompt {
 
             case 'pass':
                 this.pass();
+                return true;
+
+            case 'claimInitiative':
+                this.claimInitiative();
                 return true;
 
             default:
@@ -137,6 +147,17 @@ class ActionWindow extends UiPrompt {
 
     pass() {
         this.game.addMessage('{0} passes', this.activePlayer);
+
+        if (this.prevPlayerPassed) {
+            // in the (unusual) case that both players pass without claiming initiative, phase ends and initiative stays where it is
+            this.activePlayer.passedActionPhase = true;
+            this.activePlayer.opponent.passedActionPhase = true;
+        } else if (this.activePlayer.opponent.passedActionPhase) {
+            // if opponent already claimed initiative, we're done
+            this.activePlayer.passedActionPhase = true;
+        } else {
+            this.setPassStatus(true);
+        }
 
         this.complete();
 
@@ -149,6 +170,12 @@ class ActionWindow extends UiPrompt {
         // if (this.activePlayerConsecutiveActions > 1) {
         //     this.markBonusActionsTaken();
         // }
+    }
+
+    claimInitiative() {
+        this.game.claimInitiative(this.activePlayer);
+
+        this.complete();
     }
 
     /** @override */

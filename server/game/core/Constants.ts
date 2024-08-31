@@ -166,6 +166,7 @@ export enum EventName {
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
+    OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
     OnRoundEnded = 'onRoundEnded',
     OnRoundEndedCleanup = 'onRoundEndedCleanup',
     OnSpendResources = 'onSpendResources',
@@ -292,6 +293,7 @@ export enum AbilityRestriction {
 
     BeHealed = 'beHealed',
     InitiateKeywords = 'initiateKeywords',
+    Ready = 'ready',
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
 }

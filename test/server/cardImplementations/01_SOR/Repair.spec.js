@@ -24,8 +24,6 @@ describe('Repair', function() {
 
                 this.p1Base = this.player1.base;
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('can heal a unit', function () {

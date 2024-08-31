@@ -118,6 +118,11 @@ class PlayerInteractionWrapper {
             } else {
                 card.ready();
             }
+
+            if (options.damage != null) {
+                card.damage = options.damage;
+            }
+
             // Activate persistent effects of the card
             //card.applyPersistentEffects();
             // Get the upgrades
@@ -379,6 +384,7 @@ class PlayerInteractionWrapper {
     passAction() {
         this.clickPrompt('Pass');
     }
+
 
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();

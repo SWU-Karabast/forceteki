@@ -7,7 +7,6 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                     player1: {
                         hand: ['mon-mothma#voice-of-the-rebellion'],
                         deck: ['cell-block-guard', 'pyke-sentinel', 'volunteer-soldier', 'cartel-spacer', 'battlefield-marine', 'wampa', 'viper-probe-droid', 'snowtrooper-lieutenant'],
-                        deckSize: 8
                     }
                 });
 
@@ -78,10 +77,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                     phase: 'action',
                     player1: {
                         hand: ['mon-mothma#voice-of-the-rebellion'],
-                        deck: ['cell-block-guard', 'pyke-sentinel', 'volunteer-soldier', 'cartel-spacer', 'academy-defense-walker', 'wampa', 'viper-probe-droid', 'snowtrooper-lieutenant'],
-                        deckSize: 8,
-                        leader: ['leia-organa#alliance-general'],
-                        resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst']
+                        deck: ['cell-block-guard', 'pyke-sentinel', 'volunteer-soldier', 'cartel-spacer', 'academy-defense-walker', 'wampa', 'viper-probe-droid', 'snowtrooper-lieutenant']
                     }
                 });
 

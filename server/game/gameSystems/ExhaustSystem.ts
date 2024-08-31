@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EventName, WildcardCardType } from '../core/Constants';
+import { CardType, EventName, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { PlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
@@ -16,7 +16,7 @@ export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
     public override readonly eventName = EventName.OnCardExhausted;
     public override readonly costDescription = 'exhausting {0}';
     public override readonly effectDescription = 'exhaust {0}';
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Leader, CardType.Event];
 
     public eventHandler(event): void {
         event.card.exhaust();
@@ -24,7 +24,7 @@ export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
-        if (!EnumHelpers.isArena(card.location)) {
+        if (!EnumHelpers.isArena(card.location) && card.location !== Location.Resource) {
             return false;
         }
 

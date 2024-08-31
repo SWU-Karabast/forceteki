@@ -6,13 +6,11 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                     phase: 'action',
                     player1: {
                         hand: ['grand-moff-tarkin#death-star-overseer'],
-                        deck: ['cell-block-guard', 'scout-bike-pursuer', 'academy-defense-walker', 'battlefield-marine', 'wampa', 'alliance-dispatcher', 'echo-base-defender', 'frontline-shuttle'],
-                        deckSize: 8
+                        deck: ['cell-block-guard', 'scout-bike-pursuer', 'academy-defense-walker', 'battlefield-marine', 'wampa', 'alliance-dispatcher', 'echo-base-defender', 'frontline-shuttle']
                     },
                     player2: {
                         hand: ['grand-moff-tarkin#death-star-overseer'],
-                        deck: ['system-patrol-craft', 'clan-wren-rescuer', 'village-protectors', 'concord-dawn-interceptors', 'gentle-giant', 'wampa', 'cargo-juggernaut', 'public-enemy'],
-                        deckSize: 8
+                        deck: ['system-patrol-craft', 'clan-wren-rescuer', 'village-protectors', 'concord-dawn-interceptors', 'gentle-giant', 'wampa', 'cargo-juggernaut', 'public-enemy']
                     }
                 });
 

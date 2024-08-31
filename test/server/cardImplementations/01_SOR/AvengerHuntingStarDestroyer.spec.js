@@ -25,8 +25,6 @@ describe('Avenger, Hunting Star Destroyer', function() {
 
                 this.p1Base = this.player1.base;
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('forces opponent to defeat friendly non-leader unit when Avenger is played', function () {

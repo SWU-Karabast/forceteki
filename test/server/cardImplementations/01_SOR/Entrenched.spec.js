@@ -18,8 +18,6 @@ describe('Entrenched', function() {
                 this.tieLn = this.player1.findCardByName('tieln-fighter');
                 this.brightHope = this.player2.findCardByName('bright-hope#the-last-transport');
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('should prevent a unit from being able to attack base', function () {
@@ -52,8 +50,6 @@ describe('Entrenched', function() {
                 this.brightHope = this.player1.findCardByName('bright-hope#the-last-transport');
                 this.tieLn = this.player2.findCardByName('tieln-fighter');
                 this.p2Base = this.player2.base;
-
-                this.noMoreActions();
             });
 
             it('should work on an opponent\'s unit', function () {

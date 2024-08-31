@@ -41,7 +41,7 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
 // import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
 import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
-// import { ReadyAction, ReadyProperties } from './ReadyAction';
+import { ReadySystem, IReadySystemProperties } from './ReadySystem';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
 // import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
@@ -129,9 +129,9 @@ export function putIntoPlay(propertyFactory: PropsFactory<IPutIntoPlayProperties
 // export function opponentPutIntoPlay(propertyFactory: PropsFactory<OpponentPutIntoPlayProperties> = {}): GameSystem {
 //     return new OpponentPutIntoPlayAction(propertyFactory, false);
 // }
-// export function ready(propertyFactory: PropsFactory<ReadyProperties> = {}): GameSystem {
-//     return new ReadyAction(propertyFactory);
-// }
+export function ready(propertyFactory: PropsFactory<IReadySystemProperties> = {}): GameSystem {
+    return new ReadySystem(propertyFactory);
+}
 // export function removeFromGame(propertyFactory: PropsFactory<RemoveFromGameProperties> = {}): CardGameAction {
 //     return new RemoveFromGameAction(propertyFactory);
 // }

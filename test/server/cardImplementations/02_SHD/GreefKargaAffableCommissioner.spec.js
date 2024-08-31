@@ -17,8 +17,6 @@ describe('Greef Karga, Affable Commissioner', function() {
                 this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
                 this.foundling = this.player1.findCardByName('foundling');
                 this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-
-                this.noMoreActions();
             });
 
             it('can draw upgrade', function () {

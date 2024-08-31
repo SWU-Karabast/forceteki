@@ -116,27 +116,41 @@ class Player extends GameObject {
     // TODO THIS PR: this should retrieve upgrades, but we need to confirm once they're implemented
     /**
      * Get all cards in designated play arena(s) owned by this player
-     * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
+     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
-    getCardsInPlay(arena = null) {
-        return this.spaceArena.concat(this.groundArena);
+    getCardsInPlay(arena = WildcardLocation.AnyArena) {
+        switch (arena) {
+            case Location.GroundArena:
+                return [...this.groundArena];
+            case Location.SpaceArena:
+                return [...this.spaceArena];
+            case WildcardLocation.AnyArena:
+                return this.spaceArena.concat(this.groundArena);
+            default:
+                Contract.fail(`Unknown arena type: ${arena}`);
+                return [];
+        }
     }
 
     /**
      * Get all units in designated play arena(s) owned by this player
-     * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
+     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
-    getUnitsInPlay(arena = null, cardCondition = (card) => true) {
+    getUnitsInPlay(arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
         return this.getCardsInPlay(arena).filter((card) => card.isUnit() && cardCondition(card));
     }
 
     /**
      * Get all cards in designated play arena(s) other than the passed card owned by this player.
      * @param { any } ignoreUnit Unit to filter from the returned results
-     * @param { import('./Constants').Arena | null } arena Arena to select units from. If null, selects cards from both arenas.
+     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
-    getOtherUnitsInPlay(ignoreUnit, arena = null, cardCondition = (card) => true) {
+    getOtherUnitsInPlay(ignoreUnit, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
         return this.getCardsInPlay(arena).filter((card) => card.isUnit() && card !== ignoreUnit && cardCondition(card));
+    }
+
+    getResourceCards() {
+        return [...this.resources];
     }
 
     /**
@@ -870,17 +884,21 @@ class Player extends GameObject {
     }
 
     /**
-     * Called at the start of the Action Phase.  Resets a lot of the single round parameters
+     * Called at the start of the Action Phase.  Resets some of the single round parameters
      */
-    beginAction() {
+    resetForActionPhase() {
         if (this.resetTimerAtEndOfRound) {
             this.noTimer = false;
         }
 
-        this.getCardsInPlay().forEach((card) => {
-            card.new = false;
-        });
         this.passedActionPhase = false;
+    }
+
+    /**
+     * Called at the end of the Action Phase.  Resets some of the single round parameters
+     */
+    cleanupFromActionPhase() {
+        this.passedActionPhase = null;
     }
 
     // showDeck() {
@@ -1080,8 +1098,11 @@ class Player extends GameObject {
 
         var targetPile = this.getCardPile(targetLocation);
 
-        if (!this.isLegalLocationForCardType(card.type, targetLocation) || (targetPile && targetPile.includes(card))) {
-            Contract.fail(`Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
+        if (!Contract.assertTrue(this.isLegalLocationForCardType(card.type, targetLocation), `Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`)) {
+            return;
+        }
+
+        if (!Contract.assertFalse(targetPile.includes(card), `Tried to move card ${card.name} to ${targetLocation} but it is already there`)) {
             return;
         }
 
@@ -1165,6 +1186,9 @@ class Player extends GameObject {
                     break;
                 case Location.Leader:
                     this.leaderZone = updatedPile;
+                    break;
+                case Location.Resource:
+                    this.resources = updatedPile;
                     break;
                 default:
                     if (this.additionalPiles[originalPile]) {
