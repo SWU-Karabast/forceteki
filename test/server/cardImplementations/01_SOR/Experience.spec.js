@@ -71,5 +71,33 @@ describe('Experience', function() {
                 expect(this.experience).toBeInLocation('outside the game');
             });
         });
+
+        describe('When an experience token is created', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clan-wren-rescuer']
+                    },
+                    player2: {
+                        spaceArena: ['tieln-fighter']
+                    }
+                });
+
+                this.clanWrenRescuer = this.player1.findCardByName('clan-wren-rescuer');
+                this.tieLn = this.player2.findCardByName('tieln-fighter');
+            });
+
+            it('its owner and controller should be the player who created it', function () {
+                this.player1.clickCard(this.clanWrenRescuer);
+                this.player1.clickCard(this.tieLn);
+
+                expect(this.tieLn.upgrades.length).toBe(1);
+                const experience = this.tieLn.upgrades[0];
+                expect(experience.internalName).toBe('experience');
+                expect(experience.owner).toBe(this.player1.player);
+                expect(experience.controller).toBe(this.player1.player);
+            });
+        });
     });
 });
