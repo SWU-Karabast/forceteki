@@ -468,6 +468,10 @@ this.addReplacementEffectAbility({
 ```
 
 ## Ability building blocks
+This section describes some of the major components that are used in the definitions of abilities:
+- Context objects
+- Game systems
+- Target resolvers
 
 #### Context object
 
