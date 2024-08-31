@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { AbilityRestriction } from '../../core/Constants';
+import { AbilityRestriction, CardType, WildcardCardType } from '../../core/Constants';
 import { countUniqueAspects } from '../../core/utils/Helpers';
 
 export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
@@ -13,15 +13,23 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
 
     protected override setupCardAbilities() {
         this.addConstantAbility({
-            title: 'Sabine passive',
+            title: 'Cannot be attacked if friendly units have at least 3 unique aspects',
             condition: (context) => countUniqueAspects(this.controller.getOtherUnitsInPlay(context.source)) >= 3,
 
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
+        });
+
+        this.addOnAttackAbility({
+            title: 'Deal 1 damage to the defender or a base',
+            targetResolver: {
+                cardTypeFilter: [WildcardCardType.Unit, CardType.Base],
+                cardCondition: (card, context) => card.isBase() || card === context.event.attack.target,
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
+            }
         });
     }
 }
 
 // sabine is only partially implemented, still need to handle:
 // - the effect override if she gains sentinel
-// - her active ability
 SabineWrenExplosivesArtist.implemented = false;

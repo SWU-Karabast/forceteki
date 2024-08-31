@@ -18,7 +18,7 @@ export enum WildcardLocation {
     Any = 'any',
     AnyArena = 'any arena',
 
-    // TODO: better name for this?
+    /** Any location that is a valid attack target - an arena or base zone */
     AnyAttackable = 'any attackable'
 }
 
@@ -133,7 +133,9 @@ export enum WildcardCardType {
     Any = 'any',
     NonLeaderUnit = 'nonLeaderUnit',
     Token = 'token',
+    /** Any unit type, including leader and token units */
     Unit = 'unit',
+    /** Any upgrade type, including token upgrades */
     Upgrade = 'upgrade',
 }
 

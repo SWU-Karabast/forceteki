@@ -91,7 +91,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return true;
         }
 
-        protected addAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+        protected addOnAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
             const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
             this.addTriggeredAbility(triggeredProperties);
         }
