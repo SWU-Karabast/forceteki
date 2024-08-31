@@ -270,7 +270,7 @@ this.addConstantAbilityTargetingAttached({
 
 ### Action abilities
 
-Action abilities are abilities from card text which provide actions that players may trigger during the action phase. They are declared using the `addActionAbility` method. See [ActionAbility.ts](../server/game/core/ability/ActionAbility.ts) for full documentation (_NOTE: may be stale_). Here are some common scenarios:
+Action abilities are abilities from card text with the bold text **"Action [_one or more costs_]:"**, followed by an effect. This provides an action the player may trigger during the action phase. They are declared using the `addActionAbility` method. See [ActionAbility.ts](../server/game/core/ability/ActionAbility.ts) for full documentation (_NOTE: may be stale_). Here are some common scenarios:
 
 #### Declaring an action
 
@@ -293,22 +293,13 @@ export default class GroguIrresistible extends NonLeaderUnitCard {
 
 #### Checking ability restrictions
 
-Card abilities can only be triggered if they have the potential to modify game state (outside of paying costs). To ensure that the action's play restrictions are met, pass a `condition` function that returns `true` when the restrictions are met, and `false` otherwise. If the condition returns `false`, the action will not be executed and costs will not be paid.
+To ensure that the action's play restrictions are met, pass a `condition` function that returns `true` when the restrictions are met, and `false` otherwise. If the condition returns `false`, the action will not be executed and costs will not be paid.
 
 ```javascript
-// During a conflict, give this character +2/+2
+// Give this unit +2/+2, but the action is only available if the friendly leader is deployed
 this.action({
-    title: 'Give this character +2/+2',
-    condition: () => this.game.isDuringConflict(),
-    // ...
-});
-```
-
-```javascript
-// While this character is participating in a conflict....
-this.action({
-    title: 'Switch a character\'s M and P skill',
-    condition: context => context.source.isParticipating(),
+    title: 'Give this unit +2/+2',
+    condition: () => this.controller.leader.isDeployed(),
     // ...
 });
 ```
@@ -317,120 +308,102 @@ this.action({
 
 Some actions have an additional cost, such as bowing the card. In these cases, specify the `cost` parameter. The action will check if the cost can be paid. If it can't, the action will not execute. If it can, costs will be paid automatically and then the action will execute.
 
-For a full list of costs, look at `/server/game/costs.js`.
+For a full list of costs, look at [CostLibrary.ts](../server/game/costs/CostLibrary.ts).
 
+One example is Salacious Crumb's action ability, which has two costs - exhaust the card and return it to hand:
 ```javascript
-// During a conflict, bow this character. Choose another [crane] character - that character gets +0/+3 until the end of the conflict
-this.action({
-    title: 'Give a character +0/+3',
-    // This card must be bowed as a cost for the action.
-    cost: AbilityHelper.costs.bowSelf(),
-    // ...
-});
-```
-
-If a card has multiple costs, an array of cost objects may be sent using the `cost` property.
-
-```javascript
-this.action({
-    title: 'Give all non-unique participating characters -2/-0',
-    // This card must be bowed AND sacrificed as a cost for the action.
-    cost: [
-        AbilityHelper.costs.bowSelf(),
-        AbilityHelper.costs.sacrificeSelf()
-    ],
-    // ...
-});
+public override setupCardAbilities() {
+    this.addActionAbility({
+        title: 'Deal 1 damage to a ground unit',
+        cost: [
+            AbilityHelper.costs.exhaustSelf(),
+            AbilityHelper.costs.returnSelfToHandFromPlay()
+        ],
+        cannotTargetFirst: true,
+        targetResolver: {
+            locationFilter: Location.GroundArena,
+            immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+        }
+    });
+}
 ```
 
 ### Triggered abilities
 
-Triggered abilities include all card abilities that have **Interrupt**, **Forced Interrupt**, **Reaction**, **Forced Reaction**. Implementing a triggered ability is similar to actions above, but instead of calling `this.action`, `this.reaction` or `this.interrupt` are used instead. Costs and targets are declared in the same way. For full documentation of properties, see `/server/game/triggeredability.js`. Here are some common scenarios:
+Triggered abilities are abilities with bold text indicating a game event to be triggered off. Typical examples are "When played," "On attack," and "When defeated." Implementing a triggered ability is similar to action abilities above, except that we use `this.addTriggeredAbility`. Costs and targets (discussed below) are declared in the same way. For full documentation of properties, see [TriggeredAbility.ts](../server/game/core/ability/TriggeredAbility.ts). Here are some common scenarios:
 
 #### Defining the triggering condition
 
-Each triggered ability has an associated triggering condition. This is done using the `when` property. This should be an object whose sub-property is the name of the event, and whose value is a function which takes the event and the context object. When the function returns `true`, the ability will be executed.
+Each triggered ability has an associated triggering condition. This is done using the `when` property. This should be an object with one property which named for the name of the event - see `EventName` in [Constants.ts](server\game\core\Constants.ts) for a current list of available events to trigger on. The value of the `when` property should be a function which takes the event and the context object. When the function returns `true`, the ability will be executed.
 
+Here is an example with the deployed Cassian leader ability:
 ```javascript
 this.reaction({
-    // When this card enters play, honor it
+    // When damage is dealt to an enemy base, draw a card
     when: {
-    	onCharacterEntersPlay: (event, context) => event.card === context.source
+    	onDamageDealt: (event, context) => event.target.isBase() && event.target.controller !== context.source.controller
     },
-    gameAction: AbilityHelper.actions.honor()
+    immediateEffect: AbilityHelper.immediateEffects.drawCard(),
+    limit: AbilityHelper.limit.perRound(1)
 });
 ```
 
-In rare cases, there may be multiple triggering conditions for the same ability. For example, [Ikoma Prodigy](https://fiveringsdb.com/card/ikoma-prodigy) gains an honor when fate is placed on her while playing her, or while she is in play. In these cases, just define an additional event on the `when` object.
+#### Triggering condition helpers
+
+There are several ability triggers that are extremely common. For these, we provide helper methods which wrap the `when` clause so that it doesn't need to be typed out every time. For example, Mon Mothma's "when played" ability:
 
 ```javascript
-this.reaction({
-    title: 'Gain 1 honor',
-    when: {
-        onCharacterEntersPlay: (event, context) => event.card === context.source && context.source.fate > 0,
-        onMoveFate: (event, context) => event.recipient === context.source && event.fate > 0
-    },
-    gameAction: AbilityHelper.actions.gainHonor()
-});
-```
-
-#### Forced reactions and interrupts
-
-Forced reactions and interrupts do not provide the player with a choice - unless cancelled, the effect will always resolve.
-
-To declare a forced reaction, use the `forcedReaction` method:
-
-```javascript
-this.forcedReaction({
-    title: 'Can\'t be discarded or remove fate',
-    when: {
-        onPhaseStarted: (event, context) => event.phase === 'fate' && context.player.opponent && 
-                                            context.player.honor >= context.player.opponent.honor + 5
-    },
-    effect: 'stop him being discarded or losing fate in this phase',
-    gameAction: AbilityHelper.actions.cardLastingEffect({
-        duration: 'untilEndOfPhase',    
-        effect: [
-            AbilityHelper.effects.cardCannot('removeFate'),
-            AbilityHelper.effects.cardCannot('discardFromPlay')
-        ]
+this.addWhenPlayedAbility({
+    title: 'Search the top 5 cards of your deck for a Rebel card, then reveal and draw it.',
+    immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+        searchCount: 5,
+        cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
+        selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
     })
 });
 ```
 
-To declare a forced interrupt, use the `forcedInterrupt` method.
+The following triggers have helper methods:
+
+| Trigger | Helper method |
+| --- | --- |
+| When played | addWhenPlayedAbility |
+| On attack | addOnAttackAbility |
+| ~~On defeat~~ | TBD |
+
+#### Optionally triggered abilities
+If the triggered ability uses the word "may," then the ability is considered optional and the player may choose to pass it when it is triggered. In these cases, the triggered ability must be flagged with the "optional" property. For example, Fleet Lieutenant's ability:
 
 ```javascript
-this.forcedInterrupt({
-    when: {
-        onCardLeavesPlay: (event, context) => event.card === context.source && context.source.hasSincerity()
-    },
-    /// ...
-    effect: '{1} draws a card due to {0}\'s Sincerity',
-    effectArgs: context => context.player,
-    gameAction: AbilityHelper.actions.draw()
+this.addWhenPlayedAbility({
+    title: 'Attack with a unit',
+    optional: true,
+    initiateAttack: {
+        effects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus(
+            (attacker: UnitCard) => attacker.hasSomeTrait(Trait.Rebel),
+            { power: 2, hp: 0 }
+        )
+    }
 });
 ```
 
-#### 'Would' interrupts
-
-Some abilities allow the player to cancel an effect. These effects are always interrupts, and are usually templated as 'Interrupt: When [trigger] would....'.  These are implemented
-using the `wouldInterrupt` method.  The context object for triggered ability has a useful `cancel` method which can be called in these cases
-
+#### Multiple triggers
+In some cases there may be multiple triggering conditions for the same ability, such as Avenger's ability being triggered on play and on attack. In these cases, just define an additional event on the `when` object. For example, see the ability on The Ghost:
 ```javascript
-this.wouldInterrupt({
-    title: 'Cancel an event',
+this.addTriggeredAbility({
+    title: 'Give a shield to another Spectre unit',
     when: {
-        onInitiateAbilityEffects: event => event.card.type === 'event'
+        onCardPlayed: (event, context) => event.card === context.source,
+        onAttackDeclared: (event, context) => event.attack.attacker === context.source
     },
-    cost: AbilityHelper.costs.dishonor(card => card.hasTrait('courtier')),
-    effect: 'cancel {1}',
-    effectArgs: context => context.event.card,
-    handler: context => context.cancel()
+    targetResolver: {
+        cardCondition: (card, context) => card.hasSomeTrait(Trait.Spectre) && 
+        immediateEffect: AbilityHelper.immediateEffects.defeat()
+    }
 });
 ```
 
-#### Abilities outside of play
+#### **IGNORE THIS SECTION, STILL WIP**: Abilities outside of play
 
 Certain abilities, such as that of Vengeful Oathkeeper can only be activated in non-play locations. Such reactions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability when prompted.
 
@@ -442,6 +415,56 @@ this.reaction({
     location: 'hand',
     gameAction: AbilityHelper.actions.putIntoPlay()
 })
+```
+
+### Event abilities
+All ability text printed on an event card is considered the "event ability" for that card. Event abilities are defined exactly the same way as action abilities, except that there can only be one ability defined and it uses the `setEventAbility` method. E.g. Daring Raid:
+
+```javascript
+this.setEventAbility({
+    title: 'Deal 2 damage to a unit or base',
+    targetResolver: {
+        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
+    }
+});
+```
+
+### Epic action abilities
+Epic action abilities are printed on leader and base cards, and can only be activated once per game. Like event cards, they are defined the same way as action abilities except that only one can be set and it is set using the `setEpicActionAbility` method. See Tarkintown:
+
+```javascript
+this.setEpicActionAbility({
+    title: 'Deal 3 damage to a damaged non-leader unit',
+    targetResolver: {
+        cardTypeFilter: CardType.NonLeaderUnit,
+        cardCondition: (card) => (card as UnitCard).damage !== 0,
+        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
+    }
+});
+```
+
+### Replacement effects
+Some abilities allow the player to cancel or modify an effect. These abilities are always defined with the word "instead" or "would." Some examples:
+- Shield, which cancels the normal resolution of damage and replaces it with another effect (defeating the shield token)
+- Boba Fett's armor, which modifies the normal resolution of an instance of damage and reduces its value by 2
+
+These abilities are called "replacement effects" in the SWU rules and are defined using the `addReplacementEffectAbility` method. Otherwise the ability is defined very similar to a triggered ability, except that it has a `replaceWith` property object which defines an optional replacement effect in the `replacementImmediateEffect` sub-property. If `replacementImmediateEffect` is null, the triggering effect is canceled with no replacement. An optional `target` sub-property is also availabe to define a target for the replacement effect.
+
+Here is the Shield implementation as an example:
+```javascript
+this.addReplacementEffectAbility({
+    // TODO THIS PR: fix "this" throughout
+    title: 'Defeat shield to prevent attached unit from taking damage',
+    when: {
+        onDamageDealt: (event) => event.card === this.parentCard
+    },
+    replaceWith: {
+        target: this,
+        replacementImmediateEffect: AbilityHelper.immediateEffects.defeat()
+    },
+    effect: 'shield prevents {1} from taking damage',
+    effectArgs: () => [this.parentCard],
+});
 ```
 
 ## Ability building blocks
