@@ -16,7 +16,7 @@ export default class _21BSurgicalDroid extends NonLeaderUnitCard {
             title: 'Heal 2 damage from another unit',
             optional: true,
             targetResolver: {
-                cardCondition: (card) => card !== this,
+                cardCondition: (card, context) => card !== context.source,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 2 })
             }

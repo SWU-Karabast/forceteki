@@ -64,27 +64,31 @@ export default class GroguIrresistible extends NonLeaderUnitCard {
 GroguIrresistible.implemented = true;
 ```
 
-## Implement card abilities
+## Implement card abilities (quickstart)
 
-All card abilities (actions, triggered abilities, constant abilities, event abilities) should be defined in the `setupCardAbilities` method:
+The below is a quickstart guide on how to implement each ability type with some examples without going into too much detail on the components. See section **TODO: LINK HERE** for details on the building blocks of abilities.
+
+All card abilities (i.e., any card text with an effect) should be defined in the `setupCardAbilities` method:
 
 ```javascript
 class GroguIrresistible extends NonLeaderUnitCard {
-    setupCardAbilities() {
-        // Declare all ability types (action, triggered, constant, event, epic, replacement) here.
+    public override setupCardAbilities() {
+        // Declare all ability types (action, triggered, constant, event, epic, replacement) here
         this.addActionAbility({
             title: 'Exhaust an enemy unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                cardCondition: (card) => card.controller !== this.controller,
+                controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
-        })
+        });
     }
 }
 ```
 
-There are several ability types in SWU, each with its own initialization method. As shown above in the example of an action ability, each method accepts a property object defining the ability's behavior. Use the `AbilityHelper` import to get access to tools to help with implementations. See below for more documentation on each ability type, or see [Interfaces.ts](../server/game/Interfaces.ts) for a list of available parameters for each ability type. The ability types and methods are:
+There are several ability types in SWU, each with its own initialization method. As shown above in the example of an action ability, each method accepts a property object defining the ability's behavior. Use the `AbilityHelper` import to get access to tools to help with implementations. Additionally, see [Interfaces.ts](../server/game/Interfaces.ts) for a list of available parameters for each ability type.
+
+The ability types and methods are:
 
 | Ability Type | Method | Definition |
 | --- | --- | --- |
@@ -98,7 +102,392 @@ There are several ability types in SWU, each with its own initialization method.
 
 Additionally, there are specific helper methods that extend the above to make common cases simpler, such as "onAttack" triggers or upgrades that cause the attached card to gain an ability or keyword. See the relevant section below for specific details.
 
-### Using GameSystems for ability effects
+### Keywords
+
+Most Keywords (sentinel, raid, smuggle, etc.) are automatically parsed from the card text. It isn't necessary to explicitly implement them unless they are provided by a conditional ability. Some examples of keywords requiring explicit implementation:
+
+- Baze Malbus: `While you have initiative, this unit gains Sentinel.`
+- Red Three: `Each other [Heroic] unit gains Raid 1.`
+- Protector: `Attached unit gains Restore 2.`
+
+### Constant abilities
+
+Many cards provide continuous bonuses to other cards you control or detrimental effects to opponents cards in certain situations. These abilities are referred to in SWU as "constant abilities" and can be defined using the `addConstantAbility` method. Cards that enter play while the constant ability is in play will automatically have the ongoing effect applied, and cards that leave play will have the effect removed. If the card providing the effect becomes blank, the ongoing effect is automatically removed from all previously applied cards.
+
+For a full list of properties that can be set when declaring an ongoing effect, look at [OngoingEffect.js](../server/game/core/ongoingEffect/OngoingEffect.js) _(NOTE: this is possibly stale)_. To see all the types of effect which you can use (and whether they apply to cards or players), look at [EffectLibrary.js](../server/game/ongoingEffects/OngoingEffectLibrary.ts). Here are some common scenarios:
+
+#### Matching conditions vs matching specific cards
+
+The ongoing effect declaration (for card effects, not player effects) takes a `matchTarget` property. In most cases this will be a function that takes a `Card` object and should return `true` if the ongoing effect should be applied to that card.
+
+```javascript
+// Each Rebel unit you control gains +1/+1
+this.constantAbility({
+    matchTarget: card => card.hasSomeTrait(Trait.Rebel),
+    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 }),
+});
+```
+
+In some cases, an ongoing effect should be applied to a specific card. While you could write a `matchTarget` function to match only that card, you can provide the `Card` or `Player` object as a shorthand.
+
+```javascript
+// This player's leader unit gets Sentinel while it is deployed (i.e., in the arena)
+this.constantAbility({
+    matchTarget: this.controller.leader,
+    targetLocationFilter: WildcardLocation.AnyArena,
+    ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel),
+});
+```
+
+If not provided, `matchTarget` will default to targeting only the card that owns the constant ability.
+
+#### Conditional ongoing effects
+
+Some ongoing effects have a 'when', 'while' or 'if' clause within their text. These cards can be implemented by passing a `condition` function into the constant ability declaration. The ongoing effect will only be applied when the function returns `true`. If the function returns `false` later on, the ongoing effect will be automatically unapplied from the cards it matched.
+
+```javascript
+// While this unit is exhausted, it gains +1/+1
+this.constantAbility({
+    condition: () => this.exhausted,
+    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })
+});
+```
+
+#### Filtering by card type, owner, location
+Note also that, similar to ability targets described below, there are shorthand filters for the card properties location, owner, and card type. See the relevant section below for details. **TODO THIS PR: add section link**
+
+
+All of these filters are available for filtering target cards (e.g., `targetLocationFilter`), but for checking the properties of the source card (the card that owns the ability) only `sourceLocationFilter` is available:
+
+```javascript
+// While this card is in the ground arena, all of the opponent's units in the space arena get -1/-1
+this.constantAbility({
+    sourceLocationFilter: Location.GroundArena,
+    targetLocationFilter: Location.SpaceArena,
+    targetCardType: WildcardCardType.Unit,
+    targetController: RelativePlayer.Opponent,
+    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
+});
+```
+
+#### Applying multiple effects at once
+As a shorthand, it is possible to pass an array into the `ongoingEffect` property to apply multiple effects that have the same conditions / matching functions.
+
+```javascript
+// This unit gets Sentinel and +1/+1 while damaged
+this.constantAbility({
+    condition: () => this.damage !== 0,
+    effect: [
+        AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel),
+        AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
+    ]
+});
+```
+
+#### **IGNORE THIS SECTION, STILL WIP**: Applying effects to cards which aren't in play
+
+By default, ongoing effects will only be applied to cards in the play area.  Certain cards effects refer to cards in your hand, such as reducing their cost. In these cases, set the `targetLocation` property to `'hand'`.
+
+```javascript
+// Each Direwolf card in your hand gains ambush (X). X is that card's printed cost.
+this.constantAbility({
+    // Explicitly target the effect to cards in hand.
+    targetLocationFilter: 'hand',
+    match: card => card.hasTrait('Direwolf'),
+    effect: AbilityHelper.effects.modifyCost()
+});
+```
+
+This also applies to provinces, holdings and strongholds, which the game considers to be 'in play' even though they aren't in the play area.  Where an effect needs to be applied to these cards (or to characters who are in a province), set `targetLocation` to `'province'`.
+
+```javascript
+// This province gets +5 strength during [political] conflicts.
+this.constantAbility({
+    match: this,
+    targetLocation: 'province',
+    condition: () => this.game.isDuringConflict('political'),
+    effect: AbilityHelper.effects.modifyProvinceStrength(5)
+});
+```
+
+#### **IGNORE THIS SECTION, STILL WIP**: Player modifying effects
+
+
+
+Certain cards provide bonuses or restrictions on the player itself instead of on any specific cards. These effects are marked as `Player` effects in `/server/game/effects.js`. For player effects, `targetController` indicates which players the effect should be applied to (with `'current'` acting as the default). Player effects should not have a `match` property.
+
+```javascript
+// While this character is participating in a conflict, opponents cannot play events.
+this.constantAbility({
+    condition: () => this.isParticipating(),
+    targetController: 'opponent',
+    effect: AbilityHelper.effects.playerCannot(context => context.source.type === 'event')
+});
+```
+
+#### Upgrade helper methods
+Some helper methods are available to make it easier to declare constant abilities on upgrades, since these are extremely common.
+
+##### Static stat bonuses from upgrades
+
+Static upgrade stat bonuses from the printed upgrade values are automatically included in combat calculations for the attached unit.
+
+##### Effects targeting attached card
+
+Since most upgrade abilities target the attached card, we have helper methods available to declare such abilities succintly.
+
+Most upgrades say that the attached unit gains a triggered ability:
+```javascript
+// Attached character gains ability 'On Attack: Exhaust the defender'
+this.addGainTriggeredAbilityTargetingAttached({
+    title: 'Exhaust the defender on attack',
+    // note here that context.source refers to the attached unit card, not the upgrade itself
+    when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
+    targetResolver: {
+        cardCondition: (card, context) => card === context.event.attack.target,
+        immediateEffect: AbilityHelper.immediateEffects.exhaust()
+    }
+});
+```
+
+It is also common for an upgrade to grant a keyword to the attached:
+```javascript
+// Attached character gains keyword 'Restore 2'
+this.addGainKeywordTargetingAttached({
+    keyword: KeywordName.Restore,
+    amount: 2
+});
+```
+
+In some rare cases an upgrade's ability targets the attached card without giving it any new abilities
+```javascript
+// Entrenched ability
+this.addConstantAbilityTargetingAttached({
+    title: 'Attached unit cannot attack bases',
+    ongoingEffect: AbilityHelper.ongoingEffects.cannotAttackBase(),
+});
+```
+
+### Action abilities
+
+Action abilities are abilities from card text which provide actions that players may trigger during the action phase. They are declared using the `addActionAbility` method. See [ActionAbility.ts](../server/game/core/ability/ActionAbility.ts) for full documentation (_NOTE: may be stale_). Here are some common scenarios:
+
+#### Declaring an action
+
+When declaring an action, use the `addActionAbility` method and provide it with a `title` property. The title is what will be displayed in the menu players see when clicking on the card.
+
+```javascript
+export default class GroguIrresistible extends NonLeaderUnitCard {
+    public override setupCardAbilities() {
+        this.addActionAbility({
+            title: 'Exhaust an enemy unit',
+            cost: AbilityHelper.costs.exhaustSelf(),
+            targetResolver: {
+                controller: RelativePlayer.Opponent,
+                immediateEffect: AbilityHelper.immediateEffects.exhaust()
+            }
+        });
+    }
+}
+```
+
+#### Checking ability restrictions
+
+Card abilities can only be triggered if they have the potential to modify game state (outside of paying costs). To ensure that the action's play restrictions are met, pass a `condition` function that returns `true` when the restrictions are met, and `false` otherwise. If the condition returns `false`, the action will not be executed and costs will not be paid.
+
+```javascript
+// During a conflict, give this character +2/+2
+this.action({
+    title: 'Give this character +2/+2',
+    condition: () => this.game.isDuringConflict(),
+    // ...
+});
+```
+
+```javascript
+// While this character is participating in a conflict....
+this.action({
+    title: 'Switch a character\'s M and P skill',
+    condition: context => context.source.isParticipating(),
+    // ...
+});
+```
+
+#### Paying additional costs for action
+
+Some actions have an additional cost, such as bowing the card. In these cases, specify the `cost` parameter. The action will check if the cost can be paid. If it can't, the action will not execute. If it can, costs will be paid automatically and then the action will execute.
+
+For a full list of costs, look at `/server/game/costs.js`.
+
+```javascript
+// During a conflict, bow this character. Choose another [crane] character - that character gets +0/+3 until the end of the conflict
+this.action({
+    title: 'Give a character +0/+3',
+    // This card must be bowed as a cost for the action.
+    cost: AbilityHelper.costs.bowSelf(),
+    // ...
+});
+```
+
+If a card has multiple costs, an array of cost objects may be sent using the `cost` property.
+
+```javascript
+this.action({
+    title: 'Give all non-unique participating characters -2/-0',
+    // This card must be bowed AND sacrificed as a cost for the action.
+    cost: [
+        AbilityHelper.costs.bowSelf(),
+        AbilityHelper.costs.sacrificeSelf()
+    ],
+    // ...
+});
+```
+
+### Triggered abilities
+
+Triggered abilities include all card abilities that have **Interrupt**, **Forced Interrupt**, **Reaction**, **Forced Reaction**. Implementing a triggered ability is similar to actions above, but instead of calling `this.action`, `this.reaction` or `this.interrupt` are used instead. Costs and targets are declared in the same way. For full documentation of properties, see `/server/game/triggeredability.js`. Here are some common scenarios:
+
+#### Defining the triggering condition
+
+Each triggered ability has an associated triggering condition. This is done using the `when` property. This should be an object whose sub-property is the name of the event, and whose value is a function which takes the event and the context object. When the function returns `true`, the ability will be executed.
+
+```javascript
+this.reaction({
+    // When this card enters play, honor it
+    when: {
+    	onCharacterEntersPlay: (event, context) => event.card === context.source
+    },
+    gameAction: AbilityHelper.actions.honor()
+});
+```
+
+In rare cases, there may be multiple triggering conditions for the same ability. For example, [Ikoma Prodigy](https://fiveringsdb.com/card/ikoma-prodigy) gains an honor when fate is placed on her while playing her, or while she is in play. In these cases, just define an additional event on the `when` object.
+
+```javascript
+this.reaction({
+    title: 'Gain 1 honor',
+    when: {
+        onCharacterEntersPlay: (event, context) => event.card === context.source && context.source.fate > 0,
+        onMoveFate: (event, context) => event.recipient === context.source && event.fate > 0
+    },
+    gameAction: AbilityHelper.actions.gainHonor()
+});
+```
+
+#### Forced reactions and interrupts
+
+Forced reactions and interrupts do not provide the player with a choice - unless cancelled, the effect will always resolve.
+
+To declare a forced reaction, use the `forcedReaction` method:
+
+```javascript
+this.forcedReaction({
+    title: 'Can\'t be discarded or remove fate',
+    when: {
+        onPhaseStarted: (event, context) => event.phase === 'fate' && context.player.opponent && 
+                                            context.player.honor >= context.player.opponent.honor + 5
+    },
+    effect: 'stop him being discarded or losing fate in this phase',
+    gameAction: AbilityHelper.actions.cardLastingEffect({
+        duration: 'untilEndOfPhase',    
+        effect: [
+            AbilityHelper.effects.cardCannot('removeFate'),
+            AbilityHelper.effects.cardCannot('discardFromPlay')
+        ]
+    })
+});
+```
+
+To declare a forced interrupt, use the `forcedInterrupt` method.
+
+```javascript
+this.forcedInterrupt({
+    when: {
+        onCardLeavesPlay: (event, context) => event.card === context.source && context.source.hasSincerity()
+    },
+    /// ...
+    effect: '{1} draws a card due to {0}\'s Sincerity',
+    effectArgs: context => context.player,
+    gameAction: AbilityHelper.actions.draw()
+});
+```
+
+#### 'Would' interrupts
+
+Some abilities allow the player to cancel an effect. These effects are always interrupts, and are usually templated as 'Interrupt: When [trigger] would....'.  These are implemented
+using the `wouldInterrupt` method.  The context object for triggered ability has a useful `cancel` method which can be called in these cases
+
+```javascript
+this.wouldInterrupt({
+    title: 'Cancel an event',
+    when: {
+        onInitiateAbilityEffects: event => event.card.type === 'event'
+    },
+    cost: AbilityHelper.costs.dishonor(card => card.hasTrait('courtier')),
+    effect: 'cancel {1}',
+    effectArgs: context => context.event.card,
+    handler: context => context.cancel()
+});
+```
+
+#### Abilities outside of play
+
+Certain abilities, such as that of Vengeful Oathkeeper can only be activated in non-play locations. Such reactions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability when prompted.
+
+```javascript
+this.reaction({
+	when: {
+		afterConflict: (event, context) => context.conflict.loser === context.player && context.conflict.conflictType === 'military'
+	},
+    location: 'hand',
+    gameAction: AbilityHelper.actions.putIntoPlay()
+})
+```
+
+## Ability building blocks
+
+#### Context object
+
+When the game starts to resolve an ability, it creates a context object for that ability. Generally, the context ability has the following structure:
+
+```javascript
+class AbilityContext {
+    constructor(properties) {
+        this.game = properties.game;
+        this.source = properties.source;
+        this.player = properties.player;
+        this.ability = properties.ability;
+        this.costs = {};
+        this.targets = {};
+        this.rings = {};
+        this.selects = {};
+        this.stage = Stages.Effect;
+    }
+}
+```
+
+`context.source` is the card with the ability being used, and `context.player` is the player who is using the ability (almost always the controller of the `context.source`). When implementing actions and other triggered abilities, `context` should almost always be used (instead of `this`) to reference cards or players.  The only exception is that `this.game` can be used as an alternative to `context.game`.
+
+#### `context.source` and upgrades
+
+Note that in the case of upgrade abilities that give an ability to the attached card, `context.source` has to be used slightly differently than normal:
+```javascript
+// Attached character gains ability 'On Attack: Exhaust the defender'
+this.addGainTriggeredAbilityTargetingAttached({
+    title: 'Exhaust the defender on attack',
+    // note here that context.source refers to the attached unit card, not the upgrade itself
+    when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
+    targetResolver: {
+        cardCondition: (card, context) => card === context.event.attack.target,
+        immediateEffect: AbilityHelper.immediateEffects.exhaust()
+    }
+});
+```
+Whereas in most cases `context.source` refers to `this` (i.e., the source card of the ability), since in this case the ability is being triggered on the attached unit card, `context.source` refers to the unit that the upgrade is attached to. The above `when` condition is equivalent to:
+
+`when: { onAttackDeclared: (event, context) => event.attack.attacker === this.parentCard }`
+
+### Using GameSystems for building ability effects
 
 In general, the effects of an ability should be implemented using game systems represented by the GameSystem class, which is turn wrapped by helper methods under the AbilityHelper import.
 
@@ -351,365 +740,6 @@ this.action({
         }
     }
 });
-```
-
-### Keywords
-
-Most Keywords (sentinel, raid, smuggle, etc.) are automatically parsed from the card text. It isn't necessary to explicitly implement them unless they are provided by a conditional ability. Some examples of keywords requiring explicit implementation:
-
-- Baze Malbus: `While you have initiative, this unit gains Sentinel.`
-- Red Three: `Each other [Heroic] unit gains Raid 1.`
-- Protector: `Attached unit gains Restore 2.`
-
-### Constant abilities
-
-Many cards provide continuous bonuses to other cards you control or detrimental effects to opponents cards in certain situations. These abilities are referred to in SWU as "constant abilities" and can be defined using the `addConstantAbility` method. Cards that enter play while the constant ability is in play will automatically have the ongoing effect applied, and cards that leave play will have the effect removed. If the card providing the effect becomes blank, the ongoing effect is automatically removed from all previously applied cards.
-
-For a full list of properties that can be set when declaring an ongoing effect, look at [OngoingEffect.js](../server/game/core/ongoingEffect/OngoingEffect.js) _(NOTE: this is possibly stale)_. To see all the types of effect which you can use (and whether they apply to cards or players), look at [EffectLibrary.js](../server/game/ongoingEffects/OngoingEffectLibrary.ts). Here are some common scenarios:
-
-#### Matching conditions vs matching specific cards
-
-The ongoing effect declaration (for card effects, not player effects) takes a `matchTarget` property. In most cases this will be a function that takes a `Card` object and should return `true` if the ongoing effect should be applied to that card.
-
-```javascript
-// Each Rebel unit you control gains +1/+1
-this.constantAbility({
-    matchTarget: card => card.hasSomeTrait(Trait.Rebel),
-    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 }),
-});
-```
-
-In some cases, an ongoing effect should be applied to a specific card. While you could write a `matchTarget` function to match only that card, you can provide the `Card` or `Player` object as a shorthand.
-
-```javascript
-// This player's leader unit gets Sentinel while it is deployed (i.e., in the arena)
-this.constantAbility({
-    matchTarget: this.controller.leader,
-    targetLocationFilter: WildcardLocation.AnyArena,
-    ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel),
-});
-```
-
-If not provided, `matchTarget` will default to targeting only the card that owns the constant ability.
-
-#### Conditional ongoing effects
-
-Some ongoing effects have a 'when', 'while' or 'if' clause within their text. These cards can be implemented by passing a `condition` function into the constant ability declaration. The ongoing effect will only be applied when the function returns `true`. If the function returns `false` later on, the ongoing effect will be automatically unapplied from the cards it matched.
-
-```javascript
-// While this unit is exhausted, it gains +1/+1
-this.constantAbility({
-    condition: () => this.exhausted,
-    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })
-});
-```
-
-#### Filtering by card type, owner, location
-Note also that, similar to ability targets described below, there are shorthand filters for the card properties location, owner, and card type. See the relevant section below for details. **TODO THIS PR: add section link**
-
-
-All of these filters are available for filtering target cards (e.g., `targetLocationFilter`), but for checking the condition of the source card (the card that owns the ability) only `sourceLocationFilter` is available (**TODO THIS PR: update interface to use `sourceLocationFilter` instead of `locationFilter`**):
-
-```javascript
-// While this card is in the ground arena, all of the opponent's units in the space arena get -1/-1
-this.constantAbility({
-    sourceLocationFilter: Location.GroundArena,
-    targetLocationFilter: Location.SpaceArena,
-    targetCardType: WildcardCardType.Unit,
-    targetController: RelativePlayer.Opponent,
-    ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
-});
-```
-
-#### Applying multiple effects at once
-As a shorthand, it is possible to pass an array into the `ongoingEffect` property to apply multiple effects that have the same conditions / matching functions.
-
-```javascript
-// This character gets Sentinel and +1/+1 while damaged
-this.constantAbility({
-    condition: () => this.damage !== 0,
-    effect: [
-        AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel),
-        AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
-    ]
-});
-```
-
-#### **IGNORE THIS SECTION, STILL WIP**: Applying effects to cards which aren't in play
-
-By default, ongoing effects will only be applied to cards in the play area.  Certain cards effects refer to cards in your hand, such as reducing their cost. In these cases, set the `targetLocation` property to `'hand'`.
-
-```javascript
-// Each Direwolf card in your hand gains ambush (X). X is that card's printed cost.
-this.constantAbility({
-    // Explicitly target the effect to cards in hand.
-    targetLocationFilter: 'hand',
-    match: card => card.hasTrait('Direwolf'),
-    effect: AbilityHelper.effects.modifyCost()
-});
-```
-
-This also applies to provinces, holdings and strongholds, which the game considers to be 'in play' even though they aren't in the play area.  Where an effect needs to be applied to these cards (or to characters who are in a province), set `targetLocation` to `'province'`.
-
-```javascript
-// This province gets +5 strength during [political] conflicts.
-this.constantAbility({
-    match: this,
-    targetLocation: 'province',
-    condition: () => this.game.isDuringConflict('political'),
-    effect: AbilityHelper.effects.modifyProvinceStrength(5)
-});
-```
-
-#### **IGNORE THIS SECTION, STILL WIP**: Player modifying effects
-
-
-
-Certain cards provide bonuses or restrictions on the player itself instead of on any specific cards. These effects are marked as `Player` effects in `/server/game/effects.js`. For player effects, `targetController` indicates which players the effect should be applied to (with `'current'` acting as the default). Player effects should not have a `match` property.
-
-```javascript
-// While this character is participating in a conflict, opponents cannot play events.
-this.constantAbility({
-    condition: () => this.isParticipating(),
-    targetController: 'opponent',
-    effect: AbilityHelper.effects.playerCannot(context => context.source.type === 'event')
-});
-```
-
-#### Upgrade helper methods
-Some helper methods are available to make it easier to declare constant abilities on upgrades, since these are extremely common.
-
-##### Static stat bonuses from upgrades
-
-Static upgrade stat bonuses from the printed upgrade values are automatically included in combat calculations for the attached unit.
-
-##### Effects targeting attached card
-
-Since most upgrade abilities target the attached card, we have helper methods available to declare such abilities succintly:
-
-Most upgrades say that the attached unit gains a triggered ability:
-```javascript
-// Attached character gains ability 'On Attack: Exhaust the defender'
-this.addGainTriggeredAbilityTargetingAttached({
-    title: 'Exhaust the defender on attack',
-    when: { onAttackDeclared: (event) => event.attack.attacker === this.parentCard },
-    targetResolver: {
-        cardCondition: (card, context) => card === context.event.attack.target,
-        immediateEffect: AbilityHelper.immediateEffects.exhaust()
-    }
-});
-```
-
-It is also common for an upgrade to grant a keyword to the attached:
-```javascript
-// Attached character gains keyword 'Restore 2'
-this.addGainKeywordTargetingAttached({
-    keyword: KeywordName.Restore,
-    amount: 2
-});
-```
-
-In some rare cases an upgrade's ability targets the attached card without giving it any new abilities
-```javascript
-// Entrenched ability
-this.addConstantAbilityTargetingAttached({
-    title: 'Attached unit cannot attack bases',
-    ongoingEffect: AbilityHelper.ongoingEffects.cannotAttackBase(),
-});
-```
-
-### Actions
-
-Actions are abilities provided by the card text that players may trigger during action windows. They are declared using the `addActionAbility` method. See [ActionAbility.ts](../server/game/core/ability/ActionAbility.ts) for full documentation (_NOTE: may be stale_). Here are some common scenarios:
-
-#### Declaring an action
-
-When declaring an action, use the `action` method and provide it with a `title` property. The title is what will be displayed in the menu players see when clicking on the card. 
-
-```javascript
-class BorderRider extends DrawCard {
-    setupCardAbilities() {
-        this.action({
-            title: 'Ready this character',
-            gameAction: AbilityHelper.actions.ready()
-        });
-    }
-}
-```
-
-#### Context object
-
-When the game starts to resolve an ability, it creates a context object for that ability. Generally, the context ability has the following structure:
-
-```javascript
-class AbilityContext {
-    constructor(properties) {
-        this.game = properties.game;
-        this.source = properties.source;
-        this.player = properties.player;
-        this.ability = properties.ability;
-        this.costs = {};
-        this.targets = {};
-        this.rings = {};
-        this.selects = {};
-        this.stage = Stages.Effect;
-    }
-}
-```
-
-`context.source` is the card with the ability being used, and `context.player` is the player who is using the ability (almost always the controller of the `context.source`). When implementing actions and other triggered abilities, `context` should almost always be used (instead of `this`) to reference cards or players.  The only exception is that `this.game` can be used as an alternative to `context.game`.
-
-#### Checking ability restrictions
-
-Card abilities can only be triggered if they have the potential to modify game state (outside of paying costs). To ensure that the action's play restrictions are met, pass a `condition` function that returns `true` when the restrictions are met, and `false` otherwise. If the condition returns `false`, the action will not be executed and costs will not be paid.
-
-```javascript
-// During a conflict, give this character +2/+2
-this.action({
-    title: 'Give this character +2/+2',
-    condition: () => this.game.isDuringConflict(),
-    // ...
-});
-```
-
-```javascript
-// While this character is participating in a conflict....
-this.action({
-    title: 'Switch a character\'s M and P skill',
-    condition: context => context.source.isParticipating(),
-    // ...
-});
-```
-
-#### Paying additional costs for action
-
-Some actions have an additional cost, such as bowing the card. In these cases, specify the `cost` parameter. The action will check if the cost can be paid. If it can't, the action will not execute. If it can, costs will be paid automatically and then the action will execute.
-
-For a full list of costs, look at `/server/game/costs.js`.
-
-```javascript
-// During a conflict, bow this character. Choose another [crane] character - that character gets +0/+3 until the end of the conflict
-this.action({
-    title: 'Give a character +0/+3',
-    // This card must be bowed as a cost for the action.
-    cost: AbilityHelper.costs.bowSelf(),
-    // ...
-});
-```
-
-If a card has multiple costs, an array of cost objects may be sent using the `cost` property.
-
-```javascript
-this.action({
-    title: 'Give all non-unique participating characters -2/-0',
-    // This card must be bowed AND sacrificed as a cost for the action.
-    cost: [
-        AbilityHelper.costs.bowSelf(),
-        AbilityHelper.costs.sacrificeSelf()
-    ],
-    // ...
-});
-```
-
-### Triggered abilities
-
-Triggered abilities include all card abilities that have **Interrupt**, **Forced Interrupt**, **Reaction**, **Forced Reaction**. Implementing a triggered ability is similar to actions above, but instead of calling `this.action`, `this.reaction` or `this.interrupt` are used instead. Costs and targets are declared in the same way. For full documentation of properties, see `/server/game/triggeredability.js`. Here are some common scenarios:
-
-#### Defining the triggering condition
-
-Each triggered ability has an associated triggering condition. This is done using the `when` property. This should be an object whose sub-property is the name of the event, and whose value is a function which takes the event and the context object. When the function returns `true`, the ability will be executed.
-
-```javascript
-this.reaction({
-    // When this card enters play, honor it
-    when: {
-    	onCharacterEntersPlay: (event, context) => event.card === context.source
-    },
-    gameAction: AbilityHelper.actions.honor()
-});
-```
-
-In rare cases, there may be multiple triggering conditions for the same ability. For example, [Ikoma Prodigy](https://fiveringsdb.com/card/ikoma-prodigy) gains an honor when fate is placed on her while playing her, or while she is in play. In these cases, just define an additional event on the `when` object.
-
-```javascript
-this.reaction({
-    title: 'Gain 1 honor',
-    when: {
-        onCharacterEntersPlay: (event, context) => event.card === context.source && context.source.fate > 0,
-        onMoveFate: (event, context) => event.recipient === context.source && event.fate > 0
-    },
-    gameAction: AbilityHelper.actions.gainHonor()
-});
-```
-
-#### Forced reactions and interrupts
-
-Forced reactions and interrupts do not provide the player with a choice - unless cancelled, the effect will always resolve.
-
-To declare a forced reaction, use the `forcedReaction` method:
-
-```javascript
-this.forcedReaction({
-    title: 'Can\'t be discarded or remove fate',
-    when: {
-        onPhaseStarted: (event, context) => event.phase === 'fate' && context.player.opponent && 
-                                            context.player.honor >= context.player.opponent.honor + 5
-    },
-    effect: 'stop him being discarded or losing fate in this phase',
-    gameAction: AbilityHelper.actions.cardLastingEffect({
-        duration: 'untilEndOfPhase',    
-        effect: [
-            AbilityHelper.effects.cardCannot('removeFate'),
-            AbilityHelper.effects.cardCannot('discardFromPlay')
-        ]
-    })
-});
-```
-
-To declare a forced interrupt, use the `forcedInterrupt` method.
-
-```javascript
-this.forcedInterrupt({
-    when: {
-        onCardLeavesPlay: (event, context) => event.card === context.source && context.source.hasSincerity()
-    },
-    /// ...
-    effect: '{1} draws a card due to {0}\'s Sincerity',
-    effectArgs: context => context.player,
-    gameAction: AbilityHelper.actions.draw()
-});
-```
-
-#### 'Would' interrupts
-
-Some abilities allow the player to cancel an effect. These effects are always interrupts, and are usually templated as 'Interrupt: When [trigger] would....'.  These are implemented
-using the `wouldInterrupt` method.  The context object for triggered ability has a useful `cancel` method which can be called in these cases
-
-```javascript
-this.wouldInterrupt({
-    title: 'Cancel an event',
-    when: {
-        onInitiateAbilityEffects: event => event.card.type === 'event'
-    },
-    cost: AbilityHelper.costs.dishonor(card => card.hasTrait('courtier')),
-    effect: 'cancel {1}',
-    effectArgs: context => context.event.card,
-    handler: context => context.cancel()
-});
-```
-
-#### Abilities outside of play
-
-Certain abilities, such as that of Vengeful Oathkeeper can only be activated in non-play locations. Such reactions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability when prompted.
-
-```javascript
-this.reaction({
-	when: {
-		afterConflict: (event, context) => context.conflict.loser === context.player && context.conflict.conflictType === 'military'
-	},
-    location: 'hand',
-    gameAction: AbilityHelper.actions.putIntoPlay()
-})
 ```
 
 ### Ability limits
