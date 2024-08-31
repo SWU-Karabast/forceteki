@@ -1,4 +1,4 @@
-export default class StatsModifier {
-    public hp: number;
-    public power: number;
+export interface StatsModifier {
+    hp: number;
+    power: number;
 }
