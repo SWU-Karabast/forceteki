@@ -55,8 +55,9 @@ describe('Confiscate', function() {
 
                 this.player1.clickCard(this.confiscate);
                 expect(this.wampa.upgrades.length).toBe(0);
+
+                // this expectation will automatically check that entrenched is in the owning player's discard
                 expect(this.entrenched).toBeInLocation('discard');
-                expect(this.player1.discard.includes(this.entrenched)).toBe(true);
             });
         });
 
