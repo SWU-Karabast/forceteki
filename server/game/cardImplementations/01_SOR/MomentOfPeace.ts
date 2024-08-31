@@ -15,9 +15,7 @@ export default class MomentOfPeace extends EventCard {
             title: 'Give a shield token to a unit',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()
-            },
-            effect: 'give shield to {1}',
-            effectArgs: (context) => [context.target]
+            }
         });
     }
 }
