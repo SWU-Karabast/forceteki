@@ -19,7 +19,7 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
 
     public eventHandler(event, additionalProperties = {}): void {
         if (event.card.isUpgrade()) {
-            event.card.parentCard.removeUpgrade(event.card);
+            event.card.unattach();
         }
 
         if (event.card.isToken()) {

@@ -47,51 +47,37 @@ class BaseCardSelector {
             return context.game.allCards.toArray();
         }
 
-        let upgradesInPlay = context.player.getCardsInPlay().reduce((array, card) => array.concat(card.upgrades), []);
-
-        if (context.player.opponent) {
-            upgradesInPlay = upgradesInPlay.concat(...context.player.opponent.getCardsInPlay().map((card) => card.upgrades));
-        }
-
         let possibleCards = [];
         if (controllerProp !== RelativePlayer.Opponent) {
             possibleCards = this.locationFilter.reduce(
-                (array, locationFilter) => array.concat(this.getCardsForPlayerLocations(locationFilter, context.player, upgradesInPlay)), possibleCards
+                (array, locationFilter) => array.concat(this.getCardsForPlayerLocations(locationFilter, context.player)), possibleCards
             );
         }
         if (controllerProp !== RelativePlayer.Self && context.player.opponent) {
             possibleCards = this.locationFilter.reduce(
-                (array, locationFilter) => array.concat(this.getCardsForPlayerLocations(locationFilter, context.player.opponent, upgradesInPlay)), possibleCards
+                (array, locationFilter) => array.concat(this.getCardsForPlayerLocations(locationFilter, context.player.opponent)), possibleCards
             );
         }
         return possibleCards;
     }
 
-    getCardsForPlayerLocations(location, player, upgrades) {
+    getCardsForPlayerLocations(location, player) {
         var cards;
         switch (location) {
             case WildcardLocation.Any:
                 // TODO: is this ever a case we should have? this would allow targeting deck, discard, etc.
                 throw Error('WildcardLocation.Any is currently not supported for card selectors');
             case WildcardLocation.AnyArena:
-                cards = player.getCardsInPlay();
+                cards = player.getCardsInArenaOrArenas();
                 break;
             case WildcardLocation.AnyAttackable:
-                cards = player.getCardsInPlay();
+                cards = player.getCardsInArenaOrArenas();
                 cards = cards.concat(player.getCardPile(Location.Base));
                 break;
             default:
                 cards = player.getCardPile(location);
                 break;
         }
-
-        // TODO: proper upgrade search within arena instead of across both arenas
-        // if(location === WildcardLocation.AnyArena) {
-        //     return array.concat(
-        //         cards,
-        //         upgrades.filter((card) => card.controller === context.player.opponent)
-        //     );
-        // }
 
         return cards;
     }

@@ -1,4 +1,4 @@
-describe('Entrenched', function() {
+describe('Play upgrade from hand', function() {
     integration(function() {
         describe('When an upgrade is played,', function() {
             beforeEach(function () {

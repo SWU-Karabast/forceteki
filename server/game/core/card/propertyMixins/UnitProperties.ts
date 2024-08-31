@@ -230,25 +230,25 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         /**
-         * This removes an attachment from this card's attachment Array and sets its parentCard to null
-         * @param {Card} upgrade
+         * Removes an upgrade from this card's upgrade list
+         * @param {UpgradeCard} upgrade
          */
-        public removeUpgrade(upgrade) {
+        public unattachUpgrade(upgrade) {
             this._upgrades = this.upgrades.filter((card) => card.uuid !== upgrade.uuid);
-            upgrade.parentCard = null;
         }
 
         /**
-         * Attach the passed upgrade to this card and set the upgrade's parentCard to this card.
-         * Upgrade must already be moved to the correct arena.
+         * Add the passed card to this card's upgrade list. Upgrade must already be moved to the correct arena.
          */
         public attachUpgrade(upgrade) {
-            if (!Contract.assertEqual(upgrade.location, this.location)) {
+            if (
+                !Contract.assertEqual(upgrade.location, this.location) ||
+                !Contract.assertTrue(this.controller.getCardPile(this.location).includes(upgrade))
+            ) {
                 return;
             }
 
             this._upgrades.push(upgrade);
-            upgrade.parentCard = this;
         }
 
         public override leavesPlay() {

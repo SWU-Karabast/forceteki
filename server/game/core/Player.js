@@ -122,7 +122,7 @@ class Player extends GameObject {
      * Get all cards in designated play arena(s) owned by this player
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
-    getCardsInPlay(arena = WildcardLocation.AnyArena) {
+    getCardsInArenaOrArenas(arena = WildcardLocation.AnyArena) {
         switch (arena) {
             case Location.GroundArena:
                 return [...this.groundArena];
@@ -141,7 +141,7 @@ class Player extends GameObject {
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
     getUnitsInPlay(arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
-        return this.getCardsInPlay(arena).filter((card) => card.isUnit() && cardCondition(card));
+        return this.getCardsInArenaOrArenas(arena).filter((card) => card.isUnit() && cardCondition(card));
     }
 
     /**
@@ -150,7 +150,7 @@ class Player extends GameObject {
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
     getOtherUnitsInPlay(ignoreUnit, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
-        return this.getCardsInPlay(arena).filter((card) => card.isUnit() && card !== ignoreUnit && cardCondition(card));
+        return this.getCardsInArenaOrArenas(arena).filter((card) => card.isUnit() && card !== ignoreUnit && cardCondition(card));
     }
 
     getResourceCards() {
@@ -183,7 +183,7 @@ class Player extends GameObject {
      * Checks whether any cards in play are currently marked as selected
      */
     areCardsSelected() {
-        return this.getCardsInPlay().some((card) => {
+        return this.getCardsInArenaOrArenas().some((card) => {
             return card.selected;
         });
     }
@@ -194,9 +194,7 @@ class Player extends GameObject {
      * @param {String} uuid
      */
     removeCardByUuid(list, uuid) {
-        return list.filter((card) => {
-            return card.uuid !== uuid;
-        });
+        return list.filter((card) => card.uuid !== uuid);
     }
 
     /**
@@ -231,7 +229,7 @@ class Player extends GameObject {
      * @param {String} uuid
      */
     findCardInPlayByUuid(uuid) {
-        return this.findCard(this.getCardsInPlay(), (card) => card.uuid === uuid);
+        return this.findCard(this.getCardsInArenaOrArenas(), (card) => card.uuid === uuid);
     }
 
     /**
@@ -314,179 +312,6 @@ class Player extends GameObject {
     hasInitiative() {
         return this.game.initiativePlayer === this;
     }
-
-    // hasLegalConflictDeclaration(properties) {
-    //     let conflictType = this.getLegalConflictTypes(properties);
-    //     if (conflictType.length === 0) {
-    //         return false;
-    //     }
-    //     let conflictRing = properties.ring || Object.values(this.game.rings);
-    //     conflictRing = Array.isArray(conflictRing) ? conflictRing : [conflictRing];
-    //     conflictRing = conflictRing.filter((ring) => ring.canDeclare(this));
-    //     if (conflictRing.length === 0) {
-    //         return false;
-    //     }
-    //     let cards = properties.attacker ? [properties.attacker] : this.cardsInPlay.toArray();
-    //     if (!this.opponent) {
-    //         return conflictType.some((type) =>
-    //             conflictRing.some((ring) => cards.some((card) => card.canDeclareAsAttacker(type, ring)))
-    //         );
-    //     }
-    //     let conflictProvince = properties.province || (this.opponent && this.opponent.getProvinces());
-    //     conflictProvince = Array.isArray(conflictProvince) ? conflictProvince : [conflictProvince];
-    //     return conflictType.some((type) =>
-    //         conflictRing.some((ring) =>
-    //             conflictProvince.some(
-    //                 (province) =>
-    //                     province.canDeclare(type, ring) &&
-    //                     cards.some((card) => card.canDeclareAsAttacker(type, ring, province))
-    //             )
-    //         )
-    //     );
-    // }
-
-    // getConflictOpportunities() {
-    //     const setConflictDeclarationType = this.mostRecentEffect(EffectName.SetConflictDeclarationType);
-    //     const forceConflictDeclarationType = this.mostRecentEffect(EffectName.ForceConflictDeclarationType);
-    //     const provideConflictDeclarationType = this.mostRecentEffect(EffectName.ProvideConflictDeclarationType);
-    //     const maxConflicts = this.mostRecentEffect(EffectName.SetMaxConflicts);
-    //     const skirmishModeRRGLimit = this.game.gameMode === GameMode.Skirmish ? 1 : 0;
-    //     if (maxConflicts) {
-    //         return this.getConflictsWhenMaxIsSet(maxConflicts);
-    //     }
-
-    //     if (provideConflictDeclarationType) {
-    //         return (
-    //             this.getRemainingConflictOpportunitiesForType(provideConflictDeclarationType) -
-    //             this.declaredConflictOpportunities[ConflictTypes.Passed] -
-    //             this.declaredConflictOpportunities[ConflictTypes.Forced]
-    //         );
-    //     }
-
-    //     if (forceConflictDeclarationType) {
-    //         return (
-    //             this.getRemainingConflictOpportunitiesForType(forceConflictDeclarationType) -
-    //             this.declaredConflictOpportunities[ConflictTypes.Passed] -
-    //             this.declaredConflictOpportunities[ConflictTypes.Forced]
-    //         );
-    //     }
-
-    //     if (setConflictDeclarationType) {
-    //         return (
-    //             this.getRemainingConflictOpportunitiesForType(setConflictDeclarationType) -
-    //             this.declaredConflictOpportunities[ConflictTypes.Passed] -
-    //             this.declaredConflictOpportunities[ConflictTypes.Forced]
-    //         );
-    //     }
-
-    //     return (
-    //         this.getRemainingConflictOpportunitiesForType(ConflictTypes.Military) +
-    //         this.getRemainingConflictOpportunitiesForType(ConflictTypes.Political) -
-    //         this.declaredConflictOpportunities[ConflictTypes.Passed] -
-    //         this.declaredConflictOpportunities[ConflictTypes.Forced] -
-    //         skirmishModeRRGLimit
-    //     ); //Skirmish you have 1 less conflict per the rules
-    // }
-
-    // getRemainingConflictOpportunitiesForType(type) {
-    //     return Math.max(
-    //         0,
-    //         this.getMaxConflictOpportunitiesForPlayerByType(type) - this.declaredConflictOpportunities[type]
-    //     );
-    // }
-
-    // getLegalConflictTypes(properties) {
-    //     let types = properties.type || [ConflictTypes.Military, ConflictTypes.Political];
-    //     types = Array.isArray(types) ? types : [types];
-    //     const forcedDeclaredType =
-    //         properties.forcedDeclaredType ||
-    //         (this.game.currentConflict && this.game.currentConflict.forcedDeclaredType);
-    //     if (forcedDeclaredType) {
-    //         return [forcedDeclaredType].filter(
-    //             (type) =>
-    //                 types.includes(type) &&
-    //                 this.getConflictOpportunities() > 0 &&
-    //                 !this.getEffectValues(EffectName.CannotDeclareConflictsOfType).includes(type)
-    //         );
-    //     }
-
-    //     if (this.getConflictOpportunities() === 0) {
-    //         return [];
-    //     }
-
-    //     return types.filter(
-    //         (type) =>
-    //             this.getRemainingConflictOpportunitiesForType(type) > 0 &&
-    //             !this.getEffectValues(EffectName.CannotDeclareConflictsOfType).includes(type)
-    //     );
-    // }
-
-    // getConflictsWhenMaxIsSet(maxConflicts) {
-    //     return Math.max(0, maxConflicts - this.game.getConflicts(this).length);
-    // }
-
-    // getMaxConflictOpportunitiesForPlayerByType(type) {
-    //     let setConflictType = this.mostRecentEffect(EffectName.SetConflictDeclarationType);
-    //     let forceConflictType = this.mostRecentEffect(EffectName.ForceConflictDeclarationType);
-    //     const provideConflictDeclarationType = this.mostRecentEffect(EffectName.ProvideConflictDeclarationType);
-    //     const additionalConflictEffects = this.getEffectValues(EffectName.AdditionalConflict);
-    //     const additionalConflictsForType = additionalConflictEffects.filter((x) => x === type).length;
-    //     let baselineAvailableConflicts =
-    //         this.defaultAllowedConflicts[ConflictTypes.Military] +
-    //         this.defaultAllowedConflicts[ConflictTypes.Political];
-    //     if (provideConflictDeclarationType && setConflictType !== provideConflictDeclarationType) {
-    //         setConflictType = undefined;
-    //     }
-    //     if (provideConflictDeclarationType && forceConflictType !== provideConflictDeclarationType) {
-    //         forceConflictType = undefined;
-    //     }
-
-    //     if (this.game.gameMode === GameMode.Skirmish) {
-    //         baselineAvailableConflicts = 1;
-    //     }
-
-    //     if (setConflictType && type === setConflictType) {
-    //         let declaredConflictsOfOtherType = 0;
-    //         if (setConflictType === ConflictTypes.Military) {
-    //             declaredConflictsOfOtherType = this.declaredConflictOpportunities[ConflictTypes.Political];
-    //         } else {
-    //             declaredConflictsOfOtherType = this.declaredConflictOpportunities[ConflictTypes.Military];
-    //         }
-    //         return baselineAvailableConflicts + additionalConflictEffects.length - declaredConflictsOfOtherType;
-    //     } else if (setConflictType && type !== setConflictType) {
-    //         return 0;
-    //     }
-    //     if (forceConflictType && type === forceConflictType) {
-    //         let declaredConflictsOfOtherType = 0;
-    //         if (forceConflictType === ConflictTypes.Military) {
-    //             declaredConflictsOfOtherType = this.declaredConflictOpportunities[ConflictTypes.Political];
-    //         } else {
-    //             declaredConflictsOfOtherType = this.declaredConflictOpportunities[ConflictTypes.Military];
-    //         }
-    //         return baselineAvailableConflicts + additionalConflictEffects.length - declaredConflictsOfOtherType;
-    //     } else if (forceConflictType && type !== forceConflictType) {
-    //         return 0;
-    //     }
-    //     if (provideConflictDeclarationType) {
-    //         let declaredConflictsOfOtherType = 0;
-    //         if (type === ConflictTypes.Military) {
-    //             declaredConflictsOfOtherType = this.declaredConflictOpportunities[ConflictTypes.Political];
-    //         } else {
-    //             declaredConflictsOfOtherType = this.declaredConflictOpportunities[ConflictTypes.Military];
-    //         }
-    //         const availableAll =
-    //             baselineAvailableConflicts +
-    //             this.getEffectValues(EffectName.AdditionalConflict).length -
-    //             declaredConflictsOfOtherType;
-    //         if (type === provideConflictDeclarationType) {
-    //             return availableAll;
-    //         }
-    //         const maxType = this.defaultAllowedConflicts[type] + additionalConflictsForType;
-    //         const declaredType = this.declaredConflictOpportunities[type];
-    //         return Math.min(maxType - declaredType, availableAll);
-    //     }
-    //     return this.defaultAllowedConflicts[type] + additionalConflictsForType;
-    // }
 
     /**
      * Returns the total number of units and upgrades controlled by this player which match the passed predicate
@@ -942,7 +767,7 @@ class Player extends GameObject {
             default:
                 if (source) {
                     if (!this.additionalPiles[source]) {
-                        this.createAdditionalPile(source);
+                        Contract.fail(`Attempting to find pile '${source}', but it does not exist for ${this.name}. Use createAdditionalPile() to add new pile types.`);
                     }
                     return this.additionalPiles[source].cards;
                 }
@@ -1164,7 +989,8 @@ class Player extends GameObject {
      * @param card DrawCard
      */
     removeCardFromPile(card) {
-        if (card.controller !== this) {
+        // upgrades have a special exception here b/c they might be in our pile but controlled by the opponent
+        if (card.controller !== this && !card.isUpgrade()) {
             card.controller.removeCardFromPile(card);
             return;
         }
@@ -1206,9 +1032,32 @@ class Player extends GameObject {
                 default:
                     if (this.additionalPiles[originalPile]) {
                         this.additionalPiles[originalPile].cards = updatedPile;
+                    } else {
+                        Contract.fail(`Attempting to remove ${card.internalName} from pile, but pile '${originalLocation}' does not exist for ${this.name}`);
                     }
             }
         }
+    }
+
+    /**
+     * Special case for moving upgrades to an arena b/c upgrades can be in either player's arena.
+     * Other card types (or other types of upgrade move) must use {@link Player.moveCard}.
+     */
+    putUpgradeInArena(upgrade, location) {
+        if (
+            !Contract.assertTrue(upgrade.isUpgrade()) ||
+            !Contract.assertTrue(EnumHelpers.isArena(location))
+        ) {
+            return;
+        }
+
+        const pile = this.getCardPile(location);
+
+        if (!Contract.assertFalse(pile.includes(upgrade), `Tried to move upgrade ${upgrade.name} to ${location} for ${this.name} but it is already there`)) {
+            return;
+        }
+
+        pile.push(upgrade);
     }
 
     /**

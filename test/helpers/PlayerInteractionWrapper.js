@@ -150,8 +150,7 @@ class PlayerInteractionWrapper {
                         upgrade = this.findCardByName(upgradeName, prevLocations);
                     }
 
-                    this.moveCard(upgrade, arenaName);
-                    card.attachUpgrade(upgrade);
+                    upgrade.attachTo(card);
                 });
             }
             if (options.damage !== undefined) {
