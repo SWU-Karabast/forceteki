@@ -109,7 +109,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     protected addWhenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
-        const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
+        const triggeredProperties = Object.assign(properties, { when: { onCardPlayed: (event, context) => event.card === context.source } });
         this.addTriggeredAbility(triggeredProperties);
     }
 

@@ -29,7 +29,7 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
             ],
             cannotTargetFirst: true,
             targetResolver: {
-                cardCondition: (card) => card.location === Location.GroundArena,
+                locationFilter: Location.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
             }
         });
