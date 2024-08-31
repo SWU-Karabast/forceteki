@@ -28,9 +28,8 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
         }
 
         for (let i = 0; i < properties.amount; i++) {
-            const tokenUpgrade = event.context.game.generateToken(cardReceivingTokenUpgrade.controller, this.properties.tokenType);
-            tokenUpgrade.owner.moveCard(tokenUpgrade, cardReceivingTokenUpgrade.location);
-            cardReceivingTokenUpgrade.attachUpgrade(tokenUpgrade);
+            const tokenUpgrade = event.context.game.generateToken(event.context.source.controller, this.properties.tokenType);
+            tokenUpgrade.attachTo(cardReceivingTokenUpgrade);
         }
     }
 

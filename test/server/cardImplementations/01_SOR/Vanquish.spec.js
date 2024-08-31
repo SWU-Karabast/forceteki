@@ -26,7 +26,7 @@ describe('Vanquish', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.wampa, this.interceptor]);
 
                 this.player1.clickCard(this.interceptor);
-                expect(this.interceptor.location).toBe('discard');
+                expect(this.interceptor).toBeInLocation('discard');
             });
         });
     });

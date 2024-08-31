@@ -25,21 +25,21 @@ describe('Search Your Feelings', function() {
             it('should be able to retrieve ANY card from the deck', function () {
                 // Play card
                 this.player1.clickCard(this.searchYourFeelings);
-                expect(this.searchYourFeelings.location).toBe('discard');
+                expect(this.searchYourFeelings).toBeInLocation('discard');
                 expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, this.cartelSpacer.title, this.cellBlockGuard.title,
                     this.pykeSentinel.title, this.volunteerSoldier.title, 'Take nothing']);
 
                 // Choose card
                 this.player1.clickPrompt(this.battlefieldMarine.title);
                 expect(this.player2).toBeActivePlayer();
-                expect(this.battlefieldMarine.location).toBe('hand');
+                expect(this.battlefieldMarine).toBeInLocation('hand');
                 expect(this.player1.deck.length).toBe(4);
             });
 
             it('should be able to choose no cards', function () {
                 // Play card
                 this.player1.clickCard(this.searchYourFeelings);
-                expect(this.searchYourFeelings.location).toBe('discard');
+                expect(this.searchYourFeelings).toBeInLocation('discard');
                 expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, this.cartelSpacer.title, this.cellBlockGuard.title,
                     this.pykeSentinel.title, this.volunteerSoldier.title, 'Take nothing']);
 
@@ -55,7 +55,7 @@ describe('Search Your Feelings', function() {
 
                 // Play card
                 this.player1.clickCard(this.searchYourFeelings);
-                expect(this.searchYourFeelings.location).toBe('discard');
+                expect(this.searchYourFeelings).toBeInLocation('discard');
                 expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, 'Take nothing']);
 
                 // Choose card
@@ -69,7 +69,7 @@ describe('Search Your Feelings', function() {
 
                 // Play card
                 this.player1.clickCard(this.searchYourFeelings);
-                expect(this.searchYourFeelings.location).toBe('discard');
+                expect(this.searchYourFeelings).toBeInLocation('discard');
 
                 // Choose nothing
                 expect(this.player1).toHaveEnabledPromptButtons(['Take nothing']);

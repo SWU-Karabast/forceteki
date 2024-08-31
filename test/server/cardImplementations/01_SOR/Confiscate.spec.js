@@ -26,9 +26,7 @@ describe('Confiscate', function() {
 
                 this.player1.clickCard(this.academyTraining);
                 expect(this.interceptor.upgrades.length).toBe(0);
-                expect(this.academyTraining.location).toBe('discard');
-
-                expect(this.player2.discard.includes(this.academyTraining)).toBe(true);
+                expect(this.academyTraining).toBeInLocation('discard');
             });
         });
 
@@ -57,9 +55,11 @@ describe('Confiscate', function() {
 
                 this.player1.clickCard(this.confiscate);
                 expect(this.wampa.upgrades.length).toBe(0);
-                expect(this.entrenched.location).toBe('discard');
+                expect(this.entrenched).toBeInLocation('discard');
                 expect(this.player1.discard.includes(this.entrenched)).toBe(true);
             });
         });
+
+        // TODO SNOKE: add a test here to confirm that a unit is defeated when an upgrade giving +hp is removed
     });
 });

@@ -28,7 +28,7 @@ describe('2-1B Surgical Droid', function() {
             it('should heal a target with 1 damage to full', function () {
                 // Attack
                 this.player1.clickCard(this.surgicalDroid);
-                expect(this.surgicalDroid.location).toBe('ground arena');
+                expect(this.surgicalDroid).toBeInLocation('ground arena');
                 expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
                 this.player1.clickCard(this.p2Base);
 
@@ -44,7 +44,7 @@ describe('2-1B Surgical Droid', function() {
             it('should heal 2 damage from a unit', function () {
                 // Attack
                 this.player1.clickCard(this.surgicalDroid);
-                expect(this.surgicalDroid.location).toBe('ground arena');
+                expect(this.surgicalDroid).toBeInLocation('ground arena');
                 expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
                 this.player1.clickCard(this.p2Base);
 
@@ -61,7 +61,7 @@ describe('2-1B Surgical Droid', function() {
                 // Attack
                 this.player1.clickCard(this.surgicalDroid);
                 expect(this.wampa.damage).toBe(2);
-                expect(this.surgicalDroid.location).toBe('ground arena');
+                expect(this.surgicalDroid).toBeInLocation('ground arena');
                 expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
                 this.player1.clickCard(this.p2Base);
 

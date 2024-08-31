@@ -31,7 +31,7 @@ describe('Play event from hand', function() {
                 this.player1.clickCard(this.daringRaid);
                 this.player1.clickCard(this.wampa);
 
-                expect(this.daringRaid.location).toBe('discard');
+                expect(this.daringRaid).toBeInLocation('discard');
                 expect(this.player1.countExhaustedResources()).toBe(1);
 
                 this.player2.passAction();
@@ -40,7 +40,7 @@ describe('Play event from hand', function() {
                 this.player1.clickCard(this.repair);
                 this.player1.clickCard(this.wampa);
 
-                expect(this.repair.location).toBe('discard');
+                expect(this.repair).toBeInLocation('discard');
                 expect(this.player1.countExhaustedResources()).toBe(4);
             });
 

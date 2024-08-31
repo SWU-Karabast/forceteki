@@ -34,7 +34,7 @@ describe('Vambrace Grappleshot', function() {
                 this.player1.clickCard(this.snowspeeder);
 
                 expect(this.snowspeeder.damage).toBe(3);
-                expect(this.marine.location).toBe('discard');
+                expect(this.marine).toBeInLocation('discard');
                 expect(this.snowspeeder.exhausted).toBe(false);
             });
         });

@@ -36,7 +36,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 this.player2.clickCard(this.cartelSpacer);
 
                 // Chosen unit defeated
-                expect(this.cartelSpacer.location).toBe('discard');
+                expect(this.cartelSpacer).toBeInLocation('discard');
             });
 
             it('forces opponent to defeat friendly non-leader unit when Avenger attacks', function () {
@@ -49,7 +49,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 // Player 1 must choose its own unit
                 expect(this.player1).toBeAbleToSelectExactly([this.interceptor, this.pykeSentinel]);
                 this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel.location).toBe('discard');
+                expect(this.pykeSentinel).toBeInLocation('discard');
                 expect(this.p1Base.damage).toBe(8);
             });
 
@@ -61,14 +61,14 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 this.player2.clickCard(this.interceptor);
 
                 // Interceptor not yet destroyed
-                expect(this.interceptor.location).toBe('space arena');
+                expect(this.interceptor).toBeInLocation('space arena');
 
                 // Player 1 must choose its own unit
                 expect(this.player1).toBeAbleToSelectExactly([this.interceptor, this.pykeSentinel]);
 
                 // Choose the defender and check it was destroyed
                 this.player1.clickCard(this.interceptor);
-                expect(this.interceptor.location).toBe('discard');
+                expect(this.interceptor).toBeInLocation('discard');
 
                 // Ensure no damage happened
                 expect(this.p2Avenger.damage).toBe(0);
@@ -78,7 +78,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
             // TODO once leaders are implemented
             // it('Deployed leader units may not be chosen for Avenger ability', function () {
             //     this.player1.clickCard(this.p1Avenger);
-            //     expect(this.p1Avenger.location).toBe('space arena');
+            //     expect(this.p1Avenger).toBeInLocation('space arena');
             // });
         });
     });

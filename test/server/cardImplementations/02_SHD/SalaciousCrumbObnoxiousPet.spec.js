@@ -16,7 +16,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
             it('should heal 1 from friendly base', function () {
                 this.p1Base.damage = 5;
                 this.player1.clickCard(this.crumb);
-                expect(this.crumb.location).toBe('ground arena');
+                expect(this.crumb).toBeInLocation('ground arena');
 
                 expect(this.p1Base.damage).toBe(4);
             });
@@ -24,7 +24,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
             it('should heal 0 from base if base has no damage', function () {
                 this.p1Base.damage = 0;
                 this.player1.clickCard(this.crumb);
-                expect(this.crumb.location).toBe('ground arena');
+                expect(this.crumb).toBeInLocation('ground arena');
 
                 expect(this.p1Base.damage).toBe(0);
             });
@@ -58,7 +58,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
 
                 this.player1.clickCard(this.atrt);
                 expect(this.atrt.damage).toBe(1);
-                expect(this.crumb.location).toBe('hand');
+                expect(this.crumb).toBeInLocation('hand');
             });
 
             it('should not be available if Crumb is exhausted', function () {

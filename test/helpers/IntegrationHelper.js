@@ -65,6 +65,8 @@ var customMatchers = {
                     result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
 
+                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+
                 return result;
             }
         };
@@ -94,6 +96,8 @@ var customMatchers = {
                     }
                 }
 
+                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+
                 return result;
             }
         };
@@ -116,6 +120,8 @@ var customMatchers = {
                     ).join('\n');
                     result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
+
+                result.message += `\n${generatePromptTitlesMessage(actual)}`;
 
                 return result;
             }
@@ -146,6 +152,8 @@ var customMatchers = {
                     }
                 }
 
+                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+
                 return result;
             }
         };
@@ -165,6 +173,8 @@ var customMatchers = {
                 } else {
                     result.message = `Expected ${card.name} to be selectable by ${player.name} but it wasn't.`;
                 }
+
+                result.message += `\n${generatePromptTitlesMessage(player)}`;
 
                 return result;
             }
@@ -207,6 +217,8 @@ var customMatchers = {
                     }
                 }
 
+                result.message += `\n${generatePromptTitlesMessage(player)}`;
+
                 return result;
             }
         };
@@ -247,6 +259,8 @@ var customMatchers = {
                         result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${selectable.map((card) => card.name).join(', ')}`;
                     }
                 }
+
+                result.message += `\n${generatePromptTitlesMessage(player)}`;
 
                 return result;
             }
@@ -292,6 +306,8 @@ var customMatchers = {
                     }
                     result.message = message;
                 }
+
+                result.message += `\n${generatePromptTitlesMessage(player)}`;
 
                 return result;
             }
@@ -434,8 +450,44 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toBeInLocation: function () {
+        return {
+            compare: function (card, location, player = null) {
+                if (typeof card === 'string') {
+                    throw new Error('This expectation requires a card object, not a name');
+                }
+                let result = {};
+
+                const pileOwningPlayer = player?.player || card.owner;
+
+                const correctProperty = card.location === location;
+                const correctPile = pileOwningPlayer.getCardPile(location).includes(card);
+
+                if (correctProperty !== correctPile) {
+                    result.pass = false;
+                    result.message = `Card ${card.internalName} has inconsistent location state, card.location is '${card.location}' but it is not in the corresponding pile for ${pileOwningPlayer.name}'`;
+                    return result;
+                }
+
+                result.pass = correctProperty && correctPile;
+
+                if (result.pass) {
+                    result.message = `Expected ${card.internalName} not to be in location '${location}' but it is`;
+                } else {
+                    result.message = `Expected ${card.internalName} to be in location '${location}' but it is in location '${card.location}'`;
+                }
+
+                return result;
+            }
+        };
     }
 };
+
+function generatePromptTitlesMessage(player) {
+    const currentPrompt = player.currentPrompt();
+    return `Current prompt for ${player.name}: menuTitle = '${currentPrompt.menuTitle}', promptTitle = '${currentPrompt.promptTitle}'`;
+}
 
 beforeEach(function () {
     jasmine.addMatchers(customMatchers);
