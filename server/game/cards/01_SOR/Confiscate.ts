@@ -14,11 +14,9 @@ export default class Confiscate extends EventCard {
         this.setEventAbility({
             title: 'Defeat an upgrade',
             targetResolver: {
-                cardTypeFilter: [WildcardCardType.Upgrade],
+                cardTypeFilter: WildcardCardType.Upgrade,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
-            },
-            effect: 'defeat {1}',
-            effectArgs: (context) => [context.target]
+            }
         });
     }
 }

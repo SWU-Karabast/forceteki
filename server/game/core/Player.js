@@ -117,7 +117,6 @@ class Player extends GameObject {
         this.clock.reset();
     }
 
-    // TODO THIS PR: this should retrieve upgrades, but we need to confirm once they're implemented
     /**
      * Get all cards in this player's arena(s). Any opponent upgrades will be included.
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from

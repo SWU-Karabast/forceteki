@@ -14,11 +14,9 @@ export default class Vanquish extends EventCard {
         this.setEventAbility({
             title: 'Defeat a non-leader unit',
             targetResolver: {
-                cardTypeFilter: [WildcardCardType.NonLeaderUnit],
+                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
-            },
-            effect: 'defeat {1}',
-            effectArgs: (context) => [context.target]
+            }
         });
     }
 }

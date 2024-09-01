@@ -22,7 +22,6 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'Deal 1 damage to the defender or a base',
             targetResolver: {
-                cardTypeFilter: [WildcardCardType.Unit, CardType.Base],
                 cardCondition: (card, context) => card.isBase() || card === context.event.attack.target,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }
