@@ -214,7 +214,6 @@ export enum KeywordName {
     Grit = 'grit',
     /** @deprecated Not implemented yet */
     Overwhelm = 'overwhelm',
-    /** @deprecated Not implemented yet */
     Raid = 'raid',
     Restore = 'restore',
     /** @deprecated Not implemented yet */

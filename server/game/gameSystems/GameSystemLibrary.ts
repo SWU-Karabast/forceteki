@@ -29,7 +29,7 @@ import { GiveShieldSystem, IGiveShieldProperties } from './GiveShieldSystem';
 import { HealSystem, IHealProperties } from './HealSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
-// import { LastingEffectCardAction, LastingEffectCardProperties } from './LastingEffectCardAction';
+import { LastingEffectCardSystem, ILastingEffectCardProperties } from './LastingEffectCardSystem';
 // import { LastingEffectRingAction, LastingEffectRingProperties } from './LastingEffectRingAction';
 // import { LookAtAction, LookAtProperties } from './LookAtAction';
 // import { MatchingDiscardAction, MatchingDiscardProperties } from './MatchingDiscardAction';
@@ -74,9 +74,9 @@ export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProper
 export function attack(propertyFactory: PropsFactory<IAttackProperties>): GameSystem {
     return new AttackSystem(propertyFactory);
 }
-// export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameSystem {
-//     return new LastingEffectCardAction(propertyFactory);
-// }
+export function cardLastingEffect(propertyFactory: PropsFactory<ILastingEffectCardProperties>): GameSystem {
+    return new LastingEffectCardSystem(propertyFactory);
+}
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);
 // }

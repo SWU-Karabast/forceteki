@@ -16,6 +16,7 @@ import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
+import { RaidAbility } from '../../../abilities/keyword/RaidAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -159,7 +160,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._attackKeywordAbilities.push(restoreAbility);
             }
 
-            // TODO KEYWORDS: add grit and raid registration here (others such as sentinel will be managed inside the attack pipeline)
+            // raid
+            const raidAmount = this.getNumericKeywordSum(KeywordName.Raid);
+            if (raidAmount !== null) {
+                const raidAbility = this.createTriggeredAbility(RaidAbility.buildRaidAbilityProperties(raidAmount));
+                raidAbility.registerEvents();
+                this._attackKeywordAbilities.push(raidAbility);
+            }
+
+            // TODO KEYWORDS: add grit registration here (others such as sentinel will be managed inside the attack pipeline)
         }
 
         /**

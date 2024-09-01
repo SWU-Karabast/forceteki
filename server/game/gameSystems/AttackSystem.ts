@@ -10,7 +10,7 @@ import { damage } from './GameSystemLibrary.js';
 import type { Card } from '../core/card/Card';
 import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
-import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
+import { ILastingEffectCardProperties, LastingEffectCardSystem } from './LastingEffectCardSystem';
 import Contract from '../core/utils/Contract';
 import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
 import * as CardHelpers from '../core/card/CardHelpers';
