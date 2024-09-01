@@ -115,8 +115,7 @@ export class Card extends OngoingEffectSource {
             this._location = Location.Deck;
         }
 
-        this.setupCardAbilities(AbilityHelper);
-        this.activateAbilityInitializersForTypes(AbilityType.Action);
+        // this.activateAbilityInitializersForTypes(AbilityType.Action);
     }
 
 
@@ -215,14 +214,6 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Create card abilities by calling subsequent methods with appropriate properties
-     * @param {Object} ability - AbilityHelper object containing limits, costs, effects, and game actions
-     */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupCardAbilities(ability) {
-    }
-
-    /**
      * Works through the list of queued ability initializers and activates any for the corresponding type.
      * We need to initialize this way because subclass ability initializers might be called before their
      * constructors have executed, so we have to delay execution of their initializers until they're ready.
@@ -241,13 +232,6 @@ export class Card extends OngoingEffectSource {
         this.abilityInitializers = skippedInitializers;
     }
 
-    protected addActionAbility(properties: IActionAbilityProps<this>) {
-        this.abilityInitializers.push({
-            abilityType: AbilityType.Action,
-            initialize: () => this._actionAbilities.push(this.createActionAbility(properties))
-        });
-    }
-
     public createActionAbility(properties: IActionAbilityProps): ActionAbility {
         properties.cardName = this.title;
         return new ActionAbility(this.game, this, properties);
@@ -255,7 +239,6 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* CARD TYPE HELPERS *******************************************
-    // TODO: convert these to use ts type narrowing for simpler conversions to derived types (see https://www.typescriptlang.org/docs/handbook/2/classes.html#this-based-type-guards)
     public isEvent(): this is EventCard {
         return this.type === CardType.Event;
     }

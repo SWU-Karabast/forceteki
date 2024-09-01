@@ -7,14 +7,13 @@ import Contract from '../utils/Contract';
 import { AbilityType, CardType, KeywordName, Location, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import { IAbilityProps, IActionAbilityProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import { IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
-import GainAbility from '../ongoingEffect/effectImpl/GainAbility';
-import { AbilityContext } from '../ability/AbilityContext';
+import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
-const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(InPlayCard)));
+const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAbilitySetup(InPlayCard))));
 
 export class UpgradeCard extends UpgradeCardParent {
     protected _parentCard?: UnitCard = null;

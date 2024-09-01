@@ -6,9 +6,9 @@ import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
 import AbilityHelper from '../../AbilityHelper';
 import { IActionAbilityProps, IEpicActionProps } from '../../Interfaces';
-import { AbilityContext } from '../ability/AbilityContext';
+import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
-const BaseCardParent = WithDamage(Card);
+const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
 
 /** A Base card (as in, the card you put in your base zone) */
 export class BaseCard extends BaseCardParent {

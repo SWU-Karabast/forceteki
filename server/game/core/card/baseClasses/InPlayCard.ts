@@ -1,4 +1,4 @@
-import { IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { AbilityRestriction, AbilityType, Arena, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -73,7 +73,43 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
 
     // ********************************************* ABILITY SETUP *********************************************
+    protected addActionAbility(properties: IActionAbilityProps<this>) {
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Action,
+            initialize: () => this._actionAbilities.push(this.createActionAbility(properties))
+        });
+    }
+
     protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Constant,
+            initialize: () => this._constantAbilities.push(this.createConstantAbility(properties))
+        });
+    }
+
+    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps): void {
+        // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Triggered,
+            initialize: () => this._triggeredAbilities.push(this.createReplacementEffectAbility(properties))
+        });
+    }
+
+    protected addTriggeredAbility(properties: ITriggeredAbilityProps): void {
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Triggered,
+            initialize: () => this._triggeredAbilities.push(this.createTriggeredAbility(properties))
+        });
+    }
+
+    protected addWhenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+        const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
+        this.addTriggeredAbility(triggeredProperties);
+    }
+
+    public createConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+        properties.cardName = this.title;
+
         const allowedLocationFilters = [
             WildcardLocation.Any,
             Location.Discard,
@@ -93,37 +129,13 @@ export class InPlayCard extends PlayableOrDeployableCard {
         if (notAllowedLocations.length > 0) {
             throw new Error(`Illegal effect location(s) specified: '${notAllowedLocations.join(', ')}'`);
         }
-        properties.cardName = this.title;
 
-        this.abilityInitializers.push({
-            abilityType: AbilityType.Constant,
-            initialize: () => this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties })
-        });
-    }
-
-    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps): void {
-        // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
-        this.abilityInitializers.push({
-            abilityType: AbilityType.Triggered,
-            initialize: () => this._triggeredAbilities.push(this.createReplacementEffectAbility(properties))
-        });
+        return { duration: Duration.Persistent, locationFilter, ...properties };
     }
 
     public createReplacementEffectAbility(properties: IReplacementEffectAbilityProps): ReplacementEffectAbility {
         properties.cardName = this.title;
         return new ReplacementEffectAbility(this.game, this, properties);
-    }
-
-    protected addTriggeredAbility(properties: ITriggeredAbilityProps): void {
-        this.abilityInitializers.push({
-            abilityType: AbilityType.Triggered,
-            initialize: () => this._triggeredAbilities.push(this.createTriggeredAbility(properties))
-        });
-    }
-
-    protected addWhenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
-        const triggeredProperties = Object.assign(properties, { when: { onUnitEntersPlay: (event) => event.card === this } });
-        this.addTriggeredAbility(triggeredProperties);
     }
 
     public createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {

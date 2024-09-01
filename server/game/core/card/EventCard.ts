@@ -6,8 +6,9 @@ import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard
 import { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
+import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
-const EventCardParent = WithCost(PlayableOrDeployableCard);
+const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
 export class EventCard extends EventCardParent {
     private _eventAbility: EventAbility;
