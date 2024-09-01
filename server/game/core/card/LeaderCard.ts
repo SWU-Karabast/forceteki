@@ -6,12 +6,6 @@ import { ActionAbility } from '../ability/ActionAbility';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import TriggeredAbility from '../ability/TriggeredAbility';
 
-interface IAbilitySet {
-    actionAbilities: ActionAbility[];
-    constantAbilities: IConstantAbility[];
-    triggeredAbilities: TriggeredAbility[];
-}
-
 
 export class LeaderCard extends InPlayCard {
     protected _isDeployed = false;
@@ -27,7 +21,7 @@ export class LeaderCard extends InPlayCard {
         Contract.assertEqual(this.printedType, CardType.Leader);
 
         this.setupLeaderUnitSide = false;
-        this.setupLeaderAbilities();
+        this.setupLeaderSideAbilities();
 
         // TODO LEADER: add deploy epic action (see Base.ts for reference)
     }
@@ -36,24 +30,10 @@ export class LeaderCard extends InPlayCard {
         return true;
     }
 
-    protected setAbilities(abilities: IAbilitySet) {
-        this.actionAbilities = abilities.actionAbilities;
-        this.constantAbilities = abilities.constantAbilities;
-        this.triggeredAbilities = abilities.triggeredAbilities;
-    }
-
     /**
      * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderAbilities() {
-    }
-
-    protected generateCurrentAbilitySet(): IAbilitySet {
-        return {
-            actionAbilities: this.actionAbilities,
-            constantAbilities: this.constantAbilities,
-            triggeredAbilities: this.triggeredAbilities
-        };
+    protected setupLeaderSideAbilities() {
     }
 }

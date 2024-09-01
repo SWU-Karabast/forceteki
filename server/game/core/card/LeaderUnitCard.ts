@@ -21,7 +21,9 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         super(owner, cardData);
 
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitAbilities();
+        this.setupLeaderUnitSideAbilities();
+
+        // TODO THIS PR: add check that abilities for leader unit side got added
 
         // leaders are always in a zone where they are allowed to be exhausted
         this.enableExhaust(true);
@@ -39,7 +41,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
      * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderUnitAbilities() {
+    protected setupLeaderUnitSideAbilities() {
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
