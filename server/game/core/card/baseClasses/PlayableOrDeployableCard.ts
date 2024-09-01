@@ -55,7 +55,7 @@ export class PlayableOrDeployableCard extends Card {
         this._exhausted = false;
     }
 
-    public override canBeExhausted(): boolean {
+    public override canBeExhausted(): this is PlayableOrDeployableCard {
         return true;
     }
 

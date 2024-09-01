@@ -14,12 +14,14 @@ import type Shield from '../../cardImplementations/01_SOR/Shield';
 import { KeywordInstance } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { EventCard } from './EventCard';
-import type { TokenCard, UnitCard } from './CardTypes';
+import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
 import type { LeaderUnitCard } from './LeaderUnitCard';
 import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
+import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { InPlayCard } from './baseClasses/InPlayCard';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -291,22 +293,31 @@ export class Card extends OngoingEffectSource {
     }
 
     /** Returns true if the card is in a location where it can legally be damaged */
-    public canBeDamaged(): boolean {
+    public canBeDamaged(): this is CardWithDamageProperty {
         return false;
     }
 
-    /** Returns true if the card is in a location where it can legally be exhausted */
-    public canBeExhausted(): boolean {
+    /**
+     * Returns true if the card is in a location where it can legally be exhausted.
+     * The returned type set is equivalent to {@link CardWithExhaustProperty}.
+     */
+    public canBeExhausted(): this is PlayableOrDeployableCard {
         return false;
     }
 
-    /** Returns true if the card is a type that can legally have triggered abilities */
-    public canRegisterTriggeredAbilities(): boolean {
+    /**
+     * Returns true if the card is a type that can legally have triggered abilities
+     * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
+     */
+    public canRegisterTriggeredAbilities(): this is InPlayCard {
         return false;
     }
 
-    /** Returns true if the card is a type that can legally have constant abilities */
-    public canRegisterConstantAbilities(): boolean {
+    /**
+     * Returns true if the card is a type that can legally have constant abilities
+     * The returned type set is equivalent to {@link CardWithConstantAbilities}.
+     */
+    public canRegisterConstantAbilities(): this is InPlayCard {
         return false;
     }
 

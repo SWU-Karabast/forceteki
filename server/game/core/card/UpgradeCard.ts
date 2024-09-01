@@ -40,20 +40,6 @@ export class UpgradeCard extends UpgradeCardParent {
         return this._parentCard;
     }
 
-    /** The card that this card is underneath */
-    public set parentCard(card: Card | null) {
-        if (card) {
-            this._parentCard = null;
-            return;
-        }
-
-        if (!Contract.assertTrue(card.isUnit()) || !Contract.assertTrue(EnumHelpers.isArena(this.location))) {
-            return;
-        }
-
-        this._parentCard = card as UnitCard;
-    }
-
     public override moveTo(targetLocation: Location) {
         if (
             !Contract.assertFalse(this._parentCard && targetLocation !== this._parentCard.location,

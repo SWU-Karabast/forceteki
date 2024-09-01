@@ -63,11 +63,11 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 .concat(this.getGainedAbilityEffects<TriggeredAbility>(AbilityType.Triggered));
     }
 
-    public override canRegisterConstantAbilities(): boolean {
+    public override canRegisterConstantAbilities(): this is InPlayCard {
         return true;
     }
 
-    public override canRegisterTriggeredAbilities(): boolean {
+    public override canRegisterTriggeredAbilities(): this is InPlayCard {
         return true;
     }
 

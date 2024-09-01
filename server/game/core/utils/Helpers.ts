@@ -85,7 +85,7 @@ export function defaultLegalLocationsForCardType(cardType: CardType) {
     }
 }
 
-export function asArray(val: any) {
+export function asArray<T>(val: T | T[]): T[] {
     if (val == null) {
         return [];
     }
