@@ -26,11 +26,6 @@ import type { InPlayCard } from './baseClasses/InPlayCard';
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
 
-export interface IAbilityInitializer {
-    abilityType: AbilityType,
-    initialize: () => void
-}
-
 /**
  * The base class for all card types. Any shared properties among all cards will be present here.
  *
@@ -54,8 +49,7 @@ export class Card extends OngoingEffectSource {
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
-    protected abilityInitializers: IAbilityInitializer[] = [];
-    protected _actionAbilities: ActionAbility[] = [];
+    protected actionAbilities: ActionAbility[] = [];
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
@@ -126,7 +120,7 @@ export class Card extends OngoingEffectSource {
      */
     public getActionAbilities(): ActionAbility[] {
         return this.isBlank() ? []
-            : this._actionAbilities
+            : this.actionAbilities
                 .concat(this.getGainedAbilityEffects<ActionAbility>(AbilityType.Action));
     }
 
@@ -211,25 +205,6 @@ export class Card extends OngoingEffectSource {
         Contract.assertArraySize(args, 2);
 
         return [args[0] as Player, args[1]];
-    }
-
-    /**
-     * Works through the list of queued ability initializers and activates any for the corresponding type.
-     * We need to initialize this way because subclass ability initializers might be called before their
-     * constructors have executed, so we have to delay execution of their initializers until they're ready.
-     */
-    protected activateAbilityInitializersForTypes(abilityTypes: AbilityType | AbilityType[]) {
-        const abilityTypesAra = Helpers.asArray(abilityTypes);
-
-        const skippedInitializers: IAbilityInitializer[] = [];
-        for (const abilityInitializer of this.abilityInitializers) {
-            if (abilityTypesAra.includes(abilityInitializer.abilityType)) {
-                abilityInitializer.initialize();
-            } else {
-                skippedInitializers.push(abilityInitializer);
-            }
-        }
-        this.abilityInitializers = skippedInitializers;
     }
 
     public createActionAbility(properties: IActionAbilityProps): ActionAbility {
@@ -464,7 +439,7 @@ export class Card extends OngoingEffectSource {
     }
 
     protected resetLimits() {
-        for (const action of this._actionAbilities) {
+        for (const action of this.actionAbilities) {
             if (action.limit) {
                 action.limit.reset();
             }

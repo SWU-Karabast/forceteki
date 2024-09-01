@@ -19,8 +19,6 @@ export class EventCard extends EventCardParent {
 
         this.defaultActions.push(new PlayEventAction(this));
 
-        this.activateAbilityInitializersForTypes([AbilityType.Event]);
-
         Contract.assertNotNullLike(this._eventAbility, 'Event card\'s ability was not initialized');
     }
 
@@ -51,10 +49,6 @@ export class EventCard extends EventCardParent {
 
     protected setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
-
-        this.abilityInitializers.push({
-            abilityType: AbilityType.Event,
-            initialize: () => this._eventAbility = new EventAbility(this.game, this, properties)
-        });
+        this._eventAbility = new EventAbility(this.game, this, properties);
     }
 }

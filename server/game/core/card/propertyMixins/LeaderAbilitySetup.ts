@@ -1,55 +1,46 @@
-import { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import { ActionAbility } from '../../ability/ActionAbility';
+import TriggeredAbility from '../../ability/TriggeredAbility';
 import { AbilityType } from '../../Constants';
+import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { InPlayCardConstructor } from '../baseClasses/InPlayCard';
-import { IAbilityInitializer } from '../Card';
+
+interface IAbilitySet {
+    actionAbilities: ActionAbility[];
+    constantAbilities: IConstantAbility[];
+    triggeredAbilities: TriggeredAbility[];
+}
 
 /** Mixin function that creates a version of the base class that is a Token. */
 export function WithLeaderAbilitySetup<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
     return class WithLeaderAbilitySetup extends BaseClass {
-        protected leaderUnitSideAbilityInitializers: IAbilityInitializer[] = [];
-        protected leaderSideAbilityInitializers: IAbilityInitializer[] = [];
-
-        private leaderSideAddMode: boolean;
+        private leaderSideAbilities: IAbilitySet;
+        private leaderUnitSideAbilities: IAbilitySet;
 
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
 
-            this.leaderSideAddMode = false;
             this.setupLeaderUnitAbilities();
+            this.leaderUnitSideAbilities = this.generateCurrentAbilitySet();
 
-            this.leaderSideAddMode = true;
+            // reset ability lists so they can be re-initialized with leader side abilities
+            this.actionAbilities = [];
+            this.constantAbilities = [];
+            this.triggeredAbilities = [];
+
             this.setupLeaderAbilities();
+            this.leaderSideAbilities = this.generateCurrentAbilitySet();
+
+            // leave leader side abilities in place for game start
         }
 
-        // protected override addActionAbility(properties: IActionAbilityProps<this>) {
-        //     const initializerList = this.leaderSideAddMode ? this.leaderSideAbilityInitializers : this.leaderUnitSideAbilityInitializers;
-
-        //     initializerList.push({
-        //         abilityType: AbilityType.Action,
-        //         initialize: () => this._actionAbilities.push(this.createActionAbility(properties))
-        //     });
-        // }
-
-        // protected override addConstantAbility(properties: IConstantAbilityProps<this>): void {
-        //     const initializerList = this.leaderSideAddMode ? this.leaderSideAbilityInitializers : this.leaderUnitSideAbilityInitializers;
-
-        //     initializerList.push({
-        //         abilityType: AbilityType.Constant,
-        //         initialize: () => this._constantAbilities.push(this.createConstantAbility(properties))
-        //     });
-        // }
-
-        // protected override addTriggeredAbility(properties: ITriggeredAbilityProps): void {
-        //     const initializerList = this.leaderSideAddMode ? this.leaderSideAbilityInitializers : this.leaderUnitSideAbilityInitializers;
-
-        //     initializerList.push({
-        //         abilityType: AbilityType.Triggered,
-        //         initialize: () => this._triggeredAbilities.push(this.createTriggeredAbility(properties))
-        //     });
-        // }
-
-        // private addToInitializerListForActiveSide() {}
+        private generateCurrentAbilitySet(): IAbilitySet {
+            return {
+                actionAbilities: this.actionAbilities,
+                constantAbilities: this.constantAbilities,
+                triggeredAbilities: this.triggeredAbilities
+            };
+        }
 
         /**
          * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
