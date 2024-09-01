@@ -109,7 +109,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         });
     }
 
-    private createReplacementEffectAbility(properties: IReplacementEffectAbilityProps): ReplacementEffectAbility {
+    public createReplacementEffectAbility(properties: IReplacementEffectAbilityProps): ReplacementEffectAbility {
         properties.cardName = this.title;
         return new ReplacementEffectAbility(this.game, this, properties);
     }
