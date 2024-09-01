@@ -2,7 +2,8 @@ const { SelectChoice } = require('./SelectChoice.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
 const { default: Contract } = require('../../utils/Contract.js');
 
-class AbilityTargetSelect {
+/** Target resolver for selecting between multiple prompted choices due to an effect */
+class SelectTargetResolver {
     constructor(name, properties, ability) {
         this.name = name;
         this.properties = properties;
@@ -152,4 +153,4 @@ class AbilityTargetSelect {
     }
 }
 
-module.exports = AbilityTargetSelect;
+module.exports = SelectTargetResolver;

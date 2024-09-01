@@ -4,9 +4,9 @@ const { Stage, RelativePlayer, EffectName, TargetMode } = require('../../Constan
 const { default: Contract } = require('../../utils/Contract.js');
 const EnumHelpers = require('../../utils/EnumHelpers.js');
 
-// TODO: the AbilityTarget* classes need a base class and then converted to TS
-// TODO THIS PR: rename these to be TargetResolvers?
-class AbilityTargetCard {
+// TODO: the TargetResolver classes need a base class and then converted to TS
+/** Target resolver for selecting cards for the target of an effect */
+class CardTargetResolver {
     constructor(name, properties, ability) {
         this.name = name;
         this.properties = properties;
@@ -215,4 +215,4 @@ class AbilityTargetCard {
     }
 }
 
-module.exports = AbilityTargetCard;
+module.exports = CardTargetResolver;
