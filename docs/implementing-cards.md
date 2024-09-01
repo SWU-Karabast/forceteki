@@ -469,7 +469,7 @@ This section describes some of the major components that are used in the definit
 - Game systems
 - Target resolvers
 
-#### Context object
+### Context object
 
 When the game starts to resolve an ability, it creates a context object for that ability. Generally, the context ability has the following structure:
 
