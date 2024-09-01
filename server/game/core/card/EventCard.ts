@@ -23,7 +23,7 @@ export class EventCard extends EventCardParent {
         Contract.assertNotNullLike(this._eventAbility, 'Event card\'s ability was not initialized');
     }
 
-    public override isEvent() {
+    public override isEvent(): this is EventCard {
         return true;
     }
 

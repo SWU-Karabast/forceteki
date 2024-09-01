@@ -23,7 +23,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         this.defaultActions.push(new PlayUnitAction(this));
     }
 
-    public override isNonLeaderUnit() {
+    public override isNonLeaderUnit(): this is NonLeaderUnitCard {
         return true;
     }
 

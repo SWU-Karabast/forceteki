@@ -4,6 +4,7 @@ import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { CardType, Location } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
+import type { UnitCard } from './CardTypes';
 
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
@@ -28,11 +29,11 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         this.enableExhaust(true);
     }
 
-    public override isUnit() {
+    public override isUnit(): this is UnitCard {
         return this._isDeployed;
     }
 
-    public override isLeaderUnit() {
+    public override isLeaderUnit(): this is LeaderUnitCard {
         return this._isDeployed;
     }
 

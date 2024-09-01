@@ -75,7 +75,7 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         if (!card.isUnit()) {
             return false;
         }
-        if (!properties.upgrade.canAttach((card as UnitCard), this.getFinalController(properties, context))) {
+        if (!properties.upgrade.canAttach(card, this.getFinalController(properties, context))) {
             return false;
         } else if (
             properties.takeControl &&

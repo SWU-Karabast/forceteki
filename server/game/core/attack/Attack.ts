@@ -28,13 +28,9 @@ export class Attack extends GameObject {
     }
 
     public get targetTotalPower(): number | null {
-        return this.targetIsBase
+        return this.target.isBase()
             ? null
-            : this.getUnitPower(this.target as UnitCard);
-    }
-
-    public get targetIsBase(): boolean {
-        return this.target.isBase();
+            : this.getUnitPower(this.target);
     }
 
     public constructor(

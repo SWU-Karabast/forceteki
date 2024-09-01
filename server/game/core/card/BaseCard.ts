@@ -25,7 +25,7 @@ export class BaseCard extends BaseCardParent {
         this.enableDamage(true);
     }
 
-    public override isBase() {
+    public override isBase(): this is BaseCard {
         return true;
     }
 

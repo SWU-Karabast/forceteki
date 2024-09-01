@@ -16,6 +16,7 @@ import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
+import type { UnitCard } from '../CardTypes';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -74,7 +75,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.defaultActions.push(new InitiateAttackAction(this));
         }
 
-        public override isUnit() {
+        public override isUnit(): this is UnitCard {
             return true;
         }
 

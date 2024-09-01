@@ -11,7 +11,7 @@ export class LeaderCard extends InPlayCard {
         // TODO LEADER: add deploy epic action (see Base.ts for reference)
     }
 
-    public override isLeader() {
+    public override isLeader(): this is LeaderCard {
         return true;
     }
 }

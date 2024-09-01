@@ -11,9 +11,15 @@ import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import CardAbility from '../ability/CardAbility';
 import type Shield from '../../cardImplementations/01_SOR/Shield';
-import type Experience from '../../cardImplementations/01_SOR/Experience';
 import { KeywordInstance } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
+import type { EventCard } from './EventCard';
+import type { TokenCard, UnitCard } from './CardTypes';
+import type { UpgradeCard } from './UpgradeCard';
+import type { BaseCard } from './BaseCard';
+import type { LeaderCard } from './LeaderCard';
+import type { LeaderUnitCard } from './LeaderUnitCard';
+import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -248,35 +254,35 @@ export class Card extends OngoingEffectSource {
 
     // ******************************************* CARD TYPE HELPERS *******************************************
     // TODO: convert these to use ts type narrowing for simpler conversions to derived types (see https://www.typescriptlang.org/docs/handbook/2/classes.html#this-based-type-guards)
-    public isEvent(): boolean {
+    public isEvent(): this is EventCard {
         return this.type === CardType.Event;
     }
 
-    public isUnit(): boolean {
+    public isUnit(): this is UnitCard {
         return this.type === CardType.BasicUnit || this.type === CardType.LeaderUnit || this.type === CardType.TokenUnit;
     }
 
-    public isUpgrade(): boolean {
+    public isUpgrade(): this is UpgradeCard {
         return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade;
     }
 
-    public isBase(): boolean {
+    public isBase(): this is BaseCard {
         return this.type === CardType.Base;
     }
 
-    public isLeader(): boolean {
+    public isLeader(): this is LeaderCard {
         return this.type === CardType.Leader || this.type === CardType.LeaderUnit;
     }
 
-    public isLeaderUnit(): boolean {
+    public isLeaderUnit(): this is LeaderUnitCard {
         return this.type === CardType.LeaderUnit;
     }
 
-    public isNonLeaderUnit(): boolean {
+    public isNonLeaderUnit(): this is NonLeaderUnitCard {
         return this.type === CardType.BasicUnit || this.type === CardType.TokenUnit;
     }
 
-    public isToken(): boolean {
+    public isToken(): this is TokenCard {
         return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
     }
 

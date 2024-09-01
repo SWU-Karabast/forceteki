@@ -26,7 +26,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.defaultActions.push(new PlayUpgradeAction(this));
     }
 
-    public override isUpgrade() {
+    public override isUpgrade(): this is UpgradeCard {
         return true;
     }
 
