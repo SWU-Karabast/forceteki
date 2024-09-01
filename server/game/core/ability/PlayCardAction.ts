@@ -10,7 +10,7 @@ export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
     public constructor(card: Card, title: string, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
-        super(card, title, additionalCosts.concat(CostLibrary.payAdjustableResourceCost()), targetResolver);
+        super(card, title, additionalCosts.concat(CostLibrary.payResourceCost()), targetResolver);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

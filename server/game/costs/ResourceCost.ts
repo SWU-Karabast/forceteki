@@ -4,7 +4,7 @@ import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 
 // TODO THIS PR: rename this to just "ResourceCost" and add a docstr explaining the adjustability
-export class AdjustableResourceCost implements ICost {
+export class ResourceCost implements ICost {
     public isPlayCost = true;
     public isPrintedResourceCost = true;
 
