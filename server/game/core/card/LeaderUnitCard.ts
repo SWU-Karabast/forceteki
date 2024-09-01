@@ -10,12 +10,6 @@ const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
 // TODO LEADERS: add custom defeat logic
 export class LeaderUnitCard extends LeaderUnitCardParent {
-    private _isDeployed = false;
-
-    public get isDeployed() {
-        return this._isDeployed;
-    }
-
     public override get type() {
         return this._isDeployed ? CardType.LeaderUnit : CardType.Leader;
     }
@@ -23,7 +17,17 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
-        this.defaultActions.push(new InitiateAttackAction(this));
+        // leader side abilities are initialized in the super call
+        // reset ability lists so they can be re-initialized with leader unit side abilities
+        this.actionAbilities = [];
+        this.constantAbilities = [];
+        this.triggeredAbilities = [];
+
+        this.setupLeaderUnitAbilities();
+        this.leaderUnitSideAbilities = this.generateCurrentAbilitySet();
+
+        // enable leader side abilities for game start
+        this.setAbilities(this.leaderSideAbilities);
 
         // leaders are always in a zone where they are allowed to be exhausted
         this.enableExhaust(true);
@@ -35,6 +39,13 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
     public override isLeaderUnit(): this is LeaderUnitCard {
         return this._isDeployed;
+    }
+
+    /**
+     * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected setupLeaderUnitAbilities() {
     }
 
     protected override initializeForCurrentLocation(prevLocation: Location): void {
