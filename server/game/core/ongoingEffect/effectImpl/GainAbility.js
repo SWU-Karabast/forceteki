@@ -27,8 +27,8 @@ class GainAbility extends OngoingEffectValueWrapper {
         } else {
             this.properties = Object.assign({ printedAbility: false }, ability);
         }
-        if (abilityType === AbilityType.Constant && !this.properties.location) {
-            this.properties.location = WildcardLocation.AnyArena;
+        if (abilityType === AbilityType.Constant && !this.properties.locationFilter) {
+            this.properties.locationFilter = WildcardLocation.AnyArena;
             this.properties.abilityType = AbilityType.Constant;
         }
     }

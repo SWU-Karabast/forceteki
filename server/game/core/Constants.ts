@@ -168,6 +168,7 @@ export enum EventName {
     OnDeckShuffled = 'onDeckShuffled',
     OnEffectApplied = 'onEffectApplied',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
+    OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCards = 'onLookAtCards',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
     OnPhaseCreated = 'onPhaseCreated',

@@ -19,7 +19,7 @@ class CardAbility extends CardAbilityStep {
         this.limit.registerEvents(game);
         this.limit.ability = this;
         this.abilityCost = this.cost;
-        this.location = this.locationOrDefault(card, properties.location);
+        this.locationFilter = this.locationOrDefault(card, properties.locationFilter);
         this.printedAbility = properties.printedAbility === false ? false : true;
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
@@ -121,7 +121,7 @@ class CardAbility extends CardAbilityStep {
     isInValidLocation(context) {
         return this.card.isEvent()
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
-            : EnumHelpers.cardLocationMatches(this.card.location, this.location);
+            : EnumHelpers.cardLocationMatches(this.card.location, this.locationFilter);
     }
 
     getLocationMessage(location, context) {

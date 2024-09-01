@@ -5,6 +5,7 @@ import { CardType, Location, LocationFilter, WildcardLocation } from '../Constan
 import { ActionAbility } from '../ability/ActionAbility';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import TriggeredAbility from '../ability/TriggeredAbility';
+import AbilityHelper from '../../AbilityHelper';
 
 
 export class LeaderCard extends InPlayCard {
@@ -23,7 +24,12 @@ export class LeaderCard extends InPlayCard {
         this.setupLeaderUnitSide = false;
         this.setupLeaderSideAbilities();
 
-        // TODO LEADER: add deploy epic action (see Base.ts for reference)
+        this.addActionAbility({
+            title: `Deploy ${this.name}`,
+            limit: AbilityHelper.limit.perGame(1),
+            locationFilter: Location.Base,
+            immediateEffect: AbilityHelper.immediateEffects.deploy(cardData.defaultArena)
+        });
     }
 
     public override isLeader(): this is LeaderCard {

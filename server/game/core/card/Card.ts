@@ -99,9 +99,12 @@ export class Card extends OngoingEffectSource {
         this.controller = owner;
         this.defaultController = owner;
         this.id = cardData.id;
-        this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords, cardData.text, this.internalName);
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
+
+        this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
+            this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
+            this.internalName);
 
         if (this.isToken()) {
             this._location = Location.OutsideTheGame;
