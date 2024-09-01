@@ -7,7 +7,6 @@ export enum Location {
     Discard = 'discard',
     GroundArena = 'ground arena',
     Hand = 'hand',
-    Leader = 'leader',
     OutsideTheGame = 'outside the game',
     RemovedFromGame = 'removed from game',
     Resource = 'resource',

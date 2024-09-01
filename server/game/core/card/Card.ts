@@ -417,7 +417,6 @@ export class Card extends OngoingEffectSource {
                 break;
 
             case Location.Base:
-            case Location.Leader:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;

@@ -78,7 +78,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
             WildcardLocation.Any,
             Location.Discard,
             WildcardLocation.AnyArena,
-            Location.Leader,
             Location.Base,
         ];
 

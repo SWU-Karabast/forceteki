@@ -58,9 +58,7 @@ class Player extends GameObject {
         this.additionalPiles = {};
         this.canTakeActionsThisPhase = null;
 
-        // TODO: per the rules, leader and base are both in the same 'base zone'
         this.baseZone = [];
-        this.leaderZone = [];
 
         this.leader = null;
         this.base = null;
@@ -760,8 +758,6 @@ class Player extends GameObject {
                 return this.groundArena;
             case Location.Base:
                 return this.baseZone;
-            case Location.Leader:
-                return this.leaderZone;
             case Location.OutsideTheGame:
                 return this.outsideTheGameCards;
             default:
@@ -1019,9 +1015,6 @@ class Player extends GameObject {
                     break;
                 case Location.RemovedFromGame:
                     this.removedFromGame = updatedPile;
-                    break;
-                case Location.Leader:
-                    this.leaderZone = updatedPile;
                     break;
                 case Location.OutsideTheGame:
                     this.outsideTheGameCards = updatedPile;

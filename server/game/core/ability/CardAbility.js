@@ -36,9 +36,7 @@ class CardAbility extends CardAbilityStep {
         let defaultLocationForType = null;
         if (card.isEvent()) {
             defaultLocationForType = Location.Hand;
-        } else if (card.isLeader()) {
-            defaultLocationForType = Location.Leader;
-        } else if (card.isBase()) {
+        } else if (card.isBase() || card.isLeader()) {
             defaultLocationForType = Location.Base;
         } else {
             defaultLocationForType = WildcardLocation.AnyArena;

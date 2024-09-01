@@ -73,13 +73,12 @@ export function defaultLegalLocationsForCardType(cardType: CardType) {
         case CardType.LeaderUnit:
             return [Location.SpaceArena, Location.GroundArena];
         case CardType.Base:
+        case CardType.Leader:
             return [Location.Base];
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
         case CardType.Event:
             return drawCardLocations;
-        case CardType.Leader:
-            return [Location.Leader];
         default:
             Contract.fail(`Unknown card type: ${cardType}`);
             return null;
