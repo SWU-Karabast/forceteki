@@ -23,23 +23,19 @@ export class LeaderCard extends InPlayCard {
 
         this.setupLeaderUnitSide = false;
         this.setupLeaderSideAbilities();
-
-        this.addActionAbility({
-            title: `Deploy ${this.name}`,
-            limit: AbilityHelper.limit.perGame(1),
-            locationFilter: Location.Base,
-            immediateEffect: AbilityHelper.immediateEffects.deploy(cardData.defaultArena)
-        });
     }
 
     public override isLeader(): this is LeaderCard {
         return true;
     }
 
+    // this is overriden in the LeaderUnit derived class
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public deploy() {}
+
     /**
      * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderSideAbilities() {
-    }
+    protected setupLeaderSideAbilities() {}
 }

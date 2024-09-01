@@ -8,6 +8,8 @@ import type { UnitCard } from './CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import * as Helpers from '../utils/Helpers';
+import AbilityHelper from '../../AbilityHelper';
+import Contract from '../utils/Contract';
 
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
@@ -27,6 +29,14 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
         // leaders are always in a zone where they are allowed to be exhausted
         this.enableExhaust(true);
+
+        this.addActionAbility({
+            title: `Deploy ${this.name}`,
+            limit: AbilityHelper.limit.perGame(1),
+            condition: (context) => context.source.controller.resources.length >= context.source.cost,
+            locationFilter: Location.Base,
+            immediateEffect: AbilityHelper.immediateEffects.deploy({ deployArena: this.defaultArena })
+        });
     }
 
     public override isUnit(): this is UnitCard {
@@ -35,6 +45,15 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
     public override isLeaderUnit(): this is LeaderUnitCard {
         return this._isDeployed;
+    }
+
+    public override deploy() {
+        if (!Contract.assertFalse(this._isDeployed, 'Attempting to deploy already deployed leader')) {
+            return;
+        }
+
+        this._isDeployed = true;
+        this.controller.moveCard(this, this.defaultArena);
     }
 
     /**

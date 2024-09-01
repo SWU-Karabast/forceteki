@@ -992,6 +992,9 @@ class Player extends GameObject {
             let updatedPile = this.removeCardByUuid(originalPile, card.uuid);
 
             switch (originalLocation) {
+                case Location.Base:
+                    this.baseZone = updatedPile;
+                    break;
                 case Location.SpaceArena:
                     this.spaceArena = updatedPile;
                     break;

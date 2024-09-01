@@ -96,25 +96,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     public createConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
         properties.cardName = this.title;
 
-        const allowedLocationFilters = [
-            WildcardLocation.Any,
-            Location.Discard,
-            WildcardLocation.AnyArena,
-            Location.Base,
-        ];
-
         const locationFilter = properties.locationFilter || WildcardLocation.AnyArena;
-
-        let notAllowedLocations: LocationFilter[];
-        if (Array.isArray(locationFilter)) {
-            notAllowedLocations = allowedLocationFilters.filter((location) => locationFilter.includes(location));
-        } else {
-            notAllowedLocations = allowedLocationFilters.includes(locationFilter) ? [] : [locationFilter];
-        }
-
-        if (notAllowedLocations.length > 0) {
-            throw new Error(`Illegal effect location(s) specified: '${notAllowedLocations.join(', ')}'`);
-        }
 
         return { duration: Duration.Persistent, locationFilter, ...properties };
     }

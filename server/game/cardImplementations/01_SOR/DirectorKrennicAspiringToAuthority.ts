@@ -16,6 +16,14 @@ export default class DirectorKrennicAspiringToAuthority extends LeaderUnitCard {
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
         });
     }
+
+    protected override setupLeaderUnitSideAbilities() {
+        this.addConstantAbility({
+            title: 'Give each friendly damaged unit +1/+0',
+            match: (card) => card.isUnit() && card.damage !== 0,
+            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
+        });
+    }
 }
 
 DirectorKrennicAspiringToAuthority.implemented = true;

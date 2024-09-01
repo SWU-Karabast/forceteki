@@ -5,6 +5,7 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
+
 export interface IDeployLeaderProperties extends ICardTargetSystemProperties {
     deployArena: Arena;
 }
@@ -18,14 +19,12 @@ export class DeployLeaderSystem extends CardTargetSystem<IDeployLeaderProperties
 
     public eventHandler(event): void {
         if (
-            !Contract.assertTrue(event.card.isLeader()) ||
-            !Contract.assertFalse(event.card.isDeployed) ||
-            !Contract.assertTrue(EnumHelpers.isArena(event.deployArena))
+            !Contract.assertTrue(event.card.isLeader())
         ) {
             return;
         }
 
-        event.player.moveCard(event.card, event.deployArena);
+        event.card.deploy();
     }
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
