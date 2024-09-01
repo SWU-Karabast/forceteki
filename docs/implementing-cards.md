@@ -154,7 +154,7 @@ this.constantAbility({
 ```
 
 #### Filtering by card type, owner, location
-Note also that, similar to target resolvers described below, there are shorthand filters for the card properties location, owner, and card type. See the relevant section below for details. **TODO THIS PR: add section link**
+Note also that, similar to target resolvers described below, there are shorthand filters for the card properties location, owner, and card type. See section [Target filtering](#target-filtering) below for more details.
 
 All of these filters are available for filtering target cards (e.g., `targetLocationFilter`), but for checking the properties of the source card (the card that owns the ability) only `sourceLocationFilter` is available:
 
@@ -226,7 +226,7 @@ this.addConstantAbilityTargetingAttached({
 });
 ```
 
-#### **IGNORE THIS SECTION, STILL WIP**: Applying effects to cards which aren't in play
+#### **IGNORE THIS SECTION, STILL WIP**: ~~Applying effects to cards which aren't in play~~
 
 By default, ongoing effects will only be applied to cards in the play area.  Certain cards effects refer to cards in your hand, such as reducing their cost. In these cases, set the `targetLocation` property to `'hand'`.
 
@@ -252,7 +252,7 @@ this.constantAbility({
 });
 ```
 
-#### **IGNORE THIS SECTION, STILL WIP**: Player modifying effects
+#### **IGNORE THIS SECTION, STILL WIP**: ~~Player modifying effects~~
 
 Certain cards provide bonuses or restrictions on the player itself instead of on any specific cards. These effects are marked as `Player` effects in `/server/game/effects.js`. For player effects, `targetController` indicates which players the effect should be applied to (with `'current'` acting as the default). Player effects should not have a `match` property.
 
@@ -400,7 +400,7 @@ this.addTriggeredAbility({
 });
 ```
 
-#### **IGNORE THIS SECTION, STILL WIP**: Abilities outside of play
+#### **IGNORE THIS SECTION, STILL WIP**: ~~Abilities outside of play~~
 
 Certain abilities, such as that of Vengeful Oathkeeper can only be activated in non-play locations. Such reactions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability when prompted.
 
@@ -450,17 +450,16 @@ These abilities are called "replacement effects" in the SWU rules and are define
 Here is the Shield implementation as an example:
 ```javascript
 this.addReplacementEffectAbility({
-    // TODO THIS PR: fix "this" throughout
     title: 'Defeat shield to prevent attached unit from taking damage',
     when: {
-        onDamageDealt: (event) => event.card === this.parentCard
+        onDamageDealt: (event, context) => event.card === (context.source as UpgradeCard).parentCard
     },
     replaceWith: {
         target: this,
         replacementImmediateEffect: AbilityHelper.immediateEffects.defeat()
     },
     effect: 'shield prevents {1} from taking damage',
-    effectArgs: () => [this.parentCard],
+    effectArgs: (context) => [(context.source as UpgradeCard).parentCard],
 });
 ```
 
@@ -529,7 +528,7 @@ this.addOnAttackAbility({
 });
 ```
 
-See detail on GameSystems below **TODO THIS PR: LINK**. If an array of game systems is specified in `immediateEffect`, then the target only needs to meet the requirements of one of them.
+See additional details in the [GameSystems](#game-systems) section below. If an array of game systems is specified in `immediateEffect`, then the target only needs to meet the requirements of one of them.
 
 #### Target filtering
 As mentioned above, targets can be filtered using one of multiple properties. The `cardCondition` property is the most flexible but the most cumbersome to write and to read, as it requires passing a handler function. Since most ability targets are restricted by a simple category such as "non-leader unit" or "friendly ground unit", properties are available for filtering on these attributes (see example below).
@@ -565,7 +564,7 @@ Some card abilities require multiple targets. These may be specified using the `
 
 Once all targets are chosen, they will be set using their specified name under the `targetResolvers` property on the handler context object.
 
-#### **IGNORE FOR NOW, WIP:** Select options
+#### **IGNORE FOR NOW, WIP:** ~~Select options~~
 
 Some abilities require the player (or their opponent) to choose between multiple options.  This is done in the same way as targets above, but by using the `mode` property set to `'select'`.  In addition, a `choices` object should be included, which contains key:value pairs where the key is the option to display to the player, and the value is either a function which takes the `context` object and returns a boolean indicating whether this option is legal, or a game action which will be evaluated on the basis of the specified target (or default as detailed below) to determine whether the choice is legal.  The selected option is stored in `context.select.choice` (or `context.selects[targetName].choice` for an ability with multiple targets).
 
@@ -642,7 +641,7 @@ this.addActionAbility({
 Some actions have text limiting the number of times they may be used in a given period. You can pass an optional `limit` property using one of the duration-specific ability limiters. See `/server/game/abilitylimit.js` for more details.
 
 ```javascript
-this.action({
+this.addActionAbility({
     title: 'Damage an opponent\'s base',
     limit: AbilityHelper.limit.perPhase(1),
     // ...
@@ -680,7 +679,7 @@ this.action({
 });
 ```
 
-#### **IGNORE THIS, STILL WIP:** Lasting effects
+#### **IGNORE THIS, STILL WIP:** ~~Lasting effects~~
 
 Unlike constant abilities, "lasting" effects are typically applied during an action or triggered ability and expire after a specified period of time.  Lasting effects use the same properties as constant abilities, above.  Lasting effects are applied using the `cardLastingEffect` or `playerLastingEffect`, depending on what they affect.  They take a `duration:` property which is one of `untilEndOfAttack` (default), `untilEndOfPhase` or `untilEndOfRound`.
 
@@ -737,7 +736,7 @@ this.action({
 });
 ```
 
-#### **IGNORE THIS, STILL WIP:** Actions outside of play
+#### **IGNORE THIS, STILL WIP:** ~~Actions outside of play~~
 
 Certain actions, such as that of Ancestral Guidance, can only be activated while the character is in the discard pile. Such actions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability by simply clicking the card. If there is a conflict (e.g. both the ability and playing the card normally can occur), then the player will be prompted.
 
