@@ -1,10 +1,13 @@
 import Player from '../Player';
 import { LeaderCard } from './LeaderCard';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
-import { CardType, Location } from '../Constants';
+import { CardType, Location, LocationFilter } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import type { UnitCard } from './CardTypes';
+import * as EnumHelpers from '../utils/EnumHelpers';
+import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import * as Helpers from '../utils/Helpers';
 
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
@@ -17,17 +20,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
-        // leader side abilities are initialized in the super call
-        // reset ability lists so they can be re-initialized with leader unit side abilities
-        this.actionAbilities = [];
-        this.constantAbilities = [];
-        this.triggeredAbilities = [];
-
+        this.setupLeaderUnitSide = true;
         this.setupLeaderUnitAbilities();
-        this.leaderUnitSideAbilities = this.generateCurrentAbilitySet();
-
-        // enable leader side abilities for game start
-        this.setAbilities(this.leaderSideAbilities);
 
         // leaders are always in a zone where they are allowed to be exhausted
         this.enableExhaust(true);
@@ -46,6 +40,34 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupLeaderUnitAbilities() {
+    }
+
+    protected override addActionAbility(properties: IActionAbilityProps<this>) {
+        this.addAbilityLocationForSide(properties);
+        super.addActionAbility(properties);
+    }
+
+    protected override addConstantAbility(properties: IConstantAbilityProps<this>): void {
+        this.addAbilityLocationForSide(properties);
+        super.addConstantAbility(properties);
+    }
+
+    protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps): void {
+        this.addAbilityLocationForSide(properties);
+        super.addReplacementEffectAbility(properties);
+    }
+
+    protected override addTriggeredAbility(properties: ITriggeredAbilityProps): void {
+        this.addAbilityLocationForSide(properties);
+        super.addTriggeredAbility(properties);
+    }
+
+    private addAbilityLocationForSide(properties: { locationFilter?: LocationFilter | LocationFilter[] }) {
+        const abilityLocation = this.setupLeaderUnitSide ? this.defaultArena : Location.Base;
+
+        properties.locationFilter = properties.locationFilter
+            ? Helpers.asArray(properties.locationFilter).concat([abilityLocation])
+            : abilityLocation;
     }
 
     protected override initializeForCurrentLocation(prevLocation: Location): void {

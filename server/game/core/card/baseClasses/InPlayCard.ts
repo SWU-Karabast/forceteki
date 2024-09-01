@@ -169,7 +169,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     /** Register / un-register the event triggers for any triggered abilities */
-    protected updateTriggeredAbilityEvents(from: Location, to: Location, reset: boolean = true) {
+    private updateTriggeredAbilityEvents(from: Location, to: Location, reset: boolean = true) {
         // TODO CAPTURE: does being captured and then freed in the same turn reset any ability limits?
         this.resetLimits();
 
@@ -195,7 +195,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     /** Register / un-register the effect registrations for any constant abilities */
-    protected updateConstantAbilityEffects(from: Location, to: Location) {
+    private updateConstantAbilityEffects(from: Location, to: Location) {
         // removing any lasting effects from ourself
         if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
             this.removeLastingEffects();

@@ -4,6 +4,7 @@ const Costs = require('../../costs/CostLibrary.js');
 const { Location, CardType, EffectName, WildcardLocation, AbilityType, PhaseName } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
 const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
+const { default: Contract } = require('../utils/Contract.js');
 
 class CardAbility extends CardAbilityStep {
     constructor(game, card, properties, type = AbilityType.Action) {
@@ -18,7 +19,7 @@ class CardAbility extends CardAbilityStep {
         this.limit.registerEvents(game);
         this.limit.ability = this;
         this.abilityCost = this.cost;
-        this.location = this.buildLocation(card, properties.location);
+        this.location = this.locationOrDefault(card, properties.location);
         this.printedAbility = properties.printedAbility === false ? false : true;
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
@@ -32,19 +33,26 @@ class CardAbility extends CardAbilityStep {
         }
     }
 
-    buildLocation(card, location) {
-        let defaultLocationForType = null;
-        if (card.isEvent()) {
-            defaultLocationForType = Location.Hand;
-        } else if (card.isBase() || card.isLeader()) {
-            defaultLocationForType = Location.Base;
-        } else {
-            defaultLocationForType = WildcardLocation.AnyArena;
+    locationOrDefault(card, location) {
+        if (location != null) {
+            return location;
         }
 
-        let defaultedLocation = [location || defaultLocationForType];
+        if (card.isEvent()) {
+            return Location.Hand;
+        }
+        if (card.isLeader()) {
+            Contract.fail('Leader card abilities must explicitly assign properties.locationFilter for the correct active zone of the ability');
+        }
+        if (card.isBase()) {
+            return Location.Base;
+        }
+        if (card.isUnit() || card.isUpgrade()) {
+            return WildcardLocation.AnyArena;
+        }
 
-        return defaultedLocation;
+        Contract.fail(`Unknown card type for card: ${card.internalName}`);
+        return null;
     }
 
     /** @override */
