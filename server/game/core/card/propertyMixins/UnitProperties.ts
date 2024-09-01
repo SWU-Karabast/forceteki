@@ -82,14 +82,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         // ***************************************** ATTACK HELPERS *****************************************
         /**
          * Check if there are any effect restrictions preventing this unit from attacking the passed target.
-         * Only checks effects, **does not** check basic attack rules (e.g. target card type).
+         * Returns true if so.
          */
-        public canAttack(target: Card) {
+        public effectsPreventAttack(target: Card) {
             if (this.hasEffect(EffectName.CannotAttackBase) && target.isBase()) {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         protected addAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {

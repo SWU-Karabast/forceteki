@@ -105,7 +105,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         }
         if (
             targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) ||
-            !(properties.attacker as UnitCard).canAttack(targetCard)
+            (properties.attacker as UnitCard).effectsPreventAttack(targetCard)
         ) {
             return false;
         }
