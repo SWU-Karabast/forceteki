@@ -26,6 +26,7 @@ const Helpers = require('./utils/Helpers');
 const AbilityHelper = require('../AbilityHelper');
 const { BaseCard } = require('./card/BaseCard');
 const { LeaderCard } = require('./card/LeaderCard');
+const { LeaderUnitCard } = require('./card/LeaderUnitCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -483,7 +484,7 @@ class Player extends GameObject {
         if (preparedDecklist.base instanceof BaseCard) {
             this.base = preparedDecklist.base;
         }
-        if (preparedDecklist.leader instanceof BaseCard) {
+        if (preparedDecklist.leader instanceof LeaderUnitCard) {
             this.leader = preparedDecklist.leader;
         }
 
@@ -855,15 +856,8 @@ class Player extends GameObject {
      * @param {*} deck
      */
     selectDeck(deck) {
-        this.decklistNames.selected = false;
         this.decklistNames = deck;
         this.decklistNames.selected = true;
-        if (deck.base.length > 0) {
-            this.base = new BaseCard(this, deck.base[0].card);
-        }
-        if (deck.leader.length > 0) {
-            this.leader = new LeaderCard(this, deck.leader[0].card);
-        }
     }
 
     /**
@@ -881,13 +875,13 @@ class Player extends GameObject {
     }
 
     /**
-     * Moves a card from its current location to the resource zone, optionally exhausting it
+     * Moves a card from its current location to the resource zone
      * @param card BaseCard
-     * @param {boolean} exhaust
+     * @param {boolean} exhaust Whether to exhaust the card. True by default.
      */
-    resourceCard(card, exhaust = false) {
+    resourceCard(card, exhaust = true) {
         this.moveCard(card, Location.Resource);
-        card.exhausted = !exhaust;
+        card.exhausted = exhaust;
     }
 
     /**

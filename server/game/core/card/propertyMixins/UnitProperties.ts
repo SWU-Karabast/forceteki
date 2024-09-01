@@ -57,7 +57,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             super(...args);
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
-            Contract.assertTrue(EnumHelpers.isUnit(this.printedType));
+            Contract.assertTrue(EnumHelpers.isUnit(this.printedType) || this.printedType === CardType.Leader);
 
             Contract.assertNotNullLike(cardData.arena);
             switch (cardData.arena) {
