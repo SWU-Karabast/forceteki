@@ -1,6 +1,8 @@
 const { detectBinary } = require('../../build/Util.js');
 const { GameMode } = require('../../build/GameMode.js');
 
+const { checkNullCard } = require('./Util.js');
+
 class PlayerInteractionWrapper {
     constructor(game, player, testContext) {
         this.game = game;
@@ -474,6 +476,8 @@ class PlayerInteractionWrapper {
     }
 
     clickCard(card, location = 'any', side = 'self', expectChange = true) {
+        checkNullCard(card, this.testContext);
+
         if (typeof card === 'string') {
             card = this.findCardByName(card, location, side);
         }
@@ -513,12 +517,6 @@ class PlayerInteractionWrapper {
         }
 
         return true;
-    }
-
-    clickRing(element) {
-        this.game.ringClicked(this.player.name, element);
-        this.game.continue();
-        // this.checkUnserializableGameState();
     }
 
     clickMenu(card, menuText) {

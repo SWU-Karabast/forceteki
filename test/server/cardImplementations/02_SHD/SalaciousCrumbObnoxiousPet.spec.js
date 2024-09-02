@@ -45,7 +45,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
 
                 this.crumb = this.player1.findCardByName('salacious-crumb#obnoxious-pet');
                 this.wampa = this.player1.findCardByName('wampa');
-                this.atrt = this.player2.findCardByName('frontier-atrt');
+                this.frontierAtrt = this.player2.findCardByName('frontier-atrt');
                 this.cartelSpacer = this.player2.findCardByName('cartel-spacer');
             });
 
@@ -54,10 +54,10 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 this.player1.clickPrompt('Deal 1 damage to a ground unit');
 
                 // can target any ground unit
-                expect(this.player1).toBeAbleToSelectExactly([this.atrt, this.wampa]);
+                expect(this.player1).toBeAbleToSelectExactly([this.frontierAtrt, this.wampa]);
 
-                this.player1.clickCard(this.atrt);
-                expect(this.atrt.damage).toBe(1);
+                this.player1.clickCard(this.frontierAtrt);
+                expect(this.frontierAtrt.damage).toBe(1);
                 expect(this.crumb).toBeInLocation('hand');
             });
 

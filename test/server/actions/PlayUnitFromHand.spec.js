@@ -14,9 +14,6 @@ describe('Play unit from hand', function() {
                         groundArena: ['wampa'],
                     }
                 });
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.firstLegionSnowtrooper = this.player1.findCardByName('first-legion-snowtrooper');
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
             });
 
             it('it should land in the correct arena exausted and resources should be exhausted', function () {

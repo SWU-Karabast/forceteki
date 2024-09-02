@@ -86,6 +86,10 @@ class DeckBuilder {
 
     getNamedCardsInPlayerEntry(playerEntry) {
         let namedCards = [];
+        if (typeof playerEntry === 'number' || typeof playerEntry == null) {
+            return [];
+        }
+
         if (typeof playerEntry === 'string') {
             namedCards = namedCards.concat(playerEntry);
         } else if ('card' in playerEntry) {
@@ -95,7 +99,7 @@ class DeckBuilder {
             }
         } else if (Array.isArray(playerEntry)) {
             playerEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(card)));
-        } else if (playerEntry != null) {
+        } else {
             throw new Error(`Unknown test card specifier format: '${playerObject}'`);
         }
         return namedCards;

@@ -17,7 +17,7 @@ describe('Grogu, Irresistible', function() {
 
                 this.grogu = this.player1.findCardByName('grogu#irresistible');
                 this.wampa = this.player1.findCardByName('wampa');
-                this.atrt = this.player2.findCardByName('frontier-atrt');
+                this.frontierAtrt = this.player2.findCardByName('frontier-atrt');
                 this.enfysNest = this.player2.findCardByName('enfys-nest#marauder');
 
                 this.p1Base = this.player1.base;
@@ -29,7 +29,7 @@ describe('Grogu, Irresistible', function() {
                 this.player1.clickPrompt('Exhaust an enemy unit');
 
                 // can target opponent's units only
-                expect(this.player1).toBeAbleToSelectExactly([this.atrt, this.enfysNest]);
+                expect(this.player1).toBeAbleToSelectExactly([this.frontierAtrt, this.enfysNest]);
 
                 this.player1.clickCard(this.enfysNest);
                 expect(this.grogu.exhausted).toBe(true);

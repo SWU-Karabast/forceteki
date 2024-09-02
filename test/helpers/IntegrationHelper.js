@@ -4,6 +4,7 @@
 const { select } = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
+const { checkNullCard } = require('./Util.js');
 
 require('./ObjectFormatters.js');
 
@@ -164,6 +165,8 @@ var customMatchers = {
             compare: function (player, card) {
                 if (typeof card === 'string') {
                     card = player.findCardByName(card);
+                } else {
+                    checkNullCard(card);
                 }
                 let result = {};
 
@@ -184,6 +187,7 @@ var customMatchers = {
     toBeAbleToSelectAllOf: function () {
         return {
             compare: function (player, cards) {
+                checkNullCard(cards);
                 if (!Array.isArray(cards)) {
                     cards = [cards];
                 }
@@ -227,6 +231,7 @@ var customMatchers = {
     toBeAbleToSelectNoneOf: function () {
         return {
             compare: function (player, cards) {
+                checkNullCard(cards);
                 if (!Array.isArray(cards)) {
                     cards = [cards];
                 }
@@ -270,6 +275,7 @@ var customMatchers = {
     toBeAbleToSelectExactly: function () {
         return {
             compare: function (player, cards) {
+                checkNullCard(cards);
                 if (!Array.isArray(cards)) {
                     cards = [cards];
                 }
@@ -317,6 +323,7 @@ var customMatchers = {
     toHaveAvailableActionWhenClickedInActionPhaseBy: function () {
         return {
             compare: function (card, player) {
+                checkNullCard(card);
                 if (typeof card === 'string') {
                     card = player.findCardByName(card);
                 }
@@ -377,6 +384,7 @@ var customMatchers = {
     toBeInBottomOfDeck: function () {
         return {
             compare: function (card, player, numCards) {
+                checkNullCard(card);
                 var result = {};
                 const deck = player.deck;
                 const L = deck.length;
@@ -408,6 +416,7 @@ var customMatchers = {
     toAllBeInBottomOfDeck: function () {
         return {
             compare: function (cards, player, numCards) {
+                checkNullCard(cards);
                 var result = {};
                 const deck = player.deck;
                 const L = deck.length;
@@ -584,7 +593,11 @@ global.integration = function (definitions) {
                     [this.player1, this.player2],
                     [namedCards1, namedCards2]
                 );
-                cardNamesAsProperties.forEach((card) => this[card.propertyName] = card.cardObj);
+                this.cardPropertyNames = [];
+                cardNamesAsProperties.forEach((card) => {
+                    this[card.propertyName] = card.cardObj;
+                    this.cardPropertyNames.push(card.propertyName);
+                });
 
                 this.p1Base = this.player1.base;
                 this.p1Leader = this.player1.leader;

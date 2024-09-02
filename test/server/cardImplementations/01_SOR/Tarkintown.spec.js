@@ -16,14 +16,14 @@ describe('Tarkintown', function() {
                 });
 
                 this.tarkintown = this.player1.base;
-                this.atrt = this.player2.findCardByName('frontier-atrt');
+                this.frontierAtrt = this.player2.findCardByName('frontier-atrt');
             });
 
             it('should deal 3 damage to a damaged enemy unit', function () {
                 this.player1.clickCard(this.tarkintown);
 
                 // should resolve automatically since there's only one target
-                expect(this.atrt.damage).toBe(4);
+                expect(this.frontierAtrt.damage).toBe(4);
                 expect(this.tarkintown.epicActionSpent).toBe(true);
 
                 // confirm that the ability cannot be used again

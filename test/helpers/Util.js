@@ -48,4 +48,27 @@ function internalNameToPropertyName(internalName) {
     return propertyName;
 }
 
-module.exports = { convertNonDuplicateCardNamesToProperties, internalNameToPropertyName };
+// card can be a single or an array
+function checkNullCard(card, testContext) {
+    if (Array.isArray(card)) {
+        if (card.some((cardInList) => cardInList == null)) {
+            throw new Error(`Card list contains one more null elements: ${card.map((cardInList) => getCardName(cardInList)).join(', ')}`);
+        }
+    }
+
+    if (card == null) {
+        throw new Error('Null card value passed to test method');
+    }
+}
+
+function getCardName(card) {
+    if (card == null) {
+        return 'null';
+    }
+    if (typeof card === 'string') {
+        return card;
+    }
+    return card.internalName;
+}
+
+module.exports = { convertNonDuplicateCardNamesToProperties, internalNameToPropertyName, checkNullCard };

@@ -85,15 +85,15 @@ describe('Experience', function() {
                 });
 
                 this.clanWrenRescuer = this.player1.findCardByName('clan-wren-rescuer');
-                this.tieLn = this.player2.findCardByName('tieln-fighter');
+                this.tielnFighter = this.player2.findCardByName('tieln-fighter');
             });
 
             it('its owner and controller should be the player who created it', function () {
                 this.player1.clickCard(this.clanWrenRescuer);
-                this.player1.clickCard(this.tieLn);
+                this.player1.clickCard(this.tielnFighter);
 
-                expect(this.tieLn.upgrades.length).toBe(1);
-                const experience = this.tieLn.upgrades[0];
+                expect(this.tielnFighter.upgrades.length).toBe(1);
+                const experience = this.tielnFighter.upgrades[0];
                 expect(experience.internalName).toBe('experience');
                 expect(experience.owner).toBe(this.player1.player);
                 expect(experience.controller).toBe(this.player1.player);
