@@ -168,6 +168,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._attackKeywordAbilities.push(raidAbility);
             }
 
+            // Does Grit belong here?
             // TODO KEYWORDS: add grit registration here (others such as sentinel will be managed inside the attack pipeline)
         }
 
