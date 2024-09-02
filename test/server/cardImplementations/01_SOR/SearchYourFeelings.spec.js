@@ -9,17 +9,6 @@ describe('Search Your Feelings', function() {
                         deck: ['battlefield-marine', 'cartel-spacer', 'cell-block-guard', 'pyke-sentinel', 'volunteer-soldier']
                     }
                 });
-
-                this.searchYourFeelings = this.player1.findCardByName('search-your-feelings');
-
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.cellBlockGuard = this.player1.findCardByName('cell-block-guard');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.volunteerSoldier = this.player1.findCardByName('volunteer-soldier');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('should be able to retrieve ANY card from the deck', function () {

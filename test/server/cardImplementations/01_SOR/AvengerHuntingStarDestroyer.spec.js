@@ -16,15 +16,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 });
 
                 this.p1Avenger = this.player1.findCardByName('avenger#hunting-star-destroyer');
-                this.interceptor = this.player1.findCardByName('imperial-interceptor');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-
-                this.wampa = this.player2.findCardByName('wampa');
-                this.cartelSpacer = this.player2.findCardByName('cartel-spacer');
                 this.p2Avenger = this.player2.findCardByName('avenger#hunting-star-destroyer');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('forces opponent to defeat friendly non-leader unit when Avenger is played', function () {
@@ -47,7 +39,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 this.player2.clickCard(this.p1Base);
 
                 // Player 1 must choose its own unit
-                expect(this.player1).toBeAbleToSelectExactly([this.interceptor, this.pykeSentinel]);
+                expect(this.player1).toBeAbleToSelectExactly([this.imperialInterceptor, this.pykeSentinel]);
                 this.player1.clickCard(this.pykeSentinel);
                 expect(this.pykeSentinel).toBeInLocation('discard');
                 expect(this.p1Base.damage).toBe(8);
@@ -58,17 +50,17 @@ describe('Avenger, Hunting Star Destroyer', function() {
 
                 // Attack with Avenger, choose interceptor as target
                 this.player2.clickCard(this.p2Avenger);
-                this.player2.clickCard(this.interceptor);
+                this.player2.clickCard(this.imperialInterceptor);
 
                 // Interceptor not yet destroyed
-                expect(this.interceptor).toBeInLocation('space arena');
+                expect(this.imperialInterceptor).toBeInLocation('space arena');
 
                 // Player 1 must choose its own unit
-                expect(this.player1).toBeAbleToSelectExactly([this.interceptor, this.pykeSentinel]);
+                expect(this.player1).toBeAbleToSelectExactly([this.imperialInterceptor, this.pykeSentinel]);
 
                 // Choose the defender and check it was destroyed
-                this.player1.clickCard(this.interceptor);
-                expect(this.interceptor).toBeInLocation('discard');
+                this.player1.clickCard(this.imperialInterceptor);
+                expect(this.imperialInterceptor).toBeInLocation('discard');
 
                 // Ensure no damage happened
                 expect(this.p2Avenger.damage).toBe(0);

@@ -12,10 +12,6 @@ describe('Tie Avanced', function() {
                         spaceArena: ['cartel-spacer']
                     }
                 });
-
-                this.tieAdvanced = this.player1.findCardByName('tie-advanced');
-                this.atst = this.player1.findCardByName('atst');
-                this.tielnFighter = this.player1.findCardByName('tieln-fighter');
             });
 
             it('can give two experience to a unit', function () {

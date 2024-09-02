@@ -14,9 +14,6 @@ describe('Tarkintown', function() {
                         ],
                     }
                 });
-
-                this.tarkintown = this.player1.base;
-                this.frontierAtrt = this.player2.findCardByName('frontier-atrt');
             });
 
             it('should deal 3 damage to a damaged enemy unit', function () {

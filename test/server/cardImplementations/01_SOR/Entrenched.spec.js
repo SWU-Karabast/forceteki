@@ -12,12 +12,6 @@ describe('Entrenched', function() {
                         spaceArena: ['bright-hope#the-last-transport']
                     }
                 });
-
-                this.entrenched = this.player1.findCardByName('entrenched');
-                this.wampa = this.player1.findCardByName('wampa');
-                this.tielnFighter = this.player1.findCardByName('tieln-fighter');
-                this.brightHope = this.player2.findCardByName('bright-hope#the-last-transport');
-                this.p2Base = this.player2.base;
             });
 
             it('should prevent a unit from being able to attack base', function () {

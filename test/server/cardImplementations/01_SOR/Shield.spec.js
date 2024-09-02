@@ -12,11 +12,6 @@ describe('Shield', function() {
                         spaceArena: [{ card: 'tieln-fighter', upgrades: ['shield'] }]
                     }
                 });
-
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.vanquish = this.player1.findCardByName('vanquish');
-                this.tielnFighter = this.player2.findCardByName('tieln-fighter');
-                this.shield = this.player2.findCardByName('shield');
             });
 
             it('should defeat itself to prevent damage to the attached unit', function () {
@@ -57,8 +52,6 @@ describe('Shield', function() {
                     }
                 });
 
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.tielnFighter = this.player2.findCardByName('tieln-fighter');
                 this.shields = this.player2.findCardsByName('shield');
             });
 

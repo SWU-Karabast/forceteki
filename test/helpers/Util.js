@@ -40,6 +40,10 @@ function internalNameToPropertyName(internalName) {
     const titleWords = title.split('-');
 
     let propertyName = titleWords[0];
+    if (propertyName[0] >= '0' && propertyName[0] <= '9') {
+        propertyName = '_' + propertyName;
+    }
+
     for (const word of titleWords.slice(1)) {
         const uppercasedWord = word[0].toUpperCase() + word.slice(1);
         propertyName += uppercasedWord;
