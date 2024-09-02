@@ -28,7 +28,6 @@ describe('Tarkintown', function() {
 
                 // confirm that the ability cannot be used again
                 this.player2.passAction();
-                this.player1.clickCard(this.tarkintown);
                 expect(this.tarkintown).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
 
                 // skip to next turn so we can confirm that the ability is still unusable

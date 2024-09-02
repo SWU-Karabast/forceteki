@@ -100,7 +100,6 @@ describe('Play upgrade from hand', function() {
 
             it('its stat bonuses should be correctly applied during combat', function () {
                 this.player1.clickCard(this.tieLn);
-                this.player1.clickCard(this.brightHope);
                 expect(this.brightHope.damage).toBe(5);
                 expect(this.tieLn.damage).toBe(2);
             });
@@ -109,7 +108,6 @@ describe('Play upgrade from hand', function() {
                 this.tieLn.damage = 3;
 
                 this.player1.clickCard(this.tieLn);
-                this.player1.clickCard(this.brightHope);
 
                 expect(this.brightHope.damage).toBe(5);
                 expect(this.tieLn).toBeInLocation('discard');

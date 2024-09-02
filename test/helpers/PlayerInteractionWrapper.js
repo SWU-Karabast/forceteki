@@ -471,14 +471,50 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    clickCard(card, location = 'any', side) {
+    clickCardNonChecking(card, location = 'any', side = 'self') {
+        this.clickCard(card, location, side, false);
+    }
+
+    clickCard(card, location = 'any', side = 'self', expectChange = true) {
         if (typeof card === 'string') {
             card = this.findCardByName(card, location, side);
         }
+
+        let beforeClick = null;
+        if (expectChange) {
+            beforeClick = this.getPlayerPromptState();
+        }
+
         this.game.cardClicked(this.player.name, card.uuid);
         this.game.continue();
+
+        if (expectChange) {
+            const afterClick = this.getPlayerPromptState();
+            if (this.promptStatesEqual(beforeClick, afterClick)) {
+                throw new Error(`Expected player prompt state to change after clicking ${card.internalName} but it did not`);
+            }
+        }
+
         // this.checkUnserializableGameState();
         return card;
+    }
+
+    getPlayerPromptState() {
+        return {
+            actionTargets: this.player.promptState.selectableCards,
+            menuTitle: this.player.currentPrompt().menuTitle,
+            promptTitle: this.player.currentPrompt().promptTitle
+        };
+    }
+
+    promptStatesEqual(promptState1, promptState2) {
+        for (const key in promptState1) {
+            if (promptState1[key] !== promptState2[key]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     clickRing(element) {

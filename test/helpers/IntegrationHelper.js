@@ -321,7 +321,7 @@ var customMatchers = {
                 }
                 let result = {};
 
-                player.clickCard(card);
+                player.clickCardNonChecking(card);
 
                 // this is the default action window prompt (meaning no action was available)
                 result.pass = !player.hasPrompt('Action Window');
