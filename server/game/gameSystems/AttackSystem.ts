@@ -183,6 +183,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     }
 
     private resolveAttack(attack: Attack, context: AbilityContext): void {
+        // TODO: add more isValid() checks during the attack flow (if needed), and confirm that attack lasting effects still end correctly if any of them fail
         if (!attack.isValid()) {
             context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
             return;
