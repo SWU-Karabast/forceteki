@@ -13,13 +13,6 @@ describe('Sabine Wren, Explosives Artist', function() {
                     }
                 });
 
-                this.sabine = this.player1.findCardByName('sabine-wren#explosives-artist');
-                this.marine = this.player1.findCardByName('battlefield-marine');
-                this.wampa = this.player2.findCardByName('wampa');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
-
                 // sabine is only partially implemented, still need to handle:
                 // - the effect override if she gains sentinel
                 // - her active ability
@@ -29,7 +22,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.wampa);
 
-                expect(this.player2).toBeAbleToSelectExactly([this.marine, this.p1Base]);
+                expect(this.player2).toBeAbleToSelectExactly([this.battlefieldMarine, this.p1Base]);
             });
 
             it('should be targetable when less than 3 friendly aspects are in play', function () {
@@ -37,7 +30,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.wampa);
 
-                expect(this.player2).toBeAbleToSelectExactly([this.marine, this.p1Base, this.sabine]);
+                expect(this.player2).toBeAbleToSelectExactly([this.battlefieldMarine, this.p1Base, this.sabineWren]);
             });
         });
     });

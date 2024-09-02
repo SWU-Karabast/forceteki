@@ -118,22 +118,31 @@ export enum PhaseName {
 
 export enum CardType {
     Base = 'base',
+    /** non-leader, non-token unit */
+    BasicUnit = 'basicUnit',
+    /** non-token upgrade */
+    BasicUpgrade = 'basicUpgrade',
     Event = 'event',
     Leader = 'leader',
     LeaderUnit = 'leaderUnit',
-    NonLeaderUnit = 'nonLeaderUnit',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
-    Upgrade = 'upgrade',
 }
 
 export enum WildcardCardType {
     Any = 'any',
+    NonLeaderUnit = 'nonLeaderUnit',
     Token = 'token',
     Unit = 'unit',
+    Upgrade = 'upgrade',
 }
 
 export type CardTypeFilter = CardType | WildcardCardType;
+
+export enum TokenName {
+    Shield = 'shield',
+    Experience = 'experience'
+}
 
 export enum EventName {
     OnAbilityResolved = 'onAbilityResolved',
@@ -183,6 +192,7 @@ export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
     Event = 'event',
+    ReplacementEffect = 'replacementEffect',
     Triggered = 'triggered',
 }
 

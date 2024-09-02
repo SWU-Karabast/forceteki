@@ -69,12 +69,13 @@ export function defaultLegalLocationsForCardType(cardType: CardType) {
     switch (cardType) {
         case CardType.TokenUnit:
         case CardType.TokenUpgrade:
+            return [Location.SpaceArena, Location.GroundArena, Location.OutsideTheGame];
         case CardType.LeaderUnit:
             return [Location.SpaceArena, Location.GroundArena];
         case CardType.Base:
             return [Location.Base];
-        case CardType.NonLeaderUnit:
-        case CardType.Upgrade:
+        case CardType.BasicUnit:
+        case CardType.BasicUpgrade:
         case CardType.Event:
             return drawCardLocations;
         case CardType.Leader:

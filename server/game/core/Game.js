@@ -25,12 +25,14 @@ const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { SimultaneousEffectWindow } = require('./gameSteps/SimultaneousEffectWindow.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract');
+const { cards } = require('../cardImplementations/Index.js');
 // const { Conflict } = require('./conflict.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
 // const MenuCommands = require('./MenuCommands');
 
-const { EffectName, EventName, Location } = require('./Constants.js');
+const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
+const { default: Shield } = require('../cardImplementations/01_SOR/Shield.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -63,6 +65,7 @@ class Game extends EventEmitter {
         this.initialFirstPlayer = null;
         this.initiativePlayer = null;
         this.actionPhaseActivePlayer = null;
+        this.tokenFactories = null;
 
         this.shortCardData = options.shortCardData || [];
 
@@ -265,7 +268,7 @@ class Game extends EventEmitter {
         var foundCards = [];
 
         this.getPlayers().forEach((player) => {
-            foundCards = foundCards.concat(player.findCards(player.getCardsInPlay(), predicate));
+            foundCards = foundCards.concat(player.findCards(player.getArenaCards(), predicate));
         });
 
         return foundCards;
@@ -827,9 +830,10 @@ class Game extends EventEmitter {
     }
 
     openSimultaneousEffectWindow(choices) {
-        let window = new SimultaneousEffectWindow(this);
-        choices.forEach((choice) => window.addToWindow(choice));
-        this.queueStep(window);
+        throw new Error('Simultaneous effects not implemented yet');
+        // let window = new SimultaneousEffectWindow(this);
+        // choices.forEach((choice) => window.addToWindow(choice));
+        // this.queueStep(window);
     }
 
     /**
@@ -1085,7 +1089,7 @@ class Game extends EventEmitter {
             // if the state has changed, check for:
 
             // for (const player of this.getPlayers()) {
-            //     player.getCardsInPlay().each((card) => {
+            //     player.getArenaCards().each((card) => {
             //         if (card.getModifiedController() !== player) {
             //             // any card being controlled by the wrong player
             //             this.takeControl(card.getModifiedController(), card);
@@ -1101,6 +1105,68 @@ class Game extends EventEmitter {
 
     continue() {
         this.pipeline.continue();
+    }
+
+    /**
+     * Receives data for the token cards and builds a factory method for each type
+     * @param {*} tokenCardsData object in the form `{ tokenName: tokenCardData }`
+     */
+    initialiseTokens(tokenCardsData) {
+        for (const tokenName of Object.values(TokenName)) {
+            if (!(tokenName in tokenCardsData)) {
+                throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
+            }
+        }
+
+        this.tokenFactories = {};
+
+        for (const [tokenName, cardData] of Object.entries(tokenCardsData)) {
+            const tokenConstructor = cards.get(cardData.id);
+
+            this.tokenFactories[tokenName] = (player) => new tokenConstructor(player, cardData);
+        }
+    }
+
+    /**
+     * Creates a new shield token in an out of play zone owned by the player and
+     * adds it to all relevant card lists
+     * @param {Player} player
+     * @param {TokenName} tokenName
+     * @returns {Shield}
+     */
+    generateToken(player, tokenName) {
+        const token = this.tokenFactories[tokenName](player);
+
+        this.allCards.push(token);
+        player.decklist.tokens.push(token);
+        player.decklist.allCards.push(token);
+        player.outsideTheGameCards.push(token);
+
+        return token;
+    }
+
+    /**
+     * Removes a shield token from all relevant card lists
+     * @param {import('./card/CardTypes.js').TokenCard} token
+     */
+    removeTokenFromPlay(token) {
+        if (
+            !Contract.assertEqual(token.location, Location.OutsideTheGame,
+                `Tokens must be moved to location ${Location.OutsideTheGame} before removing from play, instead found token at ${token.location}`
+            )
+        ) {
+            return;
+        }
+
+        const player = token.owner;
+        this.filterCardFromList(token, this.allCards);
+        this.filterCardFromList(token, player.decklist.tokens);
+        this.filterCardFromList(token, player.decklist.allCards);
+        this.filterCardFromList(token, player.outsideTheGameCards);
+    }
+
+    filterCardFromList(removeCard, list) {
+        list = list.filter((card) => card !== removeCard);
     }
 
     // formatDeckForSaving(deck) {

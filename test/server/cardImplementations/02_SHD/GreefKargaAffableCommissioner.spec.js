@@ -9,14 +9,6 @@ describe('Greef Karga, Affable Commissioner', function() {
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine']
                     }
                 });
-
-                this.greefKarga = this.player1.findCardByName('greef-karga#affable-commissioner');
-
-                this.atst = this.player1.findCardByName('atst');
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.foundling = this.player1.findCardByName('foundling');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
             });
 
             it('can draw upgrade', function () {
@@ -25,7 +17,7 @@ describe('Greef Karga, Affable Commissioner', function() {
                 expect(this.player1).toHaveEnabledPromptButton(this.foundling.title);
                 expect(this.player1).toHaveDisabledPromptButtons([this.atst.title, this.battlefieldMarine.title, this.cartelSpacer.title, this.pykeSentinel.title]);
                 this.player1.clickPrompt(this.foundling.title);
-                expect(this.foundling.location).toBe('hand');
+                expect(this.foundling).toBeInLocation('hand');
                 expect(this.getChatLogs(2)).toContain('player1 takes Foundling');
             });
         });

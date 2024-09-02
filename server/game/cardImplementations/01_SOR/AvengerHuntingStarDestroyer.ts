@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { CardType, RelativePlayer } from '../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType } from '../../core/Constants';
 
 export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,22 +13,20 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Choose a friendly non-leader unit to defeat',
-            optional: false,
             targetResolver: {
                 player: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
-                cardTypeFilter: CardType.NonLeaderUnit,
+                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             }
         });
 
         this.addAttackAbility({
             title: 'Choose a friendly non-leader unit to defeat',
-            optional: false,
             targetResolver: {
                 player: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
-                cardTypeFilter: CardType.NonLeaderUnit,
+                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             }
         });

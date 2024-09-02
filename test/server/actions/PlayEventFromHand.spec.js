@@ -14,24 +14,13 @@ describe('Play event from hand', function() {
                         spaceArena: ['imperial-interceptor']
                     }
                 });
-
-                this.repair = this.player1.findCardByName('repair');
-                this.daringRaid = this.player1.findCardByName('daring-raid');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-
-                this.wampa = this.player2.findCardByName('wampa');
-                this.interceptor = this.player2.findCardByName('imperial-interceptor');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('it should end up in discard and resources should be exhausted', function () {
                 this.player1.clickCard(this.daringRaid);
                 this.player1.clickCard(this.wampa);
 
-                expect(this.daringRaid.location).toBe('discard');
+                expect(this.daringRaid).toBeInLocation('discard');
                 expect(this.player1.countExhaustedResources()).toBe(1);
 
                 this.player2.passAction();
@@ -40,7 +29,7 @@ describe('Play event from hand', function() {
                 this.player1.clickCard(this.repair);
                 this.player1.clickCard(this.wampa);
 
-                expect(this.repair.location).toBe('discard');
+                expect(this.repair).toBeInLocation('discard');
                 expect(this.player1.countExhaustedResources()).toBe(4);
             });
 

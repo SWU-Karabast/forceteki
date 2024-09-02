@@ -1,4 +1,4 @@
-import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import { IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { AbilityRestriction, AbilityType, Arena, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -6,6 +6,7 @@ import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import Contract from '../../utils/Contract';
+import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -99,6 +100,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
             abilityType: AbilityType.Constant,
             initialize: () => this._constantAbilities.push({ duration: Duration.Persistent, locationFilter, ...properties })
         });
+    }
+
+    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps): void {
+        // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
+        this.abilityInitializers.push({
+            abilityType: AbilityType.Triggered,
+            initialize: () => this._triggeredAbilities.push(this.createReplacementEffectAbility(properties))
+        });
+    }
+
+    private createReplacementEffectAbility(properties: IReplacementEffectAbilityProps): ReplacementEffectAbility {
+        properties.cardName = this.title;
+        return new ReplacementEffectAbility(this.game, this, properties);
     }
 
     protected addTriggeredAbility(properties: ITriggeredAbilityProps): void {

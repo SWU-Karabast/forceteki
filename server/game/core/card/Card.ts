@@ -10,6 +10,8 @@ import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import CardAbility from '../ability/CardAbility';
+import type Shield from '../../cardImplementations/01_SOR/Shield';
+import type Experience from '../../cardImplementations/01_SOR/Experience';
 import { KeywordInstance } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 
@@ -99,7 +101,11 @@ export class Card extends OngoingEffectSource {
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
-        this._location = Location.Deck;
+        if (this.isToken()) {
+            this._location = Location.OutsideTheGame;
+        } else {
+            this._location = Location.Deck;
+        }
 
         this.setupCardAbilities(AbilityHelper);
         this.activateAbilityInitializersForTypes(AbilityType.Action);
@@ -149,13 +155,13 @@ export class Card extends OngoingEffectSource {
             case 'event':
                 return CardType.Event;
             case 'unit':
-                return CardType.NonLeaderUnit;
+                return CardType.BasicUnit;
             case 'leader':
                 return CardType.Leader;
             case 'base':
                 return CardType.Base;
             case 'upgrade':
-                return CardType.Upgrade;
+                return CardType.BasicUpgrade;
             default:
                 throw new Error(`Unexpected card type: ${printedTypes[0]}`);
         }
@@ -247,11 +253,11 @@ export class Card extends OngoingEffectSource {
     }
 
     public isUnit(): boolean {
-        return this.type === CardType.NonLeaderUnit || this.type === CardType.LeaderUnit;
+        return this.type === CardType.BasicUnit || this.type === CardType.LeaderUnit || this.type === CardType.TokenUnit;
     }
 
     public isUpgrade(): boolean {
-        return this.type === CardType.Upgrade || this.type === CardType.TokenUpgrade;
+        return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade;
     }
 
     public isBase(): boolean {
@@ -267,11 +273,15 @@ export class Card extends OngoingEffectSource {
     }
 
     public isNonLeaderUnit(): boolean {
-        return this.type === CardType.NonLeaderUnit;
+        return this.type === CardType.BasicUnit || this.type === CardType.TokenUnit;
     }
 
     public isToken(): boolean {
         return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
+    }
+
+    public isShield(): this is Shield {
+        return false;
     }
 
     /** Returns true if the card is in a location where it can legally be damaged */

@@ -6,9 +6,11 @@ import type { IAttackProperties } from './gameSystems/AttackSystem';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, KeywordName, AbilityType } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
+import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;
+export type IReplacementEffectAbilityProps = IReplacementEffectAbilityWhenProps | IReplacementEffectAbilityAggregateWhenProps;
 
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
 // for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
@@ -52,6 +54,12 @@ export interface IConstantAbilityProps<Source = any> {
     ongoingEffect: Function | Function[];
 
     createCopies?: boolean;
+}
+
+interface IReplacementEffectAbilityBaseProps extends Omit<ITriggeredAbilityBaseProps,
+        'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
+> {
+    replaceWith: IReplacementEffectSystemProperties
 }
 
 // TODO KEYWORDS: add remaining keywords to this type
@@ -104,18 +112,20 @@ interface ITriggeredAbilityAggregateWhenProps extends ITriggeredAbilityBaseProps
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 }
 
+interface IReplacementEffectAbilityWhenProps extends IReplacementEffectAbilityBaseProps {
+    when: WhenType;
+}
+
+interface IReplacementEffectAbilityAggregateWhenProps extends IReplacementEffectAbilityBaseProps {
+    aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
+}
+
 interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityContext> {
     collectiveTrigger?: boolean;
     targetResolver?: ITriggeredAbilityTargetResolver;
     targetResolvers?: ITriggeredAbilityTargetsResolver;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => object) | object;
-
-    /**
-     * If true, the ability can be triggered by any player. If false, only the card's controller can
-     * trigger it.
-     */
-    anyPlayer?: boolean;
 
     /**
      * Indicates if triggering the ability is optional (in which case the player will be offered the

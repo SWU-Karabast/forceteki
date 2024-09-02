@@ -9,14 +9,6 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                         deck: ['cell-block-guard', 'pyke-sentinel', 'volunteer-soldier', 'cartel-spacer', 'battlefield-marine', 'wampa', 'viper-probe-droid', 'snowtrooper-lieutenant'],
                     }
                 });
-
-                this.monMothma = this.player1.findCardByName('mon-mothma#voice-of-the-rebellion');
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
-
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.cellBlockGuard = this.player1.findCardByName('cell-block-guard');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.volunteerSoldier = this.player1.findCardByName('volunteer-soldier');
             });
 
             it('should prompt to choose a Rebel from the top 5 cards, reveal it, draw it, and move the rest to the bottom of the deck', function () {
@@ -28,7 +20,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 // Choose Battlefield Marine
                 this.player1.clickPrompt(this.battlefieldMarine.title);
                 expect(this.getChatLogs(2)).toContain('player1 takes Battlefield Marine');
-                expect(this.battlefieldMarine.location).toBe('hand');
+                expect(this.battlefieldMarine).toBeInLocation('hand');
 
                 // Ensure that cards have moved to bottom of deck
                 expect(this.cartelSpacer).toBeInBottomOfDeck(this.player1, 4);
@@ -63,7 +55,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 // Check results
                 this.player1.clickCard(this.monMothma);
-                expect(this.monMothma.location).toBe('ground arena');
+                expect(this.monMothma).toBeInLocation('ground arena');
                 expect(this.player1.deck.length).toBe(0);
 
                 // Player 2 now active
