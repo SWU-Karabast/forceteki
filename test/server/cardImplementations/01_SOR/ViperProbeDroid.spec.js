@@ -8,15 +8,10 @@ describe('Viper Probe Droid', function() {
                         hand: ['viper-probe-droid']
                     },
                     player2: {
-                        hand: ['wampa', 'battlefield-marine', 'pyke-sentinel']
+                        hand: ['wampa', 'battlefield-marine', 'pyke-sentinel'],
+                        groundArena: ['scout-bike-pursuer']
                     }
                 });
-
-                this.viperProbeDroid = this.player1.findCardByName('viper-probe-droid');
-
-                this.wampa = this.player2.findCardByName('wampa');
-                this.battlefieldMarine = this.player2.findCardByName('battlefield-marine');
-                this.pykeSentinel = this.player2.findCardByName('pyke-sentinel');
             });
 
             it('should reveal enemy hand', function () {

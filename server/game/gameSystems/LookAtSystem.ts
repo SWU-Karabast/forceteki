@@ -18,6 +18,13 @@ export class LookAtSystem extends CardTargetSystem<ILookAtProperties> {
         message: '{0} sees {1}'
     };
 
+    public override eventHandler(event, additionalProperties = {}): void {
+        const context = event.context;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [context.source, event.cards];
+        context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
+    }
+
     public override canAffect(card: BaseCard, context: AbilityContext) {
         // TODO: What situations would mean that a card cannot be looked at?
         // if (!card.isFacedown() && (card.isInProvince() || card.location === Locations.PlayArea)) {
@@ -49,18 +56,11 @@ export class LookAtSystem extends CardTargetSystem<ILookAtProperties> {
             cards = [cards];
         }
         event.cards = cards;
-        const obj = { a: cards, b: context };
+        // This was used for reactions to look-at abilities in L5R
         event.stateBeforeResolution = cards.map((a) => {
             return { card: a, location: a.location };
         });
         event.context = context;
-    }
-
-    public override eventHandler(event, additionalProperties = {}): void {
-        const context = event.context;
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as ILookAtProperties;
-        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [context.source, event.cards];
-        context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
     }
 
     public getMessage(message, context): string {
@@ -68,10 +68,6 @@ export class LookAtSystem extends CardTargetSystem<ILookAtProperties> {
             return message(context);
         }
         return message;
-    }
-
-    public override isEventFullyResolved(event): boolean {
-        return !event.cancelled && event.name === this.eventName;
     }
 
     public override checkEventCondition(): boolean {
