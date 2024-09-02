@@ -12,10 +12,6 @@ describe('Clan Wren Rescuer', function() {
                         spaceArena: ['cartel-spacer']
                     }
                 });
-
-                this.clanWrenRescuer = this.player1.findCardByName('clan-wren-rescuer');
-                this.wampa = this.player1.findCardByName('wampa');
-                this.cartelSpacer = this.player2.findCardByName('cartel-spacer');
             });
 
             it('should give an experience token to a unit', function () {

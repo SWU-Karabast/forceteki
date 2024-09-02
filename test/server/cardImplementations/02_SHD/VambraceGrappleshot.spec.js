@@ -11,10 +11,6 @@ describe('Vambrace Grappleshot', function() {
                         groundArena: ['snowspeeder']
                     }
                 });
-
-                this.vambraceGrappleshot = this.player1.findCardByName('vambrace-grappleshot');
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
-                this.snowspeeder = this.player2.findCardByName('snowspeeder');
             });
 
             it('should exhaust the defender on attack', function () {

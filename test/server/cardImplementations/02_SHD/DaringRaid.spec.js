@@ -14,16 +14,6 @@ describe('Daring Raid', function() {
                         spaceArena: ['imperial-interceptor']
                     }
                 });
-
-                this.daringRaid = this.player1.findCardByName('daring-raid');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-
-                this.wampa = this.player2.findCardByName('wampa');
-                this.imperialInterceptor = this.player2.findCardByName('imperial-interceptor');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('can deal damage to a unit', function () {

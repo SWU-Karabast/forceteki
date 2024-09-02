@@ -14,14 +14,6 @@ describe('Grogu, Irresistible', function() {
                         ],
                     }
                 });
-
-                this.grogu = this.player1.findCardByName('grogu#irresistible');
-                this.wampa = this.player1.findCardByName('wampa');
-                this.frontierAtrt = this.player2.findCardByName('frontier-atrt');
-                this.enfysNest = this.player2.findCardByName('enfys-nest#marauder');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('should exhaust a selected enemy unit', function () {
