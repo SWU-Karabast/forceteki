@@ -1,7 +1,8 @@
+/**
+ * helper for generating a list of property names and card objects to add to the test context.
+ * this is so that we can access things as "this.<cardName>"
+ */
 function convertNonDuplicateCardNamesToProperties(players, cardNames) {
-    // let cardNames = this.player1.findCardsByName(namedCards1);
-    // cardNames = cardNames.concat(this.player2.findCardsByName(namedCards2));
-
     let mapToPropertyNamesWithCards = (cardNames, player) => cardNames.map((cardName) => {
         return {
             propertyName: internalNameToPropertyName(cardName),

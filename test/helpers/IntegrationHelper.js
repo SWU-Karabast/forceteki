@@ -578,12 +578,18 @@ global.integration = function (definitions) {
                 this.player1.setDeck(options.player1.deck, ['removed from game']);
                 this.player2.setDeck(options.player2.deck, ['removed from game']);
 
-                // add named cards to this for easy reference
+                // add named cards to this for easy reference (allows us to do "this.<cardName>")
+                // note that if cards map to the same property name (i.e., same title), then they won't be added
                 const cardNamesAsProperties = Util.convertNonDuplicateCardNamesToProperties(
                     [this.player1, this.player2],
                     [namedCards1, namedCards2]
                 );
                 cardNamesAsProperties.forEach((card) => this[card.propertyName] = card.cardObj);
+
+                this.p1Base = this.player1.base;
+                this.p1Leader = this.player1.leader;
+                this.p2Base = this.player2.base;
+                this.p2Leader = this.player2.leader;
 
                 // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {
