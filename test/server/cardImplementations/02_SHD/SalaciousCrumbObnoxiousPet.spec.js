@@ -8,9 +8,6 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                         hand: ['salacious-crumb#obnoxious-pet']
                     }
                 });
-
-                this.salaciousCrumb = this.player1.findCardByName('salacious-crumb#obnoxious-pet');
-                this.p1Base = this.player1.base;
             });
 
             it('should heal 1 from friendly base', function () {
