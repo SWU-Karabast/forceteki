@@ -23,8 +23,8 @@ class GameFlowWrapper {
         this.game = new Game(details, { router: gameRouter });
         this.game.started = true;
 
-        this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player1'));
-        this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player2'));
+        this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player1'), this);
+        this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player2'), this);
         this.player1.player.timerSettings.events = false;
         this.player2.player.timerSettings.events = false;
         this.allPlayers = [this.player1, this.player2];

@@ -5,7 +5,8 @@ const path = require('path');
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
 const deckFillerCard = 'underworld-thug';
-const deckBufferSize = 8; // buffer decks to prevent re-shuffling
+const defaultResourceCount = 20;
+const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
 
 class DeckBuilder {
     constructor() {
@@ -41,15 +42,16 @@ class DeckBuilder {
         }
 
         let allCards = [];
-        let deckSize = deckBufferSize;
         let inPlayCards = [];
+
+        const namedCards = this.getAllNamedCards(playerCards);
 
         allCards.push(playerCards.leader ? playerCards.leader : defaultLeader[playerNumber]);
         allCards.push(playerCards.base ? playerCards.base : defaultBase[playerNumber]);
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
-        playerCards.resources = this.padCardListIfNeeded(playerCards.resources, 20);
-        playerCards.deck = this.padCardListIfNeeded(playerCards.deck, 8);
+        playerCards.resources = this.padCardListIfNeeded(playerCards.resources, defaultResourceCount);
+        playerCards.deck = this.padCardListIfNeeded(playerCards.deck, defaultDeckSize);
 
         allCards.push(...playerCards.resources);
         allCards.push(...playerCards.deck);
@@ -71,7 +73,32 @@ class DeckBuilder {
         //Collect all the cards together
         allCards = allCards.concat(inPlayCards);
 
-        return this.buildDeck(allCards);
+        return [this.buildDeck(allCards), namedCards];
+    }
+
+    getAllNamedCards(playerObject) {
+        let namedCards = [];
+        for (const key in playerObject) {
+            namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(playerObject[key]));
+        }
+        return namedCards;
+    }
+
+    getNamedCardsInPlayerEntry(playerEntry) {
+        let namedCards = [];
+        if (typeof playerEntry === 'string') {
+            namedCards = namedCards.concat(playerEntry);
+        } else if ('card' in playerEntry) {
+            namedCards.push(playerEntry.card);
+            if ('upgrades' in playerEntry) {
+                namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(playerEntry.upgrades));
+            }
+        } else if (Array.isArray(playerEntry)) {
+            playerEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(card)));
+        } else if (playerEntry != null) {
+            throw new Error(`Unknown test card specifier format: '${playerObject}'`);
+        }
+        return namedCards;
     }
 
     padCardListIfNeeded(cardList, defaultCount) {

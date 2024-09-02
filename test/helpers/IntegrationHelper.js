@@ -9,6 +9,7 @@ require('./ObjectFormatters.js');
 
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
+const Util = require('./Util.js');
 
 const deckBuilder = new DeckBuilder();
 
@@ -529,12 +530,16 @@ global.integration = function (definitions) {
                 this.game.gameMode = GameMode.Premier;
 
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
-                this.player1.selectDeck(deckBuilder.customDeck(1, options.player1));
-                this.player2.selectDeck(deckBuilder.customDeck(2, options.player2));
+                const [deck1, namedCards1] = deckBuilder.customDeck(1, options.player1);
+                const [deck2, namedCards2] = deckBuilder.customDeck(2, options.player2);
+
+                this.player1.selectDeck(deck1);
+                this.player2.selectDeck(deck2);
 
                 // pass the data for token cards to the game so it can generate them
                 this.game.initialiseTokens(deckBuilder.getTokenData());
 
+                // each player object will convert the card names to real cards on start
                 this.startGame();
 
                 if (options.phase !== 'setup') {
@@ -549,7 +554,7 @@ global.integration = function (definitions) {
                 this.player1.damageToBase = options.player1.damageToBase ?? 0;
                 this.player2.damageToBase = options.player2.damageToBase ?? 0;
 
-                // return all zone cards to deck and then set them below - the playerinteractionwrapper will convert string names to real cards
+                // return all zone cards to deck and then set them below
                 this.player1.moveAllNonBaseZonesToRemoved();
                 this.player2.moveAllNonBaseZonesToRemoved();
 
@@ -572,6 +577,13 @@ global.integration = function (definitions) {
                 // Deck
                 this.player1.setDeck(options.player1.deck, ['removed from game']);
                 this.player2.setDeck(options.player2.deck, ['removed from game']);
+
+                // add named cards to this for easy reference
+                const cardNamesAsProperties = Util.convertNonDuplicateCardNamesToProperties(
+                    [this.player1, this.player2],
+                    [namedCards1, namedCards2]
+                );
+                cardNamesAsProperties.forEach((card) => this[card.propertyName] = card.cardObj);
 
                 // TODO: re-enable when we have tests to do during setup phase
                 // if (options.phase !== 'setup') {

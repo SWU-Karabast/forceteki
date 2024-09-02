@@ -2,9 +2,10 @@ const { detectBinary } = require('../../build/Util.js');
 const { GameMode } = require('../../build/GameMode.js');
 
 class PlayerInteractionWrapper {
-    constructor(game, player) {
+    constructor(game, player, testContext) {
         this.game = game;
         this.player = player;
+        this.testContext = testContext;
 
         player.noTimer = true;
         player.user = {
@@ -308,22 +309,19 @@ class PlayerInteractionWrapper {
         return this.filterCardsByName(name, locations, side)[0];
     }
 
-    findCardsByName(name, locations = 'any', side) {
-        return this.filterCardsByName(name, locations, side);
-    }
-
-    findAllCardsByName(name, locations = 'any', side) {
-        return this.filterCardsByName(name, locations, side);
+    findCardsByName(names, locations = 'any', side) {
+        return this.filterCardsByName(names, locations, side);
     }
 
     /**
      * Filters all of a player's cards using the name and location of a card
-     * @param {String} name - the name of the card
+     * @param {String} names - the names of the cards
      * @param {String[]|String} [locations = 'any'] - locations in which to look for. 'provinces' = 'province 1', 'province 2', etc.
      * @param {?String} side - set to 'opponent' to search in opponent's cards
      */
-    filterCardsByName(name, locations = 'any', side) {
+    filterCardsByName(names, locations = 'any', side) {
         // So that function can accept either lists or single locations
+        const namesAra = Array.isArray(names) ? names : [names];
         if (locations !== 'any') {
             if (!Array.isArray(locations)) {
                 locations = [locations];
@@ -331,11 +329,11 @@ class PlayerInteractionWrapper {
         }
         try {
             var cards = this.filterCards(
-                (card) => card.cardData.internalName === name && (locations === 'any' || locations.includes(card.location)),
+                (card) => namesAra.includes(card.cardData.internalName) && (locations === 'any' || locations.includes(card.location)),
                 side
             );
         } catch (e) {
-            throw new Error(`Name: ${name}, Location: ${locations}. Error thrown: ${e}`);
+            throw new Error(`Names: ${namesAra}, Location: ${locations}. Error thrown: ${e}`);
         }
         return cards;
     }
