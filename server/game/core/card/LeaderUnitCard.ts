@@ -99,11 +99,13 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
             case Location.SpaceArena:
                 this._isDeployed = true;
                 this.enableDamage(true);
+                this.exhausted = false;
                 break;
 
             case Location.Base:
                 this._isDeployed = false;
                 this.enableDamage(false);
+                this.exhausted = true;
                 break;
         }
     }
