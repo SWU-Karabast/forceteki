@@ -40,8 +40,7 @@ There is a specific base class that each card type should inherit from:
 | Event | EventCard |
 | Upgrade | UpgradeCard |
 | Base | BaseCard |
-| ~~Leader~~ | _Still WIP_ |
-<!-- TODO LEADERS: fix the above table -->
+| Leader | LeaderUnitCard |
 
 Tokens require extra steps for implementation that will not be covered here.
 
@@ -50,7 +49,7 @@ Each card class should start with an override of `getImplementationId()` which r
 
 Copy-paste these values into the card impl file, and add a static class variable `<className>.implemented = true` to mark for the system that the card is implemented. The final result should look like below:
 
-```javascript
+```typescript
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
 
@@ -70,11 +69,11 @@ GroguIrresistible.implemented = true;
 
 ## Implement card abilities (quickstart)
 
-The below is a quickstart guide on how to implement each ability type with some examples without going into too much detail on the components. See section **TODO: LINK HERE** for details on the building blocks of abilities.
+The below is a quickstart guide on how to implement each ability type with some examples without going into too much detail on the components. See section [Ability Building Blocks](#ability-building-blocks) for details on the how individual components of an ability definition work.
 
-All card abilities (i.e., any card text with an effect) should be defined in the `setupCardAbilities` method:
+Almost all card abilities (i.e., any card text with an effect) should be defined in the `setupCardAbilities` method:
 
-```javascript
+```typescript
 class GroguIrresistible extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         // Declare all ability types (action, triggered, constant, event, epic, replacement) here
@@ -89,6 +88,8 @@ class GroguIrresistible extends NonLeaderUnitCard {
     }
 }
 ```
+
+The only card type that uses a different pattern is leaders, which are discussed in more detail in [Leader Abilities](#leader-abilities).
 
 There are several ability types in SWU, each with its own initialization method. As shown above in the example of an action ability, each method accepts a property object defining the ability's behavior. Use the `AbilityHelper` import to get access to tools to help with implementations. Additionally, see [Interfaces.ts](../server/game/Interfaces.ts) for a list of available parameters for each ability type.
 
@@ -124,7 +125,7 @@ For a full list of properties that can be set when declaring an ongoing effect, 
 
 The ongoing effect declaration (for card effects, not player effects) takes a `matchTarget` property. In most cases this will be a function that takes a `Card` object and should return `true` if the ongoing effect should be applied to that card.
 
-```javascript
+```typescript
 // Each Rebel unit you control gains +1/+1
 this.constantAbility({
     matchTarget: card => card.hasSomeTrait(Trait.Rebel),
@@ -134,7 +135,7 @@ this.constantAbility({
 
 In some cases, an ongoing effect should be applied to a specific card. While you could write a `matchTarget` function to match only that card, you can provide the `Card` or `Player` object as a shorthand.
 
-```javascript
+```typescript
 // This player's leader unit gets Sentinel while it is deployed (i.e., in the arena)
 this.constantAbility({
     matchTarget: this.controller.leader,
@@ -149,7 +150,7 @@ If not provided, `matchTarget` will default to targeting only the card that owns
 
 Some ongoing effects have a 'when', 'while' or 'if' clause within their text. These cards can be implemented by passing a `condition` function into the constant ability declaration. The ongoing effect will only be applied when the function returns `true`. If the function returns `false` later on, the ongoing effect will be automatically unapplied from the cards it matched.
 
-```javascript
+```typescript
 // While this unit is exhausted, it gains +1/+1
 this.constantAbility({
     condition: () => this.exhausted,
@@ -162,7 +163,7 @@ Note also that, similar to target resolvers described below, there are shorthand
 
 All of these filters are available for filtering target cards (e.g., `targetLocationFilter`), but for checking the properties of the source card (the card that owns the ability) only `sourceLocationFilter` is available:
 
-```javascript
+```typescript
 // While this card is in the ground arena, all of the opponent's units in the space arena get -1/-1
 this.constantAbility({
     sourceLocationFilter: Location.GroundArena,
@@ -176,7 +177,7 @@ this.constantAbility({
 #### Applying multiple effects at once
 As a shorthand, it is possible to pass an array into the `ongoingEffect` property to apply multiple effects that have the same conditions / matching functions.
 
-```javascript
+```typescript
 // This unit gets Sentinel and +1/+1 while damaged
 this.constantAbility({
     condition: () => this.damage !== 0,
@@ -199,7 +200,7 @@ Static upgrade stat bonuses from the printed upgrade values are automatically in
 Since most upgrade abilities target the attached card, we have helper methods available to declare such abilities succintly.
 
 Most upgrades say that the attached unit gains a triggered ability:
-```javascript
+```typescript
 // Attached character gains ability 'On Attack: Exhaust the defender'
 this.addGainTriggeredAbilityTargetingAttached({
     title: 'Exhaust the defender on attack',
@@ -213,7 +214,7 @@ this.addGainTriggeredAbilityTargetingAttached({
 ```
 
 It is also common for an upgrade to grant a keyword to the attached:
-```javascript
+```typescript
 // Attached character gains keyword 'Restore 2'
 this.addGainKeywordTargetingAttached({
     keyword: KeywordName.Restore,
@@ -222,7 +223,7 @@ this.addGainKeywordTargetingAttached({
 ```
 
 In some rare cases an upgrade's ability targets the attached card without giving it any new abilities
-```javascript
+```typescript
 // Entrenched ability
 this.addConstantAbilityTargetingAttached({
     title: 'Attached unit cannot attack bases',
@@ -235,7 +236,7 @@ this.addConstantAbilityTargetingAttached({
 
 By default, ongoing effects will only be applied to cards in the play area.  Certain cards effects refer to cards in your hand, such as reducing their cost. In these cases, set the `targetLocation` property to `'hand'`.
 
-```javascript
+```typescript
 // Each Direwolf card in your hand gains ambush (X). X is that card's printed cost.
 this.constantAbility({
     // Explicitly target the effect to cards in hand.
@@ -247,7 +248,7 @@ this.constantAbility({
 
 This also applies to provinces, holdings and strongholds, which the game considers to be 'in play' even though they aren't in the play area.  Where an effect needs to be applied to these cards (or to characters who are in a province), set `targetLocation` to `'province'`.
 
-```javascript
+```typescript
 // This province gets +5 strength during [political] conflicts.
 this.constantAbility({
     match: this,
@@ -262,7 +263,7 @@ this.constantAbility({
 
 Certain cards provide bonuses or restrictions on the player itself instead of on any specific cards. These effects are marked as `Player` effects in `/server/game/effects.js`. For player effects, `targetController` indicates which players the effect should be applied to (with `'current'` acting as the default). Player effects should not have a `match` property.
 
-```javascript
+```typescript
 // While this character is participating in a conflict, opponents cannot play events.
 this.constantAbility({
     condition: () => this.isParticipating(),
@@ -279,7 +280,7 @@ Action abilities are abilities from card text with the bold text **"Action [_one
 
 When declaring an action, use the `addActionAbility` method and provide it with a `title` property. The title is what will be displayed in the menu players see when clicking on the card.
 
-```javascript
+```typescript
 export default class GroguIrresistible extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addActionAbility({
@@ -298,7 +299,7 @@ export default class GroguIrresistible extends NonLeaderUnitCard {
 
 To ensure that the action's play restrictions are met, pass a `condition` function that returns `true` when the restrictions are met, and `false` otherwise. If the condition returns `false`, the action will not be executed and costs will not be paid.
 
-```javascript
+```typescript
 // Give this unit +2/+2, but the action is only available if the friendly leader is deployed
 this.action({
     title: 'Give this unit +2/+2',
@@ -314,7 +315,7 @@ Some actions have an additional cost, such as bowing the card. In these cases, s
 For a full list of costs, look at [CostLibrary.ts](../server/game/costs/CostLibrary.ts).
 
 One example is Salacious Crumb's action ability, which has two costs - exhaust the card and return it to hand:
-```javascript
+```typescript
 public override setupCardAbilities() {
     this.addActionAbility({
         title: 'Deal 1 damage to a ground unit',
@@ -340,7 +341,7 @@ Triggered abilities are abilities with bold text indicating a game event to be t
 Each triggered ability has an associated triggering condition. This is done using the `when` property. This should be an object with one property which named for the name of the event - see `EventName` in [Constants.ts](server\game\core\Constants.ts) for a current list of available events to trigger on. The value of the `when` property should be a function which takes the event and the context object. When the function returns `true`, the ability will be executed.
 
 Here is an example with the deployed Cassian leader ability:
-```javascript
+```typescript
 this.reaction({
     // When damage is dealt to an enemy base, draw a card
     when: {
@@ -355,7 +356,7 @@ this.reaction({
 
 There are several ability triggers that are extremely common. For these, we provide helper methods which wrap the `when` clause so that it doesn't need to be typed out every time. For example, Mon Mothma's "when played" ability:
 
-```javascript
+```typescript
 this.addWhenPlayedAbility({
     title: 'Search the top 5 cards of your deck for a Rebel card, then reveal and draw it.',
     immediateEffect: AbilityHelper.immediateEffects.deckSearch({
@@ -378,7 +379,7 @@ The following triggers have helper methods:
 #### Optionally triggered abilities
 If the triggered ability uses the word "may," then the ability is considered optional and the player may choose to pass it when it is triggered. In these cases, the triggered ability must be flagged with the "optional" property. For example, Fleet Lieutenant's ability:
 
-```javascript
+```typescript
 this.addWhenPlayedAbility({
     title: 'Attack with a unit',
     optional: true,
@@ -393,7 +394,7 @@ this.addWhenPlayedAbility({
 
 #### Multiple triggers
 In some cases there may be multiple triggering conditions for the same ability, such as Avenger's ability being triggered on play and on attack. In these cases, just define an additional event on the `when` object. For example, see the ability on The Ghost:
-```javascript
+```typescript
 this.addTriggeredAbility({
     title: 'Give a shield to another Spectre unit',
     when: {
@@ -412,7 +413,7 @@ this.addTriggeredAbility({
 
 Certain abilities, such as that of Vengeful Oathkeeper can only be activated in non-play locations. Such reactions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability when prompted.
 
-```javascript
+```typescript
 this.reaction({
 	when: {
 		afterConflict: (event, context) => context.conflict.loser === context.player && context.conflict.conflictType === 'military'
@@ -425,7 +426,7 @@ this.reaction({
 ### Event abilities
 All ability text printed on an event card is considered the "event ability" for that card. Event abilities are defined exactly the same way as action abilities, except that there can only be one ability defined and it uses the `setEventAbility` method. E.g. Daring Raid:
 
-```javascript
+```typescript
 this.setEventAbility({
     title: 'Deal 2 damage to a unit or base',
     targetResolver: {
@@ -437,7 +438,7 @@ this.setEventAbility({
 ### Epic action abilities
 Epic action abilities are printed on leader and base cards, and can only be activated once per game. Like event cards, they are defined the same way as action abilities except that only one can be set and it is set using the `setEpicActionAbility` method. See Tarkintown:
 
-```javascript
+```typescript
 this.setEpicActionAbility({
     title: 'Deal 3 damage to a damaged non-leader unit',
     targetResolver: {
@@ -456,7 +457,7 @@ Some abilities allow the player to cancel or modify an effect. These abilities a
 These abilities are called "replacement effects" in the SWU rules and are defined using the `addReplacementEffectAbility` method. Otherwise the ability is defined very similar to a triggered ability, except that it has a `replaceWith` property object which defines an optional replacement effect in the `replacementImmediateEffect` sub-property. If `replacementImmediateEffect` is null, the triggering effect is canceled with no replacement. An optional `target` sub-property is also availabe to define a target for the replacement effect.
 
 Here is the Shield implementation as an example:
-```javascript
+```typescript
 this.addReplacementEffectAbility({
     title: 'Defeat shield to prevent attached unit from taking damage',
     when: {
@@ -471,6 +472,51 @@ this.addReplacementEffectAbility({
 });
 ```
 
+### Leader abilities
+Leader cards need to be implemented slightly differently than other card types:
+
+```typescript
+// IMPORTANT: must extend LeaderUnitCard, not LeaderCard
+export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
+    protected override getImplementationId() {
+        return {
+            id: '2912358777',
+            internalName: 'grand-moff-tarkin#oversector-governor',
+        };
+    }
+
+    // setup for "Leader" side abilities
+    protected override setupLeaderSideAbilities() {
+        this.addActionAbility({
+            title: 'Give an experience token to an Imperial unit',
+            cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            targetResolver: {
+                controller: RelativePlayer.Self,
+                cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
+                immediateEffect: AbilityHelper.immediateEffects.giveExperience()
+            }
+        });
+    }
+
+    // setup for "Leader Unit"" side abilities
+    protected override setupLeaderUnitSideAbilities() {
+        this.addOnAttackAbility({
+            title: 'Give an experience token to another Imperial unit',
+            optional: true,
+            targetResolver: {
+                controller: RelativePlayer.Self,
+                cardCondition: (card, context) => card.hasSomeTrait(Trait.Imperial) && card !== context.source,
+                immediateEffect: AbilityHelper.immediateEffects.giveExperience()
+            }
+        });
+    }
+}
+```
+
+There are two important things to remember when implementing leaders:
+1. The class must extend `LeaderUnitCard`, not `LeaderCard`. Using the latter will cause the card to not work correctly.
+2. Instead of the typical `setupCardAbilities` method, there are two methods - one for each side of the leader card: `setupLeaderSideAbilities` and `setupLeaderUnitSideAbilities`. Both of these must be implemented for the card to function correctly.
+
 ## Ability building blocks
 This section describes some of the major components that are used in the definitions of abilities:
 - Context objects
@@ -481,7 +527,7 @@ This section describes some of the major components that are used in the definit
 
 When the game starts to resolve an ability, it creates a context object for that ability. Generally, the context ability has the following structure:
 
-```javascript
+```typescript
 class AbilityContext {
     constructor(properties) {
         this.game = properties.game;
@@ -504,7 +550,7 @@ class AbilityContext {
 #### `context.source` and upgrades
 
 Note that in the case of upgrade abilities that give an ability to the attached card, `context.source` has to be used slightly differently than normal:
-```javascript
+```typescript
 // Attached character gains ability 'On Attack: Exhaust the defender'
 this.addGainTriggeredAbilityTargetingAttached({
     title: 'Exhaust the defender on attack',
@@ -527,7 +573,7 @@ Most ability types (other than constant, keyword, and replacement abilities) can
 The `targetResolver` property should include any limitations set by the ability, using the `cardTypeFilter`, `locationFilter`, `controller` and/or `cardCondition` property. A game system can also be included by using the `immediateEffect` property, which will restrict the card chosen to those for which that game system is legal (e.g. only units in an arena and base can be damaged, only upgrades can be unattached, etc.).
 
 For example, see the Sabine Wren (unit) "on attack" ability:
-```javascript
+```typescript
 // cardCondition returns true only for cards that are a base or the target of Sabine's attack
 this.addOnAttackAbility({
     title: 'Deal 1 damage to the defender or a base',
@@ -545,7 +591,7 @@ As mentioned above, targets can be filtered using one of multiple properties. Th
 
 **'Wildcard' enum types:** for location and card type, we have a concept of "wildcard" enum types which represent more than one concrete value. For example, `Location.SpaceArena` and `Location.GroundArena` are concrete locations, but `WildcardLocation.AnyArena` is a value that represents both (or either) for matching and filtering purposes. Similarly for card types, we have values such as `WildcardCardType.Unit` which represents leader and non-leader units as well as token units. For a detailed list, see [Constants.ts](server\game\core\Constants.ts).
 
-```javascript
+```typescript
 // Death Trooper
 this.addWhenPlayedAbility({
     title: 'Deal 2 damage to a friendly ground unit and an enemy ground unit',
@@ -579,7 +625,7 @@ Once all targets are chosen, they will be set using their specified name under t
 
 Some abilities require the player (or their opponent) to choose between multiple options.  This is done in the same way as targets above, but by using the `mode` property set to `'select'`.  In addition, a `choices` object should be included, which contains key:value pairs where the key is the option to display to the player, and the value is either a function which takes the `context` object and returns a boolean indicating whether this option is legal, or a game action which will be evaluated on the basis of the specified target (or default as detailed below) to determine whether the choice is legal.  The selected option is stored in `context.select.choice` (or `context.selects[targetName].choice` for an ability with multiple targets).
 
-```javascript
+```typescript
 // Action: During a conflict at this province, select one – switch the contested ring with an unclaimed 
 // ring, or switch the conflict type.
 this.action({
@@ -597,7 +643,7 @@ this.action({
 });
 ```
 
-```javascript
+```typescript
 // Action: If an opponent has declared 2 or more conflicts against you this phase, select one – 
 // take 1 fate or 1 honor from that opponent.
 this.action({
@@ -623,7 +669,7 @@ In general, the effects of an ability should be implemented using game systems r
 
 All ability types rely on GameSystems for making changes to game state.  Available game systems can be found in [GameSystemLibrary.ts](server\game\gameSystems\GameSystemLibrary.ts), along with any parameters and their defaults. The `cost` and `immediateEffect` fields of `AbilityHelper` provide access to the GameSystem classes for use in changing the game state as either the cost or the immediate effect of an ability, respectively. For example, the Grogu action ability uses the exhaust both as a cost (via `AbilityHelper.costs.exhaustSelf()`) and as an effect (via `AbilityHelper.immediateEffects.exhaust()`).
 
-```javascript
+```typescript
 this.addActionAbility({
     title: 'Exhaust an enemy unit',
     cost: AbilityHelper.costs.exhaustSelf(),
@@ -638,7 +684,7 @@ Game systems as an immediate effect default to targeting the card generating the
 
 Game systems included in `targetResolver` (or in one of `targetResolvers`) will default to the target chosen by the `targetResolver`'s resolution. You can change the target of a game system or the parameters by passing either an object with the properties you want, or a function which takes `context` and returns those properties.
 
-```javascript
+```typescript
 this.addActionAbility({
     title: 'Defeat this upgrade to give the attached unit a shield',
     cost: AbilityHelper.costs.defeatSelf(),
@@ -651,7 +697,7 @@ this.addActionAbility({
 
 Some actions have text limiting the number of times they may be used in a given period. You can pass an optional `limit` property using one of the duration-specific ability limiters. See `/server/game/abilitylimit.js` for more details.
 
-```javascript
+```typescript
 this.addActionAbility({
     title: 'Damage an opponent\'s base',
     limit: AbilityHelper.limit.perPhase(1),
@@ -663,7 +709,7 @@ this.addActionAbility({
 
 Once costs have been paid and targets chosen (but before the ability resolves), the game automatically displays a message in the chat box which tells both players the ability, costs and targets of the effect.  Game actions will automatically generate their own effect message, although this will only work for a single game action.  If the effects of the ability involve two or more game actions, or the effect is a lasting effect or uses a handler, then an `effect` property is required.  The effect property will be passed the target (card(s) or ring) of the effect (or the source if there are no targets) as its first parameter (and so can be referenced using `'{0}'` in the effect property string).  If other references are required, this can be done using curly bracket references in the effect string(`'{1}', '{2', etc`) and supplying an `effectArgs` property (which generally will be a function taking the `context` object):
 
-```javascript
+```typescript
 this.action({
     // Action: Return this attachment to your hand and dishonor attached character.
     title: 'Return court mask to hand',
@@ -673,7 +719,7 @@ this.action({
 });
 ```
 
-```javascript
+```typescript
 this.action({
     // Action: While this character is participating in a conflict, choose another participating character – until the end of the conflict, that character gets +2/+2 for each holding you control.
     title: 'Give a character a bonus for each holding',
@@ -695,7 +741,7 @@ this.action({
 
 Unlike constant abilities, "lasting" effects are typically applied during an action or triggered ability and expire after a specified period of time.  Lasting effects use the same properties as constant abilities, above.  Lasting effects are applied using the `cardLastingEffect` or `playerLastingEffect`, depending on what they affect.  They take a `duration:` property which is one of `untilEndOfAttack` (default), `untilEndOfPhase` or `untilEndOfRound`.
 
-```javascript
+```typescript
 // Action: During a conflict, bow this character. Choose another [crane] character – that character 
 // gets +3 [political] until the end of the conflict.
 this.action({
@@ -717,7 +763,7 @@ this.action({
 ```
 
 To apply an effect to last until the end of the current phase, use `untilEndOfPhase`:
-```javascript
+```typescript
 // Action: Reduce the cost of the next event you play this phase by 1.
 this.action({
     title: 'Reduce cost of next event by 1',
@@ -730,7 +776,7 @@ this.action({
 ```
 
 To apply an effect to last until the end of the round, use `untilEndOfRound`:
-```javascript
+```typescript
 /// Action: Choose a holding you control – you may trigger each of that holding's triggered abilities an additional time this round (or specified period).
 this.action({
     title: 'Add an additional ability use to a holding',
@@ -753,7 +799,7 @@ this.action({
 
 Certain actions, such as that of Ancestral Guidance, can only be activated while the character is in the discard pile. Such actions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability by simply clicking the card. If there is a conflict (e.g. both the ability and playing the card normally can occur), then the player will be prompted.
 
-```javascript
+```typescript
 this.action({
     title: 'Play from discard pile',
     location: 'conflict discard pile',
