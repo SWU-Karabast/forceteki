@@ -94,7 +94,7 @@ class PlayerInteractionWrapper {
         if (leaderOptions.deployed) {
             leaderCard.deploy();
 
-            // mark the deploy epic ability as used
+            // mark the deploy epic action as used
             const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.title.includes('Deploy'));
             deployAbility.limit.increment(this.player);
 
