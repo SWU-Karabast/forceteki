@@ -9,12 +9,15 @@ The tests do not need to be exhaustive but they should cover at least the basic 
 
 That said, we the repo maintainers are committed to ensuring that writing tests for new cards is as quick and painless a process as possible so that the burden of this ask is not high. Please reach out to us with feedback if you feel that writing tests could be improved or is becoming an obstacle to your ability to contribute to the repo.
 
+<!-- TODO: fill out this guide -->
 **This guide is currently mostly TBD**
 
 ## Basic Test Writing
 
-### Card Naming
-As you can see in the `setupTest` call, cards are added to the scenario using a condensed name format.
+### Setting up tests **(TBD)***
+
+### Using cards in tests
+As you can see in the `setupTest` call, cards are added to the scenario using a condensed name format:
 
 ```javascript
 beforeEach(function () {
@@ -39,6 +42,8 @@ These cards can then be referred to by name in the test cases as properties of t
 it('should give an experience token to a unit', function () {
     this.player1.clickCard(this.clanWrenRescuer);
     expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
+
+    // this.clanWrenRescuer, this.wampa, this.cartelSpacer are all automaically created by the test harness
     expect(this.player1).toBeAbleToSelectExactly([this.clanWrenRescuer, this.wampa, this.cartelSpacer]);
 
     this.player1.clickCard(this.clanWrenRescuer);
@@ -53,9 +58,10 @@ In addition, properties will be created for each player's leader and base: `p1Ba
 it('should cause the attached card to heal 2 damage from base on attack', function () {
     this.p1Base.damage = 5;
 
-    // attack resolves automatically since there's only one target (p2Base)
     this.player1.clickCard(this.wampa);
 
+    // this.p1Base and this.p2Base are generated automatically by the test harness
+    // (this.p1Leader and this.p2Leader are also available)
     expect(this.p1Base.damage).toBe(3);
     expect(this.p2Base.damage).toBe(5);
     expect(this.wampa.exhausted).toBe(true);

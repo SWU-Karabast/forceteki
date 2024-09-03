@@ -41,6 +41,7 @@ There is a specific base class that each card type should inherit from:
 | Upgrade | UpgradeCard |
 | Base | BaseCard |
 | ~~Leader~~ | _Still WIP_ |
+<!-- TODO LEADERS: fix the above table -->
 
 Tokens require extra steps for implementation that will not be covered here.
 
@@ -93,15 +94,15 @@ There are several ability types in SWU, each with its own initialization method.
 
 The ability types and methods are:
 
-| Ability Type | Method | Definition |
-| --- | --- | --- |
-| Constant ability | addConstantAbility | Abilities with no bold text that have an ongoing effect |
-| Action ability | addActionAbility | Abilities with bold text and a cost that provide an action the player can take |
-| Triggered ability | addActionAbility | Abilities with bold text that trigger off of a game event to provide some effect |
-| Event ability | setEventAbility | Any ability printed on an Event card |
-| Epic action ability | setEpicActionAbility | The Epic Action ability on a Base or Leader card |
-| Replacement ability | addReplacementAbility | Any ability using the term "would" or "instead" which modifies another effect (e.g. Shield, Maul) |
-| Keyword ability | N/A, handled automatically | Abilities provided by keywords |
+| Ability Type | Method | Definition | Example Cards |
+| --- | --- | --- | --- |
+| Constant ability | addConstantAbility | Abilities with no bold text that have an ongoing effect | [Entrenched](../server/game/cards/01_SOR/Entrenched.ts), [Sabine](../server/game/cards/01_SOR/SabineWrenExplosivesArtist.ts) |
+| Action ability | addActionAbility | Abilities with bold text and a cost that provide an action the player can take | [Grogu](../server/game/cards/02_SHD/GroguIrresistible.ts), [Salacious Crumb](../server/game/cards/02_SHD/SalaciousCrumbObnoxiousPet.ts) |
+| Triggered ability | addActionAbility | Abilities with bold text that trigger off of a game event to provide some effect | [Avenger](../server/game/cards/01_SOR/AvengerHuntingStarDestroyer.ts), [Fleet Lieutenant](../server/game/cards/01_SOR/FleetLieutenant.ts) |
+| Event ability | setEventAbility | Any ability printed on an Event card | [Daring Raid](../server/game/cards/02_SHD/DaringRaid.ts), [Vanquish](../server/game/cards/01_SOR/Vanquish.ts) |
+| Epic action ability | setEpicActionAbility | The Epic Action ability on a Base or Leader card | [Tarkintown](../server/game/cards/01_SOR/Tarkintown.ts) |
+| Replacement ability | addReplacementAbility | Any ability using the term "would" or "instead" which modifies another effect | [Shield](../server/game/cards/01_SOR/Shield.ts) |
+| Keyword ability | N/A, handled automatically | Abilities provided by keywords | See [keyword unit tests](../test/server/core/abilities/keyword/) |
 
 Additionally, there are specific helper methods that extend the above to make common cases simpler, such as "onAttack" triggers or upgrades that cause the attached card to gain an ability or keyword. See the relevant section below for specific details.
 
@@ -229,6 +230,7 @@ this.addConstantAbilityTargetingAttached({
 });
 ```
 
+<!-- TODO: update this section -->
 #### **IGNORE THIS SECTION, STILL WIP**: ~~Applying effects to cards which aren't in play~~
 
 By default, ongoing effects will only be applied to cards in the play area.  Certain cards effects refer to cards in your hand, such as reducing their cost. In these cases, set the `targetLocation` property to `'hand'`.
@@ -255,6 +257,7 @@ this.constantAbility({
 });
 ```
 
+<!-- TODO: update this section -->
 #### **IGNORE THIS SECTION, STILL WIP**: ~~Player modifying effects~~
 
 Certain cards provide bonuses or restrictions on the player itself instead of on any specific cards. These effects are marked as `Player` effects in `/server/game/effects.js`. For player effects, `targetController` indicates which players the effect should be applied to (with `'current'` acting as the default). Player effects should not have a `match` property.
@@ -370,6 +373,7 @@ The following triggers have helper methods:
 | When played | addWhenPlayedAbility |
 | On attack | addOnAttackAbility |
 | ~~On defeat~~ | TBD |
+<!-- TODO: update the above table when we add a when defeated card trigger example -->
 
 #### Optionally triggered abilities
 If the triggered ability uses the word "may," then the ability is considered optional and the player may choose to pass it when it is triggered. In these cases, the triggered ability must be flagged with the "optional" property. For example, Fleet Lieutenant's ability:
@@ -403,6 +407,7 @@ this.addTriggeredAbility({
 });
 ```
 
+<!-- TODO: update this section -->
 #### **IGNORE THIS SECTION, STILL WIP**: ~~Abilities outside of play~~
 
 Certain abilities, such as that of Vengeful Oathkeeper can only be activated in non-play locations. Such reactions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability when prompted.
@@ -480,14 +485,16 @@ When the game starts to resolve an ability, it creates a context object for that
 class AbilityContext {
     constructor(properties) {
         this.game = properties.game;
-        this.source = properties.source;
+        this.source = properties.source || new OngoingEffectSource(this.game);
         this.player = properties.player;
-        this.ability = properties.ability;
-        this.costs = {};
-        this.targets = {};
-        this.rings = {};
-        this.selects = {};
-        this.stage = Stages.Effect;
+        this.ability = properties.ability || null;
+        this.costs = properties.costs || {};
+        this.costAspects = properties.costAspects || [];
+        this.targets = properties.targets || {};
+        this.selects = properties.selects || {};
+        this.stage = properties.stage || Stage.Effect;
+        this.targetAbility = properties.targetAbility;
+        this.playType = this.player && this.player.findPlayType(this.source);
     }
 }
 ```
@@ -567,6 +574,7 @@ Some card abilities require multiple targets. These may be specified using the `
 
 Once all targets are chosen, they will be set using their specified name under the `targetResolvers` property on the handler context object.
 
+<!-- TODO: update this section -->
 #### **IGNORE FOR NOW, WIP:** ~~Select options~~
 
 Some abilities require the player (or their opponent) to choose between multiple options.  This is done in the same way as targets above, but by using the `mode` property set to `'select'`.  In addition, a `choices` object should be included, which contains key:value pairs where the key is the option to display to the player, and the value is either a function which takes the `context` object and returns a boolean indicating whether this option is legal, or a game action which will be evaluated on the basis of the specified target (or default as detailed below) to determine whether the choice is legal.  The selected option is stored in `context.select.choice` (or `context.selects[targetName].choice` for an ability with multiple targets).
@@ -682,6 +690,7 @@ this.action({
 });
 ```
 
+<!-- TODO: update this section -->
 #### **IGNORE THIS, STILL WIP:** ~~Lasting effects~~
 
 Unlike constant abilities, "lasting" effects are typically applied during an action or triggered ability and expire after a specified period of time.  Lasting effects use the same properties as constant abilities, above.  Lasting effects are applied using the `cardLastingEffect` or `playerLastingEffect`, depending on what they affect.  They take a `duration:` property which is one of `untilEndOfAttack` (default), `untilEndOfPhase` or `untilEndOfRound`.
@@ -739,6 +748,7 @@ this.action({
 });
 ```
 
+<!-- TODO: update this section -->
 #### **IGNORE THIS, STILL WIP:** ~~Actions outside of play~~
 
 Certain actions, such as that of Ancestral Guidance, can only be activated while the character is in the discard pile. Such actions should be defined by specifying the `location` property with the location from which the ability may be activated. The player can then activate the ability by simply clicking the card. If there is a conflict (e.g. both the ability and playing the card normally can occur), then the player will be prompted.

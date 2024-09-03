@@ -99,7 +99,7 @@ export abstract class GameObject {
             }
 
             // return (context.player.countSpendableResources() >= targetingCost);
-        } else if (context.stage === Stage.Target || context.stage === Stage.EffectTmp) {
+        } else if (context.stage === Stage.Target || context.stage === Stage.Effect) {
             //We paid costs first, or targeting has to be done after costs have been paid
             // return (context.player.countSpendableResources() >= targetingCost);
         }

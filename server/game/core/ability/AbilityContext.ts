@@ -34,7 +34,6 @@ export class AbilityContext<TSource = any> {
     public costAspects: Aspect[];
     public targets: any;
     public selects: any;
-    public tokens: any;
     public events: any[] = [];
     public stage: Stage;
     public targetAbility: any;
@@ -55,8 +54,7 @@ export class AbilityContext<TSource = any> {
         this.costAspects = properties.costAspects || [];
         this.targets = properties.targets || {};
         this.selects = properties.selects || {};
-        this.tokens = properties.tokens || {};
-        this.stage = properties.stage || Stage.EffectTmp;
+        this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
         // const location = this.player && this.player.playableLocations.find(location => location.contains(this.source));
         this.playType = this.player && this.player.findPlayType(this.source); //location && location.playingType;
@@ -65,7 +63,6 @@ export class AbilityContext<TSource = any> {
     public copy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
         const copy = this.createCopy(newProps);
         copy.target = this.target;
-        // copy.token = this.token;
         copy.costAspects = this.costAspects;
         copy.select = this.select;
         copy.subResolution = this.subResolution;
@@ -88,7 +85,6 @@ export class AbilityContext<TSource = any> {
             costs: Object.assign({}, this.costs),
             targets: Object.assign({}, this.targets),
             selects: Object.assign({}, this.selects),
-            tokens: Object.assign({}, this.tokens),
             events: this.events,
             stage: this.stage,
             targetAbility: this.targetAbility
