@@ -25,6 +25,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 expect(this.grandMoffTarkin.exhausted).toBe(true);
                 expect(this.atst.upgrades.length).toBe(1);
                 expect(this.atst.upgrades[0].internalName).toBe('experience');
+                expect(this.player1.countExhaustedResources()).toBe(1);
             });
 
             it('should deploy and have the on attack ability', function () {
