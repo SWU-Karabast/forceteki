@@ -14,9 +14,7 @@ export default class DaringRaid extends EventCard {
             title: 'Deal 2 damage to a unit or base',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
-            },
-            effect: 'deal 2 damage to {1}',
-            effectArgs: (context) => [context.target]
+            }
         });
     }
 }

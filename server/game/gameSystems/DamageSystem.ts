@@ -47,6 +47,5 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
         event.damage = amount;
         event.isCombatDamage = isCombatDamage;
         event.context = context;
-        event.recipient = card;
     }
 }

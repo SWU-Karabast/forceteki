@@ -108,7 +108,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         return (
             this.isTargetTypeValid(target) &&
             !context.gameActionsResolutionChain.includes(this) &&
-            ((context.stage === Stage.EffectTmp && cannotBeCancelled) || !target.hasRestriction(this.name, context))
+            ((context.stage === Stage.Effect && cannotBeCancelled) || !target.hasRestriction(this.name, context))
         );
     }
 

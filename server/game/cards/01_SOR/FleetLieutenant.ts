@@ -1,6 +1,5 @@
 import AbilityHelper from '../../AbilityHelper';
-import { AbilityContext } from '../../core/ability/AbilityContext';
-import { Attack } from '../../core/attack/Attack';
+import { UnitCard } from '../../core/card/CardTypes';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../core/Constants';
 
@@ -17,20 +16,12 @@ export default class FleetLieutenant extends NonLeaderUnitCard {
             title: 'Attack with a unit',
             optional: true,
             initiateAttack: {
-                effects: this.rebelPowerBuffEffectGenerator
+                effects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus(
+                    (attacker: UnitCard) => attacker.hasSomeTrait(Trait.Rebel),
+                    { power: 2, hp: 0 }
+                )
             }
         });
-    }
-
-    // TODO: make this its own effect in the library (along with snowtrooper)
-    private rebelPowerBuffEffectGenerator(context: AbilityContext, attack: Attack) {
-        if (attack.attacker.hasSomeTrait(Trait.Rebel)) {
-            return {
-                target: attack.attacker,
-                effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
-            };
-        }
-        return null;
     }
 }
 

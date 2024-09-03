@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { WildcardLocation } from '../../core/Constants';
+import { RelativePlayer, WildcardLocation } from '../../core/Constants';
 
 export default class GroguIrresistible extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,6 +17,7 @@ export default class GroguIrresistible extends NonLeaderUnitCard {
             targetResolver: {
                 locationFilter: WildcardLocation.AnyArena,
                 cardCondition: (card) => card.controller !== this.controller,
+                controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
         });

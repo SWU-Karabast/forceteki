@@ -2,25 +2,23 @@ import AbilityHelper from '../../AbilityHelper';
 import { EventCard } from '../../core/card/EventCard';
 import { WildcardCardType } from '../../core/Constants';
 
-export default class Vanquish extends EventCard {
+export default class Confiscate extends EventCard {
     protected override getImplementationId() {
         return {
-            id: '6472095064',
-            internalName: 'vanquish',
+            id: '5950125325',
+            internalName: 'confiscate',
         };
     }
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Defeat a non-leader unit',
+            title: 'Defeat an upgrade',
             targetResolver: {
-                cardTypeFilter: [WildcardCardType.NonLeaderUnit],
+                cardTypeFilter: WildcardCardType.Upgrade,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
-            },
-            effect: 'defeat {1}',
-            effectArgs: (context) => [context.target]
+            }
         });
     }
 }
 
-Vanquish.implemented = true;
+Confiscate.implemented = true;

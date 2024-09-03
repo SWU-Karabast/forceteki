@@ -73,30 +73,30 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
-        this.addAbilityLocationForSide(properties);
+        properties.locationFilter = this.getAbilityLocationsForSide(properties.locationFilter);
         super.addActionAbility(properties);
     }
 
     protected override addConstantAbility(properties: IConstantAbilityProps<this>): void {
-        this.addAbilityLocationForSide(properties);
+        properties.sourceLocationFilter = this.getAbilityLocationsForSide(properties.sourceLocationFilter);
         super.addConstantAbility(properties);
     }
 
     protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps): void {
-        this.addAbilityLocationForSide(properties);
+        properties.locationFilter = this.getAbilityLocationsForSide(properties.locationFilter);
         super.addReplacementEffectAbility(properties);
     }
 
     protected override addTriggeredAbility(properties: ITriggeredAbilityProps): void {
-        this.addAbilityLocationForSide(properties);
+        properties.locationFilter = this.getAbilityLocationsForSide(properties.locationFilter);
         super.addTriggeredAbility(properties);
     }
 
-    private addAbilityLocationForSide(properties: { locationFilter?: LocationFilter | LocationFilter[] }) {
+    private getAbilityLocationsForSide(propertyLocation: LocationFilter | LocationFilter[]) {
         const abilityLocation = this.setupLeaderUnitSide ? this.defaultArena : Location.Base;
 
-        properties.locationFilter = properties.locationFilter
-            ? Helpers.asArray(properties.locationFilter).concat([abilityLocation])
+        return propertyLocation
+            ? Helpers.asArray(propertyLocation).concat([abilityLocation])
             : abilityLocation;
     }
 

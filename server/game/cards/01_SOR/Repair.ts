@@ -14,9 +14,7 @@ export default class Repair extends EventCard {
             title: 'Heal 3 damage from a unit or base',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 3 })
-            },
-            effect: 'heal 3 damage from {1}',
-            effectArgs: (context) => [context.target]
+            }
         });
     }
 }

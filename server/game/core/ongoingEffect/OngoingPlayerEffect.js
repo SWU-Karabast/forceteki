@@ -5,8 +5,8 @@ class OngoingPlayerEffect extends OngoingEffect {
     constructor(game, source, properties, effect) {
         super(game, source, properties, effect);
         this.targetController = properties.targetController || RelativePlayer.Self;
-        if (typeof this.match !== 'function') {
-            this.match = (player) => true;
+        if (typeof this.matchTarget !== 'function') {
+            this.matchTarget = (player) => true;
         }
     }
 
@@ -26,7 +26,7 @@ class OngoingPlayerEffect extends OngoingEffect {
 
     /** @override */
     getTargets() {
-        return this.game.getPlayers().filter((player) => this.match(player));
+        return this.game.getPlayers().filter((player) => this.matchTarget(player));
     }
 }
 

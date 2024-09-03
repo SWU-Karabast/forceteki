@@ -10,7 +10,7 @@ import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import { AbilityContext } from '../../ability/AbilityContext';
 import Game from '../../Game';
-import Shield from '../../../cardImplementations/01_SOR/Shield';
+import Shield from '../../../cards/01_SOR/Shield';
 
 export class TriggeredAbilityWindow extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */

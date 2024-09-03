@@ -5,38 +5,38 @@ const EnumHelpers = require('../utils/EnumHelpers');
  * Represents a card based effect applied to one or more targets.
  *
  * Properties:
- * match            - function that takes a card/player and context object
- *                    and returns a boolean about whether the passed object should
- *                    have the effect applied. Alternatively, a card/player can
- *                    be passed as the match property to match that single object.
- *                    Doesn't apply to attack effects. (TODO: still true?)
- * duration         - string representing how long the effect lasts.
- * condition        - function that returns a boolean determining whether the
- *                    effect can be applied. Use with cards that have a
- *                    condition that must be met before applying a persistent
- *                    effect (e.g. 'when exhausted').
- * location         - location where the source of this effect needs to be for
- *                    the effect to be active. Defaults to 'play area'.
- * targetController - string that determines which player's cards are targeted.
- *                    Can be 'self' (default), 'opponent' or 'any'. For player
- *                    effects it determines which player(s) are affected.
- * targetLocation   - string that determines the location of cards that can be
- *                    applied by the effect. Can be 'play area' (default),
- *                    'province', or a specific location (e.g. 'stronghold province'
- *                    or 'hand'). This has no effect if a specific card is passed
- *                    to match.  Card effects only.
- * impl             - object with details of effect to be applied. Includes duration
- *                    and the numerical value of the effect, if any.
+ * matchTarget          - function that takes a card/player and context object
+ *                        and returns a boolean about whether the passed object should
+ *                        have the effect applied. Alternatively, a card/player can
+ *                        be passed as the match property to match that single object.
+ *                        Doesn't apply to attack effects. (TODO: still true?)
+ * duration             - string representing how long the effect lasts.
+ * condition            - function that returns a boolean determining whether the
+ *                        effect can be applied. Use with cards that have a
+ *                        condition that must be met before applying a persistent
+ *                        effect (e.g. 'when exhausted').
+ * locationFilter       - location where the source of this effect needs to be for
+ *                        the effect to be active. Defaults to 'play area'.
+ * targetController     - string that determines which player's cards are targeted.
+ *                        Can be 'self' (default), 'opponent' or 'any'. For player
+ *                        effects it determines which player(s) are affected.
+ * targetLocationFilter - string that determines the location of cards that can be
+ *                        applied by the effect. Can be 'play area' (default),
+ *                        'province', or a specific location (e.g. 'stronghold province'
+ *                        or 'hand'). This has no effect if a specific card is passed
+ *                        to match.  Card effects only.
+ * impl                 - object with details of effect to be applied. Includes duration
+ *                        and the numerical value of the effect, if any.
  */
 class OngoingEffect {
     constructor(game, source, properties, effectImpl) {
         this.game = game;
         this.source = source;
-        this.match = properties.match || (() => true);
+        this.matchTarget = properties.matchTarget || (() => true);
         this.duration = properties.duration;
         this.until = properties.until || {};
         this.condition = properties.condition || (() => true);
-        this.locationFilter = properties.locationFilter || WildcardLocation.AnyArena;
+        this.sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
         this.impl = effectImpl;
@@ -104,9 +104,9 @@ class OngoingEffect {
             stateChanged = this.targets.length > 0 || stateChanged;
             this.cancel();
             return stateChanged;
-        } else if (typeof this.match === 'function') {
+        } else if (typeof this.matchTarget === 'function') {
             // Get any targets which are no longer valid
-            let invalidTargets = this.targets.filter((target) => !this.match(target, this.context) || !this.isValidTarget(target));
+            let invalidTargets = this.targets.filter((target) => !this.matchTarget(target, this.context) || !this.isValidTarget(target));
             // Remove invalid targets
             this.removeTargets(invalidTargets);
             stateChanged = stateChanged || invalidTargets.length > 0;
@@ -117,14 +117,14 @@ class OngoingEffect {
             // Apply the effect to new targets
             newTargets.forEach((target) => this.addTarget(target));
             return stateChanged || newTargets.length > 0;
-        } else if (this.targets.includes(this.match)) {
-            if (!this.isValidTarget(this.match)) {
+        } else if (this.targets.includes(this.matchTarget)) {
+            if (!this.isValidTarget(this.matchTarget)) {
                 this.cancel();
                 return true;
             }
-            return this.impl.recalculate(this.match) || stateChanged;
-        } else if (!this.targets.includes(this.match) && this.isValidTarget(this.match)) {
-            this.addTarget(this.match);
+            return this.impl.recalculate(this.matchTarget) || stateChanged;
+        } else if (!this.targets.includes(this.matchTarget) && this.isValidTarget(this.matchTarget)) {
+            this.addTarget(this.matchTarget);
             return true;
         }
         return stateChanged;

@@ -11,20 +11,14 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+        this.addTriggeredAbility({
             title: 'Choose a friendly non-leader unit to defeat',
+            when: {
+                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onCardPlayed: (event, context) => event.card === context.source
+            },
             targetResolver: {
-                player: RelativePlayer.Opponent,
-                controller: RelativePlayer.Opponent,
-                cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                immediateEffect: AbilityHelper.immediateEffects.defeat()
-            }
-        });
-
-        this.addOnAttackAbility({
-            title: 'Choose a friendly non-leader unit to defeat',
-            targetResolver: {
-                player: RelativePlayer.Opponent,
+                choosingPlayer: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()

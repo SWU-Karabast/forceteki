@@ -15,7 +15,6 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
             title: 'Heal 1 damage from friendly base',
             targetResolver: {
                 cardTypeFilter: CardType.Base,
-                locationFilter: Location.Base,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 1 })
             }
@@ -29,7 +28,7 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
             ],
             cannotTargetFirst: true,
             targetResolver: {
-                cardCondition: (card) => card.location === Location.GroundArena,
+                locationFilter: Location.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
             }
         });

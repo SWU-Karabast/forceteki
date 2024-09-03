@@ -3,7 +3,8 @@ const { Stage, RelativePlayer } = require('../../Constants.js');
 const { default: Contract } = require('../../utils/Contract.js');
 const EnumHelpers = require('../../utils/EnumHelpers.js');
 
-class AbilityTargetAbility {
+/** Target resolver for effects that target abilities */
+class AbilityTargetResolver {
     constructor(name, properties, ability) {
         this.name = name;
         this.properties = properties;
@@ -126,7 +127,7 @@ class AbilityTargetAbility {
     }
 
     getChoosingPlayer(context) {
-        let playerProp = this.properties.player;
+        let playerProp = this.properties.choosingPlayer;
         if (typeof playerProp === 'function') {
             playerProp = playerProp(context);
         }
@@ -141,4 +142,4 @@ class AbilityTargetAbility {
     }
 }
 
-module.exports = AbilityTargetAbility;
+module.exports = AbilityTargetResolver;

@@ -23,7 +23,7 @@ export default class VambraceGrappleshot extends UpgradeCard {
     public override setupCardAbilities() {
         this.addGainTriggeredAbilityTargetingAttached({
             title: 'Exhaust the defender on attack',
-            when: { onAttackDeclared: (event) => event.attack.attacker === this.parentCard },
+            when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             targetResolver: {
                 cardCondition: (card, context) => card === context.event.attack.target,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()

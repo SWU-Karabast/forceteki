@@ -7,13 +7,11 @@ class InitiateCardAbilityEvent extends GameEvent {
         if (!this.context.ability.doesNotTarget) {
             this.cardTargets = Object.values(this.context.targets).flat();
             this.selectTargets = Object.values(this.context.selects).flat();
-            this.tokenTargets = Object.values(this.context.tokens).flat();
         } else {
             this.cardTargets = [];
             this.selectTargets = [];
-            this.tokenTargets = [];
         }
-        this.allTargets = this.cardTargets.concat(this.selectTargets, this.tokenTargets);
+        this.allTargets = this.cardTargets.concat(this.selectTargets);
     }
 }
 
