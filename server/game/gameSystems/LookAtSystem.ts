@@ -1,7 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { BaseCard } from '../core/card/BaseCard';
 import { EventName, ViewCardType } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
 import { ViewCardSystem, IViewCardProperties } from './ViewCardSystem';
 
 export type ILookAtProperties = Omit<IViewCardProperties, 'viewType'>;
@@ -12,7 +10,7 @@ export class LookAtSystem extends ViewCardSystem {
     public override readonly effectDescription = 'look at a card';
 
     protected override defaultProperties: IViewCardProperties = {
-        sendChatMessage: false,
+        sendChatMessage: true,
         message: '{0} sees {1}',
         viewType: ViewCardType.LookAt
     };
@@ -30,11 +28,12 @@ export class LookAtSystem extends ViewCardSystem {
         super(propertyWithViewType);
     }
 
-    public override eventHandler(event, additionalProperties = {}): void {
-        const context = event.context;
+    public override getMessageArgs(event: any, context: AbilityContext, additionalProperties: any): any[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [context.source, event.cards];
-        context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
+        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
+            context.source, event.cards
+        ];
+        return messageArgs;
     }
 
     public override checkEventCondition(): boolean {

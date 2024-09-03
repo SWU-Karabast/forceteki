@@ -20,7 +20,8 @@ export abstract class ViewCardSystem extends CardTargetSystem<IViewCardPropertie
         const context = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.sendChatMessage) {
-            context.game.addMessage(this.getMessage(properties.message, context), this.getMessageArgs(event, context, additionalProperties));
+            const messageArgs = this.getMessageArgs(event, context, additionalProperties);
+            context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
         }
     }
 
