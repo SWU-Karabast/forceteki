@@ -13,11 +13,6 @@ describe('Confiscate', function() {
                         spaceArena: [{ card: 'imperial-interceptor', upgrades: ['academy-training'] }]
                     }
                 });
-
-                this.confiscate = this.player1.findCardByName('confiscate');
-                this.entrenched = this.player1.findCardByName('entrenched');
-                this.academyTraining = this.player2.findCardByName('academy-training');
-                this.interceptor = this.player2.findCardByName('imperial-interceptor');
             });
 
             it('can defeat an upgrade on a friendly or enemy unit', function () {
@@ -25,7 +20,7 @@ describe('Confiscate', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.entrenched, this.academyTraining]);
 
                 this.player1.clickCard(this.academyTraining);
-                expect(this.interceptor.upgrades.length).toBe(0);
+                expect(this.imperialInterceptor.upgrades.length).toBe(0);
                 expect(this.academyTraining).toBeInLocation('discard');
             });
         });
