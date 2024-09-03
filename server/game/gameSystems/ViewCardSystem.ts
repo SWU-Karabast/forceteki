@@ -34,14 +34,6 @@ export abstract class ViewCardSystem extends CardTargetSystem<IViewCardPropertie
         }
     }
 
-    public override canAffect(card: BaseCard, context: AbilityContext) {
-        // TODO: What situations would mean that a card cannot be looked at?
-        // if (!card.isFacedown() && (card.isInProvince() || card.location === Locations.PlayArea)) {
-        //     return false;
-        // }
-        return super.canAffect(card, context);
-    }
-
     public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
         const events: GameEvent[] = [];
 

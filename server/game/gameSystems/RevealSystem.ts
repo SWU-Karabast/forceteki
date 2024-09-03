@@ -32,10 +32,6 @@ export class RevealSystem extends ViewCardSystem {
     }
 
     public override canAffect(card: BaseCard, context: AbilityContext): boolean {
-        // TODO: What situations would mean that a card cannot be looked at?
-        // if (!card.isFacedown() && (card.isInProvince() || card.location === Locations.PlayArea)) {
-        //     return false;
-        // }
         if (card.location === Location.Deck || card.location === Location.Hand || card.location === Location.Resource) {
             return super.canAffect(card, context);
         }
