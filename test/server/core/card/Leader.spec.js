@@ -88,6 +88,7 @@ describe('Leader cards', function() {
                 // move to next action phase and confirm that deploy isn't available
                 this.moveToNextActionPhase();
                 this.player1.clickCard(this.grandMoffTarkin);
+                expect(this.player1).not.toHaveEnabledPromptButton('Deploy Grand Moff Tarkin');
             });
         });
     });

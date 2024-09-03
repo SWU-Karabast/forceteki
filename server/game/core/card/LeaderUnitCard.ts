@@ -32,7 +32,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
         this.addActionAbility({
             title: `Deploy ${this.name}`,
-            limit: AbilityHelper.limit.perGame(1),
+            limit: AbilityHelper.limit.epicAction(),
             condition: (context) => context.source.controller.resources.length >= context.source.cost,
             locationFilter: Location.Base,
             immediateEffect: AbilityHelper.immediateEffects.deploy({ deployArena: this.defaultArena })

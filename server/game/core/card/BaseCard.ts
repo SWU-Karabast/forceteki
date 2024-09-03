@@ -43,7 +43,7 @@ export class BaseCard extends BaseCardParent {
         }
 
         const propertiesWithLimit: IActionAbilityProps<this> = Object.assign(properties, {
-            limit: AbilityHelper.limit.perGame(1)
+            limit: AbilityHelper.limit.epicAction()
         });
 
         this._epicActionAbility = new ActionAbility(this.game, this, propertiesWithLimit);
