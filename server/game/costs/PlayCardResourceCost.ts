@@ -3,7 +3,11 @@ import { EventName, Location, RelativePlayer } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 
-export class AdjustableResourceCost implements ICost {
+/**
+ * Represents the resource cost of playing a card. When calculated / paid, will account for
+ * any cost adjusters in play that increase or decrease the play cost for the relevant card.
+ */
+export class PlayCardResourceCost implements ICost {
     public isPlayCost = true;
     public isPrintedResourceCost = true;
 
@@ -29,19 +33,19 @@ export class AdjustableResourceCost implements ICost {
 
     public resolve(context: AbilityContext, result: Result): void {
         const availableResources = context.player.countSpendableResources();
-        const reducedCost = this.getReducedCost(context);
+        const reducedCost = this.getAdjustedCost(context);
         if (reducedCost > availableResources) {
             result.cancelled = true;
             return;
         }
     }
 
-    protected getReducedCost(context: AbilityContext): number {
-        return context.player.getAdjustedCost(context.playType, context.source, null, this.ignoreType, context.costAspects);
+    protected getAdjustedCost(context: AbilityContext): number {
+        return context.player.getAdjustedCost(context.playType, context.source, null, this.ignoreType);
     }
 
     public payEvent(context: AbilityContext): GameEvent {
-        const amount = this.getReducedCost(context);
+        const amount = this.getAdjustedCost(context);
         context.costs.resources = amount;
         return new GameEvent(EventName.OnSpendResources, { amount, context }, (event) => {
             event.context.player.markUsedAdjusters(context.playType, event.context.source);

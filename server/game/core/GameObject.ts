@@ -92,10 +92,10 @@ export abstract class GameObject {
             //We haven't paid the cost yet, so figure out what it will cost to play this so we can know how much fate we'll have available for targeting
             let resourceCost = 0;
             // @ts-expect-error
-            if (context.ability.getReducedCost) {
+            if (context.ability.getAdjustedCost) {
                 //we only want to consider the ability cost, not the card cost
                 // @ts-expect-error
-                resourceCost = context.ability.getReducedCost(context);
+                resourceCost = context.ability.getAdjustedCost(context);
             }
 
             // return (context.player.countSpendableResources() >= targetingCost);

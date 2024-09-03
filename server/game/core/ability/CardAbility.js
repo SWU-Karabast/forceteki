@@ -113,9 +113,9 @@ class CardAbility extends CardAbilityStep {
         return costs;
     }
 
-    getReducedCost(context) {
-        let resourceCost = this.cost.find((cost) => cost.getReducedCost);
-        return resourceCost ? resourceCost.getReducedCost(context) : 0;
+    getAdjustedCost(context) {
+        let resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
+        return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
     isInValidLocation(context) {

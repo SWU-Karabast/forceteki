@@ -584,7 +584,7 @@ class Player extends GameObject {
      */
     getMinimumPossibleCost(playingType, context, target, ignoreType = false) {
         const card = context.source;
-        const adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType, context.costAspects);
+        const adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType);
 
         // TODO: not sure yet if we need this code, I think it's checking to see if any potential interrupts would create additional cost
         // let triggeredCostAdjusters = 0;
@@ -613,10 +613,10 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    getAdjustedCost(playingType, card, target, ignoreType = false, aspects = null) {
+    getAdjustedCost(playingType, card, target, ignoreType = false) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
-        let penaltyAspects = this.getPenaltyAspects(aspects);
+        let penaltyAspects = this.getPenaltyAspects(card.aspects);
         for (const aspect of penaltyAspects) {
             aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
         }
