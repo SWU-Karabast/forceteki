@@ -302,6 +302,7 @@ export enum AbilityRestriction {
     Target = 'target',  // TODO: rename to AbilityTarget
 
     BeHealed = 'beHealed',
+    Exhaust = 'exhaust',
     InitiateKeywords = 'initiateKeywords',
     Ready = 'ready',
     ReceiveDamage = 'receiveDamage',
