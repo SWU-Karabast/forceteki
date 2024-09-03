@@ -1,6 +1,6 @@
-import type { AbilityContext } from '../core/ability/AbilityContext';
+import { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EventName, Location, WildcardCardType } from '../core/Constants';
+import { CardType, CardTypeFilter, EventName, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { PlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
@@ -16,7 +16,20 @@ export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
     public override readonly eventName = EventName.OnCardExhausted;
     public override readonly costDescription = 'exhausting {0}';
     public override readonly effectDescription = 'exhaust {0}';
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Leader, CardType.Event];
+    protected override readonly targetTypeFilter: CardTypeFilter[];
+
+    public constructor(propertiesOrPropertyFactory: IExhaustSystemProperties | ((context?: AbilityContext) => IExhaustSystemProperties)) {
+        super(propertiesOrPropertyFactory);
+
+        // undeployed leaders are commonly exhausted as a cost but typically not as an ability target
+        if (typeof propertiesOrPropertyFactory !== 'function') {
+            if (propertiesOrPropertyFactory.isCost) {
+                this.targetTypeFilter = [WildcardCardType.Unit, CardType.Leader, CardType.Event];
+            } else {
+                this.targetTypeFilter = [WildcardCardType.Unit, CardType.Event];
+            }
+        }
+    }
 
     public eventHandler(event): void {
         event.card.exhaust();

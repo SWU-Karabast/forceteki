@@ -41,7 +41,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${actual.name} not to have prompt '${expected}' but it did.`;
                 } else {
-                    result.message = `Expected ${actual.name} to have prompt '${expected}' but it had menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
+                    result.message = `Expected ${actual.name} to have prompt '${expected}' but it:\n${generatePromptHelpMessage(actual)}.`;
                 }
 
                 return result;
@@ -336,7 +336,7 @@ var customMatchers = {
                 var currentPrompt = player.currentPrompt();
 
                 if (result.pass) {
-                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt with menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
+                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(actual)}`;
                 } else {
                     result.message = `Expected ${card.name} to have an action available when clicked by ${player.name} but it did not.`;
                 }
@@ -374,7 +374,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it had menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player)}`;
                 }
 
                 return result;
