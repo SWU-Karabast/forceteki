@@ -243,16 +243,16 @@ export function payPlayCardResourceCost(ignoreType = false): ICost {
 //     return new TargetDependentFateCost(ignoreType, targetName);
 // }
 
-// /**
-//  * Cost in which the player must pay a fixed, non-reduceable amount of fate.
-//  */
-// export function payResource(amount: number | ((context: AbilityContext) => number) = 1): ICost {
-//     return new GameActionCost(
-//         typeof amount === 'function'
-//             ? GameSystems.loseFate((context) => ({ target: context.player, amount: amount(context) }))
-//             : GameSystems.loseFate((context) => ({ target: context.player, amount }))
-//     );
-// }
+/**
+ * Cost in which the player must pay a fixed, non-reduceable amount of fate.
+ */
+export function abilityResourceCost(amount: number | ((context: AbilityContext) => number)): ICost {
+    return new GameActionCost(
+        typeof amount === 'function'
+            ? GameSystems.payResourceCost((context) => ({ target: context.player, amount: amount(context) }))
+            : GameSystems.payResourceCost((context) => ({ target: context.player, amount }))
+    );
+}
 
 // TODO: reuse variable methods for swu cards
 // export function variableHonorCost(amountFunc: (context: TriggeredAbilityContext) => number): Cost {

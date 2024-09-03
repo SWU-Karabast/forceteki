@@ -1,12 +1,7 @@
 import Player from '../Player';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import Contract from '../utils/Contract';
-import { CardType, Location, LocationFilter, WildcardLocation } from '../Constants';
-import { ActionAbility } from '../ability/ActionAbility';
-import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
-import TriggeredAbility from '../ability/TriggeredAbility';
-import AbilityHelper from '../../AbilityHelper';
-
+import { CardType } from '../Constants';
 
 export class LeaderCard extends InPlayCard {
     protected _isDeployed = false;

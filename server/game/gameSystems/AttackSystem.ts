@@ -146,7 +146,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         return [event];
     }
 
-    public override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (!Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`)) {

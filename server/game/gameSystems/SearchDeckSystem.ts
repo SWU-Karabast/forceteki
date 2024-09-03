@@ -96,7 +96,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         return [context.player];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: AbilityContext, additionalProperties: any): void {
+    protected override addPropertiesToEvent(event: any, player: Player, context: AbilityContext, additionalProperties: any): void {
         const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
         const searchCountAmount = this.computeSearchCount(searchCount, context);
         super.addPropertiesToEvent(event, player, context, additionalProperties);

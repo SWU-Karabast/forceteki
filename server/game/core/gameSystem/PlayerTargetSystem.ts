@@ -21,7 +21,7 @@ export abstract class PlayerTargetSystem<TProperties extends IPlayerTargetSystem
         return this.canAffect(event.player, event.context, additionalProperties);
     }
 
-    public override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.player = player;
     }

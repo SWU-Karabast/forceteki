@@ -31,7 +31,7 @@ export class RevealSystem extends CardTargetSystem {
         return super.canAffect(card, context);
     }
 
-    public override addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
         const { onDeclaration } = this.generatePropertiesFromContext(context, additionalProperties) as IRevealProperties;
         event.onDeclaration = onDeclaration;
         super.addPropertiesToEvent(event, card, context, additionalProperties);

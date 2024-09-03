@@ -34,7 +34,7 @@ export class DeployLeaderSystem extends CardTargetSystem<IDeployLeaderProperties
         return super.canAffect(card, context);
     }
 
-    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const { deployArena } = this.generatePropertiesFromContext(context, additionalProperties) as IDeployLeaderProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.deployArena = deployArena;

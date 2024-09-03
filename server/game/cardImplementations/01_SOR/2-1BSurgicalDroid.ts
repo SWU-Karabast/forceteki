@@ -12,7 +12,7 @@ export default class _21BSurgicalDroid extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addAttackAbility({
+        this.addOnAttackAbility({
             title: 'Heal 2 damage from another unit',
             optional: true,
             targetResolver: {

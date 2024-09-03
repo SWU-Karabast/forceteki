@@ -51,6 +51,7 @@ import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './R
 import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
 import { ReturnToHandFromPlaySystem, IReturnToHandFromPlayProperties } from './ReturnToHandFromPlaySystem';
 import { RevealSystem, IRevealProperties } from './RevealSystem';
+import { PayResourceCostSystem, IPayResourceCostProperties } from './PayResourceCostSystem';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
 // import { SequentialAction } from './SequentialAction';
@@ -62,6 +63,9 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
 
 type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
+
+// allow block comments without spaces so we can have compact jsdoc descriptions in this file
+/* eslint @stylistic/js/lines-around-comment: off */
 
 //////////////
 // CARD
@@ -128,6 +132,9 @@ export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): Ca
 // export function playCard(propertyFactory: PropsFactory<PlayCardProperties> = {}): GameSystem {
 //     return new PlayCardAction(propertyFactory);
 // }
+export function payResourceCost(propertyFactory: PropsFactory<IPayResourceCostProperties>): GameSystem {
+    return new PayResourceCostSystem(propertyFactory);
+}
 /**
  * default status = ordinary
  */
@@ -158,11 +165,9 @@ export function ready(propertyFactory: PropsFactory<IReadySystemProperties> = {}
 export function returnToHand(propertyFactory: PropsFactory<IReturnToHandProperties> = {}): CardTargetSystem {
     return new ReturnToHandSystem(propertyFactory);
 }
-
 export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties> = {}): CardTargetSystem {
     return new ReturnToHandFromPlaySystem(propertyFactory);
 }
-
 /**
  * default chatMessage = false
  */
