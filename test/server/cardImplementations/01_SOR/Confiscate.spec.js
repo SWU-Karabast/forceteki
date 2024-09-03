@@ -36,10 +36,6 @@ describe('Confiscate', function() {
                         groundArena: ['wampa']
                     }
                 });
-
-                this.confiscate = this.player1.findCardByName('confiscate');
-                this.entrenched = this.player1.findCardByName('entrenched');
-                this.wampa = this.player2.findCardByName('wampa');
             });
 
             it('when played on a friendly upgrade attached to an enemy unit will cause the upgrade to be in friendly discard', function () {

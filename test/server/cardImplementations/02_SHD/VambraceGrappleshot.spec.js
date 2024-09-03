@@ -46,10 +46,6 @@ describe('Vambrace Grappleshot', function() {
                     player2: {
                     }
                 });
-
-                this.vambraceGrappleshot = this.player1.findCardByName('vambrace-grappleshot');
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
-                this.snowspeeder = this.player1.findCardByName('snowspeeder');
             });
 
             it('should not be playable on vehicles', function () {

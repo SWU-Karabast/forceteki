@@ -89,9 +89,6 @@ describe('Shield', function() {
                         spaceArena: ['tieln-fighter']
                     }
                 });
-
-                this.momentOfPeace = this.player1.findCardByName('moment-of-peace');
-                this.tielnFighter = this.player2.findCardByName('tieln-fighter');
             });
 
             it('its owner and controller should be the player who created it', function () {

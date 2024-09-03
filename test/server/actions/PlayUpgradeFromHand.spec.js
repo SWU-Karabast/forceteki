@@ -14,13 +14,6 @@ describe('Play upgrade from hand', function() {
                         spaceArena: ['bright-hope#the-last-transport']
                     }
                 });
-
-                this.entrenched = this.player1.findCardByName('entrenched');
-                this.academyTraining = this.player1.findCardByName('academy-training');
-                this.resilient = this.player1.findCardByName('resilient');
-                this.wampa = this.player1.findCardByName('wampa');
-                this.tielnFighter = this.player1.findCardByName('tieln-fighter');
-                this.brightHope = this.player2.findCardByName('bright-hope#the-last-transport');
             });
 
             it('it should be able to be attached to any ground or space unit and apply a stat bonus to it', function () {

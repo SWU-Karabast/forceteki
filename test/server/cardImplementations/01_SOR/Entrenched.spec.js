@@ -39,11 +39,6 @@ describe('Entrenched', function() {
                         spaceArena: ['tieln-fighter']
                     }
                 });
-
-                this.entrenched = this.player1.findCardByName('entrenched');
-                this.brightHope = this.player1.findCardByName('bright-hope#the-last-transport');
-                this.tielnFighter = this.player2.findCardByName('tieln-fighter');
-                this.p2Base = this.player2.base;
             });
 
             it('should work on an opponent\'s unit', function () {
