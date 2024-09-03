@@ -1,12 +1,11 @@
 
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, ViewCardType } from '../core/Constants';
-import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { IViewCardProperties } from './ViewCardSystem';
+import { IViewCardProperties, ViewCardSystem } from './ViewCardSystem';
 
 export type IRevealProperties = Omit<IViewCardProperties, 'viewType'>;
 
-export class RevealSystem extends CardTargetSystem {
+export class RevealSystem extends ViewCardSystem {
     public override readonly name = 'reveal';
     public override readonly eventName = EventName.OnCardRevealed;
     public override readonly costDescription = 'revealing {0}';
@@ -14,6 +13,7 @@ export class RevealSystem extends CardTargetSystem {
 
     protected override readonly defaultProperties: IViewCardProperties = {
         sendChatMessage: true,
+        message: '{0} reveals {1} due to {2}',
         viewType: ViewCardType.Reveal
     };
 
@@ -30,15 +30,13 @@ export class RevealSystem extends CardTargetSystem {
         super(propertyWithViewType);
     }
 
-    public override eventHandler(event, additionalProperties): void {
-        const properties = this.generatePropertiesFromContext(event.context, additionalProperties) as IRevealProperties;
-        if (properties.sendChatMessage) {
-            event.context.game.addMessage(
-                '{0} reveals {1} due to {2}',
-                properties.player || event.context.player,
-                event.card,
-                event.context.source
-            );
-        }
+    public override getMessageArgs(event: any, context: AbilityContext, additionalProperties: any): any[] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
+            properties.player || event.context.player,
+            event.card,
+            event.context.source
+        ];
+        return messageArgs;
     }
 }

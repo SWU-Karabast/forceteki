@@ -19,8 +19,9 @@ export abstract class ViewCardSystem extends CardTargetSystem<IViewCardPropertie
     public override eventHandler(event, additionalProperties = {}): void {
         const context = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [context.source, event.cards];
-        context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
+        if (properties.sendChatMessage) {
+            context.game.addMessage(this.getMessage(properties.message, context), this.getMessageArgs(event, context, additionalProperties));
+        }
     }
 
     public override canAffect(card: BaseCard, context: AbilityContext) {
@@ -59,10 +60,16 @@ export abstract class ViewCardSystem extends CardTargetSystem<IViewCardPropertie
         event.context = context;
     }
 
-    public getMessage(message, context): string {
+    public getMessage(message, context: AbilityContext): string {
         if (typeof message === 'function') {
             return message(context);
         }
         return message;
+    }
+
+    public getMessageArgs(event: any, context: AbilityContext, additionalProperties) {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [context.source, event.cards];
+        return messageArgs;
     }
 }

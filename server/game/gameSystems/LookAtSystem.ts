@@ -52,13 +52,6 @@ export class LookAtSystem extends ViewCardSystem {
         return events;
     }
 
-    public override getMessage(message, context): string {
-        if (typeof message === 'function') {
-            return message(context);
-        }
-        return message;
-    }
-
     public override checkEventCondition(): boolean {
         return true;
     }
