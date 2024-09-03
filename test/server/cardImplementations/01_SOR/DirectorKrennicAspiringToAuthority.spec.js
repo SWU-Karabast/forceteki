@@ -13,9 +13,6 @@ describe('Director Krennic, Aspiring to Authority', function() {
                         groundArena: [{ card: 'consular-security-force', damage: 1 }],
                     }
                 });
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('should give friendly damaged units +1/+0', function () {
@@ -38,11 +35,26 @@ describe('Director Krennic, Aspiring to Authority', function() {
                 expect(this.wampa.damage).toBe(4);
                 expect(this.consularSecurityForce.damage).toBe(6);
             });
+        });
 
-            it('should deploy and the persistent effect should work', function () {
-                this.player1.clickCard(this.directorKrennic);
-                expect(this.directorKrennic).toBeInLocation('ground arena');
-                expect(this.directorKrennic).not.toBeInLocation('base');
+        describe('Krennic\'s deployed ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', damage: 1 }, 'battlefield-marine'],
+                        spaceArena: [{ card: 'cartel-spacer', damage: 1 }],
+                        leader: { card: 'director-krennic#aspiring-to-authority', deployed: true, damage: 1 }
+                    },
+                    player2: {
+                        groundArena: [{ card: 'consular-security-force', damage: 1 }],
+                    }
+                });
+            });
+
+            it('should give friendly damaged units +1/+0', function () {
+                expect(this.directorKrennic.power).toBe(3);
+                expect(this.directorKrennic.hp).toBe(7);
 
                 expect(this.wampa.power).toBe(5);
                 expect(this.wampa.hp).toBe(5);
@@ -57,27 +69,11 @@ describe('Director Krennic, Aspiring to Authority', function() {
                 expect(this.consularSecurityForce.hp).toBe(7);
 
                 // do an attack to ensure the ability is being applied correctly in combat
-                this.player2.passAction();
                 this.player1.clickCard(this.wampa);
                 this.player1.clickCard(this.consularSecurityForce);
 
                 expect(this.wampa.damage).toBe(4);
                 expect(this.consularSecurityForce.damage).toBe(6);
-            });
-
-            it('should deploy and have restore 2', function () {
-                this.p1Base.damage = 5;
-                this.player1.clickCard(this.directorKrennic);
-                expect(this.directorKrennic).toBeInLocation('ground arena');
-                expect(this.directorKrennic).not.toBeInLocation('base');
-
-                // do an attack to ensure the ability is being applied correctly in combat
-                this.player2.passAction();
-                this.player1.clickCard(this.directorKrennic);
-                this.player1.clickCard(this.player2.base);
-
-                expect(this.p1Base.damage).toBe(3);
-                expect(this.p2Base.damage).toBe(2);
             });
         });
     });

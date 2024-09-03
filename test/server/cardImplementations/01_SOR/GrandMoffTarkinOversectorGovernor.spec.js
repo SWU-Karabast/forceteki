@@ -27,13 +27,25 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 expect(this.atst.upgrades[0].internalName).toBe('experience');
                 expect(this.player1.countExhaustedResources()).toBe(1);
             });
+        });
 
-            it('should deploy and have the on attack ability', function () {
-                this.player1.clickCard(this.grandMoffTarkin);
-                this.player1.clickPrompt('Deploy Grand Moff Tarkin');
+        describe('Tarkin\'s deployed ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['atst', 'battlefield-marine'],
+                        spaceArena: ['tieln-fighter'],
+                        leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['tie-advanced']
+                    }
+                });
+            });
 
-                this.player2.passAction();
-
+            it('should give a friendly imperial unit an experience token on attack', function () {
                 this.player1.clickCard(this.grandMoffTarkin);
                 this.player1.clickCard(this.wampa);
 

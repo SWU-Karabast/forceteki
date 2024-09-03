@@ -35,7 +35,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
             limit: AbilityHelper.limit.epicAction(),
             condition: (context) => context.source.controller.resources.length >= context.source.cost,
             locationFilter: Location.Base,
-            immediateEffect: AbilityHelper.immediateEffects.deploy({ deployArena: this.defaultArena })
+            immediateEffect: AbilityHelper.immediateEffects.deploy()
         });
     }
 

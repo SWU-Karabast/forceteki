@@ -91,7 +91,7 @@ export function damage(propertyFactory: PropsFactory<IDamageProperties>): GameSy
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
 // }
-export function deploy(propertyFactory: PropsFactory<IDeployLeaderProperties>): CardTargetSystem {
+export function deploy(propertyFactory: PropsFactory<IDeployLeaderProperties> = {}): CardTargetSystem {
     return new DeployLeaderSystem(propertyFactory);
 }
 export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}): CardTargetSystem {

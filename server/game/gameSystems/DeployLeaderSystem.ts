@@ -5,10 +5,8 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
-
-export interface IDeployLeaderProperties extends ICardTargetSystemProperties {
-    deployArena: Arena;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IDeployLeaderProperties extends ICardTargetSystemProperties {}
 
 export class DeployLeaderSystem extends CardTargetSystem<IDeployLeaderProperties> {
     public override readonly name = 'deploy leader';
@@ -32,11 +30,5 @@ export class DeployLeaderSystem extends CardTargetSystem<IDeployLeaderProperties
             return false;
         }
         return super.canAffect(card, context);
-    }
-
-    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
-        const { deployArena } = this.generatePropertiesFromContext(context, additionalProperties) as IDeployLeaderProperties;
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.deployArena = deployArena;
     }
 }

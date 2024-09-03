@@ -97,11 +97,12 @@ class PlayerInteractionWrapper {
             // mark the deploy epic ability as used
             const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.title.includes('Deploy'));
             deployAbility.limit.increment(this.player);
+            this.game.resolveGameState();
 
             leaderCard.damage = leaderOptions.damage || 0;
             leaderCard.exhausted = leaderOptions.exhausted || false;
         } else {
-            if (leaderCard.damage) {
+            if (leaderOptions.damage) {
                 throw new Error('Leader should not have damage when not deployed');
             }
 
