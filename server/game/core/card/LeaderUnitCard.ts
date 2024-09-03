@@ -16,7 +16,7 @@ const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 // TODO LEADERS: add custom defeat logic
 export class LeaderUnitCard extends LeaderUnitCardParent {
     public override get type() {
-        return this._isDeployed ? CardType.LeaderUnit : CardType.Leader;
+        return this._deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: any) {
@@ -40,20 +40,29 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     public override isUnit(): this is UnitCard {
-        return this._isDeployed;
+        return this._deployed;
     }
 
     public override isLeaderUnit(): this is LeaderUnitCard {
-        return this._isDeployed;
+        return this._deployed;
     }
 
     public override deploy() {
-        if (!Contract.assertFalse(this._isDeployed, 'Attempting to deploy already deployed leader')) {
+        if (!Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`)) {
             return;
         }
 
-        this._isDeployed = true;
+        this._deployed = true;
         this.controller.moveCard(this, this.defaultArena);
+    }
+
+    public undeploy() {
+        if (!Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`)) {
+            return;
+        }
+
+        this._deployed = false;
+        this.controller.moveCard(this, Location.Base);
     }
 
     /**
@@ -97,15 +106,15 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         switch (this.location) {
             case Location.GroundArena:
             case Location.SpaceArena:
-                this._isDeployed = true;
+                this._deployed = true;
                 this.enableDamage(true);
                 this.exhausted = false;
                 break;
 
             case Location.Base:
-                this._isDeployed = false;
+                this._deployed = false;
                 this.enableDamage(false);
-                this.exhausted = true;
+                this.exhausted = EnumHelpers.isArena(prevLocation);
                 break;
         }
     }

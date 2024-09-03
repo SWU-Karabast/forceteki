@@ -4,12 +4,12 @@ import Contract from '../utils/Contract';
 import { CardType } from '../Constants';
 
 export class LeaderCard extends InPlayCard {
-    protected _isDeployed = false;
+    protected _deployed = false;
 
     protected setupLeaderUnitSide;
 
-    public get isDeployed() {
-        return this._isDeployed;
+    public get deployed() {
+        return this._deployed;
     }
 
     public constructor(owner: Player, cardData: any) {

@@ -28,8 +28,7 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
             event.card.owner.moveCard(event.card, Location.OutsideTheGame, event.options || {});
             event.context.game.removeTokenFromPlay(event.card);
         } else if (event.card.isLeader()) {
-            event.card.owner.moveCard(event.card, Location.Base, event.options || {});
-            event.card.exhaust();
+            event.card.undeploy();
         } else {
             event.card.owner.moveCard(event.card, Location.Discard, event.options || {});
         }

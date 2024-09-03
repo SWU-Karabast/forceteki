@@ -28,7 +28,7 @@ export class DeployLeaderSystem extends CardTargetSystem<IDeployLeaderProperties
     }
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
-        if (!card.isLeader() || card.isDeployed) {
+        if (!card.isLeader() || card.deployed) {
             return false;
         }
         return super.canAffect(card, context);

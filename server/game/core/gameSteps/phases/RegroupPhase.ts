@@ -33,7 +33,7 @@ export class RegroupPhase extends Phase {
             cardsToReady.push(...player.getUnitsInPlay());
             cardsToReady.push(...player.getResourceCards());
 
-            if (!(player.leader.isDeployed)) {
+            if (!(player.leader.deployed)) {
                 cardsToReady.push(player.leader);
             }
         }

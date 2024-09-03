@@ -333,10 +333,9 @@ var customMatchers = {
 
                 // this is the default action window prompt (meaning no action was available)
                 result.pass = !player.hasPrompt('Action Window');
-                var currentPrompt = player.currentPrompt();
 
                 if (result.pass) {
-                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(actual)}`;
+                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(player)}`;
                 } else {
                     result.message = `Expected ${card.name} to have an action available when clicked by ${player.name} but it did not.`;
                 }
