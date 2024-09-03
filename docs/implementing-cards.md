@@ -109,7 +109,7 @@ Additionally, there are specific helper methods that extend the above to make co
 
 ### Keywords
 
-Most Keywords (sentinel, raid, smuggle, etc.) are automatically parsed from the card text. It isn't necessary to explicitly implement them unless they are provided by a conditional ability. Some examples of keywords requiring explicit implementation:
+Most Keywords (sentinel, raid, smuggle, etc.) are automatically parsed from the card text, including for leaders. It isn't necessary to explicitly implement them unless they are provided by a conditional ability. Some examples of keywords requiring explicit implementation:
 
 - Baze Malbus: `While you have initiative, this unit gains Sentinel.`
 - Red Three: `Each other [Heroic] unit gains Raid 1.`
@@ -478,12 +478,6 @@ Leader cards need to be implemented slightly differently than other card types:
 ```typescript
 // IMPORTANT: must extend LeaderUnitCard, not LeaderCard
 export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
-    protected override getImplementationId() {
-        return {
-            id: '2912358777',
-            internalName: 'grand-moff-tarkin#oversector-governor',
-        };
-    }
 
     // setup for "Leader" side abilities
     protected override setupLeaderSideAbilities() {
@@ -516,6 +510,54 @@ export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
 There are two important things to remember when implementing leaders:
 1. The class must extend `LeaderUnitCard`, not `LeaderCard`. Using the latter will cause the card to not work correctly.
 2. Instead of the typical `setupCardAbilities` method, there are two methods - one for each side of the leader card: `setupLeaderSideAbilities` and `setupLeaderUnitSideAbilities`. Both of these must be implemented for the card to function correctly.
+
+#### IT'S A TRAP: Reusing leader ability properties
+There are a lot of cases where both sides of the leader card have the exact same ability. To reduce duplicated code, you can use a pattern like this:
+
+```typescript
+export default class DirectorKrennicAspiringToAuthority extends LeaderUnitCard {
+
+    // IMPORTANT: use a method to generate the properties, do not create a variable
+    private buildKrennicAbilityProperties() {
+        return {
+            title: 'Give each friendly damaged unit +1/+0',
+            matchTarget: (card) => card.isUnit() && card.damage !== 0,
+            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
+        };
+    }
+
+    protected override setupLeaderSideAbilities() {
+        this.addConstantAbility(this.buildKrennicAbilityProperties());
+    }
+
+    protected override setupLeaderUnitSideAbilities() {
+        this.addConstantAbility(this.buildKrennicAbilityProperties());
+    }
+}
+```
+
+It is important to have a method like `buildKrennicAbilityProperties` above instead of doing something like this:
+```typescript
+export default class DirectorKrennicAspiringToAuthority extends LeaderUnitCard {
+
+    // this will cause test problems
+    private readonly krennicAbilityProperties = {
+        title: 'Give each friendly damaged unit +1/+0',
+        matchTarget: (card) => card.isUnit() && card.damage !== 0,
+        ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
+    };
+
+    protected override setupLeaderSideAbilities() {
+        this.addConstantAbility(this.buildKrennicAbilityProperties());
+    }
+
+    protected override setupLeaderUnitSideAbilities() {
+        this.addConstantAbility(this.buildKrennicAbilityProperties());
+    }
+}
+```
+
+The above will not work correctly because the shared properties object `krennicAbilityProperties` will be modified during setup, causing it to behave incorrectly in some cases.
 
 ## Ability building blocks
 This section describes some of the major components that are used in the definitions of abilities:
