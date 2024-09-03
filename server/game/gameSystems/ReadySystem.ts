@@ -12,7 +12,7 @@ export interface IReadySystemProperties extends ICardTargetSystemProperties {
 
 export class ReadySystem extends CardTargetSystem<IReadySystemProperties> {
     public override readonly name = 'ready';
-    public override readonly eventName = EventName.OnCardExhausted;
+    public override readonly eventName = EventName.OnCardReadied;
     public override readonly costDescription = 'readying {0}';
     public override readonly effectDescription = 'ready {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Leader, CardType.Event];
