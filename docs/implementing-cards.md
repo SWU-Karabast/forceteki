@@ -3,8 +3,11 @@
 
 To implement a card, follow these steps:
 
-### Important Note: Legacy L5R Code
+### Important note: legacy L5R code
 This code was ported from the [Ringteki codebase](https://github.com/ringteki/ringteki) powering the online L5R client, Jigoku. During the initial implementation phase, we have included the legacy code from L5R under the folder [legacy_jigoku/](../legacy_jigoku/). These are included for reference as there is still a lot of useful code that hasn't been fully ported yet, but be careful when making changes or searching for files that you do not accidentally start doing your work in the L5R folder.
+
+### Unit tests
+We have a policy of creating at least one unit test with each new card. Please see the [Unit Testing Guide](./testing-cards.md) for details.
 
 ## Set up for implementation
 
