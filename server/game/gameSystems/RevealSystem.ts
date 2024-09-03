@@ -1,15 +1,10 @@
 
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { BaseCard } from '../core/card/BaseCard';
-import { EventName } from '../core/Constants';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import Player from '../core/Player';
+import { EventName, ViewCardType } from '../core/Constants';
+import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { IViewCardProperties } from './ViewCardSystem';
 
-export interface IRevealProperties extends ICardTargetSystemProperties {
-    chatMessage?: boolean;
-    player?: Player;
-    onDeclaration?: boolean;
-}
+export type IRevealProperties = Omit<IViewCardProperties, 'viewType'>;
 
 export class RevealSystem extends CardTargetSystem {
     public override readonly name = 'reveal';
@@ -17,29 +12,27 @@ export class RevealSystem extends CardTargetSystem {
     public override readonly costDescription = 'revealing {0}';
     public override readonly effectDescription = 'reveal a card';
 
-    protected override readonly defaultProperties: IRevealProperties = { chatMessage: false };
+    protected override readonly defaultProperties: IViewCardProperties = {
+        sendChatMessage: true,
+        viewType: ViewCardType.Reveal
+    };
 
-    public constructor(properties: ((context: AbilityContext) => IRevealProperties) | IRevealProperties) {
-        super(properties);
-    }
+    // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
+    public constructor(propertiesOrPropertyFactory: IRevealProperties | ((context?: AbilityContext) => IRevealProperties)) {
+        let propertyWithViewType: IViewCardProperties | ((context?: AbilityContext) => IViewCardProperties);
 
-    public override canAffect(card: BaseCard, context: AbilityContext): boolean {
-        //TODO: Are there situations where a card can't be revealed?
-        // if (!card.isFacedown() && (card.isInProvince() || card.location === Location.PlayArea)) {
-        //     return false;
-        // }
-        return super.canAffect(card, context);
-    }
+        if (typeof propertiesOrPropertyFactory === 'function') {
+            propertyWithViewType = (context?: AbilityContext) => Object.assign(propertiesOrPropertyFactory(context), { viewType: ViewCardType.Reveal });
+        } else {
+            propertyWithViewType = Object.assign(propertiesOrPropertyFactory, { viewType: ViewCardType.Reveal });
+        }
 
-    public override addPropertiesToEvent(event, card: BaseCard, context: AbilityContext, additionalProperties): void {
-        const { onDeclaration } = this.generatePropertiesFromContext(context, additionalProperties) as IRevealProperties;
-        event.onDeclaration = onDeclaration;
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+        super(propertyWithViewType);
     }
 
     public override eventHandler(event, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties) as IRevealProperties;
-        if (properties.chatMessage) {
+        if (properties.sendChatMessage) {
             event.context.game.addMessage(
                 '{0} reveals {1} due to {2}',
                 properties.player || event.context.player,

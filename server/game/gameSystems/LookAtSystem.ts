@@ -1,36 +1,40 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { BaseCard } from '../core/card/BaseCard';
-import { EventName } from '../core/Constants';
+import { EventName, ViewCardType } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { ViewCardSystem, IViewCardProperties } from './ViewCardSystem';
 
-export interface ILookAtProperties extends ICardTargetSystemProperties {
-    message?: string | ((context) => string);
-    messageArgs?: (cards: any) => any[];
-}
+export type ILookAtProperties = Omit<IViewCardProperties, 'viewType'>;
 
-export class LookAtSystem extends CardTargetSystem<ILookAtProperties> {
+export class LookAtSystem extends ViewCardSystem {
     public override readonly name = 'lookAt';
     public override readonly eventName = EventName.OnLookAtCards;
     public override readonly effectDescription = 'look at a card';
 
-    protected override defaultProperties: ILookAtProperties = {
-        message: '{0} sees {1}'
+    protected override defaultProperties: IViewCardProperties = {
+        sendChatMessage: false,
+        message: '{0} sees {1}',
+        viewType: ViewCardType.LookAt
     };
+
+    // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
+    public constructor(propertiesOrPropertyFactory: ILookAtProperties | ((context?: AbilityContext) => ILookAtProperties)) {
+        let propertyWithViewType: IViewCardProperties | ((context?: AbilityContext) => IViewCardProperties);
+
+        if (typeof propertiesOrPropertyFactory === 'function') {
+            propertyWithViewType = (context?: AbilityContext) => Object.assign(propertiesOrPropertyFactory(context), { viewType: ViewCardType.LookAt });
+        } else {
+            propertyWithViewType = Object.assign(propertiesOrPropertyFactory, { viewType: ViewCardType.LookAt });
+        }
+
+        super(propertyWithViewType);
+    }
 
     public override eventHandler(event, additionalProperties = {}): void {
         const context = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [context.source, event.cards];
         context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
-    }
-
-    public override canAffect(card: BaseCard, context: AbilityContext) {
-        // TODO: What situations would mean that a card cannot be looked at?
-        // if (!card.isFacedown() && (card.isInProvince() || card.location === Locations.PlayArea)) {
-        //     return false;
-        // }
-        return super.canAffect(card, context);
     }
 
     public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
@@ -48,22 +52,7 @@ export class LookAtSystem extends CardTargetSystem<ILookAtProperties> {
         return events;
     }
 
-    public override addPropertiesToEvent(event, cards, context: AbilityContext, additionalProperties): void {
-        if (!cards) {
-            cards = this.generatePropertiesFromContext(context, additionalProperties).target;
-        }
-        if (!Array.isArray(cards)) {
-            cards = [cards];
-        }
-        event.cards = cards;
-        // This was used for reactions to look-at abilities in L5R
-        event.stateBeforeResolution = cards.map((a) => {
-            return { card: a, location: a.location };
-        });
-        event.context = context;
-    }
-
-    public getMessage(message, context): string {
+    public override getMessage(message, context): string {
         if (typeof message === 'function') {
             return message(context);
         }

@@ -14,7 +14,7 @@ export default class ViperProbeDroid extends NonLeaderUnitCard {
             title: 'Look at an opponent\'s hand.',
             immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
                 target: context.player.opponent.hand.sort((a, b) => a.name.localeCompare(b.name)),
-                chatMessage: true
+                sendChatMessage: true
             }))
         });
     }

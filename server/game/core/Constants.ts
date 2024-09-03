@@ -307,3 +307,10 @@ export enum AbilityRestriction {
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
 }
+
+export enum ViewCardType {
+    /** A player looks at card(s) */
+    LookAt = 'lookAt',
+    /** A player reveals card(s) to all players */
+    Reveal = 'reveal'
+}
