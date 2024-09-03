@@ -10,11 +10,6 @@ describe('Devotion', function() {
                     player2: {
                     }
                 });
-
-                this.devotion = this.player1.findCardByName('devotion');
-                this.wampa = this.player1.findCardByName('wampa');
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('should cause the attached card to heal 2 damage from base on attack', function () {

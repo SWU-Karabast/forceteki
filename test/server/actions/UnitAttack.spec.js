@@ -16,14 +16,6 @@ describe('Basic attack', function() {
                         base: 'jabbas-palace'
                     }
                 });
-
-                this.wampa = this.player1.findCardByName('wampa');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.atrt = this.player2.findCardByName('frontier-atrt');
-                this.enfysNest = this.player2.findCardByName('enfys-nest#marauder');
-                this.allianceXWing = this.player2.findCardByName('alliance-xwing');
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('the player should only be able to select opponent\'s units in the same arena and base', function () {
@@ -32,28 +24,28 @@ describe('Basic attack', function() {
 
                 // TODO: test helper for managing attacks
                 // can target opponent's ground units and base but not space units
-                expect(this.player1).toBeAbleToSelectExactly([this.atrt, this.enfysNest, this.p2Base]);
+                expect(this.player1).toBeAbleToSelectExactly([this.frontierAtrt, this.enfysNest, this.p2Base]);
             });
 
             it('from space arena to another unit in the space arena, attack should resolve correctly', function () {
                 this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.allianceXWing);
+                this.player1.clickCard(this.allianceXwing);
 
                 // attack against base should immediately resolve without prompt for a target, since only one is available
                 expect(this.cartelSpacer.damage).toBe(2);
                 expect(this.cartelSpacer.exhausted).toBe(true);
-                expect(this.allianceXWing.damage).toBe(2);
-                expect(this.allianceXWing.exhausted).toBe(false);
+                expect(this.allianceXwing.damage).toBe(2);
+                expect(this.allianceXwing.exhausted).toBe(false);
             });
 
             it('another unit and neither is defeated, both should receive damage and attacker should be exhausted', function () {
                 this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.atrt);
+                this.player1.clickCard(this.frontierAtrt);
 
                 expect(this.wampa.damage).toBe(3);
-                expect(this.atrt.damage).toBe(4);
+                expect(this.frontierAtrt.damage).toBe(4);
                 expect(this.wampa.exhausted).toBe(true);
-                expect(this.atrt.exhausted).toBe(false);
+                expect(this.frontierAtrt.exhausted).toBe(false);
             });
 
             it('another unit and both are defeated, both should be in discard', function () {

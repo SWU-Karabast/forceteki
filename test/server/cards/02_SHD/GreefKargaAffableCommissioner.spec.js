@@ -9,14 +9,6 @@ describe('Greef Karga, Affable Commissioner', function() {
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine']
                     }
                 });
-
-                this.greefKarga = this.player1.findCardByName('greef-karga#affable-commissioner');
-
-                this.atst = this.player1.findCardByName('atst');
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.foundling = this.player1.findCardByName('foundling');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
             });
 
             it('can draw upgrade', function () {

@@ -14,17 +14,6 @@ describe('Play event from hand', function() {
                         spaceArena: ['imperial-interceptor']
                     }
                 });
-
-                this.repair = this.player1.findCardByName('repair');
-                this.daringRaid = this.player1.findCardByName('daring-raid');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-
-                this.wampa = this.player2.findCardByName('wampa');
-                this.interceptor = this.player2.findCardByName('imperial-interceptor');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('it should end up in discard and resources should be exhausted', function () {

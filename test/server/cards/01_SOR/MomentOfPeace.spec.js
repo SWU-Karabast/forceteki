@@ -12,10 +12,6 @@ describe('Moment of Peace', function() {
                         spaceArena: [{ card: 'cartel-spacer', upgrades: ['shield'] }]
                     }
                 });
-
-                this.momentOfPeace = this.player1.findCardByName('moment-of-peace');
-                this.wampa = this.player1.findCardByName('wampa');
-                this.cartelSpacer = this.player2.findCardByName('cartel-spacer');
             });
 
             it('can give a shield to a unit', function () {
