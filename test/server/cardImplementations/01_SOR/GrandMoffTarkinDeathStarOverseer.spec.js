@@ -10,27 +10,12 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                     },
                     player2: {
                         hand: ['grand-moff-tarkin#death-star-overseer'],
-                        deck: ['system-patrol-craft', 'clan-wren-rescuer', 'village-protectors', 'concord-dawn-interceptors', 'gentle-giant', 'wampa', 'cargo-juggernaut', 'public-enemy']
+                        deck: ['system-patrol-craft', 'clan-wren-rescuer', 'village-protectors', 'concord-dawn-interceptors', 'gentle-giant', 'frontier-atrt', 'cargo-juggernaut', 'public-enemy']
                     }
                 });
 
                 this.p1Tarkin = this.player1.findCardByName('grand-moff-tarkin#death-star-overseer');
-
-                this.academyDefenseWalker = this.player1.findCardByName('academy-defense-walker');
-                this.cellBlockGuard = this.player1.findCardByName('cell-block-guard');
-                this.scoutBikePursuer = this.player1.findCardByName('scout-bike-pursuer');
-
-                this.battlefieldMarine = this.player1.findCardByName('battlefield-marine');
-                this.wampa = this.player1.findCardByName('wampa');
-
-                this.allianceDispatcher = this.player1.findCardByName('alliance-dispatcher');
-
                 this.p2tarkin = this.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
-                this.clanWrenRescuer = this.player2.findCardByName('clan-wren-rescuer');
-                this.concordDawnInterceptors = this.player2.findCardByName('concord-dawn-interceptors');
-                this.gentleGiant = this.player2.findCardByName('gentle-giant');
-                this.systemPatrolCraft = this.player2.findCardByName('system-patrol-craft');
-                this.villageProtectors = this.player2.findCardByName('village-protectors');
             });
 
             it('should prompt to choose up to 2 Imperials from the top 5 cards, reveal chosen, draw them, and put the rest on the bottom of the deck', function () {

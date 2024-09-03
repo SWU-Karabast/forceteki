@@ -12,15 +12,11 @@ describe('Tie Avanced', function() {
                         spaceArena: ['cartel-spacer']
                     }
                 });
-
-                this.tieAdvanced = this.player1.findCardByName('tie-advanced');
-                this.atst = this.player1.findCardByName('atst');
-                this.tieLn = this.player1.findCardByName('tieln-fighter');
             });
 
             it('can give two experience to a unit', function () {
                 this.player1.clickCard(this.tieAdvanced);
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tieLn]);
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
                 this.player1.clickCard(this.atst);
 
                 expect(this.atst.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience']);
@@ -28,10 +24,10 @@ describe('Tie Avanced', function() {
 
             it('can give two experience to a unit that already has an experience', function () {
                 this.player1.clickCard(this.tieAdvanced);
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tieLn]);
-                this.player1.clickCard(this.tieLn);
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
+                this.player1.clickCard(this.tielnFighter);
 
-                expect(this.tieLn.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience', 'experience']);
+                expect(this.tielnFighter.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience', 'experience']);
             });
         });
     });

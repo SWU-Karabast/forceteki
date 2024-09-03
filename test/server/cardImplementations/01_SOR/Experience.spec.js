@@ -11,20 +11,14 @@ describe('Experience', function() {
                         spaceArena: ['valiant-assault-ship']
                     }
                 });
-
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.experience = this.player1.findCardByName('experience');
-                this.assaultShip = this.player2.findCardByName('valiant-assault-ship');
-
-                this.p2Base = this.player2.base;
             });
 
             it('should grant the attached unit +1/+1 and be removed from game when unit is defeated', function () {
                 this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.assaultShip);
+                this.player1.clickCard(this.valiantAssaultShip);
 
                 expect(this.cartelSpacer.damage).toBe(3);
-                expect(this.assaultShip.damage).toBe(3);
+                expect(this.valiantAssaultShip.damage).toBe(3);
 
                 // second attack to confirm that experience effect is still on
                 this.player2.passAction();
@@ -39,9 +33,9 @@ describe('Experience', function() {
                 this.cartelSpacer.exhausted = false;
 
                 this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.assaultShip);
+                this.player1.clickCard(this.valiantAssaultShip);
                 expect(this.cartelSpacer).toBeInLocation('discard');
-                expect(this.assaultShip).toBeInLocation('discard');
+                expect(this.valiantAssaultShip).toBeInLocation('discard');
                 expect(this.experience).toBeInLocation('outside the game');
             });
         });
@@ -85,15 +79,15 @@ describe('Experience', function() {
                 });
 
                 this.clanWrenRescuer = this.player1.findCardByName('clan-wren-rescuer');
-                this.tieLn = this.player2.findCardByName('tieln-fighter');
+                this.tielnFighter = this.player2.findCardByName('tieln-fighter');
             });
 
             it('its owner and controller should be the player who created it', function () {
                 this.player1.clickCard(this.clanWrenRescuer);
-                this.player1.clickCard(this.tieLn);
+                this.player1.clickCard(this.tielnFighter);
 
-                expect(this.tieLn.upgrades.length).toBe(1);
-                const experience = this.tieLn.upgrades[0];
+                expect(this.tielnFighter.upgrades.length).toBe(1);
+                const experience = this.tielnFighter.upgrades[0];
                 expect(experience.internalName).toBe('experience');
                 expect(experience.owner).toBe(this.player1.player);
                 expect(experience.controller).toBe(this.player1.player);

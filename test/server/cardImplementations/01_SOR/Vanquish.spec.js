@@ -13,20 +13,15 @@ describe('Vanquish', function() {
                         spaceArena: ['imperial-interceptor']
                     }
                 });
-
-                this.vanquish = this.player1.findCardByName('vanquish');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.wampa = this.player2.findCardByName('wampa');
-                this.interceptor = this.player2.findCardByName('imperial-interceptor');
             });
 
             // TODO LEADERS: add a leader unit to confirm it can't be targeted
             it('should defeat any non-leader unit', function () {
                 this.player1.clickCard(this.vanquish);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.wampa, this.interceptor]);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.wampa, this.imperialInterceptor]);
 
-                this.player1.clickCard(this.interceptor);
-                expect(this.interceptor).toBeInLocation('discard');
+                this.player1.clickCard(this.imperialInterceptor);
+                expect(this.imperialInterceptor).toBeInLocation('discard');
             });
         });
     });

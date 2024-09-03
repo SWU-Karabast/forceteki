@@ -14,17 +14,6 @@ describe('Death Trooper', function() {
                         spaceArena: ['imperial-interceptor']
                     }
                 });
-
-                this.deathTrooper = this.player1.findCardByName('death-trooper');
-                this.pykeSentinel = this.player1.findCardByName('pyke-sentinel');
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-
-                this.wampa = this.player2.findCardByName('wampa');
-                this.superlaserTech = this.player2.findCardByName('superlaser-technician');
-                this.interceptor = this.player2.findCardByName('imperial-interceptor');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('cannot be passed', function () {
@@ -44,7 +33,7 @@ describe('Death Trooper', function() {
                 this.player1.clickCard(this.deathTrooper);
 
                 // Choose Enemy
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.superlaserTech]);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.superlaserTechnician]);
                 this.player1.clickCard(this.wampa);
                 expect(this.deathTrooper.damage).toEqual(2);
                 expect(this.wampa.damage).toEqual(2);
