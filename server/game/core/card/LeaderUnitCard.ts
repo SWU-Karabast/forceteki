@@ -27,6 +27,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         // leaders are always in a zone where they are allowed to be exhausted
         this.enableExhaust(true);
 
+        // add deploy leader action
         this.addActionAbility({
             title: `Deploy ${this.name}`,
             limit: AbilityHelper.limit.epicAction(),
@@ -44,6 +45,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         return this._deployed;
     }
 
+    /** Deploy the leader to the arena. Handles the move operation and state changes. */
     public override deploy() {
         if (!Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`)) {
             return;
@@ -53,6 +55,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         this.controller.moveCard(this, this.defaultArena);
     }
 
+    /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
     public undeploy() {
         if (!Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`)) {
             return;
@@ -89,6 +92,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         super.addTriggeredAbility(properties);
     }
 
+    /** Generates the right locationFilter property depending on which leader side we're setting up */
     private getAbilityLocationsForSide(propertyLocation: LocationFilter | LocationFilter[]) {
         const abilityLocation = this.setupLeaderUnitSide ? this.defaultArena : Location.Base;
 
