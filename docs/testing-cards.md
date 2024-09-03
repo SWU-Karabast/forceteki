@@ -1,6 +1,8 @@
 # Writing Card Tests
 
-Our policy for this repo is to have at least one unit test in place for each card that requires explicit implementation. The exception is cards which are marked "trivial," i.e., cards that either have no printed text or only keyword abilities since those abilities are processed automatically by the engine. All tests are required to pass for any PR to be merged.
+Unit tests for cards are located in [test/server/cards](../test/server/cards/).
+
+Our policy for this repo is to have at least one unit test in place for each card that requires explicit implementation. The exception is cards which are marked "trivial," i.e., cards that either have no printed text or only have keyword abilities (since those abilities are processed automatically by the engine). All tests are required to pass for any PR to be merged.
 
 The tests do not need to be exhaustive but they should cover at least the basic functionality of each card. There are several reasons for this policy:
 - We can have higher confidence that newly-written cards are working correctly
@@ -14,7 +16,7 @@ That said, we the repo maintainers are committed to ensuring that writing tests 
 
 ## Basic Test Writing
 
-### Setting up tests **(TBD)***
+### Setting up tests **(TBD)**
 
 ### Using cards in tests
 As you can see in the `setupTest` call, cards are added to the scenario using a condensed name format:
