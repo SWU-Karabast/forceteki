@@ -113,9 +113,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
 
     // ******************************************** PLAY / DEFEAT MANAGEMENT ********************************************
-    // TODO LEADER: TODO TOKEN: add custom defeat logic here. figure out how it should interact with player.defeatCard()
-    // and the DefeatCardSystem
-
     private resetEnteredPlayThisRound() {
         // if the value is null, the card is no longer in play
         if (this._enteredPlayThisRound !== null) {

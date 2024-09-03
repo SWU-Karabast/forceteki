@@ -7,11 +7,13 @@ describe('Avenger, Hunting Star Destroyer', function() {
                     player1: {
                         hand: ['avenger#hunting-star-destroyer'],
                         groundArena: ['pyke-sentinel'],
-                        spaceArena: ['imperial-interceptor']
+                        spaceArena: ['imperial-interceptor'],
+                        leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true }
                     },
                     player2: {
                         groundArena: ['wampa'],
-                        spaceArena: ['cartel-spacer', 'avenger#hunting-star-destroyer']
+                        spaceArena: ['cartel-spacer', 'avenger#hunting-star-destroyer'],
+                        leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true }
                     }
                 });
 
@@ -66,12 +68,6 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 expect(this.p2Avenger.damage).toBe(0);
                 expect(this.p1Base.damage).toBe(0);
             });
-
-            // TODO once leaders are implemented
-            // it('Deployed leader units may not be chosen for Avenger ability', function () {
-            //     this.player1.clickCard(this.p1Avenger);
-            //     expect(this.p1Avenger).toBeInLocation('space arena');
-            // });
         });
     });
 });

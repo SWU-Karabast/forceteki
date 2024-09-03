@@ -13,7 +13,6 @@ import Contract from '../utils/Contract';
 
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
-// TODO LEADERS: add custom defeat logic
 export class LeaderUnitCard extends LeaderUnitCardParent {
     public override get type() {
         return this._deployed ? CardType.LeaderUnit : CardType.Leader;

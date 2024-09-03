@@ -22,7 +22,6 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
             event.card.unattach();
         }
 
-        // TODO LEADERS: confirm this works
         if (event.card.isToken()) {
             // move the token out of the play area so that effect cleanup happens, then remove it from all card lists
             event.card.owner.moveCard(event.card, Location.OutsideTheGame, event.options || {});

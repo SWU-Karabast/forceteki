@@ -29,7 +29,9 @@ npm run lint-verbose
 
 # runs tsc and executes tests
 npm test
-npm run test-parallel   # runs tests in parallel for higher speed
+
+# this currently has a bug, do not use
+#npm run test-parallel   # runs tests in parallel for higher speed
 ```
 
 ### Linting

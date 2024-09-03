@@ -6,16 +6,16 @@ describe('Vanquish', function() {
                     phase: 'action',
                     player1: {
                         hand: ['vanquish'],
-                        groundArena: ['pyke-sentinel'],
+                        groundArena: ['pyke-sentinel']
                     },
                     player2: {
                         groundArena: ['wampa'],
-                        spaceArena: ['imperial-interceptor']
+                        spaceArena: ['imperial-interceptor'],
+                        leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true }
                     }
                 });
             });
 
-            // TODO LEADERS: add a leader unit to confirm it can't be targeted
             it('should defeat any non-leader unit', function () {
                 this.player1.clickCard(this.vanquish);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.wampa, this.imperialInterceptor]);
