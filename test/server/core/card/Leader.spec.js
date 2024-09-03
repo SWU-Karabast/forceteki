@@ -85,10 +85,39 @@ describe('Leader cards', function() {
                 // confirm no action available (can't deploy)
                 expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
 
-                // move to next action phase and confirm that deploy isn't available
+                // move to next action phase and confirm that deploy still isn't available
                 this.moveToNextActionPhase();
                 this.player1.clickCard(this.grandMoffTarkin);
                 expect(this.player1).not.toHaveEnabledPromptButton('Deploy Grand Moff Tarkin');
+            });
+        });
+
+        describe('Deployed leaders', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['atst', 'battlefield-marine'],
+                        spaceArena: ['tieln-fighter'],
+                        leader: { card: 'director-krennic#aspiring-to-authority', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['tie-advanced']
+                    }
+                });
+
+                this.p1Base = this.player1.base;
+                this.p2Base = this.player2.base;
+            });
+
+            it('should have functioning keywords', function () {
+                this.p1Base.damage = 5;
+                this.player1.clickCard(this.directorKrennic);
+                this.player1.clickCard(this.player2.base);
+
+                expect(this.p1Base.damage).toBe(3);
+                expect(this.p2Base.damage).toBe(2);
             });
         });
     });

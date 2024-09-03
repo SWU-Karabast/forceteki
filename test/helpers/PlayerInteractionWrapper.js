@@ -72,6 +72,43 @@ class PlayerInteractionWrapper {
         return this.player.filterCardsInPlay(() => true);
     }
 
+    setLeaderStatus(leaderOptions) {
+        if (!leaderOptions) {
+            return;
+        }
+
+        // leader as a string card name is a no-op unless it doesn't match the existing leader, then throw an error
+        if (typeof leaderOptions === 'string') {
+            if (leaderOptions !== this.player.leader.internalName) {
+                throw new Error(`Provided leader name ${leaderOptions} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+            }
+            return;
+        }
+
+        if (leaderOptions.card !== this.player.leader.internalName) {
+            throw new Error(`Provided leader name ${leaderOptions.card} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+        }
+
+        var leaderCard = this.player.leader;
+
+        if (leaderOptions.deployed) {
+            leaderCard.deploy();
+
+            // mark the deploy epic ability as used
+            const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.title.includes('Deploy'));
+            deployAbility.limit.increment(this.player);
+
+            leaderCard.damage = leaderOptions.damage || 0;
+            leaderCard.exhausted = leaderOptions.exhausted || false;
+        } else {
+            if (leaderCard.damage) {
+                throw new Error('Leader should not have damage when not deployed');
+            }
+
+            leaderCard.exhausted = leaderOptions.exhausted || false;
+        }
+    }
+
     /**
      * Gets all cards in play for a player in the space arena
      * @return {BaseCard[]} - List of player's cards currently in play in the space arena

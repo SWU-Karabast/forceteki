@@ -581,6 +581,10 @@ global.integration = function (definitions) {
                 this.player1.setDiscard(options.player1.discard, ['removed from game']);
                 this.player2.setDiscard(options.player2.discard, ['removed from game']);
 
+                // Set Leader state (deployed, exhausted, etc.)
+                this.player1.setLeaderStatus(options.player1.leader);
+                this.player2.setLeaderStatus(options.player2.leader);
+
                 // Deck
                 this.player1.setDeck(options.player1.deck, ['removed from game']);
                 this.player2.setDeck(options.player2.deck, ['removed from game']);
