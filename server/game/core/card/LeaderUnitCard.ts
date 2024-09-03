@@ -24,8 +24,6 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities();
 
-        // TODO THIS PR: add check that abilities for leader unit side got added
-
         // leaders are always in a zone where they are allowed to be exhausted
         this.enableExhaust(true);
 
