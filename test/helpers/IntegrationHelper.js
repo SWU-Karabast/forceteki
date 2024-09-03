@@ -4,7 +4,7 @@
 const { select } = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
-const { checkNullCard } = require('./Util.js');
+const { checkNullCard, formatPrompt } = require('./Util.js');
 
 require('./ObjectFormatters.js');
 
@@ -67,7 +67,7 @@ var customMatchers = {
                     result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+                result.message += `\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -98,7 +98,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+                result.message += `\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -123,7 +123,7 @@ var customMatchers = {
                     result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+                result.message += `\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -154,7 +154,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+                result.message += `\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -178,7 +178,7 @@ var customMatchers = {
                     result.message = `Expected ${card.name} to be selectable by ${player.name} but it wasn't.`;
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
 
                 return result;
             }
@@ -222,7 +222,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
 
                 return result;
             }
@@ -266,7 +266,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
 
                 return result;
             }
@@ -314,7 +314,7 @@ var customMatchers = {
                     result.message = message;
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
 
                 return result;
             }
@@ -494,9 +494,8 @@ var customMatchers = {
     }
 };
 
-function generatePromptTitlesMessage(player) {
-    const currentPrompt = player.currentPrompt();
-    return `Current prompt for ${player.name}: menuTitle = '${currentPrompt.menuTitle}', promptTitle = '${currentPrompt.promptTitle}'`;
+function generatePromptHelpMessage(player) {
+    return `Current prompt for ${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}'`;
 }
 
 beforeEach(function () {

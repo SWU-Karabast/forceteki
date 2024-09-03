@@ -1,7 +1,7 @@
 const { detectBinary } = require('../../build/Util.js');
 const { GameMode } = require('../../build/GameMode.js');
 
-const { checkNullCard } = require('./Util.js');
+const { checkNullCard, formatPrompt } = require('./Util.js');
 
 class PlayerInteractionWrapper {
     constructor(game, player, testContext) {
@@ -288,25 +288,6 @@ class PlayerInteractionWrapper {
         return !this.hasPrompt('Waiting for opponent to take an action or pass');
     }
 
-    formatPrompt() {
-        var prompt = this.currentPrompt();
-        var selectableCards = this.currentActionTargets;
-
-        if (!prompt) {
-            return 'no prompt active';
-        }
-
-        return (
-            prompt.menuTitle +
-            '\n' +
-            prompt.buttons.map((button) => '[ ' + button.text + (button.disabled ? ' (disabled)' : '') + ' ]').join(
-                '\n'
-            ) +
-            '\n' +
-            selectableCards.map((obj) => obj['name']).join('\n')
-        );
-    }
-
     findCardByName(name, locations = 'any', side) {
         return this.filterCardsByName(name, locations, side)[0];
     }
@@ -395,7 +376,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new Error(
-                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${this.formatPrompt()}`
+                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${formatPrompt()}`
             );
         }
 
@@ -416,7 +397,7 @@ class PlayerInteractionWrapper {
             throw new Error(
                 `Couldn't click on Button '${index}' for ${
                     this.player.name
-                }. Current prompt is:\n${this.formatPrompt()}`
+                }. Current prompt is:\n${formatPrompt()}`
             );
         }
 
@@ -426,7 +407,7 @@ class PlayerInteractionWrapper {
             throw new Error(
                 `Couldn't click on Button '${index}' for ${
                     this.player.name
-                }. Current prompt is:\n${this.formatPrompt()}`
+                }. Current prompt is:\n${formatPrompt()}`
             );
         }
 
@@ -446,7 +427,7 @@ class PlayerInteractionWrapper {
             throw new Error(
                 `Couldn't click card '${cardName}' for ${
                     this.player.name
-                } - unable to find control '${controlName}'. Current prompt is:\n${this.formatPrompt()}`
+                } - unable to find control '${controlName}'. Current prompt is:\n${formatPrompt()}`
             );
         }
 
@@ -461,7 +442,7 @@ class PlayerInteractionWrapper {
         let availableCards = this.currentActionTargets;
 
         if (!availableCards || availableCards.length < nCardsToChoose) {
-            throw new Error(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${this.formatPrompt()}`);
+            throw new Error(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${formatPrompt()}`);
         }
 
         for (let i = 0; i < nCardsToChoose; i++) {

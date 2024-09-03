@@ -75,4 +75,20 @@ function getCardName(card) {
     return card.internalName;
 }
 
-module.exports = { convertNonDuplicateCardNamesToProperties, internalNameToPropertyName, checkNullCard };
+function formatPrompt(prompt, currentActionTargets) {
+    if (!prompt) {
+        return 'no prompt active';
+    }
+
+    return (
+        prompt.menuTitle +
+        '\n' +
+        prompt.buttons.map((button) => '[ ' + button.text + (button.disabled ? ' (disabled)' : '') + ' ]').join(
+            '\n'
+        ) +
+        '\n' +
+        currentActionTargets.map((obj) => obj['name']).join('\n')
+    );
+}
+
+module.exports = { convertNonDuplicateCardNamesToProperties, internalNameToPropertyName, checkNullCard, formatPrompt };

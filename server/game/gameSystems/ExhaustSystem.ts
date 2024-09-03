@@ -24,7 +24,11 @@ export class ExhaustSystem extends CardTargetSystem<IExhaustSystemProperties> {
 
     public override canAffect(card: Card, context: AbilityContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
-        if (!EnumHelpers.isArena(card.location) && card.location !== Location.Resource) {
+        if (
+            !EnumHelpers.isArena(card.location) &&
+            card.location !== Location.Resource &&
+            !(card.isLeader() && card.location === Location.Base)
+        ) {
             return false;
         }
 
