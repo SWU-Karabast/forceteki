@@ -47,6 +47,9 @@ describe('Leader cards', function() {
             });
 
             it('should be able to deploy, activate leader unit side abilities, and be defeated', function () {
+                // exhaust 1 resource just to be sure it doesn't impact the deploy ability
+                this.player1.exhaustResources(1);
+
                 expect(this.grandMoffTarkin.deployed).toBe(false);
                 this.player1.clickCard(this.grandMoffTarkin);
                 this.player1.clickPrompt('Deploy Grand Moff Tarkin');

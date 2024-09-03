@@ -343,6 +343,10 @@ class PlayerInteractionWrapper {
         return cards;
     }
 
+    exhaustResources(number) {
+        this.player.exhaustResources(number);
+    }
+
     putIntoPlay(card) {
         if (typeof card === 'string') {
             card = this.findCardByName(card);
