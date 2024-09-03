@@ -210,7 +210,6 @@ export enum KeywordName {
     Ambush = 'ambush',
     /** @deprecated Not implemented yet */
     Bounty = 'bounty',
-    /** @deprecated Not implemented yet */
     Grit = 'grit',
     /** @deprecated Not implemented yet */
     Overwhelm = 'overwhelm',

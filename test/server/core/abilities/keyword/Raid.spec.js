@@ -11,12 +11,6 @@ describe('Raid keyword', function() {
                         groundArena: ['battlefield-marine'],
                     }
                 });
-
-                this.cantinaBraggart = this.player1.findCardByName('cantina-braggart');
-                this.battlefieldMarine = this.player2.findCardByName('battlefield-marine');
-
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
             });
 
             it('attacks, power should be increased by raid amount', function () {
@@ -36,7 +30,7 @@ describe('Raid keyword', function() {
             });
         });
 
-        //TODO we need a card to test this with
+        //TODO we need a card to test this with - red three?
         // describe('When a unit with the Raid keyword and a gained Raid ability', function() {
         //     beforeEach(function () {
         //         this.setupTest({

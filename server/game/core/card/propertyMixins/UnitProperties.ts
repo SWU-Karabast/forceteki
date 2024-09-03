@@ -17,6 +17,7 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { RaidAbility } from '../../../abilities/keyword/RaidAbility';
+import StatsModifier from '../../ongoingEffect/effectImpl/StatsModifier';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -226,6 +227,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             // add stat bonuses from attached upgrades
             this.upgrades.forEach((upgrade) => wrappedStatsModifiers.push(StatsModifierWrapper.fromPrintedValues(upgrade)));
+
+            if (this.hasSomeKeyword(KeywordName.Grit)) {
+                const gritModifier = new StatsModifier();
+                gritModifier.power = this.damage;
+                gritModifier.hp = 0;
+                wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
+            }
 
             return wrappedStatsModifiers;
         }
