@@ -1,18 +1,27 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { BaseCard } from '../core/card/BaseCard';
-import { ViewCardType } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import Player from '../core/Player';
 
+//TODO: Need some future work to fully implement Thrawn
 export interface IViewCardProperties extends ICardTargetSystemProperties {
-    viewType: ViewCardType;
+    viewType: ViewCardMode;
     sendChatMessage?: boolean;
     message?: string | ((context) => string);
     messageArgs?: (cards: any) => any[];
 
     /** The player who is viewing or revealing the card. */
     player?: Player;
+}
+
+export enum ViewCardMode {
+
+    /** A player looks at card(s) */
+    LookAt = 'lookAt',
+
+    /** A player reveals card(s) to all players */
+    Reveal = 'reveal'
 }
 
 export abstract class ViewCardSystem extends CardTargetSystem<IViewCardProperties> {
@@ -68,9 +77,5 @@ export abstract class ViewCardSystem extends CardTargetSystem<IViewCardPropertie
         return message;
     }
 
-    public getMessageArgs(event: any, context: AbilityContext, additionalProperties) {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [context.source, event.cards];
-        return messageArgs;
-    }
+    public abstract getMessageArgs(event: any, context: AbilityContext, additionalProperties);
 }

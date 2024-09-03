@@ -1,7 +1,8 @@
 
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, ViewCardType } from '../core/Constants';
-import { IViewCardProperties, ViewCardSystem } from './ViewCardSystem';
+import { BaseCard } from '../core/card/BaseCard';
+import { EventName, Location } from '../core/Constants';
+import { IViewCardProperties, ViewCardMode, ViewCardSystem } from './ViewCardSystem';
 
 export type IRevealProperties = Omit<IViewCardProperties, 'viewType'>;
 
@@ -14,7 +15,7 @@ export class RevealSystem extends ViewCardSystem {
     protected override readonly defaultProperties: IViewCardProperties = {
         sendChatMessage: true,
         message: '{0} reveals {1} due to {2}',
-        viewType: ViewCardType.Reveal
+        viewType: ViewCardMode.Reveal
     };
 
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
@@ -22,12 +23,23 @@ export class RevealSystem extends ViewCardSystem {
         let propertyWithViewType: IViewCardProperties | ((context?: AbilityContext) => IViewCardProperties);
 
         if (typeof propertiesOrPropertyFactory === 'function') {
-            propertyWithViewType = (context?: AbilityContext) => Object.assign(propertiesOrPropertyFactory(context), { viewType: ViewCardType.Reveal });
+            propertyWithViewType = (context?: AbilityContext) => Object.assign(propertiesOrPropertyFactory(context), { viewType: ViewCardMode.Reveal });
         } else {
-            propertyWithViewType = Object.assign(propertiesOrPropertyFactory, { viewType: ViewCardType.Reveal });
+            propertyWithViewType = Object.assign(propertiesOrPropertyFactory, { viewType: ViewCardMode.Reveal });
         }
 
         super(propertyWithViewType);
+    }
+
+    public override canAffect(card: BaseCard, context: AbilityContext): boolean {
+        // TODO: What situations would mean that a card cannot be looked at?
+        // if (!card.isFacedown() && (card.isInProvince() || card.location === Locations.PlayArea)) {
+        //     return false;
+        // }
+        if (card.location === Location.Deck || card.location === Location.Hand || card.location === Location.Resource) {
+            return super.canAffect(card, context);
+        }
+        return false;
     }
 
     public override getMessageArgs(event: any, context: AbilityContext, additionalProperties: any): any[] {

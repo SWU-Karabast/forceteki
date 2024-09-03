@@ -169,7 +169,7 @@ export enum EventName {
     OnDeckShuffled = 'onDeckShuffled',
     OnEffectApplied = 'onEffectApplied',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
-    OnLookAtCards = 'onLookAtCards',
+    OnLookAtCard = 'onLookAtCard',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
     OnPhaseCreated = 'onPhaseCreated',
     OnPhaseEnded = 'onPhaseEnded',
@@ -306,11 +306,4 @@ export enum AbilityRestriction {
     Ready = 'ready',
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
-}
-
-export enum ViewCardType {
-    /** A player looks at card(s) */
-    LookAt = 'lookAt',
-    /** A player reveals card(s) to all players */
-    Reveal = 'reveal'
 }
