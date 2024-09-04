@@ -1,25 +1,20 @@
 import { IStateListenerProperties } from '../../Interfaces';
-import { StateWatcherName } from '../Constants';
 import Game from '../Game';
 import Player from '../Player';
 import Contract from '../utils/Contract';
 
 export class StateWatcherRegistrar {
-    private watchedState = new Map<string, Map<StateWatcherName, any>>();
+    private watchedState = new Map<Player, Map<string, any>>();
 
-    public constructor(private game: Game) {
+    public constructor(public readonly game: Game) {
     }
 
-    public generateOwnerKey(isGlobalWatcher: boolean, owner?: Player) {
-        return isGlobalWatcher ? 'global' : 'p_' + owner.name;
+    public isRegistered(owner: Player, watcherKey: string) {
+        return this.watchedState.has(owner) && this.watchedState.get(owner).has(watcherKey);
     }
 
-    public isRegistered(ownerKey: string, stateName: StateWatcherName) {
-        return this.watchedState.has(ownerKey) && this.watchedState[ownerKey].has(stateName);
-    }
-
-    public register(ownerKey: string, stateName: StateWatcherName, listeners: IStateListenerProperties<any>[]) {
-        if (this.isRegistered(ownerKey, stateName)) {
+    public register(owner: Player, watcherKey: string, listeners: IStateListenerProperties<any>[]) {
+        if (this.isRegistered(owner, watcherKey)) {
             return;
         }
 
@@ -28,39 +23,39 @@ export class StateWatcherRegistrar {
 
             // build a handler that will use the listener's update handler to generate a new state value and then store it
             const stateUpdateHandler = (event) => {
-                const currentStateValue = this.getStateValue(ownerKey, stateName);
+                const currentStateValue = this.getStateValue(owner, watcherKey);
                 const updatedStateValue = listener.update(currentStateValue, event);
-                this.setStateValue(ownerKey, stateName, updatedStateValue);
+                this.setStateValue(owner, watcherKey, updatedStateValue);
             };
 
             eventNames.forEach((eventName) => this.game.on(eventName, stateUpdateHandler));
         }
     }
 
-    public getStateValue(ownerKey: string, stateName: StateWatcherName): any {
-        const ownerStates = this.safeGetStates(ownerKey);
-        this.assertStateExists(stateName, ownerStates, ownerKey);
+    public getStateValue(owner: Player, watcherKey: string): any {
+        const ownerStates = this.safeGetStates(owner);
+        this.assertStateExists(watcherKey, ownerStates, owner);
 
-        return ownerStates[stateName];
+        return ownerStates[watcherKey];
     }
 
-    public setStateValue(ownerKey: string, stateName: StateWatcherName, newValue: any) {
-        const ownerStates = this.safeGetStates(ownerKey);
-        this.assertStateExists(stateName, ownerStates, ownerKey);
+    public setStateValue(owner: Player, watcherKey: string, newValue: any) {
+        const ownerStates = this.safeGetStates(owner);
+        this.assertStateExists(watcherKey, ownerStates, owner);
 
-        ownerStates[stateName] = newValue;
+        ownerStates.set(watcherKey, newValue);
     }
 
-    private safeGetStates(ownerKey: string): Map<StateWatcherName, any> {
-        if (!Contract.assertTrue(this.watchedState.has(ownerKey), `State owner '${ownerKey}' not in '${Array.from(this.watchedState.keys()).join(', ')}'`)) {
+    private safeGetStates(owner: Player): Map<string, any> {
+        if (!Contract.assertTrue(this.watchedState.has(owner), `Player '${owner.name}' not in '${Array.from(this.watchedState.keys()).join(', ')}'`)) {
             return new Map();
         }
 
-        return this.watchedState[ownerKey];
+        return this.watchedState.get(owner);
     }
 
-    private assertStateExists(stateName: StateWatcherName, states: Map<StateWatcherName, any>, ownerKey: string) {
-        if (!Contract.assertTrue(states.has(stateName), `State name ${stateName} not found in state list for state owner '${ownerKey}': ${Array.from(states.keys()).join(', ')}`)) {
+    private assertStateExists(watcherKey: string, states: Map<string, any>, owner: Player) {
+        if (!Contract.assertTrue(states.has(watcherKey), `Watcher '${watcherKey}' not found in watcher list for '${owner.name}': ${Array.from(states.keys()).join(', ')}`)) {
             return false;
         }
 
