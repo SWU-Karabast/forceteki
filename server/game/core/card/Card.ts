@@ -13,6 +13,7 @@ import CardAbility from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/Shield';
 import { KeywordInstance } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
+import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -107,6 +108,7 @@ export class Card extends OngoingEffectSource {
         }
 
         this.setupCardAbilities(AbilityHelper);
+        this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
         this.activateAbilityInitializersForTypes(AbilityType.Action);
     }
 
@@ -203,6 +205,10 @@ export class Card extends OngoingEffectSource {
         Contract.assertArraySize(args, 2);
 
         return [args[0] as Player, args[1]];
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected setupStateWatchers(stateWatcherRegistrar: StateWatcherRegistrar) {
     }
 
     /**
