@@ -318,3 +318,7 @@ export enum AbilityRestriction {
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
 }
+
+export enum StateWatcherName {
+    CardsPlayedThisPhase = 'CardsPlayedThisPhase',
+}
