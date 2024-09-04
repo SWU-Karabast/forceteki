@@ -13,10 +13,13 @@ export class StateWatcherRegistrar {
         return this.watchedState.has(owner) && this.watchedState.get(owner).has(watcherKey);
     }
 
-    public register(owner: Player, watcherKey: string, listeners: IStateListenerProperties<any>[]) {
+    public register(owner: Player, watcherKey: string, initialValue: any, listeners: IStateListenerProperties<any>[]) {
         if (this.isRegistered(owner, watcherKey)) {
             return;
         }
+
+        // set the initial state value
+        this.setStateValue(owner, watcherKey, initialValue);
 
         for (const listener of listeners) {
             const eventNames = Object.keys(listener.when);

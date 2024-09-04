@@ -6,16 +6,14 @@ import { PlayableCard } from '../card/CardTypes';
 import Game from '../Game';
 import { Card } from '../card/Card';
 
-export type ICardsPlayedThisPhase = Map<Player, PlayableCard[]>;
+export type ICardsPlayedThisPhase = PlayableCard[];
 
 export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPhase> {
-    public override readonly resetValue = (game: Game) => {
-        const result = new Map<Player, PlayableCard[]>();
-        game.getPlayers().forEach((player) => result.set(player, []));
-        return result;
-    };
-
-    public constructor(registrar: StateWatcherRegistrar, card: Card) {
+    public constructor(
+        registrar: StateWatcherRegistrar,
+        card: Card,
+        private readonly filter: (card: PlayableCard) => boolean = () => true
+    ) {
         super(StateWatcherName.CardsPlayedThisPhase, registrar, card);
     }
 
@@ -26,11 +24,12 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPh
                 onCardPlayed: () => true,
             },
             update: (currentState: ICardsPlayedThisPhase, event: any) => {
-                const { player, card } = event;
-                const playerCards = currentState.get(player);
-                playerCards.push(card);
-                return currentState;
+                return this.filter(event.card) ? currentState.concat(event.card) : currentState;
             }
         });
+    }
+
+    protected override getResetValue(): ICardsPlayedThisPhase {
+        return [];
     }
 }

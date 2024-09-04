@@ -7,8 +7,6 @@ import Contract from '../utils/Contract';
 import { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
 export abstract class StateWatcher<TState> {
-    public readonly abstract resetValue: (game: Game) => TState;
-
     private readonly owner: Player;
     private readonly registrationKey: string;
     private stateUpdaters: IStateListenerProperties<TState>[] = [];
@@ -32,10 +30,12 @@ export abstract class StateWatcher<TState> {
             return;
         }
 
-        this.registrar.register(this.owner, this.registrationKey, this.generateListenerRegistrations());
+        this.registrar.register(this.owner, this.registrationKey, this.getResetValue(), this.generateListenerRegistrations());
     }
 
     protected abstract setupWatcher(): void;
+
+    protected abstract getResetValue(): TState;
 
     public getCurrentValue(): TState {
         return this.registrar.getStateValue(this.owner, this.registrationKey) as TState;
@@ -63,7 +63,7 @@ export abstract class StateWatcher<TState> {
         }
 
         const stateResetUpdater: IStateListenerProperties<TState> =
-            Object.assign(this.stateResetTrigger, { update: () => this.resetValue(this.registrar.game) });
+            Object.assign(this.stateResetTrigger, { update: () => this.getResetValue() });
 
         return this.stateUpdaters.concat(stateResetUpdater);
     }
