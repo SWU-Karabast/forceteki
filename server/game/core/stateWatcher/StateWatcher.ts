@@ -1,7 +1,6 @@
 import { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import { Card } from '../card/Card';
 import { PhaseName, StateWatcherName } from '../Constants';
-import Game from '../Game';
 import Player from '../Player';
 import Contract from '../utils/Contract';
 import { StateWatcherRegistrar } from './StateWatcherRegistrar';
@@ -26,11 +25,11 @@ export abstract class StateWatcher<TState> {
         this.owner = card.owner;
         this.registrationKey = card.internalName + '.' + name;
 
-        if (registrar.isRegistered(this.owner, this.registrationKey)) {
+        if (registrar.isRegistered(this.registrationKey)) {
             return;
         }
 
-        this.registrar.register(this.owner, this.registrationKey, this.getResetValue(), this.generateListenerRegistrations());
+        this.registrar.register(this.registrationKey, this.getResetValue(), this.generateListenerRegistrations());
     }
 
     protected abstract setupWatcher(): void;
@@ -38,7 +37,7 @@ export abstract class StateWatcher<TState> {
     protected abstract getResetValue(): TState;
 
     public getCurrentValue(): TState {
-        return this.registrar.getStateValue(this.owner, this.registrationKey) as TState;
+        return this.registrar.getStateValue(this.registrationKey) as TState;
     }
 
     protected addUpdater(properties: IStateListenerProperties<TState>) {

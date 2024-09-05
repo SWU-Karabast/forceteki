@@ -1,7 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { PlayableCard } from '../../core/card/CardTypes';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, Trait, WildcardCardType } from '../../core/Constants';
 import { CardsPlayedThisPhaseWatcher } from '../../core/stateWatcher/CardsPlayedThisPhaseWatcher';
 import { StateWatcherRegistrar } from '../../core/stateWatcher/StateWatcherRegistrar';
 
@@ -18,19 +17,22 @@ export default class VanguardAce extends NonLeaderUnitCard {
     protected override setupStateWatchers(stateWatcherRegistrar: StateWatcherRegistrar) {
         this.cardsPlayedThisWatcher = new CardsPlayedThisPhaseWatcher(
             stateWatcherRegistrar,
-            this,
-            (card: PlayableCard) => card.controller === this.owner
+            this
         );
     }
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Give 2 experience tokens to a friendly Imperial unit',
-            targetResolver: {
-                controller: RelativePlayer.Self,
-                cardCondition: (card) => card.hasSomeTrait(Trait.Imperial) && card !== this,
-                immediateEffect: AbilityHelper.immediateEffects.giveExperience()
-            }
+            title: 'Give one experience for each card you played this turn',
+            immediateEffect: AbilityHelper.immediateEffects.giveExperience(() => {
+                const cardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCurrentValue();
+                const experienceCount = cardsPlayedThisPhase.filter((playedCardEntry) =>
+                    playedCardEntry.playedBy === this.controller &&
+                    playedCardEntry.card !== this
+                ).length;
+
+                return { amount: experienceCount };
+            })
         });
     }
 }

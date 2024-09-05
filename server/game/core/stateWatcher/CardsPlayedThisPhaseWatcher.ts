@@ -6,13 +6,18 @@ import { PlayableCard } from '../card/CardTypes';
 import Game from '../Game';
 import { Card } from '../card/Card';
 
-export type ICardsPlayedThisPhase = PlayableCard[];
+export interface PlayedCardEntry {
+    card: PlayableCard,
+    playedBy: Player
+}
+
+export type ICardsPlayedThisPhase = PlayedCardEntry[];
 
 export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPhase> {
     public constructor(
         registrar: StateWatcherRegistrar,
         card: Card,
-        private readonly filter: (card: PlayableCard) => boolean = () => true
+        private readonly addCardCondition: (card: PlayableCard) => boolean = () => true
     ) {
         super(StateWatcherName.CardsPlayedThisPhase, registrar, card);
     }
@@ -24,7 +29,9 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPh
                 onCardPlayed: () => true,
             },
             update: (currentState: ICardsPlayedThisPhase, event: any) => {
-                return this.filter(event.card) ? currentState.concat(event.card) : currentState;
+                return this.addCardCondition(event.card)
+                    ? currentState.concat({ card: event.card, playedBy: event.card.controller })
+                    : currentState;
             }
         });
     }
