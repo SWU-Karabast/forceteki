@@ -168,9 +168,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 raidAbility.registerEvents();
                 this._attackKeywordAbilities.push(raidAbility);
             }
-
-            // Does Grit belong here?
-            // TODO KEYWORDS: add grit registration here (others such as sentinel will be managed inside the attack pipeline)
         }
 
         /**
@@ -229,9 +226,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.upgrades.forEach((upgrade) => wrappedStatsModifiers.push(StatsModifierWrapper.fromPrintedValues(upgrade)));
 
             if (this.hasSomeKeyword(KeywordName.Grit)) {
-                const gritModifier = new StatsModifier();
-                gritModifier.power = this.damage;
-                gritModifier.hp = 0;
+                const gritModifier = new StatsModifier(this.damage, 0);
                 wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
             }
 

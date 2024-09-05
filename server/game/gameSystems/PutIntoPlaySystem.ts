@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, EventName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, EventName, KeywordName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
-import type Player from '../core/Player';
+import { giveShield } from '../gameSystems/GameSystemLibrary.js';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
 
@@ -37,6 +37,10 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
             event.card.ready();
         } else {
             event.card.exhaust();
+        }
+
+        if (event.card.hasSomeKeyword(KeywordName.Shielded)) {
+            event.context.game.openEventWindow(giveShield(event.card).generateEvent(event.card, event.context));
         }
 
         //moveCard sets all this stuff and only works if the owner is moving cards, so we're switching it around

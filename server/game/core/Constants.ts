@@ -219,7 +219,6 @@ export enum KeywordName {
     Saboteur = 'saboteur',
     /** @deprecated Not implemented yet */
     Sentinel = 'sentinel',
-    /** @deprecated Not implemented yet */
     Shielded = 'shielded',
     /** @deprecated Not implemented yet */
     Smuggle = 'smuggle',
