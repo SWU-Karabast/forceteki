@@ -12,11 +12,12 @@ describe('Tarkintown', function() {
                             { card: 'frontier-atrt', damage: 1 },
                             'wampa'
                         ],
+                        leader: { card: 'boba-fett#daimyo', deployed: true, damage: 1 }
                     }
                 });
             });
 
-            it('should deal 3 damage to a damaged enemy unit', function () {
+            it('should deal 3 damage to a damaged enemy non-leader unit', function () {
                 this.player1.clickCard(this.tarkintown);
 
                 // should resolve automatically since there's only one target
