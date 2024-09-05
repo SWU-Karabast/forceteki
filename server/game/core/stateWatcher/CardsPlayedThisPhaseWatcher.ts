@@ -16,10 +16,17 @@ export type ICardsPlayedThisPhase = PlayedCardEntry[];
 export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPhase> {
     public constructor(
         registrar: StateWatcherRegistrar,
-        card: Card,
-        private readonly addCardCondition: (card: PlayableCard) => boolean = () => true
+        card: Card
     ) {
         super(StateWatcherName.CardsPlayedThisPhase, registrar, card);
+    }
+
+    /**
+     * Returns an array of {@link PlayedCardEntry} objects representing every card played
+     * in this phase so far and the player who played that card
+     */
+    public override getCurrentValue(): ICardsPlayedThisPhase {
+        return super.getCurrentValue();
     }
 
     protected override setupWatcher() {
@@ -28,11 +35,8 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPh
             when: {
                 onCardPlayed: () => true,
             },
-            update: (currentState: ICardsPlayedThisPhase, event: any) => {
-                return this.addCardCondition(event.card)
-                    ? currentState.concat({ card: event.card, playedBy: event.card.controller })
-                    : currentState;
-            }
+            update: (currentState: ICardsPlayedThisPhase, event: any) =>
+                currentState.concat({ card: event.card, playedBy: event.card.controller })
         });
     }
 

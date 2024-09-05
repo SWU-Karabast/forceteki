@@ -1,5 +1,4 @@
 import AbilityHelper from '../../AbilityHelper';
-import { PlayableCard } from '../../core/card/CardTypes';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
 import { CardsPlayedThisPhaseWatcher } from '../../core/stateWatcher/CardsPlayedThisPhaseWatcher';
 import { StateWatcherRegistrar } from '../../core/stateWatcher/StateWatcherRegistrar';
@@ -15,10 +14,7 @@ export default class VanguardAce extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(stateWatcherRegistrar: StateWatcherRegistrar) {
-        this.cardsPlayedThisWatcher = new CardsPlayedThisPhaseWatcher(
-            stateWatcherRegistrar,
-            this
-        );
+        this.cardsPlayedThisWatcher = new CardsPlayedThisPhaseWatcher(stateWatcherRegistrar, this);
     }
 
     public override setupCardAbilities() {
@@ -26,6 +22,7 @@ export default class VanguardAce extends NonLeaderUnitCard {
             title: 'Give one experience for each card you played this turn',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience(() => {
                 const cardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCurrentValue();
+
                 const experienceCount = cardsPlayedThisPhase.filter((playedCardEntry) =>
                     playedCardEntry.playedBy === this.controller &&
                     playedCardEntry.card !== this
