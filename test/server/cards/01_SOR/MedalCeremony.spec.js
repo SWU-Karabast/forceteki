@@ -52,6 +52,14 @@ describe('Medal Ceremony', function() {
 
                 this.player1.clickCard(this.medalCeremony);
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.rebelPathfinder, this.consularSecurityForce, this.allianceXwing]);
+
+                this.player1.clickCard(this.battlefieldMarine);
+                this.player1.clickCard(this.rebelPathfinder);
+                this.player1.clickCard(this.allianceXwing);
+                this.player1.clickPrompt('Done');
+                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                expect(this.rebelPathfinder).toHaveExactUpgradeNames(['experience']);
+                expect(this.allianceXwing).toHaveExactUpgradeNames(['experience']);
             });
         });
     });

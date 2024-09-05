@@ -29,7 +29,7 @@ describe('Vanguard Ace', function() {
                 this.player2.passAction();
 
                 this.player1.clickCard(this.vanguardAce);
-                expect(this.vanguardAce.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience', 'experience']);
+                expect(this.vanguardAce).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
 
             it('gains no experience if no other cards have been played', function () {
@@ -51,7 +51,7 @@ describe('Vanguard Ace', function() {
                 this.player2.clickCard(this.atst);
 
                 this.player1.clickCard(this.vanguardAce);
-                expect(this.vanguardAce.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience']);
+                expect(this.vanguardAce).toHaveExactUpgradeNames(['experience']);
             });
 
             // TODO TAKE CONTROL: check that state watchers still work if the card is played by the opponent
