@@ -46,7 +46,7 @@ class DeckBuilder {
 
         const namedCards = this.getAllNamedCards(playerCards);
 
-        allCards.push(playerCards.leader ? playerCards.leader : defaultLeader[playerNumber]);
+        allCards.push(this.getLeaderCard(playerCards, playerNumber));
         allCards.push(playerCards.base ? playerCards.base : defaultBase[playerNumber]);
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
@@ -113,6 +113,22 @@ class DeckBuilder {
             return Array(cardList).fill(deckFillerCard);
         }
         return cardList;
+    }
+
+    getLeaderCard(playerCards, playerNumber) {
+        if (!playerCards.leader) {
+            return defaultLeader[playerNumber];
+        }
+
+        if (typeof playerCards.leader === 'string') {
+            return playerCards.leader;
+        }
+
+        if ('card' in playerCards.leader) {
+            return playerCards.leader.card;
+        }
+
+        throw new Error(`Unknown test leader specifier format: '${playerObject}'`);
     }
 
     getInPlayCardsForArena(arenaList) {

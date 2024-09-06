@@ -90,16 +90,16 @@ export class OngoingEffectEngine {
     public removeLastingEffects(card: OngoingEffectSource) {
         this.unapplyAndRemove(
             (effect) =>
-                effect.match === card &&
+                effect.matchTarget === card &&
                 effect.duration !== Duration.Persistent &&
                 !effect.canChangeZoneOnce &&
                 (!effect.canChangeZoneNTimes || effect.canChangeZoneNTimes === 0)
         );
         for (const effect of this.effects) {
-            if (effect.match === card && effect.canChangeZoneOnce) {
+            if (effect.matchTarget === card && effect.canChangeZoneOnce) {
                 effect.canChangeZoneOnce = false;
             }
-            if (effect.match === card && effect.canChangeZoneNTimes > 0) {
+            if (effect.matchTarget === card && effect.canChangeZoneNTimes > 0) {
                 effect.canChangeZoneNTimes--;
             }
         }

@@ -39,7 +39,7 @@ class ActionWindow extends UiPrompt {
             return false;
         } else if (legalActions.length === 1) {
             let action = legalActions[0];
-            let targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.player !== RelativePlayer.Opponent);
+            let targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
             if (!this.activePlayer.optionSettings.confirmOneClick || action.cost.some((cost) => cost.promptsPlayer) || targetPrompts) {
                 this.resolveAbility(action.createContext(player));
                 return true;

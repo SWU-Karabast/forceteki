@@ -9,13 +9,15 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import { AbilityType, EffectName, PlayType } from '../core/Constants';
-import StatsModifier from '../core/ongoingEffect/effectImpl/StatsModifier';
-import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../Interfaces';
+import { AbilityType, EffectName, KeywordName, NonParameterKeywordName, PlayType } from '../core/Constants';
+import { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
+import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
 import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
-import { KeywordInstance } from '../core/ability/KeywordInstance';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
+import { AbilityContext } from '../core/ability/AbilityContext';
+import { Attack } from '../core/attack/Attack';
+import { UnitCard } from '../core/card/CardTypes';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -69,7 +71,7 @@ export = {
     // cannotParticipateAsAttacker: (type = 'both') =>
     //     OngoingEffectBuilder.card.static(EffectName.CannotParticipateAsAttacker, type),
     // cannotParticipateAsDefender: (type = 'both') =>
-    //     OngoingEffectBuilder.card.static(EffectName.CannotParticipateAsDefender, type),
+    //     OngoingEffectBuilder.card.static(EffectName.CannotParticipat  eAsDefender, type),
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     cardCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
@@ -79,6 +81,16 @@ export = {
     //         apply: (card) => card.controller.addConflictOpportunity(type),
     //         unapply: (card) => card.controller.removeConflictOpportunity(type)
     //     }),
+    /** For effects of the form "if unit has [X], it gains +Y/+Z for this attack" */
+    conditionalAttackStatBonus: (bonusCondition: (attacker: UnitCard) => boolean, statBonus: StatsModifier) => (context: AbilityContext, attack: Attack) => {
+        if (bonusCondition(attack.attacker)) {
+            return {
+                target: attack.attacker,
+                effect: OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, statBonus),
+            };
+        }
+        return null;
+    },
     // contributeToConflict: (player) => OngoingEffectBuilder.card.flexible(EffectName.ContributeToConflict, player),
     // canContributeWhileBowed: (properties) => OngoingEffectBuilder.card.static(EffectName.CanContributeWhileBowed, properties),
     // copyCard,
@@ -96,8 +108,11 @@ export = {
         properties: ITriggeredAbilityProps | IActionAbilityProps | IConstantAbility
     ) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(abilityType, properties)),
-    gainKeyword: (keywordProperties: IKeywordProperties) =>
-        OngoingEffectBuilder.card.static(EffectName.GainKeyword, KeywordHelpers.keywordFromProperties(keywordProperties)),
+    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties) =>
+        OngoingEffectBuilder.card.static(EffectName.GainKeyword,
+            typeof keywordOrKeywordProperties === 'string'
+                ? KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties })
+                : KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),

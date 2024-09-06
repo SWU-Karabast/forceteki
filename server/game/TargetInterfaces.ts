@@ -5,6 +5,9 @@ import type { Card } from './core/card/Card';
 import type CardAbility from './core/ability/CardAbility';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, WildcardCardType, CardTypeFilter } from './core/Constants';
 
+// allow block comments without spaces so we can have compact jsdoc descriptions in this file
+/* eslint @stylistic/js/lines-around-comment: off */
+
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityTargetResolver =
     | (ICardTargetResolver & ITriggeredAbilityCardTargetResolver)
@@ -23,8 +26,10 @@ type IChoicesInterface = Record<string, ((context: AbilityContext) => boolean) |
 interface ITargetResolverBase {
     activePromptTitle?: string;
     locationFilter?: LocationFilter | LocationFilter[];
+    /** Filter cards by their controller */
     controller?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
-    player?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
+    /** Selects which player is choosing the target (defaults to the player controlling the source card) */
+    choosingPlayer?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
     immediateEffect?: GameSystem | GameSystem[];
     dependsOn?: string;

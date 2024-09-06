@@ -12,7 +12,7 @@ import { Card } from '../core/card/Card';
 import { ICost } from '../core/cost/ICost';
 import { GameActionCost } from '../core/cost/GameActionCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
-import { AdjustableResourceCost } from './AdjustableResourceCost';
+import { PlayCardResourceCost } from './PlayCardResourceCost';
 import { ReturnToHandFromPlaySystem } from '../gameSystems/ReturnToHandFromPlaySystem';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 import Player from '../core/Player';
@@ -232,8 +232,8 @@ export function putSelfIntoPlay(): ICost {
  * adjuster effects the play has activated. Upon playing the card, all
  * matching adjuster effects will expire, if applicable.
  */
-export function payAdjustableResourceCost(ignoreType = false): ICost {
-    return new AdjustableResourceCost(ignoreType);
+export function payPlayCardResourceCost(ignoreType = false): ICost {
+    return new PlayCardResourceCost(ignoreType);
 }
 
 // /**
@@ -243,16 +243,16 @@ export function payAdjustableResourceCost(ignoreType = false): ICost {
 //     return new TargetDependentFateCost(ignoreType, targetName);
 // }
 
-// /**
-//  * Cost in which the player must pay a fixed, non-reduceable amount of fate.
-//  */
-// export function payFate(amount: number | ((context: AbilityContext) => number) = 1): Cost {
-//     return new GameActionCost(
-//         typeof amount === 'function'
-//             ? GameSystems.loseFate((context) => ({ target: context.player, amount: amount(context) }))
-//             : GameSystems.loseFate((context) => ({ target: context.player, amount }))
-//     );
-// }
+/**
+ * Cost in which the player must pay a fixed, non-reduceable amount of fate.
+ */
+export function abilityResourceCost(amount: number | ((context: AbilityContext) => number)): ICost {
+    return new GameActionCost(
+        typeof amount === 'function'
+            ? GameSystems.payResourceCost((context) => ({ target: context.player, amount: amount(context) }))
+            : GameSystems.payResourceCost((context) => ({ target: context.player, amount }))
+    );
+}
 
 // TODO: reuse variable methods for swu cards
 // export function variableHonorCost(amountFunc: (context: TriggeredAbilityContext) => number): Cost {

@@ -29,7 +29,9 @@ npm run lint-verbose
 
 # runs tsc and executes tests
 npm test
-npm run test-parallel   # runs tests in parallel for higher speed
+
+# this currently has a bug, do not use
+#npm run test-parallel   # runs tests in parallel for higher speed
 ```
 
 ### Linting
@@ -45,3 +47,7 @@ Once you have vscode set up, use the `Debug All Jasmine Tests` profile or open a
 #### Debugging Tips
 - You can use the `debugger;` command in node to create a breakpoint in code that will be respected by the vscode debugger
 - VSCode has advanced breakpoint features such as conditional breakpoints that are extremely useful for debugging complex situations, we highly recommend reading the "Advanced breakpoint topics" section of this guide if you haven't used it before: https://code.visualstudio.com/docs/editor/debugging#_advanced-breakpoint-topics
+
+## Contributing
+
+For details on how to get started adding cards, see the [contributor's guide](./docs/implementing-cards.md).

@@ -6,8 +6,9 @@ import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard
 import { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
+import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
-const EventCardParent = WithCost(PlayableOrDeployableCard);
+const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
 export class EventCard extends EventCardParent {
     private _eventAbility: EventAbility;
@@ -18,12 +19,10 @@ export class EventCard extends EventCardParent {
 
         this.defaultActions.push(new PlayEventAction(this));
 
-        this.activateAbilityInitializersForTypes([AbilityType.Event]);
-
         Contract.assertNotNullLike(this._eventAbility, 'Event card\'s ability was not initialized');
     }
 
-    public override isEvent() {
+    public override isEvent(): this is EventCard {
         return true;
     }
 
@@ -50,10 +49,6 @@ export class EventCard extends EventCardParent {
 
     protected setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
-
-        this.abilityInitializers.push({
-            abilityType: AbilityType.Event,
-            initialize: () => this._eventAbility = new EventAbility(this.game, this, properties)
-        });
+        this._eventAbility = new EventAbility(this.game, this, properties);
     }
 }

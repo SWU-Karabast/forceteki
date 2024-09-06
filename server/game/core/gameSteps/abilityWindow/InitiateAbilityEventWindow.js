@@ -35,7 +35,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     //         const alternatePools = context.player.getAlternateFatePools(this.playEvent.playType, context.source, context);
     //         const alternatePoolTotal = alternatePools.reduce((total, pool) => total + pool.fate, 0);
     //         const maxPlayerFate = context.player.hasRestriction('spendFate', context) ? 0 : context.player.fate;
-    //         return Math.max(context.ability.getReducedCost(context) - maxPlayerFate - alternatePoolTotal, 0);
+    //         return Math.max(context.ability.getAdjustedCost(context) - maxPlayerFate - alternatePoolTotal, 0);
     //     }
     //     return 0;
     // }

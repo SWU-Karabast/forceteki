@@ -20,6 +20,7 @@ import StatsModifier from '../../ongoingEffect/effectImpl/StatsModifier';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { Attack } from '../../attack/Attack';
+import type { UnitCard } from '../CardTypes';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -68,7 +69,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             super(...args);
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
-            Contract.assertTrue(EnumHelpers.isUnit(this.printedType));
+            Contract.assertTrue(EnumHelpers.isUnit(this.printedType) || this.printedType === CardType.Leader);
 
             Contract.assertNotNullLike(cardData.arena);
             switch (cardData.arena) {
@@ -85,25 +86,25 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.defaultActions.push(new InitiateAttackAction(this));
         }
 
-        public override isUnit() {
+        public override isUnit(): this is UnitCard {
             return true;
         }
 
         // ***************************************** ATTACK HELPERS *****************************************
         /**
          * Check if there are any effect restrictions preventing this unit from attacking the passed target.
-         * Only checks effects, **does not** check basic attack rules (e.g. target card type).
+         * Returns true if so.
          */
-        public canAttack(target: Card) {
+        public effectsPreventAttack(target: Card) {
             if (this.hasEffect(EffectName.CannotAttackBase) && target.isBase()) {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
-        protected addAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
-            const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event) => event.attack.attacker === this } });
+        protected addOnAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+            const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
             this.addTriggeredAbility(triggeredProperties);
         }
 

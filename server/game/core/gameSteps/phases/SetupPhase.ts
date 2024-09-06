@@ -34,7 +34,8 @@ export class SetupPhase extends Phase {
 
     private putLeaderInPlay() {
         for (const player of this.game.getPlayers()) {
-            player.moveCard(player.leader, Location.Leader);
+            player.moveCard(player.leader, Location.Base);
+            player.leader.ready();
         }
     }
 

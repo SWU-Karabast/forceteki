@@ -5,6 +5,7 @@ import { GameEvent } from '../event/GameEvent';
 import type Player from '../Player';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type Game from '../Game';
+import * as Helpers from '../utils/Helpers';
 
 type PlayerOrCard = Player | Card;
 
@@ -107,7 +108,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         return (
             this.isTargetTypeValid(target) &&
             !context.gameActionsResolutionChain.includes(this) &&
-            ((context.stage === Stage.EffectTmp && cannotBeCancelled) || !target.hasRestriction(this.name, context))
+            ((context.stage === Stage.Effect && cannotBeCancelled) || !target.hasRestriction(this.name, context))
         );
     }
 
@@ -259,7 +260,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
      * @returns The default target(s) of this {@link GameSystem}
      */
     private targets(context: AbilityContext, additionalProperties = {}) {
-        return this.generatePropertiesFromContext(context, additionalProperties).target as PlayerOrCard[];
+        return Helpers.asArray(this.generatePropertiesFromContext(context, additionalProperties).target);
     }
 
     public toString() {

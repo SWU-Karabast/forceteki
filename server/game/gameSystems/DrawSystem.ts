@@ -34,7 +34,7 @@ export class DrawSystem extends PlayerTargetSystem<IDrawProperties> {
         return [context.player];
     }
 
-    public override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;

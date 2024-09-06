@@ -7,14 +7,13 @@ import Contract from '../utils/Contract';
 import { AbilityType, CardType, KeywordName, Location, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import { IAbilityProps, IActionAbilityProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import { IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
-import GainAbility from '../ongoingEffect/effectImpl/GainAbility';
-import { AbilityContext } from '../ability/AbilityContext';
+import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
-const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(InPlayCard)));
+const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAbilitySetup(InPlayCard))));
 
 export class UpgradeCard extends UpgradeCardParent {
     protected _parentCard?: UnitCard = null;
@@ -26,7 +25,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.defaultActions.push(new PlayUpgradeAction(this));
     }
 
-    public override isUpgrade() {
+    public override isUpgrade(): this is UpgradeCard {
         return true;
     }
 
@@ -38,20 +37,6 @@ export class UpgradeCard extends UpgradeCardParent {
         }
 
         return this._parentCard;
-    }
-
-    /** The card that this card is underneath */
-    public set parentCard(card: Card | null) {
-        if (card) {
-            this._parentCard = null;
-            return;
-        }
-
-        if (!Contract.assertTrue(card.isUnit()) || !Contract.assertTrue(EnumHelpers.isArena(this.location))) {
-            return;
-        }
-
-        this._parentCard = card as UnitCard;
     }
 
     public override moveTo(targetLocation: Location) {
@@ -119,11 +104,11 @@ export class UpgradeCard extends UpgradeCardParent {
      * Helper that adds an effect that applies to the attached unit. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'match' | 'ongoingEffect'>) {
+    protected addConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'matchTarget' | 'ongoingEffect'>) {
         this.addConstantAbility({
             title: properties.title,
             condition: properties.condition || (() => true),
-            match: (card, context) => card === this.parentCard && (!properties.match || properties.match(card, context)),
+            matchTarget: (card, context) => card === this.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
             targetController: RelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
             ongoingEffect: properties.ongoingEffect
         });

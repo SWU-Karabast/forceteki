@@ -1,6 +1,6 @@
-const AbilityTargetAbility = require('./abilityTargets/AbilityTargetAbility.js');
-const AbilityTargetCard = require('./abilityTargets/AbilityTargetCard.js');
-const AbilityTargetSelect = require('./abilityTargets/AbilityTargetSelect.js');
+const AbilityTargetResolver = require('./abilityTargets/AbilityTargetResolver.js');
+const CardTargetResolver = require('./abilityTargets/CardTargetResolver.js');
+const SelectTargetResolver = require('./abilityTargets/SelectTargetResolver.js');
 const { Stage, TargetMode, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const { default: Contract } = require('../utils/Contract.js');
@@ -91,11 +91,11 @@ class PlayerOrCardAbility {
             properties.immediateEffect = [];
         }
         if (properties.mode === TargetMode.Select) {
-            return new AbilityTargetSelect(name, properties, this);
+            return new SelectTargetResolver(name, properties, this);
         } else if (properties.mode === TargetMode.Ability) {
-            return new AbilityTargetAbility(name, properties, this);
+            return new AbilityTargetResolver(name, properties, this);
         }
-        return new AbilityTargetCard(name, properties, this);
+        return new CardTargetResolver(name, properties, this);
     }
 
     /**

@@ -10,18 +10,21 @@ import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import CardAbility from '../ability/CardAbility';
-import type Shield from '../../cardImplementations/01_SOR/Shield';
-import type Experience from '../../cardImplementations/01_SOR/Experience';
+import type Shield from '../../cards/01_SOR/Shield';
 import { KeywordInstance } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
+import type { EventCard } from './EventCard';
+import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty } from './CardTypes';
+import type { UpgradeCard } from './UpgradeCard';
+import type { BaseCard } from './BaseCard';
+import type { LeaderCard } from './LeaderCard';
+import type { LeaderUnitCard } from './LeaderUnitCard';
+import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
+import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { InPlayCard } from './baseClasses/InPlayCard';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
-
-export interface IAbilityInitializer {
-    abilityType: AbilityType,
-    initialize: () => void
-}
 
 /**
  * The base class for all card types. Any shared properties among all cards will be present here.
@@ -46,8 +49,7 @@ export class Card extends OngoingEffectSource {
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
-    protected abilityInitializers: IAbilityInitializer[] = [];
-    protected _actionAbilities: ActionAbility[] = [];
+    protected actionAbilities: ActionAbility[] = [];
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
@@ -97,9 +99,12 @@ export class Card extends OngoingEffectSource {
         this.controller = owner;
         this.defaultController = owner;
         this.id = cardData.id;
-        this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords, cardData.text, this.internalName);
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
+
+        this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
+            this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
+            this.internalName);
 
         if (this.isToken()) {
             this._location = Location.OutsideTheGame;
@@ -107,8 +112,7 @@ export class Card extends OngoingEffectSource {
             this._location = Location.Deck;
         }
 
-        this.setupCardAbilities(AbilityHelper);
-        this.activateAbilityInitializersForTypes(AbilityType.Action);
+        // this.activateAbilityInitializersForTypes(AbilityType.Action);
     }
 
 
@@ -119,7 +123,7 @@ export class Card extends OngoingEffectSource {
      */
     public getActionAbilities(): ActionAbility[] {
         return this.isBlank() ? []
-            : this._actionAbilities
+            : this.actionAbilities
                 .concat(this.getGainedAbilityEffects<ActionAbility>(AbilityType.Action));
     }
 
@@ -186,7 +190,7 @@ export class Card extends OngoingEffectSource {
         if (implementationId) {
             if (cardData.id !== implementationId.id || cardData.internalName !== implementationId.internalName) {
                 throw new Error(
-                    `Implementation { ${implementationId.id}, ${implementationId.internalName} } does not match provided card data { ${cardData.id}, ${cardData.internalName} }`
+                    `Provided card data { ${cardData.id}, ${cardData.internalName} } does not match the data from the card class: { ${implementationId.id}, ${implementationId.internalName} }. Confirm that you are matching the card data to the right card implementation class.`
                 );
             }
         }
@@ -206,40 +210,6 @@ export class Card extends OngoingEffectSource {
         return [args[0] as Player, args[1]];
     }
 
-    /**
-     * Create card abilities by calling subsequent methods with appropriate properties
-     * @param {Object} ability - AbilityHelper object containing limits, costs, effects, and game actions
-     */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupCardAbilities(ability) {
-    }
-
-    /**
-     * Works through the list of queued ability initializers and activates any for the corresponding type.
-     * We need to initialize this way because subclass ability initializers might be called before their
-     * constructors have executed, so we have to delay execution of their initializers until they're ready.
-     */
-    protected activateAbilityInitializersForTypes(abilityTypes: AbilityType | AbilityType[]) {
-        const abilityTypesAra = Helpers.asArray(abilityTypes);
-
-        const skippedInitializers: IAbilityInitializer[] = [];
-        for (const abilityInitializer of this.abilityInitializers) {
-            if (abilityTypesAra.includes(abilityInitializer.abilityType)) {
-                abilityInitializer.initialize();
-            } else {
-                skippedInitializers.push(abilityInitializer);
-            }
-        }
-        this.abilityInitializers = skippedInitializers;
-    }
-
-    protected addActionAbility(properties: IActionAbilityProps<this>) {
-        this.abilityInitializers.push({
-            abilityType: AbilityType.Action,
-            initialize: () => this._actionAbilities.push(this.createActionAbility(properties))
-        });
-    }
-
     public createActionAbility(properties: IActionAbilityProps): ActionAbility {
         properties.cardName = this.title;
         return new ActionAbility(this.game, this, properties);
@@ -247,36 +217,35 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* CARD TYPE HELPERS *******************************************
-    // TODO: convert these to use ts type narrowing for simpler conversions to derived types (see https://www.typescriptlang.org/docs/handbook/2/classes.html#this-based-type-guards)
-    public isEvent(): boolean {
+    public isEvent(): this is EventCard {
         return this.type === CardType.Event;
     }
 
-    public isUnit(): boolean {
+    public isUnit(): this is UnitCard {
         return this.type === CardType.BasicUnit || this.type === CardType.LeaderUnit || this.type === CardType.TokenUnit;
     }
 
-    public isUpgrade(): boolean {
+    public isUpgrade(): this is UpgradeCard {
         return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade;
     }
 
-    public isBase(): boolean {
+    public isBase(): this is BaseCard {
         return this.type === CardType.Base;
     }
 
-    public isLeader(): boolean {
+    public isLeader(): this is LeaderCard {
         return this.type === CardType.Leader || this.type === CardType.LeaderUnit;
     }
 
-    public isLeaderUnit(): boolean {
+    public isLeaderUnit(): this is LeaderUnitCard {
         return this.type === CardType.LeaderUnit;
     }
 
-    public isNonLeaderUnit(): boolean {
+    public isNonLeaderUnit(): this is NonLeaderUnitCard {
         return this.type === CardType.BasicUnit || this.type === CardType.TokenUnit;
     }
 
-    public isToken(): boolean {
+    public isToken(): this is TokenCard {
         return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
     }
 
@@ -285,22 +254,31 @@ export class Card extends OngoingEffectSource {
     }
 
     /** Returns true if the card is in a location where it can legally be damaged */
-    public canBeDamaged(): boolean {
+    public canBeDamaged(): this is CardWithDamageProperty {
         return false;
     }
 
-    /** Returns true if the card is in a location where it can legally be exhausted */
-    public canBeExhausted(): boolean {
+    /**
+     * Returns true if the card is in a location where it can legally be exhausted.
+     * The returned type set is equivalent to {@link CardWithExhaustProperty}.
+     */
+    public canBeExhausted(): this is PlayableOrDeployableCard {
         return false;
     }
 
-    /** Returns true if the card is a type that can legally have triggered abilities */
-    public canRegisterTriggeredAbilities(): boolean {
+    /**
+     * Returns true if the card is a type that can legally have triggered abilities
+     * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
+     */
+    public canRegisterTriggeredAbilities(): this is InPlayCard {
         return false;
     }
 
-    /** Returns true if the card is a type that can legally have constant abilities */
-    public canRegisterConstantAbilities(): boolean {
+    /**
+     * Returns true if the card is a type that can legally have constant abilities
+     * The returned type set is equivalent to {@link CardWithConstantAbilities}.
+     */
+    public canRegisterConstantAbilities(): this is InPlayCard {
         return false;
     }
 
@@ -417,7 +395,6 @@ export class Card extends OngoingEffectSource {
                 break;
 
             case Location.Base:
-            case Location.Leader:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
@@ -465,7 +442,7 @@ export class Card extends OngoingEffectSource {
     }
 
     protected resetLimits() {
-        for (const action of this._actionAbilities) {
+        for (const action of this.actionAbilities) {
             if (action.limit) {
                 action.limit.reset();
             }

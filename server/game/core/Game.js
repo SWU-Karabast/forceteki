@@ -25,14 +25,14 @@ const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { SimultaneousEffectWindow } = require('./gameSteps/SimultaneousEffectWindow.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract');
-const { cards } = require('../cardImplementations/Index.js');
+const { cards } = require('../cards/Index.js');
 // const { Conflict } = require('./conflict.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
 // const MenuCommands = require('./MenuCommands');
 
 const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
-const { default: Shield } = require('../cardImplementations/01_SOR/Shield.js');
+const { default: Shield } = require('../cards/01_SOR/Shield.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {

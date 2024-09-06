@@ -4,6 +4,7 @@ const Costs = require('../../costs/CostLibrary.js');
 const { Location, CardType, EffectName, WildcardLocation, AbilityType, PhaseName } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
 const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
+const { default: Contract } = require('../utils/Contract.js');
 
 class CardAbility extends CardAbilityStep {
     constructor(game, card, properties, type = AbilityType.Action) {
@@ -18,7 +19,7 @@ class CardAbility extends CardAbilityStep {
         this.limit.registerEvents(game);
         this.limit.ability = this;
         this.abilityCost = this.cost;
-        this.location = this.buildLocation(card, properties.location);
+        this.locationFilter = this.locationOrDefault(card, properties.locationFilter);
         this.printedAbility = properties.printedAbility === false ? false : true;
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
@@ -32,21 +33,26 @@ class CardAbility extends CardAbilityStep {
         }
     }
 
-    buildLocation(card, location) {
-        let defaultLocationForType = null;
-        if (card.isEvent()) {
-            defaultLocationForType = Location.Hand;
-        } else if (card.isLeader()) {
-            defaultLocationForType = Location.Leader;
-        } else if (card.isBase()) {
-            defaultLocationForType = Location.Base;
-        } else {
-            defaultLocationForType = WildcardLocation.AnyArena;
+    locationOrDefault(card, location) {
+        if (location != null) {
+            return location;
         }
 
-        let defaultedLocation = [location || defaultLocationForType];
+        if (card.isEvent()) {
+            return Location.Hand;
+        }
+        if (card.isLeader()) {
+            Contract.fail('Leader card abilities must explicitly assign properties.locationFilter for the correct active zone of the ability');
+        }
+        if (card.isBase()) {
+            return Location.Base;
+        }
+        if (card.isUnit() || card.isUpgrade()) {
+            return WildcardLocation.AnyArena;
+        }
 
-        return defaultedLocation;
+        Contract.fail(`Unknown card type for card: ${card.internalName}`);
+        return null;
     }
 
     /** @override */
@@ -107,19 +113,19 @@ class CardAbility extends CardAbilityStep {
         return costs;
     }
 
-    getReducedCost(context) {
-        let resourceCost = this.cost.find((cost) => cost.getReducedCost);
-        return resourceCost ? resourceCost.getReducedCost(context) : 0;
+    getAdjustedCost(context) {
+        let resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
+        return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
     isInValidLocation(context) {
         return this.card.isEvent()
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
-            : EnumHelpers.cardLocationMatches(this.card.location, this.location);
+            : EnumHelpers.cardLocationMatches(this.card.location, this.locationFilter);
     }
 
     getLocationMessage(location, context) {
-        if (location.match(/^\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b$/i)) {
+        if (location.matchTarget(/^\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b$/i)) {
             //it's a uuid
             let source = context.game.findAnyCardInPlayByUuid(location);
             if (source) {

@@ -6,6 +6,7 @@ import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSy
 import { AttackSystem, IAttackProperties } from './AttackSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { DamageSystem, IDamageProperties } from './DamageSystem';
+import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
 import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 // import { CardMenuAction, CardMenuProperties } from './CardMenuAction';
 // import { ChooseActionProperties, ChooseGameAction } from './ChooseGameAction';
@@ -50,6 +51,7 @@ import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './R
 import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
 import { ReturnToHandFromPlaySystem, IReturnToHandFromPlayProperties } from './ReturnToHandFromPlaySystem';
 import { RevealSystem, IRevealProperties } from './RevealSystem';
+import { PayResourceCostSystem, IPayResourceCostProperties } from './PayResourceCostSystem';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
 // import { SequentialAction } from './SequentialAction';
@@ -61,6 +63,9 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
 
 type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
+
+// allow block comments without spaces so we can have compact jsdoc descriptions in this file
+/* eslint @stylistic/js/lines-around-comment: off */
 
 //////////////
 // CARD
@@ -86,6 +91,9 @@ export function damage(propertyFactory: PropsFactory<IDamageProperties>): GameSy
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
 // }
+export function deploy(propertyFactory: PropsFactory<IDeployLeaderProperties> = {}): CardTargetSystem {
+    return new DeployLeaderSystem(propertyFactory);
+}
 export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}): CardTargetSystem {
     return new DefeatCardSystem(propertyFactory);
 }
@@ -125,6 +133,9 @@ export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): Ca
 // export function playCard(propertyFactory: PropsFactory<PlayCardProperties> = {}): GameSystem {
 //     return new PlayCardAction(propertyFactory);
 // }
+export function payResourceCost(propertyFactory: PropsFactory<IPayResourceCostProperties>): GameSystem {
+    return new PayResourceCostSystem(propertyFactory);
+}
 /**
  * default status = ordinary
  */
@@ -155,11 +166,9 @@ export function ready(propertyFactory: PropsFactory<IReadySystemProperties> = {}
 export function returnToHand(propertyFactory: PropsFactory<IReturnToHandProperties> = {}): CardTargetSystem {
     return new ReturnToHandSystem(propertyFactory);
 }
-
 export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties> = {}): CardTargetSystem {
     return new ReturnToHandFromPlaySystem(propertyFactory);
 }
-
 /**
  * default chatMessage = false
  */
@@ -247,23 +256,6 @@ export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCard
 // } // duration = 'untilEndOfConflict', effect, targetController, condition, until
 
 // //////////////
-// // RING
-// //////////////
-// export function ringLastingEffect(propertyFactory: PropsFactory<LastingEffectRingProperties>): GameSystem {
-//     return new LastingEffectRingAction(propertyFactory);
-// } // duration = 'untilEndOfConflict', effect, condition, until
-
-// //////////////
-// // STATUS TOKEN
-// //////////////
-// export function discardStatusToken(propertyFactory: PropsFactory<DiscardStatusProperties> = {}): GameSystem {
-//     return new DiscardStatusAction(propertyFactory);
-// }
-// export function moveStatusToken(propertyFactory: PropsFactory<MoveTokenProperties>): GameSystem {
-//     return new MoveTokenAction(propertyFactory);
-// }
-
-// //////////////
 // // GENERIC
 // //////////////
 export function handler(propertyFactory: PropsFactory<IExecuteHandlerSystemProperties>): GameSystem {
@@ -275,13 +267,6 @@ export function noAction(): GameSystem {
 export function replacementEffect(propertyFactory: PropsFactory<IReplacementEffectSystemProperties>): GameSystem {
     return new ReplacementEffectSystem(propertyFactory);
 }
-
-//////////////
-// CONFLICT
-//////////////
-// export function conflictLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
-//     return new LastingEffectAction(propertyFactory);
-// } // duration = 'untilEndOfConflict', effect, targetController, condition, until
 
 // //////////////
 // // META
