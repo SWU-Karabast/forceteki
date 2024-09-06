@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { CardsPlayedThisPhaseWatcher } from '../../core/stateWatcher/CardsPlayedThisPhaseWatcher';
+import { CardsPlayedThisPhaseWatcher } from '../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import { StateWatcherRegistrar } from '../../core/stateWatcher/StateWatcherRegistrar';
 
 export default class VanguardAce extends NonLeaderUnitCard {

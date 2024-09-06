@@ -1,10 +1,10 @@
-import { StateWatcher } from './StateWatcher';
-import { StateWatcherName } from '../Constants';
-import { StateWatcherRegistrar } from './StateWatcherRegistrar';
-import Player from '../Player';
-import { UnitCard } from '../card/CardTypes';
-import { Card } from '../card/Card';
-import { BaseCard } from '../card/BaseCard';
+import { StateWatcher } from '../core/stateWatcher/StateWatcher';
+import { StateWatcherName } from '../core/Constants';
+import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import Player from '../core/Player';
+import { UnitCard } from '../core/card/CardTypes';
+import { Card } from '../core/card/Card';
+import { BaseCard } from '../core/card/BaseCard';
 
 export interface AttackEntry {
     attacker: UnitCard,

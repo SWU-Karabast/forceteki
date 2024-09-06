@@ -2,7 +2,7 @@ import AbilityHelper from '../../AbilityHelper';
 import { UnitCard } from '../../core/card/CardTypes';
 import { EventCard } from '../../core/card/EventCard';
 import { TargetMode, Trait, WildcardCardType } from '../../core/Constants';
-import { AttacksThisPhaseWatcher } from '../../core/stateWatcher/AttacksThisPhaseWatcher';
+import { AttacksThisPhaseWatcher } from '../../stateWatchers/AttacksThisPhaseWatcher';
 import { StateWatcherRegistrar } from '../../core/stateWatcher/StateWatcherRegistrar';
 
 export default class MedalCeremony extends EventCard {
