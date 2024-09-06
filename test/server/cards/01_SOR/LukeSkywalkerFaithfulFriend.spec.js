@@ -5,7 +5,7 @@ describe('Luke Skywalker, Faithful Friend', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['battlefield-marine', 'cartel-spacer'],
+                        hand: ['battlefield-marine', 'cartel-spacer', 'alliance-xwing'],
                         groundArena: ['atst'],
                         leader: 'luke-skywalker#faithful-friend'
                     },
@@ -25,9 +25,29 @@ describe('Luke Skywalker, Faithful Friend', function() {
 
                 this.player2.passAction();
 
+                const resourcesSpentBeforeLukeActivation = this.player1.countExhaustedResources();
                 this.player1.clickCard(this.lukeSkywalker);
                 this.player1.clickPrompt('Give a shield to a heroism unit you played this phase');
                 expect(this.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(this.lukeSkywalker.exhausted).toBe(true);
+                expect(this.player1.countExhaustedResources()).toBe(resourcesSpentBeforeLukeActivation + 1);
+            });
+
+            it('should not be able to give a shield to a unit played in the previous phase', function () {
+                this.player1.clickCard(this.battlefieldMarine);
+
+                this.moveToNextActionPhase();
+
+                this.player1.clickCard(this.allianceXwing);
+
+                this.player2.passAction();
+
+                const resourcesSpentBeforeLukeActivation = this.player1.countExhaustedResources();
+                this.player1.clickCard(this.lukeSkywalker);
+                this.player1.clickPrompt('Give a shield to a heroism unit you played this phase');
+                expect(this.allianceXwing).toHaveExactUpgradeNames(['shield']);
+                expect(this.lukeSkywalker.exhausted).toBe(true);
+                expect(this.player1.countExhaustedResources()).toBe(resourcesSpentBeforeLukeActivation + 1);
             });
         });
 
