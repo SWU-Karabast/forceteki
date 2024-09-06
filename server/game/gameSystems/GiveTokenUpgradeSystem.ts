@@ -68,7 +68,7 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
-    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         event.name = this.eventName;
         event.card = card;
         event.context = context;

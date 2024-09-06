@@ -69,7 +69,7 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
         return true;
     }
 
-    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const { controller, overrideLocation } = this.generatePropertiesFromContext(
             context,
             additionalProperties

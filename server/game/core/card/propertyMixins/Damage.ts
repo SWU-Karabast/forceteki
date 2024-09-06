@@ -1,5 +1,6 @@
 import Contract from '../../utils/Contract';
 import { CardConstructor } from '../Card';
+import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';
 
 /**
@@ -22,7 +23,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             this._damage = value;
         }
 
-        public override canBeDamaged(): boolean {
+        public override canBeDamaged(): this is CardWithDamageProperty {
             return true;
         }
 

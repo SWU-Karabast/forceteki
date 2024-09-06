@@ -138,6 +138,20 @@ class RepeatableAbilityLimit extends FixedAbilityLimit {
     }
 }
 
+class EpicActionLimit extends FixedAbilityLimit {
+    public constructor() {
+        super(1);
+    }
+
+    public override clone() {
+        return new EpicActionLimit();
+    }
+
+    // this prevents the limit from being reset when a leader is defeated
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public override reset() {}
+}
+
 export function fixed(max: number) {
     return new FixedAbilityLimit(max);
 }
@@ -156,6 +170,10 @@ export function perRound(max: number) {
 
 export function perGame(max: number) {
     return new RepeatableAbilityLimit(max, new Set());
+}
+
+export function epicAction() {
+    return new EpicActionLimit();
 }
 
 export function unlimited() {

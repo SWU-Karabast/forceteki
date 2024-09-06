@@ -16,6 +16,7 @@ import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
+import type { UnitCard } from '../CardTypes';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -57,7 +58,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             super(...args);
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
-            Contract.assertTrue(EnumHelpers.isUnit(this.printedType));
+            Contract.assertTrue(EnumHelpers.isUnit(this.printedType) || this.printedType === CardType.Leader);
 
             Contract.assertNotNullLike(cardData.arena);
             switch (cardData.arena) {
@@ -74,21 +75,21 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.defaultActions.push(new InitiateAttackAction(this));
         }
 
-        public override isUnit() {
+        public override isUnit(): this is UnitCard {
             return true;
         }
 
         // ***************************************** ATTACK HELPERS *****************************************
         /**
          * Check if there are any effect restrictions preventing this unit from attacking the passed target.
-         * Only checks effects, **does not** check basic attack rules (e.g. target card type).
+         * Returns true if so.
          */
-        public canAttack(target: Card) {
+        public effectsPreventAttack(target: Card) {
             if (this.hasEffect(EffectName.CannotAttackBase) && target.isBase()) {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         protected addOnAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {

@@ -3,7 +3,7 @@ import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction'
 import { Card } from '../core/card/Card';
 import { AbilityRestriction, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
-import { payResourceCost } from '../costs/CostLibrary';
+import { payPlayCardResourceCost } from '../costs/CostLibrary';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
 export class PlayUpgradeAction extends PlayCardAction {

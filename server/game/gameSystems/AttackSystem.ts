@@ -105,7 +105,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         }
         if (
             targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) ||
-            !(properties.attacker as UnitCard).canAttack(targetCard)
+            (properties.attacker as UnitCard).effectsPreventAttack(targetCard)
         ) {
             return false;
         }
@@ -146,7 +146,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         return [event];
     }
 
-    public override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (!Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`)) {
@@ -183,6 +183,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     }
 
     private resolveAttack(attack: Attack, context: AbilityContext): void {
+        // TODO: add more isValid() checks during the attack flow (if needed), and confirm that attack lasting effects still end correctly if any of them fail
         if (!attack.isValid()) {
             context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
             return;
@@ -192,7 +193,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         const damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).generateEvent(attack.target, context)];
 
         // event for damage dealt to attacker by defender, if any
-        if (!attack.targetIsBase) {
+        if (!attack.target.isBase()) {
             damageEvents.push(damage({ amount: attack.targetTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
         }
 

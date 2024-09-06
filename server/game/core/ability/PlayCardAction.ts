@@ -10,7 +10,7 @@ export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
     public constructor(card: Card, title: string, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
-        super(card, title, additionalCosts.concat(CostLibrary.payResourceCost()), targetResolver);
+        super(card, title, additionalCosts.concat(CostLibrary.payPlayCardResourceCost()), targetResolver);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
@@ -50,8 +50,8 @@ export abstract class PlayCardAction extends PlayerAction {
         return true;
     }
 
-    public override getReducedCost(context) {
-        const resourceCost = this.cost.find((cost) => cost.getReducedCost);
-        return resourceCost ? resourceCost.getReducedCost(context) : 0;
+    public override getAdjustedCost(context) {
+        const resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
+        return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 }

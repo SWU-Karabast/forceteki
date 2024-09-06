@@ -41,7 +41,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
         return super.canAffect(card, context);
     }
 
-    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const { amount, isCombatDamage } = this.generatePropertiesFromContext(context, additionalProperties) as IDamageProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.damage = amount;

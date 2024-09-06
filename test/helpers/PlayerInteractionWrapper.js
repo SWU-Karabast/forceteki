@@ -1,7 +1,7 @@
 const { detectBinary } = require('../../build/Util.js');
 const { GameMode } = require('../../build/GameMode.js');
 
-const { checkNullCard } = require('./Util.js');
+const { checkNullCard, formatPrompt } = require('./Util.js');
 
 class PlayerInteractionWrapper {
     constructor(game, player, testContext) {
@@ -70,6 +70,45 @@ class PlayerInteractionWrapper {
      */
     get inPlay() {
         return this.player.filterCardsInPlay(() => true);
+    }
+
+    setLeaderStatus(leaderOptions) {
+        if (!leaderOptions) {
+            return;
+        }
+
+        // leader as a string card name is a no-op unless it doesn't match the existing leader, then throw an error
+        if (typeof leaderOptions === 'string') {
+            if (leaderOptions !== this.player.leader.internalName) {
+                throw new Error(`Provided leader name ${leaderOptions} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+            }
+            return;
+        }
+
+        if (leaderOptions.card !== this.player.leader.internalName) {
+            throw new Error(`Provided leader name ${leaderOptions.card} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+        }
+
+        var leaderCard = this.player.leader;
+
+        if (leaderOptions.deployed) {
+            leaderCard.deploy();
+
+            // mark the deploy epic action as used
+            const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.title.includes('Deploy'));
+            deployAbility.limit.increment(this.player);
+
+            leaderCard.damage = leaderOptions.damage || 0;
+            leaderCard.exhausted = leaderOptions.exhausted || false;
+        } else {
+            if (leaderOptions.damage) {
+                throw new Error('Leader should not have damage when not deployed');
+            }
+
+            leaderCard.exhausted = leaderOptions.exhausted || false;
+        }
+
+        this.game.resolveGameState();
     }
 
     /**
@@ -288,25 +327,6 @@ class PlayerInteractionWrapper {
         return !this.hasPrompt('Waiting for opponent to take an action or pass');
     }
 
-    formatPrompt() {
-        var prompt = this.currentPrompt();
-        var selectableCards = this.currentActionTargets;
-
-        if (!prompt) {
-            return 'no prompt active';
-        }
-
-        return (
-            prompt.menuTitle +
-            '\n' +
-            prompt.buttons.map((button) => '[ ' + button.text + (button.disabled ? ' (disabled)' : '') + ' ]').join(
-                '\n'
-            ) +
-            '\n' +
-            selectableCards.map((obj) => obj['name']).join('\n')
-        );
-    }
-
     findCardByName(name, locations = 'any', side) {
         return this.filterCardsByName(name, locations, side)[0];
     }
@@ -362,6 +382,10 @@ class PlayerInteractionWrapper {
         return cards;
     }
 
+    exhaustResources(number) {
+        this.player.exhaustResources(number);
+    }
+
     putIntoPlay(card) {
         if (typeof card === 'string') {
             card = this.findCardByName(card);
@@ -395,7 +419,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new Error(
-                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${this.formatPrompt()}`
+                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
 
@@ -416,7 +440,7 @@ class PlayerInteractionWrapper {
             throw new Error(
                 `Couldn't click on Button '${index}' for ${
                     this.player.name
-                }. Current prompt is:\n${this.formatPrompt()}`
+                }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
 
@@ -426,7 +450,7 @@ class PlayerInteractionWrapper {
             throw new Error(
                 `Couldn't click on Button '${index}' for ${
                     this.player.name
-                }. Current prompt is:\n${this.formatPrompt()}`
+                }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
 
@@ -446,7 +470,7 @@ class PlayerInteractionWrapper {
             throw new Error(
                 `Couldn't click card '${cardName}' for ${
                     this.player.name
-                } - unable to find control '${controlName}'. Current prompt is:\n${this.formatPrompt()}`
+                } - unable to find control '${controlName}'. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
 
@@ -461,7 +485,7 @@ class PlayerInteractionWrapper {
         let availableCards = this.currentActionTargets;
 
         if (!availableCards || availableCards.length < nCardsToChoose) {
-            throw new Error(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${this.formatPrompt()}`);
+            throw new Error(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`);
         }
 
         for (let i = 0; i < nCardsToChoose; i++) {
@@ -493,7 +517,7 @@ class PlayerInteractionWrapper {
         if (expectChange) {
             const afterClick = this.getPlayerPromptState();
             if (this.promptStatesEqual(beforeClick, afterClick)) {
-                throw new Error(`Expected player prompt state to change after clicking ${card.internalName} but it did not`);
+                throw new Error(`Expected player prompt state to change after clicking ${card.internalName} but it did not. Current prompt:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`);
             }
         }
 
@@ -510,8 +534,21 @@ class PlayerInteractionWrapper {
     }
 
     promptStatesEqual(promptState1, promptState2) {
-        for (const key in promptState1) {
-            if (promptState1[key] !== promptState2[key]) {
+        if (
+            promptState1.menuTitle !== promptState2.menuTitle ||
+            promptState1.promptTitle !== promptState2.promptTitle ||
+            promptState1.actionTargets.length !== promptState2.actionTargets.length
+        ) {
+            return false;
+        }
+
+        const targets1 = promptState1.actionTargets;
+        const targets2 = promptState2.actionTargets;
+        targets1.sort();
+        targets2.sort();
+
+        for (let i = 0; i < targets1.length; i++) {
+            if (targets1[i] !== targets2[i]) {
                 return false;
             }
         }

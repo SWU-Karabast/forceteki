@@ -10,8 +10,9 @@ import { WithDamage } from './propertyMixins/Damage';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
+import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
-const NonLeaderUnitCardParent = WithUnitProperties(WithCost(InPlayCard));
+const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 
 export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
     public constructor(owner: Player, cardData: any) {
@@ -23,7 +24,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         this.defaultActions.push(new PlayUnitAction(this));
     }
 
-    public override isNonLeaderUnit() {
+    public override isNonLeaderUnit(): this is NonLeaderUnitCard {
         return true;
     }
 

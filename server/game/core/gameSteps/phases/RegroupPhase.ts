@@ -32,15 +32,17 @@ export class RegroupPhase extends Phase {
         for (const player of this.game.getPlayers()) {
             cardsToReady.push(...player.getUnitsInPlay());
             cardsToReady.push(...player.getResourceCards());
-        }
 
-        const readyContextWithTargets = Object.assign(this.game.getFrameworkContext(), { targets: cardsToReady });
+            if (!(player.leader.deployed)) {
+                cardsToReady.push(player.leader);
+            }
+        }
 
         // create a single event for the ready cards step as well as individual events for readying each card
         let events = [new GameEvent(EventName.OnRegroupPhaseReadyCards, {})];
         events = events.concat(
-            this.game.actions.ready({ isRegroupPhaseReadyStep: true })
-                .generateEventsForAllTargets(readyContextWithTargets));
+            this.game.actions.ready({ isRegroupPhaseReadyStep: true, target: cardsToReady })
+                .generateEventsForAllTargets(this.game.getFrameworkContext()));
 
         this.game.openEventWindow(events);
     }

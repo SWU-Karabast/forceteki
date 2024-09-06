@@ -7,7 +7,6 @@ export enum Location {
     Discard = 'discard',
     GroundArena = 'ground arena',
     Hand = 'hand',
-    Leader = 'leader',
     OutsideTheGame = 'outside the game',
     RemovedFromGame = 'removed from game',
     Resource = 'resource',
@@ -171,6 +170,7 @@ export enum EventName {
     OnDeckShuffled = 'onDeckShuffled',
     OnEffectApplied = 'onEffectApplied',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
+    OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
     OnPhaseCreated = 'onPhaseCreated',
@@ -313,6 +313,7 @@ export enum AbilityRestriction {
     Target = 'target',  // TODO: rename to AbilityTarget
 
     BeHealed = 'beHealed',
+    Exhaust = 'exhaust',
     InitiateKeywords = 'initiateKeywords',
     Ready = 'ready',
     ReceiveDamage = 'receiveDamage',

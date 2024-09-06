@@ -16,8 +16,7 @@ export default class Tarkintown extends BaseCard {
         this.setEpicActionAbility({
             title: 'Deal 3 damage to a damaged non-leader unit',
             targetResolver: {
-                cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                cardCondition: (card) => (card as UnitCard).damage !== 0,
+                cardCondition: (card) => card.isNonLeaderUnit() && card.damage !== 0,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
             }
         });

@@ -26,6 +26,7 @@ const Helpers = require('./utils/Helpers');
 const AbilityHelper = require('../AbilityHelper');
 const { BaseCard } = require('./card/BaseCard');
 const { LeaderCard } = require('./card/LeaderCard');
+const { LeaderUnitCard } = require('./card/LeaderUnitCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -58,9 +59,7 @@ class Player extends GameObject {
         this.additionalPiles = {};
         this.canTakeActionsThisPhase = null;
 
-        // TODO: per the rules, leader and base are both in the same 'base zone'
         this.baseZone = [];
-        this.leaderZone = [];
 
         this.leader = null;
         this.base = null;
@@ -484,7 +483,7 @@ class Player extends GameObject {
         if (preparedDecklist.base instanceof BaseCard) {
             this.base = preparedDecklist.base;
         }
-        if (preparedDecklist.leader instanceof BaseCard) {
+        if (preparedDecklist.leader instanceof LeaderUnitCard) {
             this.leader = preparedDecklist.leader;
         }
 
@@ -584,7 +583,7 @@ class Player extends GameObject {
      */
     getMinimumPossibleCost(playingType, context, target, ignoreType = false) {
         const card = context.source;
-        const adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType, context.costAspects);
+        const adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType);
 
         // TODO: not sure yet if we need this code, I think it's checking to see if any potential interrupts would create additional cost
         // let triggeredCostAdjusters = 0;
@@ -613,10 +612,10 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    getAdjustedCost(playingType, card, target, ignoreType = false, aspects = null) {
+    getAdjustedCost(playingType, card, target, ignoreType = false) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
-        let penaltyAspects = this.getPenaltyAspects(aspects);
+        let penaltyAspects = this.getPenaltyAspects(card.aspects);
         for (const aspect of penaltyAspects) {
             aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
         }
@@ -759,8 +758,6 @@ class Player extends GameObject {
                 return this.groundArena;
             case Location.Base:
                 return this.baseZone;
-            case Location.Leader:
-                return this.leaderZone;
             case Location.OutsideTheGame:
                 return this.outsideTheGameCards;
             default:
@@ -858,15 +855,8 @@ class Player extends GameObject {
      * @param {*} deck
      */
     selectDeck(deck) {
-        this.decklistNames.selected = false;
         this.decklistNames = deck;
         this.decklistNames.selected = true;
-        if (deck.base.length > 0) {
-            this.base = new BaseCard(this, deck.base[0].card);
-        }
-        if (deck.leader.length > 0) {
-            this.leader = new LeaderCard(this, deck.leader[0].card);
-        }
     }
 
     /**
@@ -884,13 +874,13 @@ class Player extends GameObject {
     }
 
     /**
-     * Moves a card from its current location to the resource zone, optionally exhausting it
+     * Moves a card from its current location to the resource zone
      * @param card BaseCard
-     * @param {boolean} exhaust
+     * @param {boolean} exhaust Whether to exhaust the card. True by default.
      */
-    resourceCard(card, exhaust = false) {
+    resourceCard(card, exhaust = true) {
         this.moveCard(card, Location.Resource);
-        card.exhausted = !exhaust;
+        card.exhausted = exhaust;
     }
 
     /**
@@ -1001,6 +991,9 @@ class Player extends GameObject {
             let updatedPile = this.removeCardByUuid(originalPile, card.uuid);
 
             switch (originalLocation) {
+                case Location.Base:
+                    this.baseZone = updatedPile;
+                    break;
                 case Location.SpaceArena:
                     this.spaceArena = updatedPile;
                     break;
@@ -1018,9 +1011,6 @@ class Player extends GameObject {
                     break;
                 case Location.RemovedFromGame:
                     this.removedFromGame = updatedPile;
-                    break;
-                case Location.Leader:
-                    this.leaderZone = updatedPile;
                     break;
                 case Location.OutsideTheGame:
                     this.outsideTheGameCards = updatedPile;

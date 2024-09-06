@@ -51,10 +51,6 @@ describe('Experience', function() {
                     player2: {
                     }
                 });
-
-                this.cartelSpacer = this.player1.findCardByName('cartel-spacer');
-                this.experience = this.player1.findCardByName('experience');
-                this.confiscate = this.player1.findCardByName('confiscate');
             });
 
             it('should be removed from the game when defeated', function () {
@@ -77,9 +73,6 @@ describe('Experience', function() {
                         spaceArena: ['tieln-fighter']
                     }
                 });
-
-                this.clanWrenRescuer = this.player1.findCardByName('clan-wren-rescuer');
-                this.tielnFighter = this.player2.findCardByName('tieln-fighter');
             });
 
             it('its owner and controller should be the player who created it', function () {

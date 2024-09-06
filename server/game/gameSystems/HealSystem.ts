@@ -43,7 +43,7 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
         return super.canAffect(card, context);
     }
 
-    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.healAmount = amount;

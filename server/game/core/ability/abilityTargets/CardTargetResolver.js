@@ -11,7 +11,6 @@ class CardTargetResolver {
         this.name = name;
         this.properties = properties;
         for (let gameSystem of this.properties.immediateEffect) {
-            // TODO TARGET: is this ever actually used? need to consolidate how targeting is done
             gameSystem.setDefaultTargetFn((context) => context.targets[name]);
         }
         this.selector = this.getSelector(properties);

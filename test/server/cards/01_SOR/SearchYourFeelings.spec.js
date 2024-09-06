@@ -76,8 +76,6 @@ describe('Search Your Feelings', function() {
                         deck: 30
                     }
                 });
-
-                this.searchYourFeelings = this.player1.findCardByName('search-your-feelings');
             });
 
             it('shuffles the deck', function () {

@@ -4,7 +4,7 @@
 const { select } = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
-const { checkNullCard } = require('./Util.js');
+const { checkNullCard, formatPrompt } = require('./Util.js');
 
 require('./ObjectFormatters.js');
 
@@ -41,7 +41,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${actual.name} not to have prompt '${expected}' but it did.`;
                 } else {
-                    result.message = `Expected ${actual.name} to have prompt '${expected}' but it had menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
+                    result.message = `Expected ${actual.name} to have prompt '${expected}' but it:\n${generatePromptHelpMessage(actual)}.`;
                 }
 
                 return result;
@@ -67,7 +67,7 @@ var customMatchers = {
                     result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+                result.message += `\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -98,7 +98,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+                result.message += `\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -123,7 +123,7 @@ var customMatchers = {
                     result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+                result.message += `\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -154,7 +154,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(actual)}`;
+                result.message += `\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -178,7 +178,7 @@ var customMatchers = {
                     result.message = `Expected ${card.name} to be selectable by ${player.name} but it wasn't.`;
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
 
                 return result;
             }
@@ -222,7 +222,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
 
                 return result;
             }
@@ -266,7 +266,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
 
                 return result;
             }
@@ -314,7 +314,7 @@ var customMatchers = {
                     result.message = message;
                 }
 
-                result.message += `\n${generatePromptTitlesMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
 
                 return result;
             }
@@ -333,10 +333,9 @@ var customMatchers = {
 
                 // this is the default action window prompt (meaning no action was available)
                 result.pass = !player.hasPrompt('Action Window');
-                var currentPrompt = player.currentPrompt();
 
                 if (result.pass) {
-                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt with menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
+                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(player)}`;
                 } else {
                     result.message = `Expected ${card.name} to have an action available when clicked by ${player.name} but it did not.`;
                 }
@@ -374,7 +373,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it had menuTitle '${currentPrompt.menuTitle}' and promptTitle '${currentPrompt.promptTitle}'.`;
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player)}`;
                 }
 
                 return result;
@@ -534,9 +533,8 @@ var customMatchers = {
     }
 };
 
-function generatePromptTitlesMessage(player) {
-    const currentPrompt = player.currentPrompt();
-    return `Current prompt for ${player.name}: menuTitle = '${currentPrompt.menuTitle}', promptTitle = '${currentPrompt.promptTitle}'`;
+function generatePromptHelpMessage(player) {
+    return `Current prompt for ${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}'`;
 }
 
 beforeEach(function () {
@@ -622,6 +620,10 @@ global.integration = function (definitions) {
                 this.player2.setHand(options.player2.hand, ['removed from game']);
                 this.player1.setDiscard(options.player1.discard, ['removed from game']);
                 this.player2.setDiscard(options.player2.discard, ['removed from game']);
+
+                // Set Leader state (deployed, exhausted, etc.)
+                this.player1.setLeaderStatus(options.player1.leader);
+                this.player2.setLeaderStatus(options.player2.leader);
 
                 // Deck
                 this.player1.setDeck(options.player1.deck, ['removed from game']);

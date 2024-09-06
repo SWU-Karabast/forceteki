@@ -90,14 +90,14 @@ class EventWindow extends BaseStepWithPipeline {
     executeHandler() {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
-        this.eventsToExecute.forEach((event) => {
+        for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
             event.checkCondition();
             if (!event.cancelled) {
                 event.executeHandler();
                 this.game.emit(event.name, event);
             }
-        });
+        }
     }
 
     resolveGameState() {

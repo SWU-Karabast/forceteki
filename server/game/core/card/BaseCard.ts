@@ -6,9 +6,9 @@ import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
 import AbilityHelper from '../../AbilityHelper';
 import { IActionAbilityProps, IEpicActionProps } from '../../Interfaces';
-import { AbilityContext } from '../ability/AbilityContext';
+import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
-const BaseCardParent = WithDamage(Card);
+const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
 
 /** A Base card (as in, the card you put in your base zone) */
 export class BaseCard extends BaseCardParent {
@@ -25,7 +25,7 @@ export class BaseCard extends BaseCardParent {
         this.enableDamage(true);
     }
 
-    public override isBase() {
+    public override isBase(): this is BaseCard {
         return true;
     }
 
@@ -43,7 +43,7 @@ export class BaseCard extends BaseCardParent {
         }
 
         const propertiesWithLimit: IActionAbilityProps<this> = Object.assign(properties, {
-            limit: AbilityHelper.limit.perGame(1)
+            limit: AbilityHelper.limit.epicAction()
         });
 
         this._epicActionAbility = new ActionAbility(this.game, this, propertiesWithLimit);

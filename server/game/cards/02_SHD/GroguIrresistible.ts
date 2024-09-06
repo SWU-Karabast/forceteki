@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
-import { RelativePlayer } from '../../core/Constants';
+import { RelativePlayer, WildcardLocation } from '../../core/Constants';
 
 export default class GroguIrresistible extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,6 +15,8 @@ export default class GroguIrresistible extends NonLeaderUnitCard {
             title: 'Exhaust an enemy unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
+                locationFilter: WildcardLocation.AnyArena,
+                cardCondition: (card) => card.controller !== this.controller,
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }

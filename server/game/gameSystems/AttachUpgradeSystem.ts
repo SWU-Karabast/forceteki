@@ -75,7 +75,7 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         if (!card.isUnit()) {
             return false;
         }
-        if (!properties.upgrade.canAttach((card as UnitCard), this.getFinalController(properties, context))) {
+        if (!properties.upgrade.canAttach(card, this.getFinalController(properties, context))) {
             return false;
         } else if (
             properties.takeControl &&
@@ -104,7 +104,7 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         return event.parentCard === card && event.card === upgrade && event.name === this.eventName && !event.cancelled;
     }
 
-    public override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
         event.name = this.eventName;
         event.parentCard = card;
