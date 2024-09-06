@@ -13,7 +13,7 @@ export interface PlayedCardEntry {
 
 export type ICardsPlayedThisPhase = PlayedCardEntry[];
 
-export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPhase> {
+export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]> {
     public constructor(
         registrar: StateWatcherRegistrar,
         card: Card

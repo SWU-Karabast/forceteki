@@ -341,6 +341,16 @@ export class Card extends OngoingEffectSource {
     }
 
 
+    // ******************************************* ASPECT HELPERS *******************************************
+    public hasSomeAspect(aspects: Set<Aspect> | Aspect | Aspect[]): boolean {
+        return this.hasSome(aspects, this.aspects);
+    }
+
+    public hasEveryAspect(aspects: Set<Aspect> | Aspect[]): boolean {
+        return this.hasEvery(aspects, this.aspects);
+    }
+
+
     // *************************************** EFFECT HELPERS ***************************************
     public isBlank(): boolean {
         return this.hasEffect(EffectName.Blank);
