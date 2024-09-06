@@ -54,8 +54,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
                 this.player1.clickCard(this.tielnFighter);
 
-                expect(this.tielnFighter.upgrades.length).toBe(1);
-                expect(this.tielnFighter.upgrades[0].internalName).toBe('experience');
+                expect(this.tielnFighter).toHaveExactUpgradeNames(['experience']);
                 expect(this.grandMoffTarkin.damage).toBe(4);
                 expect(this.wampa.damage).toBe(2);
             });

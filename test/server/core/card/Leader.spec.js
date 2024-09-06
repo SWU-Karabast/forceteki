@@ -111,13 +111,18 @@ describe('Leader cards', function() {
                 this.p2Base = this.player2.base;
             });
 
-            it('should have functioning keywords', function () {
+            it('should have functioning keywords and be exhausted on attack', function () {
                 this.p1Base.damage = 5;
                 this.player1.clickCard(this.directorKrennic);
                 this.player1.clickCard(this.player2.base);
 
                 expect(this.p1Base.damage).toBe(3);
                 expect(this.p2Base.damage).toBe(2);
+                expect(this.directorKrennic.exhausted).toBe(true);
+
+                this.player2.passAction();
+
+                expect(this.directorKrennic).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
             });
         });
     });

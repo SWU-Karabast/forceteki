@@ -51,36 +51,49 @@ describe('Luke Skywalker, Faithful Friend', function() {
             });
         });
 
-        // describe('Luke\'s deployed ability', function() {
-        //     beforeEach(function () {
-        //         this.setupTest({
-        //             phase: 'action',
-        //             player1: {
-        //                 groundArena: ['atst', 'battlefield-marine'],
-        //                 spaceArena: ['tieln-fighter'],
-        //                 leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true }
-        //             },
-        //             player2: {
-        //                 groundArena: ['wampa'],
-        //                 spaceArena: ['tie-advanced']
-        //             }
-        //         });
-        //     });
+        describe('Luke\'s deployed ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['atst'],
+                        spaceArena: ['tieln-fighter'],
+                        leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['tie-advanced']
+                    }
+                });
+            });
 
-        //     it('should give a friendly imperial unit an experience token on attack', function () {
-        //         this.player1.clickCard(this.grandMoffTarkin);
-        //         this.player1.clickCard(this.wampa);
+            it('should give any unit a shield token on attack', function () {
+                this.player1.clickCard(this.lukeSkywalker);
+                this.player1.clickCard(this.wampa);
 
-        //         expect(this.player1).toHavePrompt('Choose a card');
-        //         expect(this.player1).toHaveEnabledPromptButton('Pass ability');
-        //         expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
-        //         this.player1.clickCard(this.tielnFighter);
+                expect(this.player1).toHavePrompt('Choose a card');
+                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter, this.wampa, this.tieAdvanced]);
+                this.player1.clickCard(this.tielnFighter);
 
-        //         expect(this.tielnFighter.upgrades.length).toBe(1);
-        //         expect(this.tielnFighter.upgrades[0].internalName).toBe('experience');
-        //         expect(this.grandMoffTarkin.damage).toBe(4);
-        //         expect(this.wampa.damage).toBe(2);
-        //     });
-        // });
+                expect(this.tielnFighter).toHaveExactUpgradeNames(['shield']);
+                expect(this.lukeSkywalker.damage).toBe(4);
+                expect(this.wampa.damage).toBe(4);
+
+                // reset for a second attack to confirm that shield gets applied to wampa before the attack damage happens
+                this.lukeSkywalker.damage = 0;
+                this.lukeSkywalker.exhausted = false;
+                this.wampa.damage = 0;
+                this.player2.passAction();
+
+                this.player1.clickCard(this.lukeSkywalker);
+                this.player1.clickCard(this.wampa);
+                this.player1.clickCard(this.wampa);
+
+                expect(this.lukeSkywalker.damage).toBe(4);
+                expect(this.wampa.damage).toBe(0);
+                expect(this.wampa.upgrades.length).toBe(0);
+            });
+        });
     });
 });
