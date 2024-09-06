@@ -1,7 +1,7 @@
 import AbilityHelper from '../../AbilityHelper';
 import { UnitCard } from '../../core/card/CardTypes';
 import { EventCard } from '../../core/card/EventCard';
-import { TargetMode, Trait, WildcardCardType } from '../../core/Constants';
+import { TargetMode, Trait } from '../../core/Constants';
 import { AttacksThisPhaseWatcher } from '../../stateWatchers/AttacksThisPhaseWatcher';
 import { StateWatcherRegistrar } from '../../core/stateWatcher/StateWatcherRegistrar';
 
@@ -15,8 +15,8 @@ export default class MedalCeremony extends EventCard {
         };
     }
 
-    protected override setupStateWatchers(stateWatcherRegistrar: StateWatcherRegistrar) {
-        this.attacksThisPhaseWatcher = new AttacksThisPhaseWatcher(stateWatcherRegistrar, this);
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar) {
+        this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
     public override setupCardAbilities() {

@@ -212,7 +212,7 @@ export class Card extends OngoingEffectSource {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupStateWatchers(stateWatcherRegistrar: StateWatcherRegistrar) {
+    protected setupStateWatchers(registrar: StateWatcherRegistrar) {
     }
 
     public createActionAbility(properties: IActionAbilityProps): ActionAbility {

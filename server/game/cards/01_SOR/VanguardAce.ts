@@ -13,8 +13,8 @@ export default class VanguardAce extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(stateWatcherRegistrar: StateWatcherRegistrar) {
-        this.cardsPlayedThisWatcher = new CardsPlayedThisPhaseWatcher(stateWatcherRegistrar, this);
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar) {
+        this.cardsPlayedThisWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
     public override setupCardAbilities() {
