@@ -18,6 +18,8 @@ import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { RaidAbility } from '../../../abilities/keyword/RaidAbility';
 import StatsModifier from '../../ongoingEffect/effectImpl/StatsModifier';
+import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
+import { Attack } from '../../attack/Attack';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -40,6 +42,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected _upgrades: UpgradeCard[] = [];
 
         private _attackKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
+        private _whenPlayedKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
+
+        private activeAttack?: Attack = null;
 
         public override get hp(): number {
             return this.getModifiedStatValue(StatType.Hp);
@@ -52,6 +57,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public get upgrades(): UpgradeCard[] {
             return this._upgrades;
         }
+
+        // public get defending() {
+        //     return this.activeAttack?.target === this;
+        // }
 
         // ****************************************** CONSTRUCTOR ******************************************
         // see Card constructor for list of expected args
@@ -102,8 +111,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             let triggeredAbilities = super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
-            if (this._attackKeywordAbilities !== null || this.isBlank()) {
+            if (this._attackKeywordAbilities !== null || this.isBlank()) { //TODO: Why is this isBlank check even here?
                 triggeredAbilities = triggeredAbilities.concat(this._attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
+            }
+            if (this._whenPlayedKeywordAbilities !== null || this.isBlank()) {
+                // TODO: does it even make sense for there to be non-triggered when played keyword abilities? I think not. Maybe Smuggle?
+                triggeredAbilities = triggeredAbilities.concat(this._whenPlayedKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
             }
 
             return triggeredAbilities;
@@ -143,6 +156,51 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Registers any keywords which need to be explicitly registered for the attack process.
          * These should be unregistered after the end of the attack.
          */
+        public registerWhenPlayedKeywords() {
+            if (!Contract.assertTrue(
+                this._whenPlayedKeywordAbilities === null,
+                `Failed to unregister when played abilities from previous play: ${this._whenPlayedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+            )) {
+                return;
+            }
+
+            this._whenPlayedKeywordAbilities = [];
+
+            // shielded
+            if (this.hasSomeKeyword(KeywordName.Shielded)) {
+                const shieldedAbility = this.createTriggeredAbility(ShieldedAbility.buildShieldedAbilityProperties());
+                shieldedAbility.registerEvents();
+                this._whenPlayedKeywordAbilities.push(shieldedAbility);
+            }
+        }
+
+        /**
+         * Unegisters any keywords which need to be explicitly registered for the attack process.
+         * These should be unregistered after the end of the attack.
+         */
+        public unregisterWhenPlayedKeywords() {
+            if (!Contract.assertTrue(
+                Array.isArray(this._whenPlayedKeywordAbilities),
+                'Ability when played registration was skipped'
+            )) {
+                return;
+            }
+
+            for (const ability of this._whenPlayedKeywordAbilities) {
+                if (ability instanceof TriggeredAbility) {
+                    ability.unregisterEvents();
+                } else {
+                    this.removeEffectFromEngine(ability.registeredEffects[0]);
+                }
+            }
+
+            this._whenPlayedKeywordAbilities = null;
+        }
+
+        /**
+         * Registers any keywords which need to be explicitly registered for the attack process.
+         * These should be unregistered after the end of the attack.
+         */
         public registerAttackKeywords() {
             if (!Contract.assertTrue(
                 this._attackKeywordAbilities === null,
@@ -161,7 +219,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._attackKeywordAbilities.push(restoreAbility);
             }
 
-            // raid
+            // TODO: rework raid
             const raidAmount = this.getNumericKeywordSum(KeywordName.Raid);
             if (raidAmount !== null) {
                 const raidAbility = this.createTriggeredAbility(RaidAbility.buildRaidAbilityProperties(raidAmount));
@@ -230,6 +288,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
             }
 
+            //getNumericKeywordSum for Raid if attacking
+
             return wrappedStatsModifiers;
         }
 
@@ -265,6 +325,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override leavesPlay() {
+            this.unregisterWhenPlayedKeywords();
             // TODO CAPTURE: use this for capture logic
             // // Remove any cards underneath from the game
             // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);

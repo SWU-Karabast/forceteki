@@ -217,7 +217,6 @@ export enum KeywordName {
     Restore = 'restore',
     /** @deprecated Not implemented yet */
     Saboteur = 'saboteur',
-    /** @deprecated Not implemented yet */
     Sentinel = 'sentinel',
     Shielded = 'shielded',
     /** @deprecated Not implemented yet */

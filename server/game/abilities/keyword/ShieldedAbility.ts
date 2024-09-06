@@ -6,14 +6,13 @@ import Game from '../../core/Game';
 import Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';
 
-/** @deprecated remove this if it turns out we dont need it */
 export class ShieldedAbility extends TriggeredAbility {
-    public override readonly keyword: KeywordName | null = KeywordName.Raid;
+    public override readonly keyword: KeywordName | null = KeywordName.Shielded;
 
     public static buildShieldedAbilityProperties(): ITriggeredAbilityProps {
         return {
             title: 'Shielded',
-            when: { onUnitEntersPlay: (event) => event.card === this },
+            when: { onUnitEntersPlay: (event, context) => event.card === context.source },
             immediateEffect: AbilityHelper.immediateEffects.giveShield()
         };
     }

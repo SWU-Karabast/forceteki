@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, CardTypeFilter, EventName, Location, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, CardTypeFilter, EventName, KeywordName, Location, WildcardCardType, WildcardLocation } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
@@ -84,9 +84,10 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         ];
     }
 
+    /** This method is checking whether cards are a valid target for an attack. */
     public override canAffect(targetCard: Card, context: AbilityContext, additionalProperties = {}): boolean {
         if (!('printedHp' in targetCard)) {
-            return false;
+            return false; // cannot attack cards without printed HP
         }
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -101,22 +102,30 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             return false;
         }
         if (targetCard === properties.attacker || targetCard.controller === properties.attacker.controller) {
-            return false; //cannot attack yourself or your controller's cards
+            return false; // cannot attack yourself or your controller's cards
         }
         if (
             targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) ||
             !(properties.attacker as UnitCard).canAttack(targetCard)
         ) {
-            return false;
+            return false; // cannot attack cards with a BeAttacked restriction
         }
-        // TODO SENTINEL: check will go here
+        // TODO SENTINEL: check will go here - how do we get a list of all valid targets?
+        const attackerLocation = properties.attacker.location === Location.GroundArena ? Location.GroundArena : Location.SpaceArena;
+        const canTargetGround = attackerLocation === Location.GroundArena || context.source.hasEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
+        const canTargetSpace = attackerLocation === Location.SpaceArena || context.source.hasEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
         if (
-            targetCard.location !== properties.attacker.location &&
+            targetCard.location !== attackerLocation &&
             targetCard.location !== Location.Base &&
-            !(targetCard.location === Location.SpaceArena && context.source.hasEffect(EffectName.CanAttackGroundArenaFromSpaceArena)) &&
-            !(targetCard.location === Location.GroundArena && context.source.hasEffect(EffectName.CanAttackSpaceArenaFromGroundArena))
+            !(targetCard.location === Location.SpaceArena && canTargetSpace) &&
+            !(targetCard.location === Location.GroundArena && canTargetGround)
         ) {
-            return false;
+            return false; // can only attack same arena or base unless an effect allows otherwise
+        }
+        //TODO: rework this into a method somewhere or simplify it.
+        if (targetCard.controller.getUnitsInPlay(attackerLocation, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
+            // TODO: Saboteur
+            return targetCard.hasSomeKeyword(KeywordName.Sentinel);
         }
 
         return (
