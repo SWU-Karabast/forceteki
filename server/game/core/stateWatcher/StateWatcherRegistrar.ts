@@ -3,6 +3,11 @@ import Game from '../Game';
 import Player from '../Player';
 import Contract from '../utils/Contract';
 
+/**
+ * Helper for managing the operation of {@link StateWatcher} implementations.
+ * Holds the state objects that the watchers interact with, registers the
+ * triggers for updating them, and tracks which watcher types are registered.
+ */
 export class StateWatcherRegistrar {
     private watchedState = new Map<string, any>();
 
