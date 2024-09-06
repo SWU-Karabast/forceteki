@@ -56,8 +56,10 @@ describe('Medal Ceremony', function() {
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.rebelPathfinder);
                 this.player1.clickCard(this.allianceXwing);
+
                 // click on a fourth card just to confirm it doesn't work
-                this.player1.clickCard(this.consularSecurityForce);
+                this.player1.clickCardNonChecking(this.consularSecurityForce);
+
                 this.player1.clickPrompt('Done');
                 expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
                 expect(this.rebelPathfinder).toHaveExactUpgradeNames(['experience']);
