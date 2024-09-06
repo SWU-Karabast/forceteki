@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { AbilityRestriction, AbilityType, Arena, CardType, EffectName, KeywordName, Location, StatType } from '../../Constants';
+import { Arena, EffectName, KeywordName, Location, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import Contract from '../../utils/Contract';
@@ -11,13 +11,13 @@ import * as EnumHelpers from '../../utils/EnumHelpers';
 import { UpgradeCard } from '../UpgradeCard';
 import { Card } from '../Card';
 import { ITriggeredAbilityProps } from '../../../Interfaces';
-import { KeywordWithCostValues, KeywordWithNumericValue } from '../../ability/KeywordInstance';
-import * as KeywordHelpers from '../../ability/KeywordHelpers';
+import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { RaidAbility } from '../../../abilities/keyword/RaidAbility';
 import StatsModifier from '../../ongoingEffect/effectImpl/StatsModifier';
+import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { Attack } from '../../attack/Attack';
 
@@ -171,6 +171,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const shieldedAbility = this.createTriggeredAbility(ShieldedAbility.buildShieldedAbilityProperties());
                 shieldedAbility.registerEvents();
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
+            }
+
+            // ambush
+            if (this.hasSomeKeyword(KeywordName.Ambush)) {
+                const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
+                ambushAbility.registerEvents();
+                this._whenPlayedKeywordAbilities.push(ambushAbility);
             }
         }
 

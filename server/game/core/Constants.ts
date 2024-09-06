@@ -206,7 +206,6 @@ export enum Aspect {
 }
 
 export enum KeywordName {
-    /** @deprecated Not implemented yet */
     Ambush = 'ambush',
     /** @deprecated Not implemented yet */
     Bounty = 'bounty',
