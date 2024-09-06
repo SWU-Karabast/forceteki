@@ -703,6 +703,72 @@ this.action({
 });
 ```
 
+### Remembering past game events with state watchers
+Some cards refer back to events that have happened previously in this phase or round, such as Medal Ceremony or the Cassian leader. To add this kind of game memory to a card, add a state watcher. Here is an example with Medal Ceremony:
+
+```typescript
+export default class MedalCeremony extends EventCard {
+    // this watcher records every instance of an attack that happened in the past phase
+    private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
+
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar) {
+        this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
+    }
+
+    public override setupCardAbilities() {
+        this.setEventAbility({
+            title: 'Give an experience to each of up to three Rebel units that attacked this phase',
+            targetResolver: {
+                mode: TargetMode.UpTo,
+                numCards: 3,
+                optional: true,
+                immediateEffect: AbilityHelper.immediateEffects.giveExperience(),
+
+                // this condition gets the list of Rebel attackers this phase from the watcher and checks if the specified card is in it
+                cardCondition: (card, context) => {
+                    const rebelUnitsAttackedThisPhase = this.attacksThisPhaseWatcher.getCurrentValue()
+                        .filter((attack) => attack.attacker.hasSomeTrait(Trait.Rebel))
+                        .map((attack) => attack.attacker as Card);
+
+                    return rebelUnitsAttackedThisPhase.includes(card);
+                }
+            }
+        });
+    }
+}
+```
+
+A "state watcher" is a set of event triggers which are used to log events that occur during the game. For example, the `AttacksThisPhaseWatcher` used above is called on every `onCardPlayed` event and adds the event to the list of played cards this phase. The `getCurrentValue()` method on a watcher will return the state object for that watcher, which varies by watcher type.
+
+For a list of available state watchers, see [StateWatcherLibrary](../server/game/stateWatchers/StateWatcherLibrary.ts).
+
+#### IT'S A TRAP: reading properties from state watcher results
+When using a state watcher, it's important to remember that card properties will have changed since the relevant watched event(s) took place and the current properties of a card may be different than what they were when the event happened.
+
+As an example, consider the Vanguard Ace ability, which creates one experience token for each card played by the controller this phase. It uses a `CardsPlayedThisPhaseWatcher`, which returns the list of all cards played this phase by either player. Each entry gives the played card and the player who played it:
+```typescript
+public override setupCardAbilities() {
+    this.addWhenPlayedAbility({
+        title: 'Give one experience for each card you played this turn',
+        immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
+            const cardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCurrentValue();
+
+            const experienceCount = cardsPlayedThisPhase.filter((playedCardEntry) =>
+                // playedCardEntry.card.controller === context.source.controller    <-- THIS IS THE WRONG WAY TO CHECK IF WE PLAYED THE CARD
+                playedCardEntry.playedBy === context.source.controller &&
+                playedCardEntry.card !== context.source
+            ).length;
+
+            return { amount: experienceCount };
+        })
+    });
+}
+```
+
+Since Vanguard Ace only counts cards that were played by its controller, we need to filter the results of the `CardsPlayedThisPhaseWatcher` to only cards that we (the controller) played. However, we can't do this by just checking the `controller` property of each card that was played, because it is possible that control of the card has changed since the card was played (e.g. with Traitorous). If we just did `card.controller === context.source.controller`, then a card that we played which was stolen with Traitorous would not be counted by the Vanguard Ace ability.
+
+Therefore, it is imporant that the code checks the provided `playedBy` property from the watcher, which recorded the acting player at the time the card was played. Otherwise, the card's behavior will be incorrect in some cases.
+
 ### Using GameSystems for building ability effects
 
 In general, the effects of an ability should be implemented using game systems represented by the GameSystem class, which is turn wrapped by helper methods under the AbilityHelper import.
