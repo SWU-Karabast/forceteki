@@ -12,8 +12,6 @@ import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from './LastingEffectCardSystem';
 import Contract from '../core/utils/Contract';
-import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
-import * as CardHelpers from '../core/card/CardHelpers';
 import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;

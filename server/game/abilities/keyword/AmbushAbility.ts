@@ -6,6 +6,7 @@ import Game from '../../core/Game';
 import Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';
 
+/** @deprecated this is still WIP until attack changes are done */
 export class AmbushAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Ambush;
 

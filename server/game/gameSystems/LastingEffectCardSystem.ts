@@ -1,5 +1,4 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import PlayerOrCardAbility from '../core/ability/PlayerOrCardAbility';
 import { Card } from '../core/card/Card';
 import { Duration, EffectName, EventName, Location, WildcardLocation } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
