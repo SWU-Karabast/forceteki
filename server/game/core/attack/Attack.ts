@@ -11,7 +11,7 @@ import { NonLeaderUnitCard } from '../card/NonLeaderUnitCard';
 import { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
 
 export interface IAttackAbilities {
-    saboteur: boolean;
+    saboteur: boolean; // TODO: I think we can remove this?
 }
 
 type StatisticTotal = number;

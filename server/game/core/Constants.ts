@@ -208,6 +208,7 @@ export enum Aspect {
 }
 
 export enum KeywordName {
+    /** @deprecated Not implemented yet */
     Ambush = 'ambush',
     /** @deprecated Not implemented yet */
     Bounty = 'bounty',
@@ -216,7 +217,6 @@ export enum KeywordName {
     Overwhelm = 'overwhelm',
     Raid = 'raid',
     Restore = 'restore',
-    /** @deprecated Not implemented yet */
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
     Shielded = 'shielded',

@@ -15,7 +15,6 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'Cannot be attacked if friendly units have at least 3 unique aspects',
             condition: (context) => countUniqueAspects(this.controller.getOtherUnitsInPlay(context.source)) >= 3,
-
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
 

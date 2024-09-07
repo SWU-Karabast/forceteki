@@ -110,7 +110,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         ) {
             return false; // cannot attack cards with a BeAttacked restriction
         }
-        // TODO SENTINEL: check will go here - how do we get a list of all valid targets?
+
         const attackerLocation = properties.attacker.location === Location.GroundArena ? Location.GroundArena : Location.SpaceArena;
         const canTargetGround = attackerLocation === Location.GroundArena || context.source.hasEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
         const canTargetSpace = attackerLocation === Location.SpaceArena || context.source.hasEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
@@ -122,10 +122,11 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         ) {
             return false; // can only attack same arena or base unless an effect allows otherwise
         }
-        // TODO: rework this into a method somewhere or simplify it.
-        if (targetCard.controller.getUnitsInPlay(attackerLocation, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
-            // TODO: Saboteur
-            return targetCard.hasSomeKeyword(KeywordName.Sentinel);
+
+        if (!properties.attacker.hasSomeKeyword(KeywordName.Saboteur)) { // If not Saboteur, do a Sentinel check
+            if (targetCard.controller.getUnitsInPlay(attackerLocation, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
+                return targetCard.hasSomeKeyword(KeywordName.Sentinel);
+            }
         }
 
         return EnumHelpers.isAttackableLocation(targetCard.location);

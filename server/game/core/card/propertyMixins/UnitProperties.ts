@@ -21,6 +21,7 @@ import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { Attack } from '../../attack/Attack';
 import type { UnitCard } from '../CardTypes';
 import { StatsModifier } from '../../ongoingEffect/effectImpl/StatsModifier';
+import { SaboteurAbility } from '../../../abilities/keyword/SaboteurAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -51,6 +52,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._activeAttack = attack;
         }
 
+        public get activeAttack() {
+            return this._activeAttack;
+        }
+
         public override get hp(): number {
             return this.getModifiedStatValue(StatType.Hp);
         }
@@ -61,6 +66,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public get upgrades(): UpgradeCard[] {
             return this._upgrades;
+        }
+
+        public hasUpgradeWithName(name: string): boolean {
+            return this._upgrades.some((upgrade) => upgrade.title === name);
         }
 
         public isAttacking(): boolean {
@@ -241,7 +250,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._attackKeywordAbilities.push(restoreAbility);
             }
 
-            // TODO: defeat all shields for Saboteur
+            if (this.hasSomeKeyword(KeywordName.Saboteur)) {
+                const saboteurAbility = this.createTriggeredAbility(SaboteurAbility.buildSaboteurAbilityProperties());
+                saboteurAbility.registerEvents();
+                this._attackKeywordAbilities.push(saboteurAbility);
+            }
         }
 
         /**
