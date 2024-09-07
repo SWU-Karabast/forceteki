@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { Arena, EffectName, KeywordName, Location, StatType } from '../../Constants';
+import { Arena, CardType, EffectName, KeywordName, Location, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import Contract from '../../utils/Contract';
@@ -16,11 +16,11 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { RaidAbility } from '../../../abilities/keyword/RaidAbility';
-import StatsModifier from '../../ongoingEffect/effectImpl/StatsModifier';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { Attack } from '../../attack/Attack';
 import type { UnitCard } from '../CardTypes';
+import { StatsModifier } from '../../ongoingEffect/effectImpl/StatsModifier';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -45,7 +45,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _attackKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
         private _whenPlayedKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
 
-        private activeAttack?: Attack = null;
+        private _activeAttack?: Attack = null;
+
+        public setActiveAttack(attack: Attack) {
+            this._activeAttack = attack;
+        }
 
         public override get hp(): number {
             return this.getModifiedStatValue(StatType.Hp);
@@ -59,9 +63,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._upgrades;
         }
 
-        // public get defending() {
-        //     return this.activeAttack?.target === this;
-        // }
+        public isAttacking(): boolean {
+            return (this as Card) === (this._activeAttack?.attacker as Card);
+        }
+
+        public isDefending(): boolean {
+            return (this as Card) === (this._activeAttack?.target as Card);
+        }
+
 
         // ****************************************** CONSTRUCTOR ******************************************
         // see Card constructor for list of expected args
@@ -174,12 +183,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
             }
 
+            // TODO: uncomment once Veld does engine work
             // ambush
-            if (this.hasSomeKeyword(KeywordName.Ambush)) {
-                const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
-                ambushAbility.registerEvents();
-                this._whenPlayedKeywordAbilities.push(ambushAbility);
-            }
+            // if (this.hasSomeKeyword(KeywordName.Ambush)) {
+            //     const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
+            //     ambushAbility.registerEvents();
+            //     this._whenPlayedKeywordAbilities.push(ambushAbility);
+            // }
         }
 
         /**
@@ -208,6 +218,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         /**
          * Registers any keywords which need to be explicitly registered for the attack process.
          * These should be unregistered after the end of the attack.
+         *
+         * Note: Check rule 7.5 to see if a keyword should be here. Only keywords that are
+         *      "On Attack" keywords should go here. As of Set 2 (SHD) this is only Restore
+         *      and the defeat all shields portion of Saboteur.
          */
         public registerAttackKeywords() {
             if (!Contract.assertTrue(
@@ -227,13 +241,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._attackKeywordAbilities.push(restoreAbility);
             }
 
-            // TODO: rework raid
-            const raidAmount = this.getNumericKeywordSum(KeywordName.Raid);
-            if (raidAmount !== null) {
-                const raidAbility = this.createTriggeredAbility(RaidAbility.buildRaidAbilityProperties(raidAmount));
-                raidAbility.registerEvents();
-                this._attackKeywordAbilities.push(raidAbility);
-            }
+            // TODO: defeat all shields for Saboteur
         }
 
         /**
@@ -292,11 +300,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.upgrades.forEach((upgrade) => wrappedStatsModifiers.push(StatsModifierWrapper.fromPrintedValues(upgrade)));
 
             if (this.hasSomeKeyword(KeywordName.Grit)) {
-                const gritModifier = new StatsModifier(this.damage, 0);
+                const gritModifier = { power: this.damage, hp: 0 };
                 wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
             }
 
-            //getNumericKeywordSum for Raid if attacking
+            if (this.isAttacking() && this.getNumericKeywordSum(KeywordName.Raid) > 0) {
+                const raidModifier = { power: this.getNumericKeywordSum(KeywordName.Raid), hp: 0 };
+                wrappedStatsModifiers.push(new StatsModifierWrapper(raidModifier, 'Raid', false, this.type));
+            }
 
             return wrappedStatsModifiers;
         }

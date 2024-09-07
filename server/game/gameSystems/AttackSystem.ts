@@ -122,15 +122,13 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         ) {
             return false; // can only attack same arena or base unless an effect allows otherwise
         }
-        //TODO: rework this into a method somewhere or simplify it.
+        // TODO: rework this into a method somewhere or simplify it.
         if (targetCard.controller.getUnitsInPlay(attackerLocation, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
             // TODO: Saboteur
             return targetCard.hasSomeKeyword(KeywordName.Sentinel);
         }
 
-        return (
-            EnumHelpers.isAttackableLocation(targetCard.location)
-        );
+        return EnumHelpers.isAttackableLocation(targetCard.location);
     }
 
     public attackCosts(prompt, context: AbilityContext, additionalProperties = {}): void {
