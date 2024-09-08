@@ -18,7 +18,7 @@ export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbil
 export type IReplacementEffectAbilityProps = IReplacementEffectAbilityWhenProps | IReplacementEffectAbilityAggregateWhenProps;
 
 /** Interface definition for addActionAbility */
-export interface IActionAbilityProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
+export interface IActionAbilityProps<Source = any> extends Omit<IAbilityProps<AbilityContext<Source>>, 'optional'> {
     condition?: (context?: AbilityContext<Source>) => boolean;
 
     /**
@@ -67,6 +67,12 @@ export interface IAbilityProps<Context> {
     cardName?: string;
 
     /**
+     * Indicates if triggering the ability is optional (in which case the player will be offered the
+     * 'Pass' button on resolution) or if it is mandatory
+     */
+    optional?: boolean;
+
+    /**
      * Indicates whether the ability should allow the player to trigger an attack from a unit.
      * Can either be an {@link IInitiateAttack} property object or a function that creates one from
      * an {@link AbilityContext}.
@@ -79,7 +85,7 @@ export interface IAbilityProps<Context> {
     effectArgs?: EffectArg | ((context: Context) => EffectArg);
     immediateEffect?: GameSystem | GameSystem[];
     handler?: (context?: Context) => void;
-    then?: ((context?: AbilityContext) => object) | object;
+    then?: ((context?: AbilityContext) => IAbilityProps<Context>) | IAbilityProps<Context>;
 }
 
 interface IReplacementEffectAbilityBaseProps extends Omit<ITriggeredAbilityBaseProps,
@@ -144,13 +150,7 @@ interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityConte
     targetResolver?: ITriggeredAbilityTargetResolver;
     targetResolvers?: ITriggeredAbilityTargetsResolver;
     handler?: (context: TriggeredAbilityContext) => void;
-    then?: ((context?: TriggeredAbilityContext) => object) | object;
-
-    /**
-     * Indicates if triggering the ability is optional (in which case the player will be offered the
-     * 'Pass' button on resolution) or if it is mandatory
-     */
-    optional?: boolean;
+    then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
 }
 
 interface IKeywordPropertiesBase {

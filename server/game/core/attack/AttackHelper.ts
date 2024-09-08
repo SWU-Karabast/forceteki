@@ -8,6 +8,7 @@ export const addInitiateAttackProperties = (properties) => {
     }
 
     properties.targetResolvers = {
+        // TODO THIS PR: change to targetResolver (singular)
         attacker: {
             cardTypeFilter: WildcardCardType.Unit,
             player: (context) => {
@@ -15,8 +16,6 @@ export const addInitiateAttackProperties = (properties) => {
                 const opponentChoosesAttacker = getProperty(properties, context, 'opponentChoosesAttacker');
                 return opponentChoosesAttacker ? RelativePlayer.Opponent : RelativePlayer.Self;
             },
-            controller: RelativePlayer.Self,
-            cardCondition: (card, context) => checkAttackerCondition(card, context, properties),
 
             immediateEffect: AbilityHelper.immediateEffects.initiateUnitAttack((context) => {
                 const attackProperties = Object.assign({
@@ -27,12 +26,6 @@ export const addInitiateAttackProperties = (properties) => {
             })
         }
     };
-};
-
-const checkAttackerCondition = (card, context, properties) => {
-    const attackerCondition = getProperty(properties, context, 'attackerCondition');
-
-    return attackerCondition ? attackerCondition(card, context) : true;
 };
 
 const getProperty = (properties, context, propName?) => {

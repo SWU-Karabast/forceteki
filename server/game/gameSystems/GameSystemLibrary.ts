@@ -28,6 +28,7 @@ import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './Execute
 import { GiveExperienceSystem, IGiveExperienceProperties } from './GiveExperienceSystem';
 import { GiveShieldSystem, IGiveShieldProperties } from './GiveShieldSystem';
 import { HealSystem, IHealProperties } from './HealSystem';
+import { InitiateUnitAttackSystem, IInitiateUnitAttackProperties } from './InitiateUnitAttackSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
 // import { LastingEffectCardAction, LastingEffectCardProperties } from './LastingEffectCardAction';
@@ -42,6 +43,7 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 // import { OpponentPutIntoPlayAction, OpponentPutIntoPlayProperties } from './OpponentPutIntoPlayAction';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
 // import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { ReadySystem, IReadySystemProperties } from './ReadySystem';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
@@ -54,11 +56,9 @@ import { RevealSystem, IRevealProperties } from './RevealSystem';
 import { PayResourceCostSystem, IPayResourceCostProperties } from './PayResourceCostSystem';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
-// import { SequentialAction } from './SequentialAction';
+import { SequentialSystem } from './SequentialSystem';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
-import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import { IInitiateUnitAttackProperties, InitiateUnitAttackSystem } from './InitiateUnitAttackSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -308,9 +308,9 @@ export function selectCard(propertyFactory: PropsFactory<ISelectCardProperties>)
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameSystem {
 //     return new SelectTokenAction(propertyFactory);
 // }
-// export function sequential(gameActions: GameSystem[]): GameSystem {
-//     return new SequentialAction(gameActions);
-// } // takes an array of gameActions, not a propertyFactory
+export function sequential(gameActions: GameSystem[]): GameSystem {
+    return new SequentialSystem(gameActions);
+} // takes an array of gameActions, not a propertyFactory
 // export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }

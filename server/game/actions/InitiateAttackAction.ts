@@ -24,6 +24,9 @@ export class InitiateAttackAction extends PlayerAction {
         ) {
             return 'phase';
         }
+        if (context.player !== context.source.controller) {
+            return 'player';
+        }
         if (
             !EnumHelpers.isArena(context.source.location) &&
             !ignoredRequirements.includes('location')
