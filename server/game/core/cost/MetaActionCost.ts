@@ -29,7 +29,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
         return this.gameSystem.hasLegalTarget(context, additionalProps);
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, result: Result): GameEvent[] {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, result: Result): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.targets && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
@@ -37,7 +37,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
             );
             context.costs[properties.innerSystem.name + 'StateWhenChosen'] =
                 context.costs[properties.innerSystem.name].createSnapshot();
-            return properties.innerSystem.generateEventsForAllTargets(context, {
+            properties.innerSystem.queueGenerateEventGameSteps(events, context, {
                 target: context.costs[properties.innerSystem.name]
             });
         }
@@ -55,7 +55,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
                 return properties.innerSystemProperties ? properties.innerSystemProperties(target) : {};
             }
         };
-        return this.gameSystem.generateEventsForAllTargets(context, additionalProps);
+        this.gameSystem.queueGenerateEventGameSteps(events, context, additionalProps);
     }
 
     public hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {

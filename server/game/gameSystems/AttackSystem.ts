@@ -129,7 +129,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         properties.costHandler(context, prompt);
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
@@ -137,13 +137,12 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
 
         const cards = (target as Card[]).filter((card) => this.canAffect(card, context));
         if (cards.length !== 1) {
-            return [];
+            return;
         }
 
         const event = this.createEvent(null, context, additionalProperties);
         this.updateEvent(event, cards, context, additionalProperties);
-
-        return [event];
+        events.push(event);
     }
 
     protected override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
@@ -219,13 +218,9 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             const effectProperties = typeof effect === 'function' ? effect(context, attack) : effect;
 
             const effectSystem = new LastingEffectCardSystem(effectProperties);
-            effectEvents.push(...effectSystem.generateEventsForAllTargets(context));
+            effectSystem.queueGenerateEventGameSteps(effectEvents, context);
         }
 
-        // trigger events
-        context.game.openEventWindow(effectEvents);
-
-        // TODO EFFECTS: remove this hack
-        context.game.queueSimpleStep(() => context.game.resolveGameState(), 'resolveGameState for AttackSystem');
+        context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for attack effects');
     }
 }

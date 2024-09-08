@@ -29,9 +29,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return EnumHelpers.cardTypeMatches((target as Card).type, this.targetTypeFilter);
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
-        const events: GameEvent[] = [];
-
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         for (const card of target as Card[]) {
             let allCostsPaid = true;
@@ -120,8 +118,6 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
                 }
             }
         }
-
-        return events;
     }
 
     public override checkEventCondition(event: any, additionalProperties = {}): boolean {

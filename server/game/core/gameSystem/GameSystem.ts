@@ -148,24 +148,22 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     /**
      * Generates a list of {@link GameEvent} objects that will apply the effects of this system to the game state
      * by generating one event per target in `context.targets`.
-     * The events must be emitted using an {@link EventWindow}, typically via {@link Game.openEventWindow}.
+     * The events must be emitted using an {@link EventWindow}, typically via `Game.openEventWindow`.
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    public generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
-        const events: GameEvent[] = [];
+    public queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
         for (const target of this.targets(context, additionalProperties)) {
             if (this.canAffect(target, context, additionalProperties)) {
                 events.push(this.generateEvent(target, context, additionalProperties));
             }
         }
-        return events;
     }
 
     /**
      * Generates one {@link GameEvent} object that will apply the effects of this system to the game state
      * for the specified target.
-     * The event must be emitted using an {@link EventWindow}, typically via {@link Game.openEventWindow}.
+     * The event must be emitted using an {@link EventWindow}, typically via `Game.openEventWindow`.
      * @param target Target to apply the system's effects to
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
@@ -195,7 +193,9 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
         if (target) {
             this.setDefaultTargetFn(() => target);
         }
-        const events = this.generateEventsForAllTargets(context);
+
+        const events = [];
+        this.queueGenerateEventGameSteps(events, context);
         context.game.queueSimpleStep(() => context.game.openEventWindow(events), `openEventWindow for '${this}'`);
     }
 

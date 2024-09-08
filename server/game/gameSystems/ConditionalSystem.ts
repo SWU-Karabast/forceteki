@@ -33,8 +33,8 @@ export class ConditionalSystem extends GameSystem<IConditionalSystemProperties> 
         return this.getGameAction(context, additionalProperties).hasLegalTarget(context, additionalProperties);
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
-        return this.getGameAction(context, additionalProperties).generateEventsForAllTargets(context, additionalProperties);
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
+        this.getGameAction(context, additionalProperties).queueGenerateEventGameSteps(events, context, additionalProperties);
     }
 
     public override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {

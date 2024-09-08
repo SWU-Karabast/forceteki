@@ -34,19 +34,15 @@ export abstract class ViewCardSystem extends CardTargetSystem<IViewCardPropertie
         }
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
-        const events: GameEvent[] = [];
-
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         const cards = (target as BaseCard[]).filter((card) => this.canAffect(card, context));
         if (cards.length === 0) {
-            return [];
+            return;
         }
         const event = this.createEvent(null, context, additionalProperties);
         this.updateEvent(event, cards, context, additionalProperties);
         events.push(event);
-
-        return events;
     }
 
     public override addPropertiesToEvent(event, cards, context: AbilityContext, additionalProperties): void {

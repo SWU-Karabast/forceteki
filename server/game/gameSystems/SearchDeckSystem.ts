@@ -103,9 +103,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         event.amount = searchCountAmount;
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
-        const events: GameEvent[] = [];
-
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player = properties.player || context.player;
         const event = this.generateEvent(player, context, additionalProperties) as any;
@@ -115,10 +113,8 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         if (event.amount === -1) {
             cards = cards.filter((card) => properties.cardCondition(card, context));
         }
-        events.push(event);
         this.selectCard(event, additionalProperties, cards, new Set());
-
-        return events;
+        events.push(event);
     }
 
     private getNumCards(numCards: Derivable<number>, context: AbilityContext): number {

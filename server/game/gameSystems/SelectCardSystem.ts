@@ -92,11 +92,10 @@ export class SelectCardSystem extends CardTargetSystem {
         return properties.selector.hasEnoughTargets(context, player);
     }
 
-    // TODO: this was previously accepting an event input and using it in the in 'OnSelect' method. not sure if changing that change broke anything
-    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
-            return [];
+            return;
         }
         let player = properties.player === RelativePlayer.Opponent ? context.player.opponent : context.player;
         let mustSelect = [];
@@ -111,7 +110,7 @@ export class SelectCardSystem extends CardTargetSystem {
                 );
         }
         if (!properties.selector.hasEnoughTargets(context, player)) {
-            return [];
+            return;
         }
         const defaultProperties = {
             context: context,
@@ -123,7 +122,8 @@ export class SelectCardSystem extends CardTargetSystem {
                 if (properties.message) {
                     context.game.addMessage(properties.message, ...properties.messageArgs(cards, player, properties));
                 }
-                const events = properties.innerSystem.generateEventsForAllTargets(
+                properties.innerSystem.queueGenerateEventGameSteps(
+                    events,
                     context,
                     Object.assign({ parentAction: this }, additionalProperties, properties.innerSystemProperties(cards))
                 );
@@ -138,11 +138,11 @@ export class SelectCardSystem extends CardTargetSystem {
             const cards = properties.selector.getAllLegalTargets(context);
             if (cards.length === 1) {
                 finalProperties.onSelect(player, cards[0]);
-                return [];
+                return;
             }
         }
         context.game.promptForSelect(player, finalProperties);
-        return [];
+        return;
     }
 
     public override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {

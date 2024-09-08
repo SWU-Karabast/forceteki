@@ -56,12 +56,10 @@ export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
         return properties.effect.length > 0;
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties: any): GameEvent[] {
-        const events: GameEvent[] = [];
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties: any): void {
         if (this.hasLegalTarget(context, additionalProperties)) {
             events.push(this.generateEvent(null, context, additionalProperties));
         }
-        return events;
     }
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)

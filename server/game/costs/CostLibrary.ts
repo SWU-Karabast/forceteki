@@ -469,7 +469,7 @@ export function abilityResourceCost(amount: number | ((context: AbilityContext) 
 //                 return doNothing.generateEvent(context.player, context);
 //             }
 
-//             return cost.generateEventsForAllTargets(context, {});
+//             return cost.queueGenerateEventGameSteps(context, {});
 //         }
 //     };
 // }
