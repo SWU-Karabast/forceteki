@@ -94,7 +94,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             if (eventsToResolve.length > 0) {
                 let window = this.openEventWindow(eventsToResolve);
                 if (then) {
-                    window.addCardAbilityStep(new CardAbilityStep(this.game, this.card, then), context, then.thenCondition);
+                    window.addThenAbilityStep(new CardAbilityStep(this.game, this.card, then), context, then.thenCondition);
                 }
             } else if (then && then.thenCondition && then.thenCondition(context)) {
                 let cardAbilityStep = new CardAbilityStep(this.game, this.card, then);

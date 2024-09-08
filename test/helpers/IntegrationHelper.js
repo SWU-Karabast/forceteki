@@ -61,13 +61,19 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${actual.name} not to have enabled prompt button '${expected}' but it did.`;
                 } else {
-                    var buttonText = buttons.map(
-                        (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
-                    ).join('\n');
-                    result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                    result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' `;
+
+                    if (buttons.length > 0) {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message += `but it had buttons:\n${buttonText}`;
+                    } else {
+                        result.message += 'but it had no buttons';
+                    }
                 }
 
-                result.message += `\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -89,12 +95,18 @@ var customMatchers = {
                     );
 
                     if (result.pass) {
-                        result.message = `Expected ${actual.name} not to have enabled prompt button '${expected}' but it did.`;
+                        result.message = `Expected ${actual.name} not to have enabled prompt buttons '${expected}' but it did.`;
                     } else {
-                        var buttonText = buttons.map(
-                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
-                        ).join('\n');
-                        result.message = `Expected ${actual.name} to have enabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                        result.message = `Expected ${actual.name} to have enabled prompt buttons '${expected}' `;
+
+                        if (buttons.length > 0) {
+                            var buttonText = buttons.map(
+                                (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                            ).join('\n');
+                            result.message += `but it had buttons:\n${buttonText}`;
+                        } else {
+                            result.message += 'but it had no buttons';
+                        }
                     }
                 }
 
@@ -117,10 +129,16 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${actual.name} not to have disabled prompt button '${expected}' but it did.`;
                 } else {
-                    var buttonText = buttons.map(
-                        (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
-                    ).join('\n');
-                    result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                    result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' `;
+
+                    if (buttons.length > 0) {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message += `but it had buttons:\n${buttonText}`;
+                    } else {
+                        result.message += 'but it had no buttons';
+                    }
                 }
 
                 result.message += `\n${generatePromptHelpMessage(actual)}`;
@@ -147,10 +165,16 @@ var customMatchers = {
                     if (result.pass) {
                         result.message = `Expected ${actual.name} not to have disabled prompt button '${expected}' but it did.`;
                     } else {
-                        var buttonText = buttons.map(
-                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
-                        ).join('\n');
-                        result.message = `Expected ${actual.name} to have disabled prompt button '${expected}' but it had buttons:\n${buttonText}`;
+                        result.message = `Expected ${actual.name} to have disabled prompt buttons '${expected}' `;
+
+                        if (buttons.length > 0) {
+                            var buttonText = buttons.map(
+                                (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                            ).join('\n');
+                            result.message += `but it had buttons:\n${buttonText}`;
+                        } else {
+                            result.message += 'but it had no buttons';
+                        }
                     }
                 }
 

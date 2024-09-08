@@ -30,6 +30,12 @@ describe('Leia Organa, Alliance General', function() {
                 // second attack
                 expect(this.player1).toBeActivePlayer();
                 expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.allianceXwing]);
+                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                this.player1.clickCard(this.allianceXwing);
+                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                this.player1.clickCard(this.p2Base);
+                expect(this.allianceXwing.exhausted).toBe(true);
+                expect(this.p2Base.damage).toBe(2);
             });
         });
     });

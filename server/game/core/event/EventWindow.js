@@ -9,7 +9,7 @@ class EventWindow extends BaseStepWithPipeline {
         super(game);
 
         this.events = [];
-        this.additionalAbilitySteps = [];
+        this.thenAbilitySteps = [];
         events.forEach((event) => {
             if (!event.cancelled) {
                 this.addEvent(event);
@@ -30,7 +30,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),    // TODO EFFECTS: uncomment this (and other places the method is used, + missing ones from l5r)
-            // new SimpleStep(this.game, () => this.checkAdditionalAbilitySteps(), 'checkAdditionalAbilitySteps'),
+            new SimpleStep(this.game, () => this.checkThenAbilitySteps(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.openWindow(AbilityType.Triggered), 'open TriggeredAbility window'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
         ]);
@@ -47,8 +47,8 @@ class EventWindow extends BaseStepWithPipeline {
         return event;
     }
 
-    addCardAbilityStep(ability, context, condition = (event) => event.isFullyResolved(event)) {
-        this.additionalAbilitySteps.push({ ability, context, condition });
+    addThenAbilityStep(ability, context, condition = (event) => event.isFullyResolved(event)) {
+        this.thenAbilitySteps.push({ ability, context, condition });
     }
 
     setCurrentEventWindow() {
@@ -107,14 +107,14 @@ class EventWindow extends BaseStepWithPipeline {
         this.game.resolveGameState(this.eventsToExecute.some((event) => event.handler), this.eventsToExecute);
     }
 
-    // TODO: what's up with 'then' abilities
-    // checkAdditionalAbilitySteps() {
-    //     for(const cardAbilityStep of this.additionalAbilitySteps) {
-    //         if(cardAbilityStep.context.events.every(event => cardAbilityStep.condition(event))) {
-    //             this.game.resolveAbility(cardAbilityStep.ability.createContext(cardAbilityStep.context.player));
-    //         }
-    //     }
-    // }
+    // resolve any "then" abilities
+    checkThenAbilitySteps() {
+        for (const cardAbilityStep of this.thenAbilitySteps) {
+            if (cardAbilityStep.context.events.every((event) => cardAbilityStep.condition(event))) {
+                this.game.resolveAbility(cardAbilityStep.ability.createContext(cardAbilityStep.context.player));
+            }
+        }
+    }
 
     resetCurrentEventWindow() {
         if (this.previousEventWindow) {
