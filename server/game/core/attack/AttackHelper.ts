@@ -19,10 +19,11 @@ export const addInitiateAttackProperties = (properties) => {
             cardCondition: (card, context) => checkAttackerCondition(card, context, properties),
 
             immediateEffect: AbilityHelper.immediateEffects.initiateUnitAttack((context) => {
-                const attackProperties = getProperty(properties, context);
-                return Object.assign({
+                const attackProperties = Object.assign({
                     attacker: context.targets.attacker
-                }, attackProperties);
+                }, getProperty(properties, context));
+
+                return { attackProperties };
             })
         }
     };

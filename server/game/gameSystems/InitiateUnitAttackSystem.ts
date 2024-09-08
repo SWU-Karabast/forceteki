@@ -8,8 +8,9 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import Contract from '../core/utils/Contract';
 import { IAttackProperties } from './AttackSystem';
 
-export interface IInitiateUnitAttackProperties extends IAttackProperties {
+export interface IInitiateUnitAttackProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
+    attackProperties?: IAttackProperties;
 }
 
 export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAttackProperties> {
@@ -30,12 +31,13 @@ export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAtta
     }
 
     protected override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties = {}): void {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (!Contract.assertTrue(target.isUnit())) {
             return;
         }
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
-        event.attackAbility = this.getAttackAbilityFromUnit(target as UnitCard);
+        event.attackAbility = new InitiateAttackAction(target, properties.attackProperties);
     }
 
     public override canAffect(card: Card, context: TriggeredAbilityContext, additionalProperties = {}): boolean {
@@ -47,14 +49,10 @@ export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAtta
             return false;
         }
 
-        const attackAbility = this.getAttackAbilityFromUnit(card as UnitCard);
+        const attackAbility = new InitiateAttackAction(card, properties.attackProperties);
         const newContext = attackAbility.createContext(context.player);
 
         // TODO THIS PR: rename meetsRequirements
         return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements);
-    }
-
-    private getAttackAbilityFromUnit(card: UnitCard) {
-        return card.getActions().find((action) => action.isAttackAbility()) as InitiateAttackAction;
     }
 }
