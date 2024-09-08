@@ -4,10 +4,10 @@ import type { ICost, Result } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
 import { randomItem } from '../utils/Helpers';
-import { GameActionCost } from './GameActionCost';
+import { GameSystemCost } from './GameSystemCost';
 import { GameEvent } from '../event/GameEvent';
 
-export class MetaActionCost extends GameActionCost implements ICost {
+export class MetaActionCost extends GameSystemCost implements ICost {
     public constructor(
         gameSystem: GameSystem,
         public activePromptTitle: string

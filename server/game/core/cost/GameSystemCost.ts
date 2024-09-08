@@ -6,8 +6,7 @@ import type { GameEvent } from '../event/GameEvent';
 /**
  * Class that wraps a {@link GameSystem} so it can be represented as an action cost
  */
-// TODO THIS PR: rename this to GameSystemAsCost
-export class GameActionCost implements ICost {
+export class GameSystemCost implements ICost {
     public constructor(public gameSystem: GameSystem) {}
 
     public getActionName(context: AbilityContext): string {
