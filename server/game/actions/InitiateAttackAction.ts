@@ -1,17 +1,17 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import PlayerAction from '../core/ability/PlayerAction.js';
-import { AbilityRestriction, EffectName, EventName, Location, PhaseName, PlayType, TargetMode, WildcardLocation } from '../core/Constants.js';
+import { AbilityRestriction, PhaseName, WildcardLocation } from '../core/Constants.js';
 import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
-import { attack } from '../gameSystems/GameSystemLibrary.js';
-import type Player from '../core/Player.js';
+import * as GameSystemLibrary from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
-import { unlimited } from '../core/ability/AbilityLimit.js';
+import { IAttackProperties } from '../gameSystems/AttackSystem.js';
 
 export class InitiateAttackAction extends PlayerAction {
-    public constructor(card: Card) {
+    public constructor(card: Card, private attackProperties?: IAttackProperties) {
         super(card, 'Attack', [exhaustSelf()], {
-            immediateEffect: attack({ attacker: card }),
+            // TODO THIS PR: can we remove the redundant attack() calls
+            immediateEffect: GameSystemLibrary.attack({ attacker: card }),
             locationFilter: WildcardLocation.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });
@@ -36,12 +36,15 @@ export class InitiateAttackAction extends PlayerAction {
         return super.meetsRequirements(context);
     }
 
-    // attack triggers as an event instead of a game step because it's part of the same action
     public override executeHandler(context: AbilityContext): void {
-        context.game.openEventWindow([
-            attack({
-                attacker: context.source
-            }).generateEvent(context.target, context)
-        ]);
+        const attackSystemProperties = Object.assign(this.attackProperties ?? {}, {
+            attacker: context.source
+        });
+
+        GameSystemLibrary.attack(attackSystemProperties).resolve(context.target, context);
+    }
+
+    public override isAttackAbility(): this is InitiateAttackAction {
+        return true;
     }
 }

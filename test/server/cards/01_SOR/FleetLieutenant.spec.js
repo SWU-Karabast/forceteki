@@ -15,7 +15,7 @@ describe('Fleet Lieutenant', function() {
                 });
             });
 
-            it('should allowing triggering an attack by a unit when played', function () {
+            it('should allow triggering an attack by a unit when played', function () {
                 this.player1.clickCard(this.fleetLieutenant);
                 expect(this.fleetLieutenant).toBeInLocation('ground arena');
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.monMothma]);

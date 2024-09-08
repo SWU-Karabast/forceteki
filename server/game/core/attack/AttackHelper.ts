@@ -1,6 +1,5 @@
 import AbilityHelper from '../../AbilityHelper';
-import CardAbilityStep from '../ability/CardAbilityStep';
-import { Location, CardType, EffectName, RelativePlayer, WildcardCardType } from '../Constants';
+import { Location, RelativePlayer, WildcardCardType } from '../Constants';
 import { IInitiateAttack } from '../../Interfaces';
 import * as EnumHelpers from '../utils/EnumHelpers';
 
@@ -19,18 +18,7 @@ export const addInitiateAttackProperties = (properties) => {
             controller: RelativePlayer.Self,
             cardCondition: (card, context) => checkAttackerCondition(card, context, properties),
 
-            // this is to pay the exhaust cost for the attacker
-            // TODO: need to investigate to see if this resolves at the right point in the attack
-            // (experiment with something that would trigger off of the exhaust to make sure it happens at the right time)
-            // if not, try splitting the two with a "then" clause to get exhaust to fire first
-            immediateEffect: AbilityHelper.immediateEffects.exhaust({ isCost: true })
-        },
-        attackTarget: {
-            dependsOn: 'attacker',
-            // TODO: if we want to choose a specific character in advance to initiate the attack,
-            // change the first parameter here from 'undefined'
-            ...getBaselineAttackTargetProperties(undefined, properties),
-            immediateEffect: AbilityHelper.immediateEffects.attack((context) => {
+            immediateEffect: AbilityHelper.immediateEffects.initiateUnitAttack((context) => {
                 const attackProperties = getProperty(properties, context);
                 return Object.assign({
                     attacker: context.targets.attacker

@@ -12,8 +12,6 @@ import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
 import { ILastingEffectCardProperties, LastingEffectCardSystem } from '../core/gameSystem/LastingEffectCardSystem';
 import Contract from '../core/utils/Contract';
-import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
-import * as CardHelpers from '../core/card/CardHelpers';
 import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 
 export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
@@ -60,10 +58,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             new AttackFlow(
                 context.game,
                 attack,
-                (attack) => this.resolveAttack(attack, event.context),
-                // properties.costHandler
-                //     ? (prompt) => this.attackCosts(prompt, event.context, additionalProperties)
-                //     : undefined
+                (attack) => this.resolveAttack(attack, event.context)
             )
         );
     }

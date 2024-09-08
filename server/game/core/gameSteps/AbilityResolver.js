@@ -6,7 +6,7 @@ const { Location, Stage, CardType, EventName, AbilityType } = require('../Consta
 const { GameEvent } = require('../event/GameEvent.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
-    constructor(game, context) {
+    constructor(game, context, optional = false) {
         super(game);
 
         this.context = context;
@@ -14,7 +14,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.initiateAbility = false;
         this.passPriority = false;
         this.events = [];
-        this.provincesToRefill = [];
         this.targetResults = {};
         this.costResults = this.getCostResults();
         this.initialise();
@@ -22,7 +21,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         // this is used when a triggerd ability is marked optional to ensure that a "Pass" button
         // appears at all times during the prompt flow for that ability
         // TODO: add interface for this in Interfaces.ts when we convert to TS
-        this.passAbilityHandler = this.context.ability.optional ? {
+        this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
             buttonText: 'Pass ability',
             arg: 'passAbility',
             hasBeenShown: false,

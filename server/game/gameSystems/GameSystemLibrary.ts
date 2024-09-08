@@ -58,6 +58,7 @@ import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import { IInitiateUnitAttackProperties, InitiateUnitAttackSystem } from './InitiateUnitAttackSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -114,6 +115,9 @@ export function giveShield(propertyFactory: PropsFactory<IGiveShieldProperties> 
 }
 export function heal(propertyFactory: PropsFactory<IHealProperties>): GameSystem {
     return new HealSystem(propertyFactory);
+}
+export function initiateUnitAttack(propertyFactory: PropsFactory<IInitiateUnitAttackProperties> = {}): GameSystem {
+    return new InitiateUnitAttackSystem(propertyFactory);
 }
 export function lookAt(propertyFactory: PropsFactory<ILookAtProperties> = {}): GameSystem {
     return new LookAtSystem(propertyFactory);
