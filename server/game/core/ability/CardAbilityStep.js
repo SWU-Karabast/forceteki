@@ -85,9 +85,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
         for (const system of systems) {
             this.game.queueSimpleStep(() => {
-                context.events.push(...system.generateEventsForAllTargets(context));
+                system.queueGenerateEventGameSteps(context.events, context);
             },
-            `push ${system.name} events for ${this}`);
+            `queue ${system.name} event generation steps for ${this}`);
         }
         this.game.queueSimpleStep(() => {
             let eventsToResolve = context.events.filter((event) => !event.cancelled && !event.resolved);

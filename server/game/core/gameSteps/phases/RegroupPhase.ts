@@ -8,6 +8,7 @@ import { SimpleStep } from '../SimpleStep';
 import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';
 import { CardWithExhaustProperty } from '../../card/CardTypes';
 import { GameEvent } from '../../event/GameEvent';
+import * as GameSystemLibrary from '../../../gameSystems/GameSystemLibrary';
 
 export class RegroupPhase extends Phase {
     public constructor(game: Game) {
@@ -39,11 +40,10 @@ export class RegroupPhase extends Phase {
         }
 
         // create a single event for the ready cards step as well as individual events for readying each card
-        let events = [new GameEvent(EventName.OnRegroupPhaseReadyCards, {})];
-        events = events.concat(
-            this.game.actions.ready({ isRegroupPhaseReadyStep: true, target: cardsToReady })
-                .generateEventsForAllTargets(this.game.getFrameworkContext()));
+        const events = [new GameEvent(EventName.OnRegroupPhaseReadyCards, {})];
+        GameSystemLibrary.ready({ isRegroupPhaseReadyStep: true, target: cardsToReady })
+            .queueGenerateEventGameSteps(events, this.game.getFrameworkContext());
 
-        this.game.openEventWindow(events);
+        this.game.queueSimpleStep(() => this.game.openEventWindow(events), 'open event window for card readying effects');
     }
 }
