@@ -93,7 +93,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.game.queueSimpleStep(() => this.payCosts(), 'payCosts');
         this.game.queueSimpleStep(() => this.checkCostsWerePaid(), 'checkCostsWerePaid');
         this.game.queueSimpleStep(() => this.resolveTargets(), 'resolveTargets');
-        this.game.queueSimpleStep(() => this.checkForCancelOrPass(), 'checkForCancelOrPass');
+        this.game.queueSimpleStep(() => this.checkForCancel(), 'checkForCancel');
         this.game.queueSimpleStep(() => this.initiateAbilityEffects(), 'initiateAbilityEffects');
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
     }
@@ -103,6 +103,14 @@ class AbilityResolver extends BaseStepWithPipeline {
         if (!this.context.ability.cannotTargetFirst) {
             this.targetResults = this.context.ability.resolveTargets(this.context, this.passAbilityHandler);
         }
+    }
+
+    checkForCancel() {
+        if (this.cancelled) {
+            return;
+        }
+
+        this.cancelled = this.targetResults.cancelled;
     }
 
     checkForCancelOrPass() {

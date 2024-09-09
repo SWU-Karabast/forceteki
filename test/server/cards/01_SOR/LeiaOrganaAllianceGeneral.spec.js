@@ -20,6 +20,7 @@ describe('Leia Organa, Alliance General', function() {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Attack with a Rebel unit');
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
+                expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
 
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.regionalGovernor);
@@ -36,6 +37,9 @@ describe('Leia Organa, Alliance General', function() {
                 this.player1.clickCard(this.p2Base);
                 expect(this.allianceXwing.exhausted).toBe(true);
                 expect(this.p2Base.damage).toBe(2);
+
+                expect(this.player2).toBeActivePlayer();
+                expect(this.leiaOrgana.exhausted).toBe(true);
             });
         });
     });

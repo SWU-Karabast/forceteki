@@ -24,7 +24,6 @@ class CardAbility extends CardAbilityStep {
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.cannotBeMirrored = !!properties.cannotBeMirrored;
-        this.optional = !!properties.optional;
         this.abilityIdentifier = properties.abilityIdentifier;
         this.origin = properties.origin;
         if (!this.abilityIdentifier) {
