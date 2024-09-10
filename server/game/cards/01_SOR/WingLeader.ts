@@ -2,24 +2,24 @@ import AbilityHelper from '../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../core/Constants';
 
-export default class TieAdvanced extends NonLeaderUnitCard {
+export default class WingLeader extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '4092697474',
-            internalName: 'tie-advanced',
+            id: '3443737404',
+            internalName: 'wing-leader',
         };
     }
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Give 2 Experience tokens to a friendly IMPERIAL unit',
+            title: 'Give 2 Experience tokens to another friendly REBEL unit',
             targetResolver: {
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card.hasSomeTrait(Trait.Imperial) && card !== this,
+                cardCondition: (card) => card.hasSomeTrait(Trait.Rebel) && card !== this,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience({ amount: 2 })
             }
         });
     }
 }
 
-TieAdvanced.implemented = true;
+WingLeader.implemented = true;
