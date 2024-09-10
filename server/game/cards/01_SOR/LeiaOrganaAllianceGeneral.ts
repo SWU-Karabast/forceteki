@@ -15,16 +15,14 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
         this.addActionAbility({
             title: 'Attack with a Rebel unit',
             cost: AbilityHelper.costs.exhaustSelf(),
-            targetResolver: {
-                cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
-                immediateEffect: AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)
+            initiateAttack: {
+                attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel)
             },
             then: {
                 title: 'Attack with a second Rebel unit',
                 optional: true,
-                targetResolver: {
-                    cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),
-                    immediateEffect: AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)
+                initiateAttack: {
+                    attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel)
                 }
             }
         });

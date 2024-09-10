@@ -18,7 +18,7 @@ export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperti
 
 export interface IAttackProperties extends ICardTargetSystemProperties {
     attacker?: Card;
-    attackerCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
+    targetCondition?: (card: Card, context: AbilityContext) => boolean;
     message?: string;
     messageArgs?: (attack: Attack, context: AbilityContext) => any | any[];
     costHandler?: (context: AbilityContext, prompt: any) => void;
@@ -34,8 +34,10 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
 export class AttackSystem extends CardTargetSystem<IAttackProperties> {
     public override readonly name = 'attack';
     public override readonly eventName = EventName.Unnamed;
-    protected override readonly defaultProperties: IAttackProperties = {};
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
+    protected override readonly defaultProperties: IAttackProperties = {
+        targetCondition: () => true
+    };
 
     public eventHandler(event, additionalProperties): void {
         const context = event.context;
@@ -115,6 +117,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
         }
 
         return (
+            properties.targetCondition(targetCard, context) &&
             EnumHelpers.isAttackableLocation(targetCard.location)
         );
     }

@@ -10,12 +10,14 @@ import { IAttackProperties } from './AttackSystem';
 
 export interface IInitiateUnitAttackProperties extends IAttackProperties {
     ignoredRequirements?: string[];
+    attackerCondition?: (card: Card, context: AbilityContext) => boolean;
 }
 
 export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAttackProperties> {
     public override readonly name = 'initiateUnitAttack';
     protected override readonly defaultProperties: IInitiateUnitAttackProperties = {
         ignoredRequirements: [],
+        attackerCondition: () => true
     };
 
     public eventHandler(event, additionalProperties): void {
@@ -44,7 +46,8 @@ export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAtta
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (
             !card.isUnit() ||
-            !super.canAffect(card, context)
+            !super.canAffect(card, context) ||
+            !properties.attackerCondition(card, context)
         ) {
             return false;
         }
