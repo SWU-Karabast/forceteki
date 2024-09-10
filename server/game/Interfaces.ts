@@ -7,6 +7,7 @@ import { type RelativePlayer, type TargetMode, type CardType, type Location, typ
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
+import { IInitiateUnitAttackProperties } from './gameSystems/InitiateUnitAttackSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -73,11 +74,12 @@ export interface IAbilityProps<Context> {
     optional?: boolean;
 
     /**
-     * Indicates whether the ability should allow the player to trigger an attack from a unit.
-     * Can either be an {@link IInitiateAttack} property object or a function that creates one from
+     * Indicates that an attack should be triggered from a friendly unit.
+     * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
+     * Can either be an {@link IInitiateUnitAttackProperties} property object or a function that creates one from
      * an {@link AbilityContext}.
      */
-    initiateAttack?: IInitiateAttack | ((context: AbilityContext) => IInitiateAttack);
+    initiateAttack?: IInitiateUnitAttackProperties | ((context: AbilityContext) => IInitiateUnitAttackProperties);
 
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;
@@ -106,13 +108,6 @@ export type IKeywordProperties =
     | IShieldedKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
-
-export interface IInitiateAttack extends IAttackProperties {
-    opponentChoosesAttackTarget?: boolean;
-    opponentChoosesAttacker?: boolean;
-    attackerCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
-    targetCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
-}
 
 export type traitLimit = Record<string, number>;
 
