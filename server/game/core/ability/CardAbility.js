@@ -139,7 +139,7 @@ class CardAbility extends CardAbilityStep {
     displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if (
             context.source.isEvent() &&
-            context.source.location !== Location.Hand
+            context.source.location !== Location.Discard
         ) {
             this.game.addMessage(
                 '{0} plays {1} from {2} {3}',

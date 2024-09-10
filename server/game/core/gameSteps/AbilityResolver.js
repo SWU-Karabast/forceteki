@@ -116,10 +116,11 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         // if there is no effect and no costs, we can safely skip ability resolution
         if (
-            !this.context.ability.hasLegalTargets(this.context) &&
+            this.context.ability.meetsRequirements(this.context, ['cost']) !== '' &&
             (this.context.ability.cost == null ||
             Array.isArray(this.context.ability.cost) && this.context.ability.cost.length === 0)
         ) {
+            this.game.addMessage('Ability \'{0}\' on card {1} has no impact on game state so it is passed', this.context.ability.title, this.context.source.title);
             this.cancelled = true;
             this.resolutionComplete = true;
         }
@@ -258,11 +259,12 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
         this.context.ability.displayMessage(this.context);
 
+        // If this is an event, move it to discard before resolving the ability
+        if (this.context.ability.isCardPlayed() && this.context.ability.card.isEvent()) {
+            this.game.actions.moveCard({ destination: Location.Discard }).resolve(this.context.source, this.context);
+        }
+
         if (this.context.ability.isActivatedAbility()) {
-            // If this is an event, move it to discard before resolving the ability
-            if (this.context.ability.type === AbilityType.Event) {
-                this.game.actions.moveCard({ destination: Location.Discard }).resolve(this.context.source, this.context);
-            }
             this.game.openThenEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
         } else {
             this.initiateAbility = true;

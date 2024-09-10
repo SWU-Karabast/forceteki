@@ -60,9 +60,7 @@ describe('Search Your Feelings', function() {
                 this.player1.clickCard(this.searchYourFeelings);
                 expect(this.searchYourFeelings).toBeInLocation('discard');
 
-                // Choose nothing
-                expect(this.player1).toHaveEnabledPromptButtons(['Take nothing']);
-                this.player1.clickPrompt('Take nothing');
+                // Nothing happens since there are no cards in deck
                 expect(this.player2).toBeActivePlayer();
             });
         });
