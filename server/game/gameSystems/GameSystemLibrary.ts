@@ -59,6 +59,8 @@ import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 import { SequentialSystem } from './SequentialSystem';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
+import Contract from '../core/utils/Contract';
+import { AttackSelectionMode } from '../TargetInterfaces';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -77,8 +79,18 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProperties> = {}): GameSystem {
     return new AttachUpgradeSystem(propertyFactory);
 }
-export function attack(propertyFactory: PropsFactory<IAttackProperties>): GameSystem {
-    return new AttackSystem(propertyFactory);
+export function attack(mode: AttackSelectionMode.SelectAttackerAndTarget, propertyFactory?: PropsFactory<IInitiateUnitAttackProperties>): GameSystem
+export function attack(mode: AttackSelectionMode.SelectTargetForAttacker, propertyFactory: PropsFactory<IAttackProperties>): GameSystem
+export function attack(mode: AttackSelectionMode, propertyFactory: PropsFactory<IInitiateUnitAttackProperties | IAttackProperties>) {
+    switch (mode) {
+        case AttackSelectionMode.SelectAttackerAndTarget:
+            return new InitiateUnitAttackSystem(propertyFactory ?? {});
+        case AttackSelectionMode.SelectTargetForAttacker:
+            return new AttackSystem(propertyFactory);
+        default:
+            Contract.fail(`Unknown attack selection mode value: ${mode}`);
+            return null;
+    }
 }
 // export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameSystem {
 //     return new LastingEffectCardAction(propertyFactory);
@@ -115,9 +127,6 @@ export function giveShield(propertyFactory: PropsFactory<IGiveShieldProperties> 
 }
 export function heal(propertyFactory: PropsFactory<IHealProperties>): GameSystem {
     return new HealSystem(propertyFactory);
-}
-export function initiateUnitAttack(propertyFactory: PropsFactory<IInitiateUnitAttackProperties> = {}): GameSystem {
-    return new InitiateUnitAttackSystem(propertyFactory);
 }
 export function lookAt(propertyFactory: PropsFactory<ILookAtProperties> = {}): GameSystem {
     return new LookAtSystem(propertyFactory);

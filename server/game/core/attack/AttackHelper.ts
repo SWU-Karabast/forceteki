@@ -1,6 +1,7 @@
 import AbilityHelper from '../../AbilityHelper';
 import { RelativePlayer, WildcardCardType } from '../Constants';
 import { IInitiateAttack } from '../../Interfaces';
+import { AttackSelectionMode } from '../../TargetInterfaces';
 
 export const addInitiateAttackProperties = (properties) => {
     if (!properties.initiateAttack) {
@@ -17,7 +18,7 @@ export const addInitiateAttackProperties = (properties) => {
                 return opponentChoosesAttacker ? RelativePlayer.Opponent : RelativePlayer.Self;
             },
 
-            immediateEffect: AbilityHelper.immediateEffects.initiateUnitAttack((context) => {
+            immediateEffect: AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget, (context) => {
                 const attackProperties = Object.assign({
                     attacker: context.targets.attacker
                 }, getProperty(properties, context));

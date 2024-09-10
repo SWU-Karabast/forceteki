@@ -19,6 +19,14 @@ export type IActionTargetResolver = (ICardTargetResolver & IActionCardTargetReso
 
 export type IActionTargetsResolver = Record<string, IActionTargetResolver>;
 
+export enum AttackSelectionMode {
+
+    /** Selection mode for when both the attacker and target are selected at resolution time (i.e. "attack with [X]" abilities) */
+    SelectAttackerAndTarget = 'selectAttackerAndTarget',
+
+    /** Selection mode for when the attacker is determined in advance and the target is selected at resolution time */
+    SelectTargetForAttacker = 'selectTargetForAttacker'
+}
 
 // ********************************************** INTERNAL TYPES **********************************************
 type IChoicesInterface = Record<string, ((context: AbilityContext) => boolean) | GameSystem | GameSystem[]>;
