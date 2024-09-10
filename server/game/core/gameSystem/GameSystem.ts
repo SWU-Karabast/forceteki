@@ -146,9 +146,14 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
     }
 
     /**
-     * Generates a list of {@link GameEvent} objects that will apply the effects of this system to the game state
-     * by generating one event per target in `context.targets`.
-     * The events must be emitted using an {@link EventWindow}, typically via `Game.openEventWindow`.
+     * Generates events to apply the effects of this system to the game state by generating one event per configured target.
+     * Targets must be configured either using the system initialization properties or context properties.
+     *
+     * The generated events will be pushed onto the `events` parameter array. Many implementations of this method will
+     * accomplish this by queueing game steps that generate the events, so anything that would leverage the generated events
+     * (typically an event window) must be queued as its own game step so it is guaranteed to resolve after events are generated.
+     *
+     * @param events Generated events will be appended to this list
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
