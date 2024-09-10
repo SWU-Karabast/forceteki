@@ -12,11 +12,19 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.context = context;
         this.canCancel = true;
         this.initiateAbility = false;
-        this.passPriority = false;
         this.events = [];
         this.targetResults = {};
         this.costResults = this.getCostResults();
         this.initialise();
+
+        /** Indicates that we should skip all remaining ability resolution steps */
+        this.cancelled = false;
+
+        /**
+         * Indicates to the calling pipeline that this ability is done resolving.
+         * Otherwise, repeat ability resolution (e.g. if the user clicked "cancel" halfway through)
+         */
+        this.resolutionComplete = false;
 
         // this is used when a triggerd ability is marked optional to ensure that a "Pass" button
         // appears at all times during the prompt flow for that ability
@@ -27,14 +35,17 @@ class AbilityResolver extends BaseStepWithPipeline {
             hasBeenShown: false,
             handler: () => {
                 this.cancelled = true;
-                this.passPriority = true;
+                this.resolutionComplete = true;
             }
         } : null;
+
+        // UP NEXT: handle then effects here (add them here and execute them even if the ability is cancelled)
     }
 
     initialise() {
         this.pipeline.initialise([
             // new SimpleStep(this.game, () => this.createSnapshot()),
+            new SimpleStep(this.game, () => this.checkAbility(), 'checkAbility'),
             new SimpleStep(this.game, () => this.resolveEarlyTargets(), 'resolveEarlyTargets'),
             new SimpleStep(this.game, () => this.checkForCancelOrPass(), 'checkForCancelOrPass'),
             new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow(), 'openInitiateAbilityEventWindow'),
@@ -98,7 +109,27 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
     }
 
+    checkAbility() {
+        if (this.cancelled) {
+            return;
+        }
+
+        // if there is no effect and no costs, we can safely skip ability resolution
+        if (
+            !this.context.ability.hasLegalTargets(this.context) &&
+            (this.context.ability.cost == null ||
+            Array.isArray(this.context.ability.cost) && this.context.ability.cost.length === 0)
+        ) {
+            this.cancelled = true;
+            this.resolutionComplete = true;
+        }
+    }
+
     resolveEarlyTargets() {
+        if (this.cancelled) {
+            return;
+        }
+
         this.context.stage = Stage.PreTarget;
         if (!this.context.ability.cannotTargetFirst) {
             this.targetResults = this.context.ability.resolveTargets(this.context, this.passAbilityHandler);
@@ -157,8 +188,8 @@ class AbilityResolver extends BaseStepWithPipeline {
         if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
             this.passAbilityHandler.hasBeenShown = true;
             this.game.promptWithHandlerMenu(this.context.player, {
-                activePromptTitle: 'Do you want to trigger this ability or pass?',
-                choices: ['Trigger', 'Pass'],
+                activePromptTitle: `Trigger the ability '${this.context.ability.title}' or pass`,
+                choices: [this.context.ability.title, 'Pass'],
                 handlers: [
                     () => {},
                     () => {
@@ -177,7 +208,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
 
-        this.passPriority = true;
+        this.resolutionComplete = true;
         if (this.costResults.events.length > 0) {
             this.game.openEventWindow(this.costResults.events);
         }

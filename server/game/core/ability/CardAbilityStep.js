@@ -18,7 +18,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
         this.card = card;
         this.properties = properties;
         this.handler = properties.handler || this.executeGameActions;
-        // this.cannotTargetFirst = true;   // TODO: does this break anything?
         this.cannotTargetFirst = false;
     }
 

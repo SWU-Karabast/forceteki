@@ -53,6 +53,7 @@ export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAtta
         const newContext = attackAbility.createContext(context.player);
 
         // TODO THIS PR: rename meetsRequirements
-        return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements);
+        return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements) &&
+            attackAbility.hasLegalTargets(newContext);
     }
 }
