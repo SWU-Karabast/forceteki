@@ -1,6 +1,7 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stage, AbilityType } = require('../Constants.js');
+const AttackHelper = require('../attack/AttackHelper.js');
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -12,6 +13,9 @@ const { Stage, AbilityType } = require('../Constants.js');
 class CardAbilityStep extends PlayerOrCardAbility {
     /** @param {import('../card/Card').Card} card - The card this ability is attached to */
     constructor(game, card, properties, type = AbilityType.Action) {
+        if (properties.initiateAttack) {
+            AttackHelper.addInitiateAttackProperties(properties);
+        }
         super(properties, type);
 
         this.game = game;
