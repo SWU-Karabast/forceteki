@@ -19,11 +19,9 @@ export const addInitiateAttackProperties = (properties) => {
             },
 
             immediateEffect: AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget, (context) => {
-                const attackProperties = Object.assign({
+                return Object.assign({
                     attacker: context.targets.attacker
                 }, getProperty(properties, context));
-
-                return { attackProperties };
             })
         }
     };

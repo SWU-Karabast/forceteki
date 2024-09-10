@@ -8,9 +8,8 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import Contract from '../core/utils/Contract';
 import { IAttackProperties } from './AttackSystem';
 
-export interface IInitiateUnitAttackProperties extends ICardTargetSystemProperties {
+export interface IInitiateUnitAttackProperties extends IAttackProperties {
     ignoredRequirements?: string[];
-    attackProperties?: IAttackProperties;
 }
 
 export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAttackProperties> {
@@ -30,14 +29,15 @@ export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAtta
         return ['initiate attack with {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, attacker, context: AbilityContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (!Contract.assertTrue(target.isUnit())) {
+        if (!Contract.assertTrue(attacker.isUnit())) {
             return;
         }
 
-        super.addPropertiesToEvent(event, target, context, additionalProperties);
-        event.attackAbility = new InitiateAttackAction(target, properties.attackProperties);
+        super.addPropertiesToEvent(event, attacker, context, additionalProperties);
+
+        event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties);
     }
 
     public override canAffect(card: Card, context: TriggeredAbilityContext, additionalProperties = {}): boolean {
@@ -49,11 +49,20 @@ export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAtta
             return false;
         }
 
-        const attackAbility = new InitiateAttackAction(card, properties.attackProperties);
+        const attackAbility = this.generateAttackAbilityNoTarget(card, properties);
         const newContext = attackAbility.createContext(context.player);
 
         // TODO THIS PR: rename meetsRequirements
         return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements) &&
             attackAbility.hasLegalTargets(newContext);
+    }
+
+    /**
+     * Generate an attack ability for the specified card.
+     * Uses the passed properties but strips out the `target` property to avoid overriding it in the attack.
+     */
+    private generateAttackAbilityNoTarget(card: UnitCard, properties: IAttackProperties) {
+        const { target, ...propertiesNoTarget } = properties;
+        return new InitiateAttackAction(card, propertiesNoTarget);
     }
 }
