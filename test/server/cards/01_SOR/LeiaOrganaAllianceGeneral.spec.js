@@ -5,7 +5,7 @@ describe('Leia Organa, Alliance General', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['atst', 'battlefield-marine', 'fleet-lieutenant'],
+                        groundArena: ['atst', 'battlefield-marine', 'fleet-lieutenant', { card: 'rebel-pathfinder', exhausted: true }],
                         spaceArena: ['tieln-fighter', 'alliance-xwing'],
                         leader: 'leia-organa#alliance-general'
                     },
@@ -65,14 +65,14 @@ describe('Leia Organa, Alliance General', function() {
             });
         });
 
-        describe('Leia\'s undeployed ability', function() {
+        describe('Leia\'s deployed ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['atst', { card: 'battlefield-marine', exhausted: true }],
+                        groundArena: ['atst', 'fleet-lieutenant', { card: 'battlefield-marine', exhausted: true }],
                         spaceArena: ['alliance-xwing'],
-                        leader: 'leia-organa#alliance-general'
+                        leader: { card: 'leia-organa#alliance-general', deployed: true }
                     },
                     player2: {
                         groundArena: ['regional-governor'],
@@ -81,18 +81,48 @@ describe('Leia Organa, Alliance General', function() {
                 });
             });
 
-            it('should skip the second attack if no target is available', function () {
+            it('should allow attacking with another Rebel unit', function () {
                 this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickPrompt('Attack with a Rebel unit');
+                this.player1.clickCard(this.regionalGovernor);
 
-                // jump directly to target selection since only one legal attacker
-                this.player1.clickCard(this.cartelSpacer);
-                expect(this.allianceXwing.exhausted).toBe(true);
-                expect(this.cartelSpacer.damage).toBe(2);
-                expect(this.allianceXwing.damage).toBe(2);
+                expect(this.leiaOrgana.exhausted).toBe(true);
+                expect(this.leiaOrgana.damage).toBe(1);
+                expect(this.regionalGovernor.damage).toBe(3);
+
+                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.allianceXwing]);
+                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+
+                this.player1.clickCard(this.fleetLieutenant);
+                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                this.player1.clickCard(this.p2Base);
+                expect(this.fleetLieutenant.exhausted).toBe(true);
+                expect(this.p2Base.damage).toBe(3);
+                expect(this.fleetLieutenant.damage).toBe(0);
+
+                this.player2.passAction();
+
+                // second Leia attack to confirm that passing the ability works
+                this.leiaOrgana.exhausted = false;
+                this.player1.clickCard(this.leiaOrgana);
+                this.player1.clickCard(this.p2Base);
+                expect(this.leiaOrgana.exhausted).toBe(true);
+                expect(this.p2Base.damage).toBe(6);
+
+                expect(this.player1).toHaveEnabledPromptButton('Attack with another Rebel unit');
+                expect(this.player1).toHaveEnabledPromptButton('Pass');
+                this.player1.clickPrompt('Pass');
+
+                this.player2.passAction();
+
+                // third Leia attack to confirm that the ability isn't triggered if there is no legal attacker
+                this.allianceXwing.exhausted = true;
+                this.leiaOrgana.exhausted = false;
+                this.player1.clickCard(this.leiaOrgana);
+                this.player1.clickCard(this.p2Base);
+                expect(this.leiaOrgana.exhausted).toBe(true);
+                expect(this.p2Base.damage).toBe(9);
 
                 expect(this.player2).toBeActivePlayer();
-                expect(this.leiaOrgana.exhausted).toBe(true);
             });
         });
     });
