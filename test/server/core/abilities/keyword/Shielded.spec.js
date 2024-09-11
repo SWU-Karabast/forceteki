@@ -18,4 +18,6 @@ describe('Shielded keyword', function() {
             });
         });
     });
+
+    //TODO test that a card that is bounced back to hand (i.e. Waylay) doesn't receive a second Shield when replayed
 });

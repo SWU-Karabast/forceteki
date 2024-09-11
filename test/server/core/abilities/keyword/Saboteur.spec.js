@@ -9,7 +9,7 @@ describe('Saboteur keyword', function() {
                     },
                     player2: {
                         groundArena: ['echo-base-defender',
-                            { card: 'wampa', upgrades: ['shield', 'shield'] }
+                            { card: 'wampa', upgrades: ['shield', 'shield', 'resilient'] }
                         ]
                     }
                 });
@@ -21,7 +21,7 @@ describe('Saboteur keyword', function() {
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(5);
                 expect(this.resourcefulPursuers.damage).toBe(0);
-                expect(this.echoBaseDefender.location).toBe('ground arena');
+                expect(this.echoBaseDefender).toBeInLocation('ground arena');
                 expect(this.wampa.location).toBe('ground arena');
             });
 
@@ -30,8 +30,9 @@ describe('Saboteur keyword', function() {
                 this.player1.clickCard(this.resourcefulPursuers);
                 this.player1.clickCard(this.wampa);
                 expect(this.resourcefulPursuers.damage).toBe(4);
-                expect(this.echoBaseDefender.location).toBe('ground arena');
-                expect(this.wampa.location).toBe('discard');
+                expect(this.echoBaseDefender).toBeInLocation('ground arena');
+                expect(this.wampa.damage).toBe(5);
+                expect(this.wampa).toBeInLocation('ground arena');
                 expect(this.player2.findCardByName('shield').location).toBe('outside the game');
             });
         });

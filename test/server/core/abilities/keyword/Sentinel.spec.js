@@ -9,6 +9,7 @@ describe('Sentinel keyword', function() {
                     },
                     player2: {
                         groundArena: ['echo-base-defender'],
+                        spaceArena: ['system-patrol-craft']
                     }
                 });
             });
@@ -18,7 +19,7 @@ describe('Sentinel keyword', function() {
                 expect(this.liberatedSlaves.exhausted).toBe(true);
                 expect(this.p2Base.damage).toBe(0);
                 expect(this.liberatedSlaves.damage).toBe(4);
-                expect(this.echoBaseDefender.location).toBe('discard');
+                expect(this.echoBaseDefender).toBeInLocation('discard');
             });
         });
 
@@ -42,8 +43,9 @@ describe('Sentinel keyword', function() {
                 expect(this.liberatedSlaves.exhausted).toBe(true);
                 expect(this.p2Base.damage).toBe(0);
                 expect(this.liberatedSlaves.damage).toBe(4);
-                expect(this.echoBaseDefender.location).toBe('discard');
+                expect(this.echoBaseDefender).toBeInLocation('discard');
             });
         });
     });
+    // TODO add a test for cross-arena Sentinel logic
 });

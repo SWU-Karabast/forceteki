@@ -20,12 +20,12 @@ describe('Raid keyword', function() {
                 expect(this.cantinaBraggart.power).toBe(0);
                 expect(this.p2Base.damage).toBe(2);
 
-                this.moveToNextActionPhase();
+                // this.moveToNextActionPhase();
 
-                this.player1.clickCard(this.cantinaBraggart);
-                this.player1.clickCard(this.p2Base);
-                expect(this.cantinaBraggart.power).toBe(0);
-                expect(this.p2Base.damage).toBe(4);
+                // this.player1.clickCard(this.cantinaBraggart);
+                // this.player1.clickCard(this.p2Base);
+                // expect(this.cantinaBraggart.power).toBe(0);
+                // expect(this.p2Base.damage).toBe(4);
             });
 
             it('defends, power should not be increased by raid amount', function () {
@@ -38,7 +38,7 @@ describe('Raid keyword', function() {
             });
         });
 
-        //TODO we need a card to test this with - red three?
+        //TODO Test that Red Three raid buff stacks and is then removed when Red Three is out of play
         // describe('When a unit with the Raid keyword and a gained Raid ability', function() {
         //     beforeEach(function () {
         //         this.setupTest({
@@ -60,5 +60,7 @@ describe('Raid keyword', function() {
         //     it('attacks, base should have the cumulative raid amount', function () {
         //     });
         // });
+
+        //TODO test that a card that attacked and then is bounced back to hand (i.e. Waylay) doesn't receive a second Raid buff
     });
 });

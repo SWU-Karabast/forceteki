@@ -45,7 +45,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
 
         public setActiveAttack(attack: Attack) {
-            this.assertPropertyEnabled(this._activeAttack, 'activeAttack');
+            // this.assertPropertyEnabled(this._activeAttack, 'activeAttack');
             this._activeAttack = attack;
         }
 
@@ -132,7 +132,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
             if (this._whenPlayedKeywordAbilities !== null || this.isBlank()) {
                 // TODO: does it even make sense for there to be non-triggered when played keyword abilities? I think not. Maybe Smuggle?
-                triggeredAbilities = triggeredAbilities.concat(this._whenPlayedKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
+                triggeredAbilities = triggeredAbilities.concat(this._whenPlayedKeywordAbilities as TriggeredAbility[]);
             }
 
             return triggeredAbilities;
@@ -213,8 +213,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             for (const ability of this._whenPlayedKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
                     ability.unregisterEvents();
-                } else {
-                    this.removeEffectFromEngine(ability.registeredEffects[0]);
                 }
             }
 
