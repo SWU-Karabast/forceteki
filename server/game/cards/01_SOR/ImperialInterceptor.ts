@@ -12,7 +12,7 @@ export default class ImperialInterceptor extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'You may deal 3 damage to a space unit',
+            title: 'Deal 3 damage to a space unit',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
