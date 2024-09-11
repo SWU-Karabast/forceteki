@@ -319,3 +319,17 @@ export enum AbilityRestriction {
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
 }
+
+export enum StateWatcherName {
+    CardsPlayedThisPhase = 'cardsPlayedThisPhase',
+    UnitsAttackedThisPhase = 'unitsAttackedThisPhase',
+
+    // TODO STATE WATCHERS: watcher types needed
+    // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado
+    // - damaged base: Cassian leader, Forced Surrender
+    // - card played: Luke leader, Vader leader, Lothal Insurgent, Vanguard Ace, Guardian of the Whills, Relentless, Omega
+    // - entered play: Boba unit
+    // - attacked base: Ephant Mon, Rule with Respect
+    // - attacked with unit type: Medal Ceremony, Bo-Katan leader, Asajj Ventress
+    // - discarded: Kylo's TIE Silencer?
+}

@@ -36,9 +36,9 @@ class CardTargetResolver {
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
-            return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
-                   (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                   (properties.immediateEffect.length === 0 || properties.immediateEffect.some((gameSystem) => gameSystem.hasLegalTarget(contextCopy)));
+            return (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
+                   (properties.immediateEffect.length === 0 || properties.immediateEffect.some((gameSystem) => gameSystem.hasLegalTarget(contextCopy)) &&
+                   (!properties.cardCondition || properties.cardCondition(card, contextCopy)));
         };
         return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
