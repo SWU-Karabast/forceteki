@@ -268,10 +268,6 @@ class PlayerOrCardAbility {
     isKeywordAbility() {
         return false;
     }
-
-    isAttackAbility() {
-        return false;
-    }
 }
 
 module.exports = PlayerOrCardAbility;

@@ -31,6 +31,10 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
         (IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties))[]
 }
 
+/**
+ * Manages the concrete steps of the attack process, emitting events at the appropriate stages.
+ * Does not manage the exhaust cost. The attacker must already be selected and set via the `attacker` property.
+ */
 export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
     public override readonly name = 'attack';
     public override readonly eventName = EventName.Unnamed;

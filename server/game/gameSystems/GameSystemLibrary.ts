@@ -55,7 +55,6 @@ import { RevealSystem, IRevealProperties } from './RevealSystem';
 import { PayResourceCostSystem, IPayResourceCostProperties } from './PayResourceCostSystem';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
-import { SequentialSystem } from './SequentialSystem';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
@@ -304,9 +303,9 @@ export function selectCard(propertyFactory: PropsFactory<ISelectCardProperties>)
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameSystem {
 //     return new SelectTokenAction(propertyFactory);
 // }
-export function sequential(gameActions: GameSystem[]): GameSystem {
-    return new SequentialSystem(gameActions);
-} // takes an array of gameActions, not a propertyFactory
+// export function sequential(gameActions: GameSystem[]): GameSystem {
+//     return new SequentialSystem(gameActions);
+// } // takes an array of gameActions, not a propertyFactory
 // export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }

@@ -34,9 +34,8 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source
             },
-            targetResolver: {
-                cardCondition: (card, context) => card.hasSomeTrait(Trait.Rebel) && card !== context.source,
-                immediateEffect: AbilityHelper.immediateEffects.attack()
+            initiateAttack: {
+                attackerCondition: (card, context) => card.hasSomeTrait(Trait.Rebel) && card !== context.source
             }
         });
     }

@@ -7,12 +7,18 @@ import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import Contract from '../core/utils/Contract';
 import { IAttackProperties } from './AttackStepsSystem';
+import * as GameSystemLibrary from './GameSystemLibrary';
 
 export interface IInitiateUnitAttackProperties extends IAttackProperties {
     ignoredRequirements?: string[];
     attackerCondition?: (card: Card, context: AbilityContext) => boolean;
 }
 
+/**
+ * This system is a helper for initiating attacks from abilities (see {@link GameSystemLibrary.attack}).
+ * The `target` property is the unit that will be attacking. The system resolves the {@link InitiateAttackAction}
+ * ability for the passed unit, which will trigger resolution of the attack target.
+ */
 export class InitiateAttackWithUnitSystem extends CardTargetSystem<IInitiateUnitAttackProperties> {
     public override readonly name = 'initiateUnitAttack';
     protected override readonly defaultProperties: IInitiateUnitAttackProperties = {

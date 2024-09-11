@@ -7,6 +7,13 @@ import * as GameSystemLibrary from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
 import { AttackStepsSystem, IAttackProperties } from '../gameSystems/AttackStepsSystem.js';
 
+/**
+ * Implements the action for a player to initiate an attack from a unit.
+ * Calls {@link AttackStepsSystem} to resolve the attack.
+ *
+ * Default behaviors can be overridden by passing in an {@link IAttackProperties} object.
+ * See {@link GameSystemLibrary.attack} for using it in abilities.
+ */
 export class InitiateAttackAction extends PlayerAction {
     public constructor(card: Card, private attackProperties?: IAttackProperties) {
         super(card, 'Attack', [exhaustSelf()], {
@@ -44,9 +51,5 @@ export class InitiateAttackAction extends PlayerAction {
         });
 
         new AttackStepsSystem(attackSystemProperties).resolve(context.target, context);
-    }
-
-    public override isAttackAbility(): this is InitiateAttackAction {
-        return true;
     }
 }

@@ -110,7 +110,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -141,7 +141,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
@@ -178,7 +178,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
 
                 return result;
             }
