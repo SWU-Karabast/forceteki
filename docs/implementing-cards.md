@@ -310,7 +310,7 @@ this.action({
 
 #### Paying additional costs for action
 
-Some actions have an additional cost, such as bowing the card. In these cases, specify the `cost` parameter. The action will check if the cost can be paid. If it can't, the action will not execute. If it can, costs will be paid automatically and then the action will execute.
+Some actions have an additional cost, such as exhausting the card. In these cases, specify the `cost` parameter. The action will check if the cost can be paid. If it can't, the action will not execute. If it can, costs will be paid automatically and then the action will execute.
 
 For a full list of costs, look at [CostLibrary.ts](../server/game/costs/CostLibrary.ts).
 
