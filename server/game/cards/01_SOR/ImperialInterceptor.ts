@@ -13,10 +13,11 @@ export default class ImperialInterceptor extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'You may deal 3 damage to a space unit.',
+            optional: true,
             targetResolvers: {
                 spaceUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
-                    controller: RelativePlayer.Self,
+                    controller: RelativePlayer.Any,
                     locationFilter: Location.SpaceArena,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
                 }

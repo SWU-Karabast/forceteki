@@ -16,11 +16,10 @@ describe('Imperial Interceptor', function() {
                 });
             });
 
-            it('can be passed, can only select space units & can damage itself', function () {
+            it('can only select space units & can select itself', function () {
                 // Play Imperial Interceptor
                 this.player1.clickCard(this.imperialInterceptor);
                 expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
-                expect(this.player1).toHavePassAbilityPrompt();
 
                 // Select Itself to Target
                 this.player1.clickCard(this.imperialInterceptor);
@@ -32,7 +31,6 @@ describe('Imperial Interceptor', function() {
 
                 // Choose Target
                 expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
-                expect(this.player1).toHavePassAbilityPrompt();
                 this.player1.clickCard(this.gladiatorStarDestroyer);
                 expect(this.gladiatorStarDestroyer.damage).toEqual(3);
             });
@@ -43,9 +41,19 @@ describe('Imperial Interceptor', function() {
 
                 // Choose Target
                 expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
-                expect(this.player1).toHavePassAbilityPrompt();
                 this.player1.clickCard(this.systemPatrolCraft);
                 expect(this.systemPatrolCraft.damage).toEqual(3);
+            });
+
+            it('should be able to be passed', function () {
+                // Play Imperial Interceptor
+                this.player1.clickCard(this.imperialInterceptor);
+
+                // Pass the ability to damage another unit
+                this.player1.clickPrompt('Pass ability');
+                expect(this.imperialInterceptor.damage).toEqual(0);
+                expect(this.gladiatorStarDestroyer.damage).toEqual(0);
+                expect(this.systemPatrolCraft.damage).toEqual(0);
             });
         });
     });
