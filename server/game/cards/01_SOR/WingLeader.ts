@@ -12,7 +12,7 @@ export default class WingLeader extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Give 2 Experience tokens to another friendly REBEL unit',
+            title: 'Give 2 Experience tokens to another friendly Rebel unit',
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Rebel) && card !== this,
