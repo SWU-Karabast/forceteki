@@ -44,9 +44,9 @@ function filterValues(card) {
     filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
 
     let internalName = filteredObj.title;
-    if (filteredObj.subtitle) {
-        internalName += '#' + filteredObj.subtitle;
-    }
+    internalName += filteredObj.subtitle ? '#' + filteredObj.subtitle : '';
+    // remove accents / diacritics (e.g., 'Chirrut Îmwe' -> 'Chirrut Imwe')
+    internalName = internalName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '')
         .replace(/\s/g, '-');
 

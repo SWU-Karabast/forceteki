@@ -13,6 +13,7 @@ import CardAbility from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/Shield';
 import { KeywordInstance } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
+import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
 import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
@@ -112,7 +113,7 @@ export class Card extends OngoingEffectSource {
             this._location = Location.Deck;
         }
 
-        // this.activateAbilityInitializersForTypes(AbilityType.Action);
+        this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
     }
 
 
@@ -208,6 +209,10 @@ export class Card extends OngoingEffectSource {
         Contract.assertArraySize(args, 2);
 
         return [args[0] as Player, args[1]];
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected setupStateWatchers(registrar: StateWatcherRegistrar) {
     }
 
     public createActionAbility(properties: IActionAbilityProps): ActionAbility {
@@ -333,6 +338,16 @@ export class Card extends OngoingEffectSource {
 
     public hasEveryTrait(traits: Set<Trait> | Trait[]): boolean {
         return this.hasEvery(traits, this.traits);
+    }
+
+
+    // ******************************************* ASPECT HELPERS *******************************************
+    public hasSomeAspect(aspects: Set<Aspect> | Aspect | Aspect[]): boolean {
+        return this.hasSome(aspects, this.aspects);
+    }
+
+    public hasEveryAspect(aspects: Set<Aspect> | Aspect[]): boolean {
+        return this.hasEvery(aspects, this.aspects);
     }
 
 

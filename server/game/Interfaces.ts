@@ -109,6 +109,15 @@ export type IKeywordProperties =
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
 
+export interface IStateListenerProperties<TState> {
+    when: WhenType;
+    update: (currentState: TState, event: any) => TState;
+}
+
+export interface IStateListenerResetProperties {
+    when: WhenType;
+}
+
 export type traitLimit = Record<string, number>;
 
 export type EffectArg =
