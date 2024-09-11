@@ -39,12 +39,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         protected _upgrades: UpgradeCard[] = [];
 
+        private _activeAttack?: Attack = null;
         private _attackKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
         private _whenPlayedKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
 
-        private _activeAttack?: Attack = null;
 
         public setActiveAttack(attack: Attack) {
+            this.assertPropertyEnabled(this._activeAttack, 'activeAttack');
             this._activeAttack = attack;
         }
 
@@ -313,8 +314,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
             }
 
-            if (this.isAttacking() && this.getNumericKeywordSum(KeywordName.Raid) > 0) {
-                const raidModifier = { power: this.getNumericKeywordSum(KeywordName.Raid), hp: 0 };
+            const raidAmount = this.getNumericKeywordSum(KeywordName.Raid);
+            if (this.isAttacking() && raidAmount > 0) {
+                const raidModifier = { power: raidAmount, hp: 0 };
                 wrappedStatsModifiers.push(new StatsModifierWrapper(raidModifier, 'Raid', false, this.type));
             }
 

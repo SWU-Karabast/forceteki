@@ -1,18 +1,10 @@
 import { GameObject } from '../GameObject';
-import { EffectName, EventName, Location } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
-import type Player from '../Player';
-import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import Contract from '../utils/Contract';
-import { NonLeaderUnitCard } from '../card/NonLeaderUnitCard';
 import { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
 
-export interface IAttackAbilities {
-    saboteur: boolean; // TODO: I think we can remove this?
-}
 
 type StatisticTotal = number;
 

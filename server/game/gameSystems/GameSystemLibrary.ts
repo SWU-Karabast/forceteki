@@ -79,9 +79,9 @@ export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProper
 export function attack(propertyFactory: PropsFactory<IAttackProperties>): GameSystem {
     return new AttackSystem(propertyFactory);
 }
-export function cardLastingEffect(propertyFactory: PropsFactory<ILastingEffectCardProperties>): GameSystem {
-    return new LastingEffectCardSystem(propertyFactory);
-}
+// export function cardLastingEffect(propertyFactory: PropsFactory<ILastingEffectCardProperties>): GameSystem {
+//     return new LastingEffectCardSystem(propertyFactory);
+// }
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);
 // }

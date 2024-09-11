@@ -19,6 +19,13 @@ describe('Raid keyword', function() {
                 expect(this.cantinaBraggart.exhausted).toBe(true);
                 expect(this.cantinaBraggart.power).toBe(0);
                 expect(this.p2Base.damage).toBe(2);
+
+                this.moveToNextActionPhase();
+
+                this.player1.clickCard(this.cantinaBraggart);
+                this.player1.clickCard(this.p2Base);
+                expect(this.cantinaBraggart.power).toBe(0);
+                expect(this.p2Base.damage).toBe(4);
             });
 
             it('defends, power should not be increased by raid amount', function () {
