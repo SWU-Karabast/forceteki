@@ -16,33 +16,22 @@ describe('Imperial Interceptor', function() {
                 });
             });
 
-            it('can only select space units & can select itself', function () {
+            it('can only select space units, can be passed and can damage a target', function () {
                 // Play Imperial Interceptor
                 this.player1.clickCard(this.imperialInterceptor);
+                expect(this.player1).toHaveEnabledPromptButtons('Pass ability');
                 expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
 
-                // Select Itself to Target
-                this.player1.clickCard(this.imperialInterceptor);
-            });
-
-            it('can select opponents units', function () {
-                // Play Imperial Interceptor
-                this.player1.clickCard(this.imperialInterceptor);
-
-                // Choose Target
-                expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
-                this.player1.clickCard(this.gladiatorStarDestroyer);
-                expect(this.gladiatorStarDestroyer.damage).toEqual(3);
-            });
-
-            it('can select own units', function () {
-                // Play Imperial Interceptor
-                this.player1.clickCard(this.imperialInterceptor);
-
-                // Choose Target
-                expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
+                // Select another target and apply damage
                 this.player1.clickCard(this.systemPatrolCraft);
                 expect(this.systemPatrolCraft.damage).toEqual(3);
+            });
+
+            it('can select itself and it is defeated', function () {
+                // Play Imperial Interceptor
+                this.player1.clickCard(this.imperialInterceptor);
+                this.player1.clickCard(this.imperialInterceptor);
+                expect(this.imperialInterceptor).toBeInLocation('discard');
             });
 
             it('should be able to be passed', function () {
