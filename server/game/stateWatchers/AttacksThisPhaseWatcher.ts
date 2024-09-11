@@ -32,6 +32,12 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
         return super.getCurrentValue();
     }
 
+    public getAttackers(filter: (entry: AttackEntry) => boolean): Card[] {
+        return this.getCurrentValue()
+            .filter(filter)
+            .map((entry) => entry.attacker);
+    }
+
     protected override setupWatcher() {
         this.addUpdater({
             when: {

@@ -19,16 +19,13 @@ export default class VanguardAce extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Give one experience for each card you played this turn',
+            title: 'Give one experience for each other card you played this turn',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
-                const cardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCurrentValue();
+                const otherFriendlyCardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCardsPlayed(
+                    (cardPlay) => cardPlay.playedBy === context.source.controller && cardPlay.card !== context.source
+                );
 
-                const experienceCount = cardsPlayedThisPhase.filter((playedCardEntry) =>
-                    playedCardEntry.playedBy === context.source.controller &&
-                    playedCardEntry.card !== context.source
-                ).length;
-
-                return { amount: experienceCount };
+                return { amount: otherFriendlyCardsPlayedThisPhase.length };
             })
         });
     }

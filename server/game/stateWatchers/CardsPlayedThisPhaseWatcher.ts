@@ -29,6 +29,12 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
         return super.getCurrentValue();
     }
 
+    public getCardsPlayed(filter: (entry: PlayedCardEntry) => boolean): Card[] {
+        return this.getCurrentValue()
+            .filter(filter)
+            .map((entry) => entry.card);
+    }
+
     protected override setupWatcher() {
         // on card played, add the card to the player's list of cards played this phase
         this.addUpdater({

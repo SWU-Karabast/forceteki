@@ -31,11 +31,7 @@ export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
                         return false;
                     }
 
-                    const cardsPlayed = this.cardsPlayedThisPhaseWatcher.getCurrentValue();
-                    const playedThisTurn = cardsPlayed
-                        .filter((playedCardEntry) => playedCardEntry.playedBy === context.source.controller)
-                        .map((playedCardEntry) => playedCardEntry.card as Card);
-
+                    const playedThisTurn = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) => playedCardEntry.playedBy === context.source.controller);
                     return playedThisTurn.includes(card);
                 },
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()
