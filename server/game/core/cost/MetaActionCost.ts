@@ -4,10 +4,10 @@ import type { ICost, Result } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
 import { randomItem } from '../utils/Helpers';
-import { GameActionCost } from './GameActionCost';
+import { GameSystemCost } from './GameSystemCost';
 import { GameEvent } from '../event/GameEvent';
 
-export class MetaActionCost extends GameActionCost implements ICost {
+export class MetaActionCost extends GameSystemCost implements ICost {
     public constructor(
         gameSystem: GameSystem,
         public activePromptTitle: string
@@ -29,7 +29,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
         return this.gameSystem.hasLegalTarget(context, additionalProps);
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, result: Result): GameEvent[] {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, result: Result): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.targets && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
@@ -37,7 +37,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
             );
             context.costs[properties.innerSystem.name + 'StateWhenChosen'] =
                 context.costs[properties.innerSystem.name].createSnapshot();
-            return properties.innerSystem.generateEventsForAllTargets(context, {
+            properties.innerSystem.queueGenerateEventGameSteps(events, context, {
                 target: context.costs[properties.innerSystem.name]
             });
         }
@@ -55,7 +55,7 @@ export class MetaActionCost extends GameActionCost implements ICost {
                 return properties.innerSystemProperties ? properties.innerSystemProperties(target) : {};
             }
         };
-        return this.gameSystem.generateEventsForAllTargets(context, additionalProps);
+        this.gameSystem.queueGenerateEventGameSteps(events, context, additionalProps);
     }
 
     public hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {
