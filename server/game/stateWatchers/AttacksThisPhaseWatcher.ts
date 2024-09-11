@@ -32,6 +32,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
         return super.getCurrentValue();
     }
 
+    /** Filters the list of attack events in the state and returns the attackers that match */
     public getAttackers(filter: (entry: AttackEntry) => boolean): Card[] {
         return this.getCurrentValue()
             .filter(filter)
