@@ -20,7 +20,8 @@ describe('Raid keyword', function() {
                 expect(this.cantinaBraggart.power).toBe(0);
                 expect(this.p2Base.damage).toBe(2);
 
-                this.moveToNextActionPhase();
+                this.cantinaBraggart.exhausted = false;
+                this.player2.passAction();
 
                 this.player1.clickCard(this.cantinaBraggart);
                 this.player1.clickCard(this.p2Base);
