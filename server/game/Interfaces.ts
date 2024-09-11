@@ -7,7 +7,7 @@ import { type RelativePlayer, type TargetMode, type CardType, type Location, typ
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
-import { IInitiateUnitAttackProperties } from './gameSystems/InitiateAttackWithUnitSystem';
+import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -76,10 +76,10 @@ export interface IAbilityProps<Context> {
     /**
      * Indicates that an attack should be triggered from a friendly unit.
      * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
-     * Can either be an {@link IInitiateUnitAttackProperties} property object or a function that creates one from
+     * Can either be an {@link IInitiateAttackProperties} property object or a function that creates one from
      * an {@link AbilityContext}.
      */
-    initiateAttack?: IInitiateUnitAttackProperties | ((context: AbilityContext) => IInitiateUnitAttackProperties);
+    initiateAttack?: IInitiateAttackProperties | ((context: AbilityContext) => IInitiateAttackProperties);
 
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;

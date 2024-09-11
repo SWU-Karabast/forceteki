@@ -9,7 +9,7 @@ import Contract from '../core/utils/Contract';
 import { IAttackProperties } from './AttackStepsSystem';
 import * as GameSystemLibrary from './GameSystemLibrary';
 
-export interface IInitiateUnitAttackProperties extends IAttackProperties {
+export interface IInitiateAttackProperties extends IAttackProperties {
     ignoredRequirements?: string[];
     attackerCondition?: (card: Card, context: AbilityContext) => boolean;
 }
@@ -19,9 +19,9 @@ export interface IInitiateUnitAttackProperties extends IAttackProperties {
  * The `target` property is the unit that will be attacking. The system resolves the {@link InitiateAttackAction}
  * ability for the passed unit, which will trigger resolution of the attack target.
  */
-export class InitiateAttackWithUnitSystem extends CardTargetSystem<IInitiateUnitAttackProperties> {
+export class InitiateAttackSystem extends CardTargetSystem<IInitiateAttackProperties> {
     public override readonly name = 'initiateUnitAttack';
-    protected override readonly defaultProperties: IInitiateUnitAttackProperties = {
+    protected override readonly defaultProperties: IInitiateAttackProperties = {
         ignoredRequirements: [],
         attackerCondition: () => true
     };

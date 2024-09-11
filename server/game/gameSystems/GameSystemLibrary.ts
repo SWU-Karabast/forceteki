@@ -27,7 +27,7 @@ import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './Execute
 import { GiveExperienceSystem, IGiveExperienceProperties } from './GiveExperienceSystem';
 import { GiveShieldSystem, IGiveShieldProperties } from './GiveShieldSystem';
 import { HealSystem, IHealProperties } from './HealSystem';
-import { InitiateAttackWithUnitSystem, IInitiateUnitAttackProperties } from './InitiateAttackWithUnitSystem';
+import { InitiateAttackSystem, IInitiateAttackProperties } from './InitiateAttackSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
 // import { LastingEffectCardAction, LastingEffectCardProperties } from './LastingEffectCardAction';
@@ -75,8 +75,8 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProperties> = {}): GameSystem {
     return new AttachUpgradeSystem(propertyFactory);
 }
-export function attack(propertyFactory: PropsFactory<IInitiateUnitAttackProperties> = {}): CardTargetSystem {
-    return new InitiateAttackWithUnitSystem(propertyFactory);
+export function attack(propertyFactory: PropsFactory<IInitiateAttackProperties> = {}): CardTargetSystem {
+    return new InitiateAttackSystem(propertyFactory);
 }
 // export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameSystem {
 //     return new LastingEffectCardAction(propertyFactory);

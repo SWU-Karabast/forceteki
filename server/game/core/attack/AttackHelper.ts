@@ -1,5 +1,5 @@
 import AbilityHelper from '../../AbilityHelper';
-import { IInitiateUnitAttackProperties } from '../../gameSystems/InitiateAttackWithUnitSystem';
+import { IInitiateAttackProperties } from '../../gameSystems/InitiateAttackSystem';
 
 export const addInitiateAttackProperties = (properties) => {
     if (!properties.initiateAttack) {
@@ -11,7 +11,7 @@ export const addInitiateAttackProperties = (properties) => {
     };
 };
 
-const getProperties = (properties, context): IInitiateUnitAttackProperties => {
+const getProperties = (properties, context): IInitiateAttackProperties => {
     if (typeof properties.initiateAttack === 'function') {
         return properties.initiateAttack(context);
     }
