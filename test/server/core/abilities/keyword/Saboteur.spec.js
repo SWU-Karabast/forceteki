@@ -10,7 +10,8 @@ describe('Saboteur keyword', function() {
                     player2: {
                         groundArena: ['echo-base-defender',
                             { card: 'wampa', upgrades: ['shield', 'shield', 'resilient'] }
-                        ]
+                        ],
+                        spaceArena: ['system-patrol-craft']
                     }
                 });
             });

@@ -12,8 +12,7 @@ describe('Shielded keyword', function() {
 
             it('enters play, it receives a shield', function () {
                 this.player1.clickCard(this.craftySmuggler);
-                expect(this.craftySmuggler.upgrades.length).toBe(1);
-                expect(this.craftySmuggler.upgrades[0].title).toBe('Shield');
+                expect(this.craftySmuggler).toHaveExactUpgradeNames(['shield']);
                 expect(this.player2).toBeActivePlayer();
             });
         });
