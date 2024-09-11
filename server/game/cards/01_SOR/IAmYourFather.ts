@@ -23,11 +23,11 @@ export default class IAmYourFather extends EventCard {
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
                     choices: (context) => ({
-                        [`Let ${context.targets.targetUnit.title} take 7 damage`]: AbilityHelper.immediateEffects.damage({
+                        [`${context.targets.targetUnit.title} takes 7 damage`]: AbilityHelper.immediateEffects.damage({
                             target: context.targets.targetUnit,
                             amount: 7
                         }),
-                        ['Let opponent draw 3 cards']: AbilityHelper.immediateEffects.draw({ amount: 3 })
+                        ['Opponent draws 3 cards']: AbilityHelper.immediateEffects.draw({ amount: 3 })
                     })
                 }
             }

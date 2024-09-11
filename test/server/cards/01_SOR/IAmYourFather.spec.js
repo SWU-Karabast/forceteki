@@ -16,23 +16,13 @@ describe('I Am Your Father', function() {
                 });
             });
 
-            it('can only select opponent\'s units, including leaders', function () {
-                this.player1.clickCard(this.iAmYourFather);
-                expect(this.player1).toBeAbleToSelectExactly([this.viperProbeDroid, this.darthVader]);
-            });
-
-            it('gives the opponent a choice after selecting the target unit', function () {
-                this.player1.clickCard(this.iAmYourFather);
-                this.player1.clickCard(this.darthVader);
-
-                expect(this.player2).toHaveEnabledPromptButtons(['Let Darth Vader take 7 damage', 'Let opponent draw 3 cards']);
-            });
-
             it('does 7 damage to the target unit when the opponent selects that', function () {
                 this.player1.clickCard(this.iAmYourFather);
+                expect(this.player1).toBeAbleToSelectExactly([this.viperProbeDroid, this.darthVader]); //can target only opponent's units, including leaders
                 this.player1.clickCard(this.darthVader);
 
-                this.player2.clickPrompt('Let Darth Vader take 7 damage');
+                expect(this.player2).toHaveEnabledPromptButtons(['Darth Vader takes 7 damage', 'Opponent draws 3 cards']);
+                this.player2.clickPrompt('Darth Vader takes 7 damage');
                 expect(this.darthVader.damage).toEqual(7);
             });
 
@@ -40,7 +30,7 @@ describe('I Am Your Father', function() {
                 this.player1.clickCard(this.iAmYourFather);
                 this.player1.clickCard(this.darthVader);
 
-                this.player2.clickPrompt('Let opponent draw 3 cards');
+                this.player2.clickPrompt('Opponent draws 3 cards');
                 expect(this.darthVader.damage).toEqual(0);
                 expect(this.player1.hand.length).toEqual(3);
                 expect(this.player2.hand.length).toEqual(0);
