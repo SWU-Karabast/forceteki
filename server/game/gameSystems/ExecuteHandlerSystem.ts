@@ -32,8 +32,8 @@ export class ExecuteHandlerSystem extends GameSystem {
         return true;
     }
 
-    public override generateEventsForAllTargets(context: AbilityContext, additionalProperties = {}): GameEvent[] {
-        return [this.generateEvent(null, context, additionalProperties)];
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
+        events.push(this.generateEvent(null, context, additionalProperties));
     }
 
     public override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}) {

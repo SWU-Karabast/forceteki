@@ -10,7 +10,7 @@ import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext
 import { Derivable, derive } from '../core/utils/Helpers';
 import { Card } from '../core/card/Card';
 import { ICost } from '../core/cost/ICost';
-import { GameActionCost } from '../core/cost/GameActionCost';
+import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
 import { ReturnToHandFromPlaySystem } from '../gameSystems/ReturnToHandFromPlaySystem';
@@ -34,14 +34,14 @@ function getSelectCost(
  * Cost that will bow the card that initiated the ability.
  */
 export function exhaustSelf(): ICost {
-    return new GameActionCost(GameSystems.exhaust({ isCost: true }));
+    return new GameSystemCost(GameSystems.exhaust({ isCost: true }));
 }
 
 // /**
 //  * Cost that will sacrifice the card that initiated the ability.
 //  */
 // export function sacrificeSelf(): Cost {
-//     return new GameActionCost(GameSystems.sacrifice());
+//     return new GameSystemCost(GameSystems.sacrifice());
 // }
 
 // /**
@@ -56,7 +56,7 @@ export function exhaustSelf(): ICost {
  * Cost that will return to hand from the play area the card that initiated the ability
  */
 export function returnSelfToHandFromPlay(): ICost {
-    return new GameActionCost(GameSystems.returnToHandFromPlay({ isCost: true }));
+    return new GameSystemCost(GameSystems.returnToHandFromPlay({ isCost: true }));
 }
 
 /**
@@ -88,7 +88,7 @@ export function returnToHandFromPlay(properties: SelectCostProperties): ICost {
 //  * Cost that will return to hand the card that initiated the ability.
 //  */
 // export function returnSelfToHand(): Cost {
-//     return new GameActionCost(GameSystems.returnToHand());
+//     return new GameSystemCost(GameSystems.returnToHand());
 // }
 
 /**
@@ -108,14 +108,14 @@ export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
 //  * Cost that requires discarding a specific card.
 //  */
 // export function discardCardSpecific(cardFunc: (context: AbilityContext) => BaseCard): Cost {
-//     return new GameActionCost(GameSystems.discardCard((context) => ({ target: cardFunc(context) })));
+//     return new GameSystemCost(GameSystems.discardCard((context) => ({ target: cardFunc(context) })));
 // }
 
 // /**
 //  * Cost that requires discarding itself from hand.
 //  */
 // export function discardSelf(): Cost {
-//     return new GameActionCost(GameSystems.discardCard((context) => ({ target: context.source })));
+//     return new GameSystemCost(GameSystems.discardCard((context) => ({ target: context.source })));
 // }
 
 // /**
@@ -157,7 +157,7 @@ export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
 //  * Cost that requires removing a card selected by the player from the game.
 //  */
 // export function removeSelfFromGame(properties?: { location: Array<Location> }): Cost {
-//     return new GameActionCost(GameSystems.removeFromGame(properties));
+//     return new GameSystemCost(GameSystems.removeFromGame(properties));
 // }
 
 // export function discardStatusToken(properties: Omit<SelectCardProperties, 'gameSystem' | 'subActionProperties'>): Cost {
@@ -179,14 +179,14 @@ export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
 //  * Cost that will discard the status token on a card to be selected by the player
 //  */
 // export function discardStatusTokenFromSelf(): Cost {
-//     return new GameActionCost(GameSystems.discardStatusToken());
+//     return new GameSystemCost(GameSystems.discardStatusToken());
 // }
 
 /**
  * Cost that will put into play the card that initiated the ability
  */
 export function putSelfIntoPlay(): ICost {
-    return new GameActionCost(GameSystems.putIntoPlay());
+    return new GameSystemCost(GameSystems.putIntoPlay());
 }
 
 // /**
@@ -200,7 +200,7 @@ export function putSelfIntoPlay(): ICost {
 //  * Cost that will reveal specific cards
 //  */
 // export function reveal(cardFunc: (context: AbilityContext) => BaseCard[]): Cost {
-//     return new GameActionCost(GameSystems.reveal((context) => ({ target: cardFunc(context) })));
+//     return new GameSystemCost(GameSystems.reveal((context) => ({ target: cardFunc(context) })));
 // }
 
 // /**
@@ -247,7 +247,7 @@ export function payPlayCardResourceCost(ignoreType = false): ICost {
  * Cost in which the player must pay a fixed, non-reduceable amount of fate.
  */
 export function abilityResourceCost(amount: number | ((context: AbilityContext) => number)): ICost {
-    return new GameActionCost(
+    return new GameSystemCost(
         typeof amount === 'function'
             ? GameSystems.payResourceCost((context) => ({ target: context.player, amount: amount(context) }))
             : GameSystems.payResourceCost((context) => ({ target: context.player, amount }))
@@ -469,7 +469,7 @@ export function abilityResourceCost(amount: number | ((context: AbilityContext) 
 //                 return doNothing.generateEvent(context.player, context);
 //             }
 
-//             return cost.generateEventsForAllTargets(context, {});
+//             return cost.queueGenerateEventGameSteps(context, {});
 //         }
 //     };
 // }

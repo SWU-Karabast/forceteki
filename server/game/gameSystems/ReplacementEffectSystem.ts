@@ -1,4 +1,5 @@
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import Contract from '../core/utils/Contract';
 
@@ -17,7 +18,9 @@ export class ReplacementEffectSystem extends GameSystem<IReplacementEffectSystem
 
         if (replacementGameAction) {
             const eventWindow = event.context.event.window;
-            const events = replacementGameAction.generateEventsForAllTargets(
+            const events = [];
+            replacementGameAction.queueGenerateEventGameSteps(
+                events,
                 event.context,
                 Object.assign({ replacementEffect: true }, additionalProperties)
             );
@@ -34,13 +37,13 @@ export class ReplacementEffectSystem extends GameSystem<IReplacementEffectSystem
         event.context.cancel();
     }
 
-    public override generateEventsForAllTargets(context: TriggeredAbilityContext, additionalProperties = {}) {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TriggeredAbilityContext, additionalProperties = {}) {
         const event = this.createEvent(null, context, additionalProperties);
 
         super.addPropertiesToEvent(event, null, context, additionalProperties);
         event.replaceHandler((event) => this.eventHandler(event, additionalProperties));
 
-        return [event];
+        events.push(event);
     }
 
     public override getEffectMessage(context: TriggeredAbilityContext): [string, any[]] {

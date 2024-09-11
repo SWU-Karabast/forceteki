@@ -28,7 +28,7 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
         }
 
         for (let i = 0; i < properties.amount; i++) {
-            const tokenUpgrade = event.context.game.generateToken(event.context.source.controller, this.properties.tokenType);
+            const tokenUpgrade = event.context.game.generateToken(event.context.source.controller, properties.tokenType);
             tokenUpgrade.attachTo(cardReceivingTokenUpgrade);
         }
     }
@@ -43,6 +43,8 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
     }
 
     public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+        const properties = this.generatePropertiesFromContext(context);
+
         if (
             !Contract.assertNotNullLike(context) ||
             !Contract.assertNotNullLike(context.player) ||
@@ -51,9 +53,14 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
             return false;
         }
 
-        if (!card.isUnit() || !EnumHelpers.isArena(card.location)) {
+        if (
+            !card.isUnit() ||
+            !EnumHelpers.isArena(card.location) ||
+            properties.amount === 0
+        ) {
             return false;
         }
+
         return super.canAffect(card, context);
     }
 

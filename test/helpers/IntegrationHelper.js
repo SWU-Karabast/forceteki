@@ -490,6 +490,46 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toHaveExactUpgradeNames: function () {
+        return {
+            compare: function (card, upgradeNames) {
+                let result = {};
+
+                if (!card.upgrades) {
+                    throw new Error(`Card ${card.internalName} does not have an upgrades property`);
+                }
+
+                const actualUpgradeNames = card.upgrades.map((upgrade) => upgrade.internalName);
+
+                const expectedUpgradeNames = [...upgradeNames];
+
+                let expectedUpgrades = expectedUpgradeNames.filter((x) => actualUpgradeNames.includes(x));
+                let missingUpgrades = expectedUpgradeNames.filter((x) => !actualUpgradeNames.includes(x));
+                let unexpectedUpgrades = actualUpgradeNames.filter((x) => !expectedUpgradeNames.includes(x));
+
+                result.pass = unexpectedUpgrades.length === 0 && missingUpgrades.length === 0;
+
+                if (result.pass) {
+                    result.message = `Expected ${card.internalName} not to have this exact set of upgrades but it does: ${expectedUpgrades.join(', ')}`;
+                } else {
+                    let message = '';
+
+                    if (missingUpgrades.length > 0) {
+                        message = `Expected ${card.internalName} to have the following upgrades but it does not: ${missingUpgrades.join(', ')}`;
+                    }
+                    if (unexpectedUpgrades.length > 0) {
+                        if (message.length > 0) {
+                            message += '\n';
+                        }
+                        message += `Expected ${card.internalName} not to have the following upgrades but it does: ${unexpectedUpgrades.join(', ')}`;
+                    }
+                    result.message = message;
+                }
+
+                return result;
+            }
+        };
     }
 };
 

@@ -23,7 +23,6 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
 
     public eventHandler(event, additionalProperties = {}): void {
         const player = this.getPutIntoPlayPlayer(event.context);
-        event.card.new = true;
 
         let finalController = event.context.player;
         if (event.controller === RelativePlayer.Opponent) {

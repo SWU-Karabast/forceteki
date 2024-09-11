@@ -527,28 +527,37 @@ class PlayerInteractionWrapper {
 
     getPlayerPromptState() {
         return {
-            actionTargets: this.player.promptState.selectableCards,
+            selectableCards: this.copySelectionArray(this.player.promptState.selectableCards),
+            selectedCards: this.copySelectionArray(this.player.promptState.selectedCards),
             menuTitle: this.player.currentPrompt().menuTitle,
             promptTitle: this.player.currentPrompt().promptTitle
         };
+    }
+
+    copySelectionArray(ara) {
+        return ara == null ? [] : [...ara];
     }
 
     promptStatesEqual(promptState1, promptState2) {
         if (
             promptState1.menuTitle !== promptState2.menuTitle ||
             promptState1.promptTitle !== promptState2.promptTitle ||
-            promptState1.actionTargets.length !== promptState2.actionTargets.length
+            promptState1.selectableCards.length !== promptState2.selectableCards.length ||
+            promptState1.selectedCards.length !== promptState2.selectedCards.length
         ) {
             return false;
         }
 
-        const targets1 = promptState1.actionTargets;
-        const targets2 = promptState2.actionTargets;
-        targets1.sort();
-        targets2.sort();
+        return this.selectionArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
+            this.selectionArraysEqual(promptState1.selectableCards, promptState2.selectableCards);
+    }
 
-        for (let i = 0; i < targets1.length; i++) {
-            if (targets1[i] !== targets2[i]) {
+    selectionArraysEqual(ara1, ara2) {
+        ara1.sort();
+        ara2.sort();
+
+        for (let i = 0; i < ara1.length; i++) {
+            if (ara1[i] !== ara2[i]) {
                 return false;
             }
         }

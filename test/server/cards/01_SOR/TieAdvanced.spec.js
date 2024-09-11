@@ -19,7 +19,7 @@ describe('Tie Avanced', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
                 this.player1.clickCard(this.atst);
 
-                expect(this.atst.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience']);
+                expect(this.atst).toHaveExactUpgradeNames(['experience', 'experience']);
             });
 
             it('can give two experience to a unit that already has an experience', function () {
@@ -27,7 +27,7 @@ describe('Tie Avanced', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
                 this.player1.clickCard(this.tielnFighter);
 
-                expect(this.tielnFighter.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience', 'experience']);
+                expect(this.tielnFighter).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
         });
     });
