@@ -23,7 +23,7 @@ describe('Wing Leader', function() {
             });
 
             it('can give two experience to a unit that already has an experience', function () {
-                this.player1.clickCard(this.rebelPathfinder);
+                this.player1.clickCard(this.wingLeader);
                 expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.rebelPathfinder]);
                 this.player1.clickCard(this.rebelPathfinder);
 
