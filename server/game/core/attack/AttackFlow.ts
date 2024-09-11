@@ -46,6 +46,10 @@ export class AttackFlow extends BaseStepWithPipeline {
     private declareAttack() {
         this.attack.attacker.registerAttackKeywords();
         this.attack.attacker.setActiveAttack(this.attack);
+        if (this.attack.target.isUnit()) {
+            // TODO: should we move this to a place where it can be set on bases?
+            this.attack.target.setActiveAttack(this.attack);
+        }
 
         this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack });
     }
