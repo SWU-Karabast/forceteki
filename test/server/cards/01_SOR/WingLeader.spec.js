@@ -19,7 +19,7 @@ describe('Wing Leader', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.rebelPathfinder]);
                 this.player1.clickCard(this.fleetLieutenant);
 
-                expect(this.fleetLieutenant.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience']);
+                expect(this.fleetLieutenant).toHaveExactUpgradeNames(['experience', 'experience']);
             });
 
             it('can give two experience to a unit that already has an experience', function () {
@@ -27,7 +27,7 @@ describe('Wing Leader', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.rebelPathfinder]);
                 this.player1.clickCard(this.rebelPathfinder);
 
-                expect(this.rebelPathfinder.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience', 'experience']);
+                expect(this.rebelPathfinder).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
         });
     });
