@@ -33,6 +33,7 @@ const { cards } = require('../cards/Index.js');
 const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/Shield.js');
+const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -66,6 +67,7 @@ class Game extends EventEmitter {
         this.initiativePlayer = null;
         this.actionPhaseActivePlayer = null;
         this.tokenFactories = null;
+        this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
 
         this.shortCardData = options.shortCardData || [];
 

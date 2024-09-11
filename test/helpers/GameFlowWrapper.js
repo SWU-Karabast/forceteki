@@ -45,7 +45,13 @@ class GameFlowWrapper {
      * @param {Function} handler - function of a player to be executed
      */
     eachPlayerStartingWithPrompted(handler) {
-        var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to take an action or pass'));
+        const playerPromptStateToSortOrder = (player) => {
+            return player.hasPrompt('Waiting for opponent to take an action or pass') ? 1 : 0;
+        };
+
+        var playersInPromptedOrder = this.allPlayers.sort((playerA, playerB) =>
+            playerPromptStateToSortOrder(playerA) - playerPromptStateToSortOrder(playerB)
+        );
         playersInPromptedOrder.forEach((player) => handler(player));
     }
 

@@ -19,7 +19,7 @@ describe('Moment of Peace', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer]);
 
                 this.player1.clickCard(this.wampa);
-                expect(this.wampa.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['shield']);
+                expect(this.wampa).toHaveExactUpgradeNames(['shield']);
             });
 
             it('can give a shield to a unit that already has a shield', function () {
@@ -27,7 +27,7 @@ describe('Moment of Peace', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer]);
 
                 this.player1.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['shield', 'shield']);
+                expect(this.cartelSpacer).toHaveExactUpgradeNames(['shield', 'shield']);
             });
         });
     });

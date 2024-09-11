@@ -23,13 +23,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected constantAbilities: IConstantAbility[] = [];
     protected triggeredAbilities: TriggeredAbility[] = [];
 
-    private _enteredPlayThisRound?: boolean = null;
-
-    public get enteredPlayThisRound(): boolean {
-        Contract.assertNotNullLike(this._enteredPlayThisRound);
-        return this._enteredPlayThisRound;
-    }
-
     // ********************************************** CONSTRUCTOR **********************************************
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
@@ -111,15 +104,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return new TriggeredAbility(this.game, this, properties);
     }
 
-
-    // ******************************************** PLAY / DEFEAT MANAGEMENT ********************************************
-    private resetEnteredPlayThisRound() {
-        // if the value is null, the card is no longer in play
-        if (this._enteredPlayThisRound !== null) {
-            this._enteredPlayThisRound = false;
-        }
-    }
-
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
     /** Update the context of each constant ability. Used when the card's controller has changed. */
     public updateConstantAbilityContexts() {
@@ -139,12 +123,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(prevLocation, this.location);
         this.updateConstantAbilityEffects(prevLocation, this.location);
-
-        this._enteredPlayThisRound = EnumHelpers.isArena(this.location) ? true : null;
-
-        // register a handler to reset the enteredPlayThisRound flag after the end of the round
-        // TODO: we need a way to remove these handlers when the card leaves play
-        this.game.on(EventName.OnRoundEndedCleanup, this.resetEnteredPlayThisRound);
     }
 
     /** Register / un-register the event triggers for any triggered abilities */
