@@ -32,6 +32,7 @@ describe('Imperial Interceptor', function() {
 
                 // Choose Target
                 expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
+                expect(this.player1).toHavePassAbilityPrompt();
                 this.player1.clickCard(this.gladiatorStarDestroyer);
                 expect(this.gladiatorStarDestroyer.damage).toEqual(3);
             });
@@ -42,6 +43,7 @@ describe('Imperial Interceptor', function() {
 
                 // Choose Target
                 expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
+                expect(this.player1).toHavePassAbilityPrompt();
                 this.player1.clickCard(this.systemPatrolCraft);
                 expect(this.systemPatrolCraft.damage).toEqual(3);
             });
