@@ -27,7 +27,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.resolutionComplete = false;
 
         // this is used when a triggerd ability is marked optional to ensure that a "Pass" button
-        // appears at all times during the prompt flow for that ability
+        // appears at the appropriate times during the prompt flow for that ability
         // TODO: add interface for this in Interfaces.ts when we convert to TS
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
             buttonText: 'Pass ability',

@@ -5,14 +5,12 @@ import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import * as GameSystemLibrary from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
-import { IAttackProperties } from '../gameSystems/AttackSystem.js';
-import { AttackSelectionMode } from '../TargetInterfaces.js';
+import { AttackStepsSystem, IAttackProperties } from '../gameSystems/AttackStepsSystem.js';
 
 export class InitiateAttackAction extends PlayerAction {
     public constructor(card: Card, private attackProperties?: IAttackProperties) {
         super(card, 'Attack', [exhaustSelf()], {
-            // TODO THIS PR: can we remove the redundant attack() calls
-            immediateEffect: GameSystemLibrary.attack(AttackSelectionMode.SelectTargetForAttacker, { attacker: card }),
+            immediateEffect: new AttackStepsSystem({ attacker: card }),
             locationFilter: WildcardLocation.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });
@@ -45,7 +43,7 @@ export class InitiateAttackAction extends PlayerAction {
             attacker: context.source
         });
 
-        GameSystemLibrary.attack(AttackSelectionMode.SelectTargetForAttacker, attackSystemProperties).resolve(context.target, context);
+        new AttackStepsSystem(attackSystemProperties).resolve(context.target, context);
     }
 
     public override isAttackAbility(): this is InitiateAttackAction {

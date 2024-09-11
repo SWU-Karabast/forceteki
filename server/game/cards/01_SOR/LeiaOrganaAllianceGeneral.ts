@@ -1,7 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { LeaderUnitCard } from '../../core/card/LeaderUnitCard';
 import { RelativePlayer, Trait } from '../../core/Constants';
-import { AttackSelectionMode } from '../../TargetInterfaces';
 
 export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -37,7 +36,7 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
             },
             targetResolver: {
                 cardCondition: (card, context) => card.hasSomeTrait(Trait.Rebel) && card !== context.source,
-                immediateEffect: AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)
+                immediateEffect: AbilityHelper.immediateEffects.attack()
             }
         });
     }

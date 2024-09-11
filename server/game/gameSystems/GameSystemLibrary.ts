@@ -3,7 +3,6 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
-import { AttackSystem, IAttackProperties } from './AttackSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { DamageSystem, IDamageProperties } from './DamageSystem';
 import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
@@ -28,7 +27,7 @@ import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './Execute
 import { GiveExperienceSystem, IGiveExperienceProperties } from './GiveExperienceSystem';
 import { GiveShieldSystem, IGiveShieldProperties } from './GiveShieldSystem';
 import { HealSystem, IHealProperties } from './HealSystem';
-import { InitiateUnitAttackSystem, IInitiateUnitAttackProperties } from './InitiateUnitAttackSystem';
+import { InitiateAttackWithUnitSystem, IInitiateUnitAttackProperties } from './InitiateAttackWithUnitSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
 // import { LastingEffectCardAction, LastingEffectCardProperties } from './LastingEffectCardAction';
@@ -59,8 +58,6 @@ import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 import { SequentialSystem } from './SequentialSystem';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
-import Contract from '../core/utils/Contract';
-import { AttackSelectionMode } from '../TargetInterfaces';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -79,18 +76,8 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProperties> = {}): GameSystem {
     return new AttachUpgradeSystem(propertyFactory);
 }
-export function attack(mode: AttackSelectionMode.SelectAttackerAndTarget, propertyFactory?: PropsFactory<IInitiateUnitAttackProperties>): GameSystem
-export function attack(mode: AttackSelectionMode.SelectTargetForAttacker, propertyFactory: PropsFactory<IAttackProperties>): GameSystem
-export function attack(mode: AttackSelectionMode, propertyFactory: PropsFactory<IInitiateUnitAttackProperties | IAttackProperties>) {
-    switch (mode) {
-        case AttackSelectionMode.SelectAttackerAndTarget:
-            return new InitiateUnitAttackSystem(propertyFactory ?? {});
-        case AttackSelectionMode.SelectTargetForAttacker:
-            return new AttackSystem(propertyFactory);
-        default:
-            Contract.fail(`Unknown attack selection mode value: ${mode}`);
-            return null;
-    }
+export function attack(propertyFactory: PropsFactory<IInitiateUnitAttackProperties> = {}): CardTargetSystem {
+    return new InitiateAttackWithUnitSystem(propertyFactory);
 }
 // export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameSystem {
 //     return new LastingEffectCardAction(propertyFactory);

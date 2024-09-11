@@ -31,7 +31,7 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
         (IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties))[]
 }
 
-export class AttackSystem extends CardTargetSystem<IAttackProperties> {
+export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
     public override readonly name = 'attack';
     public override readonly eventName = EventName.Unnamed;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];

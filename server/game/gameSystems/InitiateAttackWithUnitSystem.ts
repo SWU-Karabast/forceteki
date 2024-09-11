@@ -6,14 +6,14 @@ import { UnitCard } from '../core/card/CardTypes';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import Contract from '../core/utils/Contract';
-import { IAttackProperties } from './AttackSystem';
+import { IAttackProperties } from './AttackStepsSystem';
 
 export interface IInitiateUnitAttackProperties extends IAttackProperties {
     ignoredRequirements?: string[];
     attackerCondition?: (card: Card, context: AbilityContext) => boolean;
 }
 
-export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAttackProperties> {
+export class InitiateAttackWithUnitSystem extends CardTargetSystem<IInitiateUnitAttackProperties> {
     public override readonly name = 'initiateUnitAttack';
     protected override readonly defaultProperties: IInitiateUnitAttackProperties = {
         ignoredRequirements: [],
@@ -55,7 +55,6 @@ export class InitiateUnitAttackSystem extends CardTargetSystem<IInitiateUnitAtta
         const attackAbility = this.generateAttackAbilityNoTarget(card, properties);
         const newContext = attackAbility.createContext(context.player);
 
-        // TODO THIS PR: rename meetsRequirements
         return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements) &&
             attackAbility.hasLegalTargets(newContext);
     }

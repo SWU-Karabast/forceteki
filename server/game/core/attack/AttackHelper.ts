@@ -1,7 +1,5 @@
 import AbilityHelper from '../../AbilityHelper';
-import { RelativePlayer, WildcardCardType } from '../Constants';
-import { AttackSelectionMode } from '../../TargetInterfaces';
-import { IInitiateUnitAttackProperties } from '../../gameSystems/InitiateUnitAttackSystem';
+import { IInitiateUnitAttackProperties } from '../../gameSystems/InitiateAttackWithUnitSystem';
 
 export const addInitiateAttackProperties = (properties) => {
     if (!properties.initiateAttack) {
@@ -9,9 +7,7 @@ export const addInitiateAttackProperties = (properties) => {
     }
 
     properties.targetResolver = {
-        cardTypeFilter: WildcardCardType.Unit,
-        immediateEffect: AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget,
-            (context) => getProperties(properties, context))
+        immediateEffect: AbilityHelper.immediateEffects.attack((context) => getProperties(properties, context))
     };
 };
 
