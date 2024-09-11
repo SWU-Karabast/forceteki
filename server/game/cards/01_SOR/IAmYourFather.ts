@@ -22,13 +22,13 @@ export default class IAmYourFather extends EventCard {
                     mode: TargetMode.Select,
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
-                    choices: {
-                        Yes: AbilityHelper.immediateEffects.damage((context) => ({
+                    choices: (context) => ({
+                        [`Let ${context.targets.targetUnit.title} take 7 damage`]: AbilityHelper.immediateEffects.damage({
                             target: context.targets.targetUnit,
                             amount: 7
-                        })),
-                        No: AbilityHelper.immediateEffects.draw({ amount: 3 })
-                    }
+                        }),
+                        ['Let opponent draw 3 cards']: AbilityHelper.immediateEffects.draw({ amount: 3 })
+                    })
                 }
             }
         });
