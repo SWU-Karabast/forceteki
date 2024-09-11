@@ -6,7 +6,7 @@ describe('Wing Leader', function() {
                     phase: 'action',
                     player1: {
                         hand: ['wing-leader'],
-                        groundArena: ['21b-surgical-droid', 'fleet-lieutenant', { card: 'mon-mothma#voice-of-the-rebellion', upgrades: ['experience'] }],
+                        groundArena: ['21b-surgical-droid', 'fleet-lieutenant', { card: 'rebel-pathfinder', upgrades: ['experience'] }],
                     },
                     player2: {
                         groundArena: ['viper-probe-droid']
@@ -16,18 +16,18 @@ describe('Wing Leader', function() {
 
             it('can give two experience to a unit', function () {
                 this.player1.clickCard(this.wingLeader);
-                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.monMothmaVoiceOfTheRebellion]);
+                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.rebelPathfinder]);
                 this.player1.clickCard(this.fleetLieutenant);
 
                 expect(this.fleetLieutenant.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience']);
             });
 
             it('can give two experience to a unit that already has an experience', function () {
-                this.player1.clickCard(this.monMothmaVoiceOfTheRebellion);
-                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.monMothmaVoiceOfTheRebellion]);
-                this.player1.clickCard(this.monMothmaVoiceOfTheRebellion);
+                this.player1.clickCard(this.rebelPathfinder);
+                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.rebelPathfinder]);
+                this.player1.clickCard(this.rebelPathfinder);
 
-                expect(this.monMothmaVoiceOfTheRebellion.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience', 'experience']);
+                expect(this.rebelPathfinder.upgrades.map((upgrade) => upgrade.internalName)).toEqual(['experience', 'experience', 'experience']);
             });
         });
     });
