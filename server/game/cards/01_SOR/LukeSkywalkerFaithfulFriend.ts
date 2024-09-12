@@ -1,12 +1,10 @@
 import AbilityHelper from '../../AbilityHelper';
-import { Card } from '../../core/card/Card';
-import { PlayableCard } from '../../core/card/CardTypes';
 import { LeaderUnitCard } from '../../core/card/LeaderUnitCard';
-import { Aspect, RelativePlayer, Trait } from '../../core/Constants';
+import { Aspect, RelativePlayer } from '../../core/Constants';
 import { StateWatcherRegistrar } from '../../core/stateWatcher/StateWatcherRegistrar';
 import { CardsPlayedThisPhaseWatcher } from '../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
-export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
+export default class LukeSkywalkerFaithfulFriend extends LeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
 
     protected override getImplementationId() {
@@ -51,4 +49,4 @@ export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
     }
 }
 
-GrandMoffTarkinOversectorGovernor.implemented = true;
+LukeSkywalkerFaithfulFriend.implemented = true;
