@@ -18,7 +18,7 @@ export class ShieldedAbility extends TriggeredAbility {
     }
 
     public constructor(game: Game, card: Card) {
-        if (!Contract.assertTrue(card.isUnit())) {
+        if (!Contract.assertTrue(card.isUnit() || card.isLeader())) {
             return;
         }
 

@@ -53,16 +53,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._upgrades;
         }
 
-        public hasUpgradeWithName(name: string): boolean {
-            return this._upgrades.some((upgrade) => upgrade.title === name);
-        }
-
         public isAttacking(): boolean {
             return (this as Card) === (this.activeAttack?.attacker as Card);
         }
 
         public hasShield(): boolean {
-            return this._upgrades.some((card) => card.isShield);
+            return this._upgrades.some((card) => card.isShield());
         }
 
         // ****************************************** CONSTRUCTOR ******************************************

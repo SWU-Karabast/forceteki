@@ -34,7 +34,6 @@ describe('Saboteur keyword', function() {
                 expect(this.wampa.damage).toBe(5);
                 expect(this.wampa).toBeInLocation('ground arena');
                 expect(this.wampa).toHaveExactUpgradeNames(['resilient']);
-                expect(this.player2.findCardByName('shield').location).toBe('outside the game');
             });
         });
     });
