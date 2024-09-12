@@ -558,7 +558,7 @@ var customMatchers = {
 };
 
 function generatePromptHelpMessage(player) {
-    return `Current prompt for ${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}'`;
+    return `Current prompt for ${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}`;
 }
 
 beforeEach(function () {
