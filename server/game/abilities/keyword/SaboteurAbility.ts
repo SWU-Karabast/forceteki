@@ -24,7 +24,7 @@ export class SaboteurAbility extends TriggeredAbility {
                     return card === attacker.activeAttack.target && card.hasUpgradeWithName('Shield');
                 },
                 immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({
-                    target: context.source.activeAttack.target.upgrades.filter((card) => card.title === 'Shield')
+                    target: context.source.activeAttack.target.upgrades?.filter((card) => card.title === 'Shield')
                 }))
             }
         };
