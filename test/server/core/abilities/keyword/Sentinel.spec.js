@@ -8,8 +8,8 @@ describe('Sentinel keyword', function() {
                         groundArena: ['liberated-slaves'],
                     },
                     player2: {
-                        groundArena: ['echo-base-defender'],
-                        spaceArena: ['system-patrol-craft']
+                        groundArena: ['echo-base-defender', 'battlefield-marine', 'wookiee-warrior'],
+                        spaceArena: ['system-patrol-craft', 'seventh-fleet-defender', 'imperial-interceptor']
                     }
                 });
             });
@@ -31,7 +31,8 @@ describe('Sentinel keyword', function() {
                         groundArena: ['liberated-slaves'],
                     },
                     player2: {
-                        groundArena: ['echo-base-defender', 'pyke-sentinel'],
+                        groundArena: ['echo-base-defender', 'pyke-sentinel', 'battlefield-marine', 'wookiee-warrior'],
+                        spaceArena: ['system-patrol-craft', 'seventh-fleet-defender', 'imperial-interceptor']
                     }
                 });
             });

@@ -42,7 +42,7 @@ describe('Grit keyword', function() {
                 });
             });
 
-            it('gains damage when the attack is decalred', function () {
+            it('gains damage when the attack is declared', function () {
                 this.player1.clickCard(this.sabineWren);
                 this.player1.clickCard(this.wookieeWarrior);
                 expect(this.player1).toBeAbleToSelectExactly([this.wookieeWarrior, this.p1Base, this.p2Base]);

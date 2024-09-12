@@ -7,7 +7,7 @@ import Game from '../../core/Game';
 import Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';
 
-export class SaboteurAbility extends TriggeredAbility {
+export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Saboteur;
 
     public static buildSaboteurAbilityProperties(): ITriggeredAbilityProps {
@@ -21,10 +21,10 @@ export class SaboteurAbility extends TriggeredAbility {
                         return false;
                     }
 
-                    return card === attacker.activeAttack.target && card.hasUpgradeWithName('Shield');
+                    return card === attacker.activeAttack.target && card.hasShield();
                 },
                 immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({
-                    target: context.source.activeAttack.target.upgrades?.filter((card) => card.title === 'Shield')
+                    target: context.source.activeAttack.target.upgrades?.filter((card) => card.isShield())
                 }))
             }
         };
@@ -35,7 +35,7 @@ export class SaboteurAbility extends TriggeredAbility {
             return;
         }
 
-        const properties = SaboteurAbility.buildSaboteurAbilityProperties();
+        const properties = SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties();
 
         super(game, card, properties);
     }

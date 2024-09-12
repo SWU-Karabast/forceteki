@@ -27,15 +27,17 @@ describe('Saboteur keyword', function() {
             });
 
             it('a unit with shields, the shields are defeated before the attack', function () {
-                expect(this.player2.findCardByName('shield').location).toBe('ground arena');
                 this.player1.clickCard(this.resourcefulPursuers);
                 this.player1.clickCard(this.wampa);
                 expect(this.resourcefulPursuers.damage).toBe(4);
                 expect(this.echoBaseDefender).toBeInLocation('ground arena');
                 expect(this.wampa.damage).toBe(5);
                 expect(this.wampa).toBeInLocation('ground arena');
+                expect(this.wampa).toHaveExactUpgradeNames(['resilient']);
                 expect(this.player2.findCardByName('shield').location).toBe('outside the game');
             });
         });
     });
+
+    // TODO test how Saboteur interacts with cross-arena targeting and Sentinel
 });

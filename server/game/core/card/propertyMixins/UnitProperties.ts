@@ -17,7 +17,7 @@ import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { Attack } from '../../attack/Attack';
 import type { UnitCard } from '../CardTypes';
-import { SaboteurAbility } from '../../../abilities/keyword/SaboteurAbility';
+import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -38,20 +38,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public readonly defaultArena: Arena;
 
         protected _upgrades: UpgradeCard[] = [];
-
-        private _activeAttack?: Attack = null;
         private _attackKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
         private _whenPlayedKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
-
-
-        public setActiveAttack(attack: Attack) {
-            // this.assertPropertyEnabled(this._activeAttack, 'activeAttack');
-            this._activeAttack = attack;
-        }
-
-        public get activeAttack() {
-            return this._activeAttack;
-        }
 
         public override get hp(): number {
             return this.getModifiedStatValue(StatType.Hp);
@@ -70,13 +58,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public isAttacking(): boolean {
-            return (this as Card) === (this._activeAttack?.attacker as Card);
+            return (this as Card) === (this.activeAttack?.attacker as Card);
         }
 
-        public isDefending(): boolean {
-            return (this as Card) === (this._activeAttack?.target as Card);
+        public hasShield(): boolean {
+            return this._upgrades.some((card) => card.isShield);
         }
-
 
         // ****************************************** CONSTRUCTOR ******************************************
         // see Card constructor for list of expected args
@@ -246,7 +233,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             if (this.hasSomeKeyword(KeywordName.Saboteur)) {
-                const saboteurAbility = this.createTriggeredAbility(SaboteurAbility.buildSaboteurAbilityProperties());
+                const saboteurAbility = this.createTriggeredAbility(SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties());
                 saboteurAbility.registerEvents();
                 this._attackKeywordAbilities.push(saboteurAbility);
             }
