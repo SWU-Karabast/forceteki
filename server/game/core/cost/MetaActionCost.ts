@@ -31,7 +31,7 @@ export class MetaActionCost extends GameSystemCost implements ICost {
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, result: Result): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
-        if (properties.targets && context.choosingPlayerOverride) {
+        if (properties.checkTarget && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
                 properties.selector.getAllLegalTargets(context, context.player)
             );

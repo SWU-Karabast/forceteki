@@ -38,7 +38,7 @@ interface ISelectTargetResolver extends ITargetResolverBase {
     mode: TargetMode.Select;
     choices: (IChoicesInterface | object) | ((context: AbilityContext) => IChoicesInterface | object);
     condition?: (context: AbilityContext) => boolean;
-    targets?: boolean;
+    checkTarget?: boolean;
 }
 
 interface IAbilityTargetResolver extends ITargetResolverBase {

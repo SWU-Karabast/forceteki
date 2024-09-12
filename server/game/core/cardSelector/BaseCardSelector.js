@@ -16,7 +16,7 @@ class BaseCardSelector {
         this.optional = properties.optional;
         this.locationFilter = this.buildLocationFilter(properties.locationFilter);
         this.controller = properties.controller || RelativePlayer.Any;
-        this.checkTarget = !!properties.targets;
+        this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
 
         if (!Array.isArray(properties.cardTypeFilter)) {

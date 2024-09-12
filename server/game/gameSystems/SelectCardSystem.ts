@@ -14,7 +14,7 @@ export interface ISelectCardProperties extends ICardTargetSystemProperties {
     controller?: RelativePlayer;
     locationFilter?: Location | Location[];
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
-    targets?: boolean;
+    checkTarget?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
     messageArgs?: (card: Card, player: RelativePlayer, properties: ISelectCardProperties) => any[];
@@ -38,8 +38,8 @@ export class SelectCardSystem extends CardTargetSystem {
         cardCondition: () => true,
         innerSystem: null,
         innerSystemProperties: (card) => ({ target: card }),
-        targets: false,
-        hidePromptIfSingleCard: false,
+        checkTarget: false,
+        hidePromptIfSingleCard: true,
         manuallyRaiseEvent: false
     };
 
@@ -75,7 +75,7 @@ export class SelectCardSystem extends CardTargetSystem {
     public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
-            (properties.targets && context.choosingPlayerOverride) ||
+            (properties.checkTarget && context.choosingPlayerOverride) ||
             (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
             context.player;
         return properties.selector.canTarget(card, context, player);
@@ -84,7 +84,7 @@ export class SelectCardSystem extends CardTargetSystem {
     public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
-            (properties.targets && context.choosingPlayerOverride) ||
+            (properties.checkTarget && context.choosingPlayerOverride) ||
             (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
             context.player;
         return properties.selector.hasEnoughTargets(context, player);
@@ -97,7 +97,7 @@ export class SelectCardSystem extends CardTargetSystem {
         }
         let player = properties.player === RelativePlayer.Opponent ? context.player.opponent : context.player;
         let mustSelect = [];
-        if (properties.targets) {
+        if (properties.checkTarget) {
             player = context.choosingPlayerOverride || player;
             mustSelect = properties.selector
                 .getAllLegalTargets(context, player)
@@ -110,11 +110,16 @@ export class SelectCardSystem extends CardTargetSystem {
         if (!properties.selector.hasEnoughTargets(context, player)) {
             return;
         }
+
+        let buttons = [];
+        buttons = properties.cancelHandler ? buttons.concat({ text: 'Cancel', arg: 'cancel' }) : buttons;
+        buttons = properties.innerSystem.isOptional(context) ? buttons.concat({ text: 'Pass ability', arg: 'passAbility' }) : buttons;
+
         const defaultProperties = {
             context: context,
             selector: properties.selector,
             mustSelect: mustSelect,
-            buttons: properties.cancelHandler ? [{ text: 'Cancel', arg: 'cancel' }] : [],
+            buttons: buttons,
             onCancel: properties.cancelHandler,
             onSelect: (player, cards) => {
                 if (properties.message) {
@@ -127,6 +132,12 @@ export class SelectCardSystem extends CardTargetSystem {
                 );
                 if (properties.manuallyRaiseEvent) {
                     context.game.openEventWindow(events);
+                }
+                return true;
+            },
+            onMenuCommand: (player, arg) => {
+                if (arg === 'passAbility') {
+                    return true;
                 }
                 return true;
             }
@@ -145,6 +156,6 @@ export class SelectCardSystem extends CardTargetSystem {
 
     public override hasTargetsChosenByInitiatingPlayer(context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.targets && properties.player !== RelativePlayer.Opponent;
+        return properties.checkTarget && properties.player !== RelativePlayer.Opponent;
     }
 }
