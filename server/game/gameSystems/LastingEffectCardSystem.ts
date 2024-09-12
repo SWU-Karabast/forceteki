@@ -1,9 +1,8 @@
-import { AbilityContext } from '../ability/AbilityContext';
-import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { Card } from '../card/Card';
-import { Duration, EffectName, EventName, Location, WildcardLocation } from '../Constants';
-import { CardTargetSystem, ICardTargetSystemProperties } from './CardTargetSystem';
-import type { ILastingEffectGeneralProperties } from './LastingEffectSystem';
+import { AbilityContext } from '../core/ability/AbilityContext';
+import { Card } from '../core/card/Card';
+import { Duration, EffectName, EventName, Location, WildcardLocation } from '../core/Constants';
+import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { ILastingEffectGeneralProperties } from '../core/gameSystem/LastingEffectSystem';
 
 export interface ILastingEffectCardProperties extends Omit<ILastingEffectGeneralProperties, 'target'>, ICardTargetSystemProperties {
     targetLocationFilter?: Location | Location[];

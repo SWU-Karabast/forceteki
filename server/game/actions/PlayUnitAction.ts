@@ -29,6 +29,7 @@ export class PlayUnitAction extends PlayCardAction {
         );
         const effect = context.source.getEffectValues(EffectName.EntersPlayForOpponent);
         const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
+        context.source.registerWhenPlayedKeywords();
         context.game.openEventWindow([
             putIntoPlay({
                 controller: player
