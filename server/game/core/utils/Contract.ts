@@ -85,8 +85,16 @@ export function assertFalse(cond: boolean, message?: string): boolean {
 }
 
 export function assertEqual(val1: any, val2: any, message?: string): boolean {
-    if (!(val1 === val2)) {
+    if (val1 !== val2) {
         contractCheckImpl.fail(message ?? `Value ${val1} is not equal to ${val2}`);
+        return false;
+    }
+    return true;
+}
+
+export function assertNotEqual(val1: any, val2: any, message?: string): boolean {
+    if (val1 === val2) {
+        contractCheckImpl.fail(message ?? `Value ${val1} is equal to ${val2}`);
         return false;
     }
     return true;
@@ -189,6 +197,7 @@ const Contract = {
     assertTrue,
     assertFalse,
     assertEqual,
+    assertNotEqual,
     assertNotNull,
     assertNotNullLike,
     assertNotNullLikeOrNan,

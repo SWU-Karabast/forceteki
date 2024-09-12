@@ -33,6 +33,10 @@ export class TriggeredAbilityWindow extends BaseStep {
         return this.resolvePlayerOrder?.[0] ?? null;
     }
 
+    public get triggeredAbilities(): TriggeredAbilityContext[] {
+        return Array.from(this.unresolved.values()).flat();
+    }
+
     public constructor(
         game: Game,
         private readonly eventWindow: EventWindow,
@@ -44,17 +48,34 @@ export class TriggeredAbilityWindow extends BaseStep {
         this.toStringName = `'TriggeredAbilityWindow: ${this.eventWindow.events.map((event) => event.name).join(', ')}'`;
     }
 
+    public emitEvents() {
+        this.eventsEmitted = true;
+
+        const events = this.eventWindow.events.filter((event) => !this.eventsToExclude.includes(event));
+        events.forEach((event) => {
+            this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
+        });
+        this.game.emit('aggregateEvent:' + this.triggerAbilityType, events, this);
+
+        this.triggeringEvents = events;
+    }
+
     public override continue() {
+        if (!Contract.assertTrue(this.eventsEmitted, 'TriggeredAbilityWindow.continue() called before events were emitted')) {
+            return true;
+        }
+
         this.game.currentAbilityWindow = this;
 
-        if (!this.eventsEmitted) {
-            // emit events and then triggered abilities will be automatically added to this.unresolvedTriggeredAbilities via addToWindow
-            this.emitEvents();
-
+        if (!this.choosePlayerResolutionOrderComplete) {
             // if no abilities trigged, continue with game flow
             if (this.unresolved.size === 0) {
                 return true;
             }
+
+            // remove any triggered abilities from cancelled events
+            // this is necessary because we trigger abilities before any events in the window are executed, so if any were cancelled at execution time we need to clean up
+            this.unresolved = new Map([...this.unresolved].map(([player, triggeredAbilityList]) => [player, triggeredAbilityList.filter((context) => !context.event.cancelled)]));
 
             // see if consolidating shields gets us down to one trigger
             if (this.unresolved.size === 1 && this.triggerAbilityType === AbilityType.ReplacementEffect) {
@@ -277,18 +298,6 @@ export class TriggeredAbilityWindow extends BaseStep {
         });
 
         this.unresolved = postConsolidateUnresolved;
-    }
-
-    private emitEvents() {
-        this.eventsEmitted = true;
-
-        const events = this.eventWindow.events.filter((event) => !this.eventsToExclude.includes(event));
-        events.forEach((event) => {
-            this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
-        });
-        this.game.emit('aggregateEvent:' + this.triggerAbilityType, events, this);
-
-        this.triggeringEvents = events;
     }
 
     public override toString() {
