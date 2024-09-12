@@ -17,7 +17,7 @@ import { AttackStepsSystem, IAttackProperties } from '../gameSystems/AttackSteps
 export class InitiateAttackAction extends PlayerAction {
     public constructor(card: Card, private attackProperties?: IAttackProperties) {
         super(card, 'Attack', [exhaustSelf()], {
-            immediateEffect: new AttackStepsSystem({ attacker: card }),
+            immediateEffect: new AttackStepsSystem({ attacker: card, targetCondition: attackProperties?.targetCondition }),
             locationFilter: WildcardLocation.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });

@@ -3,7 +3,6 @@ import type { Card } from '../core/card/Card';
 import CardSelector from '../core/cardSelector/CardSelector';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import { CardType, EffectName, Location, RelativePlayer, TargetMode } from '../core/Constants';
-import type Player from '../core/Player';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -32,9 +31,8 @@ export interface ISelectCardProperties extends ICardTargetSystemProperties {
 
 /**
  * A wrapper system for adding a target selection prompt around the execution the wrapped system.
- * Only used for adding a selection effect to a system that is part of a cost.
+ * Functions the same as a targetResolver and used in situations where one can't be created (e.g., costs).
  */
-// TODO: why is this class needed for evaluating costs when systems already have target evaluation and selection built in?
 export class SelectCardSystem extends CardTargetSystem {
     protected override readonly defaultProperties: ISelectCardProperties = {
         cardCondition: () => true,
