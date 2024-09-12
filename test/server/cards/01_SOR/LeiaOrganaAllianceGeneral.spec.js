@@ -10,7 +10,7 @@ describe('Leia Organa, Alliance General', function() {
                         leader: 'leia-organa#alliance-general'
                     },
                     player2: {
-                        groundArena: ['regional-governor'],
+                        groundArena: ['sundari-peacekeeper'],
                         spaceArena: ['tie-advanced']
                     }
                 });
@@ -23,9 +23,9 @@ describe('Leia Organa, Alliance General', function() {
                 expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
 
                 this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.regionalGovernor);
+                this.player1.clickCard(this.sundariPeacekeeper);
                 expect(this.battlefieldMarine.exhausted).toBe(true);
-                expect(this.regionalGovernor.damage).toBe(3);
+                expect(this.sundariPeacekeeper.damage).toBe(3);
                 expect(this.battlefieldMarine.damage).toBe(1);
 
                 // second attack
@@ -49,9 +49,9 @@ describe('Leia Organa, Alliance General', function() {
                 expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
 
                 this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.regionalGovernor);
+                this.player1.clickCard(this.sundariPeacekeeper);
                 expect(this.battlefieldMarine.exhausted).toBe(true);
-                expect(this.regionalGovernor.damage).toBe(3);
+                expect(this.sundariPeacekeeper.damage).toBe(3);
                 expect(this.battlefieldMarine.damage).toBe(1);
 
                 // second attack
@@ -75,7 +75,7 @@ describe('Leia Organa, Alliance General', function() {
                         leader: { card: 'leia-organa#alliance-general', deployed: true }
                     },
                     player2: {
-                        groundArena: ['regional-governor'],
+                        groundArena: ['sundari-peacekeeper'],
                         spaceArena: ['cartel-spacer']
                     }
                 });
@@ -83,11 +83,11 @@ describe('Leia Organa, Alliance General', function() {
 
             it('should allow attacking with another Rebel unit', function () {
                 this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickCard(this.regionalGovernor);
+                this.player1.clickCard(this.sundariPeacekeeper);
 
                 expect(this.leiaOrgana.exhausted).toBe(true);
                 expect(this.leiaOrgana.damage).toBe(1);
-                expect(this.regionalGovernor.damage).toBe(3);
+                expect(this.sundariPeacekeeper.damage).toBe(4);
 
                 expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.allianceXwing]);
                 expect(this.player1).toHaveEnabledPromptButton('Pass ability');
@@ -106,7 +106,7 @@ describe('Leia Organa, Alliance General', function() {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickCard(this.p2Base);
                 expect(this.leiaOrgana.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(6);
+                expect(this.p2Base.damage).toBe(7);
 
                 expect(this.player1).toHaveEnabledPromptButton('Attack with another Rebel unit');
                 expect(this.player1).toHaveEnabledPromptButton('Pass');
@@ -120,7 +120,7 @@ describe('Leia Organa, Alliance General', function() {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickCard(this.p2Base);
                 expect(this.leiaOrgana.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(9);
+                expect(this.p2Base.damage).toBe(11);
 
                 expect(this.player2).toBeActivePlayer();
             });

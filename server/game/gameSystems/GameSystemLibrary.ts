@@ -30,7 +30,7 @@ import { HealSystem, IHealProperties } from './HealSystem';
 import { InitiateAttackSystem, IInitiateAttackProperties } from './InitiateAttackSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
-// import { LastingEffectCardAction, LastingEffectCardProperties } from './LastingEffectCardAction';
+import { LastingEffectCardSystem, ILastingEffectCardProperties } from './LastingEffectCardSystem';
 // import { LastingEffectRingAction, LastingEffectRingProperties } from './LastingEffectRingAction';
 import { LookAtSystem, ILookAtProperties } from './LookAtSystem';
 // import { MatchingDiscardAction, MatchingDiscardProperties } from './MatchingDiscardAction';
@@ -78,8 +78,8 @@ export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProper
 export function attack(propertyFactory: PropsFactory<IInitiateAttackProperties> = {}): CardTargetSystem {
     return new InitiateAttackSystem(propertyFactory);
 }
-// export function cardLastingEffect(propertyFactory: PropsFactory<LastingEffectCardProperties>): GameSystem {
-//     return new LastingEffectCardAction(propertyFactory);
+// export function cardLastingEffect(propertyFactory: PropsFactory<ILastingEffectCardProperties>): GameSystem {
+//     return new LastingEffectCardSystem(propertyFactory);
 // }
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);

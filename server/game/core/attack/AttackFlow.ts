@@ -45,6 +45,8 @@ export class AttackFlow extends BaseStepWithPipeline {
 
     private declareAttack() {
         this.attack.attacker.registerAttackKeywords();
+        this.attack.attacker.setActiveAttack(this.attack);
+        this.attack.target.setActiveAttack(this.attack);
 
         this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack });
     }
@@ -62,5 +64,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
     private cleanUpAttack() {
         this.game.currentAttack = this.attack.previousAttack;
+        this.attack.attacker.setActiveAttack(null);
+        this.attack.target.setActiveAttack(null);
     }
 }

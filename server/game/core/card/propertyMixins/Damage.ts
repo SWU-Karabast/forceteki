@@ -1,5 +1,6 @@
+import { Attack } from '../../attack/Attack';
 import Contract from '../../utils/Contract';
-import { CardConstructor } from '../Card';
+import { Card, CardConstructor } from '../Card';
 import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';
 
@@ -11,7 +12,21 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
     const HpClass = WithPrintedHp(BaseClass);
 
     return class WithDamage extends HpClass {
+        private _activeAttack?: Attack = null;
         private _damage?: number;
+
+        public setActiveAttack(attack: Attack) {
+            // this.assertPropertyEnabled(this._activeAttack, 'activeAttack');
+            this._activeAttack = attack;
+        }
+
+        public isDefending(): boolean {
+            return (this as Card) === (this._activeAttack?.target as Card);
+        }
+
+        public get activeAttack() {
+            return this._activeAttack;
+        }
 
         public get damage(): number {
             this.assertPropertyEnabled(this._damage, 'damage');

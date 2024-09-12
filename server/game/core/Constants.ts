@@ -212,18 +212,13 @@ export enum KeywordName {
     Ambush = 'ambush',
     /** @deprecated Not implemented yet */
     Bounty = 'bounty',
-    /** @deprecated Not implemented yet */
     Grit = 'grit',
     /** @deprecated Not implemented yet */
     Overwhelm = 'overwhelm',
-    /** @deprecated Not implemented yet */
     Raid = 'raid',
     Restore = 'restore',
-    /** @deprecated Not implemented yet */
     Saboteur = 'saboteur',
-    /** @deprecated Not implemented yet */
     Sentinel = 'sentinel',
-    /** @deprecated Not implemented yet */
     Shielded = 'shielded',
     /** @deprecated Not implemented yet */
     Smuggle = 'smuggle',
