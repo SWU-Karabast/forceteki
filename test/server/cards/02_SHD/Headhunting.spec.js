@@ -56,6 +56,35 @@ describe('Headhunting', function() {
 
                 expect(this.player2).toBeActivePlayer();
             });
+
+            it('should be able to be passed', function () {
+                this.player1.clickCard(this.headhunting);
+
+                // first attack - skip target resolution, go straight to next attack
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
+                this.player1.clickPrompt('Pass ability');
+
+                // second attack - select an attacker and go to target resolution, then pass
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
+                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                this.player1.clickCard(this.atst);
+                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
+                this.player1.clickPrompt('Pass ability');
+                expect(this.atst.exhausted).toBe(false);
+
+                // third attack - let it resolve to confirm things are working
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
+                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                this.player1.clickCard(this.theMandalorian);
+                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
+                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                this.player1.clickCard(this.consularSecurityForce);
+                expect(this.theMandalorian.exhausted).toBe(true);
+                expect(this.consularSecurityForce.damage).toBe(6);
+                expect(this.theMandalorian.damage).toBe(3);
+
+                expect(this.player2).toBeActivePlayer();
+            });
         });
 
         describe('Headhunting\'s ability', function() {
