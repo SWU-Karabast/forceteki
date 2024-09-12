@@ -87,7 +87,7 @@ describe('Leia Organa, Alliance General', function() {
 
                 expect(this.leiaOrgana.exhausted).toBe(true);
                 expect(this.leiaOrgana.damage).toBe(1);
-                expect(this.regionalGovernor.damage).toBe(3);
+                expect(this.regionalGovernor).toBeInLocation('discard');
 
                 expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.allianceXwing]);
                 expect(this.player1).toHaveEnabledPromptButton('Pass ability');
