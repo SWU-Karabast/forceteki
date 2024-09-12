@@ -134,7 +134,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     protected resolveAbility(context: TriggeredAbilityContext) {
         const resolver = this.game.resolveAbility(context);
         this.game.queueSimpleStep(() => {
-            if (resolver.passPriority) {
+            if (resolver.resolutionComplete) {
                 this.postResolutionUpdate(resolver);
             }
         }, `Check and pass priority for ${resolver.context.ability}`);

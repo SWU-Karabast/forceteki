@@ -19,7 +19,6 @@ export type IActionTargetResolver = (ICardTargetResolver & IActionCardTargetReso
 
 export type IActionTargetsResolver = Record<string, IActionTargetResolver>;
 
-
 // ********************************************** INTERNAL TYPES **********************************************
 type IChoicesInterface = Record<string, ((context: AbilityContext) => boolean) | GameSystem | GameSystem[]>;
 

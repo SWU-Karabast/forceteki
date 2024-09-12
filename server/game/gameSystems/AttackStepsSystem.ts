@@ -18,7 +18,7 @@ export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperti
 
 export interface IAttackProperties extends ICardTargetSystemProperties {
     attacker?: Card;
-    attackerCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
+    targetCondition?: (card: Card, context: AbilityContext) => boolean;
     message?: string;
     messageArgs?: (attack: Attack, context: AbilityContext) => any | any[];
     costHandler?: (context: AbilityContext, prompt: any) => void;
@@ -31,11 +31,17 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
         (IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties))[]
 }
 
-export class AttackSystem extends CardTargetSystem<IAttackProperties> {
+/**
+ * Manages the concrete steps of the attack process, emitting events at the appropriate stages.
+ * Does not manage the exhaust cost. The attacker must already be selected and set via the `attacker` property.
+ */
+export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
     public override readonly name = 'attack';
     public override readonly eventName = EventName.Unnamed;
-    protected override readonly defaultProperties: IAttackProperties = {};
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
+    protected override readonly defaultProperties: IAttackProperties = {
+        targetCondition: () => true
+    };
 
     public eventHandler(event, additionalProperties): void {
         const context = event.context;
@@ -58,10 +64,7 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             new AttackFlow(
                 context.game,
                 attack,
-                (attack) => this.resolveAttack(attack, event.context),
-                // properties.costHandler
-                //     ? (prompt) => this.attackCosts(prompt, event.context, additionalProperties)
-                //     : undefined
+                (attack) => this.resolveAttack(attack, event.context)
             )
         );
     }
@@ -127,7 +130,10 @@ export class AttackSystem extends CardTargetSystem<IAttackProperties> {
             }
         }
 
-        return EnumHelpers.isAttackableLocation(targetCard.location);
+        return (
+            properties.targetCondition(targetCard, context) &&
+            EnumHelpers.isAttackableLocation(targetCard.location)
+        );
     }
 
     public attackCosts(prompt, context: AbilityContext, additionalProperties = {}): void {

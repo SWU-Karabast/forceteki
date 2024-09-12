@@ -29,6 +29,8 @@ class PlayerOrCardAbility {
      * @param {Array} [properties.immediateEffect] - GameSystem[] optional array of game actions
      * @param {string} [properties.title] - Name to use for ability display and debugging
      * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
+     * @param {boolean} [properties.optional] - Optional property that indicates if resolution of the ability
+     * is optional or required
      */
     constructor(properties, type = AbilityType.Action) {
         Contract.assertStringValue(properties.title);
@@ -37,6 +39,7 @@ class PlayerOrCardAbility {
         this.limit = null;
         this.keyword = null;
         this.type = type;
+        this.optional = !!properties.optional;
         this.gameSystem = properties.immediateEffect || [];
         if (!Array.isArray(this.gameSystem)) {
             this.gameSystem = [this.gameSystem];

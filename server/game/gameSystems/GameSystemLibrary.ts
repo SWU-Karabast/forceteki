@@ -3,7 +3,6 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
-import { AttackSystem, IAttackProperties } from './AttackSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { DamageSystem, IDamageProperties } from './DamageSystem';
 import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
@@ -28,6 +27,7 @@ import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './Execute
 import { GiveExperienceSystem, IGiveExperienceProperties } from './GiveExperienceSystem';
 import { GiveShieldSystem, IGiveShieldProperties } from './GiveShieldSystem';
 import { HealSystem, IHealProperties } from './HealSystem';
+import { InitiateAttackSystem, IInitiateAttackProperties } from './InitiateAttackSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
 import { LastingEffectCardSystem, ILastingEffectCardProperties } from './LastingEffectCardSystem';
@@ -42,6 +42,7 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 // import { OpponentPutIntoPlayAction, OpponentPutIntoPlayProperties } from './OpponentPutIntoPlayAction';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
 // import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { ReadySystem, IReadySystemProperties } from './ReadySystem';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
@@ -54,10 +55,8 @@ import { RevealSystem, IRevealProperties } from './RevealSystem';
 import { PayResourceCostSystem, IPayResourceCostProperties } from './PayResourceCostSystem';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
-// import { SequentialAction } from './SequentialAction';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
-import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -76,8 +75,8 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProperties> = {}): GameSystem {
     return new AttachUpgradeSystem(propertyFactory);
 }
-export function attack(propertyFactory: PropsFactory<IAttackProperties>): GameSystem {
-    return new AttackSystem(propertyFactory);
+export function attack(propertyFactory: PropsFactory<IInitiateAttackProperties> = {}): CardTargetSystem {
+    return new InitiateAttackSystem(propertyFactory);
 }
 // export function cardLastingEffect(propertyFactory: PropsFactory<ILastingEffectCardProperties>): GameSystem {
 //     return new LastingEffectCardSystem(propertyFactory);
@@ -305,7 +304,7 @@ export function selectCard(propertyFactory: PropsFactory<ISelectCardProperties>)
 //     return new SelectTokenAction(propertyFactory);
 // }
 // export function sequential(gameActions: GameSystem[]): GameSystem {
-//     return new SequentialAction(gameActions);
+//     return new SequentialSystem(gameActions);
 // } // takes an array of gameActions, not a propertyFactory
 // export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);

@@ -310,7 +310,7 @@ this.action({
 
 #### Paying additional costs for action
 
-Some actions have an additional cost, such as bowing the card. In these cases, specify the `cost` parameter. The action will check if the cost can be paid. If it can't, the action will not execute. If it can, costs will be paid automatically and then the action will execute.
+Some actions have an additional cost, such as exhausting the card. In these cases, specify the `cost` parameter. The action will check if the cost can be paid. If it can't, the action will not execute. If it can, costs will be paid automatically and then the action will execute.
 
 For a full list of costs, look at [CostLibrary.ts](../server/game/costs/CostLibrary.ts).
 
@@ -738,7 +738,7 @@ export default class MedalCeremony extends EventCard {
 }
 ```
 
-A "state watcher" is a set of event triggers which are used to log events that occur during the game. For example, the `AttacksThisPhaseWatcher` used above is called on every `onCardPlayed` event and adds the event to the list of played cards this phase. The `getCurrentValue()` method on a watcher will return the state object for that watcher, which varies by watcher type.
+A "state watcher" is a set of event triggers which are used to log events that occur during the game. For example, the `AttacksThisPhaseWatcher` used above is called on every `onAttackDeclared` event and adds the event to the list of attacks this phase. The `getCurrentValue()` method on a watcher will return the state object for that watcher, which varies by watcher type.
 
 For a list of available state watchers, see [StateWatcherLibrary](../server/game/stateWatchers/StateWatcherLibrary.ts).
 

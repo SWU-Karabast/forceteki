@@ -2,11 +2,12 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { IAttackProperties } from './gameSystems/AttackSystem';
+import type { IAttackProperties } from './gameSystems/AttackStepsSystem';
 import { type RelativePlayer, type TargetMode, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Aspect } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
+import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -18,7 +19,7 @@ export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbil
 export type IReplacementEffectAbilityProps = IReplacementEffectAbilityWhenProps | IReplacementEffectAbilityAggregateWhenProps;
 
 /** Interface definition for addActionAbility */
-export interface IActionAbilityProps<Source = any> extends IAbilityProps<AbilityContext<Source>> {
+export interface IActionAbilityProps<Source = any> extends Omit<IAbilityProps<AbilityContext<Source>>, 'optional'> {
     condition?: (context?: AbilityContext<Source>) => boolean;
 
     /**
@@ -67,11 +68,18 @@ export interface IAbilityProps<Context> {
     cardName?: string;
 
     /**
-     * Indicates whether the ability should allow the player to trigger an attack from a unit.
-     * Can either be an {@link IInitiateAttack} property object or a function that creates one from
+     * Indicates if triggering the ability is optional (in which case the player will be offered the
+     * 'Pass' button on resolution) or if it is mandatory
+     */
+    optional?: boolean;
+
+    /**
+     * Indicates that an attack should be triggered from a friendly unit.
+     * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
+     * Can either be an {@link IInitiateAttackProperties} property object or a function that creates one from
      * an {@link AbilityContext}.
      */
-    initiateAttack?: IInitiateAttack | ((context: AbilityContext) => IInitiateAttack);
+    initiateAttack?: IInitiateAttackProperties | ((context: AbilityContext) => IInitiateAttackProperties);
 
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;
@@ -79,7 +87,7 @@ export interface IAbilityProps<Context> {
     effectArgs?: EffectArg | ((context: Context) => EffectArg);
     immediateEffect?: GameSystem | GameSystem[];
     handler?: (context?: Context) => void;
-    then?: ((context?: AbilityContext) => object) | object;
+    then?: ((context?: AbilityContext) => IAbilityProps<Context>) | IAbilityProps<Context>;
 }
 
 interface IReplacementEffectAbilityBaseProps extends Omit<ITriggeredAbilityBaseProps,
@@ -100,13 +108,6 @@ export type IKeywordProperties =
     | IShieldedKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
-
-export interface IInitiateAttack extends IAttackProperties {
-    opponentChoosesAttackTarget?: boolean;
-    opponentChoosesAttacker?: boolean;
-    attackerCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
-    targetCondition?: (card: Card, context: TriggeredAbilityContext) => boolean;
-}
 
 export interface IStateListenerProperties<TState> {
     when: WhenType;
@@ -153,13 +154,7 @@ interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityConte
     targetResolver?: ITriggeredAbilityTargetResolver;
     targetResolvers?: ITriggeredAbilityTargetsResolver;
     handler?: (context: TriggeredAbilityContext) => void;
-    then?: ((context?: TriggeredAbilityContext) => object) | object;
-
-    /**
-     * Indicates if triggering the ability is optional (in which case the player will be offered the
-     * 'Pass' button on resolution) or if it is mandatory
-     */
-    optional?: boolean;
+    then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
 }
 
 interface IKeywordPropertiesBase {

@@ -3,14 +3,10 @@ const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
 const { Location, CardType, EffectName, WildcardLocation, AbilityType, PhaseName } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
-const { addInitiateAttackProperties } = require('../attack/AttackHelper.js');
 const { default: Contract } = require('../utils/Contract.js');
 
 class CardAbility extends CardAbilityStep {
     constructor(game, card, properties, type = AbilityType.Action) {
-        if (properties.initiateAttack) {
-            addInitiateAttackProperties(properties);
-        }
         super(game, card, properties, type);
 
         this.title = properties.title;
@@ -24,7 +20,6 @@ class CardAbility extends CardAbilityStep {
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.cannotBeMirrored = !!properties.cannotBeMirrored;
-        this.optional = !!properties.optional;
         this.abilityIdentifier = properties.abilityIdentifier;
         this.origin = properties.origin;
         if (!this.abilityIdentifier) {
@@ -140,7 +135,7 @@ class CardAbility extends CardAbilityStep {
     displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if (
             context.source.isEvent() &&
-            context.source.location !== Location.Hand
+            context.source.location !== Location.Discard
         ) {
             this.game.addMessage(
                 '{0} plays {1} from {2} {3}',
