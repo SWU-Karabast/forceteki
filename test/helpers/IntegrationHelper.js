@@ -523,6 +523,10 @@ var customMatchers = {
                 if (!card.upgrades) {
                     throw new Error(`Card ${card.internalName} does not have an upgrades property`);
                 }
+                if (!Array.isArray(upgradeNames)) {
+                    // TODO: create a "TestError" class to make it easier to tell when an error is coming from the test infra
+                    throw new Error(`Parameter upgradeNames is not an array: ${upgradeNames}`);
+                }
 
                 const actualUpgradeNames = card.upgrades.map((upgrade) => upgrade.internalName);
 
