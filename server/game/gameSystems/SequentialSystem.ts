@@ -23,6 +23,7 @@ export class SequentialSystem extends GameSystem<ISequentialProperties> {
                     const eventsForThisAction = [];
                     gameSystem.queueGenerateEventGameSteps(eventsForThisAction, context, additionalProperties);
                     context.game.queueSimpleStep(() => {
+                        // TODO WINDOWS: this currently will not handle on defeat events correctly since all events are being emitted at the end of the sequential actions
                         for (const event of eventsForThisAction) {
                             events.push(event);
                         }
