@@ -48,6 +48,9 @@ describe('Grogu, Irresistible', function() {
 
             it('should activate with no targets', function () {
                 this.player1.clickCard(this.grogu);
+                expect(this.player1).toHaveEnabledPromptButton('Attack');
+                expect(this.player1).toHaveEnabledPromptButton('Exhaust an enemy unit');
+                this.player1.clickPrompt('Exhaust an enemy unit');
                 expect(this.grogu.exhausted).toBe(true);
             });
         });

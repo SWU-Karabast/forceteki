@@ -81,7 +81,13 @@ class CardTargetResolver {
 
         const legalTargets = this.selector.getAllLegalTargets(context, player);
         if (legalTargets.length === 0) {
+            if (context.stage === Stage.PreTarget) {
+                // if there are no targets at the pretarget stage, delay targeting until after costs are paid
+                targetResults.delayTargeting = this;
+                return;
+            }
             if (!this.selector.optional) {
+                // if there are no targets at the primary target stage and the target is mandatory, cancel the ability resolution
                 targetResults.cancelled = true;
             }
             return;

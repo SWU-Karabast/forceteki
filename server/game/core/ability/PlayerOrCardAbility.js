@@ -4,6 +4,7 @@ const SelectTargetResolver = require('./abilityTargets/SelectTargetResolver.js')
 const { Stage, TargetMode, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const { default: Contract } = require('../utils/Contract.js');
+const { GameSystem } = require('../gameSystem/GameSystem.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -26,7 +27,7 @@ class PlayerOrCardAbility {
      * objects.
      * @param {Object} [properties.target] - Optional property that specifies
      * the target of the ability.
-     * @param {Array} [properties.immediateEffect] - GameSystem[] optional array of game actions
+     * @param {GameSystem[]} [properties.immediateEffect] - GameSystem[] optional array of game actions
      * @param {string} [properties.title] - Name to use for ability display and debugging
      * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
      * @param {boolean} [properties.optional] - Optional property that indicates if resolution of the ability
@@ -34,6 +35,8 @@ class PlayerOrCardAbility {
      */
     constructor(properties, type = AbilityType.Action) {
         Contract.assertStringValue(properties.title);
+
+        // TODO THIS PR: enforce the constraints on the use of initiateAttack / gameSystem / targetResolver / targetResolvers
 
         this.title = properties.title;
         this.limit = null;
@@ -112,13 +115,23 @@ class PlayerOrCardAbility {
         if (!this.canPayCosts(context) && !ignoredRequirements.includes('cost')) {
             return 'cost';
         }
-        if (this.targetResolvers.length === 0) {
-            if (this.gameSystem.length > 0 && !this.checkGameActionsForPotential(context)) {
-                return 'condition';
+
+        // for actions, the only requirement to be legal to activate is that something changes game state. so if there's a resolvable cost, that's enough (see SWU 6.2.C)
+        if (this.isAction()) {
+            if (this.getCosts(context).length > 0) {
+                return '';
             }
-            return '';
         }
-        return this.canResolveTargets(context) ? '' : 'target';
+
+        if (this.gameSystem.length > 0 && !this.checkGameActionsForPotential(context)) {
+            return 'gameStateChange';
+        }
+
+        if (this.targetResolvers.length > 0 && !this.canResolveTargets(context)) {
+            return 'target';
+        }
+
+        return '';
     }
 
     checkGameActionsForPotential(context) {
