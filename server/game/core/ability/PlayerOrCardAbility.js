@@ -128,6 +128,7 @@ class PlayerOrCardAbility {
         }
 
         // for actions, the only requirement to be legal to activate is that something changes game state. so if there's a resolvable cost, that's enough (see SWU 6.2.C)
+        // TODO: add a card with an action that has no cost (e.g. Han red or Fennec) and confirm that the action is not legal to activate when there are no targets
         if (this.isAction()) {
             if (this.getCosts(context).length > 0) {
                 return '';
