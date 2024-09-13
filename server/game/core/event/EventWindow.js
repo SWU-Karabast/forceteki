@@ -28,7 +28,7 @@ class EventWindow extends BaseStepWithPipeline {
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.setCurrentEventWindow(), 'setCurrentEventWindow'),
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
-            new SimpleStep(this.game, () => this.openNonTriggeredWindow(AbilityType.ReplacementEffect), 'openNonTriggeredWindow'),
+            new SimpleStep(this.game, () => this.openReplacementEffectWindow(), 'openReplacementEffectWindow'),
             new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
@@ -63,19 +63,14 @@ class EventWindow extends BaseStepWithPipeline {
         this.events.forEach((event) => event.checkCondition());
     }
 
-    /** open a triggering window for any ability type other than {@link AbilityType.Triggered} */
-    openNonTriggeredWindow(abilityType) {
-        if (!Contract.assertNotEqual(abilityType, AbilityType.Triggered)) {
-            return;
-        }
-
+    openReplacementEffectWindow() {
         if (this.events.length === 0) {
             return;
         }
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        const window = new TriggeredAbilityWindow(this.game, this, abilityType);
+        const window = new TriggeredAbilityWindow(this.game, this, AbilityType.ReplacementEffect);
         window.emitEvents();
         this.queueStep(window);
     }
