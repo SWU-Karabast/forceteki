@@ -231,7 +231,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
         this.context.stage = Stage.Target;
 
-        if (!this.context.ability.hasLegalTargets(this.context)) {
+        if (this.context.ability.hasTargets() && !this.context.ability.hasSomeLegalTarget(this.context)) {
             // Ability cannot resolve, so display a message and cancel it
             this.game.addMessage('{0} attempted to use {1}, but there are insufficient legal targets', this.context.player, this.context.source);
             this.cancelled = true;

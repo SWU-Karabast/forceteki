@@ -86,10 +86,6 @@ class CardTargetResolver {
                 targetResults.delayTargeting = this;
                 return;
             }
-            if (!this.selector.optional) {
-                // if there are no targets at the primary target stage and the target is mandatory, cancel the ability resolution
-                targetResults.cancelled = true;
-            }
             return;
         }
 

@@ -11,7 +11,7 @@ describe('Death Trooper', function() {
                     },
                     player2: {
                         groundArena: ['wampa', 'superlaser-technician'],
-                        spaceArena: ['imperial-interceptor']
+                        spaceArena: ['tieln-fighter']
                     }
                 });
             });

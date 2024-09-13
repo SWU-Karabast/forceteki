@@ -139,7 +139,7 @@ class PlayerOrCardAbility {
             return 'gameStateChange';
         }
 
-        if (this.targetResolvers.length > 0 && !this.canResolveTargets(context)) {
+        if (this.targetResolvers.length > 0 && !this.canResolveSomeTarget(context)) {
             return 'target';
         }
 
@@ -208,8 +208,8 @@ class PlayerOrCardAbility {
      *
      * @returns {Boolean}
      */
-    canResolveTargets(context) {
-        return this.nonDependentTargets.every((target) => target.canResolve(context));
+    canResolveSomeTarget(context) {
+        return this.nonDependentTargets.some((target) => target.canResolve(context));
     }
 
     /**
@@ -242,12 +242,16 @@ class PlayerOrCardAbility {
         return targetResults;
     }
 
-    hasLegalTargets(context) {
-        return this.nonDependentTargets.every((target) => target.hasLegalTarget(context));
+    hasTargets() {
+        return this.nonDependentTargets.length > 0;
+    }
+
+    hasSomeLegalTarget(context) {
+        return this.nonDependentTargets.some((target) => target.hasLegalTarget(context));
     }
 
     checkAllTargets(context) {
-        return this.nonDependentTargets.every((target) => target.selector.optional || target.checkTarget(context));
+        return this.nonDependentTargets.every((target) => target.checkTarget(context));
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {

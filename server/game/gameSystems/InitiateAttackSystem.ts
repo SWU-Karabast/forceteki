@@ -62,7 +62,7 @@ export class InitiateAttackSystem extends CardTargetSystem<IInitiateAttackProper
         const newContext = attackAbility.createContext(context.player);
 
         return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements) &&
-            attackAbility.hasLegalTargets(newContext);
+            attackAbility.hasSomeLegalTarget(newContext);
     }
 
     /**
