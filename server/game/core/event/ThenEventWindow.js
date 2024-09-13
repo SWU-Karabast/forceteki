@@ -11,10 +11,8 @@ const { AbilityType } = require('../Constants.js');
  */
 class ThenEventWindow extends EventWindow {
     /** @override */
-    openWindow(abilityType) {
-        if (abilityType !== AbilityType.Triggered) {
-            super.openWindow(abilityType);
-        }
+    openTriggeredAbilityWindow() {
+        // we are deliberately not activating triggers here because they are being passed back to the calling window
     }
 
     /** @override */
@@ -22,6 +20,10 @@ class ThenEventWindow extends EventWindow {
         for (let event of this.events) {
             this.previousEventWindow.addEvent(event);
         }
+        for (const triggeredAbility of this.triggeredAbilityWindow.triggeredAbilities) {
+            this.previousEventWindow.triggeredAbilityWindow.addToWindow(triggeredAbility);
+        }
+
         super.resetCurrentEventWindow();
     }
 }
