@@ -26,12 +26,29 @@ describe('Grogu, Irresistible', function() {
                 this.player1.clickCard(this.enfysNest);
                 expect(this.grogu.exhausted).toBe(true);
                 expect(this.enfysNest.exhausted).toBe(true);
+
+                this.player2.passAction();
+
+                // this is a general test of the exhaustSelf cost mechanic, don't need to repeat it for other cards that have an exhaustSelf cost
+                expect(this.grogu).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+            });
+        });
+
+        describe('Grogu\'s ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['grogu#irresistible'],
+                    },
+                    player2: {
+                    }
+                });
             });
 
-            // this is a general test of the exhaustSelf cost mechanic, don't need to repeat it for other cards that have an exhaustSelf cost
-            it('should not be available if Grogu is exhausted', function () {
-                this.grogu.exhausted = true;
-                expect(this.grogu).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+            it('should activate with no targets', function () {
+                this.player1.clickCard(this.grogu);
+                expect(this.grogu.exhausted).toBe(true);
             });
         });
     });
