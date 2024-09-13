@@ -16,41 +16,40 @@ describe('Death Trooper', function() {
                 });
             });
 
-            // it('cannot be passed', function () {
-            //     // Play Death Trooper
-            //     this.player1.clickCard(this.deathTrooper);
-            //     expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-            //     expect(this.player1).not.toHavePassAbilityPrompt();
-            // });
-
-            // it('can only target ground units & can damage itself', function () {
-            //     // Play Death Trooper
-            //     this.player1.clickCard(this.deathTrooper);
-
-            //     // Choose Friendly
-            //     expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-            //     expect(this.player1).not.toHavePassAbilityPrompt();
-            //     this.player1.clickCard(this.deathTrooper);
-
-            //     // Choose Enemy
-            //     expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.superlaserTechnician]);
-            //     this.player1.clickCard(this.wampa);
-            //     expect(this.deathTrooper.damage).toEqual(2);
-            //     expect(this.wampa.damage).toEqual(2);
-            // });
-
-            it('works when no enemy ground units', function () {
+            it('cannot be passed', function () {
                 // Play Death Trooper
-                this.player2.setGroundArenaUnits([]);
+                this.player1.clickCard(this.deathTrooper);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
+                expect(this.player1).not.toHavePassAbilityPrompt();
+            });
+
+            it('can only target ground units & can damage itself', function () {
+                // Play Death Trooper
                 this.player1.clickCard(this.deathTrooper);
 
                 // Choose Friendly
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
                 expect(this.player1).not.toHavePassAbilityPrompt();
                 this.player1.clickCard(this.deathTrooper);
-                expect(this.player1).toHavePrompt('asdfpokad');
+
+                // Choose Enemy
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.superlaserTechnician]);
+                this.player1.clickCard(this.wampa);
                 expect(this.deathTrooper.damage).toEqual(2);
+                expect(this.wampa.damage).toEqual(2);
             });
+
+            // it('works when no enemy ground units', function () {
+            //     // Play Death Trooper
+            //     this.player2.setGroundArenaUnits([]);
+            //     this.player1.clickCard(this.deathTrooper);
+
+            //     // Choose Friendly
+            //     expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
+            //     expect(this.player1).not.toHavePassAbilityPrompt();
+            //     this.player1.clickCard(this.deathTrooper);
+            //     expect(this.deathTrooper.damage).toEqual(2);
+            // });
         });
     });
 });

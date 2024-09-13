@@ -118,7 +118,7 @@ class PlayerOrCardAbility {
             }
             return '';
         }
-        return this.canResolveAnyTarget(context) ? '' : 'target';
+        return this.canResolveTargets(context) ? '' : 'target';
     }
 
     checkGameActionsForPotential(context) {
@@ -179,12 +179,12 @@ class PlayerOrCardAbility {
     }
 
     /**
-     * Returns whether there are eligible cards available to fulfill any target.
+     * Returns whether there are eligible cards available to fulfill targets.
      *
      * @returns {Boolean}
      */
-    canResolveAnyTarget(context) {
-        return this.nonDependentTargets.some((target) => target.canResolve(context));
+    canResolveTargets(context) {
+        return this.nonDependentTargets.every((target) => target.canResolve(context));
     }
 
     /**
@@ -219,10 +219,6 @@ class PlayerOrCardAbility {
 
     hasLegalTargets(context) {
         return this.nonDependentTargets.every((target) => target.hasLegalTarget(context));
-    }
-
-    hasAnyLegalTarget(context) {
-        return this.nonDependentTargets.some((target) => target.hasLegalTarget(context));
     }
 
     checkAllTargets(context) {
