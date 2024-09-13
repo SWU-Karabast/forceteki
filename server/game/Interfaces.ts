@@ -139,23 +139,23 @@ interface IAbilityProps<Context> {
     then?: ((context?: AbilityContext) => IAbilityPropsWithSystems<Context>) | IAbilityPropsWithSystems<Context>;
 }
 
-interface TargetResolverAbilityProps<Context> extends IAbilityProps<Context> {
+interface IAbilityPropsWithTargetResolver<Context> extends IAbilityProps<Context> {
     targetResolver: IActionTargetResolver;
 }
 
-interface TargetResolversAbilityProps<Context> extends IAbilityProps<Context> {
+interface IAbilityPropsWithTargetResolvers<Context> extends IAbilityProps<Context> {
     targetResolvers: IActionTargetsResolver;
 }
 
-interface ImmediateEffectAbilityProps<Context> extends IAbilityProps<Context> {
+interface IAbilityPropsWithImmediateEffect<Context> extends IAbilityProps<Context> {
     immediateEffect: GameSystem | GameSystem[];
 }
 
-interface HandlerAbilityProps<Context> extends IAbilityProps<Context> {
+interface IAbilityPropsWithHandler<Context> extends IAbilityProps<Context> {
     handler: (context: Context) => void;
 }
 
-interface InitiateAttackAbilityProps<Context> extends IAbilityProps<Context> {
+interface IAbilityPropsWithInitiateAttack<Context> extends IAbilityProps<Context> {
     /**
      * Indicates that an attack should be triggered from a friendly unit.
      * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
@@ -166,11 +166,11 @@ interface InitiateAttackAbilityProps<Context> extends IAbilityProps<Context> {
 }
 
 type IAbilityPropsWithSystems<Context> =
-    ImmediateEffectAbilityProps<Context> |
-    InitiateAttackAbilityProps<Context> |
-    TargetResolverAbilityProps<Context> |
-    TargetResolversAbilityProps<Context> |
-    HandlerAbilityProps<Context>;
+    IAbilityPropsWithImmediateEffect<Context> |
+    IAbilityPropsWithInitiateAttack<Context> |
+    IAbilityPropsWithTargetResolver<Context> |
+    IAbilityPropsWithTargetResolvers<Context> |
+    IAbilityPropsWithHandler<Context>;
 
 interface IReplacementEffectAbilityWhenProps extends IReplacementEffectAbilityBaseProps {
     when: WhenType;
