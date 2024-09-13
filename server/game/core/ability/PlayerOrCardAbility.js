@@ -5,6 +5,7 @@ const { Stage, TargetMode, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const { default: Contract } = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
+const { has } = require('underscore');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -28,6 +29,8 @@ class PlayerOrCardAbility {
      * @param {Object} [properties.target] - Optional property that specifies
      * the target of the ability.
      * @param {GameSystem[]} [properties.immediateEffect] - GameSystem[] optional array of game actions
+     * @param {any} [properties.targetResolver] - Optional target resolver
+     * @param {any} [properties.targetResolvers] - Optional target resolvers set
      * @param {string} [properties.title] - Name to use for ability display and debugging
      * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
      * @param {boolean} [properties.optional] - Optional property that indicates if resolution of the ability
@@ -36,7 +39,15 @@ class PlayerOrCardAbility {
     constructor(properties, type = AbilityType.Action) {
         Contract.assertStringValue(properties.title);
 
-        // TODO THIS PR: enforce the constraints on the use of initiateAttack / gameSystem / targetResolver / targetResolvers
+        const hasImmediateEffect = properties.immediateEffect && properties.immediateEffect.length > 0;
+        const hasTargetResolver = properties.targetResolver != null;
+        const hasTargetResolvers = properties.targetResolvers != null;
+
+        const systemTypesCount = [hasImmediateEffect, hasTargetResolver, hasTargetResolvers].reduce(
+            (acc, val) => acc + (val ? 1 : 0), 0,
+        );
+
+        Contract.assertFalse(systemTypesCount > 1, 'Cannot create ability with multiple system initialization properties');
 
         this.title = properties.title;
         this.limit = null;

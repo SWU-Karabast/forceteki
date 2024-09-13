@@ -132,7 +132,6 @@ interface IAbilityProps<Context> {
      */
     optional?: boolean;
 
-    // TODO THIS PR: refactor to make it so that initiateAttack, targetResolver(s), and immediateEffect are mutually exclusive
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;
     effect?: string;
