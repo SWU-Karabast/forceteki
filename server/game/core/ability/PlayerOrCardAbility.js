@@ -222,7 +222,7 @@ class PlayerOrCardAbility {
     }
 
     checkAllTargets(context) {
-        return this.nonDependentTargets.every((target) => target.checkTarget(context));
+        return this.nonDependentTargets.every((target) => target.selector.optional || target.checkTarget(context));
     }
 
     hasTargetsChosenByInitiatingPlayer(context) {
