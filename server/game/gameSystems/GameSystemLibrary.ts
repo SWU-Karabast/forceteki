@@ -38,7 +38,7 @@ import { LookAtSystem, ILookAtProperties } from './LookAtSystem';
 import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 // import { MoveTokenAction, MoveTokenProperties } from './MoveTokenAction';
 // import { MultipleContextActionProperties, MultipleContextGameAction } from './MultipleContextGameAction';
-import { MultipleGameSystem } from './MultipleGameSystem';
+// import { MultipleGameAction } from './MultipleGameAction';
 // import { OpponentPutIntoPlayAction, OpponentPutIntoPlayProperties } from './OpponentPutIntoPlayAction';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
 // import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
@@ -288,9 +288,9 @@ export function conditional(propertyFactory: PropsFactory<IConditionalSystemProp
 // export function joint(gameActions: GameSystem[]): GameSystem {
 //     return new JointGameAction(gameActions);
 // } // takes an array of gameActions, not a propertyFactory
-export function multiple(gameActions: GameSystem[]): GameSystem {
-    return new MultipleGameSystem(gameActions);
-} // takes an array of gameActions, not a propertyFactory
+// export function multiple(gameActions: GameSystem[]): GameSystem {
+//     return new MultipleGameAction(gameActions);
+// } // takes an array of gameActions, not a propertyFactory
 // export function multipleContext(propertyFactory: PropsFactory<MultipleContextActionProperties>): GameSystem {
 //     return new MultipleContextGameAction(propertyFactory);
 // }
