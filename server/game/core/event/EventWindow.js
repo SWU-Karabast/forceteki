@@ -2,6 +2,7 @@ const { BaseStepWithPipeline } = require('../gameSteps/BaseStepWithPipeline.js')
 const { TriggeredAbilityWindow } = require('../gameSteps/abilityWindow/TriggeredAbilityWindow');
 const { SimpleStep } = require('../gameSteps/SimpleStep.js');
 const { AbilityType } = require('../Constants.js');
+const { default: Contract } = require('../utils/Contract.js');
 // const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
 
 class EventWindow extends BaseStepWithPipeline {
@@ -18,6 +19,8 @@ class EventWindow extends BaseStepWithPipeline {
 
         this.toStringName = `'EventWindow: ${this.events.map((event) => event.name).join(', ')}'`;
 
+        this.triggeredAbilityWindow = null;
+
         this.initialise();
     }
 
@@ -25,13 +28,13 @@ class EventWindow extends BaseStepWithPipeline {
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.setCurrentEventWindow(), 'setCurrentEventWindow'),
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.ReplacementEffect), 'open ReplacementEffect window'),
+            new SimpleStep(this.game, () => this.openReplacementEffectWindow(), 'openReplacementEffectWindow'),
             new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),    // TODO EFFECTS: uncomment this (and other places the method is used, + missing ones from l5r)
             new SimpleStep(this.game, () => this.checkThenAbilitySteps(), 'checkThenAbilitySteps'),
-            new SimpleStep(this.game, () => this.openWindow(AbilityType.Triggered), 'open TriggeredAbility window'),
+            new SimpleStep(this.game, () => this.openTriggeredAbilityWindow(), 'openTriggeredAbilityWindow'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
         ]);
     }
@@ -60,14 +63,16 @@ class EventWindow extends BaseStepWithPipeline {
         this.events.forEach((event) => event.checkCondition());
     }
 
-    openWindow(abilityType) {
+    openReplacementEffectWindow() {
         if (this.events.length === 0) {
             return;
         }
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        this.queueStep(new TriggeredAbilityWindow(this.game, this, abilityType));
+        const window = new TriggeredAbilityWindow(this.game, this, AbilityType.ReplacementEffect);
+        window.emitEvents();
+        this.queueStep(window);
     }
 
     /**
@@ -90,6 +95,9 @@ class EventWindow extends BaseStepWithPipeline {
     executeHandler() {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
+        // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
+        this.triggerEventsForWindow();
+
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
             event.checkCondition();
@@ -98,6 +106,17 @@ class EventWindow extends BaseStepWithPipeline {
                 this.game.emit(event.name, event);
             }
         }
+
+        // TODO: make it so we don't need to trigger twice
+        // trigger again here to catch any events for cards that entered play during event resolution
+        this.triggerEventsForWindow();
+    }
+
+    triggerEventsForWindow() {
+        if (this.triggeredAbilityWindow === null) {
+            this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
+        }
+        this.triggeredAbilityWindow.emitEvents();
     }
 
     resolveGameState() {
@@ -114,6 +133,14 @@ class EventWindow extends BaseStepWithPipeline {
                 this.game.resolveAbility(cardAbilityStep.ability.createContext(cardAbilityStep.context.player));
             }
         }
+    }
+
+    openTriggeredAbilityWindow() {
+        if (this.events.length === 0) {
+            return;
+        }
+
+        this.queueStep(this.triggeredAbilityWindow);
     }
 
     resetCurrentEventWindow() {

@@ -48,6 +48,7 @@ export default class TriggeredAbility extends CardAbility {
     public anyPlayer: boolean;
     public collectiveTrigger: boolean;
     public eventRegistrations?: IEventRegistration[];
+    public eventsTriggeredFor: GameEvent[] = [];
 
     public constructor(
         game: Game,
@@ -80,8 +81,10 @@ export default class TriggeredAbility extends CardAbility {
             if (
                 (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
-                this.meetsRequirements(context) === ''
+                this.meetsRequirements(context) === '' &&
+                !this.eventsTriggeredFor.includes(event)
             ) {
+                this.eventsTriggeredFor.push(event);
                 window.addToWindow(context);
             }
         }
