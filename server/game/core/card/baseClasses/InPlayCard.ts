@@ -1,4 +1,4 @@
-import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { AbilityType, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -81,7 +81,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.triggeredAbilities.push(this.createTriggeredAbility(properties));
     }
 
-    protected addWhenPlayedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+    protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps): void {
         const triggeredProperties = Object.assign(properties, { when: { onCardPlayed: (event, context) => event.card === context.source } });
         this.addTriggeredAbility(triggeredProperties);
     }

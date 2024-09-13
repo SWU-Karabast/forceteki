@@ -19,7 +19,7 @@ export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbil
 export type IReplacementEffectAbilityProps = IReplacementEffectAbilityWhenProps | IReplacementEffectAbilityAggregateWhenProps;
 
 /** Interface definition for addActionAbility */
-export interface IActionAbilityProps<Source = any> extends Omit<IAbilityProps<AbilityContext<Source>>, 'optional'> {
+export type IActionAbilityProps<Source = any> = Exclude<IAbilityPropsWithSystems<AbilityContext<Source>>, 'optional'> & {
     condition?: (context?: AbilityContext<Source>) => boolean;
 
     /**
@@ -49,47 +49,21 @@ export interface IConstantAbilityProps<Source = any> {
     createCopies?: boolean;
 }
 
+// exported for use in situations where we need to exclude "when" and "aggregateWhen"
+export type ITriggeredAbilityBaseProps = IAbilityPropsWithSystems<TriggeredAbilityContext> & {
+    collectiveTrigger?: boolean;
+    targetResolver?: ITriggeredAbilityTargetResolver;
+    targetResolvers?: ITriggeredAbilityTargetsResolver;
+    handler?: (context: TriggeredAbilityContext) => void;
+    then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
+}
+
 /** Interface definition for setEventAbility */
-export type IEventAbilityProps<Source = any> = IAbilityProps<AbilityContext<Source>>;
+export type IEventAbilityProps<Source = any> = IAbilityPropsWithSystems<AbilityContext<Source>>;
 
 /** Interface definition for setEpicActionAbility */
-export type IEpicActionProps<Source = any> = Omit<IAbilityProps<AbilityContext<Source>>, 'cost' | 'limit' | 'handler'>;
+export type IEpicActionProps<Source = any> = Exclude<IAbilityPropsWithSystems<AbilityContext<Source>>, 'cost' | 'limit' | 'handler'>;
 
-// TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
-// for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
-/** Base interface for triggered and action ability definitions */
-export interface IAbilityProps<Context> {
-    title: string;
-    locationFilter?: LocationFilter | LocationFilter[];
-    cost?: any;
-    limit?: any;
-    targetResolver?: IActionTargetResolver;
-    targetResolvers?: IActionTargetsResolver;
-    cardName?: string;
-
-    /**
-     * Indicates if triggering the ability is optional (in which case the player will be offered the
-     * 'Pass' button on resolution) or if it is mandatory
-     */
-    optional?: boolean;
-
-    /**
-     * Indicates that an attack should be triggered from a friendly unit.
-     * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
-     * Can either be an {@link IInitiateAttackProperties} property object or a function that creates one from
-     * an {@link AbilityContext}.
-     */
-    initiateAttack?: IInitiateAttackProperties | ((context: AbilityContext) => IInitiateAttackProperties);
-
-    // TODO THIS PR: refactor to make it so that initiateAttack, targetResolver(s), and immediateEffect are mutually exclusive
-    printedAbility?: boolean;
-    cannotTargetFirst?: boolean;
-    effect?: string;
-    effectArgs?: EffectArg | ((context: Context) => EffectArg);
-    immediateEffect?: GameSystem | GameSystem[];
-    handler?: (context?: Context) => void;
-    then?: ((context?: AbilityContext) => IAbilityProps<Context>) | IAbilityProps<Context>;
-}
 
 interface IReplacementEffectAbilityBaseProps extends Omit<ITriggeredAbilityBaseProps,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
@@ -134,13 +108,70 @@ export type WhenType = {
     };
 
 // ********************************************** INTERNAL TYPES **********************************************
-interface ITriggeredAbilityWhenProps extends ITriggeredAbilityBaseProps {
+type ITriggeredAbilityWhenProps = ITriggeredAbilityBaseProps & {
     when: WhenType;
 }
 
-interface ITriggeredAbilityAggregateWhenProps extends ITriggeredAbilityBaseProps {
+type ITriggeredAbilityAggregateWhenProps = ITriggeredAbilityBaseProps & {
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 }
+
+// TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
+// for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
+/** Base interface for triggered and action ability definitions */
+interface IAbilityProps<Context> {
+    title: string;
+    locationFilter?: LocationFilter | LocationFilter[];
+    cost?: any;
+    limit?: any;
+    cardName?: string;
+
+    /**
+     * Indicates if triggering the ability is optional (in which case the player will be offered the
+     * 'Pass' button on resolution) or if it is mandatory
+     */
+    optional?: boolean;
+
+    // TODO THIS PR: refactor to make it so that initiateAttack, targetResolver(s), and immediateEffect are mutually exclusive
+    printedAbility?: boolean;
+    cannotTargetFirst?: boolean;
+    effect?: string;
+    effectArgs?: EffectArg | ((context: Context) => EffectArg);
+    then?: ((context?: AbilityContext) => IAbilityPropsWithSystems<Context>) | IAbilityPropsWithSystems<Context>;
+}
+
+interface TargetResolverAbilityProps<Context> extends IAbilityProps<Context> {
+    targetResolver: IActionTargetResolver;
+}
+
+interface TargetResolversAbilityProps<Context> extends IAbilityProps<Context> {
+    targetResolvers: IActionTargetsResolver;
+}
+
+interface ImmediateEffectAbilityProps<Context> extends IAbilityProps<Context> {
+    immediateEffect: GameSystem | GameSystem[];
+}
+
+interface HandlerAbilityProps<Context> extends IAbilityProps<Context> {
+    handler: (context: Context) => void;
+}
+
+interface InitiateAttackAbilityProps<Context> extends IAbilityProps<Context> {
+    /**
+     * Indicates that an attack should be triggered from a friendly unit.
+     * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
+     * Can either be an {@link IInitiateAttackProperties} property object or a function that creates one from
+     * an {@link AbilityContext}.
+     */
+    initiateAttack?: IInitiateAttackProperties | ((context: AbilityContext) => IInitiateAttackProperties);
+}
+
+type IAbilityPropsWithSystems<Context> =
+    ImmediateEffectAbilityProps<Context> |
+    InitiateAttackAbilityProps<Context> |
+    TargetResolverAbilityProps<Context> |
+    TargetResolversAbilityProps<Context> |
+    HandlerAbilityProps<Context>;
 
 interface IReplacementEffectAbilityWhenProps extends IReplacementEffectAbilityBaseProps {
     when: WhenType;
@@ -148,14 +179,6 @@ interface IReplacementEffectAbilityWhenProps extends IReplacementEffectAbilityBa
 
 interface IReplacementEffectAbilityAggregateWhenProps extends IReplacementEffectAbilityBaseProps {
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
-}
-
-interface ITriggeredAbilityBaseProps extends IAbilityProps<TriggeredAbilityContext> {
-    collectiveTrigger?: boolean;
-    targetResolver?: ITriggeredAbilityTargetResolver;
-    targetResolvers?: ITriggeredAbilityTargetsResolver;
-    handler?: (context: TriggeredAbilityContext) => void;
-    then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
 }
 
 interface IKeywordPropertiesBase {
@@ -205,57 +228,3 @@ export type NonParameterKeywordName =
     | KeywordName.Saboteur
     | KeywordName.Sentinel
     | KeywordName.Shielded;
-
-
-// class CardsPlayedThisPhaseWatcher {
-//     public register();
-//     public getValue();
-// }
-
-
-// // ----------------------------- OPTION 1 ---------------------------
-// // export class DarthVaderLordOfTheSith extends LeaderCard {
-// //     private readonly cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
-
-// //     public constructor() {
-// //         super();
-// //         this.cardsPlayedThisPhaseWatcher = new CardsPlayedThisPhaseWatcher();
-// //         this.cardsPlayedThisPhaseWatcher.register();
-// //     }
-
-// //     public override setupCardAbilities() {
-// //         this.addActionAbility({
-// //             title: 'Deal 1 damage to a unit and 1 to a base',
-// //             condition: () => {
-// //                 const cardsPlayedThisPhase = this.cardsPlayedThisPhaseWatcher.getValue();
-// //                 return cardsPlayedThisPhase.some((card) => card.aspects.includes(Aspect.Villainy));
-// //             }
-// //             // ...costs, targets, etc...
-// //         });
-// //     }
-// // }
-
-// export type CardConstructor = new (...args: any[]) => Card;
-
-// function CardsPlayedThisPhaseWatcher<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-//     return class WithPrintedPower extends BaseClass {
-//         public getCardsPlayedThisPhase();
-//     };
-// }
-
-
-// // ----------------------------- OPTION 2 ---------------------------
-// export class DarthVaderLordOfTheSith extends CardsPlayedThisPhaseWatcher(LeaderCard) {
-//     // setup and registration all happens automatically in mixin constructor
-
-//     public override setupCardAbilities() {
-//         this.addActionAbility({
-//             title: 'Deal 1 damage to a unit and 1 to a base',
-//             condition: () => {
-//                 const cardsPlayedThisPhase = this.getCardsPlayedThisPhase();
-//                 return cardsPlayedThisPhase.some((card) => card.aspects.includes(Aspect.Villainy));
-//             }
-//             // ...costs, targets, etc...
-//         });
-//     }
-// }
