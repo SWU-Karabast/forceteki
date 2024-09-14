@@ -4,7 +4,7 @@ import { Duration, EffectName, EventName, Location, WildcardLocation } from '../
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectGeneralProperties } from '../core/gameSystem/LastingEffectSystem';
 
-export interface ILastingEffectCardProperties extends Omit<ILastingEffectGeneralProperties, 'target'>, ICardTargetSystemProperties {
+export interface ICardLastingEffectProperties extends Omit<ILastingEffectGeneralProperties, 'target'>, ICardTargetSystemProperties {
     targetLocationFilter?: Location | Location[];
 }
 
@@ -13,12 +13,13 @@ export interface ILastingEffectCardProperties extends Omit<ILastingEffectGeneral
  * For a definition, see SWU 7.7.3 'Lasting Effects': "A lasting effect is a part of an ability that affects the game for a specified duration of time.
  * Most lasting effects include the phrase 'for this phase' or 'for this attack.'"
  */
-export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCardProperties> {
-    public override readonly name = 'applyLastingEffect';
+export class CardLastingEffectSystem extends CardTargetSystem<ICardLastingEffectProperties> {
+    public override readonly name: string = 'applyCardLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
-    public override readonly effectDescription = 'apply a lasting effect to {0}';
-    protected override readonly defaultProperties: ILastingEffectCardProperties = {
-        duration: Duration.UntilEndOfAttack,
+    public override readonly effectDescription: string = 'apply a lasting effect to {0}';
+    protected override readonly defaultProperties: ICardLastingEffectProperties = {
+        duration: null,
+        // TODO THIS PR: rename to ongoingEffect
         effect: [],
         ability: null
     };
@@ -30,7 +31,7 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
         }
 
         const lastingEffectRestrictions = event.card.getEffectValues(EffectName.CannotApplyLastingEffects);
-        const { effect, ...otherProperties } = properties;
+        const { effect: effect, ...otherProperties } = properties;
         const effectProperties = Object.assign({ matchTarget: event.card, locationFilter: WildcardLocation.Any }, otherProperties);
         let effects = properties.effect.map((factory) =>
             factory(event.context.game, event.context.source, effectProperties)
@@ -45,8 +46,8 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
         }
     }
 
-    public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ILastingEffectCardProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties) as ILastingEffectCardProperties;
+    public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ICardLastingEffectProperties {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
         if (!Array.isArray(properties.effect)) {
             properties.effect = [properties.effect];
         }
@@ -62,7 +63,7 @@ export class LastingEffectCardSystem extends CardTargetSystem<ILastingEffectCard
             properties.effect.some(
                 (props) =>
                     props.impl.canBeApplied(card) &&
-                    !lastingEffectRestrictions.some((condition) => condition(props.effect))
+                    !lastingEffectRestrictions.some((condition) => condition(props.ongoingEffect))
             )
         );
     }

@@ -30,7 +30,8 @@ import { HealSystem, IHealProperties } from './HealSystem';
 import { InitiateAttackSystem, IInitiateAttackProperties } from './InitiateAttackSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
-import { LastingEffectCardSystem, ILastingEffectCardProperties } from './LastingEffectCardSystem';
+import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLastingEffectSystem';
+import { CardPhaseLastingEffectSystem, ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
 // import { LastingEffectRingAction, LastingEffectRingProperties } from './LastingEffectRingAction';
 import { LookAtSystem, ILookAtProperties } from './LookAtSystem';
 // import { MatchingDiscardAction, MatchingDiscardProperties } from './MatchingDiscardAction';
@@ -79,9 +80,9 @@ export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProper
 export function attack(propertyFactory: PropsFactory<IInitiateAttackProperties> = {}): CardTargetSystem {
     return new InitiateAttackSystem(propertyFactory);
 }
-// export function cardLastingEffect(propertyFactory: PropsFactory<ILastingEffectCardProperties>): GameSystem {
-//     return new LastingEffectCardSystem(propertyFactory);
-// }
+export function cardLastingEffect(propertyFactory: PropsFactory<ICardLastingEffectProperties>): GameSystem {
+    return new CardLastingEffectSystem(propertyFactory);
+}
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);
 // }
@@ -105,6 +106,9 @@ export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}
 // }
 export function exhaust(propertyFactory: PropsFactory<IExhaustSystemProperties> = {}): CardTargetSystem {
     return new ExhaustSystem(propertyFactory);
+}
+export function forThisPhaseCardEffect(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties>): GameSystem {
+    return new CardPhaseLastingEffectSystem(propertyFactory);
 }
 export function giveExperience(propertyFactory: PropsFactory<IGiveExperienceProperties> = {}): CardTargetSystem {
     return new GiveExperienceSystem(propertyFactory);

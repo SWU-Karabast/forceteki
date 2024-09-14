@@ -8,7 +8,7 @@ import { GameEvent } from '../event/GameEvent';
 import OngoingEffect from '../ongoingEffect/OngoingEffect';
 
 export interface ILastingEffectGeneralProperties extends IGameSystemProperties {
-    duration?: Duration;
+    duration: Duration;
     condition?: (context: AbilityContext) => boolean;
     until?: WhenType;
     effect?: any;
@@ -19,16 +19,12 @@ export interface LastingEffectProperties extends ILastingEffectGeneralProperties
     targetController?: RelativePlayer | Player;
 }
 
-// TODO: how is this related to LastingEffectCardSystem?
+// TODO: how is this related to CardLastingEffectSystem?
+/** @deprecated this has not been tried yet */
 export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
     public override readonly name = 'applyLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
     public override readonly effectDescription = 'apply a lasting effect';
-    protected override readonly defaultProperties: LastingEffectProperties = {
-        duration: Duration.UntilEndOfAttack,
-        effect: [],
-        ability: null
-    } satisfies LastingEffectProperties;
 
     public eventHandler(event: GameEvent, additionalProperties: any): void {
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);

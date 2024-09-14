@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, CardTypeFilter, EventName, KeywordName, Location, WildcardCardType, WildcardLocation } from '../core/Constants';
+import { AbilityRestriction, CardType, CardTypeFilter, Duration, EventName, KeywordName, Location, WildcardCardType, WildcardLocation } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
@@ -10,11 +10,11 @@ import { damage } from './GameSystemLibrary.js';
 import type { Card } from '../core/card/Card';
 import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
-import { ILastingEffectCardProperties, LastingEffectCardSystem } from './LastingEffectCardSystem';
+import { ICardLastingEffectProperties, CardLastingEffectSystem } from './CardLastingEffectSystem';
 import Contract from '../core/utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 
-export type IAttackLastingEffectCardProperties = Omit<ILastingEffectCardProperties, 'duration'>;
+export type IAttackLastingEffectCardProperties = Omit<ICardLastingEffectProperties, 'duration'>;
 
 export interface IAttackProperties extends ICardTargetSystemProperties {
     attacker?: Card;
@@ -24,7 +24,7 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
     costHandler?: (context: AbilityContext, prompt: any) => void;
 
     /**
-     * Effects to trigger for the duration of the attack. Can be one or more {@link ILastingEffectCardProperties}
+     * Effects to trigger for the duration of the attack. Can be one or more {@link ICardLastingEffectProperties}
      * or a function generator(s) for them.
      */
     effects?: IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties) |
@@ -228,8 +228,11 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
         const effectEvents: GameEvent[] = [];
         for (const effect of effects) {
             const effectProperties = typeof effect === 'function' ? effect(context, attack) : effect;
+            if (effectProperties === null) {
+                continue;
+            }
 
-            const effectSystem = new LastingEffectCardSystem(effectProperties);
+            const effectSystem = new CardLastingEffectSystem(Object.assign(effectProperties, { duration: Duration.UntilEndOfAttack }));
             effectSystem.queueGenerateEventGameSteps(effectEvents, context);
         }
 
