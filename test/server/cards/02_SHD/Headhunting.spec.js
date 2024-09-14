@@ -57,6 +57,7 @@ describe('Headhunting', function() {
                 expect(this.player2).toBeActivePlayer();
             });
 
+            // TODO: have a UI discussion on how we want the flow of passing to work in this situation
             it('should be able to be passed', function () {
                 this.player1.clickCard(this.headhunting);
 

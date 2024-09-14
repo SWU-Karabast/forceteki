@@ -19,6 +19,11 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { Attack } from '../core/attack/Attack';
 import { UnitCard } from '../core/card/CardTypes';
 
+interface ConditionalAttackStatBonusProps {
+    bonusCondition: (attacker: UnitCard) => boolean;
+    statBonus: StatsModifier;
+}
+
 /* Types of effect
     1. Static effects - do something for a period
     2. Dynamic effects - like static, but what they do depends on the game state
@@ -82,11 +87,11 @@ export = {
     //         unapply: (card) => card.controller.removeConflictOpportunity(type)
     //     }),
     /** For effects of the form "if unit has [X], it gains +Y/+Z for this attack" */
-    conditionalAttackStatBonus: (bonusCondition: (attacker: UnitCard) => boolean, statBonus: StatsModifier) => (context: AbilityContext, attack: Attack) => {
-        if (bonusCondition(attack.attacker)) {
+    conditionalAttackStatBonus: (properties: ConditionalAttackStatBonusProps) => (context: AbilityContext, attack: Attack) => {
+        if (properties.bonusCondition(attack.attacker)) {
             return {
                 target: attack.attacker,
-                effect: OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, statBonus),
+                effect: OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, properties.statBonus),
             };
         }
         return null;

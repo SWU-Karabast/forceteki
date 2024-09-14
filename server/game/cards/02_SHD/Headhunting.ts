@@ -26,10 +26,10 @@ export default class Headhunting extends EventCard {
         return AbilityHelper.immediateEffects.selectCard({
             innerSystem: AbilityHelper.immediateEffects.attack({
                 targetCondition: (card) => !card.isBase(),
-                effects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus(
-                    (attacker: UnitCard) => attacker.hasSomeTrait(Trait.BountyHunter),
-                    { power: 2, hp: 0 }
-                ),
+                effects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus({
+                    bonusCondition: (attacker: UnitCard) => attacker.hasSomeTrait(Trait.BountyHunter),
+                    statBonus: { power: 2, hp: 0 }
+                }),
                 optional: true
             })
         });

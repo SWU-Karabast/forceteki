@@ -7,6 +7,15 @@ export interface ISequentialProperties extends IGameSystemProperties {
     gameSystems: GameSystem[];
 }
 
+// TODO: fix windows and trigger timing in general
+// TODO: add a variant of this (or a configuration option) for repeating the same action a variable number of times
+/**
+ * Meta-system used for executing a set of other systems in a sequence. Each sub-system will be executed in order,
+ * one at a time, with an event window for each. ~~Triggered responses will be held until the end of the sequence,
+ * except for the special cases of attacks and nested actions~~ _(this is currently buggy)_
+ *
+ * In terms of game text, this is the exact behavior of "do [X], then do [Y], then do..." or "do [X] [N] times"
+ */
 export class SequentialSystem extends GameSystem<ISequentialProperties> {
     public constructor(gameSystems: GameSystem[]) {
         super({ gameSystems: gameSystems });

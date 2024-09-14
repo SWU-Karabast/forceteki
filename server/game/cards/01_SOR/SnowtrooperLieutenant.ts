@@ -16,10 +16,10 @@ export default class SnowtrooperLieutenant extends NonLeaderUnitCard {
             title: 'Attack with a unit',
             optional: true,
             initiateAttack: {
-                effects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus(
-                    (attacker: UnitCard) => attacker.hasSomeTrait(Trait.Imperial),
-                    { power: 2, hp: 0 }
-                )
+                effects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus({
+                    bonusCondition: (attacker: UnitCard) => attacker.hasSomeTrait(Trait.Imperial),
+                    statBonus: { power: 2, hp: 0 }
+                })
             }
         });
     }
