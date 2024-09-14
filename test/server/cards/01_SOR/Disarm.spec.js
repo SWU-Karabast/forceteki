@@ -11,14 +11,16 @@ describe('Disarm', function() {
                     player2: {
                         groundArena: ['atst', 'isb-agent'],
                         spaceArena: [
-                            { card: 'tieln-fighter', upgrades: ['academy-training'] }]
+                            { card: 'tieln-fighter', upgrades: ['academy-training'] },
+                            { card: 'cartel-spacer', upgrades: ['entrenched'] }
+                        ]
                     }
                 });
             });
 
             it('should apply -4/0 to an enemy unit for the phase', function () {
                 this.player1.clickCard(this.disarm);
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter]);
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
 
                 this.player1.clickCard(this.atst);
                 expect(this.atst.power).toBe(2);
@@ -27,8 +29,31 @@ describe('Disarm', function() {
                 this.moveToNextActionPhase();
                 expect(this.atst.power).toBe(6);
             });
-        });
 
-        // TODO THIS PR: add a test here to confirm that - and + bonuses stack correctly if the value dips below 0 during the calculation
+            // TODO SNOKE: maybe migrate these to their own test suite once we do the full stat effects PR
+            it('should not reduce a unit\'s power below 0', function () {
+                this.player1.clickCard(this.disarm);
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
+
+                this.player1.clickCard(this.isbAgent);
+                expect(this.isbAgent.power).toBe(0);
+            });
+
+            it('should reduce a unit\'s power to 0 accounting for additive effects', function () {
+                this.player1.clickCard(this.disarm);
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
+
+                this.player1.clickCard(this.tielnFighter);
+                expect(this.tielnFighter.power).toBe(0);
+            });
+
+            it('should reduce a unit\'s power to above 0 if additive effects are big enough', function () {
+                this.player1.clickCard(this.disarm);
+                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
+
+                this.player1.clickCard(this.cartelSpacer);
+                expect(this.cartelSpacer.power).toBe(1);
+            });
+        });
     });
 });
