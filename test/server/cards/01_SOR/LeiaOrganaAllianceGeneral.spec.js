@@ -65,6 +65,31 @@ describe('Leia Organa, Alliance General', function() {
             });
         });
 
+        describe('Leia\'s undeployed ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['atst', { card: 'rebel-pathfinder', exhausted: true }],
+                        spaceArena: ['tieln-fighter'],
+                        leader: 'leia-organa#alliance-general'
+                    },
+                    player2: {
+                        groundArena: ['sundari-peacekeeper'],
+                        spaceArena: ['tie-advanced']
+                    }
+                });
+            });
+
+            it('can be activated with no target', function () {
+                this.player1.clickCard(this.leiaOrgana);
+                this.player1.clickPrompt('Attack with a Rebel unit');
+
+                expect(this.player2).toBeActivePlayer();
+                expect(this.leiaOrgana.exhausted).toBe(true);
+            });
+        });
+
         describe('Leia\'s deployed ability', function() {
             beforeEach(function () {
                 this.setupTest({

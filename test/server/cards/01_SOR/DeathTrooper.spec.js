@@ -11,7 +11,7 @@ describe('Death Trooper', function() {
                     },
                     player2: {
                         groundArena: ['wampa', 'superlaser-technician'],
-                        spaceArena: ['imperial-interceptor']
+                        spaceArena: ['tieln-fighter']
                     }
                 });
             });
@@ -39,17 +39,17 @@ describe('Death Trooper', function() {
                 expect(this.wampa.damage).toEqual(2);
             });
 
-            // it('works when no enemy ground units', function () {
-            //     // Play Death Trooper
-            //     this.player2.setGroundArenaUnits([]);
-            //     this.player1.clickCard(this.deathTrooper);
+            it('works when no enemy ground units', function () {
+                // Play Death Trooper
+                this.player2.setGroundArenaUnits([]);
+                this.player1.clickCard(this.deathTrooper);
 
-            //     // Choose Friendly
-            //     expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-            //     expect(this.player1).not.toHavePassAbilityPrompt();
-            //     this.player1.clickCard(this.deathTrooper);
-            //     expect(this.deathTrooper.damage).toEqual(2);
-            // });
+                // Choose Friendly
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
+                expect(this.player1).not.toHavePassAbilityPrompt();
+                this.player1.clickCard(this.deathTrooper);
+                expect(this.deathTrooper.damage).toEqual(2);
+            });
         });
     });
 });

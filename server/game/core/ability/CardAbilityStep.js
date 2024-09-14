@@ -2,6 +2,8 @@ const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stage, AbilityType } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelper.js');
+const Helpers = require('../utils/Helpers.js');
+const { default: Contract } = require('../utils/Contract.js');
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -13,6 +15,11 @@ const AttackHelper = require('../attack/AttackHelper.js');
 class CardAbilityStep extends PlayerOrCardAbility {
     /** @param {import('../card/Card').Card} card - The card this ability is attached to */
     constructor(game, card, properties, type = AbilityType.Action) {
+        Contract.assertFalse(
+            properties.targetResolvers != null && properties.initiateAttack != null,
+            'Cannot create ability with targetResolvers and initiateAttack properties'
+        );
+
         if (properties.initiateAttack) {
             AttackHelper.addInitiateAttackProperties(properties);
         }
@@ -74,10 +81,11 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     getGameSystems(context) {
-        // if there are any targets, look for gameActions attached to them
-        let actions = this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystem(context)), []);
-        // look for a gameSystem on the ability itself, on an attachment execute that action on its parent, otherwise on the card itself
-        return actions.concat(this.gameSystem);
+        if (this.targetResolvers.length > 0) {
+            return this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystem(context)), []);
+        }
+
+        return Helpers.asArray(this.gameSystem);
     }
 
     executeGameActions(context) {

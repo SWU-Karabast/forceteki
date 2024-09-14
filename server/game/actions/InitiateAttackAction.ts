@@ -42,6 +42,9 @@ export class InitiateAttackAction extends PlayerAction {
         if (context.player.hasRestriction(AbilityRestriction.Attack, context)) {
             return 'restriction';
         }
+        if (!this.targetResolvers[0].hasLegalTarget(context)) {
+            return 'target';
+        }
         return super.meetsRequirements(context);
     }
 

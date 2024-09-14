@@ -16,7 +16,6 @@ export default class GroguIrresistible extends NonLeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 locationFilter: WildcardLocation.AnyArena,
-                cardCondition: (card) => card.controller !== this.controller,
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }

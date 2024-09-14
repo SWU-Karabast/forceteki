@@ -78,15 +78,23 @@ class CardTargetResolver {
             targetResults.delayTargeting = this;
             return;
         }
-        if (context.player.autoSingleTarget) {
-            let legalTargets = this.selector.getAllLegalTargets(context, player);
-            if (legalTargets.length === 1) {
-                context.targets[this.name] = legalTargets[0];
-                if (this.name === 'target') {
-                    context.target = legalTargets[0];
-                }
+
+        const legalTargets = this.selector.getAllLegalTargets(context, player);
+        if (legalTargets.length === 0) {
+            if (context.stage === Stage.PreTarget) {
+                // if there are no targets at the pretarget stage, delay targeting until after costs are paid
+                targetResults.delayTargeting = this;
                 return;
             }
+            return;
+        }
+
+        if (context.player.autoSingleTarget && legalTargets.length === 1) {
+            context.targets[this.name] = legalTargets[0];
+            if (this.name === 'target') {
+                context.target = legalTargets[0];
+            }
+            return;
         }
 
         // create a copy of properties without cardCondition or player
@@ -113,7 +121,7 @@ class CardTargetResolver {
                 waitingPromptTitle = 'Waiting for opponent';
             }
         }
-        let mustSelect = this.selector.getAllLegalTargets(context, player).filter((card) =>
+        let mustSelect = legalTargets.filter((card) =>
             card.getEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
         let promptProperties = {

@@ -36,5 +36,26 @@ describe('I Am Your Father', function() {
                 expect(this.player2.hand.length).toEqual(0);
             });
         });
+
+        describe('I Am Your Father\'s ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['i-am-your-father'],
+                        deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                    }
+                });
+            });
+
+            it('does not resolve with no target, but card is still played', function () {
+                this.player1.clickCard(this.iAmYourFather);
+                expect(this.iAmYourFather).toBeInLocation('discard');
+                expect(this.player2).toBeActivePlayer();
+            });
+        });
     });
 });

@@ -18,13 +18,13 @@ export default class DeathTrooper extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     locationFilter: Location.GroundArena,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 },
                 theirGroundUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
                     locationFilter: Location.GroundArena,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 }
             },
             effect: 'deal 2 damage to {1} and {2}',

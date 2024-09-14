@@ -29,6 +29,31 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
             });
         });
 
+        describe('Tarkin\'s undeployed ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        leader: 'grand-moff-tarkin#oversector-governor'
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+            });
+
+            it('can be activated with no target', function () {
+                this.player1.clickCard(this.grandMoffTarkin);
+                this.player1.clickPrompt('Give an experience token to an Imperial unit');
+
+                expect(this.player2).toBeActivePlayer();
+                expect(this.grandMoffTarkin.exhausted).toBe(true);
+                expect(this.player1.countExhaustedResources()).toBe(1);
+            });
+        });
+
+
         describe('Tarkin\'s deployed ability', function() {
             beforeEach(function () {
                 this.setupTest({
