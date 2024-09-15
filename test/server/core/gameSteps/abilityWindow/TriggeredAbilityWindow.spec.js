@@ -18,10 +18,12 @@ describe('Simultaneous triggers', function() {
                 //Don't need to click Chewbacca due to sentinel
                 expect(this.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
                 expect(this.player2).toHavePrompt('Waiting for opponent to choose a player to resolve their triggers first');
+
                 this.player1.clickPrompt('You');
                 expect(this.chewbacca.exhausted).toBe(true);
                 expect(this.player1).toBeAbleToSelectExactly([this.p1Base, this.p2Base, this.chewbacca]);
                 expect(this.chewbacca.damage).toBe(0);
+
                 this.player1.clickCard(this.p1Base);
                 expect(this.player2).toBeActivePlayer();
                 expect(this.chewbacca.damage).toBe(2);
@@ -33,10 +35,12 @@ describe('Simultaneous triggers', function() {
                 //Don't need to click Chewbacca due to sentinel
                 expect(this.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
                 expect(this.player2).toHavePrompt('Waiting for opponent to choose a player to resolve their triggers first');
+
                 this.player1.clickPrompt('Opponent');
                 expect(this.chewbacca.exhausted).toBe(false);
                 expect(this.player1).toBeAbleToSelectExactly([this.p1Base, this.p2Base, this.chewbacca]);
                 expect(this.chewbacca.damage).toBe(0);
+
                 this.player1.clickCard(this.p1Base);
                 expect(this.player2).toBeActivePlayer();
                 expect(this.chewbacca.damage).toBe(2);
