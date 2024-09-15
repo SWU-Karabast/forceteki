@@ -63,7 +63,7 @@ export class CardLastingEffectSystem extends CardTargetSystem<ICardLastingEffect
             properties.effect.some(
                 (props) =>
                     props.impl.canBeApplied(card) &&
-                    !lastingEffectRestrictions.some((condition) => condition(props.ongoingEffect))
+                    !lastingEffectRestrictions.some((condition) => condition(props.effect))
             )
         );
     }
