@@ -247,7 +247,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     private promptForResolvePlayerOrder() {
         this.game.promptWithHandlerMenu(this.game.actionPhaseActivePlayer, {
             activePromptTitle: 'Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:',
-            source: 'Choose Triggered Ability Resolution Order',
+            waitingPromptTitle: 'Waiting for opponent to choose a player to resolve their triggers first',
             choices: ['You', 'Opponent'],
             handlers: [
                 () => {
