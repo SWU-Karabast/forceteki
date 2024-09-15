@@ -844,63 +844,37 @@ this.action({
 });
 ```
 
-<!-- TODO: update this section -->
-#### **IGNORE THIS, STILL WIP:** ~~Lasting effects~~
+#### Lasting effects ("for this phase", "for this attack")
 
-Unlike constant abilities, "lasting" effects are typically applied during an action or triggered ability and expire after a specified period of time.  Lasting effects use the same properties as constant abilities, above.  Lasting effects are applied using the `cardLastingEffect` or `playerLastingEffect`, depending on what they affect.  They take a `duration:` property which is one of `untilEndOfAttack` (default), `untilEndOfPhase` or `untilEndOfRound`.
+In some cases, a triggered or constant ability will create an ongoing effect with a specific time duration. This is called a "lasting" effect. The two most common examples in SWU are:
+
+- **For this phase**: e.g., Disarm: `Give an enemy unit -4/-0 for this phase.`
+- **For this attack**: e.g., Surprise Strike: `Attack with a unit. It gets +3/+0 for this attack.`
+
+Lasting effects use the same properties as constant abilities, above. How they are created depends on which type you are using (phase-lasting effects or attack-lasting effects).
+
+##### "For this phase" effects
+
+Effects that last for the remainder of the phase are created using `AbilityHelper.immediateEffects.forThisPhaseCardEffect()`. Here is an example with Disarm:
 
 ```typescript
-// Action: During a conflict, bow this character. Choose another [crane] character – that character 
-// gets +3 [political] until the end of the conflict.
-this.action({
-    title: 'Give a character +0/+3',
-    condition: () => this.game.isDuringConflict(),
-    cost: AbilityHelper.costs.bowSelf(),
-    target: {
-        cardType: 'character',
-        cardCondition: (card, context) => card !== context.source && card.isFaction('crane'),
-        gameAction: AbilityHelper.actions.cardLastingEffect(() => ({
-            duration: 'untilEndOfConflict',
-            effect: AbilityHelper.effects.modifyPoliticalSkill(3)
-        }))
-    },
-    effect: 'give {0} +3{1} skill',
-    effectArgs: () => 'political'
-});
-
+public override setupCardAbilities() {
+    this.setEventAbility({
+        title: 'Give an enemy unit -4/-0 for the phase',
+        targetResolver: {
+            cardTypeFilter: WildcardCardType.Unit,
+            controller: RelativePlayer.Opponent,
+            immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                effect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 })
+            })
+        }
+    });
+}
 ```
 
-To apply an effect to last until the end of the current phase, use `untilEndOfPhase`:
-```typescript
-// Action: Reduce the cost of the next event you play this phase by 1.
-this.action({
-    title: 'Reduce cost of next event by 1',
-    effect: 'reduce the cost of their next event by 1',
-    gameAction: AbilityHelper.actions.playerLastingEffect({
-        duration: 'untilEndOfPhase',
-        effect: AbilityHelper.effects.reduceNextPlayedCardCost(1, card => card.type === 'event')
-    })
-});
-```
+##### "For this attack" effects
 
-To apply an effect to last until the end of the round, use `untilEndOfRound`:
-```typescript
-/// Action: Choose a holding you control – you may trigger each of that holding's triggered abilities an additional time this round (or specified period).
-this.action({
-    title: 'Add an additional ability use to a holding',
-    target: {
-        cardType: 'holding',
-        location: 'province',
-        controller: 'self',
-        gameAction: AbilityHelper.actions.cardLastingEffect({
-            duration: 'untilEndOfPhase',
-            targetLocation: 'province',
-            effect: AbilityHelper.effects.increaseLimitOnAbilities()
-        })
-    },
-    effect: 'add an additional use to each of {0}\'s abilities'
-});
-```
+
 
 <!-- TODO: update this section -->
 #### **IGNORE THIS, STILL WIP:** ~~Actions outside of play~~
