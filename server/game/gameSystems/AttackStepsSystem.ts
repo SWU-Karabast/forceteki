@@ -254,7 +254,7 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
             const effectSystem = new CardLastingEffectSystem(Object.assign({}, lastingEffectProperties, {
                 duration: Duration.UntilEndOfAttack,
                 target: target,
-                condition: (context: AbilityContext) => lastingEffectProperties.condition(attack, context)
+                condition: lastingEffectProperties.condition == null ? null : (context: AbilityContext) => lastingEffectProperties.condition(attack, context)
             }));
             effectSystem.queueGenerateEventGameSteps(effectEvents, context);
         }

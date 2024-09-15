@@ -9,6 +9,8 @@ import { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
 type StatisticTotal = number;
 
 export class Attack extends GameObject {
+    public previousAttack: Attack;
+
     public get participants(): undefined | Card[] {
         return [...[this.attacker], this.target];
     }
