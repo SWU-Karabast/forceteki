@@ -162,25 +162,6 @@ class GameFlowWrapper {
     }
 
     /**
-    *   Executes the honor bidding
-    *   @param {?number} player1amt - amount for player1 to bid
-    *   @param {?number} player2amt = amount for player2 to bid
-    */
-    bidHonor(player1amt, player2amt) {
-        this.guardCurrentPhase('draw');
-        this.player1.bidHonor(player1amt);
-        this.player2.bidHonor(player2amt);
-        if (this.game.currentPhase === 'draw') {
-            this.eachPlayerInInitiativeOrder((player) => {
-                if (player.hasPrompt('Triggered Abilities')) {
-                    player.pass();
-                }
-            });
-        }
-        this.guardCurrentPhase('conflict');
-    }
-
-    /**
      * Asserts that the game is in the expected phase
      */
     guardCurrentPhase(phase) {
