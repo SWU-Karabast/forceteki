@@ -15,8 +15,9 @@ import Contract from '../core/utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 import * as Helpers from '../core/utils/Helpers';
 
-export type IAttackLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration' | 'target' | 'condition' > & {
+export interface IAttackLastingEffectProperties {
     condition?: (attack: Attack, context: AbilityContext) => boolean;
+    effect?: any;
 }
 
 type IAttackLastingEffectPropertiesOrFactory = IAttackLastingEffectProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectProperties);

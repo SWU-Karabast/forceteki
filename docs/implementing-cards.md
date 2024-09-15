@@ -373,8 +373,7 @@ The following triggers have helper methods:
 | --- | --- |
 | When played | addWhenPlayedAbility |
 | On attack | addOnAttackAbility |
-| ~~On defeat~~ | TBD |
-<!-- TODO: update the above table when we add a when defeated card trigger example -->
+| On defeat | addWhenDefeatedAbility |
 
 #### Optionally triggered abilities
 If the triggered ability uses the word "may," then the ability is considered optional and the player may choose to pass it when it is triggered. In these cases, the triggered ability must be flagged with the "optional" property. For example, Fleet Lieutenant's ability:
@@ -844,7 +843,7 @@ this.action({
 });
 ```
 
-#### Lasting effects ("for this phase", "for this attack")
+### Lasting effects ("for this phase", "for this attack")
 
 In some cases, a triggered or constant ability will create an ongoing effect with a specific time duration. This is called a "lasting" effect. The two most common examples in SWU are:
 
@@ -853,7 +852,7 @@ In some cases, a triggered or constant ability will create an ongoing effect wit
 
 Lasting effects use the same properties as constant abilities, above. How they are created depends on which type you are using (phase-lasting effects or attack-lasting effects).
 
-##### "For this phase" effects
+#### "For this phase" effects
 
 Effects that last for the remainder of the phase are created using `AbilityHelper.immediateEffects.forThisPhaseCardEffect()`. Here is an example with Disarm:
 
@@ -872,9 +871,23 @@ public override setupCardAbilities() {
 }
 ```
 
-##### "For this attack" effects
+#### "For this attack" effects
 
+Any lasting effects applied to the attacker or the defender for the duration of the attack can be added via the `attackerLastingEffects` and `defenderLastingEffects` properties of an attack. There is also a condition property which can be used to control whether the effect is applied. See Fleet Lieutenant for an example:
 
+```typescript
+// When Played: You may attack with a unit. If it's a Rebel unit, it gets +2/0 for this attack.
+this.addWhenPlayedAbility({
+    title: 'Attack with a unit',
+    optional: true,
+    initiateAttack: {
+        attackerLastingEffects: {
+            effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
+            condition: (attack: Attack) => attack.attacker.hasSomeTrait(Trait.Rebel)
+        }
+    }
+});
+```
 
 <!-- TODO: update this section -->
 #### **IGNORE THIS, STILL WIP:** ~~Actions outside of play~~
