@@ -16,7 +16,7 @@ export default class FleetLieutenant extends NonLeaderUnitCard {
             title: 'Attack with a unit',
             optional: true,
             initiateAttack: {
-                effects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus({
+                attackerLastingEffects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus({
                     bonusCondition: (attacker: UnitCard) => attacker.hasSomeTrait(Trait.Rebel),
                     statBonus: { power: 2, hp: 0 }
                 })

@@ -15,7 +15,7 @@ export default class SurpriseStrike extends EventCard {
             title: 'Attack with a unit. It gets +3/+0 for this attack.',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.attack({
-                    effects: { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 }) }
+                    attackerLastingEffects: { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 }) }
                 })
             }
         });
