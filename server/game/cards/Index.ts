@@ -22,6 +22,7 @@ function allJsFiles(path: string): string[] {
 
 // card.name
 const cardsMap = new Map<string, any>();
+const cardClassNames = new Set<string>();
 for (const filepath of allJsFiles(__dirname)) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fileImported = require(filepath);
@@ -34,7 +35,10 @@ for (const filepath of allJsFiles(__dirname)) {
         throw Error('Importing card class without id!');
     }
     if (cardsMap.has(cardId.id)) {
-        throw Error(`Importing card class with repeated id!: ${card}`);
+        throw Error(`Importing card class with repeated id!: ${card.name}`);
+    }
+    if (cardClassNames.has(card.name)) {
+        throw Error(`Import card class with duplicate class name: ${card.name}`);
     }
 
     if (!card.implemented) {
@@ -42,6 +46,7 @@ for (const filepath of allJsFiles(__dirname)) {
     }
 
     cardsMap.set(cardId.id, card);
+    cardClassNames.add(card.name);
 }
 
 export const cards = cardsMap;

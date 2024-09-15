@@ -27,6 +27,7 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
      * Effects to trigger for the duration of the attack. Can be one or more {@link ICardLastingEffectProperties}
      * or a function generator(s) for them.
      */
+    // TODO THIS PR: rename to lastingEffects
     effects?: IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties) |
         (IAttackLastingEffectCardProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectCardProperties))[]
 }

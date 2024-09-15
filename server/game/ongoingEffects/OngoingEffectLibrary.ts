@@ -18,6 +18,7 @@ import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Attack } from '../core/attack/Attack';
 import { UnitCard } from '../core/card/CardTypes';
+import { IAttackLastingEffectCardProperties } from '../gameSystems/AttackStepsSystem';
 
 interface ConditionalAttackStatBonusProps {
     bonusCondition: (attacker: UnitCard) => boolean;
@@ -87,14 +88,12 @@ export = {
     //         unapply: (card) => card.controller.removeConflictOpportunity(type)
     //     }),
     /** For effects of the form "if unit has [X], it gains +Y/+Z for this attack" */
-    conditionalAttackStatBonus: (properties: ConditionalAttackStatBonusProps) => (context: AbilityContext, attack: Attack) => {
-        if (properties.bonusCondition(attack.attacker)) {
-            return {
-                target: attack.attacker,
-                effect: OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, properties.statBonus),
-            };
-        }
-        return null;
+    conditionalAttackStatBonus: (properties: ConditionalAttackStatBonusProps) => (context: AbilityContext, attack: Attack): IAttackLastingEffectCardProperties => {
+        return {
+            target: attack.attacker,
+            effect: OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, properties.statBonus),
+            condition: (context) => properties.bonusCondition(context.source)
+        };
     },
     // contributeToConflict: (player) => OngoingEffectBuilder.card.flexible(EffectName.ContributeToConflict, player),
     // canContributeWhileBowed: (properties) => OngoingEffectBuilder.card.static(EffectName.CanContributeWhileBowed, properties),
