@@ -1,4 +1,5 @@
 import AbilityHelper from '../../AbilityHelper';
+import { Attack } from '../../core/attack/Attack';
 import { UnitCard } from '../../core/card/CardTypes';
 import { EventCard } from '../../core/card/EventCard';
 import { Trait } from '../../core/Constants';
@@ -26,10 +27,10 @@ export default class Headhunting extends EventCard {
         return AbilityHelper.immediateEffects.selectCard({
             innerSystem: AbilityHelper.immediateEffects.attack({
                 targetCondition: (card) => !card.isBase(),
-                attackerLastingEffects: AbilityHelper.ongoingEffects.conditionalAttackStatBonus({
-                    bonusCondition: (attacker: UnitCard) => attacker.hasSomeTrait(Trait.BountyHunter),
-                    statBonus: { power: 2, hp: 0 }
-                }),
+                attackerLastingEffects: {
+                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
+                    condition: (attack: Attack) => attack.attacker.hasSomeTrait(Trait.BountyHunter)
+                },
                 optional: true
             })
         });

@@ -87,13 +87,6 @@ export = {
     //         apply: (card) => card.controller.addConflictOpportunity(type),
     //         unapply: (card) => card.controller.removeConflictOpportunity(type)
     //     }),
-    /** For effects of the form "if unit has [X], it gains +Y/+Z for this attack" */
-    conditionalAttackStatBonus: (properties: ConditionalAttackStatBonusProps) => (context: AbilityContext, attack: Attack): IAttackLastingEffectProperties => {
-        return {
-            effect: OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, properties.statBonus),
-            condition: (context) => properties.bonusCondition(context.source)
-        };
-    },
     // contributeToConflict: (player) => OngoingEffectBuilder.card.flexible(EffectName.ContributeToConflict, player),
     // canContributeWhileBowed: (properties) => OngoingEffectBuilder.card.static(EffectName.CanContributeWhileBowed, properties),
     // copyCard,

@@ -15,7 +15,9 @@ import Contract from '../core/utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 import * as Helpers from '../core/utils/Helpers';
 
-export type IAttackLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration' | 'target' >;
+export type IAttackLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration' | 'target' | 'condition' > & {
+    condition?: (attack: Attack, context: AbilityContext) => boolean;
+}
 
 type IAttackLastingEffectPropertiesOrFactory = IAttackLastingEffectProperties | ((context: AbilityContext, attack: Attack) => IAttackLastingEffectProperties);
 
@@ -249,9 +251,10 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
         for (const lastingEffect of lastingEffects) {
             const lastingEffectProperties = typeof lastingEffect === 'function' ? lastingEffect(context, attack) : lastingEffect;
 
-            const effectSystem = new CardLastingEffectSystem(Object.assign(lastingEffectProperties, {
+            const effectSystem = new CardLastingEffectSystem(Object.assign({}, lastingEffectProperties, {
                 duration: Duration.UntilEndOfAttack,
-                target: target
+                target: target,
+                condition: (context: AbilityContext) => lastingEffectProperties.condition(attack, context)
             }));
             effectSystem.queueGenerateEventGameSteps(effectEvents, context);
         }
