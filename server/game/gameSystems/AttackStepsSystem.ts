@@ -229,7 +229,7 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
         const effectEvents: GameEvent[] = [];
         const effectsRegistered =
             this.queueCreateLastingEffectsGameSteps(Helpers.asArray(properties.attackerLastingEffects), attack.attacker, context, attack, effectEvents) ||
-            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(properties.defenderLastingEffects), attack.attacker, context, attack, effectEvents);
+            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(properties.defenderLastingEffects), attack.target, context, attack, effectEvents);
 
         if (effectsRegistered) {
             context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for attack effects');
