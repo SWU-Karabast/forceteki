@@ -39,6 +39,25 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
 
     protected abstract isTargetTypeValid(target: any): boolean;
 
+    /**
+     * Helper method for adding an additional property onto the `propertiesOrPropertyFactory` signature accepted
+     * by the {@link GameSystem} constructor.
+     *
+     * This is useful in cases where a derived GameSystem type wants to hide one or more ctor properties inherited from
+     * the parent class so it can force them to be a specific value, for situations like the example below.
+     * See GiveShieldSystem for an example of how to use this method.
+     *
+     * @example
+     * // more flexible version has 'tokenType' as a property
+     * const giveTokenSystem = new GiveTokenUpgradeSystem({ tokenType: TokenType.Shield, amount: 2, ...other props... });
+     *
+     * // more specific version used in most cases
+     * const giveShieldSystem = new GiveShieldSystem({ amount: 2 ...other props... });
+     *
+     * @param propertiesOrPropertyFactory The constructor argument to be appended to
+     * @param added Object with properties to append
+     * @returns `propertiesOrPropertyFactory` with the values of `added` appended to it
+     */
     public static appendToPropertiesOrPropertyFactory<T, TProp extends Extract<keyof T, string>>(propertiesOrPropertyFactory: Omit<T, TProp> | ((context?) => Omit<T, TProp>), added: Pick<T, TProp>) {
         let result: T | ((context?) => T) = null;
         if (typeof propertiesOrPropertyFactory === 'function') {
