@@ -39,6 +39,17 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
 
     protected abstract isTargetTypeValid(target: any): boolean;
 
+    public static appendToPropertiesOrPropertyFactory<T, TProp extends Extract<keyof T, string>>(propertiesOrPropertyFactory: Omit<T, TProp> | ((context?) => Omit<T, TProp>), added: Pick<T, TProp>) {
+        let result: T | ((context?) => T) = null;
+        if (typeof propertiesOrPropertyFactory === 'function') {
+            result = ((context?) => Object.assign(propertiesOrPropertyFactory(context), added)) as (context?) => T;
+        } else {
+            result = Object.assign(propertiesOrPropertyFactory, added) as T;
+        }
+
+        return result;
+    }
+
     /**
      * Constructs a {@link GameSystem} with a parameter that is either:
      * 1. Preset properties in a {@link TProperties}, which will be set to {@link GameSystem.properties}.

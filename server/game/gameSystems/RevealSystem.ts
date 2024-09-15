@@ -2,6 +2,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { BaseCard } from '../core/card/BaseCard';
 import { EventName, Location } from '../core/Constants';
+import { GameSystem } from '../core/gameSystem/GameSystem';
 import { IViewCardProperties, ViewCardMode, ViewCardSystem } from './ViewCardSystem';
 
 export type IRevealProperties = Omit<IViewCardProperties, 'viewType'>;
@@ -20,15 +21,8 @@ export class RevealSystem extends ViewCardSystem {
 
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
     public constructor(propertiesOrPropertyFactory: IRevealProperties | ((context?: AbilityContext) => IRevealProperties)) {
-        let propertyWithViewType: IViewCardProperties | ((context?: AbilityContext) => IViewCardProperties);
-
-        if (typeof propertiesOrPropertyFactory === 'function') {
-            propertyWithViewType = (context?: AbilityContext) => Object.assign(propertiesOrPropertyFactory(context), { viewType: ViewCardMode.Reveal });
-        } else {
-            propertyWithViewType = Object.assign(propertiesOrPropertyFactory, { viewType: ViewCardMode.Reveal });
-        }
-
-        super(propertyWithViewType);
+        const propsWithViewType = GameSystem.appendToPropertiesOrPropertyFactory<IViewCardProperties, 'viewType'>(propertiesOrPropertyFactory, { viewType: ViewCardMode.Reveal });
+        super(propsWithViewType);
     }
 
     public override canAffect(card: BaseCard, context: AbilityContext): boolean {

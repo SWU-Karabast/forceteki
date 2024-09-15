@@ -1,6 +1,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import { Duration, EffectName, EventName, Location, WildcardLocation } from '../core/Constants';
+import { GameSystem } from '../core/gameSystem/GameSystem';
 import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLastingEffectSystem';
 
 export type ICardPhaseLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration'>;
@@ -21,14 +22,7 @@ export class CardPhaseLastingEffectSystem extends CardLastingEffectSystem {
 
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
     public constructor(propertiesOrPropertyFactory: ICardPhaseLastingEffectProperties | ((context?: AbilityContext) => ICardPhaseLastingEffectProperties)) {
-        let propertyWithDurationType: ICardLastingEffectProperties | ((context?: AbilityContext) => ICardLastingEffectProperties);
-
-        if (typeof propertiesOrPropertyFactory === 'function') {
-            propertyWithDurationType = (context?: AbilityContext) => Object.assign(propertiesOrPropertyFactory(context), { duration: Duration.UntilEndOfPhase });
-        } else {
-            propertyWithDurationType = Object.assign(propertiesOrPropertyFactory, { duration: Duration.UntilEndOfPhase });
-        }
-
+        const propertyWithDurationType = GameSystem.appendToPropertiesOrPropertyFactory<ICardLastingEffectProperties, 'duration'>(propertiesOrPropertyFactory, { duration: Duration.UntilEndOfPhase });
         super(propertyWithDurationType);
     }
 }
