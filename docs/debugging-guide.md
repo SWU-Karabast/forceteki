@@ -50,19 +50,7 @@ Here are steps to get started with debugging the execution of a GameSystem.
 
 5. If the breakpoint in `eventHandler()` is never reached, then the card(s) of interest are almost certainly being filtered out during the `canAffect()` calls. If the breakpoint is reached, inspect the `event` parameter to ensure it matches expectations. In particular, double-check that the `event.card` property matches the expected card. From there, step though the resolution of the GameSystem to determine if the effect is resolving correctly.
 
-## General debugging tools / methods
-
-The following are useful tools and methods for debugging, either built-in to VSCode or using helpers that we've established in the repo.
-
-### Breakpoints conditioned on other breakpoints
-
-Visual Studio code allows you to set up breakpoints with triggering conditions so that they are only hit when a certain condition is met. The most useful one for working in this repo is causing breakpoints to not trigger until another breakpoint has been hit. This is useful when you are debugging a GameSystem or engine component that will be triggered many times in a way that is unrelated to your test.
-
-Typically you will create a breakpoint in your unit test case at the line of interest, and then create one or more breakpoint(s) inside the main game logic. If you set the game logic breakpoints to not trigger until after the breakpoint in the tests, you won't have to deal with potentially hundreds of unrelated breakpoint triggers before the test even starts.
-
-For details on how to do this in VSCode (as well as other general debugging tricks), see the docs at [Debugging in Visual Studio Code](https://code.visualstudio.com/docs/editor/debugging#_advanced-breakpoint-topics).
-
-### Debugging the game rules stack
+## Debugging the game rules stack
 
 The SWU rules are executed in the game logic as a set of nested windows, each with its own queue / pipeline of game steps to iterate through. This can be difficult to debug, but we have added some features that make it more convenient. 
 
@@ -71,3 +59,41 @@ The instructions in this section will show you how to step through the overall g
 When you hit the breakpoint above, create a variable watch for `this.pipeline` and expand it. Your debug panel should now look like below:
 
 ![](image-1.png)
+
+Quick summary of the important information in the image above:
+
+**A. Steps queued in current window:** these are the next steps to be executed in the current window. Continuing to debug will work through these steps or move into the current step if the current step represents a sub-window. Other steps may also add new steps onto the stack, causing it to grow.
+
+**B. Current window name:** window names will appear in the stack as `'<window description>'.continue`. The one highest up in the stack will be the window owning the pipeline shown in `this.pipeline`.
+
+**C. Parent window names:** names for the parent windows of this one, in order up the stack.
+
+**D. Unit test entrypoint:** call site in the unit test.
+
+Once you reach the above point you can start hitting "continue debugging" and hitting the breakpoint repeatedly to watch execution of the game steps. When you hit a step that you want to dive deeper in, use the "step into" option to dig into the execution of that step.
+
+### Stepping through the pipeline tips and tricks
+Each window is contained as a game step inside of its parent window, and is called with its own `continue()` method. So when you hit the breakpoint you may see the entire pipeline contents change. This is because you're now in a new window with a different set of steps queued. 
+
+For example, in the sample image above, the next step queued is an ability resolver. So pressing the "continue" debug button will move to inside the ability resolver window and we will then see its pipeline in `this.pipeline`. You can confirm that this has happened by checking that there is a new window in the call stack.
+
+In some other cases, a game step will add additional game steps into the current window. These will then move to the front of the stack, causing the stack to grow.
+
+### Prompts and on-clicks in the pipeline
+When user interaction is needed (e.g. for selecting a card for an ability target, or click a prompt), the pipeline will pause and will walk back up the stack of `continue()` calls and release control back to the test runner. The next time a `Player.onClick()` call is made during the test, the following steps will happen:
+
+1. The game engine will walk down the stack again, calling the `onClick()` method for each window until it reaches the UI prompt. The prompt will update its state and then release control again, walking back up the stack to the test runner.
+
+2. The runner will immediately call `Game.continue()`, which will resume execution of the game rules stack. If the prompt is fully resolved, then the pipeline will resume execution. Otherwise, it will pause again and wait for further user interaction.
+
+## General debugging tools / methods
+
+The following are useful tools and methods for debugging, either built-in to VSCode or using helpers that we've established in the repo. 
+
+### Breakpoints conditioned on other breakpoints
+
+Visual Studio code allows you to set up breakpoints with triggering conditions so that they are only hit when a certain condition is met. The most useful one for working in this repo is causing breakpoints to not trigger until another breakpoint has been hit. This is useful when you are debugging a GameSystem or engine component that will be triggered many times in a way that is unrelated to your test.
+
+Typically you will create a breakpoint in your unit test case at the line of interest, and then create one or more breakpoint(s) inside the main game logic. If you set the game logic breakpoints to not trigger until after the breakpoint in the tests, you won't have to deal with potentially hundreds of unrelated breakpoint triggers before the test even starts.
+
+For details on how to do this in VSCode (as well as other general debugging tricks), see the docs at [Debugging in Visual Studio Code](https://code.visualstudio.com/docs/editor/debugging#_advanced-breakpoint-topics).
