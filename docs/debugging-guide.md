@@ -24,4 +24,13 @@ If a triggered ability is not activating in response to the expected trigger, st
 
 1. Set a up a breakpoint in your test and a **TODO THIS PR: insert link** conditioned breakpoint at this code line in TriggeredAbility.ts (note: the number may have changed): [`for (const player of this.game.getPlayers()) {`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L78)
 
-2. 
+2. When the breakpoint is hit, look at the call stack to confirm that the ability being triggered is the ability you are attempting to debug (see image below). If not, use the continue button to keep hitting the breakpoint until the ability you want is triggered. If the ability is never triggered, then something is wrong with the trigger itself - double-check that you are using the right event name for the trigger and use the **TODO THIS PR: link** pipeline debugging steps to investigate whether the trigger event is happening as intended.
+
+![](image.png)
+
+3. If you see that the relevant card ability is triggered, you can inspect the `event` parameter's properties to confirm that the emitted event matches what is expected.
+
+4. Code execution must reach the line [`window.addToWindow(context);`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L88) for the ability to be resolved. Step through the code and determine whether any of the checks that happen before that line are failing.
+
+5. If [`window.addToWindow(context);`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L88) is reached, then the trigger is working properly and the triggered ability is being queued for resolution. Move on **TODO THIS PR: links** debugging the game system(s) and the pipeline to determine what is causing resolution of the ability to fail.
+
