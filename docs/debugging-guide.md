@@ -8,10 +8,10 @@ If you're unfamiliar with debugging in VSCode, start by reading how to trigger b
 
 ## Situational debugging guides
 
-### Debugging action or action ability not triggering / resolving on click
+### Action or action ability not triggering / resolving on click
 If a game action (play a card, attack, smuggle) or an action ability (action printed on a card) is not available when the card is clicked, start with the following steps:
 
-1. Set a up a breakpoint in your test and a **TODO THIS PR: insert link** conditioned breakpoint at this code line in ActionWindow.js (note: the number may have changed): [`if (legalActions.length === 0) {`](../server/game/core/gameSteps/ActionWindow.js#L39)
+1. Set a up a breakpoint in your test and a **TODO THIS PR: insert link** conditioned breakpoint at this code line in ActionWindow.js (note: the number may have changed): [`if (legalActions.length === 0) {`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/gameSteps/ActionWindow.js#L38)
 
 2. Inspect the value of the variable `actions`. It should list all available actions for the card (even if they are not legal). If your action doesn't appear in the list, then start debugging the code in ActionWindow.js that populates that variable.
 
@@ -19,3 +19,9 @@ If a game action (play a card, attack, smuggle) or an action ability (action pri
 
 4. If your action appears in both `actions` and `legalActions`, then it is being triggered correctly. If `legalActions` has only one item then it will be automatically resolved without prompting the user. If you are sure that the ability is not correctly resolving, then you need to move on to debugging the individual GameSystems involved (see **TODO THIS PR: insert link**).
 
+### Triggered ability not triggering / resolving on event
+If a triggered ability is not activating in response to the expected trigger, start with the following steps:
+
+1. Set a up a breakpoint in your test and a **TODO THIS PR: insert link** conditioned breakpoint at this code line in TriggeredAbility.ts (note: the number may have changed): [`for (const player of this.game.getPlayers()) {`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L78)
+
+2. 
