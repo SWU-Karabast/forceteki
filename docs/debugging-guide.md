@@ -34,3 +34,19 @@ If a triggered ability is not activating in response to the expected trigger, st
 
 5. If [`window.addToWindow(context);`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L88) is reached, then the trigger is working properly and the triggered ability is being queued for resolution. Move on **TODO THIS PR: links** debugging the game system(s) and the pipeline to determine what is causing resolution of the ability to fail.
 
+### GameSystem not executing correctly
+If an ability is triggering correctly but not resolving, it is most likely an issue with the execution of one or more of the relevant GameSystem(s). These are created using `AbilityHelper.immediateEffects.*` and usually set in the ability using the `immediateEffects` property.
+
+Here are steps to get started with debugging the execution of a GameSystem.
+
+1. Identify the GameSystem class in question, if not already known. If using a method from `AbilityHelper.immediateEffects`, you can find the corresponding entry in [GameSystemLibrary.ts](../server/game/gameSystems/GameSystemLibrary.ts) to identify the class used. E.g., for `AbilityHelper.immediateEffects.heal()` the created object is of class `HealSystem`.
+
+2. There are two places to put breakpoints in the system class for watching the class's behavior. The first is the `canAffect()` method. This is called many times with different candidate cards (as the `card` parameter) to determine if the system can legally affect that card. Place a breakpoint in the top of the method, conditioned on a breakpoint in your test case.
+
+3. The second point of interest is the `eventHandler()` method, which executes the logic of the GameSystem to change game state. Place a breakpoint at the top of this method, conditioned on the breakpoint in your test case. If the `eventHandler()` method for the system is empty, this GameSystem is one of a handful of special cases. Reach out to the core dev team for support in debugging.
+
+4. Begin debugging  When the breakpoint for `canAffect()` is hit, add a variable watch in the debugger for `card.name` so you can see which card is currently being evaluated. Use the continue option to move forward until the card(s) you are interested in is hit. At that point, step through the evaluation of `canAffect()` to determine if it returns true (card can be legally affected by the system) or false. 
+- **IMPORTANT**: `canAffect()` will likely be called multiple times on the same card. It must return true _every time_ in order for resolution to occur.
+
+5. If the breakpoint in `eventHandler()` is never reached, then the card(s) of interest are almost certainly being filtered out during the `canAffect()` calls. If the breakpoint is reached, inspect the `event` parameter to ensure it matches expectations. In particular, double-check that the `event.card` property matches the expected card. From there, step though the resolution of the GameSystem to determine if the effect is resolving correctly.
+
