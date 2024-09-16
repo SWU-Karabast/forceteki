@@ -50,3 +50,18 @@ Here are steps to get started with debugging the execution of a GameSystem.
 
 5. If the breakpoint in `eventHandler()` is never reached, then the card(s) of interest are almost certainly being filtered out during the `canAffect()` calls. If the breakpoint is reached, inspect the `event` parameter to ensure it matches expectations. In particular, double-check that the `event.card` property matches the expected card. From there, step though the resolution of the GameSystem to determine if the effect is resolving correctly.
 
+## General debugging tools / methods
+
+The following are useful tools and methods for debugging, either built-in to VSCode or using helpers that we've established in the repo.
+
+### Breakpoints conditioned on other breakpoints
+
+Visual Studio code allows you to set up breakpoints with triggering conditions so that they are only hit when a certain condition is met. The most useful one for working in this repo is causing breakpoints to not trigger until another breakpoint has been hit. This is useful when you are debugging a GameSystem or engine component that will be triggered many times in a way that is unrelated to your test.
+
+Typically you will create a breakpoint in your unit test case at the line of interest, and then create one or more breakpoint(s) inside the main game logic. If you set the game logic breakpoints to not trigger until after the breakpoint in the tests, you won't have to deal with potentially hundreds of unrelated breakpoint triggers before the test even starts.
+
+For details on how to do this in VSCode (as well as other general debugging tricks), see the docs at [Debugging in Visual Studio Code](https://code.visualstudio.com/docs/editor/debugging#_advanced-breakpoint-topics).
+
+### Debugging the game rules stack
+
+The SWU rules are executed in the game logic as a set of nested windows, each with its own queue / pipeline of game steps to iterate through. This can be difficult to debug, but we have added some features that make it more convenient. Use the following steps to be able to step through the overall game pipeline and watch how the rules are being evaluated step-by-step.
