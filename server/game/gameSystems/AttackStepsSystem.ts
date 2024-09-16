@@ -35,6 +35,7 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
      */
     attackerLastingEffects?: IAttackLastingEffectPropertiesOrFactory | IAttackLastingEffectPropertiesOrFactory[];
 
+    // TODO: allow declaring multiple attackers (new Maul)
     /**
      * Effects to apply to the attacker for the duration of the attack. Can be one or more {@link IAttackLastingEffectProperties}
      * or a function generator(s) for them.
