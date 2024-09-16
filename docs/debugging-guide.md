@@ -11,7 +11,7 @@ If you're unfamiliar with debugging in VSCode, start by reading how to trigger b
 ### Action or action ability not triggering / resolving on click
 If a game action (play a card, attack, smuggle) or an action ability (action printed on a card) is not available when the card is clicked, start with the following steps:
 
-1. Set a up a breakpoint in your test and a **TODO THIS PR: insert link** conditioned breakpoint at this code line in ActionWindow.js (note: the number may have changed): [`if (legalActions.length === 0) {`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/gameSteps/ActionWindow.js#L38)
+1. Set a up a breakpoint in your test and a **TODO THIS PR: insert link** conditioned breakpoint at this code line in ActionWindow.js: [`if (legalActions.length === 0) {`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/gameSteps/ActionWindow.js#L38)
 
 2. Inspect the value of the variable `actions`. It should list all available actions for the card (even if they are not legal). If your action doesn't appear in the list, then start debugging the code in ActionWindow.js that populates that variable.
 
@@ -22,7 +22,7 @@ If a game action (play a card, attack, smuggle) or an action ability (action pri
 ### Triggered ability not triggering / resolving on event
 If a triggered ability is not activating in response to the expected trigger, start with the following steps:
 
-1. Set a up a breakpoint in your test and a **TODO THIS PR: insert link** conditioned breakpoint at this code line in TriggeredAbility.ts (note: the number may have changed): [`for (const player of this.game.getPlayers()) {`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L78)
+1. Set a up a breakpoint in your test and a **TODO THIS PR: insert link** conditioned breakpoint at this code line in TriggeredAbility.ts: [`for (const player of this.game.getPlayers()) {`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L78)
 
 2. When the breakpoint is hit, look at the call stack to confirm that the ability being triggered is the ability you are attempting to debug (see image below). If not, use the continue button to keep hitting the breakpoint until the ability you want is triggered. If the ability is never triggered, then something is wrong with the trigger itself - double-check that you are using the right event name for the trigger and use the **TODO THIS PR: link** pipeline debugging steps to investigate whether the trigger event is happening as intended.
 
@@ -64,4 +64,10 @@ For details on how to do this in VSCode (as well as other general debugging tric
 
 ### Debugging the game rules stack
 
-The SWU rules are executed in the game logic as a set of nested windows, each with its own queue / pipeline of game steps to iterate through. This can be difficult to debug, but we have added some features that make it more convenient. Use the following steps to be able to step through the overall game pipeline and watch how the rules are being evaluated step-by-step.
+The SWU rules are executed in the game logic as a set of nested windows, each with its own queue / pipeline of game steps to iterate through. This can be difficult to debug, but we have added some features that make it more convenient. 
+
+The instructions in this section will show you how to step through the overall game pipeline and watch how the rules are being evaluated step-by-step. To start, ceate a breakpoint at this code line in GamePipeline.ts, conditioned on your unit test breakpoint: [`if (currentStep.continue() === false) {`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/GamePipeline.ts#L35)
+
+When you hit the breakpoint above, create a variable watch for `this.pipeline` and expand it. Your debug panel should now look like below:
+
+![](image-1.png)
