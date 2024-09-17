@@ -151,6 +151,18 @@ class PlayerOrCardAbility {
         return '';
     }
 
+    hasAnyLegalEffects(context) {
+        if (this.gameSystem.length > 0 && this.checkGameActionsForPotential(context)) {
+            return true;
+        }
+
+        if (this.targetResolvers.length > 0 && this.canResolveSomeTarget(context)) {
+            return true;
+        }
+
+        return false;
+    }
+
     checkGameActionsForPotential(context) {
         return this.gameSystem.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }

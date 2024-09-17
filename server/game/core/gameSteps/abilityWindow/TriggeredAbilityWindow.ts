@@ -68,18 +68,11 @@ export class TriggeredAbilityWindow extends BaseStep {
         this.game.currentAbilityWindow = this;
 
         if (!this.choosePlayerResolutionOrderComplete) {
+            this.cleanUpTriggers();
+
             // if no abilities trigged, continue with game flow
             if (this.unresolved.size === 0) {
                 return true;
-            }
-
-            // remove any triggered abilities from cancelled events
-            // this is necessary because we trigger abilities before any events in the window are executed, so if any were cancelled at execution time we need to clean up
-            this.unresolved = new Map([...this.unresolved].map(([player, triggeredAbilityList]) => [player, triggeredAbilityList.filter((context) => !context.event.cancelled)]));
-
-            // see if consolidating shields gets us down to one trigger
-            if (this.unresolved.size === 1 && this.triggerAbilityType === AbilityType.ReplacementEffect) {
-                this.consolidateShieldTriggers();
             }
 
             // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
@@ -258,6 +251,28 @@ export class TriggeredAbilityWindow extends BaseStep {
                 }
             ]
         });
+    }
+
+    private cleanUpTriggers() {
+        if (this.unresolved.size === 0) {
+            return;
+        }
+
+        // remove any triggered abilities from cancelled events
+        // this is necessary because we trigger abilities before any events in the window are executed, so if any were cancelled at execution time we need to clean up
+        this.unresolved = new Map([...this.unresolved].map(([player, triggeredAbilityList]) => [player, triggeredAbilityList.filter((context) => !context.event.cancelled)]));
+        const anyWithLegalTargets = [...this.unresolved].map(([player, triggeredAbilityList]) => triggeredAbilityList).flat()
+            .some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext));
+
+        if (!anyWithLegalTargets) {
+            this.unresolved = new Map();
+            return;
+        }
+
+        // see if consolidating shields gets us down to one trigger
+        if (this.unresolved.size === 1 && this.triggerAbilityType === AbilityType.ReplacementEffect) {
+            this.consolidateShieldTriggers();
+        }
     }
 
     /**

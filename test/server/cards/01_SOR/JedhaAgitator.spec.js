@@ -18,7 +18,6 @@ describe('Jedha Agitator', function() {
                 this.player1.clickCard(this.jedhaAgitator);
                 this.player1.clickCard(this.p2Base);
                 expect(this.jedhaAgitator.exhausted).toBe(true);
-                expect(this.player1).toHavePrompt('bleh');
 
                 expect(this.player2).toBeActivePlayer();
             });
