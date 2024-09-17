@@ -20,9 +20,6 @@ class ThenEventWindow extends EventWindow {
         for (let event of this.events) {
             this.previousEventWindow.addEvent(event);
         }
-        for (const triggeredAbility of this.triggeredAbilityWindow.triggeredAbilities) {
-            this.previousEventWindow.triggeredAbilityWindow.addToWindow(triggeredAbility);
-        }
 
         super.resetCurrentEventWindow();
     }

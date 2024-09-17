@@ -34,6 +34,7 @@ const { EffectName, EventName, Location, TokenName } = require('./Constants.js')
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
+const { GlobalTriggeredAbilityWindow } = require('./gameSteps/abilityWindow/GlobalTriggeredAbilityWindow.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -55,6 +56,7 @@ class Game extends EventEmitter {
         this.savedGameId = details.savedGameId;
         this.gameType = details.gameType;
         this.currentAbilityWindow = null;
+        this.globalTriggeredAbilityWindow = new GlobalTriggeredAbilityWindow(this);
         this.currentActionWindow = null;
         this.currentEventWindow = null;
         this.currentAttack = null;

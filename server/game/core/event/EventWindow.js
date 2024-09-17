@@ -34,7 +34,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),    // TODO EFFECTS: uncomment this (and other places the method is used, + missing ones from l5r)
             new SimpleStep(this.game, () => this.checkThenAbilitySteps(), 'checkThenAbilitySteps'),
-            new SimpleStep(this.game, () => this.openTriggeredAbilityWindow(), 'openTriggeredAbilityWindow'),
+            new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
         ]);
     }
@@ -96,7 +96,7 @@ class EventWindow extends BaseStepWithPipeline {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggerEventsForWindow();
+        this.game.globalTriggeredAbilityWindow.triggerOnEvents(this.events);
 
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
@@ -109,7 +109,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO: make it so we don't need to trigger twice
         // trigger again here to catch any events for cards that entered play during event resolution
-        this.triggerEventsForWindow();
+        this.game.globalTriggeredAbilityWindow.triggerOnEvents(this.events);
     }
 
     triggerEventsForWindow() {
@@ -141,6 +141,16 @@ class EventWindow extends BaseStepWithPipeline {
         }
 
         this.queueStep(this.triggeredAbilityWindow);
+    }
+
+    resolveTriggersIfNecessary() {
+        //TODO: Make sure this list of all the times triggers should resolve is complete.
+        if (this.events.some((event) =>
+            event.name.includes('onAttackDeclared') ||
+            event.name.includes('onAbilityResolverInitiated') ||
+            event.name.includes('onPhaseStarted'))) {
+            this.game.globalTriggeredAbilityWindow.continue();
+        }
     }
 
     resetCurrentEventWindow() {
