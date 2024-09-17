@@ -26,7 +26,7 @@ If a triggered ability is not activating in response to the expected trigger, st
 
 2. When the breakpoint is hit, look at the call stack to confirm that the ability being triggered is the ability you are attempting to debug (see image below). If not, use the continue button to keep hitting the breakpoint until the ability you want is triggered. If the ability is never triggered, then something is wrong with the trigger itself - double-check that you are using the right event name for the trigger and use the [game stack debugging steps](#debugging-the-game-rules-stack) to investigate whether the trigger event is happening as intended.
 
-![](image.png)
+![](./images/image-0.png)
 
 3. If you see that the relevant card ability is triggered, you can inspect the `event` parameter's properties to confirm that the emitted event matches what is expected.
 
@@ -58,7 +58,7 @@ The instructions in this section will show you how to step through the overall g
 
 When you hit the breakpoint above, create a variable watch for `this.pipeline` and expand it. Your debug panel should now look like below:
 
-![](image-1.png)
+![](./images/image-1.png)
 
 Quick summary of the important information in the image above:
 

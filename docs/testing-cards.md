@@ -11,6 +11,8 @@ The tests do not need to be exhaustive but they should cover at least the basic 
 
 That said, we the repo maintainers are committed to ensuring that writing tests for new cards is as quick and painless a process as possible so that the burden of this ask is not high. Please reach out to us with feedback if you feel that writing tests could be improved or is becoming an obstacle to your ability to contribute to the repo.
 
+See the [Test Cheat Sheet](./test-cheat-sheet.md) for a reference on various helper utilities used in the test code.
+
 <!-- TODO: fill out this guide -->
 **This guide is currently mostly TBD**
 

@@ -1,7 +1,7 @@
 const { detectBinary } = require('../../build/Util.js');
 const { GameMode } = require('../../build/GameMode.js');
 
-const { checkNullCard, formatPrompt } = require('./Util.js');
+const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual } = require('./Util.js');
 
 class PlayerInteractionWrapper {
     constructor(game, player, testContext) {
@@ -508,61 +508,21 @@ class PlayerInteractionWrapper {
 
         let beforeClick = null;
         if (expectChange) {
-            beforeClick = this.getPlayerPromptState();
+            beforeClick = getPlayerPromptState(this.player);
         }
 
         this.game.cardClicked(this.player.name, card.uuid);
         this.game.continue();
 
         if (expectChange) {
-            const afterClick = this.getPlayerPromptState();
-            if (this.promptStatesEqual(beforeClick, afterClick)) {
+            const afterClick = getPlayerPromptState(this.player);
+            if (promptStatesEqual(beforeClick, afterClick)) {
                 throw new Error(`Expected player prompt state to change after clicking ${card.internalName} but it did not. Current prompt:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`);
             }
         }
 
         // this.checkUnserializableGameState();
         return card;
-    }
-
-    getPlayerPromptState() {
-        return {
-            selectableCards: this.copySelectionArray(this.player.promptState.selectableCards),
-            selectedCards: this.copySelectionArray(this.player.promptState.selectedCards),
-            menuTitle: this.player.currentPrompt().menuTitle,
-            promptTitle: this.player.currentPrompt().promptTitle
-        };
-    }
-
-    copySelectionArray(ara) {
-        return ara == null ? [] : [...ara];
-    }
-
-    promptStatesEqual(promptState1, promptState2) {
-        if (
-            promptState1.menuTitle !== promptState2.menuTitle ||
-            promptState1.promptTitle !== promptState2.promptTitle ||
-            promptState1.selectableCards.length !== promptState2.selectableCards.length ||
-            promptState1.selectedCards.length !== promptState2.selectedCards.length
-        ) {
-            return false;
-        }
-
-        return this.selectionArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
-            this.selectionArraysEqual(promptState1.selectableCards, promptState2.selectableCards);
-    }
-
-    selectionArraysEqual(ara1, ara2) {
-        ara1.sort();
-        ara2.sort();
-
-        for (let i = 0; i < ara1.length; i++) {
-            if (ara1[i] !== ara2[i]) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     clickMenu(card, menuText) {
