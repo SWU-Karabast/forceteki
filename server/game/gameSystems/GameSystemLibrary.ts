@@ -40,6 +40,7 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 // import { MoveTokenAction, MoveTokenProperties } from './MoveTokenAction';
 // import { MultipleContextActionProperties, MultipleContextGameAction } from './MultipleContextGameAction';
 // import { MultipleGameAction } from './MultipleGameAction';
+import { NoActionSystem, INoActionSystemProperties } from './NoActionSystem';
 // import { OpponentPutIntoPlayAction, OpponentPutIntoPlayProperties } from './OpponentPutIntoPlayAction';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
 // import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
@@ -265,8 +266,8 @@ export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCard
 export function handler(propertyFactory: PropsFactory<IExecuteHandlerSystemProperties>): GameSystem {
     return new ExecuteHandlerSystem(propertyFactory);
 }
-export function noAction(): GameSystem {
-    return new ExecuteHandlerSystem({});
+export function noAction(propertyFactory: PropsFactory<INoActionSystemProperties> = {}): GameSystem {
+    return new NoActionSystem(propertyFactory);
 }
 export function replacementEffect(propertyFactory: PropsFactory<IReplacementEffectSystemProperties>): GameSystem {
     return new ReplacementEffectSystem(propertyFactory);

@@ -57,7 +57,6 @@ class HandlerMenuPrompt extends UiPrompt {
                     cardQuantities[card.id] = 1;
                 }
             });
-            // TODO: write our own uniq function so we can remove underscore and convert to TS
             let cards = this.getUniqueCardsById(this.properties.cards);
             buttons = cards.map((card) => {
                 let text = card.name;

@@ -175,14 +175,17 @@ export class TriggeredAbilityWindow extends BaseStep {
 
     private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
-        const choices = abilitiesToResolve.map((context, index) => {
-            return { text: (context.ability as TriggeredAbility).title, method: 'resolveAbility', arg: context };
-        });
+
+        // TODO: need to optionally show additional details in the ability options for more complex situations, e.g. same ability triggered multiple times in the same window.
+        // (see forcedtriggeredabilitywindow.js in the L5R code for reference)
+        const choices = abilitiesToResolve.map((context) => (context.ability as TriggeredAbility).title);
+        const handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
             activePromptTitle: 'Choose an ability to resolve:',
             source: 'Choose Triggered Ability Resolution Order',
-            choices: choices
+            choices: choices,
+            handlers: handlers
         });
 
         this.game.promptForSelect(this.currentlyResolvingPlayer, Object.assign(this.getPromptForSelectProperties(), {
@@ -194,7 +197,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     }
 
     protected getPromptForSelectProperties() {
-        return Object.assign({ location: WildcardLocation.Any }, this.getPromptProperties());
+        return Object.assign({ locationFilter: WildcardLocation.Any }, this.getPromptProperties());
     }
 
     private getPromptProperties() {
@@ -231,11 +234,6 @@ export class TriggeredAbilityWindow extends BaseStep {
         for (const abilityContext of abilitiesAvailableForPlayer) {
             if (!Contract.assertNotNullLike(abilityContext.source)) {
                 continue;
-            }
-
-            // TODO: fill out this implementation. see forcedtriggeredabilitywindow.js in the L5R code for reference
-            if (triggeringCards.has(abilityContext.source)) {
-                throw Error(`The card ${abilityContext.source} has had multiple abilities triggered in the same event window (or one ability triggered multiple times). This is not yet implemented.`);
             }
 
             triggeringCards.add(abilityContext.source);
