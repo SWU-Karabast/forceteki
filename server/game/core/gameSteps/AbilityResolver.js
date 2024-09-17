@@ -114,6 +114,8 @@ class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
 
+        this.context.stage = Stage.PreTarget;
+
         // if there is no effect and no costs, we can safely skip ability resolution
         if (
             this.context.ability.meetsRequirements(this.context, ['cost']) !== '' &&
@@ -131,7 +133,6 @@ class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
 
-        this.context.stage = Stage.PreTarget;
         if (!this.context.ability.cannotTargetFirst) {
             this.targetResults = this.context.ability.resolveTargets(this.context, this.passAbilityHandler);
         }

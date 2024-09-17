@@ -127,6 +127,11 @@ class PlayerOrCardAbility {
             return 'cost';
         }
 
+        // we don't check whether a triggered ability has legal targets at the trigger stage, that's evaluated at ability resolution
+        if (context.stage === Stage.Trigger && this.isTriggeredAbility()) {
+            return '';
+        }
+
         // for actions, the only requirement to be legal to activate is that something changes game state. so if there's a resolvable cost, that's enough (see SWU 6.2.C)
         // TODO: add a card with an action that has no cost (e.g. Han red or Fennec) and confirm that the action is not legal to activate when there are no targets
         if (this.isAction()) {
@@ -277,6 +282,10 @@ class PlayerOrCardAbility {
 
     isAction() {
         return this.type === AbilityType.Action;
+    }
+
+    isTriggeredAbility() {
+        return this.type === AbilityType.Triggered;
     }
 
     /** Indicates whether a card is played as part of the resolution this ability */

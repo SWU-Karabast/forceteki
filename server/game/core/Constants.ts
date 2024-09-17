@@ -87,7 +87,8 @@ export enum Stage {
     Cost = 'cost',
     Effect = 'effect',
     PreTarget = 'preTarget',
-    Target = 'target'
+    Target = 'target',
+    Trigger = 'trigger'
 }
 
 export enum RelativePlayer {
