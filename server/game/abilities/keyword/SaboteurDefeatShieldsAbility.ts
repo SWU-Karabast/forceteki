@@ -12,7 +12,7 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
 
     public static buildSaboteurAbilityProperties(): ITriggeredAbilityProps {
         return {
-            title: 'Saboteur',
+            title: 'Saboteur: defeat all shields',
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             targetResolver: {
                 cardCondition: (card: Card, context: TriggeredAbilityContext) => {

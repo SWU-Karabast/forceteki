@@ -44,7 +44,7 @@ class BaseCardSelector {
             } else if (controllerProp === RelativePlayer.Opponent) {
                 return context.game.allCards.filter((card) => card.controller === context.player.opponent);
             }
-            return context.game.allCards.toArray();
+            return context.game.allCards;
         }
 
         let possibleCards = [];

@@ -147,6 +147,7 @@ export enum TokenName {
 }
 
 export enum EventName {
+    MetaAttackSteps = 'metaAttackSteps',
     OnAbilityResolved = 'onAbilityResolved',
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
     OnAddTokenToCard = 'onAddTokenToCard',
