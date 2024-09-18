@@ -43,6 +43,10 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         public addDamage(amount: number) {
+            if (!Contract.assertNotNullLikeOrNan(amount)) {
+                return;
+            }
+
             this.assertPropertyEnabled(this._damage, 'damage');
             if (
                 !Contract.assertNotNullLikeOrNan(this.damage) ||

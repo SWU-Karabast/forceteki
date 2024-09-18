@@ -12,6 +12,7 @@ import { Card } from './Card';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
+import { AbilityContext } from '../ability/AbilityContext';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAbilitySetup(InPlayCard))));
 
@@ -108,7 +109,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbility({
             title: properties.title,
             condition: properties.condition || (() => true),
-            matchTarget: (card, context) => card === this.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
+            matchTarget: (card, context) => card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
             targetController: RelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
             ongoingEffect: properties.ongoingEffect
         });
@@ -118,9 +119,10 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps) {
+    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps, gainCondition: (context: AbilityContext) => boolean = null) {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
+            condition: gainCondition,
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(AbilityType.Triggered, properties)
         });
     }
