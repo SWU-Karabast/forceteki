@@ -98,7 +98,7 @@ class EventWindow extends BaseStepWithPipeline {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.game.globalTriggeredAbilityWindow.triggerOnEvents(this.events);
+        this.triggerEventsForWindow();
 
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
@@ -111,7 +111,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO: make it so we don't need to trigger twice
         // trigger again here to catch any events for cards that entered play during event resolution
-        this.game.globalTriggeredAbilityWindow.triggerOnEvents(this.events);
+        this.triggerEventsForWindow();
     }
 
     triggerEventsForWindow() {
@@ -147,7 +147,18 @@ class EventWindow extends BaseStepWithPipeline {
 
     resolveTriggersIfNecessary() {
         if (this.resolveTriggersAfter) {
-            this.game.globalTriggeredAbilityWindow.continue();
+            this.queueStep(this.triggeredAbilityWindow);
+        } else if (this.previousEventWindow) {
+            this.previousEventWindow.mergeTriggersFromOtherEventWindow(this);
+        }
+    }
+
+    mergeTriggersFromOtherEventWindow (otherEventWindow) {
+        if (this.triggeredAbilityWindow === null) {
+            this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
+        }
+        for (const trigger of otherEventWindow.triggeredAbilityWindow.triggeredAbilities) {
+            this.triggeredAbilityWindow.addToWindow(trigger);
         }
     }
 

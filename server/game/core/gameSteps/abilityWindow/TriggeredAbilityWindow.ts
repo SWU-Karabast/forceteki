@@ -1,20 +1,49 @@
+import Player from '../../Player';
+import { GameEvent } from '../../event/GameEvent';
 import EventWindow from '../../event/EventWindow';
-import { AbilityType } from '../../Constants';
+import { AbilityType, WildcardLocation } from '../../Constants';
 import Contract from '../../utils/Contract';
+import { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
+import TriggeredAbility from '../../ability/TriggeredAbility';
+import { Card } from '../../card/Card';
+import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
+import { BaseStep } from '../BaseStep';
+import { AbilityContext } from '../../ability/AbilityContext';
 import Game from '../../Game';
-import { TriggeredAbilityWindowBaseClass } from './TriggeredAbilityWindowBaseClass';
+import Shield from '../../../cards/01_SOR/Shield';
 
-export class TriggeredAbilityWindow extends TriggeredAbilityWindowBaseClass {
+export class TriggeredAbilityWindow extends BaseStep {
+    /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
+    protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
+
+    /** Already resolved effects / abilities */
+    protected resolved: { ability: TriggeredAbilityContext, event: GameEvent }[] = [];
+
+    /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
+    private resolvePlayerOrder?: Player[] = null;
+
+    /** The events that were triggered as part of this window */
+    private triggeringEvents: GameEvent[];
+
     private eventsEmitted = false;
+    private choosePlayerResolutionOrderComplete = false;
     private readonly toStringName: string;
+
+    public get currentlyResolvingPlayer(): Player | null {
+        return this.resolvePlayerOrder?.[0] ?? null;
+    }
+
+    public get triggeredAbilities(): TriggeredAbilityContext[] {
+        return Array.from(this.unresolved.values()).flat();
+    }
 
     public constructor(
         game: Game,
         private readonly eventWindow: EventWindow,
-        triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect,
-        eventsToExclude = []
+        private readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect,
+        private readonly eventsToExclude = []
     ) {
-        super(game, triggerAbilityType, eventsToExclude);
+        super(game);
 
         this.toStringName = `'TriggeredAbilityWindow: ${this.eventWindow.events.map((event) => event.name).join(', ')}'`;
     }
@@ -40,12 +69,11 @@ export class TriggeredAbilityWindow extends TriggeredAbilityWindowBaseClass {
 
         if (!this.choosePlayerResolutionOrderComplete) {
             this.cleanUpTriggers();
-
             // if no abilities trigged, continue with game flow
             if (this.unresolved.size === 0) {
                 return true;
             }
-
+            
             // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
             if (this.unresolved.size > 1) {
                 this.promptForResolvePlayerOrder();
@@ -210,7 +238,6 @@ export class TriggeredAbilityWindow extends TriggeredAbilityWindowBaseClass {
             if (!Contract.assertNotNullLike(abilityContext.source)) {
                 continue;
             }
-
             triggeringCards.add(abilityContext.source);
         }
 
