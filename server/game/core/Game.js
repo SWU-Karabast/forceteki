@@ -216,6 +216,7 @@ class Game extends EventEmitter {
             this.createEventAndOpenWindow(
                 EventName.OnPassActionPhasePriority,
                 { player: this.actionPhaseActivePlayer, actionWindow: this },
+                false,
                 () => {
                     this.actionPhaseActivePlayer = this.actionPhaseActivePlayer.opponent;
                 }
@@ -844,13 +845,14 @@ class Game extends EventEmitter {
      * Creates a game GameEvent, and opens a window for it.
      * @param {String} eventName
      * @param {Object} params - parameters for this event
+     * @param {boolean} resolveTriggersAfter - whether the game's GlobalTriggeredAbilityWindow should be resolved after the event
      * @param {(GameEvent) => void} handler - (GameEvent + params) => undefined
      * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
      * tell whether or not the handler resolved successfully
      */
-    createEventAndOpenWindow(eventName, params = {}, handler = () => true) {
+    createEventAndOpenWindow(eventName, params = {}, resolveTriggersAfter = false, handler = () => true) {
         let event = new GameEvent(eventName, params, handler);
-        this.openEventWindow([event]);
+        this.openEventWindow([event], resolveTriggersAfter);
         return event;
     }
 
@@ -870,11 +872,11 @@ class Game extends EventEmitter {
      * @param events
      * @returns {EventWindow}
      */
-    openEventWindow(events) {
+    openEventWindow(events, resolveTriggersAfter = false) {
         if (!Array.isArray(events)) {
             events = [events];
         }
-        return this.queueStep(new EventWindow(this, events));
+        return this.queueStep(new EventWindow(this, events, resolveTriggersAfter));
     }
 
     openThenEventWindow(events) {

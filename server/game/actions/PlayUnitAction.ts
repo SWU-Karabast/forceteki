@@ -35,7 +35,7 @@ export class PlayUnitAction extends PlayCardAction {
                 controller: player
             }).generateEvent(context.source, context),
             cardPlayedEvent
-        ]);
+        ], true);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

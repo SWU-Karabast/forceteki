@@ -6,7 +6,7 @@ const { default: Contract } = require('../utils/Contract.js');
 // const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
 
 class EventWindow extends BaseStepWithPipeline {
-    constructor(game, events) {
+    constructor(game, events, resolveTriggersAfter = false) {
         super(game);
 
         this.events = [];
@@ -20,6 +20,8 @@ class EventWindow extends BaseStepWithPipeline {
         this.toStringName = `'EventWindow: ${this.events.map((event) => event.name).join(', ')}'`;
 
         this.triggeredAbilityWindow = null;
+
+        this.resolveTriggersAfter = resolveTriggersAfter;
 
         this.initialise();
     }
@@ -144,11 +146,7 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     resolveTriggersIfNecessary() {
-        //TODO: Make sure this list of all the times triggers should resolve is complete.
-        if (this.events.some((event) =>
-            event.name.includes('onAttackDeclared') ||
-            event.name.includes('onAbilityResolverInitiated') ||
-            event.name.includes('onPhaseStarted'))) {
+        if (this.resolveTriggersAfter) {
             this.game.globalTriggeredAbilityWindow.continue();
         }
     }

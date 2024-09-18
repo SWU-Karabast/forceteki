@@ -23,7 +23,7 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected createPhase(): void {
-        this.game.createEventAndOpenWindow(EventName.OnPhaseCreated, { phase: this.name }, () => {
+        this.game.createEventAndOpenWindow(EventName.OnPhaseCreated, { phase: this.name }, false, () => {
             for (const step of this.steps) {
                 this.game.queueStep(step);
             }
@@ -31,7 +31,7 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected startPhase(): void {
-        this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, { phase: this.name }, () => {
+        this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, { phase: this.name }, true, () => {
             this.game.currentPhase = this.name;
             if (this.name !== 'setup') {
                 this.game.addAlert('endofround', 'turn: {0} - {1} phase', this.game.roundNumber, this.name);

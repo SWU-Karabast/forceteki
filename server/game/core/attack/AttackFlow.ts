@@ -48,7 +48,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.attack.attacker.setActiveAttack(this.attack);
         this.attack.target.setActiveAttack(this.attack);
 
-        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack });
+        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack }, true);
     }
 
     private dealDamage() {
@@ -59,7 +59,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, {
             attack: this.attack,
             handler: () => this.attack.attacker.unregisterAttackKeywords()
-        });
+        }, true);
     }
 
     private cleanUpAttack() {
