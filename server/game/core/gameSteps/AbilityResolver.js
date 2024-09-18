@@ -90,7 +90,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                 }));
             }
             if (this.context.ability.isActivatedAbility()) {
-                resolveTriggersAfter = true;
+                resolveTriggersAfter = [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.context.ability.type);
                 this.events.push(new GameEvent(EventName.OnCardAbilityTriggered, {
                     player: this.context.player,
                     card: this.context.source,

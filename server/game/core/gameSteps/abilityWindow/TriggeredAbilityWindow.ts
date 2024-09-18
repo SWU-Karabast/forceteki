@@ -25,7 +25,6 @@ export class TriggeredAbilityWindow extends BaseStep {
     /** The events that were triggered as part of this window */
     private triggeringEvents: GameEvent[];
 
-    private eventsEmitted = false;
     private choosePlayerResolutionOrderComplete = false;
     private readonly toStringName: string;
 
@@ -45,26 +44,22 @@ export class TriggeredAbilityWindow extends BaseStep {
     ) {
         super(game);
 
-        this.toStringName = `'TriggeredAbilityWindow: ${this.eventWindow.events.map((event) => event.name).join(', ')}'`;
+        this.triggeringEvents = [...this.eventWindow.events];
+    }
+
+    public addTriggeringEvents(events:GameEvent[]) {
+        this.triggeringEvents.push(...events);
     }
 
     public emitEvents() {
-        this.eventsEmitted = true;
-
-        const events = this.eventWindow.events.filter((event) => !this.eventsToExclude.includes(event));
+        const events = this.triggeringEvents.filter((event) => !this.eventsToExclude.includes(event));
         events.forEach((event) => {
             this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
         });
         this.game.emit('aggregateEvent:' + this.triggerAbilityType, events, this);
-
-        this.triggeringEvents = events;
     }
 
     public override continue() {
-        if (!Contract.assertTrue(this.eventsEmitted, 'TriggeredAbilityWindow.continue() called before events were emitted')) {
-            return true;
-        }
-        
         this.game.currentAbilityWindow = this;
 
         if (!this.choosePlayerResolutionOrderComplete) {
@@ -336,6 +331,6 @@ export class TriggeredAbilityWindow extends BaseStep {
     }
 
     public override toString() {
-        return this.toStringName;
+        return `'TriggeredAbilityWindow: ${this.triggeringEvents.map((event) => event.name).join(', ')}'`;
     }
 }

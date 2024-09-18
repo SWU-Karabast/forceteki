@@ -59,6 +59,12 @@ class EventWindow extends BaseStepWithPipeline {
     setCurrentEventWindow() {
         this.previousEventWindow = this.game.currentEventWindow;
         this.game.currentEventWindow = this;
+        if (this.resolveTriggersAfter) {
+            this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
+        } else if (this.previousEventWindow) {
+            this.triggeredAbilityWindow = this.previousEventWindow.triggeredAbilityWindow;
+            this.triggeredAbilityWindow.addTriggeringEvents(this.events);
+        }
     }
 
     checkEventCondition() {
@@ -148,17 +154,6 @@ class EventWindow extends BaseStepWithPipeline {
     resolveTriggersIfNecessary() {
         if (this.resolveTriggersAfter) {
             this.queueStep(this.triggeredAbilityWindow);
-        } else if (this.previousEventWindow) {
-            this.previousEventWindow.mergeTriggersFromOtherEventWindow(this);
-        }
-    }
-
-    mergeTriggersFromOtherEventWindow (otherEventWindow) {
-        if (this.triggeredAbilityWindow === null) {
-            this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
-        }
-        for (const trigger of otherEventWindow.triggeredAbilityWindow.triggeredAbilities) {
-            this.triggeredAbilityWindow.addToWindow(trigger);
         }
     }
 
