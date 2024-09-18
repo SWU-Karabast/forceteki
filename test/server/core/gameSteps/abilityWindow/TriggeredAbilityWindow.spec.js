@@ -103,5 +103,64 @@ describe('Simultaneous triggers', function() {
                 expect(this.player2).toBeActivePlayer();
             });
         });
+
+        describe('The Leia leader\'s "Attack. Then, attack." activated ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['sabine-wren#explosives-artist', 'atst', 'battlefield-marine', 'fleet-lieutenant', { card: 'rebel-pathfinder', exhausted: true }],
+                        spaceArena: ['tieln-fighter', 'alliance-xwing'],
+                        leader: 'leia-organa#alliance-general'
+                    },
+                    player2: {
+                        groundArena: ['sundari-peacekeeper'],
+                        spaceArena: ['tie-advanced']
+                    }
+                });
+            });
+
+            it('should have "on attack" triggers resolve after the whole ability', function () {
+                // unit with trigger first
+                this.player1.clickCard(this.leiaOrgana);
+                this.player1.clickPrompt('Attack with a Rebel unit');
+                this.player1.clickCard(this.sabineWren);
+                this.player1.clickCard(this.sundariPeacekeeper);
+                // attack goes through, trigger is saved for later
+                expect(this.sabineWren.damage).toBe(1);
+                expect(this.sundariPeacekeeper.damage).toBe(2);
+
+                // second attack
+                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
+                this.player1.clickCard(this.allianceXwing);
+                this.player1.clickCard(this.tieAdvanced);
+                expect(this.allianceXwing).toBeInLocation('discard');
+                expect(this.tieAdvanced).toBeInLocation('discard');
+
+                // trigger from first attack
+                expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.p1Base, this.p2Base]);
+                expect(this.p2Base.damage).toBe(0);
+                this.player1.clickCard(this.p2Base);
+                expect(this.p2Base.damage).toBe(1);
+
+                expect(this.player2).toBeActivePlayer();
+
+                this.moveToNextActionPhase();
+                // unit with trigger second
+                this.player1.clickCard(this.leiaOrgana);
+                this.player1.clickPrompt('Attack with a Rebel unit');
+                this.player1.clickCard(this.battlefieldMarine);
+                this.player1.clickCard(this.p2Base);
+
+                // second attack
+                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.rebelPathfinder]);
+                this.player1.clickCard(this.sabineWren);
+                this.player1.clickCard(this.sundariPeacekeeper);
+                expect(this.sabineWren.damage).toBe(2);
+                expect(this.sundariPeacekeeper.damage).toBe(4);
+                // trigger from second attack
+                expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.p1Base, this.p2Base]);
+            });
+        });
     });
 });
