@@ -28,7 +28,7 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
                     return opponentUnitsDefeatedThisPhase.length > 0;
                 },
                 trueImmediateEffect: AbilityHelper.immediateEffects.heal((context) => {
-                    return { amount: 1, target: context.source.base };
+                    return { amount: 1, target: context.source.controller.base };
                 }),
                 falseImmediateEffect: AbilityHelper.immediateEffects.noAction()
             })
@@ -42,7 +42,7 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
                 onCardDefeated: (event, context) => event.card.controller !== context.source.controller
             },
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => {
-                return { amount: 1, target: context.source.base };
+                return { amount: 1, target: context.source.controller.base };
             }),
         });
     }

@@ -5,10 +5,11 @@ import Player from '../core/Player';
 import { UnitCard } from '../core/card/CardTypes';
 import { Card } from '../core/card/Card';
 
+// TODO: add a "defeatedBy: Player" field here. will require changing the DefeatSystem
+// so that it records the ability that caused the unit defeat.
 export interface DefeatedUnitEntry {
     unit: UnitCard,
-    controlledBy: Player,
-    defeatedBy: Player
+    controlledBy: Player
 }
 
 export type IUnitsDefeatedThisPhase = DefeatedUnitEntry[];
@@ -29,13 +30,6 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         return super.getCurrentValue();
     }
 
-    /** Get the list of units defeated by the specified player */
-    public getUnitsDefeatedByPlayer(defeatedBy: Player): UnitCard[] {
-        return this.getCurrentValue()
-            .filter((entry) => entry.defeatedBy === defeatedBy)
-            .map((entry) => entry.unit);
-    }
-
     /** Get the list of the specified player's units that were defeated */
     public getDefeatedUnitsControlledByPlayer(controller: Player): UnitCard[] {
         return this.getCurrentValue()
@@ -50,7 +44,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
                 onCardDefeated: (context) => context.card.isUnit(),
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
-                currentState.concat({ unit: event.card, controlledBy: event.card.controller, defeatedBy: event.source.controller })
+                currentState.concat({ unit: event.card, controlledBy: event.card.controller })
         });
     }
 
