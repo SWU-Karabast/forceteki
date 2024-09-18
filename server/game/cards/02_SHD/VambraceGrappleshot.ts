@@ -1,4 +1,5 @@
 import AbilityHelper from '../../AbilityHelper';
+import { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
 import { Card } from '../../core/card/Card';
 import { UpgradeCard } from '../../core/card/UpgradeCard';
 import { Trait } from '../../core/Constants';
@@ -24,10 +25,9 @@ export default class VambraceGrappleshot extends UpgradeCard {
         this.addGainTriggeredAbilityTargetingAttached({
             title: 'Exhaust the defender on attack',
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
-            targetResolver: {
-                cardCondition: (card, context) => card === context.event.attack.target,
-                immediateEffect: AbilityHelper.immediateEffects.exhaust()
-            }
+            immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
+                return { target: (context as TriggeredAbilityContext)?.event.attack.target };
+            })
         });
     }
 }
