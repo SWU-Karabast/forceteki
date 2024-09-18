@@ -5,7 +5,7 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
 export interface IDamageProperties extends ICardTargetSystemProperties {
-    amount?: number;
+    amount: number;
     isCombatDamage?: boolean;
 }
 
