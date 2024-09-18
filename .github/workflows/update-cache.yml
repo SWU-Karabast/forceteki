@@ -24,7 +24,7 @@ jobs:
           uses: actions/cache@v3
           with:
             path: ./test/json
-            key: sor-shd-manual-v03-specialchars
+            key: sor-shd-manual-v04-specialchars
 
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
