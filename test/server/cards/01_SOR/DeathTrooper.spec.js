@@ -20,7 +20,7 @@ describe('Death Trooper', function() {
                 // Play Death Trooper
                 this.player1.clickCard(this.deathTrooper);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).not.toHavePassAbilityPrompt();
+                expect(this.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
             });
 
             it('can only target ground units & can damage itself', function () {
@@ -29,7 +29,7 @@ describe('Death Trooper', function() {
 
                 // Choose Friendly
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).not.toHavePassAbilityPrompt();
+                expect(this.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
                 this.player1.clickCard(this.deathTrooper);
 
                 // Choose Enemy
@@ -46,7 +46,7 @@ describe('Death Trooper', function() {
 
                 // Choose Friendly
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).not.toHavePassAbilityPrompt();
+                expect(this.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
                 this.player1.clickCard(this.deathTrooper);
                 expect(this.deathTrooper.damage).toEqual(2);
             });

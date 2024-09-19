@@ -388,10 +388,14 @@ var customMatchers = {
     },
     toHavePassAbilityPrompt: function () {
         return {
-            compare: function (player) {
+            compare: function (player, abilityText) {
                 var result = {};
-                const passPromptText = 'Do you want to trigger this ability or pass?';
-                var currentPrompt = player.currentPrompt();
+
+                if (abilityText == null) {
+                    throw new Error('toHavePassAbilityPrompt requires an abilityText parameter');
+                }
+
+                const passPromptText = `Trigger the ability '${abilityText}' or pass`;
                 result.pass = player.hasPrompt(passPromptText);
 
                 if (result.pass) {

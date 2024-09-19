@@ -21,9 +21,13 @@ describe('Vader\'s Lightsaber', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.darthVader, this.wampa]);    // cannot attach to vehicles
                 this.player1.clickCard(this.darthVader);
 
+                // TODO: ideally the pass option would work like it does for target resolvers, where we just add a "Pass"
+                // button to the target selection window. Need to change it so that's possible with SelectCard.
+
                 expect(this.darthVader).toHaveExactUpgradeNames(['vaders-lightsaber']);
+                expect(this.player1).toHavePassAbilityPrompt('Deal 4 damage to a ground unit');
+                this.player1.clickPrompt('Deal 4 damage to a ground unit');
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.darthVader]);
-                expect(this.player1).not.toHavePassAbilityPrompt();
 
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.damage).toBe(4);
@@ -61,8 +65,9 @@ describe('Vader\'s Lightsaber', function() {
                 this.player1.clickCard(this.darthVader);
 
                 expect(this.darthVader).toHaveExactUpgradeNames(['vaders-lightsaber']);
+                expect(this.player1).toHavePassAbilityPrompt('Deal 4 damage to a ground unit');
+                this.player1.clickPrompt('Deal 4 damage to a ground unit');
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.darthVader]);
-                expect(this.player1).not.toHavePassAbilityPrompt();
 
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.damage).toBe(4);
