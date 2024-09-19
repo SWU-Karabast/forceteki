@@ -24,19 +24,16 @@ export default class VadersLightsaber extends UpgradeCard {
         this.addWhenPlayedAbility({
             title: 'Deal 4 damage to a ground unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.parentCard?.title === 'Darth Vader',
-                trueImmediateEffect: this.vaderLightsaberAbility(),
-                falseImmediateEffect: AbilityHelper.immediateEffects.noAction()
-            })
-        });
-    }
+            targetResolver: {
+                locationFilter: Location.GroundArena,
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: (context) => context.source.parentCard?.title === 'Darth Vader',
+                    trueImmediateEffect: AbilityHelper.immediateEffects.damage({ amount: 4 }),
+                    falseImmediateEffect: AbilityHelper.immediateEffects.noAction()
+                })
+            }
 
-    private vaderLightsaberAbility() {
-        return AbilityHelper.immediateEffects.selectCard({
-            locationFilter: Location.GroundArena,
-            cardTypeFilter: WildcardCardType.Unit,
-            innerSystem: AbilityHelper.immediateEffects.damage({ amount: 4 })
         });
     }
 }

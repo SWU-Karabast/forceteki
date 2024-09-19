@@ -29,6 +29,10 @@ export interface ISelectCardProperties extends ICardTargetSystemProperties {
     effectArgs?: (context) => string[];
 }
 
+
+// TODO: ideally the pass option would work like it does for target resolvers, where we just add a "Pass"
+// button to the target selection window. Need to change it so that's possible with SelectCard.
+
 /**
  * A wrapper system for adding a target selection prompt around the execution the wrapped system.
  * Functions the same as a targetResolver and used in situations where one can't be created (e.g., costs).
