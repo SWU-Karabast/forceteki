@@ -52,7 +52,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     checkGameActionsForPotential(context) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
-        } else if (this.gameSystem.isOptional(context) && this.properties.then) {
+        } else if (this.immediateEffect.isOptional(context) && this.properties.then) {
             const then =
                 typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
             const cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
@@ -87,7 +87,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
 
         // otherwise, we're using a single game system with no target resolver - just return it as an array
-        return Helpers.asArray(this.gameSystem);
+        return Helpers.asArray(this.immediateEffect);
     }
 
     executeGameActions(context) {

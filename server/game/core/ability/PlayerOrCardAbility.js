@@ -54,7 +54,7 @@ class PlayerOrCardAbility {
         this.keyword = null;
         this.type = type;
         this.optional = !!properties.optional;
-        this.gameSystem = properties.immediateEffect;
+        this.immediateEffect = properties.immediateEffect;
         this.buildTargetResolvers(properties);
         this.cost = this.buildCost(properties.cost);
         for (const cost of this.cost) {
@@ -130,7 +130,7 @@ class PlayerOrCardAbility {
             }
         }
 
-        if (this.gameSystem && !this.checkGameActionsForPotential(context)) {
+        if (this.immediateEffect && !this.checkGameActionsForPotential(context)) {
             return 'gameStateChange';
         }
 
@@ -142,7 +142,7 @@ class PlayerOrCardAbility {
     }
 
     hasAnyLegalEffects(context) {
-        if (this.gameSystem && this.checkGameActionsForPotential(context)) {
+        if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
             return true;
         }
 
@@ -154,7 +154,7 @@ class PlayerOrCardAbility {
     }
 
     checkGameActionsForPotential(context) {
-        return this.gameSystem.hasLegalTarget(context);
+        return this.immediateEffect.hasLegalTarget(context);
     }
 
     /**
@@ -264,7 +264,7 @@ class PlayerOrCardAbility {
     hasTargetsChosenByInitiatingPlayer(context) {
         return (
             this.targetResolvers.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
-            this.gameSystem.hasTargetsChosenByInitiatingPlayer(context) ||
+            this.immediateEffect.hasTargetsChosenByInitiatingPlayer(context) ||
             this.cost.some(
                 (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByInitiatingPlayer(context)
             )
