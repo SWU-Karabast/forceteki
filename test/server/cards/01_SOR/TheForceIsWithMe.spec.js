@@ -40,7 +40,7 @@ describe('The Force is With Me', function() {
                         hand: ['the-force-is-with-me'],
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
-                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true, exhausted: true }
                     },
                     player2: {
                         groundArena: ['specforce-soldier']
@@ -61,6 +61,35 @@ describe('The Force is With Me', function() {
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(6);
                 expect(this.wampa.exhausted).toBe(true);
+            });
+
+            it('should work if the unit can\'t attack', function () {
+                this.player1.clickCard(this.theForceIsWithMe);
+                this.player1.clickCard(this.chirrutImwe);
+                expect(this.chirrutImwe).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
+
+                expect(this.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('The Force is With Me\'s ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['the-force-is-with-me'],
+                    },
+                    player2: {
+                        groundArena: ['specforce-soldier']
+                    }
+                });
+            });
+
+            it('should do nothing if no legal target', function () {
+                this.player1.clickCard(this.theForceIsWithMe);
+                expect(this.theForceIsWithMe).toBeInLocation('discard');
+
+                expect(this.player2).toBeActivePlayer();
             });
         });
     });
