@@ -86,9 +86,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
                 expect(this.p1Base.damage).toBe(4);
             });
 
-            it('should heal 1 from base when an enemy unit is defeated, even if Iden dies in the combat', function () {
-                expect(this.idenVersio.hasShield()).toBe(true);
-            });
+            // TODO: once leader shields and defeat timing is fixed, add a test for Iden's ability to heal base when she is defeated
         });
     });
 });
