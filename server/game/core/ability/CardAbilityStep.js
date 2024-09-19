@@ -52,7 +52,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     checkGameActionsForPotential(context) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
-        } else if (this.gameSystem.every((gameSystem) => gameSystem.isOptional(context)) && this.properties.then) {
+        } else if (this.gameSystem.isOptional(context) && this.properties.then) {
             const then =
                 typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
             const cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
@@ -81,10 +81,12 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     getGameSystems(context) {
+        // if we are using target resolvers, get the legal system(s) and return them
         if (this.targetResolvers.length > 0) {
-            return this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystem(context)), []);
+            return this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystems(context)), []);
         }
 
+        // otherwise, we're using a single game system with no target resolver - just return it as an array
         return Helpers.asArray(this.gameSystem);
     }
 

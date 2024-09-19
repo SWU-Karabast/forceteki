@@ -28,7 +28,7 @@ class PlayerOrCardAbility {
      * objects.
      * @param {Object} [properties.target] - Optional property that specifies
      * the target of the ability.
-     * @param {GameSystem[]} [properties.immediateEffect] - GameSystem[] optional array of game actions
+     * @param {GameSystem} [properties.immediateEffect] - Optional GameSystem without a target resolver
      * @param {any} [properties.targetResolver] - Optional target resolver
      * @param {any} [properties.targetResolvers] - Optional target resolvers set
      * @param {string} [properties.title] - Name to use for ability display and debugging
@@ -39,7 +39,7 @@ class PlayerOrCardAbility {
     constructor(properties, type = AbilityType.Action) {
         Contract.assertStringValue(properties.title);
 
-        const hasImmediateEffect = properties.immediateEffect && properties.immediateEffect.length > 0;
+        const hasImmediateEffect = properties.immediateEffect != null;
         const hasTargetResolver = properties.targetResolver != null;
         const hasTargetResolvers = properties.targetResolvers != null;
 
@@ -54,10 +54,7 @@ class PlayerOrCardAbility {
         this.keyword = null;
         this.type = type;
         this.optional = !!properties.optional;
-        this.gameSystem = properties.immediateEffect || [];
-        if (!Array.isArray(this.gameSystem)) {
-            this.gameSystem = [this.gameSystem];
-        }
+        this.gameSystem = properties.immediateEffect;
         this.buildTargetResolvers(properties);
         this.cost = this.buildCost(properties.cost);
         for (const cost of this.cost) {
@@ -100,13 +97,6 @@ class PlayerOrCardAbility {
     }
 
     buildTargetResolver(name, properties) {
-        if (properties.immediateEffect) {
-            if (!Array.isArray(properties.immediateEffect)) {
-                properties.immediateEffect = [properties.immediateEffect];
-            }
-        } else {
-            properties.immediateEffect = [];
-        }
         if (properties.mode === TargetMode.Select) {
             return new SelectTargetResolver(name, properties, this);
         } else if (properties.mode === TargetMode.Ability) {
@@ -140,7 +130,7 @@ class PlayerOrCardAbility {
             }
         }
 
-        if (this.gameSystem.length > 0 && !this.checkGameActionsForPotential(context)) {
+        if (this.gameSystem && !this.checkGameActionsForPotential(context)) {
             return 'gameStateChange';
         }
 
@@ -152,7 +142,7 @@ class PlayerOrCardAbility {
     }
 
     hasAnyLegalEffects(context) {
-        if (this.gameSystem.length > 0 && this.checkGameActionsForPotential(context)) {
+        if (this.gameSystem && this.checkGameActionsForPotential(context)) {
             return true;
         }
 
@@ -164,7 +154,7 @@ class PlayerOrCardAbility {
     }
 
     checkGameActionsForPotential(context) {
-        return this.gameSystem.some((gameSystem) => gameSystem.hasLegalTarget(context));
+        return this.gameSystem.hasLegalTarget(context);
     }
 
     /**
@@ -274,7 +264,7 @@ class PlayerOrCardAbility {
     hasTargetsChosenByInitiatingPlayer(context) {
         return (
             this.targetResolvers.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
-            this.gameSystem.some((action) => action.hasTargetsChosenByInitiatingPlayer(context)) ||
+            this.gameSystem.hasTargetsChosenByInitiatingPlayer(context) ||
             this.cost.some(
                 (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByInitiatingPlayer(context)
             )
