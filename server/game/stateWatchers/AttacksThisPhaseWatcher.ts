@@ -20,7 +20,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.UnitsAttackedThisPhase, registrar, card);
+        super(StateWatcherName.AttacksThisPhase, registrar, card);
     }
 
     /**

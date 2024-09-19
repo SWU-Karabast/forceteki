@@ -4,15 +4,15 @@ import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem
 
 export interface IConditionalSystemProperties extends IGameSystemProperties {
     condition: ((context: AbilityContext, properties: IConditionalSystemProperties) => boolean) | boolean;
-    trueImmediateEffect: GameSystem;
-    falseImmediateEffect: GameSystem;
+    onTrue: GameSystem;
+    onFalse: GameSystem;
 }
 
 export class ConditionalSystem extends GameSystem<IConditionalSystemProperties> {
     public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): IConditionalSystemProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
-        properties.trueImmediateEffect.setDefaultTargetFn(() => properties.target);
-        properties.falseImmediateEffect.setDefaultTargetFn(() => properties.target);
+        properties.onTrue.setDefaultTargetFn(() => properties.target);
+        properties.onFalse.setDefaultTargetFn(() => properties.target);
         return properties;
     }
 
@@ -49,7 +49,7 @@ export class ConditionalSystem extends GameSystem<IConditionalSystemProperties> 
         if (typeof condition === 'function') {
             condition = condition(context, properties);
         }
-        return condition ? properties.trueImmediateEffect : properties.falseImmediateEffect;
+        return condition ? properties.onTrue : properties.onFalse;
     }
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)

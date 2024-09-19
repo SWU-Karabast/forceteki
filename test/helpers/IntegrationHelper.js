@@ -661,6 +661,10 @@ global.integration = function (definitions) {
                 this.player1.setLeaderStatus(options.player1.leader);
                 this.player2.setLeaderStatus(options.player2.leader);
 
+                // Set Base damage
+                this.player1.setBaseStatus(options.player1.base);
+                this.player2.setBaseStatus(options.player2.base);
+
                 // Deck
                 this.player1.setDeck(options.player1.deck, ['removed from game']);
                 this.player2.setDeck(options.player2.deck, ['removed from game']);
