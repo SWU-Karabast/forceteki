@@ -26,8 +26,8 @@ export default class VadersLightsaber extends UpgradeCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.parentCard?.title === 'Darth Vader',
-                trueImmediateEffect: this.vaderLightsaberAbility(),
-                falseImmediateEffect: AbilityHelper.immediateEffects.noAction()
+                onTrue: this.vaderLightsaberAbility(),
+                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }
