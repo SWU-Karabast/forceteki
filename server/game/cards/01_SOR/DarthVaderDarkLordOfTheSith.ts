@@ -22,16 +22,15 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
         this.addActionAbility({
             title: 'Deal 1 damage to a unit and 1 damage to a base',
             cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
-            condition: (context) => {
-                const cardsPlayedThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) => playedCardEntry.playedBy === context.source.controller);
-                return cardsPlayedThisPhase.some((card) => card.aspects.includes(Aspect.Villainy));
-            },
             targetResolvers: {
                 unit: { cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }) },
+                    immediateEffect: AbilityHelper.immediateEffects.conditional({ condition: (context) => this.villainyCardPlayedThisPhase(context),
+                        trueImmediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                        falseImmediateEffect: AbilityHelper.immediateEffects.noAction() }) },
                 base: { cardTypeFilter: CardType.Base,
-                    controller: RelativePlayer.Opponent,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }) }
+                    immediateEffect: AbilityHelper.immediateEffects.conditional({ condition: (context) => this.villainyCardPlayedThisPhase(context),
+                        trueImmediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                        falseImmediateEffect: AbilityHelper.immediateEffects.noAction() }) }
             }
         });
     }
@@ -45,6 +44,11 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
             }
         });
+    }
+
+    private villainyCardPlayedThisPhase(context):boolean {
+        const cardsPlayedThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) => playedCardEntry.playedBy === context.source.controller);
+        return cardsPlayedThisPhase.some((card) => card.aspects.includes(Aspect.Villainy));
     }
 }
 

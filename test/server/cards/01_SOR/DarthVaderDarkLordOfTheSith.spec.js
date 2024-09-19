@@ -17,24 +17,38 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 });
             });
 
-            it('should only be usable if the controller played a villainy card this phase', function () {
-                expect(this.darthVader).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
-                this.player1.clickCard(this.tielnFighter);
-                this.player2.passAction();
-                const exhaustedResourcesBeforeAbilityUsed = this.player1.countExhaustedResources();
-                expect(this.darthVader).toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
-                expect(this.player1).toBeAbleToSelectExactly([this.tielnFighter, this.atst, this.allianceXwing, this.lukeSkywalker]); //can target any unit
-                this.player1.clickCard(this.lukeSkywalker);
+            it('should only have an effect if the controller played a villainy card this phase, but still be usable otherwise', function () {
+                let exhaustedResourcesBeforeAbilityUsed = this.player1.countExhaustedResources();
+                this.player1.clickCard(this.darthVader);
+
                 expect(this.darthVader.exhausted).toBe(true);
                 expect(this.player1.countExhaustedResources()).toBe(exhaustedResourcesBeforeAbilityUsed + 1);
-                expect(this.lukeSkywalker.damage).toBe(1);
-                expect(this.p2Base.damage).toBe(1);
+                expect(this.atst.damage).toBe(0);
+                expect(this.lukeSkywalker.damage).toBe(0);
+                expect(this.allianceXwing.damage).toBe(0);
+                expect(this.p1Base.damage).toBe(0);
+                expect(this.p2Base.damage).toBe(0);
 
                 this.moveToNextActionPhase();
-                expect(this.darthVader).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
-                this.player1.clickCard(this.swoopRacer);
-                this.player2.passAction();
-                expect(this.darthVader).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                this.player1.clickCard(this.tielnFighter);
+                this.player2.pass();
+
+                exhaustedResourcesBeforeAbilityUsed = this.player1.countExhaustedResources();
+                this.player1.clickCard(this.darthVader);
+
+                expect(this.player1).toBeAbleToSelectExactly([this.tielnFighter, this.atst, this.lukeSkywalker, this.allianceXwing]);
+                this.player1.clickCard(this.lukeSkywalker);
+
+                expect(this.player1).toBeAbleToSelectExactly([this.p1Base, this.p2Base]);
+                this.player1.clickCard(this.p2Base);
+
+                expect(this.darthVader.exhausted).toBe(true);
+                expect(this.player1.countExhaustedResources()).toBe(exhaustedResourcesBeforeAbilityUsed + 1);
+                expect(this.atst.damage).toBe(0);
+                expect(this.lukeSkywalker.damage).toBe(1);
+                expect(this.allianceXwing.damage).toBe(0);
+                expect(this.p1Base.damage).toBe(0);
+                expect(this.p2Base.damage).toBe(1);
             });
         });
 
