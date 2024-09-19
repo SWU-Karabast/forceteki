@@ -87,7 +87,8 @@ export enum Stage {
     Cost = 'cost',
     Effect = 'effect',
     PreTarget = 'preTarget',
-    Target = 'target'
+    Target = 'target',
+    Trigger = 'trigger'
 }
 
 export enum RelativePlayer {
@@ -146,6 +147,7 @@ export enum TokenName {
 }
 
 export enum EventName {
+    MetaAttackSteps = 'metaAttackSteps',
     OnAbilityResolved = 'onAbilityResolved',
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
     OnAddTokenToCard = 'onAddTokenToCard',

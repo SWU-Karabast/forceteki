@@ -68,18 +68,11 @@ export class TriggeredAbilityWindow extends BaseStep {
         this.game.currentAbilityWindow = this;
 
         if (!this.choosePlayerResolutionOrderComplete) {
+            this.cleanUpTriggers();
+
             // if no abilities trigged, continue with game flow
             if (this.unresolved.size === 0) {
                 return true;
-            }
-
-            // remove any triggered abilities from cancelled events
-            // this is necessary because we trigger abilities before any events in the window are executed, so if any were cancelled at execution time we need to clean up
-            this.unresolved = new Map([...this.unresolved].map(([player, triggeredAbilityList]) => [player, triggeredAbilityList.filter((context) => !context.event.cancelled)]));
-
-            // see if consolidating shields gets us down to one trigger
-            if (this.unresolved.size === 1 && this.triggerAbilityType === AbilityType.ReplacementEffect) {
-                this.consolidateShieldTriggers();
             }
 
             // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
@@ -132,6 +125,13 @@ export class TriggeredAbilityWindow extends BaseStep {
         this.choosePlayerResolutionOrderComplete = true;
 
         let abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
+
+        // if none of the player's remaining abilities can resolve, skip to the next player
+        if (!this.canAnyAbilitiesResolve(abilitiesToResolve)) {
+            this.unresolved.set(this.currentlyResolvingPlayer, []);
+            abilitiesToResolve = [];
+        }
+
         if (abilitiesToResolve.length === 0) {
             // if the last resolving player is out of abilities to resolve, we're done
             if (this.resolvePlayerOrder.length === 1) {
@@ -175,26 +175,33 @@ export class TriggeredAbilityWindow extends BaseStep {
 
     private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
-        const choices = abilitiesToResolve.map((context, index) => {
-            return { text: (context.ability as TriggeredAbility).title, method: 'resolveAbility', arg: context };
-        });
+
+        // TODO: need to optionally show additional details in the ability options for more complex situations, e.g. same ability triggered multiple times in the same window.
+        // (see forcedtriggeredabilitywindow.js in the L5R code for reference)
+        const choices = abilitiesToResolve.map((context) => (context.ability as TriggeredAbility).title);
+        const handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
             activePromptTitle: 'Choose an ability to resolve:',
             source: 'Choose Triggered Ability Resolution Order',
-            choices: choices
+            choices: choices,
+            handlers: handlers
         });
 
-        this.game.promptForSelect(this.currentlyResolvingPlayer, Object.assign(this.getPromptForSelectProperties(), {
-            onSelect: (player, card) => {
-                this.resolveAbility(abilitiesToResolve.find((context) => context.source === card));
-                return true;
-            }
-        }));
+        // TODO: a variation of this was being used in the L5R code to choose which card to activate triggered abilities on.
+        // not used now b/c we're doing a shortcut where we just present each ability text name, which doesn't work well in all cases sadly.
+
+        // this.game.promptForSelect(this.currentlyResolvingPlayer, Object.assign(this.getPromptForSelectProperties(), {
+        //     onSelect: (player, card) => {
+        //         this.resolveAbility(abilitiesToResolve.find((context) => context.source === card));
+        //         return true;
+        //     }
+        // }));
     }
 
+    // this is here to allow for overriding in subclasses
     protected getPromptForSelectProperties() {
-        return Object.assign({ location: WildcardLocation.Any }, this.getPromptProperties());
+        return this.getPromptProperties();
     }
 
     private getPromptProperties() {
@@ -233,11 +240,6 @@ export class TriggeredAbilityWindow extends BaseStep {
                 continue;
             }
 
-            // TODO: fill out this implementation. see forcedtriggeredabilitywindow.js in the L5R code for reference
-            if (triggeringCards.has(abilityContext.source)) {
-                throw Error(`The card ${abilityContext.source} has had multiple abilities triggered in the same event window (or one ability triggered multiple times). This is not yet implemented.`);
-            }
-
             triggeringCards.add(abilityContext.source);
         }
 
@@ -260,6 +262,41 @@ export class TriggeredAbilityWindow extends BaseStep {
                 }
             ]
         });
+    }
+
+    private cleanUpTriggers() {
+        // remove any triggered abilities from cancelled events
+        // this is necessary because we trigger abilities before any events in the window are executed, so if any were cancelled at execution time we need to clean up
+        const preCleanupTriggers: [Player, TriggeredAbilityContext<Card>[]][] = [...this.unresolved];
+        this.unresolved = new Map<Player, TriggeredAbilityContext[]>();
+
+        for (const [player, triggeredAbilities] of preCleanupTriggers) {
+            const cleanedAbilities = triggeredAbilities.filter((context) => !context.event.cancelled);
+            if (cleanedAbilities.length > 0) {
+                this.unresolved.set(player, cleanedAbilities);
+            }
+        }
+
+        if (this.unresolved.size === 0) {
+            return;
+        }
+
+        const anyWithLegalTargets = [...this.unresolved].map(([player, triggeredAbilityList]) => triggeredAbilityList).flat()
+            .some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext));
+
+        if (!anyWithLegalTargets) {
+            this.unresolved = new Map();
+            return;
+        }
+
+        // see if consolidating shields gets us down to one trigger
+        if (this.unresolved.size === 1 && this.triggerAbilityType === AbilityType.ReplacementEffect) {
+            this.consolidateShieldTriggers();
+        }
+    }
+
+    private canAnyAbilitiesResolve(triggeredAbilities: TriggeredAbilityContext[]) {
+        return triggeredAbilities.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext));
     }
 
     /**

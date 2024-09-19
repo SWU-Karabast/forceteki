@@ -110,7 +110,7 @@ export default class TriggeredAbility extends CardAbility {
             source: this.card,
             player: player,
             ability: this,
-            stage: Stage.PreTarget
+            stage: Stage.Trigger
         });
     }
 

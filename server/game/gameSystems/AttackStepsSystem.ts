@@ -49,7 +49,7 @@ export interface IAttackProperties extends ICardTargetSystemProperties {
  */
 export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
     public override readonly name = 'attack';
-    public override readonly eventName = EventName.Unnamed;
+    public override readonly eventName = EventName.MetaAttackSteps;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
     protected override readonly defaultProperties: IAttackProperties = {
         targetCondition: () => true

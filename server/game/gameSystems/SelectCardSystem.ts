@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import CardSelector from '../core/cardSelector/CardSelector';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { CardType, EffectName, Location, RelativePlayer, TargetMode } from '../core/Constants';
+import { CardType, CardTypeFilter, EffectName, Location, RelativePlayer, TargetMode } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -10,7 +10,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 export interface ISelectCardProperties extends ICardTargetSystemProperties {
     activePromptTitle?: string;
     player?: RelativePlayer;
-    cardType?: CardType | CardType[];
+    cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     controller?: RelativePlayer;
     locationFilter?: Location | Location[];
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
