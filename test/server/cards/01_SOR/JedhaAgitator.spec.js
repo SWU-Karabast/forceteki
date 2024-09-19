@@ -30,7 +30,7 @@ describe('Jedha Agitator', function() {
                     player1: {
                         groundArena: ['jedha-agitator', 'battlefield-marine'],
                         spaceArena: ['tieln-fighter'],
-                        leader: { card: 'boba-fett#daimyo', deployed: true }
+                        leader: { card: 'hunter#outcast-sergeant', deployed: true }
                     },
                     player2: {
                         groundArena: ['wampa'],
@@ -49,7 +49,7 @@ describe('Jedha Agitator', function() {
                 expect(this.jedhaAgitator.exhausted).toBe(true);
 
                 this.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.jedhaAgitator, this.battlefieldMarine, this.p1Base, this.p2Base, this.bobaFett]);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.jedhaAgitator, this.battlefieldMarine, this.p1Base, this.p2Base, this.hunter]);
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.damage).toBe(2);
                 expect(this.p2Base.damage).toBe(2);

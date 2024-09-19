@@ -22,7 +22,8 @@ export default class VadersLightsaber extends UpgradeCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'If attached unit is Darth Vader, you may deal 4 damage to a ground unit',
+            title: 'Deal 4 damage to a ground unit',
+            optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.parentCard?.title === 'Darth Vader',
                 trueImmediateEffect: this.vaderLightsaberAbility(),
