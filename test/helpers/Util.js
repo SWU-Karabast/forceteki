@@ -114,11 +114,11 @@ function promptStatesEqual(promptState1, promptState2) {
         return false;
     }
 
-    return selectionArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
-        selectionArraysEqual(promptState1.selectableCards, promptState2.selectableCards);
+    return stringArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
+        stringArraysEqual(promptState1.selectableCards, promptState2.selectableCards);
 }
 
-function selectionArraysEqual(ara1, ara2) {
+function stringArraysEqual(ara1, ara2) {
     ara1.sort();
     ara2.sort();
 
@@ -137,5 +137,6 @@ module.exports = {
     checkNullCard,
     formatPrompt,
     getPlayerPromptState,
-    promptStatesEqual
+    promptStatesEqual,
+    stringArraysEqual
 };

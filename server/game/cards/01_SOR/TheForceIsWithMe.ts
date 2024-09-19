@@ -1,6 +1,6 @@
 import AbilityHelper from '../../AbilityHelper';
 import { EventCard } from '../../core/card/EventCard';
-import { RelativePlayer } from '../../core/Constants';
+import { RelativePlayer, Trait } from '../../core/Constants';
 
 export default class TheForceIsWithMe extends EventCard {
     protected override getImplementationId() {
@@ -14,9 +14,15 @@ export default class TheForceIsWithMe extends EventCard {
         this.setEventAbility({
             title: 'Give a shield token to a unit',
             targetResolver: {
-                controller: RelativePlayer.Any,
+                controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.giveExperience({ amount: 2 }),
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => context.source.controller.isTraitInPlay(Trait.Force),
+                        onTrue: AbilityHelper.immediateEffects.giveShield({ amount: 1 }),
+                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    }),
+                    AbilityHelper.immediateEffects.attack({ optional: true })
                 ])
             }
         });
