@@ -4,7 +4,7 @@
 const { select } = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
-const { checkNullCard, formatPrompt } = require('./Util.js');
+const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual } = require('./Util.js');
 
 require('./ObjectFormatters.js');
 
@@ -353,10 +353,14 @@ var customMatchers = {
                 }
                 let result = {};
 
+                const beforeClick = getPlayerPromptState(player.player);
+
                 player.clickCardNonChecking(card);
 
-                // this is the default action window prompt (meaning no action was available)
-                result.pass = !player.hasPrompt('Action Window');
+                const afterClick = getPlayerPromptState(player.player);
+
+                // if the prompt state changed after click, there was an action available
+                result.pass = !promptStatesEqual(beforeClick, afterClick);
 
                 if (result.pass) {
                     result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(player)}`;

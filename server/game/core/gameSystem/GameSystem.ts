@@ -89,6 +89,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
+    // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
     public abstract eventHandler(event: GameEvent, additionalProperties: any): void;
 
     /**
@@ -132,6 +133,7 @@ export abstract class GameSystem<TProperties extends IGameSystemProperties = IGa
      * @param additionalProperties Any additional properties to extend the default ones with
      * @returns True if the target is legal for the system, false otherwise
      */
+    // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
     public canAffect(target: any, context: AbilityContext, additionalProperties = {}): boolean {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
 

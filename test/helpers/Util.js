@@ -91,4 +91,51 @@ function formatPrompt(prompt, currentActionTargets) {
     );
 }
 
-module.exports = { convertNonDuplicateCardNamesToProperties, internalNameToPropertyName, checkNullCard, formatPrompt };
+function getPlayerPromptState(player) {
+    return {
+        selectableCards: copySelectionArray(player.promptState.selectableCards),
+        selectedCards: copySelectionArray(player.promptState.selectedCards),
+        menuTitle: player.currentPrompt().menuTitle,
+        promptTitle: player.currentPrompt().promptTitle
+    };
+}
+
+function copySelectionArray(ara) {
+    return ara == null ? [] : [...ara];
+}
+
+function promptStatesEqual(promptState1, promptState2) {
+    if (
+        promptState1.menuTitle !== promptState2.menuTitle ||
+        promptState1.promptTitle !== promptState2.promptTitle ||
+        promptState1.selectableCards.length !== promptState2.selectableCards.length ||
+        promptState1.selectedCards.length !== promptState2.selectedCards.length
+    ) {
+        return false;
+    }
+
+    return selectionArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
+        selectionArraysEqual(promptState1.selectableCards, promptState2.selectableCards);
+}
+
+function selectionArraysEqual(ara1, ara2) {
+    ara1.sort();
+    ara2.sort();
+
+    for (let i = 0; i < ara1.length; i++) {
+        if (ara1[i] !== ara2[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+module.exports = {
+    convertNonDuplicateCardNamesToProperties,
+    internalNameToPropertyName,
+    checkNullCard,
+    formatPrompt,
+    getPlayerPromptState,
+    promptStatesEqual
+};

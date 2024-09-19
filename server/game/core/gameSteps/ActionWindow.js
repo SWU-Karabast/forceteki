@@ -31,6 +31,7 @@ class ActionWindow extends UiPrompt {
             return false;
         }
 
+        // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
         let actions = card.getActions();
 
         let legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
