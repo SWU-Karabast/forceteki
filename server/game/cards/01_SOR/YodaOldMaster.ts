@@ -20,7 +20,7 @@ export default class YodaOldMaster extends NonLeaderUnitCard {
                     ['You']: AbilityHelper.immediateEffects.draw({ target: context.source.owner }),
                     ['Opponent']: AbilityHelper.immediateEffects.draw({ target: context.source.owner.opponent }),
                     ['You and Opponent']: AbilityHelper.immediateEffects.draw({ target: [context.source.owner, context.source.owner.opponent] }),
-                    ['No one']: AbilityHelper.immediateEffects.noAction()
+                    ['No one']: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                 })
             }
         });
