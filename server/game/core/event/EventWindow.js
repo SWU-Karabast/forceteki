@@ -6,7 +6,7 @@ const { default: Contract } = require('../utils/Contract.js');
 // const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
 
 class EventWindow extends BaseStepWithPipeline {
-    constructor(game, events, resolveTriggersAfter = false) {
+    constructor(game, events, ownsATriggerWindow = false) {
         super(game);
 
         this.events = [];
@@ -21,7 +21,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         this.triggeredAbilityWindow = null;
 
-        this.resolveTriggersAfter = resolveTriggersAfter;
+        this.ownsATriggerWindow = ownsATriggerWindow;
 
         this.initialise();
     }
@@ -59,11 +59,12 @@ class EventWindow extends BaseStepWithPipeline {
     setCurrentEventWindow() {
         this.previousEventWindow = this.game.currentEventWindow;
         this.game.currentEventWindow = this;
-        if (this.resolveTriggersAfter) {
+        if (this.ownsATriggerWindow) {
             this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
         } else if (this.previousEventWindow) {
             this.triggeredAbilityWindow = this.previousEventWindow.triggeredAbilityWindow;
-            this.triggeredAbilityWindow?.addTriggeringEvents(this.events);
+        } else {
+            Contract.fail(`${this.toStringName} set without any TriggeredEventWindow`);
         }
     }
 
@@ -101,10 +102,11 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     executeHandler() {
+        this.triggeredAbilityWindow.addTriggeringEvents(this.events);
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggeredAbilityWindow?.emitEvents();
+        this.triggeredAbilityWindow.emitEvents();
 
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
@@ -117,7 +119,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO: make it so we don't need to trigger twice
         // trigger again here to catch any events for cards that entered play during event resolution
-        this.triggeredAbilityWindow?.emitEvents();
+        this.triggeredAbilityWindow.emitEvents();
     }
 
     resolveGameState() {
@@ -137,7 +139,7 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     resolveTriggersIfNecessary() {
-        if (this.resolveTriggersAfter) {
+        if (this.ownsATriggerWindow) {
             this.queueStep(this.triggeredAbilityWindow);
         }
     }
