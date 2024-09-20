@@ -269,7 +269,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if (this.context.ability.isActivatedAbility()) {
-            this.game.openThenEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
+            this.game.openEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
         } else {
             this.initiateAbility = true;
         }

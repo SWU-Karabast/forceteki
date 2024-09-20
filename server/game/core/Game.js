@@ -19,7 +19,6 @@ const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
 const InitiateCardAbilityEvent = require('./event/InitiateCardAbilityEvent.js');
 const EventWindow = require('./event/EventWindow.js');
-const ThenEventWindow = require('./event/ThenEventWindow.js');
 const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAbilityEventWindow.js');
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { SimultaneousEffectWindow } = require('./gameSteps/SimultaneousEffectWindow.js');
@@ -875,16 +874,6 @@ class Game extends EventEmitter {
             events = [events];
         }
         return this.queueStep(new EventWindow(this, events, resolveTriggersAfter));
-    }
-
-    openThenEventWindow(events) {
-        if (this.currentEventWindow) {
-            if (!Array.isArray(events)) {
-                events = [events];
-            }
-            return this.queueStep(new ThenEventWindow(this, events));
-        }
-        return this.openEventWindow(events);
     }
 
     /**
