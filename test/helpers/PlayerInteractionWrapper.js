@@ -111,6 +111,29 @@ class PlayerInteractionWrapper {
         this.game.resolveGameState();
     }
 
+    setBaseStatus(baseOptions) {
+        if (!baseOptions) {
+            return;
+        }
+
+        // leader as a string card name is a no-op unless it doesn't match the existing leader, then throw an error
+        if (typeof baseOptions === 'string') {
+            if (baseOptions !== this.player.base.internalName) {
+                throw new Error(`Provided base name ${baseOptions} does not match player's base ${this.player.base.internalName}. Do not try to change base after test has initialized.`);
+            }
+            return;
+        }
+
+        if (baseOptions.card !== this.player.base.internalName) {
+            throw new Error(`Provided base name ${baseOptions.card} does not match player's base ${this.player.base.internalName}. Do not try to change base after test has initialized.`);
+        }
+
+        var baseCard = this.player.base;
+        baseCard.damage = baseOptions.damage || 0;
+
+        this.game.resolveGameState();
+    }
+
     /**
      * Gets all cards in play for a player in the space arena
      * @return {BaseCard[]} - List of player's cards currently in play in the space arena

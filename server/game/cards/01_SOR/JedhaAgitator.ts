@@ -17,8 +17,8 @@ export default class JedhaAgitator extends NonLeaderUnitCard {
                 cardCondition: (card) => (card.isUnit() && card.location === Location.GroundArena) || card.isBase(),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.leader.deployed,
-                    trueImmediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
-                    falseImmediateEffect: AbilityHelper.immediateEffects.noAction()
+                    onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
+                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });
