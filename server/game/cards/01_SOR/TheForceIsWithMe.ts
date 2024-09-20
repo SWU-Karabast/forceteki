@@ -12,7 +12,7 @@ export default class TheForceIsWithMe extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Give a shield token to a unit',
+            title: 'Give 2 Experience, a Shield if there is a Force unit, and optionally attack',
             targetResolver: {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
