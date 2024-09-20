@@ -10,7 +10,7 @@ import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import CardAbility from '../ability/CardAbility';
-import type Shield from '../../cards/01_SOR/Shield';
+import type Shield from '../../cards/01_SOR/tokens/Shield';
 import { KeywordInstance } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';

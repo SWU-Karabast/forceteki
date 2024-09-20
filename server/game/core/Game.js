@@ -32,7 +32,7 @@ const { cards } = require('../cards/Index.js');
 
 const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
-const { default: Shield } = require('../cards/01_SOR/Shield.js');
+const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 
 class Game extends EventEmitter {
