@@ -34,7 +34,8 @@ class PlayerOrCardAbility {
      * @param {string} [properties.title] - Name to use for ability display and debugging
      * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
      * @param {boolean} [properties.optional] - Optional property that indicates if resolution of the ability
-     * is optional or required
+     * @param {boolean} [properties.resolveTriggersAfter] - Optional property that indicates whether triggers triggered during this
+     * ability should be resolved right after it, or passed back to the parent game event window
      */
     constructor(properties, type = AbilityType.Action) {
         Contract.assertStringValue(properties.title);
@@ -54,6 +55,8 @@ class PlayerOrCardAbility {
         this.keyword = null;
         this.type = type;
         this.optional = !!properties.optional;
+        //Nested abilities rule(Comp Rules 2.0 7.6.11): triggers should always resolve triggers triggered during their effects right after their effects
+        this.resolveTriggersAfter = this.type === AbilityType.Triggered || !!properties.resolveTriggersAfter;
         this.gameSystem = properties.immediateEffect || [];
         if (!Array.isArray(this.gameSystem)) {
             this.gameSystem = [this.gameSystem];

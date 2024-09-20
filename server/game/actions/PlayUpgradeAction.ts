@@ -30,7 +30,7 @@ export class PlayUpgradeAction extends PlayCardAction {
                 .attachUpgrade({ upgrade: context.source, takeControl: context.source.controller !== context.player })
                 .generateEvent(context.target, context),
             cardPlayedEvent
-        ], true);
+        ], this.resolveTriggersAfter);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

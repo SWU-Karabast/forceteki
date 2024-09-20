@@ -68,7 +68,7 @@ export class TriggeredAbilityWindow extends BaseStep {
             if (this.unresolved.size === 0) {
                 return true;
             }
-            
+
             // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
             if (this.unresolved.size > 1) {
                 this.promptForResolvePlayerOrder();

@@ -767,7 +767,7 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.createEventAndOpenWindow(EventName.OnBeginRound);
+        this.createEventAndOpenWindow(EventName.OnBeginRound, {}, true);
         this.queueStep(new ActionPhase(this));
         this.queueStep(new RegroupPhase(this));
         this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
@@ -775,7 +775,7 @@ class Game extends EventEmitter {
     }
 
     roundEnded() {
-        this.createEventAndOpenWindow(EventName.OnRoundEnded);
+        this.createEventAndOpenWindow(EventName.OnRoundEnded, {}, true);
     }
 
     claimInitiative(player) {

@@ -67,7 +67,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         let eventProps = {
             context: this.context
         };
-        let resolveTriggersAfter = false;
         if (this.context.ability.isCardAbility()) {
             eventName = EventName.OnCardAbilityInitiated;
             eventProps = {
@@ -76,7 +75,6 @@ class AbilityResolver extends BaseStepWithPipeline {
                 context: this.context
             };
             if (this.context.ability.isCardPlayed()) {
-                resolveTriggersAfter = true;
                 this.events.push(new GameEvent(EventName.OnCardPlayed, {
                     player: this.context.player,
                     card: this.context.source,
@@ -90,7 +88,6 @@ class AbilityResolver extends BaseStepWithPipeline {
                 }));
             }
             if (this.context.ability.isActivatedAbility()) {
-                resolveTriggersAfter = [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.context.ability.type);
                 this.events.push(new GameEvent(EventName.OnCardAbilityTriggered, {
                     player: this.context.player,
                     card: this.context.source,
@@ -99,7 +96,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             }
         }
         this.events.push(new GameEvent(eventName, eventProps, () => this.queueInitiateAbilitySteps()));
-        this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events, resolveTriggersAfter));
+        this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events, this.context.ability.resolveTriggersAfter));
     }
 
     queueInitiateAbilitySteps() {

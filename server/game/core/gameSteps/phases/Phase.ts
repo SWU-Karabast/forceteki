@@ -23,7 +23,7 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected createPhase(): void {
-        this.game.createEventAndOpenWindow(EventName.OnPhaseCreated, { phase: this.name }, false, () => {
+        this.game.createEventAndOpenWindow(EventName.OnPhaseCreated, { phase: this.name }, true, () => {
             for (const step of this.steps) {
                 this.game.queueStep(step);
             }
