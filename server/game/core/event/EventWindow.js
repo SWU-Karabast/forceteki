@@ -63,7 +63,7 @@ class EventWindow extends BaseStepWithPipeline {
             this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
         } else if (this.previousEventWindow) {
             this.triggeredAbilityWindow = this.previousEventWindow.triggeredAbilityWindow;
-            this.triggeredAbilityWindow.addTriggeringEvents(this.events);
+            this.triggeredAbilityWindow?.addTriggeringEvents(this.events);
         }
     }
 
@@ -104,7 +104,7 @@ class EventWindow extends BaseStepWithPipeline {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggerEventsForWindow();
+        this.triggeredAbilityWindow?.emitEvents();
 
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
@@ -117,14 +117,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO: make it so we don't need to trigger twice
         // trigger again here to catch any events for cards that entered play during event resolution
-        this.triggerEventsForWindow();
-    }
-
-    triggerEventsForWindow() {
-        if (this.triggeredAbilityWindow === null) {
-            this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
-        }
-        this.triggeredAbilityWindow.emitEvents();
+        this.triggeredAbilityWindow?.emitEvents();
     }
 
     resolveGameState() {
@@ -141,14 +134,6 @@ class EventWindow extends BaseStepWithPipeline {
                 this.game.resolveAbility(cardAbilityStep.ability.createContext(cardAbilityStep.context.player));
             }
         }
-    }
-
-    openTriggeredAbilityWindow() {
-        if (this.events.length === 0) {
-            return;
-        }
-
-        this.queueStep(this.triggeredAbilityWindow);
     }
 
     resolveTriggersIfNecessary() {

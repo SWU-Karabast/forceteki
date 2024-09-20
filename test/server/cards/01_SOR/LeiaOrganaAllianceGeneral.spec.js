@@ -66,12 +66,14 @@ describe('Leia Organa, Alliance General', function() {
                 this.player1.clickCard(this.sabineWren);
                 this.player1.clickCard(this.sundariPeacekeeper);
 
+                // being prompted for Sabine trigger target
                 expect(this.sabineWren.damage).toBe(0);
                 expect(this.sundariPeacekeeper.damage).toBe(0);
                 expect(this.p2Base.damage).toBe(0);
                 expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.p1Base, this.p2Base]);
                 this.player1.clickCard(this.p2Base);
 
+                // trigger and attack go through
                 expect(this.p2Base.damage).toBe(1);
                 expect(this.sabineWren.damage).toBe(1);
                 expect(this.sundariPeacekeeper.damage).toBe(2);
@@ -86,6 +88,7 @@ describe('Leia Organa, Alliance General', function() {
                 expect(this.player2).toBeActivePlayer();
 
                 this.moveToNextActionPhase();
+
                 // unit with trigger second
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Attack with a Rebel unit');
@@ -96,9 +99,34 @@ describe('Leia Organa, Alliance General', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.rebelPathfinder]);
                 this.player1.clickCard(this.sabineWren);
                 this.player1.clickCard(this.sundariPeacekeeper);
+
+                // being prompted for Sabine trigger target
                 expect(this.sabineWren.damage).toBe(1);
                 expect(this.sundariPeacekeeper.damage).toBe(2);
                 expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.p1Base, this.p2Base]);
+            });
+        });
+
+        describe('Leia\'s undeployed ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['atst', { card: 'rebel-pathfinder', exhausted: true }],
+                        spaceArena: ['tieln-fighter'],
+                        leader: 'leia-organa#alliance-general'
+                    },
+                    player2: {
+                        groundArena: ['sundari-peacekeeper'],
+                        spaceArena: ['tie-advanced']
+                    }
+                });
+            });
+
+            it('can be activated with no target', function () {
+                this.player1.clickCard(this.leiaOrgana);
+                this.player1.clickPrompt('Attack with a Rebel unit');
+                expect(this.player2).toBeActivePlayer();
             });
         });
 
