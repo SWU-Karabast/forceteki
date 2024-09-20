@@ -1,5 +1,7 @@
 /*eslint no-console:0 */
 const { default: axios } = require('axios');
+const { default: axiosRetry } = require('axios-retry');
+const { Agent } = require('https');
 const { log } = require('console');
 const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
@@ -7,6 +9,11 @@ const path = require('path');
 const cliProgress = require('cli-progress');
 
 const pathToJSON = path.join(__dirname, '../test/json/');
+
+axiosRetry(axios, {
+    retries: 3,
+    retryDelay: () => (Math.random() * 2000) + 1000      // jitter retry delay by 1 - 3 seconds
+});
 
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
@@ -58,7 +65,7 @@ function filterValues(card) {
 }
 
 function getCardData(page, progressBar) {
-    return axios.get('https://admin.starwarsunlimite.com/api/cards?pagination[page]=' + page)
+    return axios.get('https://admin.starwarsunlimited.com/api/cards?pagination[page]=' + page)
         .then((res) => res.data.data)
         .then((cards) => {
             mkdirp.sync(pathToJSON);
@@ -74,6 +81,13 @@ function getCardData(page, progressBar) {
 }
 
 async function main() {
+    axios.defaults.httpAgent = new Agent({
+        maxSockets: 8,
+    });
+    axios.defaults.httpsAgent = new Agent({
+        maxSockets: 8,
+    });
+
     let pageData = await axios.get('https://admin.starwarsunlimited.com/api/cards');
     let totalPageCount = pageData.data.meta.pagination.pageCount;
 
