@@ -25,12 +25,12 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
             targetResolvers: {
                 unit: { cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.conditional({ condition: (context) => this.villainyCardPlayedThisPhase(context),
-                        trueImmediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        falseImmediateEffect: AbilityHelper.immediateEffects.noAction() }) },
+                        onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                        onFalse: AbilityHelper.immediateEffects.noAction() }) },
                 base: { cardTypeFilter: CardType.Base,
                     immediateEffect: AbilityHelper.immediateEffects.conditional({ condition: (context) => this.villainyCardPlayedThisPhase(context),
-                        trueImmediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        falseImmediateEffect: AbilityHelper.immediateEffects.noAction() }) }
+                        onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                        onFalse: AbilityHelper.immediateEffects.noAction() }) }
             }
         });
     }
