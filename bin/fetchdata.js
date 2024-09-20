@@ -58,7 +58,7 @@ function filterValues(card) {
 }
 
 function getCardData(page, progressBar) {
-    return axios.get('https://admin.starwarsunlimited.com/api/cards?pagination[page]=' + page)
+    return axios.get('https://admin.starwarsunlimite.com/api/cards?pagination[page]=' + page)
         .then((res) => res.data.data)
         .then((cards) => {
             mkdirp.sync(pathToJSON);
@@ -68,7 +68,9 @@ function getCardData(page, progressBar) {
                 cards.map((card) => filterValues(card))
             );
         })
-        .catch((error) => console.log('error fetching: ' + error));
+        .catch((error) => {
+            throw new Error(`Request error retrieving data: ${error.code} ${error.response?.data?.message || ''}`);
+        });
 }
 
 async function main() {
