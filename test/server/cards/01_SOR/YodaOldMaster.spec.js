@@ -10,7 +10,7 @@ describe('Yoda, Old Master', function() {
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine']
                     },
                     player2: {
-                        groundArena: ['vigilant-honor-guards'],
+                        groundArena: ['rogue-squadron-skirmisher'],
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine']
                     }
                 });
@@ -18,7 +18,7 @@ describe('Yoda, Old Master', function() {
 
             it('should draw a card for each selected player', function () {
                 this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.vigilantHonorGuards);
+                this.player1.clickCard(this.rogueSquadronSkirmisher);
                 expect(this.yoda).toBeInLocation('discard');
                 expect(this.player1).toHaveEnabledPromptButtons(['Me', 'Opponent', 'Me and Opponent', 'No one']);
 
@@ -30,7 +30,7 @@ describe('Yoda, Old Master', function() {
 
             it('should draw a card for each selected player', function () {
                 this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.vigilantHonorGuards);
+                this.player1.clickCard(this.rogueSquadronSkirmisher);
                 expect(this.yoda).toBeInLocation('discard');
                 expect(this.player1).toHaveEnabledPromptButtons(['Me', 'Opponent', 'Me and Opponent', 'No one']);
 
@@ -42,7 +42,7 @@ describe('Yoda, Old Master', function() {
 
             it('should draw a card for each selected player', function () {
                 this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.vigilantHonorGuards);
+                this.player1.clickCard(this.rogueSquadronSkirmisher);
                 expect(this.yoda).toBeInLocation('discard');
                 expect(this.player1).toHaveEnabledPromptButtons(['Me', 'Opponent', 'Me and Opponent', 'No one']);
 
@@ -54,7 +54,7 @@ describe('Yoda, Old Master', function() {
 
             it('should draw a card for each selected player', function () {
                 this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.vigilantHonorGuards);
+                this.player1.clickCard(this.rogueSquadronSkirmisher);
                 expect(this.yoda).toBeInLocation('discard');
                 expect(this.player1).toHaveEnabledPromptButtons(['Me', 'Opponent', 'Me and Opponent', 'No one']);
 
