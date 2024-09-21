@@ -46,6 +46,7 @@ function filterValues(card) {
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);
+    filteredObj.setId = { set: card.attributes.expansion.data.attributes.code, number: card.attributes.cardNumber };
 
     // if a card has multiple types it will be still in one string, like 'token upgrade'
     filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
@@ -80,6 +81,35 @@ function getCardData(page, progressBar) {
         });
 }
 
+function getUniqueCards(cards) {
+    const cardMap = [];
+    const seenNames = [];
+    var duplicatesWithSetCode = {};
+    const uniqueCardsMap = new Map();
+    const setNumber = new Map([['SOR', 1], ['SHD', 2]]);
+
+    for (const card of cards) {
+        if (seenNames.includes(card.internalName)) {
+            if (duplicatesWithSetCode[card.internalName] === null) {
+                duplicatesWithSetCode[card.internalName] = cards.filter((c) => c.internalName === card.internalName)
+                    .map((c) => c.debugObject.attributes.expansion.data.attributes.code);
+            }
+            const uniqueCardEntry = uniqueCardsMap.get(card.internalName);
+            if (setNumber.get(card.setId.set) < setNumber.get(uniqueCardEntry.setId.set)) {
+                uniqueCardEntry.setId = card.setId;
+            }
+            continue;
+        }
+
+        seenNames.push(card.internalName);
+        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle });
+        uniqueCardsMap.set(card.internalName, card);
+    }
+
+    const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
+    return { uniqueCards, cardMap, duplicatesWithSetCode };
+}
+
 async function main() {
     axios.defaults.httpAgent = new Agent({
         maxSockets: 8,
@@ -102,23 +132,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    var cardMap = [];
-    var seenNames = [];
-    var duplicatesWithSetCode = {};
-    var uniqueCards = [];
-    for (const card of cards) {
-        if (seenNames.includes(card.internalName)) {
-            if (duplicatesWithSetCode[card.internalName] === null) {
-                duplicatesWithSetCode[card.internalName] = cards.filter((c) => c.internalName === card.internalName)
-                    .map((c) => c.debugObject.attributes.expansion.data.attributes.code);
-            }
-            continue;
-        }
-
-        seenNames.push(card.internalName);
-        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle });
-        uniqueCards.push(card);
-    }
+    const { uniqueCards, cardMap, duplicatesWithSetCode } = getUniqueCards(cards);
 
     cards.map((card) => delete card.debugObject);
 
