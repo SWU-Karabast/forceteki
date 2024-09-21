@@ -8,9 +8,6 @@ const { default: Contract } = require('../utils/Contract.js');
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
- *
- * The default handler for this will resolve the ability using a `ThenEventWindow` so that any triggered
- * effects will not resolve until after the entire "Then" chain is done (see `ThenEventWindow` or SWU 8.29 for details)
  */
 class CardAbilityStep extends PlayerOrCardAbility {
     /** @param {import('../card/Card').Card} card - The card this ability is attached to */
@@ -116,7 +113,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     openEventWindow(events) {
-        return this.game.openThenEventWindow(events);
+        return this.game.openEventWindow(events);
     }
 
     /** @override */

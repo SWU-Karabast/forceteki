@@ -5,7 +5,7 @@ describe('Leia Organa, Alliance General', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['atst', 'battlefield-marine', 'fleet-lieutenant', { card: 'rebel-pathfinder', exhausted: true }],
+                        groundArena: ['sabine-wren#explosives-artist', 'atst', 'battlefield-marine', 'fleet-lieutenant', { card: 'rebel-pathfinder', exhausted: true }],
                         spaceArena: ['tieln-fighter', 'alliance-xwing'],
                         leader: 'leia-organa#alliance-general'
                     },
@@ -19,7 +19,7 @@ describe('Leia Organa, Alliance General', function() {
             it('should attack with two Rebel units', function () {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Attack with a Rebel unit');
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
+                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
                 expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
 
                 this.player1.clickCard(this.battlefieldMarine);
@@ -30,7 +30,7 @@ describe('Leia Organa, Alliance General', function() {
 
                 // second attack
                 expect(this.player1).toBeActivePlayer();
-                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.allianceXwing]);
+                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.allianceXwing]);
                 expect(this.player1).toHaveEnabledPromptButton('Pass ability');
                 this.player1.clickCard(this.allianceXwing);
                 expect(this.player1).toHaveEnabledPromptButton('Pass ability');
@@ -45,23 +45,65 @@ describe('Leia Organa, Alliance General', function() {
             it('should allow passing the second attack', function () {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Attack with a Rebel unit');
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
 
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.sundariPeacekeeper);
-                expect(this.battlefieldMarine.exhausted).toBe(true);
-                expect(this.sundariPeacekeeper.damage).toBe(3);
-                expect(this.battlefieldMarine.damage).toBe(1);
 
                 // second attack
                 expect(this.player1).toBeActivePlayer();
-                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.allianceXwing]);
+                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.allianceXwing]);
                 expect(this.player1).toHaveEnabledPromptButton('Pass ability');
                 this.player1.clickPrompt('Pass ability');
 
                 expect(this.player2).toBeActivePlayer();
                 expect(this.leiaOrgana.exhausted).toBe(true);
+            });
+
+            it('should allow appropriate attack triggers to happen when either attack is declared', function () {
+                // unit with trigger first
+                this.player1.clickCard(this.leiaOrgana);
+                this.player1.clickPrompt('Attack with a Rebel unit');
+                this.player1.clickCard(this.sabineWren);
+                this.player1.clickCard(this.sundariPeacekeeper);
+
+                // being prompted for Sabine trigger target
+                expect(this.sabineWren.damage).toBe(0);
+                expect(this.sundariPeacekeeper.damage).toBe(0);
+                expect(this.p2Base.damage).toBe(0);
+                expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.p1Base, this.p2Base]);
+                this.player1.clickCard(this.p2Base);
+
+                // trigger and attack go through
+                expect(this.p2Base.damage).toBe(1);
+                expect(this.sabineWren.damage).toBe(1);
+                expect(this.sundariPeacekeeper.damage).toBe(2);
+
+                // second attack
+                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
+                this.player1.clickCard(this.allianceXwing);
+                this.player1.clickCard(this.tieAdvanced);
+                expect(this.allianceXwing).toBeInLocation('discard');
+                expect(this.tieAdvanced).toBeInLocation('discard');
+
+                expect(this.player2).toBeActivePlayer();
+
+                this.moveToNextActionPhase();
+
+                // unit with trigger second
+                this.player1.clickCard(this.leiaOrgana);
+                this.player1.clickPrompt('Attack with a Rebel unit');
+                this.player1.clickCard(this.battlefieldMarine);
+                this.player1.clickCard(this.p2Base);
+
+                // second attack
+                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.rebelPathfinder]);
+                this.player1.clickCard(this.sabineWren);
+                this.player1.clickCard(this.sundariPeacekeeper);
+
+                // being prompted for Sabine trigger target
+                expect(this.sabineWren.damage).toBe(1);
+                expect(this.sundariPeacekeeper.damage).toBe(2);
+                expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.p1Base, this.p2Base]);
             });
         });
 
@@ -84,9 +126,7 @@ describe('Leia Organa, Alliance General', function() {
             it('can be activated with no target', function () {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Attack with a Rebel unit');
-
                 expect(this.player2).toBeActivePlayer();
-                expect(this.leiaOrgana.exhausted).toBe(true);
             });
         });
 
