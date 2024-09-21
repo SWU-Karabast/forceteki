@@ -1,5 +1,6 @@
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
+const { GameSystem } = require('../../gameSystem/GameSystem.js');
 const { default: Contract } = require('../../utils/Contract.js');
 const EnumHelpers = require('../../utils/EnumHelpers.js');
 
@@ -35,7 +36,7 @@ class AbilityTargetResolver {
                 }
                 return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
                        (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                       properties.immediateEffect.some((gameSystem) => gameSystem.hasLegalTarget(contextCopy));
+                       properties.immediateEffect.hasLegalTarget(contextCopy);
             });
         };
         return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: false }));
@@ -53,8 +54,9 @@ class AbilityTargetResolver {
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 
-    getGameSystem(context) {
-        return this.properties.immediateEffect.filter((gameSystem) => gameSystem.hasLegalTarget(context));
+    /** @returns {GameSystem[]} */
+    getGameSystems() {
+        return this.properties.immediateEffect ? [this.properties.immediateEffect] : [];
     }
 
     // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window

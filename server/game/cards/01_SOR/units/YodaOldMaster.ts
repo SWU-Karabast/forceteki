@@ -17,9 +17,9 @@ export default class YodaOldMaster extends NonLeaderUnitCard {
                 mode: TargetMode.Select,
                 choices: (context) => ({
                     //TODO: Make this selection prompt less awkward: create a way to select any number of options from an arbitrary list.
-                    ['Me']: AbilityHelper.immediateEffects.draw({ target: context.source.owner }),
+                    ['You']: AbilityHelper.immediateEffects.draw({ target: context.source.owner }),
                     ['Opponent']: AbilityHelper.immediateEffects.draw({ target: context.source.owner.opponent }),
-                    ['Me and Opponent']: AbilityHelper.immediateEffects.draw({ target: [context.source.owner, context.source.owner.opponent] }),
+                    ['You and Opponent']: AbilityHelper.immediateEffects.draw({ target: [context.source.owner, context.source.owner.opponent] }),
                     ['No one']: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                 })
             }

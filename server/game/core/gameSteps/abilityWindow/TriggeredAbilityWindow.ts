@@ -25,7 +25,6 @@ export class TriggeredAbilityWindow extends BaseStep {
     /** The events that were triggered as part of this window */
     private triggeringEvents: GameEvent[];
 
-    private eventsEmitted = false;
     private choosePlayerResolutionOrderComplete = false;
     private readonly toStringName: string;
 
@@ -45,31 +44,23 @@ export class TriggeredAbilityWindow extends BaseStep {
     ) {
         super(game);
 
-        this.toStringName = `'TriggeredAbilityWindow: ${this.eventWindow.events.map((event) => event.name).join(', ')}'`;
+        this.triggeringEvents = [...this.eventWindow.events];
     }
 
-    public emitEvents() {
-        this.eventsEmitted = true;
-
-        const events = this.eventWindow.events.filter((event) => !this.eventsToExclude.includes(event));
+    public emitEvents(newEvents: GameEvent[] = []) {
+        this.triggeringEvents.push(...newEvents);
+        const events = this.triggeringEvents.filter((event) => !this.eventsToExclude.includes(event) && !event.cancelled);
         events.forEach((event) => {
             this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
         });
         this.game.emit('aggregateEvent:' + this.triggerAbilityType, events, this);
-
-        this.triggeringEvents = events;
     }
 
     public override continue() {
-        if (!Contract.assertTrue(this.eventsEmitted, 'TriggeredAbilityWindow.continue() called before events were emitted')) {
-            return true;
-        }
-
         this.game.currentAbilityWindow = this;
 
         if (!this.choosePlayerResolutionOrderComplete) {
             this.cleanUpTriggers();
-
             // if no abilities trigged, continue with game flow
             if (this.unresolved.size === 0) {
                 return true;
@@ -239,7 +230,6 @@ export class TriggeredAbilityWindow extends BaseStep {
             if (!Contract.assertNotNullLike(abilityContext.source)) {
                 continue;
             }
-
             triggeringCards.add(abilityContext.source);
         }
 
@@ -338,6 +328,6 @@ export class TriggeredAbilityWindow extends BaseStep {
     }
 
     public override toString() {
-        return this.toStringName;
+        return `'TriggeredAbilityWindow: ${this.triggeringEvents.map((event) => event.name).join(', ')}'`;
     }
 }

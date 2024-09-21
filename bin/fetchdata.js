@@ -1,5 +1,7 @@
 /*eslint no-console:0 */
 const { default: axios } = require('axios');
+const { default: axiosRetry } = require('axios-retry');
+const { Agent } = require('https');
 const { log } = require('console');
 const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
@@ -7,6 +9,11 @@ const path = require('path');
 const cliProgress = require('cli-progress');
 
 const pathToJSON = path.join(__dirname, '../test/json/');
+
+axiosRetry(axios, {
+    retries: 3,
+    retryDelay: () => (Math.random() * 2000) + 1000      // jitter retry delay by 1 - 3 seconds
+});
 
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
@@ -24,7 +31,7 @@ function filterValues(card) {
     }
 
     // filtering out TWI for now since the cards don't have complete data
-    if (card.attributes.expansion.data.attributes.code === 'TWI') {
+    if (card.attributes.expansion.data.attributes.code === 'TWI' || card.attributes.expansion.data.attributes.code === 'C24') {
         return null;
     }
 
@@ -42,6 +49,13 @@ function filterValues(card) {
 
     // if a card has multiple types it will be still in one string, like 'token upgrade'
     filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
+
+    filteredObj.setId = { set: card.attributes.expansion.data.attributes.code };
+
+    // tokens use a different numbering scheme, can ignore for now
+    if (!filteredObj.types.includes('token')) {
+        filteredObj.setId.number = card.attributes.cardNumber;
+    }
 
     let internalName = filteredObj.title;
     internalName += filteredObj.subtitle ? '#' + filteredObj.subtitle : '';
@@ -68,10 +82,48 @@ function getCardData(page, progressBar) {
                 cards.map((card) => filterValues(card))
             );
         })
-        .catch((error) => console.log('error fetching: ' + error));
+        .catch((error) => {
+            throw new Error(`Request error retrieving data: ${error.code} ${error.response?.data?.message || ''}`);
+        });
+}
+
+function getUniqueCards(cards) {
+    const cardMap = [];
+    const seenNames = [];
+    var duplicatesWithSetCode = {};
+    const uniqueCardsMap = new Map();
+    const setNumber = new Map([['SOR', 1], ['SHD', 2]]);
+
+    for (const card of cards) {
+        if (seenNames.includes(card.internalName)) {
+            if (duplicatesWithSetCode[card.internalName] === null) {
+                duplicatesWithSetCode[card.internalName] = cards.filter((c) => c.internalName === card.internalName)
+                    .map((c) => c.debugObject.attributes.expansion.data.attributes.code);
+            }
+            const uniqueCardEntry = uniqueCardsMap.get(card.internalName);
+            if (setNumber.get(card.setId.set) < setNumber.get(uniqueCardEntry.setId.set)) {
+                uniqueCardEntry.setId = card.setId;
+            }
+            continue;
+        }
+
+        seenNames.push(card.internalName);
+        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle });
+        uniqueCardsMap.set(card.internalName, card);
+    }
+
+    const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
+    return { uniqueCards, cardMap, duplicatesWithSetCode };
 }
 
 async function main() {
+    axios.defaults.httpAgent = new Agent({
+        maxSockets: 8,
+    });
+    axios.defaults.httpsAgent = new Agent({
+        maxSockets: 8,
+    });
+
     let pageData = await axios.get('https://admin.starwarsunlimited.com/api/cards');
     let totalPageCount = pageData.data.meta.pagination.pageCount;
 
@@ -86,23 +138,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    var cardMap = [];
-    var seenNames = [];
-    var duplicatesWithSetCode = {};
-    var uniqueCards = [];
-    for (const card of cards) {
-        if (seenNames.includes(card.internalName)) {
-            if (duplicatesWithSetCode[card.internalName] === null) {
-                duplicatesWithSetCode[card.internalName] = cards.filter((c) => c.internalName === card.internalName)
-                    .map((c) => c.debugObject.attributes.expansion.data.attributes.code);
-            }
-            continue;
-        }
-
-        seenNames.push(card.internalName);
-        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle });
-        uniqueCards.push(card);
-    }
+    const { uniqueCards, cardMap, duplicatesWithSetCode } = getUniqueCards(cards);
 
     cards.map((card) => delete card.debugObject);
 
