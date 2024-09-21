@@ -33,7 +33,6 @@ export default class VadersLightsaber extends UpgradeCard {
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
-
         });
     }
 }

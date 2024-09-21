@@ -18,7 +18,7 @@ export interface ISequentialProperties extends IGameSystemProperties {
  */
 export class SequentialSystem extends GameSystem<ISequentialProperties> {
     public constructor(gameSystems: GameSystem[]) {
-        super({ gameSystems: gameSystems });
+        super({ gameSystems });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

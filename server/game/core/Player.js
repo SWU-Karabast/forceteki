@@ -273,14 +273,7 @@ class Player extends GameObject {
      * @returns {boolean} true/false if the trait is in pay
      */
     isTraitInPlay(trait) {
-        return this.game.allCards.some((card) => {
-            return (
-                card.controller === this &&
-                card.hasSomeTrait(trait) &&
-                card.isFaceup() &&
-                EnumHelpers.isArena(card.location)
-            );
-        });
+        return this.getUnitsInPlay().some((card) => card.hasSomeTrait(trait));
     }
 
     /**

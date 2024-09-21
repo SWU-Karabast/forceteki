@@ -148,7 +148,7 @@ interface IAbilityPropsWithTargetResolvers<Context> extends IAbilityProps<Contex
 }
 
 interface IAbilityPropsWithImmediateEffect<Context> extends IAbilityProps<Context> {
-    immediateEffect: GameSystem | GameSystem[];
+    immediateEffect: GameSystem;
 }
 
 interface IAbilityPropsWithHandler<Context> extends IAbilityProps<Context> {
