@@ -47,7 +47,7 @@ export class TriggeredAbilityWindow extends BaseStep {
         this.triggeringEvents = [...this.eventWindow.events];
     }
 
-    public emitEvents(newEvents:GameEvent[] = []) {
+    public emitEvents(newEvents: GameEvent[] = []) {
         this.triggeringEvents.push(...newEvents);
         const events = this.triggeringEvents.filter((event) => !this.eventsToExclude.includes(event) && !event.cancelled);
         events.forEach((event) => {

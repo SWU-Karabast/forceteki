@@ -842,14 +842,15 @@ class Game extends EventEmitter {
      * Creates a game GameEvent, and opens a window for it.
      * @param {String} eventName
      * @param {Object} params - parameters for this event
-     * @param {boolean} resolveTriggersAfter - whether the game's GlobalTriggeredAbilityWindow should be resolved after the event
+     * @param {boolean} ownsTriggerWindow - whether the EventWindow should make its own TriggeredAbilityWindow to resolve
+     * after its events and any nested events
      * @param {(GameEvent) => void} handler - (GameEvent + params) => undefined
      * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
      * tell whether or not the handler resolved successfully
      */
-    createEventAndOpenWindow(eventName, params = {}, resolveTriggersAfter = false, handler = () => true) {
+    createEventAndOpenWindow(eventName, params = {}, ownsTriggerWindow = false, handler = () => true) {
         let event = new GameEvent(eventName, params, handler);
-        this.openEventWindow([event], resolveTriggersAfter);
+        this.openEventWindow([event], ownsTriggerWindow);
         return event;
     }
 
@@ -867,13 +868,14 @@ class Game extends EventEmitter {
      * Creates an EventWindow which will open windows for each kind of triggered
      * ability which can respond any passed events, and execute their handlers.
      * @param events
+     * @param ownsTriggerWindow
      * @returns {EventWindow}
      */
-    openEventWindow(events, resolveTriggersAfter = false) {
+    openEventWindow(events, ownsTriggerWindow = false) {
         if (!Array.isArray(events)) {
             events = [events];
         }
-        return this.queueStep(new EventWindow(this, events, resolveTriggersAfter));
+        return this.queueStep(new EventWindow(this, events, ownsTriggerWindow));
     }
 
     /**

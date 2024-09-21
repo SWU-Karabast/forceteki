@@ -26,14 +26,13 @@ class PlayerOrCardAbility {
      * @param {Object|Array} [properties.cost] - optional property that specifies
      * the cost for the ability. Can either be a cost object or an array of cost
      * objects.
-     * @param {Object} [properties.target] - Optional property that specifies
-     * the target of the ability.
+     * @param {Object} [properties.target] - Optional property that specifies the target of the ability.
      * @param {GameSystem[]} [properties.immediateEffect] - GameSystem[] optional array of game actions
      * @param {any} [properties.targetResolver] - Optional target resolver
      * @param {any} [properties.targetResolvers] - Optional target resolvers set
      * @param {string} [properties.title] - Name to use for ability display and debugging
      * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
-     * @param {boolean} [properties.optional] - Optional property that indicates if resolution of the ability
+     * @param {boolean} [properties.optional] - Optional property that indicates if resolution of the ability is optional and may be passed through
      * @param {boolean} [properties.resolveTriggersAfter] - Optional property that indicates whether triggers triggered during this
      * ability should be resolved right after it, or passed back to the parent game event window
      */
