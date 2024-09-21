@@ -1,6 +1,6 @@
-import AbilityHelper from '../../AbilityHelper';
-import { EventCard } from '../../core/card/EventCard';
-import { RelativePlayer, Trait } from '../../core/Constants';
+import AbilityHelper from '../../../AbilityHelper';
+import { EventCard } from '../../../core/card/EventCard';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class TheForceIsWithMe extends EventCard {
     protected override getImplementationId() {
