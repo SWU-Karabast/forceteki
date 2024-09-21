@@ -3,10 +3,17 @@ const { TriggeredAbilityWindow } = require('../gameSteps/abilityWindow/Triggered
 const { SimpleStep } = require('../gameSteps/SimpleStep.js');
 const { AbilityType } = require('../Constants.js');
 const { default: Contract } = require('../utils/Contract.js');
-// const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
+const { GameEvent } = require('./GameEvent.js');
 
 class EventWindow extends BaseStepWithPipeline {
-    constructor(game, events, ownsATriggerWindow = false) {
+    /** Creates an object holding one or more GameEvents that occur at the same time.
+     *  @param game - The game object.
+     *  @param {GameEvent[]} events - Events belonging to this window.
+     *  @param {boolean} ownsTriggerWindow - Whether this event window should create its own TriggeredAbilityWindow which will resolve after its events(and any nested events).
+     * If false, this window will borrow its parent EventWindow's TriggeredAbilityWindow, which will receive any triggers that trigger during this EventWindow's events,
+     * to be resolved after all nested events of its owner are done.
+     */
+    constructor(game, events, ownsTriggerWindow = false) {
         super(game);
 
         this.events = [];
@@ -21,7 +28,7 @@ class EventWindow extends BaseStepWithPipeline {
 
         this.triggeredAbilityWindow = null;
 
-        this.ownsATriggerWindow = ownsATriggerWindow;
+        this.ownsTriggerWindow = ownsTriggerWindow;
 
         this.initialise();
     }
@@ -59,7 +66,7 @@ class EventWindow extends BaseStepWithPipeline {
     setCurrentEventWindow() {
         this.previousEventWindow = this.game.currentEventWindow;
         this.game.currentEventWindow = this;
-        if (this.ownsATriggerWindow) {
+        if (this.ownsTriggerWindow) {
             this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
         } else if (this.previousEventWindow) {
             this.triggeredAbilityWindow = this.previousEventWindow.triggeredAbilityWindow;
@@ -102,11 +109,10 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     executeHandler() {
-        this.triggeredAbilityWindow.addTriggeringEvents(this.events);
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggeredAbilityWindow.emitEvents();
+        this.triggeredAbilityWindow.emitEvents(this.events);
 
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
@@ -139,7 +145,7 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     resolveTriggersIfNecessary() {
-        if (this.ownsATriggerWindow) {
+        if (this.ownsTriggerWindow) {
             this.queueStep(this.triggeredAbilityWindow);
         }
     }

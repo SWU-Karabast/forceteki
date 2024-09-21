@@ -55,7 +55,7 @@ class PlayerOrCardAbility {
         this.keyword = null;
         this.type = type;
         this.optional = !!properties.optional;
-        //Nested abilities rule(Comp Rules 2.0 7.6.11): triggers should always resolve triggers triggered during their effects right after their effects
+        //TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
         this.resolveTriggersAfter = this.type === AbilityType.Triggered || !!properties.resolveTriggersAfter;
         this.gameSystem = properties.immediateEffect || [];
         if (!Array.isArray(this.gameSystem)) {
