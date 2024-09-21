@@ -31,7 +31,7 @@ function filterValues(card) {
     }
 
     // filtering out TWI for now since the cards don't have complete data
-    if (card.attributes.expansion.data.attributes.code === 'TWI') {
+    if (card.attributes.expansion.data.attributes.code === 'TWI' || card.attributes.expansion.data.attributes.code === 'C24') {
         return null;
     }
 
@@ -46,10 +46,16 @@ function filterValues(card) {
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);
-    filteredObj.setId = { set: card.attributes.expansion.data.attributes.code, number: card.attributes.cardNumber };
 
     // if a card has multiple types it will be still in one string, like 'token upgrade'
     filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
+
+    filteredObj.setId = { set: card.attributes.expansion.data.attributes.code };
+
+    // tokens use a different numbering scheme, can ignore for now
+    if (!filteredObj.types.includes('token')) {
+        filteredObj.setId.number = card.attributes.cardNumber;
+    }
 
     let internalName = filteredObj.title;
     internalName += filteredObj.subtitle ? '#' + filteredObj.subtitle : '';
