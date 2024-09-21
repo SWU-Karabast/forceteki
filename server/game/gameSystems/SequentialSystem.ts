@@ -37,7 +37,7 @@ export class SequentialSystem extends GameSystem<ISequentialProperties> {
                             events.push(event);
                         }
                         if (gameSystem !== properties.gameSystems[properties.gameSystems.length - 1]) {
-                            context.game.openThenEventWindow(eventsForThisAction);
+                            context.game.openEventWindow(eventsForThisAction);
                         }
                     }, `open event window for sequential system ${gameSystem.name}`);
                 }
