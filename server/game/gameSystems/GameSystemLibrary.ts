@@ -317,7 +317,7 @@ export function sequential(gameSystems: GameSystem[]): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }
 export function simultaneous(gameSystems: GameSystem[], ignoreTargetingRequirements = null): GameSystem {
-    return new SimultaneousGameSystem(gameSystems);
+    return new SimultaneousGameSystem(gameSystems, ignoreTargetingRequirements);
 }
 
 export function shuffleDeck(propertyFactory: PropsFactory<IShuffleDeckProperties> = {}): PlayerTargetSystem {
