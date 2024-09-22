@@ -6,6 +6,7 @@ describe('Smuggle keyword', function() {
                     phase: 'action',
                     player1: {
                         hand: [],
+                        deck: ['mercenary-gunship'],
                         resources: ['millennium-falcon#landos-pride', 'battlefield-marine',
                             'pyke-sentinel', 'freetown-backup', 'enterprising-lackeys',
                             'lom-pyke#dealer-in-truths',
@@ -22,9 +23,12 @@ describe('Smuggle keyword', function() {
             });
 
             it('a unit can be played for its smuggle cost', function () {
+                expect(this.player1.countSpendableResources()).toBe(24);//Sanity check before we Smuggle
                 this.player1.clickCard(this.freetownBackup);
-                expect(this.player1.countExhaustedResources()).toBe(4);
                 expect(this.freetownBackup).toBeInLocation('ground arena');
+                expect(this.player1.countExhaustedResources()).toBe(4);
+                expect(this.player1.countSpendableResources()).toBe(20);
+                expect(this.mercenaryGunship).toBeInLocation('resource');
             });
 
             // it('an upgrade can be played for its smuggle cost', function () {
@@ -43,6 +47,11 @@ describe('Smuggle keyword', function() {
             // });
 
             // it('Aspect penalties on smuggled cards are accounted for', function () {
+            //     this.player1.clickCard(this.lomPyke);
+            //     expect(this.lomPyke).toBeInLocation('ground arena');
+            // });
+
+            // it('Cards with different smuggle aspects than play aspects only care about the smuggle aspects', function () {
             //     this.player1.clickCard(this.lomPyke);
             //     expect(this.lomPyke).toBeInLocation('ground arena');
             // });

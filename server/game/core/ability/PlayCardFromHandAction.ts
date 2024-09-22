@@ -10,7 +10,7 @@ export class PlayCardFromHandAction extends PlayCardAction {
         super(card, title, additionalCosts.concat(CostLibrary.payPlayCardResourceCost()), targetResolver);
     }
 
-    public override meetsRequirements(context?: any, ignoredRequirements?: string[]): string {
+    public override meetsRequirements(context?: any, ignoredRequirements: string[] = []): string {
         if (
             !ignoredRequirements.includes('location') &&
             !context.player.isCardInPlayableLocation(context.source, PlayType.PlayFromHand)

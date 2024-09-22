@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, EventName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, EventName, KeywordName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
@@ -54,11 +54,13 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
     public override canAffect(card: Card, context: AbilityContext): boolean {
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy);
+        const location = card.location;
 
         if (!context || !super.canAffect(card, context)) {
             return false;
-        // TODO SMUGGLE: impl here
-        } else if (EnumHelpers.isArena(card.location) || card.facedown) {
+        } else if (EnumHelpers.isArena(location) || (card.facedown && Location.Resource !== location)) {
+            return false;
+        } else if (Location.Resource === location && !card.hasSomeKeyword(KeywordName.Smuggle)) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;

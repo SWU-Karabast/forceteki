@@ -131,7 +131,7 @@ function parseSmuggleIfEnabled(keyword: KeywordName, cardText: string, cardName:
         throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${cardName}, but found multiple`);
     }
 
-    const smuggleCost = match.value[1];
+    const smuggleCost = Number(match.value[1]);
     const aspectString = match.value[2];
     const smuggleAspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
     const additionalSmuggleCosts = match.value[3] !== undefined;

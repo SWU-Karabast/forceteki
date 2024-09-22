@@ -5,7 +5,6 @@ import { Card, CardConstructor } from '../Card';
 export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithCost extends BaseClass {
         private readonly _printedCost: number;
-        private readonly _smuggleCost: number;
 
         public get cost(): number {
             return this._printedCost;

@@ -1,5 +1,5 @@
 import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } from '../core/Constants.js';
-import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
+import { putIntoPlay, resourceCard } from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import { PlayCardContext } from '../core/ability/PlayCardAction.js';
@@ -34,7 +34,10 @@ export class SmuggleUnitAction extends SmuggleCardAction {
             putIntoPlay({
                 controller: player
             }).generateEvent(context.source, context),
-            cardPlayedEvent
+            cardPlayedEvent,
+            resourceCard({
+                target: context.player.getTopCardOfDeck()
+            }).generateEvent(context.source, context)
         ]);
     }
 

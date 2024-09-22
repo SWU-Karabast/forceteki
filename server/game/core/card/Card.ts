@@ -113,6 +113,7 @@ export class Card extends OngoingEffectSource {
         if (this.hasSomeKeyword(KeywordName.Smuggle)) {
             const smuggleKeyword = this.getKeyword(KeywordName.Smuggle) as KeywordWithCostValues;
             this.smuggleAspects = smuggleKeyword.costAspects;
+            this.smuggleCost = smuggleKeyword.cost;
             this.additionalSmuggleCosts = smuggleKeyword.additionalCosts;
         }
 

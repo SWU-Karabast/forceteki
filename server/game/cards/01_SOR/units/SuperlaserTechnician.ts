@@ -16,8 +16,8 @@ export default class SuperlaserTechnician extends NonLeaderUnitCard {
             optional: true,
             //TODO: figure out how to change this from sequential to simultaneous while keeing the ready effect
             immediateEffect: AbilityHelper.immediateEffects.sequential([
-                //TODO: create a MoveCardToResourceSystem and accompanying function in immediateEffects
-                AbilityHelper.immediateEffects.moveCard((context) => ({ target: context.source, destination: Location.Resource })),
+                AbilityHelper.immediateEffects.resourceCard({ target: this }),
+                //TODO: update resourceCard to handle this
                 AbilityHelper.immediateEffects.ready((context) => ({ target: context.source }))])
         });
     }

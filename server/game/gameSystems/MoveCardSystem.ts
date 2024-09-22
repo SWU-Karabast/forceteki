@@ -33,34 +33,37 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
 
     public eventHandler(event: any, additionalProperties = {}): void {
         const context = event.context;
-        const card = event.card;
         // TODO: remove this completely if determinmed we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
-        if (properties.switch && properties.switchTarget) {
-            const otherCard = properties.switchTarget;
-            card.owner.moveCard(otherCard, card.location);
-        }
-        const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
-        player.moveCard(card, properties.destination, { bottom: !!properties.bottom });
-
-        const target = properties.target;
-        // if (Array.isArray(target)) {
-        //     // TODO: should we allow this to move multiple cards at once?
-        //     if (!Contract.assertArraySize(target, 1)) {
-        //         return;
-        //     }
-
-        //     target = target[0];
-        // }
-
-        if (properties.shuffle && (Array.isArray(target) && (target.length === 0 || card === target[target.length - 1]))) {
-            card.owner.shuffleDeck();
-        }
-        // TODO: remove completely if faceup logic is not needed
-        // else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
-        //     card.facedown = false;
-        // }
+        //TODO: Is there a better/cleaner way to handle one or multiple cards here?
+        const cards = [].concat(properties.target);
+        cards.forEach((card) => {
+            if (properties.switch && properties.switchTarget) {
+                const otherCard = properties.switchTarget;
+                card.owner.moveCard(otherCard, card.location);
+            }
+            const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
+            player.moveCard(card, properties.destination, { bottom: !!properties.bottom });
+    
+            const target = properties.target;
+            // if (Array.isArray(target)) {
+            //     // TODO: should we allow this to move multiple cards at once?
+            //     if (!Contract.assertArraySize(target, 1)) {
+            //         return;
+            //     }
+    
+            //     target = target[0];
+            // }
+    
+            if (properties.destination === Location.Deck && properties.shuffle) {
+                card.owner.shuffleDeck();
+            }
+            // TODO: remove completely if faceup logic is not needed
+            // else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
+            //     card.facedown = false;
+            // }
+        });
     }
 
     public override getCostMessage(context: AbilityContext): [string, any[]] {
