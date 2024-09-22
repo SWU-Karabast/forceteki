@@ -29,7 +29,6 @@ describe('Obi-Wan Kenobi, Following Fate', function() {
                 this.player1.clickCard(this.vanquish);
                 this.player1.clickCard(this.obiwanKenobi);
 
-
                 let handSizeBeforeTriggerResolves = this.player2.hand.length;
                 this.player2.clickCard(this.yoda);
 

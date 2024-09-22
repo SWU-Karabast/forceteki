@@ -17,13 +17,15 @@ export default class ObiWanKenobiFollowingFate extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card !== context.source,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([AbilityHelper.immediateEffects.giveExperience({ amount: 2 }),
-                    AbilityHelper.immediateEffects.conditional(
-                        { condition: (context) => context.target.hasSomeTrait(Trait.Force),
-                            onTrue: AbilityHelper.immediateEffects.draw((context) => ({
-                                target: context.player
-                            })),
-                            onFalse: AbilityHelper.immediateEffects.noAction() })])
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                    AbilityHelper.immediateEffects.giveExperience({ amount: 2 }),
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => context.target.hasSomeTrait(Trait.Force),
+                        onTrue: AbilityHelper.immediateEffects.draw((context) => ({
+                            target: context.player
+                        })),
+                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    })])
             }
         });
     }
