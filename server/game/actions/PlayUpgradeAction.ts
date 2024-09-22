@@ -31,7 +31,7 @@ export class PlayUpgradeAction extends PlayCardFromHandAction {
                 .attachUpgrade({ upgrade: context.source, takeControl: context.source.controller !== context.player })
                 .generateEvent(context.target, context),
             cardPlayedEvent
-        ]);
+        ], this.resolveTriggersAfter);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

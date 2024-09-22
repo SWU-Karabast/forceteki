@@ -26,7 +26,7 @@ class AbilityResolver extends BaseStepWithPipeline {
          */
         this.resolutionComplete = false;
 
-        // this is used when a triggerd ability is marked optional to ensure that a "Pass" button
+        // this is used when a triggered ability is marked optional to ensure that a "Pass" button
         // appears at the appropriate times during the prompt flow for that ability
         // TODO: add interface for this in Interfaces.ts when we convert to TS
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
@@ -96,7 +96,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             }
         }
         this.events.push(new GameEvent(eventName, eventProps, () => this.queueInitiateAbilitySteps()));
-        this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events));
+        this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events, this.context.ability.resolveTriggersAfter));
     }
 
     queueInitiateAbilitySteps() {
@@ -266,7 +266,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if (this.context.ability.isActivatedAbility()) {
-            this.game.openThenEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
+            this.game.openEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
         } else {
             this.initiateAbility = true;
         }

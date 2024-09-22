@@ -20,7 +20,7 @@ export type IActionTargetResolver = (ICardTargetResolver & IActionCardTargetReso
 export type IActionTargetsResolver = Record<string, IActionTargetResolver>;
 
 // ********************************************** INTERNAL TYPES **********************************************
-type IChoicesInterface = Record<string, ((context: AbilityContext) => boolean) | GameSystem | GameSystem[]>;
+type IChoicesInterface = Record<string, ((context: AbilityContext) => boolean) | GameSystem>;
 
 interface ITargetResolverBase {
     activePromptTitle?: string;
@@ -30,7 +30,7 @@ interface ITargetResolverBase {
     /** Selects which player is choosing the target (defaults to the player controlling the source card) */
     choosingPlayer?: ((context: AbilityContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
-    immediateEffect?: GameSystem | GameSystem[];
+    immediateEffect?: GameSystem;
     dependsOn?: string;
 }
 

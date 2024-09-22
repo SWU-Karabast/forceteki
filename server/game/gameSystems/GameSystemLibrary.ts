@@ -60,6 +60,7 @@ import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
 import { SequentialSystem } from './SequentialSystem';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
+import { SimultaneousGameSystem } from './SimultaneousSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -309,12 +310,15 @@ export function selectCard(propertyFactory: PropsFactory<ISelectCardProperties>)
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameSystem {
 //     return new SelectTokenAction(propertyFactory);
 // }
-export function sequential(gameActions: GameSystem[]): GameSystem {
-    return new SequentialSystem(gameActions);
+export function sequential(gameSystems: GameSystem[]): GameSystem {
+    return new SequentialSystem(gameSystems);
 } // takes an array of gameActions, not a propertyFactory
 // export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }
+export function simultaneous(gameSystems: GameSystem[], ignoreTargetingRequirements = null): GameSystem {
+    return new SimultaneousGameSystem(gameSystems, ignoreTargetingRequirements);
+}
 
 export function shuffleDeck(propertyFactory: PropsFactory<IShuffleDeckProperties> = {}): PlayerTargetSystem {
     return new ShuffleDeckSystem(propertyFactory);

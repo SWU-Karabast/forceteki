@@ -220,7 +220,7 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
             damageEvents.push(damage({ amount: attack.targetTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
         }
 
-        context.game.openEventWindow(damageEvents);
+        context.game.openEventWindow(damageEvents, true);
     }
 
     // TODO ATTACKS: change attack effects so that they check the specific attack they are affecting,

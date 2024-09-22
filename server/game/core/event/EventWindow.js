@@ -3,10 +3,17 @@ const { TriggeredAbilityWindow } = require('../gameSteps/abilityWindow/Triggered
 const { SimpleStep } = require('../gameSteps/SimpleStep.js');
 const { AbilityType } = require('../Constants.js');
 const { default: Contract } = require('../utils/Contract.js');
-// const KeywordAbilityWindow = require('../gamesteps/keywordabilitywindow.js');
+const { GameEvent } = require('./GameEvent.js');
 
 class EventWindow extends BaseStepWithPipeline {
-    constructor(game, events) {
+    /** Creates an object holding one or more GameEvents that occur at the same time.
+     *  @param game - The game object.
+     *  @param {GameEvent[]} events - Events belonging to this window.
+     *  @param {boolean} ownsTriggerWindow - Whether this event window should create its own TriggeredAbilityWindow which will resolve after its events(and any nested events).
+     * If false, this window will borrow its parent EventWindow's TriggeredAbilityWindow, which will receive any triggers that trigger during this EventWindow's events,
+     * to be resolved after all nested events of its owner are done.
+     */
+    constructor(game, events, ownsTriggerWindow = false) {
         super(game);
 
         this.events = [];
@@ -21,6 +28,8 @@ class EventWindow extends BaseStepWithPipeline {
 
         this.triggeredAbilityWindow = null;
 
+        this.ownsTriggerWindow = ownsTriggerWindow;
+
         this.initialise();
     }
 
@@ -34,7 +43,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),    // TODO EFFECTS: uncomment this (and other places the method is used, + missing ones from l5r)
             new SimpleStep(this.game, () => this.checkThenAbilitySteps(), 'checkThenAbilitySteps'),
-            new SimpleStep(this.game, () => this.openTriggeredAbilityWindow(), 'openTriggeredAbilityWindow'),
+            new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
         ]);
     }
@@ -57,6 +66,13 @@ class EventWindow extends BaseStepWithPipeline {
     setCurrentEventWindow() {
         this.previousEventWindow = this.game.currentEventWindow;
         this.game.currentEventWindow = this;
+        if (this.ownsTriggerWindow) {
+            this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
+        } else if (this.previousEventWindow) {
+            this.triggeredAbilityWindow = this.previousEventWindow.triggeredAbilityWindow;
+        } else {
+            Contract.fail(`${this.toStringName} set without any TriggeredEventWindow`);
+        }
     }
 
     checkEventCondition() {
@@ -96,7 +112,7 @@ class EventWindow extends BaseStepWithPipeline {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggerEventsForWindow();
+        this.triggeredAbilityWindow.emitEvents(this.events);
 
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
@@ -109,13 +125,6 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO: make it so we don't need to trigger twice
         // trigger again here to catch any events for cards that entered play during event resolution
-        this.triggerEventsForWindow();
-    }
-
-    triggerEventsForWindow() {
-        if (this.triggeredAbilityWindow === null) {
-            this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
-        }
         this.triggeredAbilityWindow.emitEvents();
     }
 
@@ -135,12 +144,10 @@ class EventWindow extends BaseStepWithPipeline {
         }
     }
 
-    openTriggeredAbilityWindow() {
-        if (this.events.length === 0) {
-            return;
+    resolveTriggersIfNecessary() {
+        if (this.ownsTriggerWindow) {
+            this.queueStep(this.triggeredAbilityWindow);
         }
-
-        this.queueStep(this.triggeredAbilityWindow);
     }
 
     resetCurrentEventWindow() {

@@ -1,6 +1,7 @@
 const { SelectChoice } = require('./SelectChoice.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
 const { default: Contract } = require('../../utils/Contract.js');
+const { GameSystem } = require('../../gameSystem/GameSystem.js');
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 class SelectTargetResolver {
@@ -56,7 +57,8 @@ class SelectTargetResolver {
         return choice.hasLegalTarget(contextCopy);
     }
 
-    getGameSystem(context) {
+    /** @returns {GameSystem[]} */
+    getGameSystems(context) {
         if (!context.selects[this.name]) {
             return [];
         }

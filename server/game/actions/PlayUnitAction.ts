@@ -35,7 +35,7 @@ export class PlayUnitAction extends PlayCardFromHandAction {
                 controller: player
             }).generateEvent(context.source, context),
             cardPlayedEvent
-        ]);
+        ], this.resolveTriggersAfter);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

@@ -69,12 +69,9 @@ class SelectCardPrompt extends UiPrompt {
         this.context = properties.context || new AbilityContext({ game: game, player: choosingPlayer, source: properties.source });
         this.properties = Object.assign(this.defaultProperties(), properties);
         if (properties.immediateEffect) {
-            if (!Array.isArray(properties.immediateEffect)) {
-                this.properties.immediateEffect = [properties.immediateEffect];
-            }
             let cardCondition = this.properties.cardCondition;
             this.properties.cardCondition = (card, context) =>
-                cardCondition(card, context) && this.properties.immediateEffect.some((gameSystem) => gameSystem.canAffect(card, context));
+                cardCondition(card, context) && this.properties.immediateEffect.canAffect(card, context);
         }
         this.hideIfNoLegalTargets = properties.hideIfNoLegalTargets;
         this.selector = properties.selector || CardSelector.for(this.properties);

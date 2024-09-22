@@ -4,7 +4,7 @@
 const { select } = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
-const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual } = require('./Util.js');
+const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual, stringArraysEqual } = require('./Util.js');
 
 require('./ObjectFormatters.js');
 
@@ -540,27 +540,12 @@ var customMatchers = {
 
                 const expectedUpgradeNames = [...upgradeNames];
 
-                let expectedUpgrades = expectedUpgradeNames.filter((x) => actualUpgradeNames.includes(x));
-                let missingUpgrades = expectedUpgradeNames.filter((x) => !actualUpgradeNames.includes(x));
-                let unexpectedUpgrades = actualUpgradeNames.filter((x) => !expectedUpgradeNames.includes(x));
-
-                result.pass = unexpectedUpgrades.length === 0 && missingUpgrades.length === 0;
+                result.pass = stringArraysEqual(actualUpgradeNames, expectedUpgradeNames);
 
                 if (result.pass) {
-                    result.message = `Expected ${card.internalName} not to have this exact set of upgrades but it does: ${expectedUpgrades.join(', ')}`;
+                    result.message = `Expected ${card.internalName} not to have this exact set of upgrades but it does: ${expectedUpgradeNames.join(', ')}`;
                 } else {
-                    let message = '';
-
-                    if (missingUpgrades.length > 0) {
-                        message = `Expected ${card.internalName} to have the following upgrades but it does not: ${missingUpgrades.join(', ')}`;
-                    }
-                    if (unexpectedUpgrades.length > 0) {
-                        if (message.length > 0) {
-                            message += '\n';
-                        }
-                        message += `Expected ${card.internalName} not to have the following upgrades but it does: ${unexpectedUpgrades.join(', ')}`;
-                    }
-                    result.message = message;
+                    result.message = `Expected ${card.internalName} to have this exact set of upgrades: '${expectedUpgradeNames.join(', ')}' but it has: '${actualUpgradeNames.join(', ')}'`;
                 }
 
                 return result;

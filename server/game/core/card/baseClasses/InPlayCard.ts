@@ -86,7 +86,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.addTriggeredAbility(triggeredProperties);
     }
 
-    protected addWhenDefeatedAbility(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+    protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps): void {
         const triggeredProperties = Object.assign(properties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
         this.addTriggeredAbility(triggeredProperties);
     }

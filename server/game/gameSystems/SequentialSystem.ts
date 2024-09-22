@@ -18,7 +18,7 @@ export interface ISequentialProperties extends IGameSystemProperties {
  */
 export class SequentialSystem extends GameSystem<ISequentialProperties> {
     public constructor(gameSystems: GameSystem[]) {
-        super({ gameSystems: gameSystems });
+        super({ gameSystems });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -37,7 +37,7 @@ export class SequentialSystem extends GameSystem<ISequentialProperties> {
                             events.push(event);
                         }
                         if (gameSystem !== properties.gameSystems[properties.gameSystems.length - 1]) {
-                            context.game.openThenEventWindow(eventsForThisAction);
+                            context.game.openEventWindow(eventsForThisAction);
                         }
                     }, `open event window for sequential system ${gameSystem.name}`);
                 }

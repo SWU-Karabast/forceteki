@@ -8,9 +8,6 @@ const { default: Contract } = require('../utils/Contract.js');
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
- *
- * The default handler for this will resolve the ability using a `ThenEventWindow` so that any triggered
- * effects will not resolve until after the entire "Then" chain is done (see `ThenEventWindow` or SWU 8.29 for details)
  */
 class CardAbilityStep extends PlayerOrCardAbility {
     /** @param {import('../card/Card').Card} card - The card this ability is attached to */
@@ -52,7 +49,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     checkGameActionsForPotential(context) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
-        } else if (this.gameSystem.every((gameSystem) => gameSystem.isOptional(context)) && this.properties.then) {
+        } else if (this.immediateEffect.isOptional(context) && this.properties.then) {
             const then =
                 typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
             const cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
@@ -81,11 +78,13 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     getGameSystems(context) {
+        // if we are using target resolvers, get the legal system(s) and return them
         if (this.targetResolvers.length > 0) {
-            return this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystem(context)), []);
+            return this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystems(context)), []);
         }
 
-        return Helpers.asArray(this.gameSystem);
+        // otherwise, we're using a single game system with no target resolver - just return it as an array
+        return Helpers.asArray(this.immediateEffect);
     }
 
     executeGameActions(context) {
@@ -116,7 +115,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     openEventWindow(events) {
-        return this.game.openThenEventWindow(events);
+        return this.game.openEventWindow(events);
     }
 
     /** @override */
