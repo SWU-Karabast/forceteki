@@ -1,9 +1,11 @@
+import { SmuggleUnitAction } from '../../../actions/SmuggleUnitAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { CardType, EventName, Location } from '../../Constants';
+import { CardType, EventName, KeywordName, Location } from '../../Constants';
 import Player from '../../Player';
 import Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
+import { NonLeaderUnitCard } from '../NonLeaderUnitCard';
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
@@ -41,8 +43,16 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public override getActions(): PlayerOrCardAbility[] {
-        return this.isBlank() ? []
-            : this.defaultActions.concat(super.getActions());
+        const actions = this.isBlank() ? [] : this.defaultActions.concat(super.getActions());
+
+        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+            if (this.isUnit()) {
+                actions.push(new SmuggleUnitAction(this));
+            }
+            // TODO events and upgrades
+        }
+
+        return actions;
     }
 
     public exhaust() {

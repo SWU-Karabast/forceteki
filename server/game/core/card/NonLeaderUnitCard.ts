@@ -24,10 +24,6 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         Contract.assertFalse(this.printedType === CardType.Leader);
 
         this.defaultActions.push(new PlayUnitAction(this));
-        // TODO: add smuggle action here
-        if (this.hasSomeKeyword(KeywordName.Smuggle)) {
-            this.defaultActions.push(new SmuggleUnitAction(this));
-        }
     }
 
     public override isNonLeaderUnit(): this is NonLeaderUnitCard {

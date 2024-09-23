@@ -366,23 +366,6 @@ class Game extends EventEmitter {
         this.pipeline.handleCardClicked(player, card);
     }
 
-    // TODO SMUGGLE: Is this needed?
-    // facedownCardClicked(playerName, location, controllerName, isProvince = false) {
-    //     let player = this.getPlayerByName(playerName);
-    //     let controller = this.getPlayerByName(controllerName);
-    //     if (!player || !controller) {
-    //         return;
-    //     }
-    //     let list = controller.getCardPile(location);
-    //     if (!list) {
-    //         return;
-    //     }
-    //     let card = list.find((card) => !isProvince === !card.isProvince);
-    //     if (card) {
-    //         return this.pipeline.handleCardClicked(player, card);
-    //     }
-    // }
-
     // /**
     //  * This function is called by the client when a card menu item is clicked
     //  * @param {String} sourcePlayer - name of clicking player

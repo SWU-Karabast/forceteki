@@ -21,12 +21,12 @@ const {
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
-const Card = require('./card/Card');
 const Helpers = require('./utils/Helpers');
 const AbilityHelper = require('../AbilityHelper');
 const { BaseCard } = require('./card/BaseCard');
 const { LeaderCard } = require('./card/LeaderCard');
 const { LeaderUnitCard } = require('./card/LeaderUnitCard');
+const { Card } = require('./card/Card');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -363,11 +363,15 @@ class Player extends GameObject {
     //     });
     // }
 
+    /**
+     * Returns ths top card of the player's deck
+     * @returns {Card | null} the Card, or null if the deck is empty
+     */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {
             return this.drawDeck[0];
         }
-        return;
+        return null;
     }
 
     /**
@@ -890,12 +894,12 @@ class Player extends GameObject {
     exhaustResources(count, priorityResources = []) {
         let priorityResourcesExhausted = 0;
         let readyResources = this.resources.filter((card) => !card.exhausted);
-        if(priorityResources.length > 0) {
-            
+        if (priorityResources.length > 0) {
+
         }
         priorityResources.forEach((priority) => {
             let foundResource = readyResources.find((resource) => resource == priority);
-            if(foundResource != undefined) {
+            if (foundResource != undefined) {
                 foundResource.exhausted = true;
                 priorityResourcesExhausted++;
             }
