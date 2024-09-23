@@ -27,8 +27,6 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         const upgradeCard = (event.card as Card);
         const parentCard = (event.parentCard as Card);
 
-        Contract.assertNotNullLike(upgradeCard);
-        Contract.assertNotNullLike(parentCard);
         Contract.assertTrue(upgradeCard.isUpgrade());
         Contract.assertTrue(parentCard.isUnit());
 
