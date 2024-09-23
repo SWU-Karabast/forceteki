@@ -1,4 +1,6 @@
+import { SmuggleEventAction } from '../../../actions/SmuggleEventAction';
 import { SmuggleUnitAction } from '../../../actions/SmuggleUnitAction';
+import { SmuggleUpgradeAction } from '../../../actions/SmuggleUpgradeAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import { CardType, EventName, KeywordName, Location } from '../../Constants';
 import Player from '../../Player';
@@ -49,7 +51,12 @@ export class PlayableOrDeployableCard extends Card {
             if (this.isUnit()) {
                 actions.push(new SmuggleUnitAction(this));
             }
-            // TODO events and upgrades
+            if (this.isEvent()) {
+                actions.push(new SmuggleEventAction(this));
+            }
+            if (this.isUpgrade()) {
+                actions.push(new SmuggleUpgradeAction(this));
+            }
         }
 
         return actions;
