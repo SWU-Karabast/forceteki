@@ -4,7 +4,7 @@ import { WithCost } from './propertyMixins/Cost';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import { CardType, Location } from '../Constants';
 import { WithDamage } from './propertyMixins/Damage';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';

@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { AbilityRestriction } from '../core/Constants.js';
 import { Card } from '../core/card/Card';
-import Contract from '../core/utils/Contract.js';
+import * as Contract from '../core/utils/Contract.js';
 import { EventCard } from '../core/card/EventCard.js';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.js';
 
@@ -11,9 +11,8 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     public override executeHandler(context: PlayCardContext): void {
-        if (!Contract.assertTrue(context.source.isEvent())) {
-            return;
-        }
+        // TODO THIS PR: try forcing context.source to be Card
+        Contract.assertTrue(context.source.isEvent());
 
         context.game.addMessage(
             '{0} plays {1}',

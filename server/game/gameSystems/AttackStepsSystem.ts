@@ -11,7 +11,7 @@ import type { Card } from '../core/card/Card';
 import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
 import { ICardLastingEffectProperties, CardLastingEffectSystem } from './CardLastingEffectSystem';
-import Contract from '../core/utils/Contract';
+import * as Contract from '../core/utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 import * as Helpers from '../core/utils/Helpers';
 
@@ -104,11 +104,10 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
         }
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (
-            !Contract.assertNotNullLike(properties.attacker) ||
-            !Contract.assertTrue(properties.attacker.isUnit()) ||
-            !EnumHelpers.isArena(properties.attacker.location)
-        ) {
+        Contract.assertNotNullLike(properties.attacker);
+        Contract.assertTrue(properties.attacker.isUnit());
+
+        if (!EnumHelpers.isArena(properties.attacker.location)) {
             return false;
         }
         if (!super.canAffect(targetCard, context)) {
@@ -119,7 +118,7 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
         }
         if (
             targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) ||
-            (properties.attacker as UnitCard).effectsPreventAttack(targetCard)
+            properties.attacker.effectsPreventAttack(targetCard)
         ) {
             return false; // cannot attack cards with a BeAttacked restriction
         }
@@ -172,9 +171,7 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
     protected override addPropertiesToEvent(event, target, context: AbilityContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        if (!Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`)) {
-            return;
-        }
+        Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`);
 
         if (isArray(target)) {
             if (target.length !== 1) {
@@ -187,9 +184,7 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
             event.target = target;
         }
 
-        if (!Contract.assertTrue(event.target.isUnit() || event.target.isBase(), `Attack target card '${event.target.internalName}' is not a unit or base`)) {
-            return;
-        }
+        Contract.assertTrue(event.target.isUnit() || event.target.isBase(), `Attack target card '${event.target.internalName}' is not a unit or base`);
 
         event.context = context;
         event.attacker = properties.attacker;

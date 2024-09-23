@@ -1,7 +1,7 @@
 import { Card } from '../../card/Card';
 import type Game from '../../Game';
 import type Player from '../../Player';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
 
 export class ResourcePrompt extends AllPlayerPrompt {
@@ -60,10 +60,8 @@ export class ResourcePrompt extends AllPlayerPrompt {
     }
 
     public override onCardClicked(player: Player, card: Card) {
-        if (!Contract.assertNotNullLike(player) ||
-            !Contract.assertNotNullLike(card)) {
-            return false;
-        }
+        Contract.assertNotNullLike(player);
+        Contract.assertNotNullLike(card);
 
         if (!this.activeCondition(player)) {
             return false;

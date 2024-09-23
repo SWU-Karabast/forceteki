@@ -4,7 +4,7 @@ import { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityCont
 import { Card } from '../../core/card/Card';
 import { KeywordName } from '../../core/Constants';
 import Game from '../../core/Game';
-import Contract from '../../core/utils/Contract';
+import * as Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
@@ -31,9 +31,7 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
     }
 
     public constructor(game: Game, card: Card) {
-        if (!Contract.assertTrue(card.isUnit())) {
-            return;
-        }
+        Contract.assertTrue(card.isUnit());
 
         const properties = SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties();
 

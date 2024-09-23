@@ -1,16 +1,10 @@
 const { Location, RelativePlayer, WildcardLocation } = require('../Constants');
-const { default: Contract } = require('../utils/Contract');
+const Contract = require('../utils/Contract');
 const EnumHelpers = require('../utils/EnumHelpers');
 
 // TODO: once converted to TS, make this abstract
 class BaseCardSelector {
     constructor(properties) {
-        // TODO: remove this once we feel confident we've finished the rename pass successfully
-        if (!Contract.assertFalse('location' in properties, 'Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property')) {
-            // just to catch any accidental use of the 'location' property we missed when doing the refactor to naming 'locationFilter'
-            throw Error('Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property');
-        }
-
         this.cardCondition = properties.cardCondition;
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;

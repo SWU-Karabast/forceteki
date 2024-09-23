@@ -5,7 +5,7 @@ import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 
 // required for mixins to be based on this class

@@ -10,7 +10,7 @@ import { shuffleDeck } from './GameSystemLibrary.js';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import Player from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
-import Contract from '../core/utils/Contract.js';
+import * as Contract from '../core/utils/Contract.js';
 
 type Derivable<T> = T | ((context: AbilityContext) => T);
 

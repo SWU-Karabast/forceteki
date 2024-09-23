@@ -1,7 +1,7 @@
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import Contract from '../core/utils/Contract';
+import * as Contract from '../core/utils/Contract';
 
 export interface IReplacementEffectSystemProperties extends IGameSystemProperties {
     effect?: string;
@@ -66,9 +66,7 @@ export class ReplacementEffectSystem extends GameSystem<IReplacementEffectSystem
     }
 
     public override hasLegalTarget(context: TriggeredAbilityContext, additionalProperties = {}): boolean {
-        if (!Contract.assertNotNullLike(context.event)) {
-            return false;
-        }
+        Contract.assertNotNullLike(context.event);
 
         if (context.event.cancelled) {
             return false;

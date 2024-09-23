@@ -3,7 +3,7 @@ const CardTargetResolver = require('./abilityTargets/CardTargetResolver.js');
 const SelectTargetResolver = require('./abilityTargets/SelectTargetResolver.js');
 const { Stage, TargetMode, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
-const { default: Contract } = require('../utils/Contract.js');
+const Contract = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
 const { has } = require('underscore');
 

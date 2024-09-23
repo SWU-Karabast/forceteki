@@ -4,7 +4,7 @@ import { UnitCard } from '../core/card/CardTypes';
 import { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardTypeFilter, EventName, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import Contract from '../core/utils/Contract';
+import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
@@ -24,9 +24,9 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
     };
 
     public override eventHandler(event, additionalProperties = {}): void {
-        if (!Contract.assertTrue(event.card.isUpgrade()) || !Contract.assertTrue(event.parentCard.isUnit())) {
-            return;
-        }
+        // TODO THIS PR: type for event.card
+        Contract.assertTrue(event.card.isUpgrade());
+        Contract.assertTrue(event.parentCard.isUnit());
 
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
         event.originalLocation = event.card.location;
@@ -63,14 +63,10 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const contextCopy = context.copy({ source: card });
 
-        if (
-            !Contract.assertNotNullLike(context) ||
-            !Contract.assertNotNullLike(context.player) ||
-            !Contract.assertNotNullLike(card) ||
-            !Contract.assertNotNullLike(properties.upgrade)
-        ) {
-            return false;
-        }
+        Contract.assertNotNullLike(context);
+        Contract.assertNotNullLike(context.player);
+        Contract.assertNotNullLike(card);
+        Contract.assertNotNullLike(properties.upgrade);
 
         if (!card.isUnit()) {
             return false;

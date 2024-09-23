@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import Player from '../../../core/Player';
-import Contract from '../../../core/utils/Contract';
+import * as Contract from '../../../core/utils/Contract';
 
 export default class Shield extends TokenUpgradeCard {
     protected override getImplementationId() {

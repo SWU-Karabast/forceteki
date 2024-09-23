@@ -156,14 +156,10 @@ class Game extends EventEmitter {
      * @returns {Player}
      */
     getPlayerByName(playerName) {
-        if (!Contract.assertHasProperty(this.playersAndSpectators, playerName)) {
-            return null;
-        }
+        Contract.assertHasProperty(this.playersAndSpectators, playerName);
 
         let player = this.playersAndSpectators[playerName];
-        if (!Contract.assertFalse(this.isSpectator(player), `Player ${playerName} is a spectator`)) {
-            return null;
-        }
+        Contract.assertFalse(this.isSpectator(player), `Player ${playerName} is a spectator`);
 
         return player;
     }
@@ -587,9 +583,7 @@ class Game extends EventEmitter {
      * @param {Object} properties - see menuprompt.js
      */
     promptWithMenu(player, contextObj, properties) {
-        if (!Contract.assertNotNullLike(player)) {
-            return;
-        }
+        Contract.assertNotNullLike(player);
 
         this.queueStep(new MenuPrompt(this, player, contextObj, properties));
     }
@@ -600,9 +594,7 @@ class Game extends EventEmitter {
      * @param {Object} properties - see handlermenuprompt.js
      */
     promptWithHandlerMenu(player, properties) {
-        if (!Contract.assertNotNullLike(player)) {
-            return;
-        }
+        Contract.assertNotNullLike(player);
 
         this.queueStep(new HandlerMenuPrompt(this, player, properties));
     }
@@ -613,9 +605,7 @@ class Game extends EventEmitter {
      * @param {Object} properties - see selectcardprompt.js
      */
     promptForSelect(player, properties) {
-        if (!Contract.assertNotNullLike(player)) {
-            return;
-        }
+        Contract.assertNotNullLike(player);
 
         this.queueStep(new SelectCardPrompt(this, player, properties));
     }
@@ -1145,13 +1135,9 @@ class Game extends EventEmitter {
      * @param {import('./card/CardTypes.js').TokenCard} token
      */
     removeTokenFromPlay(token) {
-        if (
-            !Contract.assertEqual(token.location, Location.OutsideTheGame,
-                `Tokens must be moved to location ${Location.OutsideTheGame} before removing from play, instead found token at ${token.location}`
-            )
-        ) {
-            return;
-        }
+        Contract.assertEqual(token.location, Location.OutsideTheGame,
+            `Tokens must be moved to location ${Location.OutsideTheGame} before removing from play, instead found token at ${token.location}`
+        );
 
         const player = token.owner;
         this.filterCardFromList(token, this.allCards);

@@ -7,7 +7,7 @@ import { StatsModifier } from './StatsModifier';
 import { LeaderUnitCard } from '../../card/LeaderUnitCard';
 import { NonLeaderUnitCard } from '../../card/NonLeaderUnitCard';
 import { UnitPropertiesCard } from '../../card/propertyMixins/UnitProperties';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 
 /**
  * A wrapper around a {@link StatsModifier} that has helper methods for creation as well
@@ -59,18 +59,14 @@ export default class StatsModifierWrapper {
     }
 
     public static fromPrintedValues(card: Card, overrides = false) {
-        if (
-            !Contract.assertHasProperty(card, 'printedHp') ||
-            !Contract.assertHasProperty(card, 'printedPower')
-        ) {
-            return null;
-        }
+        Contract.assertHasProperty(card, 'printedHp');
+        Contract.assertHasProperty(card, 'printedPower');
 
         const description = card.isUpgrade() ? `${card.name} bonus` : `${card.name} base`;
 
         return new this({
-            hp: (card as CardWithPrintedHp).printedHp,
-            power: (card as CardWithPrintedPower).printedPower
+            hp: card.printedHp,
+            power: card.printedPower
         },
         description,
         overrides,

@@ -1,7 +1,7 @@
 import { IStateListenerProperties } from '../../Interfaces';
 import Game from '../Game';
 import Player from '../Player';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 
 /**
  * Helper for managing the operation of {@link StateWatcher} implementations.
@@ -57,12 +57,8 @@ export class StateWatcherRegistrar {
     }
 
     private assertRegistered(watcherKey: string) {
-        if (
-            !Contract.assertTrue(this.isRegistered(watcherKey),
-                `Watcher '${watcherKey}' not found in registered watcher list: ${Array.from(this.watchedState.keys()).join(', ')}`)
-        ) {
-            return false;
-        }
+        Contract.assertTrue(this.isRegistered(watcherKey),
+            `Watcher '${watcherKey}' not found in registered watcher list: ${Array.from(this.watchedState.keys()).join(', ')}`);
 
         return true;
     }

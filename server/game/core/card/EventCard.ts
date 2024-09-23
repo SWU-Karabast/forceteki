@@ -1,7 +1,7 @@
 import Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
 import { AbilityType, CardType, Location } from '../Constants';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';

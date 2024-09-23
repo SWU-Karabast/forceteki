@@ -5,7 +5,7 @@ import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSyste
 import { UnitCard } from '../core/card/CardTypes';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import Contract from '../core/utils/Contract';
+import * as Contract from '../core/utils/Contract';
 import { IAttackProperties } from './AttackStepsSystem';
 import * as GameSystemLibrary from './GameSystemLibrary';
 
@@ -39,9 +39,7 @@ export class InitiateAttackSystem extends CardTargetSystem<IInitiateAttackProper
 
     protected override addPropertiesToEvent(event, attacker, context: AbilityContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (!Contract.assertTrue(attacker.isUnit())) {
-            return;
-        }
+        Contract.assertTrue(attacker.isUnit());
 
         super.addPropertiesToEvent(event, attacker, context, additionalProperties);
 

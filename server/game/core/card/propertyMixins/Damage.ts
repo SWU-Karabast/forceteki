@@ -1,5 +1,5 @@
 import { Attack } from '../../attack/Attack';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import { Card, CardConstructor } from '../Card';
 import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';
@@ -43,18 +43,9 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         public addDamage(amount: number) {
-            if (!Contract.assertNotNullLikeOrNan(amount)) {
-                return;
-            }
+            Contract.assertNonNegative(amount);
 
             this.assertPropertyEnabled(this._damage, 'damage');
-            if (
-                !Contract.assertNotNullLikeOrNan(this.damage) ||
-                !Contract.assertNotNullLikeOrNan(this.hp) ||
-                !Contract.assertNonNegative(amount)
-            ) {
-                return;
-            }
 
             if (amount === 0) {
                 return;
@@ -74,14 +65,8 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
 
         /** @returns True if any damage was healed, false otherwise */
         public removeDamage(amount: number): boolean {
+            Contract.assertNonNegative(amount);
             this.assertPropertyEnabled(this._damage, 'damage');
-            if (
-                !Contract.assertNotNullLikeOrNan(this.damage) ||
-                !Contract.assertNotNullLikeOrNan(this.hp) ||
-                !Contract.assertNonNegative(amount)
-            ) {
-                return false;
-            }
 
             if (amount === 0 || this.damage === 0) {
                 return false;

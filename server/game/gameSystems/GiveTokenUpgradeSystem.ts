@@ -3,7 +3,7 @@ import { Card } from '../core/card/Card';
 import { CardTypeFilter, EventName, TokenName, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import Contract from '../core/utils/Contract';
+import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
@@ -20,12 +20,8 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
         const cardReceivingTokenUpgrade = event.card;
         const properties = this.generatePropertiesFromContext(event.context);
 
-        if (
-            !Contract.assertTrue(cardReceivingTokenUpgrade.isUnit()) ||
-            !Contract.assertTrue(EnumHelpers.isArena(cardReceivingTokenUpgrade.location))
-        ) {
-            return;
-        }
+        Contract.assertTrue(cardReceivingTokenUpgrade.isUnit());
+        Contract.assertTrue(EnumHelpers.isArena(cardReceivingTokenUpgrade.location));
 
         for (let i = 0; i < properties.amount; i++) {
             const tokenUpgrade = event.context.game.generateToken(event.context.source.controller, properties.tokenType);
@@ -45,13 +41,9 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
     public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
-        if (
-            !Contract.assertNotNullLike(context) ||
-            !Contract.assertNotNullLike(context.player) ||
-            !Contract.assertNotNullLike(card)
-        ) {
-            return false;
-        }
+        Contract.assertNotNullLike(context);
+        Contract.assertNotNullLike(context.player);
+        Contract.assertNotNullLike(card);
 
         if (
             !card.isUnit() ||

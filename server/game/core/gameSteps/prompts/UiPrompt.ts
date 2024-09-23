@@ -1,7 +1,7 @@
 import { v1 as uuid } from 'uuid';
 import type Player from '../../Player';
 import { BaseStep } from '../BaseStep';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 
 interface ActivePrompt {
     buttons: { text: string; arg?: string; command?: string }[];
@@ -71,9 +71,7 @@ export abstract class UiPrompt extends BaseStep {
     }
 
     private addDefaultCommandToButtons(original?: ActivePrompt) {
-        if (!Contract.assertNotNullLike(original)) {
-            return null;
-        }
+        Contract.assertNotNullLike(original);
 
         const newPrompt = { ...original };
         if (newPrompt.buttons) {
