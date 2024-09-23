@@ -24,22 +24,26 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
     };
 
     public override eventHandler(event, additionalProperties = {}): void {
-        // TODO THIS PR: type for event.card
-        Contract.assertTrue(event.card.isUpgrade());
-        Contract.assertTrue(event.parentCard.isUnit());
+        const upgradeCard = (event.card as Card);
+        const parentCard = (event.parentCard as Card);
+
+        Contract.assertNotNullLike(upgradeCard);
+        Contract.assertNotNullLike(parentCard);
+        Contract.assertTrue(upgradeCard.isUpgrade());
+        Contract.assertTrue(parentCard.isUnit());
 
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
-        event.originalLocation = event.card.location;
+        event.originalLocation = upgradeCard.location;
 
         // attachTo manages all of the unattach and move zone logic
-        event.card.attachTo(event.parentCard);
+        upgradeCard.attachTo(parentCard);
 
         if (properties.takeControl) {
-            event.card.controller = event.context.player;
-            event.card.updateConstantAbilityContexts();
+            upgradeCard.controller = event.context.player;
+            upgradeCard.updateConstantAbilityContexts();
         } else if (properties.giveControl) {
-            event.card.controller = event.context.player.opponent;
-            event.card.updateConstantAbilityContexts();
+            upgradeCard.controller = event.context.player.opponent;
+            upgradeCard.updateConstantAbilityContexts();
         }
     }
 

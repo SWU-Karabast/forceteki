@@ -11,7 +11,6 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     public override executeHandler(context: PlayCardContext): void {
-        // TODO THIS PR: try forcing context.source to be Card
         Contract.assertTrue(context.source.isEvent());
 
         context.game.addMessage(

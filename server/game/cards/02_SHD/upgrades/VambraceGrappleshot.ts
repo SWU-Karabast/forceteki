@@ -26,7 +26,7 @@ export default class VambraceGrappleshot extends UpgradeCard {
             title: 'Exhaust the defender on attack',
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
-                return { target: (context as TriggeredAbilityContext)?.event.attack.target };
+                return { target: context.source.isUnit() ? context.source.activeAttack?.target : null };
             })
         });
     }

@@ -3,6 +3,7 @@ import { BaseCard } from '../core/card/BaseCard';
 import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import Player from '../core/Player';
+import * as Helpers from '../core/utils/Helpers';
 
 //TODO: Need some future work to fully implement Thrawn
 export interface IViewCardProperties extends ICardTargetSystemProperties {
@@ -36,7 +37,7 @@ export abstract class ViewCardSystem extends CardTargetSystem<IViewCardPropertie
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
-        const cards = (target as BaseCard[]).filter((card) => this.canAffect(card, context));
+        const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));
         if (cards.length === 0) {
             return;
         }

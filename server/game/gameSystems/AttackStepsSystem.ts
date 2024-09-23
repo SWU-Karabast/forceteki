@@ -158,7 +158,7 @@ export class AttackStepsSystem extends CardTargetSystem<IAttackProperties> {
             additionalProperties
         );
 
-        const cards = (target as Card[]).filter((card) => this.canAffect(card, context));
+        const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));
         if (cards.length !== 1) {
             return;
         }

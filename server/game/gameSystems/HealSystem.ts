@@ -34,7 +34,7 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
         if (!EnumHelpers.isAttackableLocation(card.location)) {
             return false;
         }
-        if (properties.isCost && (properties.amount === 0 || (card as CardWithDamageProperty).damage === 0)) {
+        if (properties.isCost && (properties.amount === 0 || card.damage === 0)) {
             return false;
         }
         if (card.hasRestriction(AbilityRestriction.BeHealed, context)) {

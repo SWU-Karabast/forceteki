@@ -30,7 +30,7 @@ export default class MedalCeremony extends EventCard {
                 cardCondition: (card, context) => {
                     const rebelUnitsAttackedThisPhase =
                         this.attacksThisPhaseWatcher.getAttackers((attack) => attack.attacker.hasSomeTrait(Trait.Rebel));
-                    return rebelUnitsAttackedThisPhase.includes(card as UnitCard);
+                    return rebelUnitsAttackedThisPhase.includes(card);
                 }
             }
         });

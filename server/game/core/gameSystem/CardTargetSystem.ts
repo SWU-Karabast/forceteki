@@ -5,7 +5,7 @@ import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemPropertie
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { UpgradeCard } from '../card/UpgradeCard';
-import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
+import * as Helpers from '../utils/Helpers';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -26,12 +26,12 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
             return false;
         }
 
-        return EnumHelpers.cardTypeMatches((target as Card).type, this.targetTypeFilter);
+        return EnumHelpers.cardTypeMatches(target.type, this.targetTypeFilter);
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
-        for (const card of target as Card[]) {
+        for (const card of Helpers.asArray(target)) {
             let allCostsPaid = true;
             const additionalCosts = card
                 .getEffectValues(EffectName.UnlessActionCost)
