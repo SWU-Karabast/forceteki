@@ -72,21 +72,21 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.constantAbilities.push(this.createConstantAbility(properties));
     }
 
-    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps): void {
+    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): void {
         // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
         this.triggeredAbilities.push(this.createReplacementEffectAbility(properties));
     }
 
-    protected addTriggeredAbility(properties: ITriggeredAbilityProps): void {
+    protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): void {
         this.triggeredAbilities.push(this.createTriggeredAbility(properties));
     }
 
-    protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps): void {
+    protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): void {
         const triggeredProperties = Object.assign(properties, { when: { onCardPlayed: (event, context) => event.card === context.source } });
         this.addTriggeredAbility(triggeredProperties);
     }
 
-    protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps): void {
+    protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): void {
         const triggeredProperties = Object.assign(properties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
         this.addTriggeredAbility(triggeredProperties);
     }
@@ -99,12 +99,12 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return { duration: Duration.Persistent, sourceLocationFilter, ...properties };
     }
 
-    public createReplacementEffectAbility(properties: IReplacementEffectAbilityProps): ReplacementEffectAbility {
+    public createReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
         properties.cardName = this.title;
         return new ReplacementEffectAbility(this.game, this, properties);
     }
 
-    public createTriggeredAbility(properties: ITriggeredAbilityProps): TriggeredAbility {
+    public createTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
         properties.cardName = this.title;
         return new TriggeredAbility(this.game, this, properties);
     }

@@ -4,6 +4,7 @@ import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.js';
+import * as Contract from '../core/utils/Contract.js';
 
 export class PlayUnitAction extends PlayCardAction {
     public constructor(card: Card) {
@@ -11,6 +12,8 @@ export class PlayUnitAction extends PlayCardAction {
     }
 
     public override executeHandler(context: PlayCardContext): void {
+        Contract.assertTrue(context.source.isUnit());
+
         const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, {
             player: context.player,
             card: context.source,

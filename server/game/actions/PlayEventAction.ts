@@ -19,7 +19,7 @@ export class PlayEventAction extends PlayCardAction {
             context.player,
             context.source,
         );
-        context.game.resolveAbility((context.source as EventCard).getEventAbility().createContext());
+        context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

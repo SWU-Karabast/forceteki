@@ -1,4 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { AbilityContext } from '../../../core/ability/AbilityContext';
+import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, KeywordName, Location, Trait, WildcardCardType } from '../../../core/Constants';
@@ -28,7 +30,7 @@ export default class VadersLightsaber extends UpgradeCard {
                 locationFilter: Location.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.parentCard?.title === 'Darth Vader',
+                    condition: (context: TriggeredAbilityContext<this>) => context.source.parentCard?.title === 'Darth Vader',      // TODO THIS PR: can we make this cast go away?
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 4 }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })

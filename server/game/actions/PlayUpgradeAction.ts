@@ -1,8 +1,10 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction';
 import { Card } from '../core/card/Card';
+import { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
+import * as Contract from '../core/utils/Contract';
 import { payPlayCardResourceCost } from '../costs/CostLibrary';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
@@ -10,11 +12,13 @@ export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(card: Card) {
         super(card, 'Play this upgrade', [], { immediateEffect: attachUpgrade((context) => ({
-            upgrade: context.source
+            upgrade: (context.source as UpgradeCard)
         })) });
     }
 
     public override executeHandler(context: PlayCardContext) {
+        Contract.assertTrue(context.source.isUpgrade());
+
         const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, {
             player: context.player,
             card: context.source,

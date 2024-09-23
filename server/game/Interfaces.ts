@@ -15,12 +15,12 @@ import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 // ********************************************** EXPORTED TYPES **********************************************
 
 /** Interface definition for addTriggeredAbility */
-export type ITriggeredAbilityProps = ITriggeredAbilityWhenProps | ITriggeredAbilityAggregateWhenProps;
-export type IReplacementEffectAbilityProps = IReplacementEffectAbilityWhenProps | IReplacementEffectAbilityAggregateWhenProps;
+export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
+export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
 
 /** Interface definition for addActionAbility */
-export type IActionAbilityProps<Source = any> = Exclude<IAbilityPropsWithSystems<AbilityContext<Source>>, 'optional'> & {
-    condition?: (context?: AbilityContext<Source>) => boolean;
+export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'optional'> & {
+    condition?: (context?: AbilityContext<TSource>) => boolean;
 
     /**
      * If true, any player can trigger the ability. If false, only the card's controller can trigger it.
@@ -30,13 +30,13 @@ export type IActionAbilityProps<Source = any> = Exclude<IAbilityPropsWithSystems
 }
 
 /** Interface definition for addConstantAbility */
-export interface IConstantAbilityProps<Source = any> {
+export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
     sourceLocationFilter?: LocationFilter | LocationFilter[];
     /** A handler to enable or disable the ability's effects depending on game context */
-    condition?: (context: AbilityContext<Source>) => boolean;
+    condition?: (context: AbilityContext<TSource>) => boolean;
     /** A handler to determine if a specific card is impacted by the ability effect */
-    matchTarget?: (card: Card, context?: AbilityContext<Source>) => boolean;
+    matchTarget?: (card: Card, context?: AbilityContext<TSource>) => boolean;
     targetController?: RelativePlayer;
     targetLocationFilter?: LocationFilter;
     targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
@@ -50,7 +50,7 @@ export interface IConstantAbilityProps<Source = any> {
 }
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
-export type ITriggeredAbilityBaseProps = IAbilityPropsWithSystems<TriggeredAbilityContext> & {
+export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
     collectiveTrigger?: boolean;
     targetResolver?: ITriggeredAbilityTargetResolver;
     targetResolvers?: ITriggeredAbilityTargetsResolver;
@@ -59,13 +59,13 @@ export type ITriggeredAbilityBaseProps = IAbilityPropsWithSystems<TriggeredAbili
 }
 
 /** Interface definition for setEventAbility */
-export type IEventAbilityProps<Source = any> = IAbilityPropsWithSystems<AbilityContext<Source>>;
+export type IEventAbilityProps<TSource extends Card = Card> = IAbilityPropsWithSystems<AbilityContext<TSource>>;
 
 /** Interface definition for setEpicActionAbility */
-export type IEpicActionProps<Source = any> = Exclude<IAbilityPropsWithSystems<AbilityContext<Source>>, 'cost' | 'limit' | 'handler'>;
+export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'cost' | 'limit' | 'handler'>;
 
 
-interface IReplacementEffectAbilityBaseProps extends Omit<ITriggeredAbilityBaseProps,
+interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
 > {
     replaceWith: IReplacementEffectSystemProperties
@@ -103,16 +103,16 @@ export type EffectArg =
     | { id: string; label: string; name: string; facedown: boolean; type: CardType }
     | EffectArg[];
 
-export type WhenType = {
-        [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext) => boolean;
+export type WhenType<TSource extends Card = Card> = {
+        [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
     };
 
 // ********************************************** INTERNAL TYPES **********************************************
-type ITriggeredAbilityWhenProps = ITriggeredAbilityBaseProps & {
-    when: WhenType;
+type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
+    when: WhenType<TSource>;
 }
 
-type ITriggeredAbilityAggregateWhenProps = ITriggeredAbilityBaseProps & {
+type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 }
 
@@ -162,7 +162,7 @@ interface IAbilityPropsWithInitiateAttack<Context> extends IAbilityProps<Context
      * Can either be an {@link IInitiateAttackProperties} property object or a function that creates one from
      * an {@link AbilityContext}.
      */
-    initiateAttack?: IInitiateAttackProperties | ((context: AbilityContext) => IInitiateAttackProperties);
+    initiateAttack?: IInitiateAttackProperties | ((context: Context) => IInitiateAttackProperties);
 }
 
 type IAbilityPropsWithSystems<Context> =
@@ -172,11 +172,11 @@ type IAbilityPropsWithSystems<Context> =
     IAbilityPropsWithTargetResolvers<Context> |
     IAbilityPropsWithHandler<Context>;
 
-interface IReplacementEffectAbilityWhenProps extends IReplacementEffectAbilityBaseProps {
-    when: WhenType;
+interface IReplacementEffectAbilityWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
+    when: WhenType<TSource>;
 }
 
-interface IReplacementEffectAbilityAggregateWhenProps extends IReplacementEffectAbilityBaseProps {
+interface IReplacementEffectAbilityAggregateWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 }
 
