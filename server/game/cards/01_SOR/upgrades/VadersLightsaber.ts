@@ -1,11 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { AbilityContext } from '../../../core/ability/AbilityContext';
-import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, KeywordName, Location, Trait, WildcardCardType } from '../../../core/Constants';
 import Player from '../../../core/Player';
-import { ITriggeredAbilityBaseProps } from '../../../Interfaces';
 
 export default class VadersLightsaber extends UpgradeCard {
     protected override getImplementationId() {

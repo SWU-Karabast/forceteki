@@ -108,7 +108,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps<this>, gainCondition: (context: AbilityContext<this>) => boolean = null) {
+    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps<UnitCard>, gainCondition: (context: AbilityContext<this>) => boolean = null) {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: gainCondition,
