@@ -19,7 +19,6 @@ export class CardLastingEffectSystem extends CardTargetSystem<ICardLastingEffect
     public override readonly effectDescription: string = 'apply a lasting effect to {0}';
     protected override readonly defaultProperties: ICardLastingEffectProperties = {
         duration: null,
-        // TODO THIS PR: rename to ongoingEffect
         effect: [],
         ability: null
     };

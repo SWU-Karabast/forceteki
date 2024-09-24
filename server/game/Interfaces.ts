@@ -8,6 +8,7 @@ import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
+import { MetaSystem } from './core/gameSystem/MetaSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -52,8 +53,8 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
     collectiveTrigger?: boolean;
-    targetResolver?: ITriggeredAbilityTargetResolver;
-    targetResolvers?: ITriggeredAbilityTargetsResolver;
+    targetResolver?: ITriggeredAbilityTargetResolver<TriggeredAbilityContext<TSource>>;
+    targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
 }
@@ -119,7 +120,7 @@ type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbili
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
 // for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
 /** Base interface for triggered and action ability definitions */
-interface IAbilityProps<Context> {
+interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
     locationFilter?: LocationFilter | LocationFilter[];
     cost?: any;
@@ -135,42 +136,42 @@ interface IAbilityProps<Context> {
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;
     effect?: string;
-    effectArgs?: EffectArg | ((context: Context) => EffectArg);
-    then?: ((context?: AbilityContext) => IAbilityPropsWithSystems<Context>) | IAbilityPropsWithSystems<Context>;
+    effectArgs?: EffectArg | ((context: TContext) => EffectArg);
+    then?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
 }
 
-interface IAbilityPropsWithTargetResolver<Context> extends IAbilityProps<Context> {
-    targetResolver: IActionTargetResolver;
+interface IAbilityPropsWithTargetResolver<TContext extends AbilityContext> extends IAbilityProps<TContext> {
+    targetResolver: IActionTargetResolver<TContext>;
 }
 
-interface IAbilityPropsWithTargetResolvers<Context> extends IAbilityProps<Context> {
-    targetResolvers: IActionTargetsResolver;
+interface IAbilityPropsWithTargetResolvers<TContext extends AbilityContext> extends IAbilityProps<TContext> {
+    targetResolvers: IActionTargetsResolver<TContext>;
 }
 
-interface IAbilityPropsWithImmediateEffect<Context> extends IAbilityProps<Context> {
-    immediateEffect: GameSystem;
+interface IAbilityPropsWithImmediateEffect<TContext extends AbilityContext> extends IAbilityProps<TContext> {
+    immediateEffect: GameSystem | MetaSystem<TContext>;
 }
 
-interface IAbilityPropsWithHandler<Context> extends IAbilityProps<Context> {
-    handler: (context: Context) => void;
+interface IAbilityPropsWithHandler<TContext extends AbilityContext> extends IAbilityProps<TContext> {
+    handler: (context: TContext) => void;
 }
 
-interface IAbilityPropsWithInitiateAttack<Context> extends IAbilityProps<Context> {
+interface IAbilityPropsWithInitiateAttack<TContext extends AbilityContext> extends IAbilityProps<TContext> {
     /**
      * Indicates that an attack should be triggered from a friendly unit.
      * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
      * Can either be an {@link IInitiateAttackProperties} property object or a function that creates one from
      * an {@link AbilityContext}.
      */
-    initiateAttack?: IInitiateAttackProperties | ((context: Context) => IInitiateAttackProperties);
+    initiateAttack?: IInitiateAttackProperties | ((context: TContext) => IInitiateAttackProperties);
 }
 
-type IAbilityPropsWithSystems<Context> =
-    IAbilityPropsWithImmediateEffect<Context> |
-    IAbilityPropsWithInitiateAttack<Context> |
-    IAbilityPropsWithTargetResolver<Context> |
-    IAbilityPropsWithTargetResolvers<Context> |
-    IAbilityPropsWithHandler<Context>;
+type IAbilityPropsWithSystems<TContext extends AbilityContext> =
+    IAbilityPropsWithImmediateEffect<TContext> |
+    IAbilityPropsWithInitiateAttack<TContext> |
+    IAbilityPropsWithTargetResolver<TContext> |
+    IAbilityPropsWithTargetResolvers<TContext> |
+    IAbilityPropsWithHandler<TContext>;
 
 interface IReplacementEffectAbilityWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
     when: WhenType<TSource>;

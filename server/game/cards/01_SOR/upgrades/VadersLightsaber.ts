@@ -5,6 +5,7 @@ import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, KeywordName, Location, Trait, WildcardCardType } from '../../../core/Constants';
 import Player from '../../../core/Player';
+import { ITriggeredAbilityBaseProps } from '../../../Interfaces';
 
 export default class VadersLightsaber extends UpgradeCard {
     protected override getImplementationId() {
@@ -30,7 +31,7 @@ export default class VadersLightsaber extends UpgradeCard {
                 locationFilter: Location.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context: TriggeredAbilityContext<this>) => context.source.parentCard?.title === 'Darth Vader',      // TODO THIS PR: can we make this cast go away?
+                    condition: (context) => context.source.parentCard?.title === 'Darth Vader',
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 4 }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })

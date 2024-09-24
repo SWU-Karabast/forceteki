@@ -1,6 +1,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { GameObject } from '../core/GameObject';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import { MetaSystem } from '../core/gameSystem/MetaSystem';
 
 export interface ISimultaneousSystemProperties extends IGameSystemProperties {
     gameSystems: GameSystem[];
@@ -12,13 +13,13 @@ export interface ISimultaneousSystemProperties extends IGameSystemProperties {
     ignoreTargetingRequirements?: boolean;
 }
 
-export class SimultaneousGameSystem extends GameSystem<ISimultaneousSystemProperties> {
+export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends MetaSystem<TContext, ISimultaneousSystemProperties> {
     protected override readonly defaultProperties: ISimultaneousSystemProperties = {
         gameSystems: null,
         ignoreTargetingRequirements: false
     };
 
-    public constructor(gameSystems: GameSystem[], ignoreTargetingRequirements = null) {
+    public constructor(gameSystems: (GameSystem | MetaSystem<TContext>)[], ignoreTargetingRequirements = null) {
         super({ gameSystems, ignoreTargetingRequirements });
     }
 

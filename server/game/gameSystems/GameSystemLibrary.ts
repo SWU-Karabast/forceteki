@@ -61,6 +61,7 @@ import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 import { SequentialSystem } from './SequentialSystem';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
+import { MetaSystem } from '../core/gameSystem/MetaSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -283,8 +284,8 @@ export function replacementEffect(propertyFactory: PropsFactory<IReplacementEffe
 // export function chooseAction(propertyFactory: PropsFactory<ChooseActionProperties>): GameSystem {
 //     return new ChooseGameAction(propertyFactory);
 // } // choices, activePromptTitle = 'Select one'
-export function conditional(propertyFactory: PropsFactory<IConditionalSystemProperties>): GameSystem {
-    return new ConditionalSystem(propertyFactory);
+export function conditional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IConditionalSystemProperties<TContext>>): MetaSystem<TContext> {
+    return new ConditionalSystem<TContext>(propertyFactory);
 }
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>): GameSystem {
 //     return new AffinityAction(propertyFactory);
@@ -316,8 +317,8 @@ export function sequential(gameSystems: GameSystem[]): GameSystem {
 // export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }
-export function simultaneous(gameSystems: GameSystem[], ignoreTargetingRequirements = null): GameSystem {
-    return new SimultaneousGameSystem(gameSystems, ignoreTargetingRequirements);
+export function simultaneous<TContext extends AbilityContext = AbilityContext>(gameSystems: (GameSystem | MetaSystem<TContext>)[], ignoreTargetingRequirements = null): MetaSystem<TContext> {
+    return new SimultaneousGameSystem<TContext>(gameSystems, ignoreTargetingRequirements);
 }
 
 export function shuffleDeck(propertyFactory: PropsFactory<IShuffleDeckProperties> = {}): PlayerTargetSystem {
