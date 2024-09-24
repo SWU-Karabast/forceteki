@@ -7,7 +7,7 @@ import { ExhaustOrReadySystem, IExhaustOrReadyProperties } from './ExhaustOrRead
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExhaustSystemProperties extends IExhaustOrReadyProperties {}
 
-export class ExhaustSystem extends ExhaustOrReadySystem<IExhaustSystemProperties> {
+export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> extends ExhaustOrReadySystem<TContext, IExhaustSystemProperties> {
     public override readonly name = 'exhaust';
     public override readonly eventName = EventName.OnCardExhausted;
     public override readonly costDescription = 'exhausting {0}';
@@ -18,7 +18,7 @@ export class ExhaustSystem extends ExhaustOrReadySystem<IExhaustSystemProperties
         event.card.exhaust();
     }
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         if (!super.canAffect(card, context)) {
             return false;
         }

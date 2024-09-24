@@ -12,7 +12,7 @@ import { ITriggeredAbilityProps } from '../../Interfaces';
 export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Saboteur;
 
-    public static buildSaboteurAbilityProperties(): ITriggeredAbilityProps {
+    public static buildSaboteurAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {
             title: 'Saboteur: defeat all shields',
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
@@ -25,7 +25,9 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
 
                     return card === attacker.activeAttack.target && card.hasShield();
                 },
-                immediateEffect: AbilityHelper.immediateEffects.defeat((context: TriggeredAbilityContext<UnitCard>) => {
+                immediateEffect: AbilityHelper.immediateEffects.defeat((context) => {
+                    Contract.assertTrue(context.source.isUnit());
+
                     let target: Shield[];
                     if (context.source.activeAttack?.target.isUnit()) {
                         target = context.source.activeAttack.target.upgrades?.filter((card) => card.isShield());

@@ -21,7 +21,7 @@ export interface LastingEffectProperties extends ILastingEffectGeneralProperties
 
 // TODO: how is this related to CardLastingEffectSystem?
 /** @deprecated this has not been tried yet */
-export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
+export class LastingEffectAction<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, LastingEffectProperties> {
     public override readonly name = 'applyLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
     public override readonly effectDescription = 'apply a lasting effect';
@@ -35,7 +35,7 @@ export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
     }
 
     public override generatePropertiesFromContext(
-        context: AbilityContext,
+        context: TContext,
         additionalProperties = {}
     ): LastingEffectProperties & { effect?: OngoingEffect[] } {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as LastingEffectProperties & {
@@ -47,12 +47,12 @@ export class LastingEffectAction extends GameSystem<LastingEffectProperties> {
         return properties;
     }
 
-    public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.effect.length > 0;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties: any): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: any): void {
         if (this.hasLegalTarget(context, additionalProperties)) {
             events.push(this.generateEvent(null, context, additionalProperties));
         }

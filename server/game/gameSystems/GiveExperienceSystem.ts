@@ -5,7 +5,7 @@ import { GiveTokenUpgradeSystem, IGiveTokenUpgradeProperties } from './GiveToken
 
 export type IGiveExperienceProperties = Omit<IGiveTokenUpgradeProperties, 'tokenType'>;
 
-export class GiveExperienceSystem extends GiveTokenUpgradeSystem {
+export class GiveExperienceSystem<TContext extends AbilityContext = AbilityContext> extends GiveTokenUpgradeSystem<TContext> {
     public override readonly name = 'give experience';
     protected override readonly defaultProperties: IGiveTokenUpgradeProperties = {
         amount: 1,

@@ -12,35 +12,35 @@ import Player from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
 
-type Derivable<T> = T | ((context: AbilityContext) => T);
+type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
-export interface ISearchDeckProperties extends IPlayerTargetSystemProperties {
+export interface ISearchDeckProperties<TContext extends AbilityContext = AbilityContext> extends IPlayerTargetSystemProperties {
     targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited | TargetMode.Exactly | TargetMode.ExactlyVariable;
     activePromptTitle?: string;
     /** The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck. */
-    searchCount?: number | ((context: AbilityContext) => number);
+    searchCount?: number | ((context: TContext) => number);
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
-    selectCount?: number | ((context: AbilityContext) => number);
+    selectCount?: number | ((context: TContext) => number);
     revealSelected?: boolean;
-    shuffleWhenDone?: boolean | ((context: AbilityContext) => boolean);
+    shuffleWhenDone?: boolean | ((context: TContext) => boolean);
     title?: string;
     /** This determines what to do with the selected cards (if a custom selectedCardsHandler is not provided). */
-    selectedCardsImmediateEffect?: GameSystem<IGameSystemProperties>;
+    selectedCardsImmediateEffect?: GameSystem<TContext>;
     message?: string;
     chosenCardsMustHaveUniqueNames?: boolean;
     player?: Player;
     choosingPlayer?: Player;
-    messageArgs?: (context: AbilityContext, cards: Card[]) => any | any[];
+    messageArgs?: (context: TContext, cards: Card[]) => any | any[];
     /** Used to override default logic for handling the selected cards. The default utilizes the selectedCardsImmediateEffect */
-    selectedCardsHandler?: (context: AbilityContext, event: any, cards: Card[]) => void;
+    selectedCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
     /** Used to override default logic for handling the remaining cards. The default places them on the bottom of the deck. */
-    remainingCardsHandler?: (context: AbilityContext, event: any, cards: Card[]) => void;
+    remainingCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
     /** Used for filtering selection based on things like trait, type, etc. */
-    cardCondition?: (card: Card, context: AbilityContext) => boolean;
-    chooseNothingImmediateEffect?: GameSystem<IGameSystemProperties>;
+    cardCondition?: (card: Card, context: TContext) => boolean;
+    chooseNothingImmediateEffect?: GameSystem<TContext>;
 }
 
-export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> {
+export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ISearchDeckProperties<TContext>> {
     public override readonly name = 'deckSearch';
     public override readonly eventName = EventName.OnDeckSearch;
 
@@ -60,8 +60,8 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }
 
-    public override hasLegalTarget(context: AbilityContext, additionalProperties = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
+    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (this.computeSearchCount(properties.searchCount, context) === 0) {
             return false;
         }
@@ -69,14 +69,14 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         return this.getDeck(player).length > 0 && super.canAffect(player, context);
     }
 
-    public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ISearchDeckProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
+    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         properties.cardCondition = properties.cardCondition || (() => true);
         return properties;
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
         const message =
@@ -86,24 +86,24 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         return [message, []];
     }
 
-    public override canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
+    public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
         return searchCountAmount !== 0 && this.getDeck(player).length > 0 && super.canAffect(player, context);
     }
 
-    public override defaultTargets(context: AbilityContext): Player[] {
+    public override defaultTargets(context: TContext): Player[] {
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: AbilityContext, additionalProperties: any): void {
-        const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: any): void {
+        const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties);
         const searchCountAmount = this.computeSearchCount(searchCount, context);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = searchCountAmount;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player = properties.player || context.player;
         const event = this.generateEvent(player, context, additionalProperties) as any;
@@ -117,15 +117,15 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         events.push(event);
     }
 
-    private getNumCards(numCards: Derivable<number>, context: AbilityContext): number {
+    private getNumCards(numCards: Derivable<number>, context: TContext): number {
         return typeof numCards === 'function' ? numCards(context) : numCards;
     }
 
-    private computeSearchCount(searchCount: Derivable<number>, context: AbilityContext): number {
+    private computeSearchCount(searchCount: Derivable<number>, context: TContext): number {
         return typeof searchCount === 'function' ? searchCount(context) : searchCount;
     }
 
-    private shouldShuffle(shuffle: Derivable<boolean>, context: AbilityContext): boolean {
+    private shouldShuffle(shuffle: Derivable<boolean>, context: TContext): boolean {
         return typeof shuffle === 'function' ? shuffle(context) : shuffle;
     }
 
@@ -134,7 +134,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
     }
 
     private selectCard(event: any, additionalProperties: any, cards: Card[], selectedCards: Set<Card>): void {
-        const context: AbilityContext = event.context;
+        const context: TContext = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
         const canCancel = properties.targetMode !== TargetMode.Exactly;
         let selectAmount = 1;
@@ -177,7 +177,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
             activePromptTitle: title,
             context: context,
             cards: cards,
-            cardCondition: (card: Card, context: AbilityContext) =>
+            cardCondition: (card: Card, context: TContext) =>
                 properties.cardCondition(card, context) &&
                 (!properties.chosenCardsMustHaveUniqueNames || !Array.from(selectedCards).some((sel) => sel.name === card.name)) &&
                 (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
@@ -199,7 +199,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         });
     }
 
-    private onSearchComplete(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>, allCards: Card[]): void {
+    private onSearchComplete(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>, allCards: Card[]): void {
         event.selectedCards = Array.from(selectedCards);
         context.selects['deckSearch'] = Array.from(selectedCards);
         this.searchCompleteHandler(properties, context, event, selectedCards);
@@ -219,7 +219,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         }
     }
 
-    private remainingCardsDefaultHandler(context: AbilityContext, event: any, cardsToMove: Card[]) {
+    private remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[]) {
         if (cardsToMove.length > 0) {
             shuffleArray(cardsToMove);
             for (const card of cardsToMove) {
@@ -234,7 +234,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         }
     }
 
-    private selectedCardsDefaultHandler(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
+    private selectedCardsDefaultHandler(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>): void {
         const gameSystem = this.generatePropertiesFromContext(event.context).selectedCardsImmediateEffect;
         if (gameSystem) {
             const selectedArray = Array.from(selectedCards);
@@ -248,7 +248,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         }
     }
 
-    private searchCompleteHandler(properties: ISearchDeckProperties, context: AbilityContext, event: any, selectedCards: Set<Card>): void {
+    private searchCompleteHandler(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>): void {
         const choosingPlayer = properties.choosingPlayer || event.player;
         if (selectedCards.size > 0 && properties.message) {
             const args = properties.messageArgs ? properties.messageArgs(context, Array.from(selectedCards)) : [];
@@ -271,7 +271,7 @@ export class SearchDeckSystem extends PlayerTargetSystem<ISearchDeckProperties> 
         );
     }
 
-    private chooseNothingHandler(properties: ISearchDeckProperties, context: AbilityContext, event: any) {
+    private chooseNothingHandler(properties: ISearchDeckProperties, context: TContext, event: any) {
         const choosingPlayer = properties.choosingPlayer || event.player;
         context.game.addMessage('{0} takes nothing', choosingPlayer);
         if (properties.chooseNothingImmediateEffect) {

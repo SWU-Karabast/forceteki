@@ -8,7 +8,6 @@ import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
-import { MetaSystem } from './core/gameSystem/MetaSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -149,7 +148,7 @@ interface IAbilityPropsWithTargetResolvers<TContext extends AbilityContext> exte
 }
 
 interface IAbilityPropsWithImmediateEffect<TContext extends AbilityContext> extends IAbilityProps<TContext> {
-    immediateEffect: GameSystem | MetaSystem<TContext>;
+    immediateEffect: GameSystem<TContext>;
 }
 
 interface IAbilityPropsWithHandler<TContext extends AbilityContext> extends IAbilityProps<TContext> {

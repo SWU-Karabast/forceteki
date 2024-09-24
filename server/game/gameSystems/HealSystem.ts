@@ -11,7 +11,7 @@ export interface IHealProperties extends ICardTargetSystemProperties {
     amount: number;
 }
 
-export class HealSystem extends CardTargetSystem<IHealProperties> {
+export class HealSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IHealProperties> {
     public override readonly name = 'heal';
     public override readonly eventName = EventName.OnDamageRemoved;
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
@@ -20,13 +20,13 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
         event.card.removeDamage(event.healAmount);
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const { amount, target } = this.generatePropertiesFromContext(context);
 
         return ['heal {1} damage from {0}', [amount, target]];
     }
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
         if (!card.canBeDamaged()) {
             return false;
@@ -43,7 +43,7 @@ export class HealSystem extends CardTargetSystem<IHealProperties> {
         return super.canAffect(card, context);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.healAmount = amount;

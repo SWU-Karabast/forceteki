@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
@@ -24,7 +23,7 @@ export default class LukesLightsaber extends UpgradeCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Heal all damage from Luke and give him a shield token',
-            immediateEffect: AbilityHelper.immediateEffects.conditional((context: TriggeredAbilityContext<this>) => ({
+            immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 target: context.source.parentCard,
                 condition: context.source.parentCard?.title === 'Luke Skywalker',
                 onTrue: AbilityHelper.immediateEffects.simultaneous([

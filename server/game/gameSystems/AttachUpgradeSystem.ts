@@ -14,7 +14,7 @@ export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     controlSwitchOptional?: boolean;
 }
 
-export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperties> {
+export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IAttachUpgradeProperties> {
     public override readonly name = 'attach';
     public override readonly eventName = EventName.OnUpgradeAttached;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
@@ -45,7 +45,7 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         }
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         if (properties.takeControl) {
             return [
@@ -61,7 +61,7 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         return ['attach {1} to {0}', [properties.target, properties.upgrade]];
     }
 
-    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const contextCopy = context.copy({ source: card });
 
@@ -97,12 +97,12 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         return this.canAffect(event.parentCard, event.context, additionalProperties);
     }
 
-    public override isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
+    public override isEventFullyResolved(event, card: Card, context: TContext, additionalProperties): boolean {
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
         return event.parentCard === card && event.card === upgrade && event.name === this.eventName && !event.cancelled;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
         event.name = this.eventName;
         event.parentCard = card;

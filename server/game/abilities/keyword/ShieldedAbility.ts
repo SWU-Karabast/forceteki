@@ -1,4 +1,5 @@
 import AbilityHelper from '../../AbilityHelper';
+import { AbilityContext } from '../../core/ability/AbilityContext';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import { Card } from '../../core/card/Card';
 import { KeywordName } from '../../core/Constants';
@@ -9,7 +10,7 @@ import { ITriggeredAbilityProps } from '../../Interfaces';
 export class ShieldedAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Shielded;
 
-    public static buildShieldedAbilityProperties(): ITriggeredAbilityProps {
+    public static buildShieldedAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {
             title: 'Shielded',
             when: { onUnitEntersPlay: (event, context) => event.card === context.source },

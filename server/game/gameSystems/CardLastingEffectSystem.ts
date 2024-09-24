@@ -13,7 +13,7 @@ export interface ICardLastingEffectProperties extends Omit<ILastingEffectGeneral
  * For a definition, see SWU 7.7.3 'Lasting Effects': "A lasting effect is a part of an ability that affects the game for a specified duration of time.
  * Most lasting effects include the phrase 'for this phase' or 'for this attack.'"
  */
-export class CardLastingEffectSystem extends CardTargetSystem<ICardLastingEffectProperties> {
+export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ICardLastingEffectProperties> {
     public override readonly name: string = 'applyCardLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
     public override readonly effectDescription: string = 'apply a lasting effect to {0}';
@@ -45,7 +45,7 @@ export class CardLastingEffectSystem extends CardTargetSystem<ICardLastingEffect
         }
     }
 
-    public override generatePropertiesFromContext(context: AbilityContext, additionalProperties = {}): ICardLastingEffectProperties {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): ICardLastingEffectProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         if (!Array.isArray(properties.effect)) {
             properties.effect = [properties.effect];
@@ -53,7 +53,7 @@ export class CardLastingEffectSystem extends CardTargetSystem<ICardLastingEffect
         return properties;
     }
 
-    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         properties.effect = properties.effect.map((factory) => factory(context.game, context.source, properties));
         const lastingEffectRestrictions = card.getEffectValues(EffectName.CannotApplyLastingEffects);

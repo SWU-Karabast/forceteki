@@ -7,7 +7,7 @@ import * as Contract from '../core/utils/Contract';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDeployLeaderProperties extends ICardTargetSystemProperties {}
 
-export class DeployLeaderSystem extends CardTargetSystem<IDeployLeaderProperties> {
+export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDeployLeaderProperties> {
     public override readonly name = 'deploy leader';
     public override readonly eventName = EventName.OnLeaderDeployed;
     public override readonly effectDescription = 'deploy {0}';
@@ -20,7 +20,7 @@ export class DeployLeaderSystem extends CardTargetSystem<IDeployLeaderProperties
         event.card.deploy();
     }
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         if (!card.isLeader() || card.deployed) {
             return false;
         }

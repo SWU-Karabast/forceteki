@@ -17,7 +17,7 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
  */
 // TODO: mixin for Action types (CardAction, PlayerAction)?
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
-export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TProperties> {
+export abstract class CardTargetSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TContext, TProperties> {
     /** The set of card types that can be legally targeted by the system. Defaults to {@link WildcardCardType.Any} unless overriden. */
     protected readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Any];
 
@@ -29,7 +29,7 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return EnumHelpers.cardTypeMatches(target.type, this.targetTypeFilter);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         for (const card of Helpers.asArray(target)) {
             let allCostsPaid = true;
@@ -124,20 +124,20 @@ export abstract class CardTargetSystem<TProperties extends ICardTargetSystemProp
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }
 
-    public override isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
+    public override isEventFullyResolved(event, card: Card, context: TContext, additionalProperties): boolean {
         return event.card === card && super.isEventFullyResolved(event, card, context, additionalProperties);
     }
 
-    protected override defaultTargets(context: AbilityContext): Card[] {
+    protected override defaultTargets(context: TContext): Card[] {
         return [context.source];
     }
 
-    protected addLeavesPlayPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
         super.updateEvent(event, card, context, additionalProperties);
         event.destination = properties.destination || Location.Discard;

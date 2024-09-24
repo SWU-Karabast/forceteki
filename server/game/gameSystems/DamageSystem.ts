@@ -12,7 +12,7 @@ export interface IDamageProperties extends ICardTargetSystemProperties {
 // TODO: for this and the heal system, need to figure out how to handle the situation where 0 damage
 // is dealt / healed. Since the card is technically still a legal target but no damage was technically
 // dealt / healed per the rules (SWU 8.31.3)
-export class DamageSystem extends CardTargetSystem<IDamageProperties> {
+export class DamageSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDamageProperties> {
     public override readonly name = 'damage';
     public override readonly eventName = EventName.OnDamageDealt;
 
@@ -22,7 +22,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
         event.card.addDamage(event.damage);
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const { amount, target, isCombatDamage } = this.generatePropertiesFromContext(context);
 
         if (isCombatDamage) {
@@ -31,7 +31,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
         return ['deal {1} damage to {0}', [amount, target]];
     }
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         if (!EnumHelpers.isAttackableLocation(card.location)) {
             return false;
         }
@@ -41,7 +41,7 @@ export class DamageSystem extends CardTargetSystem<IDamageProperties> {
         return super.canAffect(card, context);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const { amount, isCombatDamage } = this.generatePropertiesFromContext(context, additionalProperties) as IDamageProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.damage = amount;

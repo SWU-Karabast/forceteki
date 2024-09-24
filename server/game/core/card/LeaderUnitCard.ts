@@ -78,12 +78,12 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         super.addConstantAbility(properties);
     }
 
-    protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps): void {
+    protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): void {
         properties.locationFilter = this.getAbilityLocationsForSide(properties.locationFilter);
         super.addReplacementEffectAbility(properties);
     }
 
-    protected override addTriggeredAbility(properties: ITriggeredAbilityProps): void {
+    protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>): void {
         properties.locationFilter = this.getAbilityLocationsForSide(properties.locationFilter);
         super.addTriggeredAbility(properties);
     }

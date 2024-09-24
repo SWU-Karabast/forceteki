@@ -8,7 +8,7 @@ export interface IReadySystemProperties extends IExhaustOrReadyProperties {
     isRegroupPhaseReadyStep?: boolean;
 }
 
-export class ReadySystem extends ExhaustOrReadySystem<IReadySystemProperties> {
+export class ReadySystem<TContext extends AbilityContext = AbilityContext> extends ExhaustOrReadySystem<TContext, IReadySystemProperties> {
     public override readonly name = 'ready';
     public override readonly eventName = EventName.OnCardReadied;
     public override readonly costDescription = 'readying {0}';
@@ -21,7 +21,7 @@ export class ReadySystem extends ExhaustOrReadySystem<IReadySystemProperties> {
         event.card.ready();
     }
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         if (!super.canAffect(card, context)) {
             return false;
         }

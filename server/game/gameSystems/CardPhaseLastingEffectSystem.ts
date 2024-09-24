@@ -10,7 +10,7 @@ export type ICardPhaseLastingEffectProperties = Omit<ICardLastingEffectPropertie
  * Helper subclass of {@link CardLastingEffectSystem} that specifically creates lasting effects targeting cards
  * for the rest of the current phase.
  */
-export class CardPhaseLastingEffectSystem extends CardLastingEffectSystem {
+export class CardPhaseLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends CardLastingEffectSystem<TContext> {
     public override readonly name = 'applyCardPhaseLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
     public override readonly effectDescription = 'apply an effect to {0} for the phase';

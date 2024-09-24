@@ -12,7 +12,7 @@ export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties
 }
 
 /** Base class for managing the logic for giving token upgrades to cards (currently shield and experience) */
-export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveTokenUpgradeProperties> {
+export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IGiveTokenUpgradeProperties> {
     public override readonly eventName = EventName.OnUpgradeAttached;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
 
@@ -29,7 +29,7 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
         }
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
         if (properties.amount === 1) {
@@ -38,7 +38,7 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
         return ['attach {0} {1}s to {2}', [properties.amount, properties.tokenType, properties.target]];
     }
 
-    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         Contract.assertNotNullLike(context);
@@ -60,7 +60,7 @@ export abstract class GiveTokenUpgradeSystem extends CardTargetSystem<IGiveToken
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         event.name = this.eventName;
         event.card = card;
         event.context = context;

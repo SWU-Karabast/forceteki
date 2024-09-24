@@ -4,7 +4,6 @@ import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type CardAbility from './core/ability/CardAbility';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, WildcardCardType, CardTypeFilter } from './core/Constants';
-import { MetaSystem } from './core/gameSystem/MetaSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -21,7 +20,7 @@ export type IActionTargetResolver<TContext extends AbilityContext = AbilityConte
 export type IActionTargetsResolver<TContext extends AbilityContext = AbilityContext> = Record<string, IActionTargetResolver<TContext>>;
 
 // ********************************************** INTERNAL TYPES **********************************************
-type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, ((context: TContext) => boolean) | GameSystem | MetaSystem<TContext>>;
+type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, ((context: TContext) => boolean) | GameSystem<TContext>>;
 
 interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: string;
@@ -31,7 +30,7 @@ interface ITargetResolverBase<TContext extends AbilityContext> {
     /** Selects which player is choosing the target (defaults to the player controlling the source card) */
     choosingPlayer?: ((context: TContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
-    immediateEffect?: GameSystem | MetaSystem<TContext>;
+    immediateEffect?: GameSystem<TContext>;
     dependsOn?: string;
 }
 

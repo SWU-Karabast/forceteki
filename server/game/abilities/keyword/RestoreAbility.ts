@@ -9,7 +9,7 @@ import { ITriggeredAbilityProps } from '../../Interfaces';
 export class RestoreAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Restore;
 
-    public static buildRestoreAbilityProperties(restoreAmount: number): ITriggeredAbilityProps {
+    public static buildRestoreAbilityProperties<TSource extends Card = Card>(restoreAmount: number): ITriggeredAbilityProps<TSource> {
         return {
             title: `Restore ${restoreAmount}`,
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
