@@ -3,12 +3,14 @@
  * this is so that we can access things as "this.<cardName>"
  */
 function convertNonDuplicateCardNamesToProperties(players, cardNames) {
-    let mapToPropertyNamesWithCards = (cardNames, player) => cardNames.map((cardName) => {
-        return {
-            propertyName: internalNameToPropertyName(cardName),
-            cardObj: player.findCardByName(cardName)
-        };
-    });
+    let mapToPropertyNamesWithCards = (cardNames, player) => cardNames.map((cardName) =>
+        internalNameToPropertyNames(cardName).map((propertyName) => {
+            return {
+                propertyName: propertyName,
+                cardObj: player.findCardByName(cardName)
+            };
+        })
+    ).flat();
 
     let propertyNamesWithCards = mapToPropertyNamesWithCards(cardNames[0], players[0])
         .concat(mapToPropertyNamesWithCards(cardNames[1], players[1]));
@@ -34,22 +36,30 @@ function convertNonDuplicateCardNamesToProperties(players, cardNames) {
     return nonDuplicateCards;
 }
 
-function internalNameToPropertyName(internalName) {
+/** Converts an internalName into one or two property names, depending on whether there is a subtitle */
+function internalNameToPropertyNames(internalName) {
     const [title, subtitle] = internalName.split('#');
 
-    const titleWords = title.split('-');
+    const internalNames = subtitle ? [title, title + '-' + subtitle] : [title];
 
-    let propertyName = titleWords[0];
-    if (propertyName[0] >= '0' && propertyName[0] <= '9') {
-        propertyName = '_' + propertyName;
+    const propertyNames = [];
+    for (const internalName of internalNames) {
+        const internalNameWords = internalName.split('-');
+
+        let propertyName = internalNameWords[0];
+        if (propertyName[0] >= '0' && propertyName[0] <= '9') {
+            propertyName = '_' + propertyName;
+        }
+
+        for (const word of internalNameWords.slice(1)) {
+            const uppercasedWord = word[0].toUpperCase() + word.slice(1);
+            propertyName += uppercasedWord;
+        }
+
+        propertyNames.push(propertyName);
     }
 
-    for (const word of titleWords.slice(1)) {
-        const uppercasedWord = word[0].toUpperCase() + word.slice(1);
-        propertyName += uppercasedWord;
-    }
-
-    return propertyName;
+    return propertyNames;
 }
 
 // card can be a single or an array
@@ -133,7 +143,6 @@ function stringArraysEqual(ara1, ara2) {
 
 module.exports = {
     convertNonDuplicateCardNamesToProperties,
-    internalNameToPropertyName,
     checkNullCard,
     formatPrompt,
     getPlayerPromptState,
