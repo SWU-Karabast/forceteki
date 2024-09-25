@@ -106,6 +106,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this._deployed = true;
                 this.enableDamage(true);
                 this.enableActiveAttack(true);
+                this.enableUpgrades(true);
                 this.exhausted = false;
                 break;
 
@@ -113,6 +114,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this._deployed = false;
                 this.enableDamage(false);
                 this.enableActiveAttack(false);
+                this.enableUpgrades(false);
                 this.exhausted = EnumHelpers.isArena(prevLocation);
                 break;
         }

@@ -37,18 +37,21 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
                 this.enableActiveAttack(true);
                 this.enableDamage(true);
                 this.enableExhaust(true);
+                this.enableUpgrades(true);
                 break;
 
             case Location.Resource:
                 this.enableActiveAttack(false);
                 this.enableDamage(false);
                 this.enableExhaust(true);
+                this.enableUpgrades(false);
                 break;
 
             default:
                 this.enableActiveAttack(false);
                 this.enableDamage(false);
                 this.enableExhaust(false);
+                this.enableUpgrades(false);
                 break;
         }
     }
