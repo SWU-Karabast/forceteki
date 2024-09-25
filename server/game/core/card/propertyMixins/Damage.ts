@@ -48,6 +48,11 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             this._damage = value;
         }
 
+        public get remainingHp(): number {
+            this.assertPropertyEnabled(this._damage, 'damage');
+            return Math.max(0, this.getHp() - this.damage);
+        }
+
         public override canBeDamaged(): this is CardWithDamageProperty {
             return true;
         }
