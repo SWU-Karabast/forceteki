@@ -23,7 +23,7 @@ describe('Vader\'s Lightsaber', function() {
 
                 expect(this.darthVader).toHaveExactUpgradeNames(['vaders-lightsaber']);
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.darthVader]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
 
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.damage).toBe(4);
@@ -62,7 +62,7 @@ describe('Vader\'s Lightsaber', function() {
 
                 expect(this.darthVader).toHaveExactUpgradeNames(['vaders-lightsaber']);
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.darthVader]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
 
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.damage).toBe(4);

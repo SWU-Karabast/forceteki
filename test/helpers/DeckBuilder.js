@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const TestSetupError = require('./TestSetupError.js');
 
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
@@ -17,7 +18,7 @@ class DeckBuilder {
         var cards = {};
 
         if (!fs.existsSync(directory)) {
-            throw new Error(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
+            throw new TestSetupError(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
         }
 
         var jsonCards = fs.readdirSync(directory).filter((file) => file.endsWith('.json'));
@@ -27,7 +28,7 @@ class DeckBuilder {
         });
 
         if (cards.length === 0) {
-            throw new Error(`No json card definitions found in ${directory}, please run 'npm run get-cards'`);
+            throw new TestSetupError(`No json card definitions found in ${directory}, please run 'npm run get-cards'`);
         }
 
         return cards;
@@ -35,10 +36,10 @@ class DeckBuilder {
 
     customDeck(playerNumber, playerCards = {}) {
         if (Array.isArray(playerCards.leader)) {
-            throw new Error('Test leader must not be specified as an array');
+            throw new TestSetupError('Test leader must not be specified as an array');
         }
         if (Array.isArray(playerCards.base)) {
-            throw new Error('Test base must not be specified as an array');
+            throw new TestSetupError('Test base must not be specified as an array');
         }
 
         let allCards = [];
@@ -101,7 +102,7 @@ class DeckBuilder {
         } else if (Array.isArray(playerEntry)) {
             playerEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(card)));
         } else {
-            throw new Error(`Unknown test card specifier format: '${playerObject}'`);
+            throw new TestSetupError(`Unknown test card specifier format: '${playerObject}'`);
         }
         return namedCards;
     }
@@ -129,7 +130,7 @@ class DeckBuilder {
             return playerCards.leader.card;
         }
 
-        throw new Error(`Unknown test leader specifier format: '${playerObject}'`);
+        throw new TestSetupError(`Unknown test leader specifier format: '${playerObject}'`);
     }
 
     getBaseCard(playerCards, playerNumber) {
@@ -145,7 +146,7 @@ class DeckBuilder {
             return playerCards.base.card;
         }
 
-        throw new Error(`Unknown test leader specifier format: '${playerObject}'`);
+        throw new TestSetupError(`Unknown test leader specifier format: '${playerObject}'`);
     }
 
     getInPlayCardsForArena(arenaList) {
@@ -210,12 +211,12 @@ class DeckBuilder {
         var cardsByName = this.filterPropertiesToArray(this.cards, (card) => card.internalName === internalName);
 
         if (cardsByName.length === 0) {
-            throw new Error(`Unable to find any card matching ${internalName}`);
+            throw new TestSetupError(`Unable to find any card matching ${internalName}`);
         }
 
         if (cardsByName.length > 1) {
             var matchingLabels = cardsByName.map((card) => card.name).join('\n');
-            throw new Error(`Multiple cards match the name ${internalName}. Use one of these instead:\n${matchingLabels}`);
+            throw new TestSetupError(`Multiple cards match the name ${internalName}. Use one of these instead:\n${matchingLabels}`);
         }
 
         return cardsByName[0];

@@ -76,7 +76,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 this.player1.clickCard(this.darthVader);
                 this.player1.clickCard(this.lukeSkywalker);
                 expect(this.player1).toBeAbleToSelectExactly([this.darthVader, this.atst, this.tielnFighter, this.allianceXwing, this.lukeSkywalker]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.allianceXwing);
                 expect(this.allianceXwing.damage).toBe(2);
                 expect(this.lukeSkywalker.damage).toBe(5);

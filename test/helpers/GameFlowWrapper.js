@@ -3,6 +3,7 @@
 const Game = require('../../build/game/core/Game.js');
 const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../build/Settings.js');
+const TestSetupError = require('./TestSetupError.js');
 
 class GameFlowWrapper {
     constructor() {
@@ -166,7 +167,7 @@ class GameFlowWrapper {
      */
     guardCurrentPhase(phase) {
         if (this.game.currentPhase !== phase) {
-            throw new Error(`Expected to be in the ${phase} phase but actually was ${this.game.currentPhase}`);
+            throw new TestSetupError(`Expected to be in the ${phase} phase but actually was ${this.game.currentPhase}`);
         }
     }
 
@@ -175,7 +176,7 @@ class GameFlowWrapper {
 
         if (!promptedPlayer) {
             var promptString = this.allPlayers.map((player) => player.name + ': ' + player.formatPrompt()).join('\n\n');
-            throw new Error(`No players are being prompted with '${title}'. Current prompts are:\n\n${promptString}`);
+            throw new TestSetupError(`No players are being prompted with '${title}'. Current prompts are:\n\n${promptString}`);
         }
 
         return promptedPlayer;

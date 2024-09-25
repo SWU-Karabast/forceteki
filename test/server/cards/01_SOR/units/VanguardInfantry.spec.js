@@ -19,7 +19,7 @@ describe('Vanguard Infantry', function() {
                 this.player1.clickCard(this.vanguardInfantry);
                 this.player1.clickCard(this.wampa);
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.wampa, this.cartelSpacer]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
 
                 this.player1.clickCard(this.cartelSpacer);
                 expect(this.cartelSpacer).toHaveExactUpgradeNames(['experience']);
@@ -29,7 +29,7 @@ describe('Vanguard Infantry', function() {
                 this.player1.clickCard(this.vanquish);
                 this.player1.clickCard(this.vanguardInfantry);
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.wampa, this.cartelSpacer]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
 
                 this.player1.clickCard(this.battlefieldMarine);
                 expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
