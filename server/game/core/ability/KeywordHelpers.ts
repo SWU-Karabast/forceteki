@@ -1,5 +1,5 @@
 import { IKeywordProperties } from '../../Interfaces';
-import { AbilityType, KeywordName } from '../Constants';
+import { AbilityType, Aspect, KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { KeywordInstance, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
@@ -111,9 +111,7 @@ function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: strin
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
 function parseSmuggleIfEnabled(keyword: KeywordName, cardText: string, cardName: string): KeywordWithCostValues {
-    if (!Contract.assertTrue(KeywordName.Smuggle === keyword)) {
-        return null;
-    }
+    Contract.assertTrue(KeywordName.Smuggle === keyword);
 
     const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);

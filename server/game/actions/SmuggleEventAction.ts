@@ -1,7 +1,6 @@
 import { AbilityRestriction } from '../core/Constants.js';
 import { Card } from '../core/card/Card';
-import Contract from '../core/utils/Contract.js';
-import { EventCard } from '../core/card/EventCard.js';
+import * as Contract from '../core/utils/Contract.js';
 import { PlayCardContext } from '../core/ability/PlayCardAction.js';
 import { SmuggleCardAction } from '../core/ability/SmuggleCardAction.js';
 import { resourceCard } from '../gameSystems/GameSystemLibrary.js';
@@ -12,9 +11,7 @@ export class SmuggleEventAction extends SmuggleCardAction {
     }
 
     public override executeHandler(context: PlayCardContext): void {
-        if (!Contract.assertTrue(context.source.isEvent())) {
-            return;
-        }
+        Contract.assertTrue(context.source.isEvent());
 
         context.game.addMessage(
             '{0} plays {1}',
@@ -26,7 +23,7 @@ export class SmuggleEventAction extends SmuggleCardAction {
                 target: context.player.getTopCardOfDeck()
             }).generateEvent(context.source, context)
         ]);
-        context.game.resolveAbility((context.source as EventCard).getEventAbility().createContext());
+        context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

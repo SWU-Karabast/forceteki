@@ -2,19 +2,23 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { PlayCardContext } from '../core/ability/PlayCardAction';
 import { PlayCardFromHandAction } from '../core/ability/PlayCardFromHandAction';
 import { Card } from '../core/card/Card';
+import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, EventName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { attachUpgrade, resourceCard } from '../gameSystems/GameSystemLibrary';
+import * as Contract from '../core/utils/Contract.js';
 
 export class SmuggleUpgradeAction extends PlayCardFromHandAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(card: Card) {
-        super(card, 'Smuggle this upgrade', [], { immediateEffect: attachUpgrade((context) => ({
+        super(card, 'Smuggle this upgrade', [], { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({
             upgrade: context.source
         })) });
     }
 
     public override executeHandler(context: PlayCardContext) {
+        Contract.assertTrue(context.source.isUpgrade());
+
         const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, {
             player: context.player,
             card: context.source,

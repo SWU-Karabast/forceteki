@@ -10,7 +10,7 @@ export interface IResourceCardProperties extends ICardTargetSystemProperties {
     changePlayer?: boolean; // TODO: this might be needed for Arquitens Assault Cruiser
 }
 
-export class ResourceCardSystem extends CardTargetSystem<IResourceCardProperties> {
+export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IResourceCardProperties> {
     public override readonly name = 'resource';
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
@@ -33,12 +33,12 @@ export class ResourceCardSystem extends CardTargetSystem<IResourceCardProperties
         });
     }
 
-    public override getCostMessage(context: AbilityContext): [string, any[]] {
+    public override getCostMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
         return ['shuffling {0} into their deck', [properties.target]];
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
         const destinationController = Array.isArray(properties.target)
             ? properties.changePlayer
@@ -53,7 +53,7 @@ export class ResourceCardSystem extends CardTargetSystem<IResourceCardProperties
         ];
     }
 
-    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const { changePlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
         return (
             (!changePlayer ||

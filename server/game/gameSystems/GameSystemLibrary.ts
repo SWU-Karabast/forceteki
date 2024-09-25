@@ -164,8 +164,8 @@ export function ready<TContext extends AbilityContext = AbilityContext>(property
 /**
  * default changePlayers = false
  */
-export function resourceCard(propertyFactory: PropsFactory<IResourceCardProperties> = {}): CardTargetSystem {
-    return new ResourceCardSystem(propertyFactory);
+export function resourceCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IResourceCardProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new ResourceCardSystem<TContext>(propertyFactory);
 }
 // export function removeFromGame(propertyFactory: PropsFactory<RemoveFromGameProperties> = {}): CardGameAction {
 //     return new RemoveFromGameAction(propertyFactory);
