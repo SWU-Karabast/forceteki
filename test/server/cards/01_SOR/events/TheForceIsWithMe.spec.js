@@ -19,12 +19,12 @@ describe('The Force is With Me', function() {
             it('should give 2 experience and attack, if no force unit present', function () {
                 this.player1.clickCard(this.theForceIsWithMe);
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter]);
-                expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).not.toHavePassAbilityButton();
 
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa).toHaveExactUpgradeNames(['experience', 'experience']);
                 expect(this.player1).toBeAbleToSelectExactly([this.specforceSoldier, this.p2Base]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
 
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(6);
@@ -51,12 +51,12 @@ describe('The Force is With Me', function() {
             it('should give 2 experience, a shield, and then attack, if a force unit is present', function () {
                 this.player1.clickCard(this.theForceIsWithMe);
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter, this.chirrutImwe]);
-                expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).not.toHavePassAbilityButton();
 
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
                 expect(this.player1).toBeAbleToSelectExactly([this.specforceSoldier, this.p2Base]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
 
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(6);

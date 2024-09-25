@@ -75,7 +75,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 this.player1.clickCard(this.wampa);
 
                 expect(this.player1).toHavePrompt('Choose a card');
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
                 this.player1.clickCard(this.tielnFighter);
 
