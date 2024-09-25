@@ -15,7 +15,7 @@ export interface IReturnToHandProperties extends ICardTargetSystemProperties {
  * Configurable class for a return to hand from X zone effect. For return to hand from play area specifically,
  * see {@link ReturnToHandFromPlaySystem}
  */
-export class ReturnToHandSystem extends CardTargetSystem<IReturnToHandProperties> {
+export class ReturnToHandSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IReturnToHandProperties> {
     public override readonly name = 'returnToHand';
     public override readonly eventName = EventName.OnCardReturnedToHand;
     public override readonly effectDescription = 'return {0} to their hand';
@@ -29,12 +29,12 @@ export class ReturnToHandSystem extends CardTargetSystem<IReturnToHandProperties
         this.leavesPlayEventHandler(event, additionalProperties);
     }
 
-    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = super.generatePropertiesFromContext(context);
         return EnumHelpers.cardLocationMatches(card.location, properties.locationFilter) && super.canAffect(card, context, additionalProperties);
     }
 
-    protected override updateEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         event.destination = Location.Hand;
     }

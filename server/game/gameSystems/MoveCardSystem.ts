@@ -16,7 +16,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     discardDestinationCards?: boolean;
 }
 
-export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
+export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveCardProperties> {
     public override readonly name = 'move';
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
@@ -63,12 +63,12 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         // }
     }
 
-    public override getCostMessage(context: AbilityContext): [string, any[]] {
+    public override getCostMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         return ['shuffling {0} into their deck', [properties.target]];
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         const destinationController = Array.isArray(properties.target)
             ? properties.changePlayer
@@ -86,7 +86,7 @@ export class MoveCardSystem extends CardTargetSystem<IMoveCardProperties> {
         ];
     }
 
-    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const { changePlayer, destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         return (
             (!changePlayer ||

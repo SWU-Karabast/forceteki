@@ -3,7 +3,7 @@ import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import { Card } from '../../core/card/Card';
 import { KeywordName } from '../../core/Constants';
 import Game from '../../core/Game';
-import Contract from '../../core/utils/Contract';
+import * as Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';
 
 /** @deprecated this is still WIP until attack changes are done */

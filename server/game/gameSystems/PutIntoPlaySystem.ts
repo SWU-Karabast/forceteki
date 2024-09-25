@@ -9,7 +9,7 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     overrideLocation?: Location;
 }
 
-export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> {
+export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPutIntoPlayProperties> {
     public override readonly name = 'putIntoPlay';
     public override readonly eventName = EventName.OnUnitEntersPlay;
     public override readonly costDescription = 'putting {0} into play';
@@ -46,12 +46,12 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
         }
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const { target } = this.generatePropertiesFromContext(context);
         return ['put {0} into play', [target]];
     }
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy);
 
@@ -68,7 +68,7 @@ export class PutIntoPlaySystem extends CardTargetSystem<IPutIntoPlayProperties> 
         return true;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const { controller, overrideLocation } = this.generatePropertiesFromContext(
             context,
             additionalProperties

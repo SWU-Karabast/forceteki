@@ -1,6 +1,6 @@
 const { SelectChoice } = require('./SelectChoice.js');
 const { Stage, RelativePlayer } = require('../../Constants.js');
-const { default: Contract } = require('../../utils/Contract.js');
+const Contract = require('../../utils/Contract.js');
 const { GameSystem } = require('../../gameSystem/GameSystem.js');
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
@@ -14,9 +14,7 @@ class SelectTargetResolver {
             let dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
 
             // assert that the target we depend on actually exists
-            if (!Contract.assertNotNullLike(dependsOnTarget)) {
-                return null;
-            }
+            Contract.assertNotNullLike(dependsOnTarget);
 
             dependsOnTarget.dependentTarget = this;
         }

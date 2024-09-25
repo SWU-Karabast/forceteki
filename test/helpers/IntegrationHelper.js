@@ -596,8 +596,6 @@ beforeEach(function () {
 global.integration = function (definitions) {
     describe('- integration -', function () {
         beforeEach(function () {
-            Contract.configureAssertMode(Contract.AssertMode.Assert, true);
-
             this.flow = new GameFlowWrapper();
 
             this.game = this.flow.game;

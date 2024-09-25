@@ -5,13 +5,13 @@ import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSyste
 import { UnitCard } from '../core/card/CardTypes';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import Contract from '../core/utils/Contract';
+import * as Contract from '../core/utils/Contract';
 import { IAttackProperties } from './AttackStepsSystem';
 import * as GameSystemLibrary from './GameSystemLibrary';
 
-export interface IInitiateAttackProperties extends IAttackProperties {
+export interface IInitiateAttackProperties<TContext extends AbilityContext = AbilityContext> extends IAttackProperties {
     ignoredRequirements?: string[];
-    attackerCondition?: (card: Card, context: AbilityContext) => boolean;
+    attackerCondition?: (card: Card, context: TContext) => boolean;
 }
 
 /**
@@ -19,7 +19,7 @@ export interface IInitiateAttackProperties extends IAttackProperties {
  * The `target` property is the unit that will be attacking. The system resolves the {@link InitiateAttackAction}
  * ability for the passed unit, which will trigger resolution of the attack target.
  */
-export class InitiateAttackSystem extends CardTargetSystem<IInitiateAttackProperties> {
+export class InitiateAttackSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IInitiateAttackProperties<TContext>> {
     public override readonly name = 'initiateUnitAttack';
     protected override readonly defaultProperties: IInitiateAttackProperties = {
         ignoredRequirements: [],
@@ -32,23 +32,21 @@ export class InitiateAttackSystem extends CardTargetSystem<IInitiateAttackProper
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, true));
     }
 
-    public override getEffectMessage(context: TriggeredAbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return ['initiate attack with {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, attacker, context: AbilityContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, attacker, context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (!Contract.assertTrue(attacker.isUnit())) {
-            return;
-        }
+        Contract.assertTrue(attacker.isUnit());
 
         super.addPropertiesToEvent(event, attacker, context, additionalProperties);
 
         event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties);
     }
 
-    public override canAffect(card: Card, context: TriggeredAbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (
             !card.isUnit() ||

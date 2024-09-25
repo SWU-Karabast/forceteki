@@ -3,7 +3,7 @@ const { GameObject } = require('../GameObject.js');
 
 const { Duration, WildcardLocation } = require('../Constants.js');
 const OngoingEffect = require('./OngoingEffect.js');
-const { default: Contract } = require('../utils/Contract.js');
+const Contract = require('../utils/Contract.js');
 
 // This class is inherited by Card and also represents Framework effects
 
@@ -42,11 +42,6 @@ class OngoingEffectSource extends GameObject {
      * @returns {OngoingEffect[]} the effect(s) that were added to the engine
      */
     addEffectToEngine(properties) {
-        if (!Contract.assertFalse('location' in properties, 'Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property.')) {
-            // just to catch any accidental use of the 'location' property we missed when doing the refactor to naming 'locationFilter'
-            throw Error('Attempting to create an effect with the \'location\' property, instead should be using the \'locationFilter\' property');
-        }
-
         let ongoingEffect = properties.ongoingEffect;
 
         let propertiesWithoutEffect;

@@ -8,10 +8,10 @@ import { CardWithExhaustProperty } from '../core/card/CardTypes';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExhaustOrReadyProperties extends ICardTargetSystemProperties {}
 
-export abstract class ExhaustOrReadySystem<TProperties extends IExhaustOrReadyProperties = IExhaustOrReadyProperties> extends CardTargetSystem<TProperties> {
+export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = AbilityContext, TProperties extends IExhaustOrReadyProperties = IExhaustOrReadyProperties> extends CardTargetSystem<TContext, TProperties> {
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Event, WildcardCardType.Upgrade, CardType.Leader];
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         if (
             !EnumHelpers.isArena(card.location) &&
             card.location !== Location.Resource &&

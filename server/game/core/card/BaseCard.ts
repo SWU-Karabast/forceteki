@@ -1,7 +1,7 @@
 import Player from '../Player';
 import { Card } from './Card';
 import { CardType } from '../Constants';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
 import AbilityHelper from '../../AbilityHelper';
@@ -38,9 +38,7 @@ export class BaseCard extends BaseCardParent {
     }
 
     public setEpicActionAbility(properties: IEpicActionProps<this>): void {
-        if (!Contract.assertTrue(this._epicActionAbility == null, 'Epic action ability already set')) {
-            return;
-        }
+        Contract.assertTrue(this._epicActionAbility == null, 'Epic action ability already set');
 
         const propertiesWithLimit: IActionAbilityProps<this> = Object.assign(properties, {
             limit: AbilityHelper.limit.epicAction()

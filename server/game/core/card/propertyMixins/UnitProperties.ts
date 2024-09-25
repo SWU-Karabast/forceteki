@@ -2,7 +2,7 @@ import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import { Arena, CardType, EffectName, KeywordName, Location, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import { InPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { WithDamage } from './Damage';
 import { WithPrintedPower } from './PrintedPower';
@@ -101,7 +101,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return false;
         }
 
-        protected addOnAttackAbility(properties:Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen'>): void {
+        protected addOnAttackAbility(properties:Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
             const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
             this.addTriggeredAbility(triggeredProperties);
         }
@@ -156,12 +156,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * These should be unregistered after the end of the attack.
          */
         public registerWhenPlayedKeywords() {
-            if (!Contract.assertTrue(
+            Contract.assertTrue(
                 this._whenPlayedKeywordAbilities === null,
                 `Failed to unregister when played abilities from previous play: ${this._whenPlayedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
-            )) {
-                return;
-            }
+            );
 
             this._whenPlayedKeywordAbilities = [];
 
@@ -186,12 +184,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * These should be unregistered after the end of the attack.
          */
         public unregisterWhenPlayedKeywords() {
-            if (!Contract.assertTrue(
+            Contract.assertTrue(
                 Array.isArray(this._whenPlayedKeywordAbilities),
                 'Ability when played registration was skipped'
-            )) {
-                return;
-            }
+            );
 
             for (const ability of this._whenPlayedKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
@@ -211,12 +207,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          *      and the defeat all shields portion of Saboteur.
          */
         public registerAttackKeywords() {
-            if (!Contract.assertTrue(
+            Contract.assertTrue(
                 this._attackKeywordAbilities === null,
                 `Failed to unregister attack abilities from previous attack: ${this._attackKeywordAbilities?.map((ability) => ability.title).join(', ')}`
-            )) {
-                return;
-            }
+            );
 
             this._attackKeywordAbilities = [];
 
@@ -240,12 +234,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * These should be unregistered after the end of the attack.
          */
         public unregisterAttackKeywords() {
-            if (!Contract.assertTrue(
+            Contract.assertTrue(
                 Array.isArray(this._attackKeywordAbilities),
                 'Ability attack registration was skipped'
-            )) {
-                return;
-            }
+            );
 
             for (const ability of this._attackKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
@@ -325,12 +317,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Add the passed card to this card's upgrade list. Upgrade must already be moved to the correct arena.
          */
         public attachUpgrade(upgrade) {
-            if (
-                !Contract.assertEqual(upgrade.location, this.location) ||
-                !Contract.assertTrue(this.controller.getCardPile(this.location).includes(upgrade))
-            ) {
-                return;
-            }
+            Contract.assertEqual(upgrade.location, this.location);
+            Contract.assertTrue(this.controller.getCardPile(this.location).includes(upgrade));
 
             this._upgrades.push(upgrade);
         }

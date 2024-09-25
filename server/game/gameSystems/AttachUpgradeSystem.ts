@@ -4,7 +4,7 @@ import { UnitCard } from '../core/card/CardTypes';
 import { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardTypeFilter, EventName, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import Contract from '../core/utils/Contract';
+import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
@@ -14,7 +14,7 @@ export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     controlSwitchOptional?: boolean;
 }
 
-export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperties> {
+export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IAttachUpgradeProperties> {
     public override readonly name = 'attach';
     public override readonly eventName = EventName.OnUpgradeAttached;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
@@ -24,26 +24,28 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
     };
 
     public override eventHandler(event, additionalProperties = {}): void {
-        if (!Contract.assertTrue(event.card.isUpgrade()) || !Contract.assertTrue(event.parentCard.isUnit())) {
-            return;
-        }
+        const upgradeCard = (event.card as Card);
+        const parentCard = (event.parentCard as Card);
+
+        Contract.assertTrue(upgradeCard.isUpgrade());
+        Contract.assertTrue(parentCard.isUnit());
 
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
-        event.originalLocation = event.card.location;
+        event.originalLocation = upgradeCard.location;
 
         // attachTo manages all of the unattach and move zone logic
-        event.card.attachTo(event.parentCard);
+        upgradeCard.attachTo(parentCard);
 
         if (properties.takeControl) {
-            event.card.controller = event.context.player;
-            event.card.updateConstantAbilityContexts();
+            upgradeCard.controller = event.context.player;
+            upgradeCard.updateConstantAbilityContexts();
         } else if (properties.giveControl) {
-            event.card.controller = event.context.player.opponent;
-            event.card.updateConstantAbilityContexts();
+            upgradeCard.controller = event.context.player.opponent;
+            upgradeCard.updateConstantAbilityContexts();
         }
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         if (properties.takeControl) {
             return [
@@ -59,18 +61,14 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         return ['attach {1} to {0}', [properties.target, properties.upgrade]];
     }
 
-    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const contextCopy = context.copy({ source: card });
 
-        if (
-            !Contract.assertNotNullLike(context) ||
-            !Contract.assertNotNullLike(context.player) ||
-            !Contract.assertNotNullLike(card) ||
-            !Contract.assertNotNullLike(properties.upgrade)
-        ) {
-            return false;
-        }
+        Contract.assertNotNullLike(context);
+        Contract.assertNotNullLike(context.player);
+        Contract.assertNotNullLike(card);
+        Contract.assertNotNullLike(properties.upgrade);
 
         if (!card.isUnit()) {
             return false;
@@ -99,12 +97,12 @@ export class AttachUpgradeSystem extends CardTargetSystem<IAttachUpgradeProperti
         return this.canAffect(event.parentCard, event.context, additionalProperties);
     }
 
-    public override isEventFullyResolved(event, card: Card, context: AbilityContext, additionalProperties): boolean {
+    public override isEventFullyResolved(event, card: Card, context: TContext, additionalProperties): boolean {
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
         return event.parentCard === card && event.card === upgrade && event.name === this.eventName && !event.cancelled;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
         event.name = this.eventName;
         event.parentCard = card;

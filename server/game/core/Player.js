@@ -250,9 +250,7 @@ class Player extends GameObject {
      * @param {Function} predicate - BaseCard => Boolean
      */
     findCards(cardList, predicate) {
-        if (!Contract.assertNotNullLike(cardList)) {
-            return null;
-        }
+        Contract.assertNotNullLike(cardList);
 
         var cardsToReturn = [];
 
@@ -529,9 +527,7 @@ class Player extends GameObject {
     }
 
     addPlayableLocation(type, player, location, cards = []) {
-        if (!Contract.assertNotNullLike(player)) {
-            return null;
-        }
+        Contract.assertNotNullLike(player);
         let playableLocation = new PlayableLocation(type, player, location, new Set(cards));
         this.playableLocations.push(playableLocation);
         return playableLocation;
@@ -915,13 +911,9 @@ class Player extends GameObject {
 
         var targetPile = this.getCardPile(targetLocation);
 
-        if (!Contract.assertTrue(this.isLegalLocationForCardType(card.type, targetLocation), `Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`)) {
-            return;
-        }
+        Contract.assertTrue(this.isLegalLocationForCardType(card.type, targetLocation), `Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
 
-        if (!Contract.assertFalse(targetPile.includes(card), `Tried to move card ${card.name} to ${targetLocation} but it is already there`)) {
-            return;
-        }
+        Contract.assertFalse(targetPile.includes(card), `Tried to move card ${card.name} to ${targetLocation} but it is already there`);
 
         let currentLocation = card.location;
 
@@ -1026,18 +1018,12 @@ class Player extends GameObject {
      * Other card types (or other types of upgrade move) must use {@link Player.moveCard}.
      */
     putUpgradeInArena(upgrade, location) {
-        if (
-            !Contract.assertTrue(upgrade.isUpgrade()) ||
-            !Contract.assertTrue(EnumHelpers.isArena(location))
-        ) {
-            return;
-        }
+        Contract.assertTrue(upgrade.isUpgrade());
+        Contract.assertTrue(EnumHelpers.isArena(location));
 
         const pile = this.getCardPile(location);
 
-        if (!Contract.assertFalse(pile.includes(upgrade), `Tried to move upgrade ${upgrade.name} to ${location} for ${this.name} but it is already there`)) {
-            return;
-        }
+        Contract.assertFalse(pile.includes(upgrade), `Tried to move upgrade ${upgrade.name} to ${location} for ${this.name} but it is already there`);
 
         pile.push(upgrade);
     }

@@ -1,6 +1,6 @@
 import { IKeywordProperties } from '../../Interfaces';
 import { AbilityType, KeywordName } from '../Constants';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { KeywordInstance, KeywordWithNumericValue } from './KeywordInstance';
 
@@ -84,11 +84,7 @@ function isKeywordEnabled(keyword: KeywordName, cardText: string, cardName: stri
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
 function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: string, cardName: string): number | null {
-    if (!Contract.assertTrue(
-        [KeywordName.Raid, KeywordName.Restore].includes(keyword)
-    )) {
-        return null;
-    }
+    Contract.assertTrue([KeywordName.Raid, KeywordName.Restore].includes(keyword));
 
     const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);

@@ -11,7 +11,7 @@ export interface INoActionSystemProperties extends IGameSystemProperties {
  * A {@link GameSystem} which executes a handler function
  * @override This was copied from L5R but has not been tested yet
  */
-export class NoActionSystem extends GameSystem<INoActionSystemProperties> {
+export class NoActionSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, INoActionSystemProperties> {
     protected override readonly defaultProperties: INoActionSystemProperties = {
         hasLegalTarget: false
     };
@@ -24,7 +24,7 @@ export class NoActionSystem extends GameSystem<INoActionSystemProperties> {
         return allowTargetSelection;
     }
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         const { hasLegalTarget: allowTargetSelection } = this.generatePropertiesFromContext(context);
         return allowTargetSelection;
     }

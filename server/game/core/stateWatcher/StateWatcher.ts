@@ -2,7 +2,7 @@ import { IStateListenerResetProperties, IStateListenerProperties } from '../../I
 import { Card } from '../card/Card';
 import { PhaseName, StateWatcherName } from '../Constants';
 import Player from '../Player';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
 /**
@@ -65,11 +65,7 @@ export abstract class StateWatcher<TState> {
     private generateListenerRegistrations(): IStateListenerProperties<TState>[] {
         this.setupWatcher();
 
-        if (
-            !Contract.assertTrue(this.stateUpdaters.length > 0, 'No state updaters registered')
-        ) {
-            return [];
-        }
+        Contract.assertTrue(this.stateUpdaters.length > 0, 'No state updaters registered');
 
         const stateResetUpdater: IStateListenerProperties<TState> =
             Object.assign(this.stateResetTrigger, { update: () => this.getResetValue() });

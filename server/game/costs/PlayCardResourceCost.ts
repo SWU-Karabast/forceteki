@@ -17,7 +17,7 @@ export class PlayCardResourceCost implements ICost {
     public constructor(public ignoreType: boolean) {}
 
     public canPay(context: AbilityContext): boolean {
-        if (context.source.printedCost === null) {
+        if (!('printedCost' in context.source)) {
             return false;
         }
 
