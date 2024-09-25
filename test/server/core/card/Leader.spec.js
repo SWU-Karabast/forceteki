@@ -26,7 +26,7 @@ describe('Leader cards', function() {
                 // resolve the Tarkin ability and click him again to make sure he presents no options
                 this.player1.clickCard(this.atst);
                 this.player2.passAction();
-                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(this.player1);
             });
 
             it('should be able to trigger active abilities and be readied at the regroup phase if exhausted', function () {
@@ -39,7 +39,7 @@ describe('Leader cards', function() {
 
                 // confirm he has no action available
                 this.player2.passAction();
-                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(this.player1);
 
                 // move to next action phase to confirm that Tarkin is readied
                 this.moveToNextActionPhase();
@@ -83,7 +83,7 @@ describe('Leader cards', function() {
                 expect(this.grandMoffTarkin.exhausted).toBe(true);
 
                 // confirm no action available (can't deploy)
-                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(this.player1);
 
                 // move to next action phase and confirm that deploy still isn't available
                 this.moveToNextActionPhase();
@@ -122,7 +122,7 @@ describe('Leader cards', function() {
 
                 this.player2.passAction();
 
-                expect(this.directorKrennic).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.directorKrennic).not.toHaveAvailableActionWhenClickedBy(this.player1);
             });
         });
     });

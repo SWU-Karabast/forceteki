@@ -4,6 +4,7 @@
 const { select } = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
+const TestSetupError = require('./TestSetupError.js');
 const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual, stringArraysEqual } = require('./Util.js');
 
 require('./ObjectFormatters.js');
@@ -184,6 +185,37 @@ var customMatchers = {
             }
         };
     },
+    toHavePassAbilityButton: function (util, customEqualityMatchers) {
+        return {
+            compare: function (actual) {
+                var buttons = actual.currentPrompt().buttons;
+                var result = {};
+
+                result.pass = buttons.some(
+                    (button) => !button.disabled && util.equals(button.text, 'Pass ability', customEqualityMatchers)
+                );
+
+                if (result.pass) {
+                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Pass ability' but it did.`;
+                } else {
+                    result.message = `Expected ${actual.name} to have enabled prompt button 'Pass ability'`;
+
+                    if (buttons.length > 0) {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message += `but it had buttons:\n${buttonText}`;
+                    } else {
+                        result.message += 'but it had no buttons';
+                    }
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+
+                return result;
+            }
+        };
+    },
     toBeAbleToSelect: function () {
         return {
             compare: function (player, card) {
@@ -344,7 +376,7 @@ var customMatchers = {
             }
         };
     },
-    toHaveAvailableActionWhenClickedInActionPhaseBy: function () {
+    toHaveAvailableActionWhenClickedBy: function () {
         return {
             compare: function (card, player) {
                 checkNullCard(card);
@@ -396,7 +428,7 @@ var customMatchers = {
                 var result = {};
 
                 if (abilityText == null) {
-                    throw new Error('toHavePassAbilityPrompt requires an abilityText parameter');
+                    throw new TestSetupError('toHavePassAbilityPrompt requires an abilityText parameter');
                 }
 
                 const passPromptText = `Trigger the ability '${abilityText}' or pass`;
@@ -496,7 +528,7 @@ var customMatchers = {
         return {
             compare: function (card, location, player = null) {
                 if (typeof card === 'string') {
-                    throw new Error('This expectation requires a card object, not a name');
+                    throw new TestSetupError('This expectation requires a card object, not a name');
                 }
                 let result = {};
 
@@ -529,11 +561,10 @@ var customMatchers = {
                 let result = {};
 
                 if (!card.upgrades) {
-                    throw new Error(`Card ${card.internalName} does not have an upgrades property`);
+                    throw new TestSetupError(`Card ${card.internalName} does not have an upgrades property`);
                 }
                 if (!Array.isArray(upgradeNames)) {
-                    // TODO: create a "TestError" class to make it easier to tell when an error is coming from the test infra
-                    throw new Error(`Parameter upgradeNames is not an array: ${upgradeNames}`);
+                    throw new TestSetupError(`Parameter upgradeNames is not an array: ${upgradeNames}`);
                 }
 
                 const actualUpgradeNames = card.upgrades.map((upgrade) => upgrade.internalName);

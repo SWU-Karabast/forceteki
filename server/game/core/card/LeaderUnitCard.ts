@@ -25,7 +25,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         this.setupLeaderUnitSideAbilities();
 
         // leaders are always in a zone where they are allowed to be exhausted
-        this.enableExhaust(true);
+        this.setExhaustEnabled(true);
 
         // add deploy leader action
         this.addActionAbility({
@@ -104,13 +104,17 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
             case Location.GroundArena:
             case Location.SpaceArena:
                 this._deployed = true;
-                this.enableDamage(true);
+                this.setDamageEnabled(true);
+                this.setActiveAttackEnabled(true);
+                this.setUpgradesEnabled(true);
                 this.exhausted = false;
                 break;
 
             case Location.Base:
                 this._deployed = false;
-                this.enableDamage(false);
+                this.setDamageEnabled(false);
+                this.setActiveAttackEnabled(false);
+                this.setUpgradesEnabled(false);
                 this.exhausted = EnumHelpers.isArena(prevLocation);
                 break;
         }

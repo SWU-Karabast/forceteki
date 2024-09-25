@@ -14,7 +14,7 @@ describe('Grit keyword', function() {
             });
 
             it('is damaged, power should be increased by damage amount', function () {
-                expect(this.scoutBikePursuer.power).toBe(3);
+                expect(this.scoutBikePursuer.getPower()).toBe(3);
 
                 this.player2.setActivePlayer();
                 this.player2.clickCard(this.regionalGovernor);
@@ -25,7 +25,7 @@ describe('Grit keyword', function() {
 
             it('has no damage, it should not have increased power', function () {
                 this.scoutBikePursuer.damage = 0;
-                expect(this.scoutBikePursuer.power).toBe(1);
+                expect(this.scoutBikePursuer.getPower()).toBe(1);
             });
         });
 
@@ -49,7 +49,7 @@ describe('Grit keyword', function() {
                 this.player1.clickCard(this.wookieeWarrior);
                 expect(this.sabineWren).toBeInLocation('discard');
                 expect(this.wookieeWarrior.damage).toBe(3);
-                expect(this.wookieeWarrior.power).toBe(5);
+                expect(this.wookieeWarrior.getPower()).toBe(5);
             });
         });
     });

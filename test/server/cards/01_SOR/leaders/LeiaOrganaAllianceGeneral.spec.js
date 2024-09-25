@@ -20,7 +20,7 @@ describe('Leia Organa, Alliance General', function() {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Attack with a Rebel unit');
                 expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).not.toHavePassAbilityButton();
 
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.sundariPeacekeeper);
@@ -31,9 +31,9 @@ describe('Leia Organa, Alliance General', function() {
                 // second attack
                 expect(this.player1).toBeActivePlayer();
                 expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.allianceXwing);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.p2Base);
                 expect(this.allianceXwing.exhausted).toBe(true);
                 expect(this.p2Base.damage).toBe(2);
@@ -52,7 +52,7 @@ describe('Leia Organa, Alliance General', function() {
                 // second attack
                 expect(this.player1).toBeActivePlayer();
                 expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickPrompt('Pass ability');
 
                 expect(this.player2).toBeActivePlayer();
@@ -155,10 +155,10 @@ describe('Leia Organa, Alliance General', function() {
                 expect(this.sundariPeacekeeper.damage).toBe(4);
 
                 expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
 
                 this.player1.clickCard(this.fleetLieutenant);
-                expect(this.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.p2Base);
                 expect(this.fleetLieutenant.exhausted).toBe(true);
                 expect(this.p2Base.damage).toBe(3);

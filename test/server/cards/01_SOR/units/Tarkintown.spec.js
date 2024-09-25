@@ -26,12 +26,12 @@ describe('Tarkintown', function() {
 
                 // confirm that the ability cannot be used again
                 this.player2.passAction();
-                expect(this.tarkintown).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.tarkintown).not.toHaveAvailableActionWhenClickedBy(this.player1);
 
                 // skip to next turn so we can confirm that the ability is still unusable
                 this.moveToNextActionPhase();
                 expect(this.player1).toBeActivePlayer();
-                expect(this.tarkintown).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.tarkintown).not.toHaveAvailableActionWhenClickedBy(this.player1);
             });
         });
     });

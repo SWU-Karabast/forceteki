@@ -11,10 +11,6 @@ type StatisticTotal = number;
 export class Attack extends GameObject {
     public previousAttack: Attack;
 
-    public get participants(): undefined | Card[] {
-        return [...[this.attacker], this.target];
-    }
-
     public get attackerTotalPower(): number | null {
         return this.getUnitPower(this.attacker);
     }
@@ -57,6 +53,6 @@ export class Attack extends GameObject {
     private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
         Contract.assertTrue(EnumHelpers.isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`);
 
-        return involvedUnit.power;
+        return involvedUnit.getPower();
     }
 }

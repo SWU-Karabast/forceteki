@@ -6,10 +6,6 @@ export function WithPrintedPower<TBaseClass extends CardConstructor>(BaseClass: 
     return class WithPrintedPower extends BaseClass {
         public readonly printedPower: number;
 
-        public get power(): number {
-            return this.printedPower;
-        }
-
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
@@ -17,6 +13,10 @@ export function WithPrintedPower<TBaseClass extends CardConstructor>(BaseClass: 
 
             Contract.assertNotNullLike(cardData.power);
             this.printedPower = cardData.power;
+        }
+
+        public getPower(): number {
+            return this.printedPower;
         }
     };
 }

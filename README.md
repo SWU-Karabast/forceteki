@@ -32,13 +32,12 @@ npm run lint-verbose
 
 # runs tsc and executes tests
 npm test
+# run all tests in parallel for higher speed
+npm run test-parallel
 
 # run a specific test file only
 npm test test/server/cards/01_SOR/LukeSkywalkerFaithfulFriend.spec.js
 npm test **/LukeSkywalkerFaithfulFriend.spec.js # use path globbing (may look different depending on your shell)
-
-# this currently has a bug, do not use
-#npm run test-parallel   # runs tests in parallel for higher speed
 ```
 
 ### Linting

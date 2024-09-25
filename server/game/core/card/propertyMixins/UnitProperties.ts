@@ -37,19 +37,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         // ************************************* FIELDS AND PROPERTIES *************************************
         public readonly defaultArena: Arena;
 
-        protected _upgrades: UpgradeCard[] = [];
-        private _attackKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
-        private _whenPlayedKeywordAbilities: (TriggeredAbility | IConstantAbility)[] | null = null;
-
-        public override get hp(): number {
-            return this.getModifiedStatValue(StatType.Hp);
-        }
-
-        public override get power(): number {
-            return this.getModifiedStatValue(StatType.Power);
-        }
+        protected _upgrades?: UpgradeCard[] = null;
+        private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
+        private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
 
         public get upgrades(): UpgradeCard[] {
+            this.assertPropertyEnabled(this._upgrades, 'upgrades');
             return this._upgrades;
         }
 
@@ -58,7 +51,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public hasShield(): boolean {
-            return this._upgrades.some((card) => card.isShield());
+            return this.upgrades.some((card) => card.isShield());
         }
 
         // ****************************************** CONSTRUCTOR ******************************************
@@ -82,6 +75,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             this.defaultActions.push(new InitiateAttackAction(this));
+        }
+
+        // ****************************************** PROPERTY HELPERS ******************************************
+        public override getHp(): number {
+            return this.getModifiedStatValue(StatType.Hp);
+        }
+
+        public override getPower(): number {
+            return this.getModifiedStatValue(StatType.Power);
         }
 
         public override isUnit(): this is UnitCard {
@@ -136,6 +138,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // *************************************** KEYWORD HELPERS ***************************************
+        protected override cleanupBeforeMove(nextLocation: Location) {
+            if (EnumHelpers.isArena(this.location) && this.isAttacking()) {
+                this.unregisterAttackKeywords();
+            }
+        }
+
         /**
          * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
          * for this card and adds up the total of their effect values.
@@ -310,13 +318,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * @param {UpgradeCard} upgrade
          */
         public unattachUpgrade(upgrade) {
-            this._upgrades = this.upgrades.filter((card) => card.uuid !== upgrade.uuid);
+            this.assertPropertyEnabled(this._upgrades, 'upgrades');
+            this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
         }
 
         /**
          * Add the passed card to this card's upgrade list. Upgrade must already be moved to the correct arena.
          */
         public attachUpgrade(upgrade) {
+            this.assertPropertyEnabled(this._upgrades, 'upgrades');
             Contract.assertEqual(upgrade.location, this.location);
             Contract.assertTrue(this.controller.getCardPile(this.location).includes(upgrade));
 
@@ -341,6 +351,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             // }
 
             super.leavesPlay();
+        }
+
+        protected setUpgradesEnabled(enabledStatus: boolean) {
+            this._upgrades = enabledStatus ? [] : null;
         }
     };
 }

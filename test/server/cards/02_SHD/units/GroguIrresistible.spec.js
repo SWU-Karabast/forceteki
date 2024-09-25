@@ -30,7 +30,7 @@ describe('Grogu, Irresistible', function() {
                 this.player2.passAction();
 
                 // this is a general test of the exhaustSelf cost mechanic, don't need to repeat it for other cards that have an exhaustSelf cost
-                expect(this.grogu).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.grogu).not.toHaveAvailableActionWhenClickedBy(this.player1);
             });
         });
 

@@ -268,9 +268,14 @@ export class Card extends OngoingEffectSource {
         return false;
     }
 
-    /** Returns true if the card is in a location where it can legally be damaged */
+    /** Returns true if the card is of a type that can legally be damaged. Note that the card might still be in a zone where damage is not legal. */
     public canBeDamaged(): this is CardWithDamageProperty {
         return false;
+    }
+
+    /** Returns true if the card is of a type that can legally be involved in an attack. Note that the card might still be in a zone where attacks are not legal. */
+    public canBeInvolvedInAttack(): this is CardWithDamageProperty {
+        return this.canBeDamaged();
     }
 
     /**
@@ -395,6 +400,7 @@ export class Card extends OngoingEffectSource {
             return;
         }
 
+        this.cleanupBeforeMove(targetLocation);
         const prevLocation = this._location;
         this._location = targetLocation;
         this.initializeForCurrentLocation(prevLocation);
@@ -405,6 +411,12 @@ export class Card extends OngoingEffectSource {
             newLocation: targetLocation
         });
     }
+
+    /**
+     * Deals with any engine effects of leaving the current location before the move happens
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected cleanupBeforeMove(nextLocation: Location) {}
 
     /**
      * Deals with the engine effects of entering a new location, making sure all statuses are set with legal values.
@@ -467,7 +479,15 @@ export class Card extends OngoingEffectSource {
 
     // ******************************************* MISC *******************************************
     protected assertPropertyEnabled(propertyVal: any, propertyName: string) {
-        Contract.assertNotNullLike(propertyVal, `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in location '${this.location}' where the property does not apply`);
+        Contract.assertNotNullLike(propertyVal, this.buildPropertyDisabledStr(propertyName));
+    }
+
+    protected assertPropertyEnabledBoolean(enabled: boolean, propertyName: string) {
+        Contract.assertTrue(enabled, this.buildPropertyDisabledStr(propertyName));
+    }
+
+    private buildPropertyDisabledStr(propertyName: string) {
+        return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in location '${this.location}' where the property does not apply`;
     }
 
     protected resetLimits() {

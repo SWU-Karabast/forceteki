@@ -13,18 +13,28 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
 
     return class WithDamage extends HpClass {
         private _activeAttack?: Attack = null;
+        private attackEnabled = false;
         private _damage?: number;
 
         public setActiveAttack(attack: Attack) {
-            // this.assertPropertyEnabled(this._activeAttack, 'activeAttack');
+            Contract.assertNotNullLike(attack);
+            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
             this._activeAttack = attack;
         }
 
+        public unsetActiveAttack() {
+            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
+            if (this._activeAttack !== null) {
+                this._activeAttack = null;
+            }
+        }
+
         public isDefending(): boolean {
-            return (this as Card) === (this._activeAttack?.target as Card);
+            return (this as Card) === (this.activeAttack?.target as Card);
         }
 
         public get activeAttack() {
+            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
             return this._activeAttack;
         }
 
@@ -36,6 +46,11 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         protected set damage(value: number) {
             this.assertPropertyEnabled(this._damage, 'damage');
             this._damage = value;
+        }
+
+        public get remainingHp(): number {
+            this.assertPropertyEnabled(this._damage, 'damage');
+            return Math.max(0, this.getHp() - this.damage);
         }
 
         public override canBeDamaged(): this is CardWithDamageProperty {
@@ -54,7 +69,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             this.damage += amount;
 
             // TODO EFFECTS: the win and defeat effects should almost certainly be handled elsewhere, probably in a game state check
-            if (this.damage >= this.hp) {
+            if (this.damage >= this.getHp()) {
                 if (this.isBase()) {
                     this.game.recordWinner(this.owner.opponent, 'base destroyed');
                 } else {
@@ -76,8 +91,20 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             return true;
         }
 
-        protected enableDamage(enabledStatus: boolean) {
+        protected setDamageEnabled(enabledStatus: boolean) {
             this._damage = enabledStatus ? 0 : null;
+        }
+
+        protected setActiveAttackEnabled(enabledStatus: boolean) {
+            if (!enabledStatus) {
+                if (this._activeAttack !== null) {
+                    this.unsetActiveAttack();
+                }
+            } else {
+                Contract.assertTrue(this._activeAttack === null, `Moved ${this.internalName} to ${this.location} but it has an active attack set`);
+            }
+
+            this.attackEnabled = enabledStatus;
         }
     };
 }

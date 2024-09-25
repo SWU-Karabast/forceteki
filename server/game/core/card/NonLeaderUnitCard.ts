@@ -36,18 +36,24 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         switch (this.location) {
             case Location.GroundArena:
             case Location.SpaceArena:
-                this.enableDamage(true);
-                this.enableExhaust(true);
+                this.setActiveAttackEnabled(true);
+                this.setDamageEnabled(true);
+                this.setExhaustEnabled(true);
+                this.setUpgradesEnabled(true);
                 break;
 
             case Location.Resource:
-                this.enableDamage(false);
-                this.enableExhaust(true);
+                this.setActiveAttackEnabled(false);
+                this.setDamageEnabled(false);
+                this.setExhaustEnabled(true);
+                this.setUpgradesEnabled(false);
                 break;
 
             default:
-                this.enableDamage(false);
-                this.enableExhaust(false);
+                this.setActiveAttackEnabled(false);
+                this.setDamageEnabled(false);
+                this.setExhaustEnabled(false);
+                this.setUpgradesEnabled(false);
                 break;
         }
     }

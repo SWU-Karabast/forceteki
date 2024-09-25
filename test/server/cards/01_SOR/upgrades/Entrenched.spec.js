@@ -23,7 +23,7 @@ describe('Entrenched', function() {
             });
 
             it('should prevent a unit with no opposing arena units from having the option to attack', function () {
-                expect(this.wampa).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.wampa).not.toHaveAvailableActionWhenClickedBy(this.player1);
             });
         });
 

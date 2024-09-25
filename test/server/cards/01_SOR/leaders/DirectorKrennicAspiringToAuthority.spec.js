@@ -16,17 +16,17 @@ describe('Director Krennic, Aspiring to Authority', function() {
             });
 
             it('should give friendly damaged units +1/+0', function () {
-                expect(this.wampa.power).toBe(5);
-                expect(this.wampa.hp).toBe(5);
+                expect(this.wampa.getPower()).toBe(5);
+                expect(this.wampa.getHp()).toBe(5);
 
-                expect(this.battlefieldMarine.power).toBe(3);
-                expect(this.battlefieldMarine.hp).toBe(3);
+                expect(this.battlefieldMarine.getPower()).toBe(3);
+                expect(this.battlefieldMarine.getHp()).toBe(3);
 
-                expect(this.cartelSpacer.power).toBe(3);
-                expect(this.cartelSpacer.hp).toBe(3);
+                expect(this.cartelSpacer.getPower()).toBe(3);
+                expect(this.cartelSpacer.getHp()).toBe(3);
 
-                expect(this.consularSecurityForce.power).toBe(3);
-                expect(this.consularSecurityForce.hp).toBe(7);
+                expect(this.consularSecurityForce.getPower()).toBe(3);
+                expect(this.consularSecurityForce.getHp()).toBe(7);
 
                 // do an attack to ensure the ability is being applied correctly in combat
                 this.player1.clickCard(this.wampa);
@@ -53,20 +53,20 @@ describe('Director Krennic, Aspiring to Authority', function() {
             });
 
             it('should give friendly damaged units +1/+0', function () {
-                expect(this.directorKrennic.power).toBe(3);
-                expect(this.directorKrennic.hp).toBe(7);
+                expect(this.directorKrennic.getPower()).toBe(3);
+                expect(this.directorKrennic.getHp()).toBe(7);
 
-                expect(this.wampa.power).toBe(5);
-                expect(this.wampa.hp).toBe(5);
+                expect(this.wampa.getPower()).toBe(5);
+                expect(this.wampa.getHp()).toBe(5);
 
-                expect(this.battlefieldMarine.power).toBe(3);
-                expect(this.battlefieldMarine.hp).toBe(3);
+                expect(this.battlefieldMarine.getPower()).toBe(3);
+                expect(this.battlefieldMarine.getHp()).toBe(3);
 
-                expect(this.cartelSpacer.power).toBe(3);
-                expect(this.cartelSpacer.hp).toBe(3);
+                expect(this.cartelSpacer.getPower()).toBe(3);
+                expect(this.cartelSpacer.getHp()).toBe(3);
 
-                expect(this.consularSecurityForce.power).toBe(3);
-                expect(this.consularSecurityForce.hp).toBe(7);
+                expect(this.consularSecurityForce.getPower()).toBe(3);
+                expect(this.consularSecurityForce.getHp()).toBe(7);
 
                 // do an attack to ensure the ability is being applied correctly in combat
                 this.player1.clickCard(this.wampa);
