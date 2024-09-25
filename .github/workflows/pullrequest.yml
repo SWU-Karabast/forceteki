@@ -34,5 +34,4 @@ jobs:
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
 
-        # TODO: figure out why test-parallel gives weird error on test failure
         - run: npm run test-parallel
