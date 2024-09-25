@@ -4,6 +4,7 @@
 const { select } = require('underscore');
 const { GameMode } = require('../../build/GameMode.js');
 const Contract = require('../../build/game/core/utils/Contract.js');
+const TestSetupError = require('./TestSetupError.js');
 const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual, stringArraysEqual } = require('./Util.js');
 
 require('./ObjectFormatters.js');
@@ -427,7 +428,7 @@ var customMatchers = {
                 var result = {};
 
                 if (abilityText == null) {
-                    throw new Error('toHavePassAbilityPrompt requires an abilityText parameter');
+                    throw new TestSetupError('toHavePassAbilityPrompt requires an abilityText parameter');
                 }
 
                 const passPromptText = `Trigger the ability '${abilityText}' or pass`;
@@ -527,7 +528,7 @@ var customMatchers = {
         return {
             compare: function (card, location, player = null) {
                 if (typeof card === 'string') {
-                    throw new Error('This expectation requires a card object, not a name');
+                    throw new TestSetupError('This expectation requires a card object, not a name');
                 }
                 let result = {};
 
@@ -560,11 +561,10 @@ var customMatchers = {
                 let result = {};
 
                 if (!card.upgrades) {
-                    throw new Error(`Card ${card.internalName} does not have an upgrades property`);
+                    throw new TestSetupError(`Card ${card.internalName} does not have an upgrades property`);
                 }
                 if (!Array.isArray(upgradeNames)) {
-                    // TODO: create a "TestError" class to make it easier to tell when an error is coming from the test infra
-                    throw new Error(`Parameter upgradeNames is not an array: ${upgradeNames}`);
+                    throw new TestSetupError(`Parameter upgradeNames is not an array: ${upgradeNames}`);
                 }
 
                 const actualUpgradeNames = card.upgrades.map((upgrade) => upgrade.internalName);

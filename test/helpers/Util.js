@@ -1,3 +1,5 @@
+const TestSetupError = require('./TestSetupError.js');
+
 /**
  * helper for generating a list of property names and card objects to add to the test context.
  * this is so that we can access things as "this.<cardName>"
@@ -66,12 +68,12 @@ function internalNameToPropertyNames(internalName) {
 function checkNullCard(card, testContext) {
     if (Array.isArray(card)) {
         if (card.some((cardInList) => cardInList == null)) {
-            throw new Error(`Card list contains one more null elements: ${card.map((cardInList) => getCardName(cardInList)).join(', ')}`);
+            throw new TestSetupError(`Card list contains one more null elements: ${card.map((cardInList) => getCardName(cardInList)).join(', ')}`);
         }
     }
 
     if (card == null) {
-        throw new Error('Null card value passed to test method');
+        throw new TestSetupError('Null card value passed to test method');
     }
 }
 
