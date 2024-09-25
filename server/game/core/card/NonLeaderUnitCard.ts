@@ -34,16 +34,19 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         switch (this.location) {
             case Location.GroundArena:
             case Location.SpaceArena:
+                this.enableActiveAttack(true);
                 this.enableDamage(true);
                 this.enableExhaust(true);
                 break;
 
             case Location.Resource:
+                this.enableActiveAttack(false);
                 this.enableDamage(false);
                 this.enableExhaust(true);
                 break;
 
             default:
+                this.enableActiveAttack(false);
                 this.enableDamage(false);
                 this.enableExhaust(false);
                 break;

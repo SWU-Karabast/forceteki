@@ -136,6 +136,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // *************************************** KEYWORD HELPERS ***************************************
+        protected override cleanupBeforeMove(nextLocation: Location) {
+            if (EnumHelpers.isArena(this.location) && this.isAttacking()) {
+                this.unregisterAttackKeywords();
+            }
+        }
+
         /**
          * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
          * for this card and adds up the total of their effect values.

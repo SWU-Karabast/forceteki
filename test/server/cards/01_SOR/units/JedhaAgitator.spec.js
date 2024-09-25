@@ -80,5 +80,33 @@ describe('Jedha Agitator', function() {
                 expect(this.p2Base.damage).toBe(4);     // attack did not resolve
             });
         });
+
+        describe('Jedha Agitator\'s on attack ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['jedha-agitator', 'battlefield-marine'],
+                        spaceArena: ['tieln-fighter'],
+                        leader: { card: 'hunter#outcast-sergeant', deployed: true }
+                    },
+                    player2: {
+                        groundArena: [{ card: 'wampa', upgrades: ['shield'] }],
+                        spaceArena: ['cartel-spacer']
+                    }
+                });
+            });
+
+            it('should not prevent the Saboteur shield defeat if used to defeat itself', function () {
+                this.player1.clickCard(this.jedhaAgitator);
+                this.player1.clickCard(this.wampa);
+                this.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
+                this.player1.clickCard(this.jedhaAgitator);
+
+                expect(this.jedhaAgitator).toBeInLocation('discard');
+                expect(this.wampa.upgrades.length).toBe(0);
+                expect(this.wampa.damage).toBe(0);
+            });
+        });
     });
 });

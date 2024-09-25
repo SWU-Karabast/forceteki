@@ -23,6 +23,7 @@ export class BaseCard extends BaseCardParent {
         Contract.assertEqual(this.printedType, CardType.Base);
 
         this.enableDamage(true);
+        this.enableActiveAttack(true);
     }
 
     public override isBase(): this is BaseCard {

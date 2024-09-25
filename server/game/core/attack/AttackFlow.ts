@@ -5,6 +5,9 @@ import type Game from '../Game';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { handler } from '../../gameSystems/GameSystemLibrary';
+import { CardWithDamageProperty } from '../card/CardTypes';
+import * as EnumHelpers from '../utils/EnumHelpers';
+import * as Contract from '../utils/Contract';
 
 export class AttackFlow extends BaseStepWithPipeline {
     public constructor(
@@ -45,13 +48,24 @@ export class AttackFlow extends BaseStepWithPipeline {
     private completeAttack() {
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, {
             attack: this.attack,
-            handler: () => this.attack.attacker.unregisterAttackKeywords()
+            handler: () => {
+                // only unregister if the attacker hasn't been moved out of the play area (e.g. defeated)
+                if (EnumHelpers.isArena(this.attack.attacker.location)) {
+                    this.attack.attacker.unregisterAttackKeywords();
+                }
+            }
         }, true);
     }
 
     private cleanUpAttack() {
         this.game.currentAttack = this.attack.previousAttack;
-        this.attack.attacker.setActiveAttack(null);
-        this.attack.target.setActiveAttack(null);
+        this.checkUnsetActiveAttack(this.attack.attacker);
+        this.checkUnsetActiveAttack(this.attack.target);
+    }
+
+    private checkUnsetActiveAttack(card: CardWithDamageProperty) {
+        if (EnumHelpers.isArena(card.location) || card.isBase()) {
+            card.unsetActiveAttack();
+        }
     }
 }
