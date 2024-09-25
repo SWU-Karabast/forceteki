@@ -41,14 +41,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
 
-        public override get hp(): number {
-            return this.getModifiedStatValue(StatType.Hp);
-        }
-
-        public override get power(): number {
-            return this.getModifiedStatValue(StatType.Power);
-        }
-
         public get upgrades(): UpgradeCard[] {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
             return this._upgrades;
@@ -83,6 +75,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             this.defaultActions.push(new InitiateAttackAction(this));
+        }
+
+        // ****************************************** PROPERTY HELPERS ******************************************
+        public override getHp(): number {
+            return this.getModifiedStatValue(StatType.Hp);
+        }
+
+        public override getPower(): number {
+            return this.getModifiedStatValue(StatType.Power);
         }
 
         public override isUnit(): this is UnitCard {

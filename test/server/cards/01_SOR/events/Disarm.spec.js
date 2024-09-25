@@ -23,11 +23,11 @@ describe('Disarm', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
 
                 this.player1.clickCard(this.atst);
-                expect(this.atst.power).toBe(2);
+                expect(this.atst.getPower()).toBe(2);
 
                 // move to next phase and confirm effect is ended
                 this.moveToNextActionPhase();
-                expect(this.atst.power).toBe(6);
+                expect(this.atst.getPower()).toBe(6);
             });
 
             // TODO SNOKE: maybe migrate these to their own test suite once we do the full stat effects PR
@@ -36,7 +36,7 @@ describe('Disarm', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
 
                 this.player1.clickCard(this.isbAgent);
-                expect(this.isbAgent.power).toBe(0);
+                expect(this.isbAgent.getPower()).toBe(0);
             });
 
             it('should reduce a unit\'s power to 0 accounting for additive effects', function () {
@@ -44,7 +44,7 @@ describe('Disarm', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
 
                 this.player1.clickCard(this.tielnFighter);
-                expect(this.tielnFighter.power).toBe(0);
+                expect(this.tielnFighter.getPower()).toBe(0);
             });
 
             it('should reduce a unit\'s power to above 0 if additive effects are big enough', function () {
@@ -52,7 +52,7 @@ describe('Disarm', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
 
                 this.player1.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer.power).toBe(1);
+                expect(this.cartelSpacer.getPower()).toBe(1);
             });
         });
     });

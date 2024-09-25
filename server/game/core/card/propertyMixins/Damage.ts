@@ -64,7 +64,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             this.damage += amount;
 
             // TODO EFFECTS: the win and defeat effects should almost certainly be handled elsewhere, probably in a game state check
-            if (this.damage >= this.hp) {
+            if (this.damage >= this.getHp()) {
                 if (this.isBase()) {
                     this.game.recordWinner(this.owner.opponent, 'base destroyed');
                 } else {

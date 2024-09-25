@@ -53,6 +53,6 @@ export class Attack extends GameObject {
     private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
         Contract.assertTrue(EnumHelpers.isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`);
 
-        return involvedUnit.power;
+        return involvedUnit.getPower();
     }
 }

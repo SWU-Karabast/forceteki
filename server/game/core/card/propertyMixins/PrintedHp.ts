@@ -10,10 +10,6 @@ export function WithPrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBa
     return class WithPrintedHp extends BaseClass {
         public readonly printedHp: number;
 
-        public get hp(): number {
-            return this.printedHp;
-        }
-
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
@@ -21,6 +17,10 @@ export function WithPrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBa
 
             Contract.assertNotNullLike(cardData.hp);
             this.printedHp = cardData.hp;
+        }
+
+        public getHp(): number {
+            return this.printedHp;
         }
     };
 }
