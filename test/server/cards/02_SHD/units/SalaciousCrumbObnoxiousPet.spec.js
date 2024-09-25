@@ -55,7 +55,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
 
             it('should not be available if Crumb is exhausted', function () {
                 this.salaciousCrumb.exhausted = true;
-                expect(this.salaciousCrumb).not.toHaveAvailableActionWhenClickedInActionPhaseBy(this.player1);
+                expect(this.salaciousCrumb).not.toHaveAvailableActionWhenClickedBy(this.player1);
             });
         });
     });

@@ -344,7 +344,7 @@ var customMatchers = {
             }
         };
     },
-    toHaveAvailableActionWhenClickedInActionPhaseBy: function () {
+    toHaveAvailableActionWhenClickedBy: function () {
         return {
             compare: function (card, player) {
                 checkNullCard(card);
