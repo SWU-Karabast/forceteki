@@ -133,11 +133,11 @@ export class UpgradeCard extends UpgradeCardParent {
 
         switch (this.location) {
             case Location.Resource:
-                this.enableExhaust(true);
+                this.setExhaustEnabled(true);
                 break;
 
             default:
-                this.enableExhaust(false);
+                this.setExhaustEnabled(false);
                 break;
         }
     }

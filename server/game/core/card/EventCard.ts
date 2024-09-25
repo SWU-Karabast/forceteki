@@ -38,11 +38,11 @@ export class EventCard extends EventCardParent {
         // event cards can only be exhausted when resourced
         switch (this.location) {
             case Location.Resource:
-                this.enableExhaust(true);
+                this.setExhaustEnabled(true);
                 break;
 
             default:
-                this.enableExhaust(false);
+                this.setExhaustEnabled(false);
                 break;
         }
     }

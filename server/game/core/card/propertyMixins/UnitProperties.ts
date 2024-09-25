@@ -352,7 +352,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             super.leavesPlay();
         }
 
-        protected enableUpgrades(enabledStatus: boolean) {
+        protected setUpgradesEnabled(enabledStatus: boolean) {
             this._upgrades = enabledStatus ? [] : null;
         }
     };

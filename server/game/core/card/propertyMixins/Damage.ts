@@ -86,11 +86,11 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             return true;
         }
 
-        protected enableDamage(enabledStatus: boolean) {
+        protected setDamageEnabled(enabledStatus: boolean) {
             this._damage = enabledStatus ? 0 : null;
         }
 
-        protected enableActiveAttack(enabledStatus: boolean) {
+        protected setActiveAttackEnabled(enabledStatus: boolean) {
             if (!enabledStatus) {
                 if (this._activeAttack !== null) {
                     this.unsetActiveAttack();
