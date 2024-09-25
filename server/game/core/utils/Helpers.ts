@@ -1,6 +1,6 @@
 import { Card } from '../card/Card';
 import { Aspect, CardType, CardTypeFilter, Location } from '../Constants';
-import Contract from './Contract';
+import * as Contract from './Contract';
 import * as EnumHelpers from './EnumHelpers';
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */

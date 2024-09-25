@@ -7,7 +7,7 @@ export interface IPayResourceCostProperties extends IPlayerTargetSystemPropertie
     amount: number;
 }
 
-export class PayResourceCostSystem extends PlayerTargetSystem<IPayResourceCostProperties> {
+export class PayResourceCostSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IPayResourceCostProperties> {
     public override readonly name = 'payResourceCost';
     public override readonly eventName = EventName.OnSpendResources;
 
@@ -15,7 +15,7 @@ export class PayResourceCostSystem extends PlayerTargetSystem<IPayResourceCostPr
         event.player.exhaustResources(event.amount);
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
         if (properties.amount === 1) {
@@ -25,7 +25,7 @@ export class PayResourceCostSystem extends PlayerTargetSystem<IPayResourceCostPr
         return ['make {0} pay {1} resources', [properties.target, properties.amount]];
     }
 
-    public override getCostMessage(context: AbilityContext): [string, any[]] {
+    public override getCostMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
         if (properties.amount === 1) {
@@ -35,12 +35,12 @@ export class PayResourceCostSystem extends PlayerTargetSystem<IPayResourceCostPr
         return ['spending {1} resources', [properties.amount]];
     }
 
-    public override canAffect(player: Player, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.amount > 0 && player.countSpendableResources() > 0 && super.canAffect(player, context, additionalProperties);
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: AbilityContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;

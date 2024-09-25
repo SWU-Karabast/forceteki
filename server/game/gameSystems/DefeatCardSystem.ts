@@ -7,7 +7,7 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDefeatCardProperties extends ICardTargetSystemProperties {}
 
-export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
+export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDefeatCardProperties> {
     public override readonly name = 'defeat';
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
@@ -33,19 +33,19 @@ export class DefeatCardSystem extends CardTargetSystem<IDefeatCardProperties> {
         }
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return ['defeat {0}', [properties.target]];
     }
 
-    public override canAffect(card: Card, context: AbilityContext): boolean {
+    public override canAffect(card: Card, context: TContext): boolean {
         if (!EnumHelpers.isArena(card.location)) {
             return false;
         }
         return super.canAffect(card, context);
     }
 
-    protected override updateEvent(event, card: Card, context: AbilityContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
     }
 }

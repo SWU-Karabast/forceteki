@@ -3,7 +3,7 @@ const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stage, AbilityType } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelper.js');
 const Helpers = require('../utils/Helpers.js');
-const { default: Contract } = require('../utils/Contract.js');
+const Contract = require('../utils/Contract.js');
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a

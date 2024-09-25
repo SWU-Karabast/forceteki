@@ -1,7 +1,7 @@
 const Helpers = require('../../utils/Helpers.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const { Stage, RelativePlayer, EffectName, TargetMode } = require('../../Constants.js');
-const { default: Contract } = require('../../utils/Contract.js');
+const Contract = require('../../utils/Contract.js');
 const EnumHelpers = require('../../utils/EnumHelpers.js');
 const { GameSystem } = require('../../gameSystem/GameSystem.js');
 
@@ -24,9 +24,7 @@ class CardTargetResolver {
             let dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
 
             // assert that the target we depend on actually exists
-            if (!Contract.assertNotNullLike(dependsOnTarget)) {
-                return null;
-            }
+            Contract.assertNotNullLike(dependsOnTarget);
 
             dependsOnTarget.dependentTarget = this;
         }

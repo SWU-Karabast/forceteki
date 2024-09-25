@@ -3,7 +3,7 @@ const CardAbilityStep = require('./CardAbilityStep.js');
 const Costs = require('../../costs/CostLibrary.js');
 const { Location, CardType, EffectName, WildcardLocation, AbilityType, PhaseName } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
-const { default: Contract } = require('../utils/Contract.js');
+const Contract = require('../utils/Contract.js');
 
 class CardAbility extends CardAbilityStep {
     constructor(game, card, properties, type = AbilityType.Action) {

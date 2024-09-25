@@ -13,7 +13,7 @@ export interface IDrawSpecificCardProperties extends ICardTargetSystemProperties
     changePlayer?: boolean;
 }
 
-export class DrawSpecificCardSystem extends CardTargetSystem<IDrawSpecificCardProperties> {
+export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDrawSpecificCardProperties> {
     public override readonly name = 'drawSpecific';
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
@@ -52,12 +52,12 @@ export class DrawSpecificCardSystem extends CardTargetSystem<IDrawSpecificCardPr
         }
     }
 
-    public override getCostMessage(context: AbilityContext): [string, any[]] {
+    public override getCostMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
         return ['shuffling {0} into their deck', [properties.target]];
     }
 
-    public override getEffectMessage(context: AbilityContext): [string, any[]] {
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
         const destinationController = Array.isArray(properties.target)
             ? properties.changePlayer
@@ -75,7 +75,7 @@ export class DrawSpecificCardSystem extends CardTargetSystem<IDrawSpecificCardPr
         ];
     }
 
-    public override canAffect(card: Card, context: AbilityContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const { changePlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
         return (
             (!changePlayer ||

@@ -1,4 +1,4 @@
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import { CardConstructor } from '../Card';
 
 /** Mixin function that adds the `printedPower` property to a base class. */

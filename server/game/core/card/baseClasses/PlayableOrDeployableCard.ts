@@ -4,7 +4,7 @@ import { SmuggleUpgradeAction } from '../../../actions/SmuggleUpgradeAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import { CardType, EventName, KeywordName, Location } from '../../Constants';
 import Player from '../../Player';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
 import { NonLeaderUnitCard } from '../NonLeaderUnitCard';

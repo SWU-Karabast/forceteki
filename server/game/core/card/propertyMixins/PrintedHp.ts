@@ -1,4 +1,4 @@
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import { CardConstructor } from '../Card';
 import type { WithDamage } from './Damage';
 

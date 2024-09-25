@@ -1,5 +1,5 @@
 import type Game from '../Game';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import { BaseStep } from './BaseStep';
 
 export class SimpleStep extends BaseStep {

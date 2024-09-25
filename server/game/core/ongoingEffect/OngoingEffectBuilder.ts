@@ -27,7 +27,7 @@ interface Props {
     target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
-    parentAction?: GameSystem;
+    parentSystem?: GameSystem;
 }
 
 /* Types of effect

@@ -1,6 +1,6 @@
 import Game from '../../Game';
 import type Player from '../../Player';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import { ResourcePrompt } from './ResourcePrompt';
 
 export class VariableResourcePrompt extends ResourcePrompt {

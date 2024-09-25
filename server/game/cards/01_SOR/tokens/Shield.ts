@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import Player from '../../../core/Player';
-import Contract from '../../../core/utils/Contract';
+import * as Contract from '../../../core/utils/Contract';
 
 export default class Shield extends TokenUpgradeCard {
     protected override getImplementationId() {
@@ -35,14 +35,14 @@ export default class Shield extends TokenUpgradeCard {
         this.addReplacementEffectAbility({
             title: 'Defeat shield to prevent attached unit from taking damage',
             when: {
-                onDamageDealt: (event, context) => event.card === (context.source as UpgradeCard).parentCard
+                onDamageDealt: (event, context) => event.card === context.source.parentCard
             },
             replaceWith: {
                 target: this,
                 replacementImmediateEffect: AbilityHelper.immediateEffects.defeat()
             },
             effect: 'shield prevents {1} from taking damage',
-            effectArgs: (context) => [(context.source as UpgradeCard).parentCard],
+            effectArgs: (context) => [context.source.parentCard],
         });
     }
 }

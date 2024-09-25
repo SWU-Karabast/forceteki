@@ -5,11 +5,11 @@ import Player from '../core/Player';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IShuffleDeckProperties extends IPlayerTargetSystemProperties {}
 
-export class ShuffleDeckSystem extends PlayerTargetSystem<IShuffleDeckProperties> {
+export class ShuffleDeckSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IShuffleDeckProperties> {
     public override readonly name = 'shuffle';
     public override readonly effectDescription = 'shuffle deck';
 
-    public override defaultTargets(context: AbilityContext): Player[] {
+    public override defaultTargets(context: TContext): Player[] {
         return [context.player];
     }
 

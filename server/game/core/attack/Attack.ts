@@ -2,7 +2,7 @@ import { GameObject } from '../GameObject';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type Game from '../Game';
 import type { Card } from '../card/Card';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
 
 
@@ -55,9 +55,7 @@ export class Attack extends GameObject {
     }
 
     private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
-        if (!Contract.assertTrue(EnumHelpers.isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`)) {
-            return null;
-        }
+        Contract.assertTrue(EnumHelpers.isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`);
 
         return involvedUnit.power;
     }

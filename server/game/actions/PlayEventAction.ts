@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { AbilityRestriction } from '../core/Constants.js';
 import { Card } from '../core/card/Card';
-import Contract from '../core/utils/Contract.js';
+import * as Contract from '../core/utils/Contract.js';
 import { EventCard } from '../core/card/EventCard.js';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.js';
 import { PlayCardFromHandAction } from '../core/ability/PlayCardFromHandAction.js';
@@ -12,16 +12,14 @@ export class PlayEventAction extends PlayCardFromHandAction {
     }
 
     public override executeHandler(context: PlayCardContext): void {
-        if (!Contract.assertTrue(context.source.isEvent())) {
-            return;
-        }
+        Contract.assertTrue(context.source.isEvent());
 
         context.game.addMessage(
             '{0} plays {1}',
             context.player,
             context.source,
         );
-        context.game.resolveAbility((context.source as EventCard).getEventAbility().createContext());
+        context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

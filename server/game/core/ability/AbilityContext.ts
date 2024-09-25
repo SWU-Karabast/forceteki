@@ -4,6 +4,7 @@ import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';
+import { Card } from '../card/Card';
 
 export interface IAbilityContextProperties {
     game: Game;
@@ -25,7 +26,7 @@ export interface IAbilityContextProperties {
  * While the structure will vary from inheriting classes, it is guaranteed to have at least the `game` object, the
  * `player` that is executing the action, and the `source` card object that the ability is generated from.
  */
-export class AbilityContext<TSource = any> {
+export class AbilityContext<TSource extends Card = Card> {
     public game: Game;
     public source: TSource;
     public player: Player;
@@ -60,7 +61,7 @@ export class AbilityContext<TSource = any> {
         this.playType = this.player && this.player.findPlayType(this.source); //location && location.playingType;
     }
 
-    public copy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
+    public copy(newProps: Partial<IAbilityContextProperties>): AbilityContext<TSource> {
         const copy = this.createCopy(newProps);
         copy.target = this.target;
         copy.costAspects = this.costAspects;
@@ -72,8 +73,8 @@ export class AbilityContext<TSource = any> {
         return copy;
     }
 
-    public createCopy(newProps: Partial<IAbilityContextProperties>): AbilityContext<this> {
-        return new AbilityContext(Object.assign(this.getProps(), newProps));
+    public createCopy(newProps: Partial<IAbilityContextProperties>) {
+        return new AbilityContext<TSource>(Object.assign(this.getProps(), newProps));
     }
 
     public getProps(): IAbilityContextProperties {

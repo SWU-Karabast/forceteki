@@ -3,7 +3,7 @@ import { ActionAbility } from '../ability/ActionAbility';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, EffectName, EventName, KeywordName, Location, Trait } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';

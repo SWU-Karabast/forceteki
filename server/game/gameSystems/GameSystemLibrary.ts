@@ -62,11 +62,13 @@ import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 import { SequentialSystem } from './SequentialSystem';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
+import { MetaSystem } from '../core/gameSystem/MetaSystem';
+import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
 
-type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
+type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -77,29 +79,29 @@ type PropsFactory<Props> = Props | ((context: AbilityContext) => Props);
 // export function addToken(propertyFactory: PropsFactory<AddTokenProperties> = {}): GameSystem {
 //     return new AddTokenAction(propertyFactory);
 // }
-export function attachUpgrade(propertyFactory: PropsFactory<IAttachUpgradeProperties> = {}): GameSystem {
-    return new AttachUpgradeSystem(propertyFactory);
+export function attachUpgrade<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IAttachUpgradeProperties, TContext> = {}): GameSystem<TContext> {
+    return new AttachUpgradeSystem<TContext>(propertyFactory);
 }
-export function attack(propertyFactory: PropsFactory<IInitiateAttackProperties> = {}): CardTargetSystem {
-    return new InitiateAttackSystem(propertyFactory);
+export function attack<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IInitiateAttackProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new InitiateAttackSystem<TContext>(propertyFactory);
 }
-export function cardLastingEffect(propertyFactory: PropsFactory<ICardLastingEffectProperties>): GameSystem {
-    return new CardLastingEffectSystem(propertyFactory);
+export function cardLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardLastingEffectProperties, TContext>): GameSystem<TContext> {
+    return new CardLastingEffectSystem<TContext>(propertyFactory);
 }
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);
 // }
-export function damage(propertyFactory: PropsFactory<IDamageProperties>): GameSystem {
-    return new DamageSystem(propertyFactory);
+export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDamageProperties, TContext>): GameSystem<TContext> {
+    return new DamageSystem<TContext>(propertyFactory);
 }
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
 // }
-export function deploy(propertyFactory: PropsFactory<IDeployLeaderProperties> = {}): CardTargetSystem {
-    return new DeployLeaderSystem(propertyFactory);
+export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new DeployLeaderSystem<TContext>(propertyFactory);
 }
-export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}): CardTargetSystem {
-    return new DefeatCardSystem(propertyFactory);
+export function defeat<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDefeatCardProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new DefeatCardSystem<TContext>(propertyFactory);
 }
 // export function discardCard(propertyFactory: PropsFactory<DiscardCardProperties> = {}): CardGameAction {
 //     return new DiscardCardAction(propertyFactory);
@@ -107,23 +109,23 @@ export function defeat(propertyFactory: PropsFactory<IDefeatCardProperties> = {}
 // export function discardFromPlay(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): GameSystem {
 //     return new DiscardFromPlayAction(propertyFactory);
 // }
-export function exhaust(propertyFactory: PropsFactory<IExhaustSystemProperties> = {}): CardTargetSystem {
-    return new ExhaustSystem(propertyFactory);
+export function exhaust<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new ExhaustSystem<TContext>(propertyFactory);
 }
-export function forThisPhaseCardEffect(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties>): GameSystem {
-    return new CardPhaseLastingEffectSystem(propertyFactory);
+export function forThisPhaseCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties, TContext>): GameSystem<TContext> {
+    return new CardPhaseLastingEffectSystem<TContext>(propertyFactory);
 }
-export function giveExperience(propertyFactory: PropsFactory<IGiveExperienceProperties> = {}): CardTargetSystem {
-    return new GiveExperienceSystem(propertyFactory);
+export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveExperienceProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new GiveExperienceSystem<TContext>(propertyFactory);
 }
-export function giveShield(propertyFactory: PropsFactory<IGiveShieldProperties> = {}): CardTargetSystem {
-    return new GiveShieldSystem(propertyFactory);
+export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveShieldProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new GiveShieldSystem<TContext>(propertyFactory);
 }
-export function heal(propertyFactory: PropsFactory<IHealProperties>): GameSystem {
-    return new HealSystem(propertyFactory);
+export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>): GameSystem<TContext> {
+    return new HealSystem<TContext>(propertyFactory);
 }
-export function lookAt(propertyFactory: PropsFactory<ILookAtProperties> = {}): GameSystem {
-    return new LookAtSystem(propertyFactory);
+export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookAtProperties, TContext> = {}): GameSystem<TContext> {
+    return new LookAtSystem<TContext>(propertyFactory);
 }
 
 /**
@@ -131,8 +133,8 @@ export function lookAt(propertyFactory: PropsFactory<ILookAtProperties> = {}): G
  * default shuffle = false
  * default faceup = false
  */
-export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): CardTargetSystem {
-    return new MoveCardSystem(propertyFactory);
+export function moveCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IMoveCardProperties, TContext>): CardTargetSystem<TContext> {
+    return new MoveCardSystem<TContext>(propertyFactory);
 }
 // /**
 //  * default resetOnCancel = false
@@ -140,14 +142,14 @@ export function moveCard(propertyFactory: PropsFactory<IMoveCardProperties>): Ca
 // export function playCard(propertyFactory: PropsFactory<PlayCardProperties> = {}): GameSystem {
 //     return new PlayCardAction(propertyFactory);
 // }
-export function payResourceCost(propertyFactory: PropsFactory<IPayResourceCostProperties>): GameSystem {
-    return new PayResourceCostSystem(propertyFactory);
+export function payResourceCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPayResourceCostProperties, TContext>): GameSystem<TContext> {
+    return new PayResourceCostSystem<TContext>(propertyFactory);
 }
 /**
  * default status = ordinary
  */
-export function putIntoPlay(propertyFactory: PropsFactory<IPutIntoPlayProperties> = {}): GameSystem {
-    return new PutIntoPlaySystem(propertyFactory);
+export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPutIntoPlayProperties, TContext> = {}): GameSystem<TContext> {
+    return new PutIntoPlaySystem<TContext>(propertyFactory);
 }
 // /**
 //  * default status = ordinary
@@ -155,8 +157,8 @@ export function putIntoPlay(propertyFactory: PropsFactory<IPutIntoPlayProperties
 // export function opponentPutIntoPlay(propertyFactory: PropsFactory<OpponentPutIntoPlayProperties> = {}): GameSystem {
 //     return new OpponentPutIntoPlayAction(propertyFactory, false);
 // }
-export function ready(propertyFactory: PropsFactory<IReadySystemProperties> = {}): GameSystem {
-    return new ReadySystem(propertyFactory);
+export function ready<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadySystemProperties, TContext> = {}): GameSystem<TContext> {
+    return new ReadySystem<TContext>(propertyFactory);
 }
 
 /**
@@ -177,17 +179,17 @@ export function resourceCard(propertyFactory: PropsFactory<IResourceCardProperti
 // export function returnToDeck(propertyFactory: PropsFactory<ReturnToDeckProperties> = {}): CardGameAction {
 //     return new ReturnToDeckAction(propertyFactory);
 // }
-export function returnToHand(propertyFactory: PropsFactory<IReturnToHandProperties> = {}): CardTargetSystem {
-    return new ReturnToHandSystem(propertyFactory);
+export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReturnToHandProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new ReturnToHandSystem<TContext>(propertyFactory);
 }
-export function returnToHandFromPlay(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties> = {}): CardTargetSystem {
-    return new ReturnToHandFromPlaySystem(propertyFactory);
+export function returnToHandFromPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new ReturnToHandFromPlaySystem<TContext>(propertyFactory);
 }
 /**
  * default chatMessage = false
  */
-export function reveal(propertyFactory: PropsFactory<IRevealProperties> = {}): CardTargetSystem {
-    return new RevealSystem(propertyFactory);
+export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IRevealProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new RevealSystem<TContext>(propertyFactory);
 }
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): CardGameAction {
 //     return new DiscardFromPlayAction(propertyFactory, true);
@@ -236,8 +238,8 @@ export function reveal(propertyFactory: PropsFactory<IRevealProperties> = {}): C
  * default placeOnBottomInRandomOrder = true (place unchosen cards on the bottom of the deck in random order)
  * default cardCondition = always true
  */
-export function deckSearch(propertyFactory: PropsFactory<ISearchDeckProperties>): GameSystem {
-    return new SearchDeckSystem(propertyFactory);
+export function deckSearch<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISearchDeckProperties<TContext>, TContext>): GameSystem<TContext> {
+    return new SearchDeckSystem<TContext>(propertyFactory);
 }
 
 /**
@@ -255,15 +257,15 @@ export function deckSearch(propertyFactory: PropsFactory<ISearchDeckProperties>)
 /**
  * default amount = 1
  */
-export function draw(propertyFactory: PropsFactory<IDrawProperties> = {}): GameSystem {
-    return new DrawSystem(propertyFactory);
+export function draw<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDrawProperties, TContext> = {}): GameSystem<TContext> {
+    return new DrawSystem<TContext>(propertyFactory);
 }
 
 /**
  * default amount = 1
  */
-export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCardProperties> = {}): CardTargetSystem {
-    return new DrawSpecificCardSystem(propertyFactory);
+export function drawSpecificCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDrawSpecificCardProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new DrawSpecificCardSystem<TContext>(propertyFactory);
 }
 // export function playerLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
 //     return new LastingEffectAction(propertyFactory);
@@ -272,14 +274,14 @@ export function drawSpecificCard(propertyFactory: PropsFactory<IDrawSpecificCard
 // //////////////
 // // GENERIC
 // //////////////
-export function handler(propertyFactory: PropsFactory<IExecuteHandlerSystemProperties>): GameSystem {
-    return new ExecuteHandlerSystem(propertyFactory);
+export function handler<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExecuteHandlerSystemProperties, TContext>): GameSystem<TContext> {
+    return new ExecuteHandlerSystem<TContext>(propertyFactory);
 }
-export function noAction(propertyFactory: PropsFactory<INoActionSystemProperties> = {}): GameSystem {
-    return new NoActionSystem(propertyFactory);
+export function noAction<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<INoActionSystemProperties, TContext> = {}): GameSystem<TContext> {
+    return new NoActionSystem<TContext>(propertyFactory);
 }
-export function replacementEffect(propertyFactory: PropsFactory<IReplacementEffectSystemProperties>): GameSystem {
-    return new ReplacementEffectSystem(propertyFactory);
+export function replacementEffect<TContext extends TriggeredAbilityContext = TriggeredAbilityContext>(propertyFactory: PropsFactory<IReplacementEffectSystemProperties, TContext>): GameSystem<TContext> {
+    return new ReplacementEffectSystem<TContext>(propertyFactory);
 }
 
 // //////////////
@@ -291,8 +293,8 @@ export function replacementEffect(propertyFactory: PropsFactory<IReplacementEffe
 // export function chooseAction(propertyFactory: PropsFactory<ChooseActionProperties>): GameSystem {
 //     return new ChooseGameAction(propertyFactory);
 // } // choices, activePromptTitle = 'Select one'
-export function conditional(propertyFactory: PropsFactory<IConditionalSystemProperties>): GameSystem {
-    return new ConditionalSystem(propertyFactory);
+export function conditional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IConditionalSystemProperties<TContext>, TContext>): GameSystem<TContext> {
+    return new ConditionalSystem<TContext>(propertyFactory);
 }
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>): GameSystem {
 //     return new AffinityAction(propertyFactory);
@@ -312,22 +314,22 @@ export function conditional(propertyFactory: PropsFactory<IConditionalSystemProp
 // export function menuPrompt(propertyFactory: PropsFactory<MenuPromptProperties>): GameSystem {
 //     return new MenuPromptAction(propertyFactory);
 // }
-export function selectCard(propertyFactory: PropsFactory<ISelectCardProperties>): GameSystem {
-    return new SelectCardSystem(propertyFactory);
+export function selectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectCardProperties<TContext>, TContext>): GameSystem<TContext> {
+    return new SelectCardSystem<TContext>(propertyFactory);
 }
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameSystem {
 //     return new SelectTokenAction(propertyFactory);
 // }
-export function sequential(gameSystems: GameSystem[]): GameSystem {
-    return new SequentialSystem(gameSystems);
+export function sequential<TContext extends AbilityContext = AbilityContext>(gameSystems: GameSystem<TContext>[]): GameSystem<TContext> {
+    return new SequentialSystem<TContext>(gameSystems);
 } // takes an array of gameActions, not a propertyFactory
 // export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
 //     return new SequentialContextAction(propertyFactory);
 // }
-export function simultaneous(gameSystems: GameSystem[], ignoreTargetingRequirements = null): GameSystem {
-    return new SimultaneousGameSystem(gameSystems, ignoreTargetingRequirements);
+export function simultaneous<TContext extends AbilityContext = AbilityContext>(gameSystems: (GameSystem<TContext>)[], ignoreTargetingRequirements = null): GameSystem<TContext> {
+    return new SimultaneousGameSystem<TContext>(gameSystems, ignoreTargetingRequirements);
 }
 
-export function shuffleDeck(propertyFactory: PropsFactory<IShuffleDeckProperties> = {}): PlayerTargetSystem {
-    return new ShuffleDeckSystem(propertyFactory);
+export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IShuffleDeckProperties, TContext> = {}): PlayerTargetSystem<TContext> {
+    return new ShuffleDeckSystem<TContext>(propertyFactory);
 }

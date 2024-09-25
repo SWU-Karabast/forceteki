@@ -2,7 +2,7 @@ import Player from '../../Player';
 import { GameEvent } from '../../event/GameEvent';
 import EventWindow from '../../event/EventWindow';
 import { AbilityType, WildcardLocation } from '../../Constants';
-import Contract from '../../utils/Contract';
+import * as Contract from '../../utils/Contract';
 import { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { Card } from '../../card/Card';
@@ -103,15 +103,11 @@ export class TriggeredAbilityWindow extends BaseStep {
     }
 
     protected assertWindowResolutionNotStarted(triggerTypeName: string, source: Card) {
-        if (!Contract.assertFalse(this.choosePlayerResolutionOrderComplete, `Attempting to add new triggered ${triggerTypeName} from source '${source.internalName}' to a window that has already started resolution`)) {
-            return;
-        }
+        Contract.assertFalse(this.choosePlayerResolutionOrderComplete, `Attempting to add new triggered ${triggerTypeName} from source '${source.internalName}' to a window that has already started resolution`);
     }
 
     private promptUnresolvedAbilities() {
-        if (!Contract.assertNotNullLike(this.currentlyResolvingPlayer)) {
-            return false;
-        }
+        Contract.assertNotNullLike(this.currentlyResolvingPlayer);
 
         this.choosePlayerResolutionOrderComplete = true;
 
@@ -154,12 +150,8 @@ export class TriggeredAbilityWindow extends BaseStep {
 
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */
     private getCurrentlyResolvingAbilities() {
-        if (
-            !Contract.assertNotNullLike(this.currentlyResolvingPlayer) ||
-            !Contract.assertHasKey(this.unresolved, this.currentlyResolvingPlayer)
-        ) {
-            return null;
-        }
+        Contract.assertNotNullLike(this.currentlyResolvingPlayer);
+        Contract.assertHasKey(this.unresolved, this.currentlyResolvingPlayer);
 
         return this.unresolved.get(this.currentlyResolvingPlayer);
     }
@@ -227,9 +219,7 @@ export class TriggeredAbilityWindow extends BaseStep {
         const abilitiesAvailableForPlayer = this.getCurrentlyResolvingAbilities();
 
         for (const abilityContext of abilitiesAvailableForPlayer) {
-            if (!Contract.assertNotNullLike(abilityContext.source)) {
-                continue;
-            }
+            Contract.assertNotNullLike(abilityContext.source);
             triggeringCards.add(abilityContext.source);
         }
 
@@ -295,9 +285,7 @@ export class TriggeredAbilityWindow extends BaseStep {
      * in which case one of those will be selected randomly.
      */
     private consolidateShieldTriggers() {
-        if (!Contract.assertEqual(this.triggerAbilityType, AbilityType.ReplacementEffect)) {
-            return;
-        }
+        Contract.assertEqual(this.triggerAbilityType, AbilityType.ReplacementEffect);
 
         const postConsolidateUnresolved = new Map<Player, TriggeredAbilityContext[]>();
 

@@ -2,7 +2,7 @@ const { BaseStepWithPipeline } = require('../gameSteps/BaseStepWithPipeline.js')
 const { TriggeredAbilityWindow } = require('../gameSteps/abilityWindow/TriggeredAbilityWindow');
 const { SimpleStep } = require('../gameSteps/SimpleStep.js');
 const { AbilityType } = require('../Constants.js');
-const { default: Contract } = require('../utils/Contract.js');
+const Contract = require('../utils/Contract.js');
 const { GameEvent } = require('./GameEvent.js');
 
 class EventWindow extends BaseStepWithPipeline {

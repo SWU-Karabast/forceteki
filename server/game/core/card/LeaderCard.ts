@@ -1,6 +1,6 @@
 import Player from '../Player';
 import { InPlayCard } from './baseClasses/InPlayCard';
-import Contract from '../utils/Contract';
+import * as Contract from '../utils/Contract';
 import { CardType } from '../Constants';
 
 export class LeaderCard extends InPlayCard {

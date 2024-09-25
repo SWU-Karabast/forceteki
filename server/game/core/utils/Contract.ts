@@ -1,5 +1,4 @@
 import assert from 'assert';
-import process from 'process';
 
 export enum AssertMode {
     Assert,
@@ -8,19 +7,6 @@ export enum AssertMode {
 
 interface IContractCheckImpl {
     fail(message: string): void;
-}
-
-class LoggingContractCheckImpl implements IContractCheckImpl {
-    public constructor(private readonly breakpoint: boolean) {
-    }
-
-    public fail(message: string): void {
-        if (this.breakpoint) {
-            debugger;
-        }
-
-        console.trace(`Contract assertion failure: ${message}`);
-    }
 }
 
 class AssertContractCheckImpl implements IContractCheckImpl {
@@ -36,179 +22,95 @@ class AssertContractCheckImpl implements IContractCheckImpl {
     }
 }
 
-let contractCheckImpl: IContractCheckImpl;
+// TODO: this is configured like this so we can potentially have configurable settings once we understand the FE needs better
+const contractCheckImpl: IContractCheckImpl = new AssertContractCheckImpl(false);
 
-// we check env var first and default to logging mode if not set
-const debugEnvSetting = process.env.FORCETEKI_DEBUG?.toLowerCase();
-if (['true', '1'].includes(debugEnvSetting)) {
-    contractCheckImpl = new AssertContractCheckImpl(false);
-} else {
-    contractCheckImpl = new LoggingContractCheckImpl(false);
-}
-
-/**
- * Configure the behavior of the Contract.assert* functions.
- *
- * `AssertMode.Assert` - will trigger an assertion error when a contract check fails
- * `AssertMode.Log` - will log a message with stack trace when a contract check fails
- *
- * @param mode assertion mode
- * @param breakpoint if true, will trigger a debugger breakpoint when a contract check fails
- */
-export function configureAssertMode(mode: AssertMode, breakpoint = false): void {
-    switch (mode) {
-        case AssertMode.Assert:
-            contractCheckImpl = new AssertContractCheckImpl(breakpoint);
-            break;
-        case AssertMode.Log:
-            contractCheckImpl = new LoggingContractCheckImpl(breakpoint);
-            break;
-        default:
-            throw new Error(`Unknown contract check mode: ${mode}`);
-    }
-}
-
-export function assertTrue(cond: boolean, message?: string): boolean {
+export function assertTrue(cond: boolean, message?: string): asserts cond {
     if (!cond) {
         contractCheckImpl.fail(message ?? 'False condition');
-        return false;
     }
-    return true;
 }
 
-export function assertFalse(cond: boolean, message?: string): boolean {
+export function assertFalse(cond: boolean, message?: string): asserts cond is false {
     if (cond) {
         contractCheckImpl.fail(message ?? 'True condition');
-        return false;
     }
-    return true;
 }
 
-export function assertEqual(val1: any, val2: any, message?: string): boolean {
+export function assertEqual<T>(val1: T, val2: T, message?: string) {
     if (val1 !== val2) {
         contractCheckImpl.fail(message ?? `Value ${val1} is not equal to ${val2}`);
-        return false;
     }
-    return true;
 }
 
-export function assertNotEqual(val1: any, val2: any, message?: string): boolean {
+export function assertNotEqual<T>(val1: T, val2: T, message?: string) {
     if (val1 === val2) {
         contractCheckImpl.fail(message ?? `Value ${val1} is equal to ${val2}`);
-        return false;
     }
-    return true;
 }
 
-export function assertNotNull(val: object, message?: string): boolean {
-    if (val === null) {
-        contractCheckImpl.fail(message ?? 'Null object value');
-        return false;
-    }
-    return true;
-}
-
-export function assertNotNullLike(val: any, message?: string): boolean {
+export function assertNotNullLike<T>(val: T, message?: string): asserts val is NonNullable<T> {
     if (val == null) {
         contractCheckImpl.fail(message ?? `Null-like object value: ${val}`);
-        return false;
     }
-    return true;
 }
 
-export function assertNotNullLikeOrNan(val?: number, message?: string): boolean {
+export function assertNotNullLikeOrNan(val?: number, message?: string): asserts val is NonNullable<number> {
     assertNotNullLike(val);
     if (isNaN(val)) {
         contractCheckImpl.fail(message ?? 'NaN value');
-        return false;
     }
-    return true;
 }
 
-export function assertHasProperty(obj: object, propertyName: string, message?: string): boolean {
+export function assertHasProperty<T extends object, PropertyName extends string>(obj: T, propertyName: PropertyName, message?: string): asserts obj is NonNullable<T> & Record<PropertyName, any> {
     assertNotNullLike(obj);
     if (!(propertyName in obj)) {
         contractCheckImpl.fail(message ?? `Object does not have property '${propertyName}'`);
-        return false;
     }
-    return true;
 }
 
-export function assertArraySize(ara: any[], expectedSize: number, message?: string): boolean {
+export function assertArraySize<T>(ara: T[], expectedSize: number, message?: string): asserts ara is NonNullable<T[]> {
     assertNotNullLike(ara);
     if (ara.length !== expectedSize) {
         contractCheckImpl.fail(message ?? `Array size ${ara.length} does not match expected size ${expectedSize}`);
-        return false;
     }
-    return true;
 }
 
-export function assertNonEmpty(ara: any[], message?: string): boolean {
+export function assertNonEmpty<T>(ara: T[], message?: string): asserts ara is NonNullable<T[]> {
     assertNotNullLike(ara);
     if (ara.length === 0) {
         contractCheckImpl.fail(message ?? 'Array is empty');
-        return false;
     }
-    return true;
 }
 
-export function assertStringValue(val: string, message?: string): boolean {
+export function assertStringValue(val: string, message?: string): asserts val is NonNullable<string> {
     assertNotNullLike(val);
     if (val === '') {
         contractCheckImpl.fail(message ?? 'String is empty');
-        return false;
     }
-    return true;
 }
 
-export function assertHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): boolean {
+export function assertHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): asserts map is NonNullable<Map<TKey, any>> {
     assertNotNullLike(map);
     if (!map.has(key)) {
         contractCheckImpl.fail(message ?? `Map does not contain key ${key}`);
-        return false;
     }
-    return true;
 }
 
-export function assertPositiveNonZero(val: number, message?: string) {
+export function assertPositiveNonZero(val: number, message?: string): asserts val is NonNullable<number> {
+    assertNotNullLikeOrNan(val);
     if (val <= 0) {
         contractCheckImpl.fail(message ?? `Expected ${val} to be > 0`);
-        return false;
     }
-    return true;
 }
 
-export function assertNonNegative(val: number, message?: string) {
+export function assertNonNegative(val: number, message?: string): asserts val is NonNullable<number> {
+    assertNotNullLikeOrNan(val);
     if (val < 0) {
         contractCheckImpl.fail(message ?? `Expected ${val} to be >= 0`);
-        return false;
     }
-    return true;
 }
 
 export function fail(message: string): void {
     contractCheckImpl.fail(message);
 }
-
-// TODO: fix things so we don't need this
-const Contract = {
-    AssertMode,
-    configureAssertMode,
-    assertTrue,
-    assertFalse,
-    assertEqual,
-    assertNotEqual,
-    assertNotNull,
-    assertNotNullLike,
-    assertNotNullLikeOrNan,
-    assertHasProperty,
-    assertArraySize,
-    assertNonEmpty,
-    assertStringValue,
-    assertHasKey,
-    assertPositiveNonZero,
-    assertNonNegative,
-    fail
-};
-
-export default Contract;
