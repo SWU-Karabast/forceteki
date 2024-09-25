@@ -77,19 +77,44 @@ it('should cause the attached card to heal 2 damage from base on attack', functi
 Here is a summary of the naming rules and some examples in the table below:
 
 - **Internal name / test string name:** snake-case, with special characters removed and spaces replaced with dashes. The title and subtitle are separated by a '#' character.
-- **Test property name (i.e., this.<card>):** camelCase, with all special characters and spaces removed. If there is a subtitle, it is completely omitted. If the name starts with a number, it will have an underscore '_' as a prefix.
+- **Test property name(s) (i.e., this.<card>):** camelCase, with all special characters and spaces removed. If the name starts with a number, it will have an underscore '_' as a prefix. If there is a subtitle, two names will be generated - one with just the title and one with title + subtitle.
 
 Examples:
 
 | Printed name | Internal name | Property name |
 | ---  | --- | --- |
 | Alliance X-Wing | 'alliance-xwing' | this.allianceXwing |
-| C-3PO, Protocol Droid  | 'c3po#protocol-droid' | this.c3po |
+| C-3PO, Protocol Droid  | 'c3po#protocol-droid' | this.c3po, this.c3poProtocolDroid |
 | 2-1B Surgical Droid  | '21b-surgical-droid' | this._21bSurgicalDroid |
-| Count Dooku, Darth Tyranus | 'count-dooku#darth-tyranus' | this.countDooku |
+| Count Dooku, Darth Tyranus | 'count-dooku#darth-tyranus' | this.countDooku, this.countDookuDarthTyranus |
 
 #### Duplicate card names
-For ease of test writing and understanding, we strongly recommend that test scenarios have only one copy of any card whenever possible. If two copies of a card are provided, then **no** property name will be generated and you must add it manually yourself in the test setup:
+For ease of test writing and understanding, we strongly recommend that test scenarios have only one copy of any card whenever possible. If two cards share a title but have a different subtitle, then you must refer to them using the full title + subtitle property name. See the test of Luke's Lightsaber:
+
+```javascript
+beforeEach(function () {
+    this.setupTest({
+        phase: 'action',
+        player1: {
+            hand: ['lukes-lightsaber'],
+            groundArena: [{ card: 'luke-skywalker#jedi-knight', damage: 5, upgrades: ['shield'] }, { card: 'battlefield-marine', damage: 2 }, 'reinforcement-walker'],
+            leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
+        }
+    });
+});
+
+it('should heal all damage from and give a shield to its holder when played, only if that unit is Luke Skywalker', function () {
+    this.player1.clickCard(this.lukesLightsaber);
+    expect(this.player1).toBeAbleToSelectExactly([this.lukeSkywalkerJediKnight, this.lukeSkywalkerFaithfulFriend, this.battlefieldMarine]);
+
+    this.player1.clickCard(this.lukeSkywalkerJediKnight);
+
+    expect(this.lukeSkywalkerJediKnight.damage).toBe(0);
+    expect(this.lukeSkywalkerJediKnight).toHaveExactUpgradeNames(['lukes-lightsaber', 'shield', 'shield']);
+});
+```
+
+If two copies of a card with identical names are provided, then **no** property name will be generated and you must add it manually yourself in the test setup using `findCardByName()` or `findCardsByName()`:
 
 ```javascript
 beforeEach(function () {
