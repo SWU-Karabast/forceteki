@@ -3,10 +3,14 @@ import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { GameEvent } from '../core/event/GameEvent';
+import * as Contract from '../core/utils/Contract';
+import AbilityHelper from '../AbilityHelper';
 
 export interface IDamageProperties extends ICardTargetSystemProperties {
     amount: number;
     isCombatDamage?: boolean;
+    isOverwhelmDamage?: boolean;
 }
 
 // TODO: for this and the heal system, need to figure out how to handle the situation where 0 damage
@@ -41,11 +45,20 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         return super.canAffect(card, context);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        const { amount, isCombatDamage } = this.generatePropertiesFromContext(context, additionalProperties) as IDamageProperties;
+    public override generatePropertiesFromContext(context: TContext, additionalProperties?: any) {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+
+        Contract.assertFalse(properties.isCombatDamage && properties.isOverwhelmDamage, 'Overwhelm damage must not be combat damage');
+
+        return properties;
+    }
+
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties) {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.damage = amount;
-        event.isCombatDamage = isCombatDamage;
-        event.context = context;
+
+        event.damage = properties.amount;
+        event.isCombatDamage = properties.isCombatDamage;
+        event.overwhelm = properties.isOverwhelmDamage;
     }
 }

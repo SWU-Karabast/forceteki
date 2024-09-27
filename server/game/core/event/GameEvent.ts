@@ -12,7 +12,7 @@ export class GameEvent {
     public order = 0;
     public isContingent = false;
     public checkFullyResolved = (event) => !event.cancelled;
-    public createContingentEvents = () => [];
+    public createContingentEvents = (event) => [];
     public preResolutionEffect = () => true;
 
     public constructor(

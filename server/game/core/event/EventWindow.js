@@ -99,7 +99,7 @@ class EventWindow extends BaseStepWithPipeline {
     createContingentEvents() {
         let contingentEvents = [];
         this.events.forEach((event) => {
-            contingentEvents = contingentEvents.concat(event.createContingentEvents());
+            contingentEvents = contingentEvents.concat(event.createContingentEvents(event));
         });
         contingentEvents.forEach((event) => this.addEvent(event));
     }

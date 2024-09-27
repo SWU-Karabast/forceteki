@@ -1,4 +1,3 @@
-// TODO: uncomment once Veld does engine work
 describe('Ambush keyword', function() {
     integration(function() {
         describe('When a unit with the Ambush keyword', function() {

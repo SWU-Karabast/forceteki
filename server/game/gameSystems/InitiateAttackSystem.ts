@@ -12,6 +12,9 @@ import * as GameSystemLibrary from './GameSystemLibrary';
 export interface IInitiateAttackProperties<TContext extends AbilityContext = AbilityContext> extends IAttackProperties {
     ignoredRequirements?: string[];
     attackerCondition?: (card: Card, context: TContext) => boolean;
+
+    /** By default, the system will inherit the `optional` property from the activating ability. Use this to override the behavior. */
+    optional?: boolean;
 }
 
 /**
