@@ -67,5 +67,25 @@ describe('Overwhelm keyword', function() {
                 expect(this.p2Base.damage).toBe(0);
             });
         });
+
+        describe('When a unit with the Overwhelm keyword attacks', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'emperor-palpatine#master-of-the-dark-side', upgrades: ['fallen-lightsaber'] }]
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper']
+                    }
+                });
+            });
+
+            it('and the unit is defeated before damage is resolved, all damage goes to base', function () {
+                this.player1.clickCard(this.emperorPalpatine);
+                this.player1.clickCard(this.deathStarStormtrooper);
+                expect(this.p2Base.damage).toBe(9);
+            });
+        });
     });
 });
