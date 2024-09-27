@@ -142,7 +142,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         super.updateEvent(event, card, context, additionalProperties);
         event.destination = properties.destination || Location.Discard;
 
-        event.createContingentEvents = () => {
+        event.setContingentEventsGenerator((event) => {
             const contingentEvents = [];
 
             // add events to defeat any upgrades attached to this card. the events will be added as "contingent events"
@@ -162,7 +162,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             }
 
             return contingentEvents;
-        };
+        });
 
         // TODO GAR SAXON: the L5R 'ancestral' keyword behaves exactly like Gar's deployed ability, we can reuse this code for him
         // event.preResolutionEffect = () => {

@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { EventName } from '../Constants';
 import Player from '../Player';
+import * as Contract from '../utils/Contract';
 
 export class GameEvent {
     public cancelled = false;
@@ -12,8 +13,9 @@ export class GameEvent {
     public order = 0;
     public isContingent = false;
     public checkFullyResolved = (event) => !event.cancelled;
-    public createContingentEvents = (event) => [];
     public preResolutionEffect = () => true;
+
+    private contingentEventsGenerator?: () => any[] = null;
 
     public constructor(
         public name: string,
@@ -71,5 +73,15 @@ export class GameEvent {
 
     public isFullyResolved() {
         return this.checkFullyResolved(this.getResolutionEvent());
+    }
+
+    public setContingentEventsGenerator(generator: (event) => any[]) {
+        Contract.assertIsNullLike(this.contingentEventsGenerator, 'Attempting to set contingentEventsGenerator but it already has a value');
+
+        this.contingentEventsGenerator = () => generator(this);
+    }
+
+    public generateContingentEvents(): any[] {
+        return this.contingentEventsGenerator ? this.contingentEventsGenerator() : [];
     }
 }

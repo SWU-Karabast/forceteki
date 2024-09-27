@@ -80,7 +80,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         }).generateEvent(this.attack.target, this.context);
 
         if (this.attack.hasOverwhelm()) {
-            attackerDamageEvent.createContingentEvents = (event) => {
+            attackerDamageEvent.setContingentEventsGenerator((event) => {
                 const attackTarget: Card = event.card;
 
                 if (!attackTarget.isUnit() || event.damage <= attackTarget.remainingHp) {
@@ -92,7 +92,7 @@ export class AttackFlow extends BaseStepWithPipeline {
                 }).generateEvent(event.card.controller.base, this.context);
 
                 return [overwhelmEvent];
-            };
+            });
         }
 
         damageEvents.push(attackerDamageEvent);
