@@ -107,7 +107,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 .getAllLegalTargets(context, player)
                 .filter((card) =>
                     card
-                        .getEffectValues(EffectName.MustBeChosen)
+                        .getOngoingEffectValues(EffectName.MustBeChosen)
                         .some((restriction) => restriction.isMatch('target', context))
                 );
         }

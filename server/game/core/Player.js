@@ -323,7 +323,7 @@ class Player extends GameObject {
      */
     isCardInPlayableLocation(card, playingType = null) {
         // use an effect check to see if this card is in an out of play location but can still be played from
-        if (card.getEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
+        if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
             return true;
         }
 
@@ -333,8 +333,8 @@ class Player extends GameObject {
     }
 
     findPlayType(card) {
-        if (card.getEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            let effects = card.getEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
+        if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
+            let effects = card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
             return effects[effects.length - 1].playType || PlayType.PlayFromHand;
         }
 
@@ -431,7 +431,7 @@ class Player extends GameObject {
     //     } else {
     //         let refillAmount = 1;
     //         if (province) {
-    //             let amount = province.mostRecentEffect(EffectName.RefillProvinceTo);
+    //             let amount = province.mostRecentOngoingEffect(EffectName.RefillProvinceTo);
     //             if (amount) {
     //                 refillAmount = amount;
     //             }
@@ -654,12 +654,12 @@ class Player extends GameObject {
     //     }
 
     //     const playerCostToTargetEffects = abilitySource.controller
-    //         ? abilitySource.controller.getEffectValues(EffectName.PlayerFateCostToTargetCard)
+    //         ? abilitySource.controller.getOngoingEffectValues(EffectName.PlayerFateCostToTargetCard)
     //         : [];
 
     //     let targetCost = 0;
     //     for (const target of targets) {
-    //         for (const cardCostToTarget of target.getEffectValues(EffectName.FateCostToTarget)) {
+    //         for (const cardCostToTarget of target.getOngoingEffectValues(EffectName.FateCostToTarget)) {
     //             if (
     //                 // no card type restriction
     //                 (!cardCostToTarget.cardType ||
@@ -836,7 +836,7 @@ class Player extends GameObject {
     }
 
     // get skillModifier() {
-    //     return this.getEffectValues(EffectName.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
+    //     return this.getOngoingEffectValues(EffectName.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
     // }
 
     /**
@@ -1112,19 +1112,19 @@ class Player extends GameObject {
 
         if (activePlayer === this) {
             return (
-                this.getEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
-                this.getEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Self)
+                this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+                this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Self)
             );
         }
 
         return (
-            this.getEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
-            this.getEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Opponent)
+            this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+            this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Opponent)
         );
     }
 
     // eventsCannotBeCancelled() {
-    //     return this.hasEffect(EffectName.EventsCannotBeCancelled);
+    //     return this.hasOngoingEffect(EffectName.EventsCannotBeCancelled);
     // }
 
     // // TODO STATE SAVE: what stats are we interested in?

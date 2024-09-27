@@ -29,7 +29,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
             properties.ability = event.context.ability;
         }
 
-        const lastingEffectRestrictions = event.card.getEffectValues(EffectName.CannotApplyLastingEffects);
+        const lastingEffectRestrictions = event.card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
         const { effect: effect, ...otherProperties } = properties;
         const effectProperties = Object.assign({ matchTarget: event.card, locationFilter: WildcardLocation.Any }, otherProperties);
         let effects = properties.effect.map((factory) =>
@@ -56,7 +56,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         properties.effect = properties.effect.map((factory) => factory(context.game, context.source, properties));
-        const lastingEffectRestrictions = card.getEffectValues(EffectName.CannotApplyLastingEffects);
+        const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
         return (
             super.canAffect(card, context) &&
             properties.effect.some(

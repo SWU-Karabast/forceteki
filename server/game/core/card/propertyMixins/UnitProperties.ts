@@ -96,7 +96,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Returns true if so.
          */
         public effectsPreventAttack(target: Card) {
-            if (this.hasEffect(EffectName.CannotAttackBase) && target.isBase()) {
+            if (this.hasOngoingEffect(EffectName.CannotAttackBase) && target.isBase()) {
                 return true;
             }
 
@@ -279,9 +279,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             let rawEffects;
             if (typeof exclusions === 'function') {
-                rawEffects = this.getEffects().filter((effect) => !exclusions(effect));
+                rawEffects = this.getOngoingEffects().filter((effect) => !exclusions(effect));
             } else {
-                rawEffects = this.getEffects().filter((effect) => !exclusions.includes(effect.type));
+                rawEffects = this.getOngoingEffects().filter((effect) => !exclusions.includes(effect.type));
             }
 
             const modifierEffects: IOngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);

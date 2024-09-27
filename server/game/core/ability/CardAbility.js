@@ -87,21 +87,21 @@ class CardAbility extends CardAbilityStep {
     /** @override */
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = super.getCosts(context, playCosts);
-        if (!context.subResolution && triggerCosts && context.player.hasEffect(EffectName.AdditionalTriggerCost)) {
+        if (!context.subResolution && triggerCosts && context.player.hasOngoingEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.player
-                .getEffectValues(EffectName.AdditionalTriggerCost)
+                .getOngoingEffectValues(EffectName.AdditionalTriggerCost)
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
-        if (!context.subResolution && triggerCosts && context.source.hasEffect(EffectName.AdditionalTriggerCost)) {
+        if (!context.subResolution && triggerCosts && context.source.hasOngoingEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.source
-                .getEffectValues(EffectName.AdditionalTriggerCost)
+                .getOngoingEffectValues(EffectName.AdditionalTriggerCost)
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
-        if (!context.subResolution && playCosts && context.player.hasEffect(EffectName.AdditionalPlayCost)) {
+        if (!context.subResolution && playCosts && context.player.hasOngoingEffect(EffectName.AdditionalPlayCost)) {
             const additionalPlayCosts = context.player
-                .getEffectValues(EffectName.AdditionalPlayCost)
+                .getOngoingEffectValues(EffectName.AdditionalPlayCost)
                 .map((effect) => effect(context));
             return costs.concat(...additionalPlayCosts);
         }
