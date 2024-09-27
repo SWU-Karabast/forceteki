@@ -59,6 +59,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
 
         event.damage = properties.amount;
         event.isCombatDamage = properties.isCombatDamage;
-        event.overwhelm = properties.isOverwhelmDamage;
+        event.isOverwhelmDamage = properties.isOverwhelmDamage;
     }
 }

@@ -183,7 +183,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
             }
 
-            // TODO: uncomment once Veld does engine work
             // ambush
             if (this.hasSomeKeyword(KeywordName.Ambush)) {
                 const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
