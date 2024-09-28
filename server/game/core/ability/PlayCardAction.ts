@@ -12,7 +12,8 @@ export abstract class PlayCardAction extends PlayerAction {
     playType: PlayType;
 
     public constructor(card: Card, title: string, playType: PlayType, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
-        super(card, title, additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
+        const fullTitle = title + (PlayType.Smuggle === playType ? ' with Smuggle' : '');//TODO is there a cleaner way to do this?
+        super(card, fullTitle, additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
         
         this.playType = playType;
     }
@@ -38,7 +39,7 @@ export abstract class PlayCardAction extends PlayerAction {
         }
         if(PlayType.Smuggle === this.playType) {
             if (!context.source.hasSomeKeyword(KeywordName.Smuggle)) {
-                return 'smuggle';
+                return 'smuggleKeyword';
             }
         }
         return super.meetsRequirements(context, ignoredRequirements);
