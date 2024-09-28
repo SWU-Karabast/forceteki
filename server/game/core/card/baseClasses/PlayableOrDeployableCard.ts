@@ -1,8 +1,8 @@
-import { SmuggleEventAction } from '../../../actions/SmuggleEventAction';
-import { SmuggleUnitAction } from '../../../actions/SmuggleUnitAction';
-import { SmuggleUpgradeAction } from '../../../actions/SmuggleUpgradeAction';
+import { PlayEventAction } from '../../../actions/PlayEventAction';
+import { PlayUnitAction } from '../../../actions/PlayUnitAction';
+import { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { CardType, EventName, KeywordName, Location } from '../../Constants';
+import { CardType, EventName, KeywordName, Location, PlayType } from '../../Constants';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -49,13 +49,13 @@ export class PlayableOrDeployableCard extends Card {
 
         if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             if (this.isUnit()) {
-                actions.push(new SmuggleUnitAction(this));
+                actions.push(new PlayUnitAction(this, PlayType.Smuggle));
             }
             if (this.isEvent()) {
-                actions.push(new SmuggleEventAction(this));
+                actions.push(new PlayEventAction(this, PlayType.Smuggle));
             }
             if (this.isUpgrade()) {
-                actions.push(new SmuggleUpgradeAction(this));
+                actions.push(new PlayUpgradeAction(this, PlayType.Smuggle));
             }
         }
 

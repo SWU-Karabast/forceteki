@@ -1,14 +1,13 @@
 import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } from '../core/Constants.js';
-import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
+import { putIntoPlay, resourceCard } from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
-import { PlayCardContext } from '../core/ability/PlayCardAction.js';
-import { PlayCardFromHandAction } from '../core/ability/PlayCardFromHandAction.js';
+import { PlayCardAction, PlayCardContext } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
 
-export class PlayUnitAction extends PlayCardFromHandAction {
-    public constructor(card: Card) {
-        super(card, 'Play this unit');
+export class PlayUnitAction extends PlayCardAction {
+    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand) {
+        super(card, 'Play this unit', playType);
     }
 
     public override executeHandler(context: PlayCardContext): void {
@@ -33,12 +32,19 @@ export class PlayUnitAction extends PlayCardFromHandAction {
         const effect = context.source.getEffectValues(EffectName.EntersPlayForOpponent);
         const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
         context.source.registerWhenPlayedKeywords();
-        context.game.openEventWindow([
-            putIntoPlay({
-                controller: player
-            }).generateEvent(context.source, context),
+
+        const events = [
+            putIntoPlay({controller: player}).generateEvent(context.source, context),
             cardPlayedEvent
-        ], this.resolveTriggersAfter);
+        ];
+
+        if(this.playType === PlayType.Smuggle) {
+            events.push(
+                resourceCard({target: context.player.getTopCardOfDeck()})
+                    .generateEvent(context.source, context));
+        }
+
+        context.game.openEventWindow(events, this.resolveTriggersAfter);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

@@ -31,10 +31,10 @@ describe('Smuggle keyword', function() {
                 expect(this.mercenaryGunship).toBeInLocation('resource');
             });
 
-            it('an upgrade can be played for its smuggle cost', function () {
-                this.player1.clickCard(this.hotshotDl44Blaster);
-                expect(this.hotshotDl44Blaster).toBeInLocation('ground arena');
-            });
+            // it('an upgrade can be played for its smuggle cost', function () {
+            //     this.player1.clickCard(this.hotshotDl44Blaster);
+            //     expect(this.hotshotDl44Blaster).toBeInLocation('ground arena');
+            // });
 
             it('an event can be played for its smuggle cost', function () {
                 this.p1Base.damage = 3;

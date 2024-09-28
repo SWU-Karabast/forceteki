@@ -1,7 +1,7 @@
 import * as CostLibrary from '../../costs/CostLibrary';
 import { IActionTargetResolver } from '../../TargetInterfaces';
 import { Card } from '../card/Card';
-import { PhaseName, PlayType, Stage } from '../Constants';
+import { KeywordName, PhaseName, PlayType, Stage } from '../Constants';
 import { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
@@ -9,7 +9,21 @@ import PlayerAction from './PlayerAction';
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
+    playType: PlayType;
+
+    public constructor(card: Card, title: string, playType: PlayType, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
+        super(card, title, additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
+        
+        this.playType = playType;
+    }
+
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+        if (
+            !ignoredRequirements.includes('location') &&
+            !context.player.isCardInPlayableLocation(context.source, this.playType)
+        ) {
+            return 'location';
+        }
         if (
             !ignoredRequirements.includes('phase') &&
             context.game.currentPhase !== PhaseName.Action
@@ -18,9 +32,14 @@ export abstract class PlayCardAction extends PlayerAction {
         }
         if (
             !ignoredRequirements.includes('cannotTrigger') &&
-            !context.source.canPlay(context, PlayType.PlayFromHand)
+            !context.source.canPlay(context, this.playType)
         ) {
             return 'cannotTrigger';
+        }
+        if(PlayType.Smuggle === this.playType) {
+            if (!context.source.hasSomeKeyword(KeywordName.Smuggle)) {
+                return 'smuggle';
+            }
         }
         return super.meetsRequirements(context, ignoredRequirements);
     }

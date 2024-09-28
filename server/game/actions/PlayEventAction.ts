@@ -1,14 +1,14 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import { AbilityRestriction } from '../core/Constants.js';
+import { AbilityRestriction, PlayType } from '../core/Constants.js';
 import { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract.js';
 import { EventCard } from '../core/card/EventCard.js';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.js';
-import { PlayCardFromHandAction } from '../core/ability/PlayCardFromHandAction.js';
+import { resourceCard } from '../gameSystems/GameSystemLibrary.js';
 
-export class PlayEventAction extends PlayCardFromHandAction {
-    public constructor(card: Card) {
-        super(card, 'Play this event');
+export class PlayEventAction extends PlayCardAction {
+    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand) {
+        super(card, 'Play this event', playType);
     }
 
     public override executeHandler(context: PlayCardContext): void {
@@ -19,6 +19,13 @@ export class PlayEventAction extends PlayCardFromHandAction {
             context.player,
             context.source,
         );
+        if(this.playType === PlayType.Smuggle) {
+            context.game.openEventWindow([
+                resourceCard({
+                    target: context.player.getTopCardOfDeck()
+                }).generateEvent(context.source, context)
+            ]);
+        }
         context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 
