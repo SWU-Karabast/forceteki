@@ -21,9 +21,9 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'The first event played by each opponent each round loses all abilities',
-            ongoingEffect: AbilityHelper.ongoingEffects.blank(false),
-            //An event card goes to the discard before its effects resolve, so filtering for being in the discard is appropriate to allow playing an event but blanking its effects.
-            //Filtering for anywhere(WildcardLocation.Any), causes the event card to lose the ability to even play it in the first place.
+            ongoingEffect: AbilityHelper.ongoingEffects.blankEventCard(),
+            // An event card goes to the discard before its effects resolve, so filtering for being in the discard is appropriate to allow playing an event but blanking its effects.
+            // Filtering for anywhere(WildcardLocation.Any), causes the event card to lose the ability to even play it in the first place.
             targetLocationFilter: Location.Discard,
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: CardType.Event,

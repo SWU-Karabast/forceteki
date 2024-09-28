@@ -46,7 +46,7 @@ export = {
     //     OngoingEffectBuilder.card.static(EffectName.AttachmentRestrictTraitAmount, object),
     // attachmentTraitRestriction: (traits) => OngoingEffectBuilder.card.static(EffectName.AttachmentTraitRestriction, traits),
     // attachmentUniqueRestriction: () => OngoingEffectBuilder.card.static(EffectName.AttachmentUniqueRestriction),
-    blank: (blankTraits = false) => OngoingEffectBuilder.card.static(EffectName.Blank, blankTraits),
+    blankEventCard: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     // calculatePrintedMilitarySkill: (func) => OngoingEffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
     /** @deprected This has not yet been tested */

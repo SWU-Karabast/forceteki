@@ -321,11 +321,7 @@ export class Card extends OngoingEffectSource {
     // ******************************************* TRAIT HELPERS *******************************************
     /** Helper method for {@link Card.traits} */
     private getTraits() {
-        const traits = new Set(
-            this.getOngoingEffectValues(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
-                ? []
-                : this.printedTraits
-        );
+        const traits = new Set(this.printedTraits);
 
         for (const gainedTrait of this.getOngoingEffectValues(EffectName.AddTrait)) {
             traits.add(gainedTrait);
