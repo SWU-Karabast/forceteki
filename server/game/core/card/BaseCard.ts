@@ -57,11 +57,4 @@ export class BaseCard extends BaseCardParent {
             this.game.recordWinner(this.owner.opponent, 'base destroyed');
         }
     }
-
-    public override addOngoingEffect(ongoingEffect: IOngoingCardEffect) {
-        // TODO: better system for determining legal targets for ongoing effects
-        Contract.assertNotEqual(ongoingEffect.type, EffectName.ModifyStats, 'Cannot apply stat modifier effects to a base');
-
-        super.addOngoingEffect(ongoingEffect);
-    }
 }
