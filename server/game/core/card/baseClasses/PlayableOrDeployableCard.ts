@@ -41,8 +41,7 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public override getActions(): PlayerOrCardAbility[] {
-        return this.isBlank() ? []
-            : this.defaultActions.concat(super.getActions());
+        return this.defaultActions.concat(super.getActions());
     }
 
     public exhaust() {

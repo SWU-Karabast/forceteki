@@ -92,7 +92,6 @@ class ActionWindow extends UiPrompt {
         return completed;
     }
 
-    // TODO: add claim initiative option here
     /** @override */
     activePrompt() {
         let buttons = [
