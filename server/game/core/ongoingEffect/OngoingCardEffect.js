@@ -63,7 +63,7 @@ class OngoingCardEffect extends OngoingEffect {
         if (this.targetsSourceOnly) {
             return [this.context.source];
         } else if (this.targetLocationFilter === WildcardLocation.Any) {
-            return this.game.allCards.filter();
+            return this.game.allCards;
         } else if (EnumHelpers.isArena(this.targetLocationFilter)) {
             return this.game.findAnyCardsInPlay();
         }
