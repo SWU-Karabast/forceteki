@@ -45,17 +45,17 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             }
             const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
             player.moveCard(card, properties.destination, { bottom: !!properties.bottom });
-    
+
             const target = properties.target;
             // if (Array.isArray(target)) {
             //     // TODO: should we allow this to move multiple cards at once?
             //     if (!Contract.assertArraySize(target, 1)) {
             //         return;
             //     }
-    
+
             //     target = target[0];
             // }
-    
+
             if (properties.destination === Location.Deck && properties.shuffle) {
                 card.owner.shuffleDeck();
             }

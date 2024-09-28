@@ -19,7 +19,8 @@ export class PlayEventAction extends PlayCardAction {
             context.player,
             context.source,
         );
-        if(this.playType === PlayType.Smuggle) {
+
+        if (this.playType === PlayType.Smuggle) {
             context.game.openEventWindow([
                 resourceCard({
                     target: context.player.getTopCardOfDeck()

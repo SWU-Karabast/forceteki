@@ -894,8 +894,8 @@ class Player extends GameObject {
 
         }
         priorityResources.forEach((priority) => {
-            let foundResource = readyResources.find((resource) => resource == priority);
-            if (foundResource != undefined) {
+            let foundResource = readyResources.find((resource) => resource === priority);
+            if (foundResource !== undefined) {
                 foundResource.exhausted = true;
                 priorityResourcesExhausted++;
             }

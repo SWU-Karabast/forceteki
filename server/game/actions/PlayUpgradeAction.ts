@@ -13,7 +13,7 @@ export class PlayUpgradeAction extends PlayCardAction {
         super(card, 'Play this upgrade', playType, [],
             { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({
                 upgrade: context.source
-        })) });
+            })) });
     }
 
     public override executeHandler(context: PlayCardContext) {
@@ -32,12 +32,12 @@ export class PlayUpgradeAction extends PlayCardAction {
         const events = [context.game.actions
             .attachUpgrade({ upgrade: context.source, takeControl: context.source.controller !== context.player })
             .generateEvent(context.target, context),
-            cardPlayedEvent];
+        cardPlayedEvent];
 
-        if(this.playType === PlayType.Smuggle) {
+        if (this.playType === PlayType.Smuggle) {
             events.push(resourceCard({
                 target: context.player.getTopCardOfDeck()
-                }).generateEvent(context.source, context));
+            }).generateEvent(context.source, context));
         }
 
         context.game.openEventWindow(events, this.resolveTriggersAfter);

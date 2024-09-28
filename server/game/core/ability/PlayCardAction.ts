@@ -9,12 +9,12 @@ import PlayerAction from './PlayerAction';
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
-    playType: PlayType;
+    protected playType: PlayType;
 
     public constructor(card: Card, title: string, playType: PlayType, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
         const fullTitle = title + (PlayType.Smuggle === playType ? ' with Smuggle' : '');//TODO is there a cleaner way to do this?
         super(card, fullTitle, additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
-        
+
         this.playType = playType;
     }
 
@@ -37,7 +37,7 @@ export abstract class PlayCardAction extends PlayerAction {
         ) {
             return 'cannotTrigger';
         }
-        if(PlayType.Smuggle === this.playType) {
+        if (PlayType.Smuggle === this.playType) {
             if (!context.source.hasSomeKeyword(KeywordName.Smuggle)) {
                 return 'smuggleKeyword';
             }

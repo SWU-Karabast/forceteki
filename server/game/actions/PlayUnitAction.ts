@@ -34,13 +34,13 @@ export class PlayUnitAction extends PlayCardAction {
         context.source.registerWhenPlayedKeywords();
 
         const events = [
-            putIntoPlay({controller: player}).generateEvent(context.source, context),
+            putIntoPlay({ controller: player }).generateEvent(context.source, context),
             cardPlayedEvent
         ];
 
-        if(this.playType === PlayType.Smuggle) {
+        if (this.playType === PlayType.Smuggle) {
             events.push(
-                resourceCard({target: context.player.getTopCardOfDeck()})
+                resourceCard({ target: context.player.getTopCardOfDeck() })
                     .generateEvent(context.source, context));
         }
 
