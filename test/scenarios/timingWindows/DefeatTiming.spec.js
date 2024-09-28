@@ -30,6 +30,7 @@ describe('Defeat timing', function() {
             });
         });
 
+        // TODO: add a similar test for Dodonna and units leaving the field due to a +hp modifier going away
         describe('When a unit enters play and is immediately defeated by a constant ability,', function() {
             beforeEach(function () {
                 this.setupTest({
