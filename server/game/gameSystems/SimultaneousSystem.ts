@@ -37,12 +37,8 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return [message, legalSystems.map((system) => system.getEffectMessage(context))];
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
-        for (const gameSystem of properties.gameSystems) {
-            gameSystem.setDefaultTargetFn(() => properties.target);
-        }
-        return properties;
+    public override getInnerSystems(properties: ISimultaneousSystemProperties<TContext>) {
+        return properties.gameSystems;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
@@ -88,10 +84,5 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
     public override hasTargetsChosenByInitiatingPlayer(context) {
         const properties = this.generatePropertiesFromContext(context);
         return properties.gameSystems.some((gameSystem) => gameSystem.hasTargetsChosenByInitiatingPlayer(context));
-    }
-
-    // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
-    protected override isTargetTypeValid(target: any): boolean {
-        return false;
     }
 }

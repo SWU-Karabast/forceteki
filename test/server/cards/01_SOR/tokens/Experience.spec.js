@@ -57,7 +57,7 @@ describe('Experience', function() {
                 this.player1.clickCard(this.confiscate);
 
                 // ability will resolve automatically since there's only one legal target
-                expect(this.cartelSpacer.upgrades.length).toBe(0);
+                expect(this.cartelSpacer.isUpgraded()).toBe(false);
                 expect(this.experience).toBeInLocation('outside the game');
             });
         });

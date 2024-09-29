@@ -65,5 +65,37 @@ describe('Stat modifying effects', function() {
                 expect(this.battlefieldMarine).toBeInLocation('discard');
             });
         });
+
+        describe('HP modifying effects', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['specforce-soldier', 'alliance-dispatcher', 'jedha-agitator'],
+                        groundArena: ['general-dodonna#massassi-group-commander'],
+                    },
+                    player2: {
+                        groundArena: ['supreme-leader-snoke#shadow-ruler'],
+                    }
+                });
+            });
+
+            it('should be added together correctly', function () {
+                this.player1.clickCard(this.specforceSoldier);
+                expect(this.specforceSoldier.getHp()).toBe(1);
+                expect(this.specforceSoldier.getPower()).toBe(1);
+
+                this.player2.passAction();
+
+                this.player1.clickCard(this.allianceDispatcher);
+                expect(this.allianceDispatcher.getHp()).toBe(1);
+                expect(this.allianceDispatcher.getPower()).toBe(0);
+
+                this.player2.passAction();
+
+                this.player1.clickCard(this.jedhaAgitator);
+                expect(this.jedhaAgitator).toBeInLocation('discard');
+            });
+        });
     });
 });

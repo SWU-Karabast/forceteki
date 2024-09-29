@@ -22,7 +22,7 @@ describe('Shield', function() {
                 expect(this.tielnFighter.damage).toBe(0);
 
                 expect(this.shield).toBeInLocation('outside the game');
-                expect(this.tielnFighter.upgrades.length).toBe(0);
+                expect(this.tielnFighter.isUpgraded()).toBe(false);
 
                 // second attack to confirm that shield effect is off
                 this.player2.clickCard(this.tielnFighter);
@@ -72,7 +72,7 @@ describe('Shield', function() {
                 this.player2.clickCard(this.cartelSpacer);
                 expect(this.cartelSpacer).toBeInLocation('discard');
                 expect(this.tielnFighter.damage).toBe(0);
-                expect(this.tielnFighter.upgrades.length).toBe(0);
+                expect(this.tielnFighter.isUpgraded()).toBe(false);
 
                 expect(getShieldLocationsSorted(this.shields)).toEqual(['outside the game', 'outside the game']);
             });

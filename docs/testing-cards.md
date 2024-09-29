@@ -45,14 +45,11 @@ These cards can then be referred to by name in the test cases as properties of t
 ```javascript
 it('should give an experience token to a unit', function () {
     this.player1.clickCard(this.clanWrenRescuer);
-    expect(this.player1).not.toHaveEnabledPromptButton('Pass ability');
-
-    // this.clanWrenRescuer, this.wampa, this.cartelSpacer are all automaically created by the test harness
+    expect(this.player1).not.toHavePassAbilityButton();
     expect(this.player1).toBeAbleToSelectExactly([this.clanWrenRescuer, this.wampa, this.cartelSpacer]);
 
     this.player1.clickCard(this.clanWrenRescuer);
-    expect(this.clanWrenRescuer.upgrades.length).toBe(1);
-    expect(this.clanWrenRescuer.upgrades[0].internalName).toBe('experience');
+    expect(this.clanWrenRescuer).toHaveExactUpgradeNames(['experience']);
 });
 ```
 

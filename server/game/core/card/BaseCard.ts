@@ -40,7 +40,7 @@ export class BaseCard extends BaseCardParent {
     }
 
     public setEpicActionAbility(properties: IEpicActionProps<this>): void {
-        Contract.assertTrue(this._epicActionAbility == null, 'Epic action ability already set');
+        Contract.assertIsNullLike(this._epicActionAbility, 'Epic action ability already set');
 
         const propertiesWithLimit: IActionAbilityProps<this> = Object.assign(properties, {
             limit: AbilityHelper.limit.epicAction()
@@ -56,12 +56,5 @@ export class BaseCard extends BaseCardParent {
         if (this.damage >= this.getHp()) {
             this.game.recordWinner(this.owner.opponent, 'base destroyed');
         }
-    }
-
-    public override addOngoingEffect(ongoingEffect: IOngoingCardEffect) {
-        // TODO: better system for determining legal targets for ongoing effects
-        Contract.assertNotEqual(ongoingEffect.type, EffectName.ModifyStats, 'Cannot apply stat modifier effects to a base');
-
-        super.addOngoingEffect(ongoingEffect);
     }
 }

@@ -58,7 +58,7 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         if (!restriction) {
             return true;
         } else if (!context) {
-            throw new Error('checkCondition called without a context');
+            throw new Error('checkRestriction called without a context');
         } else if (typeof restriction === 'function') {
             return restriction(context, this, card);
         } else if (!restrictionDsl[restriction]) {

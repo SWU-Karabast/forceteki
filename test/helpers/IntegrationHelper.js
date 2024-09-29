@@ -198,7 +198,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${actual.name} not to have enabled prompt button 'Pass ability' but it did.`;
                 } else {
-                    result.message = `Expected ${actual.name} to have enabled prompt button 'Pass ability'`;
+                    result.message = `Expected ${actual.name} to have enabled prompt button 'Pass ability' `;
 
                     if (buttons.length > 0) {
                         var buttonText = buttons.map(

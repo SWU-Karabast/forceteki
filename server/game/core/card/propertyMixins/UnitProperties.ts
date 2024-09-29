@@ -15,10 +15,9 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
-import { Attack } from '../../attack/Attack';
 import type { UnitCard } from '../CardTypes';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
-import { StatsModifier } from '../../ongoingEffect/effectImpl/StatsModifier';
+import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -51,6 +50,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public isAttacking(): boolean {
             return (this as Card) === (this.activeAttack?.attacker as Card);
+        }
+
+        public isUpgraded(): boolean {
+            return this.upgrades.length > 0;
         }
 
         public hasShield(): boolean {
@@ -181,13 +184,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
             }
 
-            // TODO: uncomment once Veld does engine work
             // ambush
-            // if (this.hasSomeKeyword(KeywordName.Ambush)) {
-            //     const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
-            //     ambushAbility.registerEvents();
-            //     this._whenPlayedKeywordAbilities.push(ambushAbility);
-            // }
+            if (this.hasSomeKeyword(KeywordName.Ambush)) {
+                const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
+                ambushAbility.registerEvents();
+                this._whenPlayedKeywordAbilities.push(ambushAbility);
+            }
         }
 
         /**
@@ -265,7 +267,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public override addDamage(amount: number) {
             super.addDamage(amount);
 
-            this.checkDefeated();
+            // the defeat check will happen in the next call to Game.resolveGameState (typically when the event window resolves)
         }
 
         public checkDefeated() {

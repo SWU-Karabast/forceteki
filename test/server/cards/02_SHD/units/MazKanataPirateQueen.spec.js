@@ -17,11 +17,11 @@ describe('Maz Kanata, Pirate Queen', function() {
             it('should give herself an Experience when another friendly unit is played', function () {
                 // CASE 1: no upgrade when she is played
                 this.player1.clickCard(this.mazKanata);
-                expect(this.mazKanata.upgrades.length).toBe(0);
+                expect(this.mazKanata.isUpgraded()).toBe(false);
 
                 // CASE 2: opponent plays unit
                 this.player2.clickCard(this.tielnFighter);
-                expect(this.mazKanata.upgrades.length).toBe(0);
+                expect(this.mazKanata.isUpgraded()).toBe(false);
 
                 // CASE 3: we play unit
                 this.player1.clickCard(this.battlefieldMarine);

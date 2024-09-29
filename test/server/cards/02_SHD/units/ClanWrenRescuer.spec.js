@@ -20,8 +20,7 @@ describe('Clan Wren Rescuer', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.clanWrenRescuer, this.wampa, this.cartelSpacer]);
 
                 this.player1.clickCard(this.clanWrenRescuer);
-                expect(this.clanWrenRescuer.upgrades.length).toBe(1);
-                expect(this.clanWrenRescuer.upgrades[0].internalName).toBe('experience');
+                expect(this.clanWrenRescuer).toHaveExactUpgradeNames(['experience']);
             });
         });
     });

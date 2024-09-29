@@ -99,7 +99,7 @@ class OngoingEffect {
         return !this.source.facedown && effectOnSource;
     }
 
-    checkCondition(stateChanged) {
+    resolveEffectTargets(stateChanged) {
         if (!this.condition(this.context) || !this.isEffectActive()) {
             stateChanged = this.targets.length > 0 || stateChanged;
             this.cancel();

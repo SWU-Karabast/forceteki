@@ -55,6 +55,12 @@ export function assertNotNullLike<T>(val: T, message?: string): asserts val is N
     }
 }
 
+export function assertIsNullLike<T>(val: T, message?: string): asserts val is null | undefined {
+    if (val != null) {
+        contractCheckImpl.fail(message ?? `Expected null-like object value but found: ${val}`);
+    }
+}
+
 export function assertNotNullLikeOrNan(val?: number, message?: string): asserts val is NonNullable<number> {
     assertNotNullLike(val);
     if (isNaN(val)) {

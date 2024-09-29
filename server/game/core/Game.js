@@ -868,7 +868,13 @@ class Game extends EventEmitter {
         return this.queueStep(new EventWindow(this, events, ownsTriggerWindow));
     }
 
-    // TODO THIS PR: docstr
+    /**
+     * Creates a "sub-window" for events which will have priority resolution and
+     * be resolved immediately after the currently resolving set of events, preceding
+     * the next steps of any ability being triggered.
+     *
+     * Typically used for defeat events.
+     */
     addSubwindowEvents(events) {
         this.currentEventWindow.addSubwindowEvents(events);
     }

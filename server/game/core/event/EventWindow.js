@@ -32,6 +32,8 @@ class EventWindow extends BaseStepWithPipeline {
 
         this.subwindowEvents = [];
 
+        this.windowDepth = -1;
+
         this.initialise();
     }
 
@@ -40,7 +42,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.setCurrentEventWindow(), 'setCurrentEventWindow'),
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
             new SimpleStep(this.game, () => this.openReplacementEffectWindow(), 'openReplacementEffectWindow'),
-            new SimpleStep(this.game, () => this.createContingentEvents(), 'createContingentEvents'),
+            new SimpleStep(this.game, () => this.generateContingentEvents(), 'generateContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
@@ -72,6 +74,12 @@ class EventWindow extends BaseStepWithPipeline {
 
     setCurrentEventWindow() {
         this.previousEventWindow = this.game.currentEventWindow;
+        this.windowDepth = this.previousEventWindow ? this.previousEventWindow.windowDepth + 1 : 0;
+
+        if (this.windowDepth >= 50) {
+            throw new Error('Event window depth has reached 50, likely caught in an infinite loop');
+        }
+
         this.game.currentEventWindow = this;
         if (this.ownsTriggerWindow) {
             this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
@@ -103,10 +111,10 @@ class EventWindow extends BaseStepWithPipeline {
      * but will be resolved after it in order. The main use case for this is upgrades being
      * defeated at the same time as the parent card holding them.
      */
-    createContingentEvents() {
+    generateContingentEvents() {
         let contingentEvents = [];
         this.events.forEach((event) => {
-            contingentEvents = contingentEvents.concat(event.createContingentEvents());
+            contingentEvents = contingentEvents.concat(event.generateContingentEvents());
         });
         contingentEvents.forEach((event) => this.addEvent(event));
     }
@@ -153,7 +161,6 @@ class EventWindow extends BaseStepWithPipeline {
 
     // resolve any events queued for a subwindow (typically defeat events)
     checkSubwindowEvents() {
-        // TODO THIS PR: nesting level guard
         if (this.subwindowEvents.length > 0) {
             this.queueStep(new EventWindow(this.game, this.subwindowEvents));
         }
