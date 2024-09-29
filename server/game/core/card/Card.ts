@@ -38,9 +38,6 @@ export class Card extends OngoingEffectSource {
     public static implemented = false;
 
     public readonly aspects: Aspect[] = [];
-    public readonly smuggleAspects?: Aspect[];
-    public readonly smuggleCost?: number;
-    public readonly additionalSmuggleCosts?: boolean;
     public readonly internalName: string;
     public readonly subtitle?: string;
     public readonly title: string;
@@ -109,13 +106,6 @@ export class Card extends OngoingEffectSource {
         this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
             this.internalName);
-
-        if (this.hasSomeKeyword(KeywordName.Smuggle)) {
-            const smuggleKeyword = this.getKeyword(KeywordName.Smuggle) as KeywordWithCostValues;
-            this.smuggleAspects = smuggleKeyword.costAspects;
-            this.smuggleCost = smuggleKeyword.cost;
-            this.additionalSmuggleCosts = smuggleKeyword.additionalCosts;
-        }
 
         if (this.isToken()) {
             this._location = Location.OutsideTheGame;

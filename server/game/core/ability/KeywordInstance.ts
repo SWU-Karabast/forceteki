@@ -32,7 +32,7 @@ export class KeywordWithCostValues extends KeywordInstance {
     public constructor(
         name: KeywordName,
         public readonly cost: number,
-        public readonly costAspects: Aspect[],
+        public readonly aspects: Aspect[],
         public readonly additionalCosts: boolean
     ) {
         super(name);

@@ -17,7 +17,8 @@ const {
     RelativePlayer,
     Aspect,
     WildcardLocation,
-    PlayType
+    PlayType,
+    KeywordName
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -616,12 +617,22 @@ class Player extends GameObject {
     getAdjustedCost(playingType, card, target, ignoreType = false) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
-        let penaltyAspects = playingType === PlayType.Smuggle ? this.getPenaltyAspects(card.smuggleAspects) : this.getPenaltyAspects(card.aspects);
+        let aspects = card.aspects;
+        let cost = card.cost;
+
+        if (playingType === PlayType.Smuggle) {
+            const smuggleInstance = card.getKeyword(KeywordName.Smuggle);
+            if (smuggleInstance.hasCostValue()) {
+                aspects = smuggleInstance.aspects;
+                cost = smuggleInstance.cost;
+            }
+        }
+        let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
             aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
         }
 
-        let penalizedCost = (playingType === PlayType.Smuggle ? card.smuggleCost : card.cost) + aspectPenaltiesTotal;
+        let penalizedCost = cost + aspectPenaltiesTotal;
         return this.runAdjustersForCostType(playingType, penalizedCost, card, target, ignoreType);
     }
 
