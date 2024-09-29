@@ -59,7 +59,7 @@ describe('Fallen Lightsaber', function() {
                 });
             });
 
-            it('should deal 1 damage to all enemy ground units on attack when attached to a Force unit', function () {
+            it('should not do anything when not attached to a Force unit', function () {
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.p2Base);
 

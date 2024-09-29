@@ -34,7 +34,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         for (const card of Helpers.asArray(target)) {
             let allCostsPaid = true;
             const additionalCosts = card
-                .getEffectValues(EffectName.UnlessActionCost)
+                .getOngoingEffectValues(EffectName.UnlessActionCost)
                 .filter((properties) => properties.actionName === this.name);
 
             if (context.player && context.ability && context.ability.targetResolvers && context.ability.targetResolvers.length > 0) {

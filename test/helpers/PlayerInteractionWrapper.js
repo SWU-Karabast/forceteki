@@ -222,7 +222,6 @@ class PlayerInteractionWrapper {
             }
         });
 
-        // TODO EFFECTS: make this part of the normal process of playing a card
         this.game.resolveGameState(true);
     }
 

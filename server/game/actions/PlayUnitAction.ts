@@ -30,7 +30,7 @@ export class PlayUnitAction extends PlayCardAction {
             context.player,
             context.source,
         );
-        const effect = context.source.getEffectValues(EffectName.EntersPlayForOpponent);
+        const effect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
         const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
         context.source.registerWhenPlayedKeywords();
         context.game.openEventWindow([

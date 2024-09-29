@@ -299,10 +299,10 @@ export class Card extends OngoingEffectSource {
         let keywords = [...this.printedKeywords];
 
         // TODO: this is currently wrong, lost keywords should be able to be re-added by later effects
-        for (const gainedKeyword of this.getEffectValues(EffectName.GainKeyword)) {
+        for (const gainedKeyword of this.getOngoingEffectValues(EffectName.GainKeyword)) {
             keywords.push(gainedKeyword);
         }
-        for (const lostKeyword of this.getEffectValues(EffectName.LoseKeyword)) {
+        for (const lostKeyword of this.getOngoingEffectValues(EffectName.LoseKeyword)) {
             keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
         }
 
@@ -321,16 +321,12 @@ export class Card extends OngoingEffectSource {
     // ******************************************* TRAIT HELPERS *******************************************
     /** Helper method for {@link Card.traits} */
     private getTraits() {
-        const traits = new Set(
-            this.getEffectValues(EffectName.Blank).some((blankTraits: boolean) => blankTraits)
-                ? []
-                : this.printedTraits
-        );
+        const traits = new Set(this.printedTraits);
 
-        for (const gainedTrait of this.getEffectValues(EffectName.AddTrait)) {
+        for (const gainedTrait of this.getOngoingEffectValues(EffectName.AddTrait)) {
             traits.add(gainedTrait);
         }
-        for (const lostTrait of this.getEffectValues(EffectName.LoseTrait)) {
+        for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {
             traits.delete(lostTrait);
         }
 
@@ -358,7 +354,7 @@ export class Card extends OngoingEffectSource {
 
     // *************************************** EFFECT HELPERS ***************************************
     public isBlank(): boolean {
-        return this.hasEffect(EffectName.Blank);
+        return this.hasOngoingEffect(EffectName.Blank);
     }
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
@@ -374,7 +370,7 @@ export class Card extends OngoingEffectSource {
     }
 
     protected getGainedAbilityEffects<TAbility>(abilityType: AbilityType): TAbility[] {
-        return this.getEffectValues(EffectName.GainAbility).filter((ability) => ability.type === abilityType);
+        return this.getOngoingEffectValues(EffectName.GainAbility).filter((ability) => ability.type === abilityType);
     }
 
 
@@ -490,7 +486,7 @@ export class Card extends OngoingEffectSource {
 
     public getModifiedController() {
         if (EnumHelpers.isArena(this.location)) {
-            return this.mostRecentEffect(EffectName.TakeControl) || this.defaultController;
+            return this.mostRecentOngoingEffect(EffectName.TakeControl) || this.defaultController;
         }
         return this.owner;
     }
@@ -575,7 +571,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public getModifiedAbilityLimitMax(player: Player, ability: CardAbility, max: number): number {
-        const effects = this.getEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
+        const effects = this.getOngoingEffects().filter((effect) => effect.type === EffectName.IncreaseLimitOnAbilities);
         let total = max;
         effects.forEach((effect) => {
             const value = effect.getValue(this);
@@ -667,7 +663,7 @@ export class Card extends OngoingEffectSource {
     //     if (
     //         isActivePlayer
     //             ? this.isFacedown() && this.hideWhenFacedown()
-    //             : this.isFacedown() || hideWhenFaceup || this.hasEffect(EffectName.HideWhenFaceUp)
+    //             : this.isFacedown() || hideWhenFaceup || this.hasOngoingEffect(EffectName.HideWhenFaceUp)
     //     ) {
     //         let state = {
     //             controller: this.controller.getShortSummary(),

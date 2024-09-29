@@ -30,6 +30,10 @@ class EventWindow extends BaseStepWithPipeline {
 
         this.ownsTriggerWindow = ownsTriggerWindow;
 
+        this.subwindowEvents = [];
+
+        this.windowDepth = -1;
+
         this.initialise();
     }
 
@@ -41,7 +45,8 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.generateContingentEvents(), 'generateContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
-            new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),    // TODO EFFECTS: uncomment this (and other places the method is used, + missing ones from l5r)
+            new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
+            new SimpleStep(this.game, () => this.checkSubwindowEvents(), 'checkSubwindowEvents'),
             new SimpleStep(this.game, () => this.checkThenAbilitySteps(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
@@ -63,8 +68,18 @@ class EventWindow extends BaseStepWithPipeline {
         this.thenAbilitySteps.push({ ability, context, condition });
     }
 
+    addSubwindowEvents(events) {
+        this.subwindowEvents = this.subwindowEvents.concat(events);
+    }
+
     setCurrentEventWindow() {
         this.previousEventWindow = this.game.currentEventWindow;
+        this.windowDepth = this.previousEventWindow ? this.previousEventWindow.windowDepth + 1 : 0;
+
+        if (this.windowDepth >= 50) {
+            throw new Error('Event window depth has reached 50, likely caught in an infinite loop');
+        }
+
         this.game.currentEventWindow = this;
         if (this.ownsTriggerWindow) {
             this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
@@ -141,6 +156,13 @@ class EventWindow extends BaseStepWithPipeline {
             if (cardAbilityStep.context.events.every((event) => cardAbilityStep.condition(event))) {
                 this.game.resolveAbility(cardAbilityStep.ability.createContext(cardAbilityStep.context.player));
             }
+        }
+    }
+
+    // resolve any events queued for a subwindow (typically defeat events)
+    checkSubwindowEvents() {
+        if (this.subwindowEvents.length > 0) {
+            this.queueStep(new EventWindow(this.game, this.subwindowEvents));
         }
     }
 

@@ -118,8 +118,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
 
         const attackerLocation = properties.attacker.location === Location.GroundArena ? Location.GroundArena : Location.SpaceArena;
-        const canTargetGround = attackerLocation === Location.GroundArena || context.source.hasEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
-        const canTargetSpace = attackerLocation === Location.SpaceArena || context.source.hasEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
+        const canTargetGround = attackerLocation === Location.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
+        const canTargetSpace = attackerLocation === Location.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
         if (
             targetCard.location !== attackerLocation &&
             targetCard.location !== Location.Base &&

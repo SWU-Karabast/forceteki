@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityRestriction, CardType, WildcardCardType } from '../../../core/Constants';
-import { countUniqueAspects } from '../../../core/utils/Helpers';
+import * as Helpers from '../../../core/utils/Helpers';
 
 export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +14,7 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
     protected override setupCardAbilities() {
         this.addConstantAbility({
             title: 'Cannot be attacked if friendly units have at least 3 unique aspects',
-            condition: (context) => countUniqueAspects(this.controller.getOtherUnitsInPlay(context.source)) >= 3,
+            condition: (context) => Helpers.countUniqueAspects(this.controller.getOtherUnitsInPlay(context.source)) >= 3,
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
 

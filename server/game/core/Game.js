@@ -262,7 +262,7 @@ class Game extends EventEmitter {
      * @param {Function} predicate - card => Boolean
      * @returns {Array} Array of DrawCard objects
      */
-    findAnyCardsInPlay(predicate) {
+    findAnyCardsInPlay(predicate = () => true) {
         var foundCards = [];
 
         this.getPlayers().forEach((player) => {
@@ -869,6 +869,17 @@ class Game extends EventEmitter {
     }
 
     /**
+     * Creates a "sub-window" for events which will have priority resolution and
+     * be resolved immediately after the currently resolving set of events, preceding
+     * the next steps of any ability being triggered.
+     *
+     * Typically used for defeat events.
+     */
+    addSubwindowEvents(events) {
+        this.currentEventWindow.addSubwindowEvents(events);
+    }
+
+    /**
      * Raises a custom event window for checking for any cancels to a card
      * ability
      * @param {Object} params
@@ -1073,14 +1084,8 @@ class Game extends EventEmitter {
             // this.checkWinCondition();
             // if the state has changed, check for:
 
-            // for (const player of this.getPlayers()) {
-            //     player.getArenaCards().each((card) => {
-            //         if (card.getModifiedController() !== player) {
-            //             // any card being controlled by the wrong player
-            //             this.takeControl(card.getModifiedController(), card);
-            //         }
-            //     });
-            // }
+            // - any defeated units
+            this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeated());
         }
         if (events.length > 0) {
             // check for any delayed effects which need to fire

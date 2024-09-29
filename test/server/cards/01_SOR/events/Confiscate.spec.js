@@ -51,7 +51,5 @@ describe('Confiscate', function() {
                 expect(this.entrenched).toBeInLocation('discard');
             });
         });
-
-        // TODO SNOKE: add a test here to confirm that a unit is defeated when an upgrade giving +hp is removed
     });
 });

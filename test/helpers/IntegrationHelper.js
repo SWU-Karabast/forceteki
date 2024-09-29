@@ -700,10 +700,7 @@ global.integration = function (definitions) {
                 this.p2Base = this.player2.base;
                 this.p2Leader = this.player2.leader;
 
-                // TODO: re-enable when we have tests to do during setup phase
-                // if (options.phase !== 'setup') {
-                //     this.game.resolveGameState(true);
-                // }
+                this.game.resolveGameState(true);
             };
         });
 

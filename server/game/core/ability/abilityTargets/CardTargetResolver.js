@@ -125,7 +125,7 @@ class CardTargetResolver {
             }
         }
         let mustSelect = legalTargets.filter((card) =>
-            card.getEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
+            card.getOngoingEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
         let promptProperties = {
             waitingPromptTitle: waitingPromptTitle,
