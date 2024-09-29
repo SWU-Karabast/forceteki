@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { Trait } from '../../../core/Constants';
+import { PlayType, Trait } from '../../../core/Constants';
 import Player from '../../../core/Player';
 
 export default class HotshotDL44Blaster extends UpgradeCard {
@@ -22,13 +22,19 @@ export default class HotshotDL44Blaster extends UpgradeCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Attack with attached unit',
+            title: 'When Smuggled, attack with attached unit',
             optional: false,
-            immediateEffect: AbilityHelper.immediateEffects.attack((context) => ({
-                attacker: context.source.parentCard
+            immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
+                target: context.source.parentCard,
+                condition: context.event.playType === PlayType.Smuggle,
+                onTrue: AbilityHelper.immediateEffects.attack((context) => ({
+                    attacker: context.source.parentCard,
+                    optional: false
+                })),
+                onFalse: AbilityHelper.immediateEffects.noAction()
             }))
         });
     }
 }
 
-HotshotDL44Blaster.implemented = false;//TODO: Smuggle text format issue
+HotshotDL44Blaster.implemented = true;

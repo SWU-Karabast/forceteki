@@ -159,7 +159,7 @@ function getRegexForKeyword(keyword: KeywordName) {
         case KeywordName.Shielded:
             return /(?:^|(?:\n))Shielded/g;
         case KeywordName.Smuggle:
-            return /(?:\n)?Smuggle\s\[\s*(\d+)\s+resources\s+([\w\s]+)(,.*)?/g;
+            return /(?:\n)?Smuggle\s\[\s*(\d+)\s+resources(?:,\s*|\s+)([\w\s]+)(,.*)?\]/g;
         default:
             throw new Error(`Keyword '${keyword}' is not implemented yet`);
     }
