@@ -15,8 +15,8 @@ class CardAbility extends CardAbilityStep {
         this.limit.registerEvents(game);
         this.limit.ability = this;
         this.abilityCost = this.cost;
-        this.locationFilter = this.locationOrDefault(card, properties.locationFilter);
         this.printedAbility = properties.printedAbility === false ? false : true;
+        this.locationFilter = this.locationOrDefault(card, properties.locationFilter);
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.cannotBeMirrored = !!properties.cannotBeMirrored;
@@ -37,7 +37,10 @@ class CardAbility extends CardAbilityStep {
             return Location.Hand;
         }
         if (card.isLeader()) {
-            Contract.fail('Leader card abilities must explicitly assign properties.locationFilter for the correct active zone of the ability');
+            // check that this is a gained ability
+            Contract.assertFalse(this.printedAbility, 'Leader card abilities must explicitly assign properties.locationFilter for the correct active zone of the ability');
+
+            return WildcardLocation.AnyArena;
         }
         if (card.isBase()) {
             return Location.Base;

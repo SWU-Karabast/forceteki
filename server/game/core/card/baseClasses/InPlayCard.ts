@@ -110,6 +110,28 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
+    /**
+     * Adds a triggered ability to the unit and immediately registers its triggers. Used for "gain ability" effects.
+     *
+     * @returns The triggered ability.
+     */
+    public addGainedTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
+        const addedAbility = this.createTriggeredAbility(properties);
+        this.triggeredAbilities.push(addedAbility);
+        addedAbility.registerEvents();
+
+        return addedAbility;
+    }
+
+    /** Removes a dynamically gained triggered ability and unregisters its effects. */
+    public removeGainedTriggeredAbility(removeAbility: TriggeredAbility): void {
+        const updatedAbilityList = this.triggeredAbilities.filter((ability) => ability !== removeAbility);
+        Contract.assertEqual(updatedAbilityList.length, this.triggeredAbilities.length - 1, `Expected to find one instance of gained ability to remove but instead found ${this.triggeredAbilities.length - updatedAbilityList.length}`);
+
+        this.triggeredAbilities = updatedAbilityList;
+        removeAbility.unregisterEvents();
+    }
+
     /** Update the context of each constant ability. Used when the card's controller has changed. */
     public updateConstantAbilityContexts() {
         for (const constantAbility of this.constantAbilities) {

@@ -63,8 +63,7 @@ class GainAbility extends OngoingEffectValueWrapper {
         } else if (this.abilityType === AbilityType.Action) {
             this.value = target.createActionAbility(properties);
         } else {
-            this.value = target.createTriggeredAbility(properties);
-            this.value.registerEvents();
+            this.value = target.addGainedTriggeredAbility(properties);
         }
         if (!this.grantedAbilityLimits[target.uuid]) {
             this.grantedAbilityLimits[target.uuid] = this.value.limit;
@@ -82,7 +81,7 @@ class GainAbility extends OngoingEffectValueWrapper {
             this.grantedAbilityLimits[target.uuid].currentUser = null;
         }
         if (this.abilityType === AbilityType.Triggered) {
-            this.value.unregisterEvents();
+            this.value.card.removeGainedTriggeredAbility(this.value);
         } else if (this.abilityType === AbilityType.Constant && this.value.registeredEffects) {
             target.removeEffectFromEngine(this.value.registeredEffects[0]);
             delete this.value.registeredEffects;

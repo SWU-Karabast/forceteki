@@ -273,6 +273,10 @@ class PlayerInteractionWrapper {
         });
     }
 
+    get handSize() {
+        return this.player.hand.length;
+    }
+
     countSpendableResources() {
         return this.player.countSpendableResources();
     }
