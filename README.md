@@ -32,13 +32,17 @@ npm run lint-verbose
 
 # runs tsc and executes tests
 npm test
+
 # run all tests in parallel for higher speed
+# NOTE: there is a known issue with this method, see below
 npm run test-parallel
 
 # run a specific test file only
 npm test test/server/cards/01_SOR/LukeSkywalkerFaithfulFriend.spec.js
 npm test **/LukeSkywalkerFaithfulFriend.spec.js # use path globbing (may look different depending on your shell)
 ```
+
+**Known issue with `test-parallel`**: in some cases when a test fails using `npm run test-parallel`, there will be a json stringify and it will not explain which test failed, only which suite. In this case you must re-run the tests using the standard `npm test` to determine the specifics.
 
 ### Linting
 We've configured a set of eslint rules to keep the repo looking consistent and help catch potential bugs. These rules are checked at PR time.

@@ -107,7 +107,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 .getAllLegalTargets(context, player)
                 .filter((card) =>
                     card
-                        .getEffectValues(EffectName.MustBeChosen)
+                        .getOngoingEffectValues(EffectName.MustBeChosen)
                         .some((restriction) => restriction.isMatch('target', context))
                 );
         }
@@ -132,7 +132,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 properties.innerSystem.queueGenerateEventGameSteps(
                     events,
                     context,
-                    Object.assign({ parentSystem: this }, additionalProperties, properties.innerSystemProperties(cards))
+                    Object.assign(additionalProperties, properties.innerSystemProperties(cards))
                 );
                 if (properties.manuallyRaiseEvent) {
                     context.game.openEventWindow(events);

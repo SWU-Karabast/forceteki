@@ -72,13 +72,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         this.registerAttackEffects(context, properties, event.attack);
 
         const attack = event.attack;
-        context.game.queueStep(
-            new AttackFlow(
-                context.game,
-                attack,
-                (attack) => this.resolveAttack(attack, event.context)
-            )
-        );
+        context.game.queueStep(new AttackFlow(context, attack));
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
@@ -124,8 +118,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
 
         const attackerLocation = properties.attacker.location === Location.GroundArena ? Location.GroundArena : Location.SpaceArena;
-        const canTargetGround = attackerLocation === Location.GroundArena || context.source.hasEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
-        const canTargetSpace = attackerLocation === Location.SpaceArena || context.source.hasEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
+        const canTargetGround = attackerLocation === Location.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
+        const canTargetSpace = attackerLocation === Location.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
         if (
             targetCard.location !== attackerLocation &&
             targetCard.location !== Location.Base &&
@@ -198,24 +192,6 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
     public override checkEventCondition(event, additionalProperties): boolean {
         return this.canAffect(event.target, event.context, additionalProperties);
-    }
-
-    private resolveAttack(attack: Attack, context: TContext): void {
-        // TODO: add more isValid() checks during the attack flow (if needed), and confirm that attack lasting effects still end correctly if any of them fail
-        if (!attack.isValid()) {
-            context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
-            return;
-        }
-
-        // event for damage dealt to target by attacker
-        const damageEvents = [damage({ amount: attack.attackerTotalPower, isCombatDamage: true }).generateEvent(attack.target, context)];
-
-        // event for damage dealt to attacker by defender, if any
-        if (!attack.target.isBase()) {
-            damageEvents.push(damage({ amount: attack.targetTotalPower, isCombatDamage: true }).generateEvent(attack.attacker, context));
-        }
-
-        context.game.openEventWindow(damageEvents, true);
     }
 
     // TODO ATTACKS: change attack effects so that they check the specific attack they are affecting,

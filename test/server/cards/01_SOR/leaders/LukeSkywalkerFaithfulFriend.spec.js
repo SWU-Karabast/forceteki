@@ -92,7 +92,7 @@ describe('Luke Skywalker, Faithful Friend', function() {
 
                 expect(this.lukeSkywalker.damage).toBe(4);
                 expect(this.wampa.damage).toBe(0);
-                expect(this.wampa.upgrades.length).toBe(0);
+                expect(this.wampa.isUpgraded()).toBe(false);
             });
         });
     });

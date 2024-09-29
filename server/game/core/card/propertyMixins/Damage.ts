@@ -67,15 +67,6 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             }
 
             this.damage += amount;
-
-            // TODO EFFECTS: the win and defeat effects should almost certainly be handled elsewhere, probably in a game state check
-            if (this.damage >= this.getHp()) {
-                if (this.isBase()) {
-                    this.game.recordWinner(this.owner.opponent, 'base destroyed');
-                } else {
-                    this.owner.defeatCard(this);
-                }
-            }
         }
 
         /** @returns True if any damage was healed, false otherwise */
@@ -101,7 +92,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
                     this.unsetActiveAttack();
                 }
             } else {
-                Contract.assertTrue(this._activeAttack === null, `Moved ${this.internalName} to ${this.location} but it has an active attack set`);
+                Contract.assertIsNullLike(this._activeAttack, `Moved ${this.internalName} to ${this.location} but it has an active attack set`);
             }
 
             this.attackEnabled = enabledStatus;

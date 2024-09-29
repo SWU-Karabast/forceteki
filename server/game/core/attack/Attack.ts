@@ -4,22 +4,13 @@ import type Game from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
+import { KeywordName } from '../Constants';
 
 
 type StatisticTotal = number;
 
 export class Attack extends GameObject {
     public previousAttack: Attack;
-
-    public get attackerTotalPower(): number | null {
-        return this.getUnitPower(this.attacker);
-    }
-
-    public get targetTotalPower(): number | null {
-        return this.target.isBase()
-            ? null
-            : this.getUnitPower(this.target);
-    }
 
     public constructor(
         game: Game,
@@ -29,14 +20,26 @@ export class Attack extends GameObject {
         super(game, 'Attack');
     }
 
-    public isValid(): boolean {
-        if (!EnumHelpers.isArena(this.attacker.location)) {
-            return false;
-        }
-        if (!this.target.isBase() && !EnumHelpers.isArena(this.target.location)) {
-            return false;
-        }
-        return true;
+    public getAttackerTotalPower(): number | null {
+        return this.getUnitPower(this.attacker);
+    }
+
+    public getTargetTotalPower(): number | null {
+        return this.target.isBase()
+            ? null
+            : this.getUnitPower(this.target);
+    }
+
+    public hasOverwhelm(): boolean {
+        return this.attacker.hasSomeKeyword(KeywordName.Overwhelm);
+    }
+
+    public isAttackerInPlay(): boolean {
+        return EnumHelpers.isArena(this.attacker.location);
+    }
+
+    public isDefenderInPlay(): boolean {
+        return this.target.isBase() || EnumHelpers.isArena(this.target.location);
     }
 
     public isInvolved(card: Card): boolean {
@@ -47,7 +50,7 @@ export class Attack extends GameObject {
 
     // TODO: if we end up using this we need to refactor it to reflect attacks in SWU (i.e., show HP)
     public getTotalsForDisplay(): string {
-        return `${this.attacker.name}: ${this.attackerTotalPower} vs ${this.targetTotalPower}: ${this.target.name}`;
+        return `${this.attacker.name}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.target.name}`;
     }
 
     private getUnitPower(involvedUnit: UnitCard): StatisticTotal {

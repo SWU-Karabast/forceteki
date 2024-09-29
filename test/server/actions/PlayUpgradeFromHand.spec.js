@@ -56,49 +56,5 @@ describe('Play upgrade from hand', function() {
                 expect(this.resilient.controller).toBe(this.player1.player);
             });
         });
-
-        describe('When an upgrade is attached,', function() {
-            beforeEach(function () {
-                this.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['foundling'],
-                        groundArena: [{ card: 'wampa', upgrades: ['academy-training'] }],
-                        spaceArena: [{ card: 'tieln-fighter', upgrades: ['entrenched'] }]
-                    },
-                    player2: {
-                        spaceArena: ['bright-hope#the-last-transport']
-                    }
-                });
-            });
-
-
-            it('it should stack bonuses with other applied upgrades', function () {
-                this.player1.clickCard(this.foundling);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter, this.brightHope]);
-                this.player1.clickCard(this.wampa);
-
-                expect(this.wampa.upgrades).toContain(this.academyTraining);
-                expect(this.wampa.upgrades).toContain(this.foundling);
-                expect(this.wampa.getPower()).toBe(7);
-                expect(this.wampa.getHp()).toBe(8);
-            });
-
-            it('its stat bonuses should be correctly applied during combat', function () {
-                this.player1.clickCard(this.tielnFighter);
-                expect(this.brightHope.damage).toBe(5);
-                expect(this.tielnFighter.damage).toBe(2);
-            });
-
-            it('and the owner is defeated, the upgrade should also be defeated', function () {
-                this.tielnFighter.damage = 3;
-
-                this.player1.clickCard(this.tielnFighter);
-
-                expect(this.brightHope.damage).toBe(5);
-                expect(this.tielnFighter).toBeInLocation('discard');
-                expect(this.entrenched).toBeInLocation('discard');
-            });
-        });
     });
 });

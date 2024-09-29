@@ -4,8 +4,7 @@ import { OngoingEffectImpl } from './OngoingEffectImpl';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 
-// TODO: eventually this will subclass OngoingEffectImpl directly but I don't fully understand how it uses the apply()
-// function inherited from StaticOngoingEffectImpl yet (seems like it shouldn't work)
+// TODO: eventually this will subclass OngoingEffectImpl directly
 export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
     private values: Record<string, TValue> = {};
 
@@ -17,8 +16,9 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
     }
 
     public override apply(target) {
-        super.apply(target);
+        // TODO: these two calls were in the reverse order in l5r, not sure if that was required for some reason
         this.recalculate(target);
+        super.apply(target);
     }
 
     public override recalculate(target) {

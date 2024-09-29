@@ -63,7 +63,7 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     public unattach() {
-        Contract.assertTrue(this._parentCard !== null, 'Attempting to unattach upgrade when already unattached');
+        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
 
         this.parentCard.unattachUpgrade(this);
         this.parentCard.controller.removeCardFromPile(this);
@@ -104,6 +104,8 @@ export class UpgradeCard extends UpgradeCardParent {
         });
     }
 
+    // TODO: add "gainOnAttack", "gainWhenPlayed", "gainWhenDefeated" helpers
+    // TODO: refactor the gainCondition parameter to be a part of the properties object
     /**
      * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).

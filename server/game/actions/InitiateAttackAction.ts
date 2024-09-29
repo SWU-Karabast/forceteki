@@ -45,7 +45,7 @@ export class InitiateAttackAction extends PlayerAction {
         if (!this.targetResolvers[0].hasLegalTarget(context)) {
             return 'target';
         }
-        return super.meetsRequirements(context);
+        return super.meetsRequirements(context, ignoredRequirements);
     }
 
     public override executeHandler(context: AbilityContext): void {

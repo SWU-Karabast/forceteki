@@ -5,7 +5,7 @@ import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem
 import { MetaSystem } from '../core/gameSystem/MetaSystem';
 
 
-export interface ISequentialProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
+export interface ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     gameSystems: GameSystem<TContext>[];
 }
 
@@ -18,7 +18,7 @@ export interface ISequentialProperties<TContext extends AbilityContext = Ability
  *
  * In terms of game text, this is the exact behavior of "do [X], then do [Y], then do..." or "do [X] [N] times"
  */
-export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends MetaSystem<TContext, ISequentialProperties<TContext>> {
+export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends MetaSystem<TContext, ISequentialSystemProperties<TContext>> {
     public constructor(gameSystems: (GameSystem<TContext>)[]) {
         super({ gameSystems });
     }
@@ -47,17 +47,13 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         }
     }
 
+    public override getInnerSystems(properties: ISequentialSystemProperties<TContext>) {
+        return properties.gameSystems;
+    }
+
     public override getEffectMessage(context: TContext): [string, any] {
         const properties = super.generatePropertiesFromContext(context);
         return properties.gameSystems[0].getEffectMessage(context);
-    }
-
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
-        for (const gameSystem of properties.gameSystems) {
-            gameSystem.setDefaultTargetFn(() => properties.target);
-        }
-        return properties;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
@@ -75,10 +71,5 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         return properties.gameSystems.some((gameSystem) =>
             gameSystem.hasTargetsChosenByInitiatingPlayer(context, additionalProperties)
         );
-    }
-
-    // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
-    protected override isTargetTypeValid(target: any): boolean {
-        return false;
     }
 }

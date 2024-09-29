@@ -104,7 +104,7 @@ describe('Jedha Agitator', function() {
                 this.player1.clickCard(this.jedhaAgitator);
 
                 expect(this.jedhaAgitator).toBeInLocation('discard');
-                expect(this.wampa.upgrades.length).toBe(0);
+                expect(this.wampa.isUpgraded()).toBe(false);
                 expect(this.wampa.damage).toBe(0);
             });
         });

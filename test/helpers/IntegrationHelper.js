@@ -198,7 +198,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${actual.name} not to have enabled prompt button 'Pass ability' but it did.`;
                 } else {
-                    result.message = `Expected ${actual.name} to have enabled prompt button 'Pass ability'`;
+                    result.message = `Expected ${actual.name} to have enabled prompt button 'Pass ability' `;
 
                     if (buttons.length > 0) {
                         var buttonText = buttons.map(
@@ -700,10 +700,7 @@ global.integration = function (definitions) {
                 this.p2Base = this.player2.base;
                 this.p2Leader = this.player2.leader;
 
-                // TODO: re-enable when we have tests to do during setup phase
-                // if (options.phase !== 'setup') {
-                //     this.game.resolveGameState(true);
-                // }
+                this.game.resolveGameState(true);
             };
         });
 

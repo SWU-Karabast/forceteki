@@ -52,11 +52,11 @@ const binaryCardEffects = [
 //     setBaseMilitarySkill: (card) => card.effects.filter((effect) => effect.type === EffectName.SetMilitarySkill),
 //     setBasePoliticalSkill: (card) => card.effects.filter((effect) => effect.type === EffectName.SetPoliticalSkill),
 //     setMaxConflicts: (player, value) =>
-//         player.mostRecentEffect(EffectName.SetMaxConflicts) === value
+//         player.mostRecentOngoingEffect(EffectName.SetMaxConflicts) === value
 //             ? [_.last(player.effects.filter((effect) => effect.type === EffectName.SetMaxConflicts))]
 //             : [],
 //     takeControl: (card, player) =>
-//         card.mostRecentEffect(EffectName.TakeControl) === player
+//         card.mostRecentOngoingEffect(EffectName.TakeControl) === player
 //             ? [_.last(card.effects.filter((effect) => effect.type === EffectName.TakeControl))]
 //             : []
 // };
@@ -76,12 +76,12 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
     }
 
     public apply(target) {
-        target.addEffect(this);
+        target.addOngoingEffect(this);
         this.valueWrapper.apply(target);
     }
 
     public unapply(target) {
-        target.removeEffect(this);
+        target.removeOngoingEffect(this);
         this.valueWrapper.unapply(target);
     }
 

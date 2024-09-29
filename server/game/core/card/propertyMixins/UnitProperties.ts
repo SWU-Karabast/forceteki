@@ -15,9 +15,9 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
-import { Attack } from '../../attack/Attack';
 import type { UnitCard } from '../CardTypes';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
+import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -38,8 +38,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public readonly defaultArena: Arena;
 
         protected _upgrades?: UpgradeCard[] = null;
+
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
+        private defeatEventEmitted = false;
 
         public get upgrades(): UpgradeCard[] {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
@@ -48,6 +50,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public isAttacking(): boolean {
             return (this as Card) === (this.activeAttack?.attacker as Card);
+        }
+
+        public isUpgraded(): boolean {
+            return this.upgrades.length > 0;
         }
 
         public hasShield(): boolean {
@@ -96,7 +102,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Returns true if so.
          */
         public effectsPreventAttack(target: Card) {
-            if (this.hasEffect(EffectName.CannotAttackBase) && target.isBase()) {
+            if (this.hasOngoingEffect(EffectName.CannotAttackBase) && target.isBase()) {
                 return true;
             }
 
@@ -178,13 +184,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
             }
 
-            // TODO: uncomment once Veld does engine work
             // ambush
-            // if (this.hasSomeKeyword(KeywordName.Ambush)) {
-            //     const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
-            //     ambushAbility.registerEvents();
-            //     this._whenPlayedKeywordAbilities.push(ambushAbility);
-            // }
+            if (this.hasSomeKeyword(KeywordName.Ambush)) {
+                const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
+                ambushAbility.registerEvents();
+                this._whenPlayedKeywordAbilities.push(ambushAbility);
+            }
         }
 
         /**
@@ -259,14 +264,25 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
+        public override addDamage(amount: number) {
+            super.addDamage(amount);
+
+            // the defeat check will happen in the next call to Game.resolveGameState (typically when the event window resolves)
+        }
+
+        public checkDefeated() {
+            if (this.damage >= this.getHp() && !this.defeatEventEmitted) {
+                this.owner.defeatCard(this);
+                this.defeatEventEmitted = true;
+            }
+        }
+
         private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
             const wrappedModifiers = this.getStatModifiers(excludeModifiers);
 
             const baseStatValue = StatsModifierWrapper.fromPrintedValues(this);
 
             const stat = wrappedModifiers.reduce((total, wrappedModifier) => total + wrappedModifier.modifier[statType], baseStatValue.modifier[statType]);
-
-            // TODO EFFECTS: need a check around here somewhere to defeat the unit if effects have brought hp to 0
 
             return floor ? Math.max(0, stat) : stat;
         }
@@ -279,9 +295,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             let rawEffects;
             if (typeof exclusions === 'function') {
-                rawEffects = this.getEffects().filter((effect) => !exclusions(effect));
+                rawEffects = this.getOngoingEffects().filter((effect) => !exclusions(effect));
             } else {
-                rawEffects = this.getEffects().filter((effect) => !exclusions.includes(effect.type));
+                rawEffects = this.getOngoingEffects().filter((effect) => !exclusions.includes(effect.type));
             }
 
             const modifierEffects: IOngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
