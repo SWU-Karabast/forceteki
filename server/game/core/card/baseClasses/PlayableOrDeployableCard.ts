@@ -45,7 +45,7 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public override getActions(): PlayerOrCardAbility[] {
-        const actions = this.isBlank() ? [] : this.defaultActions.concat(super.getActions());
+        const actions = this.defaultActions.concat(super.getActions());
 
         if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             if (this.isUnit()) {
