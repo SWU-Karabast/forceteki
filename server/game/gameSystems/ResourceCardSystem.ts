@@ -3,11 +3,13 @@ import type { Card } from '../core/card/Card';
 import { CardType, EffectName, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { ready } from './GameSystemLibrary';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
     // faceup?: boolean;
     changePlayer?: boolean; // TODO: this might be needed for Arquitens Assault Cruiser
+    readyResource?: boolean;
 }
 
 export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IResourceCardProperties> {
@@ -18,6 +20,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // TODO: remove completely if faceup logic is not needed
         // faceup: false,
         changePlayer: false,
+        readyResource: false
     };
 
     public eventHandler(event: any, additionalProperties = {}): void {
@@ -30,6 +33,9 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         cards.forEach((card) => {
             const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
             player.moveCard(card, Location.Resource);
+            if (properties.readyResource) {
+                context.game.openEventWindow(ready({ target: card }).generateEvent(context.source, context));
+            }
         });
     }
 
