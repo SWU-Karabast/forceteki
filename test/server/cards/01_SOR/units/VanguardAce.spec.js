@@ -34,7 +34,7 @@ describe('Vanguard Ace', function() {
 
             it('gains no experience if no other cards have been played', function () {
                 this.player1.clickCard(this.vanguardAce);
-                expect(this.vanguardAce.upgrades.length).toBe(0);
+                expect(this.vanguardAce.isUpgraded()).toBe(false);
             });
 
             it('does not count cards played in the previous phase', function () {

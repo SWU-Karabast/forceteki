@@ -73,8 +73,9 @@ describe('Ambush keyword', function() {
                 });
             });
 
-            it('enters play and there is only no target, the Ambush prompt will not happen', function () {
+            it('enters play and there is no target, the Ambush prompt will not happen', function () {
                 this.player1.clickCard(this.syndicateLackeys);
+                expect(this.syndicateLackeys.exhausted).toBe(true);
                 expect(this.player2).toBeActivePlayer();
             });
         });

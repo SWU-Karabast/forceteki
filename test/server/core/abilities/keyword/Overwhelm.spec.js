@@ -35,7 +35,7 @@ describe('Overwhelm keyword', function() {
                 this.player1.clickCard(this.battlefieldMarine);
                 expect(this.p2Base.damage).toBe(0);
                 expect(this.battlefieldMarine.damage).toBe(0);
-                expect(this.battlefieldMarine.upgraded).toBe(false);
+                expect(this.battlefieldMarine.isUpgraded()).toBe(false);
                 expect(this.wampa.damage).toBe(3);
                 expect(this.wampa.exhausted).toBe(true);
 

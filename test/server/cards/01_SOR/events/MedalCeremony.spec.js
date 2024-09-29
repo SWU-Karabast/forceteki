@@ -60,7 +60,7 @@ describe('Medal Ceremony', function() {
                 expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
                 expect(this.chirrutImwe).toHaveExactUpgradeNames(['experience']);
                 expect(this.allianceXwing).toHaveExactUpgradeNames(['experience']);
-                expect(this.consularSecurityForce.upgrades.length).toBe(0);
+                expect(this.consularSecurityForce.isUpgraded()).toBe(false);
             });
 
             it('should give only as many experience tokens as available Rebel units that have attacked', function () {
@@ -115,7 +115,7 @@ describe('Medal Ceremony', function() {
 
                 this.player1.clickPrompt('Done');
                 expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
-                expect(this.consularSecurityForce.upgrades.length).toBe(0);
+                expect(this.consularSecurityForce.isUpgraded()).toBe(false);
             });
 
             it('should allow selecting no targets', function () {
@@ -139,8 +139,8 @@ describe('Medal Ceremony', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.consularSecurityForce]);
 
                 this.player1.clickPrompt('Done');
-                expect(this.consularSecurityForce.upgrades.length).toBe(0);
-                expect(this.consularSecurityForce.upgrades.length).toBe(0);
+                expect(this.consularSecurityForce.isUpgraded()).toBe(false);
+                expect(this.consularSecurityForce.isUpgraded()).toBe(false);
                 expect(this.player2).toBeActivePlayer();
             });
         });

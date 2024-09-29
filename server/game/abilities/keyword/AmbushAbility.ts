@@ -21,13 +21,12 @@ export class AmbushAbility extends TriggeredAbility {
                 condition: AmbushAbility.unitWouldHaveAmbushTarget<TSource>,
                 onTrue: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.ready(),
-                    AbilityHelper.immediateEffects.attack((context) => {
-                        return {
-                            attacker: context.source,
-                            targetCondition: (card) => !card.isBase(),
-                            optional: false     // override the default optional behavior - once we've triggered ambush, the attack is no longer optional
-                        };
-                    })]),
+                    AbilityHelper.immediateEffects.attack((context) => ({
+                        // TODO: add a flag declaring that the attack is an Ambush attack for e.g. Enfys Nest ability
+                        attacker: context.source,
+                        targetCondition: (card) => !card.isBase(),
+                        optional: false     // override the default optional behavior - once we've triggered ambush, the attack is no longer optional
+                    }))]),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
         };

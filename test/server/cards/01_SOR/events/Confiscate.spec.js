@@ -20,7 +20,7 @@ describe('Confiscate', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.entrenched, this.academyTraining]);
 
                 this.player1.clickCard(this.academyTraining);
-                expect(this.imperialInterceptor.upgrades.length).toBe(0);
+                expect(this.imperialInterceptor.isUpgraded()).toBe(false);
                 expect(this.academyTraining).toBeInLocation('discard');
             });
         });
@@ -45,7 +45,7 @@ describe('Confiscate', function() {
                 this.player2.passAction();
 
                 this.player1.clickCard(this.confiscate);
-                expect(this.wampa.upgrades.length).toBe(0);
+                expect(this.wampa.isUpgraded()).toBe(false);
 
                 // this expectation will automatically check that entrenched is in the owning player's discard
                 expect(this.entrenched).toBeInLocation('discard');
