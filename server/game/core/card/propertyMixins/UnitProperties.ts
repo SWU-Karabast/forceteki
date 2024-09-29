@@ -265,7 +265,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public override addDamage(amount: number) {
             super.addDamage(amount);
 
-            this.checkDefeated();
+            // the defeat check will happen in the next call to Game.resolveGameState (typically when the event window resolves)
         }
 
         public checkDefeated() {
