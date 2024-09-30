@@ -8,6 +8,7 @@ import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
+import { v4 as uuidv4 } from 'uuid';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -39,9 +40,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * don’t have any special styling
      */
     public getConstantAbilities(): IConstantAbility[] {
-        return this.isBlank() ? []
-            : this.constantAbilities
-                .concat(this.getGainedAbilityEffects<IConstantAbility>(AbilityType.Constant));
+        return this.constantAbilities;
     }
 
     /**
@@ -50,9 +49,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * “When Defeated,” and “On Attack” abilities
      */
     public getTriggeredAbilities(): TriggeredAbility[] {
-        return this.isBlank() ? []
-            : this.triggeredAbilities
-                .concat(this.getGainedAbilityEffects<TriggeredAbility>(AbilityType.Triggered));
+        return this.triggeredAbilities;
     }
 
     public override canRegisterConstantAbilities(): this is InPlayCard {
@@ -95,7 +92,13 @@ export class InPlayCard extends PlayableOrDeployableCard {
     public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
         const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
 
-        return { duration: Duration.Persistent, sourceLocationFilter, ...properties, ...this.buildGeneralAbilityProps('constant') };
+        return {
+            duration: Duration.Persistent,
+            sourceLocationFilter,
+            ...properties,
+            ...this.buildGeneralAbilityProps('constant'),
+            uuid: uuidv4()
+        };
     }
 
     public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
@@ -108,7 +111,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
     /**
-     * Adds a triggered ability to the unit and immediately registers its triggers. Used for "gain ability" effects.
+     * Adds a dynamically gained triggered ability to the unit and immediately registers its triggers. Used for "gain ability" effects.
      *
      * @returns The uuid of the triggered ability
      */
@@ -120,7 +123,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return addedAbility.uuid;
     }
 
-    /** Removes a dynamically gained triggered ability and unregisters its effects. */
+    /** Removes a dynamically gained triggered ability and unregisters its effects */
     public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
         let abilityToRemove: TriggeredAbility = null;
         const remainingAbilities: TriggeredAbility[] = [];

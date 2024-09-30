@@ -1,26 +1,23 @@
-import { IAbilityPropsWithType } from '../../../Interfaces';
+import { GainAbilitySource, IAbilityPropsWithType, IActionAbilityPropsWithType, ITriggeredAbilityPropsWithType } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
 import { AbilityType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
-export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType> {
+export class GainAbility extends OngoingEffectValueWrapper<IActionAbilityPropsWithType | ITriggeredAbilityPropsWithType> {
     public readonly abilityType: AbilityType;
-    public readonly properties: IAbilityPropsWithType;
+    public readonly properties: IActionAbilityPropsWithType | ITriggeredAbilityPropsWithType;
 
     private abilityIdentifier: string;
-    private gainedAbilityForCard = new Map<InPlayCard, string>();
+    private abilityUuidByTargetCard = new Map<InPlayCard, string>();
+    private gainAbilitySource: GainAbilitySource;
     private source: Card;
 
-    public constructor(gainedAbilityProps: IAbilityPropsWithType) {
+    public constructor(gainedAbilityProps: IActionAbilityPropsWithType | ITriggeredAbilityPropsWithType) {
         super(Object.assign(gainedAbilityProps, { printedAbility: false }));
 
         this.abilityType = gainedAbilityProps.type;
-
-        if (this.abilityType === AbilityType.Constant) {
-            throw new Error('Gaining constant abilities is not yet implemented');
-        }
 
         // TODO: is there anything in SWU that causes a card to gain a constant ability?
         // if (this.abilityType === AbilityType.Constant && !this.properties.locationFilter) {
@@ -31,38 +28,29 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
 
     public override setContext(context) {
         Contract.assertNotNullLike(context.source);
-        Contract.assertNotNullLike(context.ability);
+        Contract.assertNotNullLike(context.ability?.uuid);
 
         super.setContext(context);
 
         this.abilityIdentifier = `gained_from_${context.ability.abilityIdentifier}`;
         this.source = this.context.source;
+        this.gainAbilitySource = { card: this.source, abilityUuid: context.ability.uuid };
     }
 
     public override apply(target: InPlayCard) {
-        Contract.assertNotNullLike(this.context?.source, 'gainAbility.apply() called when this.context.source is not set');
+        Contract.assertNotNullLike(this.gainAbilitySource, 'gainAbility.apply() called before gainAbility.setContext()');
+        Contract.assertDoesNotHaveKey(this.abilityUuidByTargetCard, target, `Attempting to apply gain ability effect '${this.abilityIdentifier}' to card ${target.internalName} twice`);
 
-        const properties = Object.assign(this.value, { gainAbilitySource: this.context.source });
+        const properties = Object.assign(this.value, { gainAbilitySource: this.gainAbilitySource, abilityIdentifier: this.abilityIdentifier });
 
         switch (properties.type) {
             case AbilityType.Action:
-                target.createActionAbility(properties);
+                this.abilityUuidByTargetCard.set(target, target.addGainedActionAbility(properties));
                 return;
 
             case AbilityType.Triggered:
-                Contract.assertDoesNotHaveKey(this.gainedAbilityForCard, target, `Attempting to apply gain ability effect "${this.abilityIdentifier}" to card ${target.internalName} twice`);
-                this.gainedAbilityForCard.set(target, target.addGainedTriggeredAbility(properties));
+                this.abilityUuidByTargetCard.set(target, target.addGainedTriggeredAbility(properties));
                 return;
-
-            case AbilityType.Constant:
-                // TODO: is there anything in SWU that causes a card to gain a constant ability?
-                // this.value = properties;
-                // if (EnumHelpers.isArena(target.location)) {
-                //     this.value.registeredEffects = [target.addEffectToEngine(this.value)];
-                // }
-                // return;
-
-                throw new Error('Gaining constant abilities is not yet implemented');
 
             default:
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
@@ -70,26 +58,18 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     }
 
     public override unapply(target: InPlayCard) {
+        Contract.assertHasKey(this.abilityUuidByTargetCard, target, `Attempting to unapply gain ability effect "${this.abilityIdentifier}" from card ${target.internalName} but it is not applied`);
+
         switch (this.abilityType) {
             case AbilityType.Action:
-                // TODO THIS PR
-                // target.removeActionAbility(this.value);
+                target.removeGainedActionAbility(this.abilityUuidByTargetCard.get(target));
                 return;
 
             case AbilityType.Triggered:
-                Contract.assertHasKey(this.gainedAbilityForCard, target, `Attempting to unapply gain ability effect "${this.abilityIdentifier}" from card ${target.internalName} but it is not applied`);
-
-                target.removeGainedTriggeredAbility(this.gainedAbilityForCard.get(target));
-                this.gainedAbilityForCard.delete(target);
+                target.removeGainedTriggeredAbility(this.abilityUuidByTargetCard.get(target));
+                this.abilityUuidByTargetCard.delete(target);
 
                 return;
-
-            case AbilityType.Constant:
-                // TODO: is there anything in SWU that causes a card to gain a constant ability?
-                // target.removeEffectFromEngine(this.value.registeredEffects[0]);
-                // delete this.value.registeredEffects;
-
-                throw new Error('Gaining constant abilities is not yet implemented');
 
             default:
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);

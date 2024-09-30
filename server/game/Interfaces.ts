@@ -41,12 +41,25 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     targetLocationFilter?: LocationFilter;
     targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardName?: string;
+    uuid?: string;
 
     // TODO: can we get a real signature here
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     ongoingEffect: Function | Function[];
 
     createCopies?: boolean;
+}
+
+export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
+    type: AbilityType.Triggered;
+}
+
+export type IActionAbilityPropsWithType<TSource extends Card = Card> = IActionAbilityProps<TSource> & {
+    type: AbilityType.Action;
+}
+
+export type IConstantAbilityPropsWithType<TSource extends Card = Card> = IConstantAbilityProps<TSource> & {
+    type: AbilityType.Constant;
 }
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
@@ -112,6 +125,11 @@ export type WhenType<TSource extends Card = Card> = {
         [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
     };
 
+export interface GainAbilitySource {
+    card: Card;
+    abilityUuid: string;
+}
+
 // ********************************************** INTERNAL TYPES **********************************************
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
     when: WhenType<TSource>;
@@ -138,7 +156,7 @@ interface IAbilityProps<TContext extends AbilityContext> {
     optional?: boolean;
 
     printedAbility?: boolean;
-    gainAbilitySource?: Card;
+    gainAbilitySource?: GainAbilitySource;
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
@@ -233,15 +251,3 @@ type NonParameterKeywordName =
     | KeywordName.Saboteur
     | KeywordName.Sentinel
     | KeywordName.Shielded;
-
-type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
-    type: AbilityType.Triggered;
-}
-
-type IActionAbilityPropsWithType<TSource extends Card = Card> = IActionAbilityProps<TSource> & {
-    type: AbilityType.Action;
-}
-
-type IConstantAbilityPropsWithType<TSource extends Card = Card> = IConstantAbilityProps<TSource> & {
-    type: AbilityType.Constant;
-}

@@ -50,9 +50,7 @@ class OngoingEffect {
     refreshContext() {
         this.context = this.game.getFrameworkContext(this.source.controller);
         this.context.source = this.source;
-        if (this.ability) {
-            this.context.ability = this.ability;
-        }
+        this.context.ability = this.ability;
         this.impl.setContext(this.context);
     }
 
