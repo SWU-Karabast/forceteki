@@ -7,6 +7,7 @@ import * as EnumHelpers from '../../utils/EnumHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
+import { Card } from '../Card';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -91,17 +92,17 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.addTriggeredAbility(triggeredProperties);
     }
 
-    public createConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+    public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
         const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
 
         return { duration: Duration.Persistent, sourceLocationFilter, ...properties, ...this.buildGeneralAbilityProps('constant') };
     }
 
-    public createReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
+    public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
         return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
     }
 
-    public createTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
+    public createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
@@ -109,23 +110,39 @@ export class InPlayCard extends PlayableOrDeployableCard {
     /**
      * Adds a triggered ability to the unit and immediately registers its triggers. Used for "gain ability" effects.
      *
-     * @returns The triggered ability.
+     * @returns The uuid of the triggered ability
      */
-    public addGainedTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
+    public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string {
         const addedAbility = this.createTriggeredAbility(properties);
         this.triggeredAbilities.push(addedAbility);
         addedAbility.registerEvents();
 
-        return addedAbility;
+        return addedAbility.uuid;
     }
 
     /** Removes a dynamically gained triggered ability and unregisters its effects. */
-    public removeGainedTriggeredAbility(removeAbility: TriggeredAbility): void {
-        const updatedAbilityList = this.triggeredAbilities.filter((ability) => ability !== removeAbility);
-        Contract.assertEqual(updatedAbilityList.length, this.triggeredAbilities.length - 1, `Expected to find one instance of gained ability to remove but instead found ${this.triggeredAbilities.length - updatedAbilityList.length}`);
+    public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
+        let abilityToRemove: TriggeredAbility = null;
+        const remainingAbilities: TriggeredAbility[] = [];
 
-        this.triggeredAbilities = updatedAbilityList;
-        removeAbility.unregisterEvents();
+        for (const triggeredAbility of this.triggeredAbilities) {
+            if (triggeredAbility.uuid === removeAbilityUuid) {
+                if (abilityToRemove) {
+                    Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
+                }
+
+                abilityToRemove = triggeredAbility;
+            } else {
+                remainingAbilities.push(triggeredAbility);
+            }
+        }
+
+        if (abilityToRemove == null) {
+            Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
+        }
+
+        this.triggeredAbilities = remainingAbilities;
+        abilityToRemove.unregisterEvents();
     }
 
     /** Update the context of each constant ability. Used when the card's controller has changed. */

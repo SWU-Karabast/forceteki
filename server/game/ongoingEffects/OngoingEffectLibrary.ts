@@ -12,7 +12,7 @@ import { modifyCost } from './ModifyCost';
 import { AbilityType, EffectName, KeywordName, NonParameterKeywordName, PlayType } from '../core/Constants';
 import { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import { IAbilityPropsWithType, IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
-import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
+import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 import { AbilityContext } from '../core/ability/AbilityContext';

@@ -1,19 +1,26 @@
-const { OngoingEffectValueWrapper } = require('./OngoingEffectValueWrapper');
-const { AbilityType, Location, WildcardLocation } = require('../../Constants');
-const Contract = require('../../utils/Contract');
+import { IAbilityPropsWithType } from '../../../Interfaces';
+import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
+import type { Card } from '../../card/Card';
+import { AbilityType } from '../../Constants';
+import * as Contract from '../../utils/Contract';
+import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
-// UP NEXT: refactor this to support managing multiple targets
-class GainAbility extends OngoingEffectValueWrapper {
-    constructor(gainedAbilityProps) {
-        super(true);
+export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType> {
+    public readonly abilityType: AbilityType;
+    public readonly properties: IAbilityPropsWithType;
+
+    private abilityIdentifier: string;
+    private gainedAbilityForCard = new Map<InPlayCard, string>();
+    private source: Card;
+
+    public constructor(gainedAbilityProps: IAbilityPropsWithType) {
+        super(Object.assign(gainedAbilityProps, { printedAbility: false }));
 
         this.abilityType = gainedAbilityProps.type;
 
         if (this.abilityType === AbilityType.Constant) {
             throw new Error('Gaining constant abilities is not yet implemented');
         }
-
-        this.properties = Object.assign(gainedAbilityProps, { printedAbility: false });
 
         // TODO: is there anything in SWU that causes a card to gain a constant ability?
         // if (this.abilityType === AbilityType.Constant && !this.properties.locationFilter) {
@@ -22,35 +29,29 @@ class GainAbility extends OngoingEffectValueWrapper {
         // }
     }
 
-    /**
-     * @override
-     */
-    setContext(context) {
+    public override setContext(context) {
         Contract.assertNotNullLike(context.source);
         Contract.assertNotNullLike(context.ability);
 
         super.setContext(context);
 
-        this.source = this.context.source;
         this.abilityIdentifier = `gained_from_${context.ability.abilityIdentifier}`;
+        this.source = this.context.source;
     }
 
-    /**
-     * @override
-     * @param {import('../../card/baseClasses/InPlayCard').InPlayCard} target The card receiving the gained ability
-     */
-    apply(target) {
+    public override apply(target: InPlayCard) {
         Contract.assertNotNullLike(this.context?.source, 'gainAbility.apply() called when this.context.source is not set');
 
-        let properties = Object.assign(this.properties, { gainAbilitySource: this.context.source });
+        const properties = Object.assign(this.value, { gainAbilitySource: this.context.source });
 
-        switch (this.abilityType) {
+        switch (properties.type) {
             case AbilityType.Action:
-                this.value = target.createActionAbility(properties);
+                target.createActionAbility(properties);
                 return;
 
             case AbilityType.Triggered:
-                this.value = target.addGainedTriggeredAbility(properties);
+                Contract.assertDoesNotHaveKey(this.gainedAbilityForCard, target, `Attempting to apply gain ability effect "${this.abilityIdentifier}" to card ${target.internalName} twice`);
+                this.gainedAbilityForCard.set(target, target.addGainedTriggeredAbility(properties));
                 return;
 
             case AbilityType.Constant:
@@ -68,10 +69,7 @@ class GainAbility extends OngoingEffectValueWrapper {
         }
     }
 
-    /**
-     * @override
-     */
-    unapply(target) {
+    public override unapply(target: InPlayCard) {
         switch (this.abilityType) {
             case AbilityType.Action:
                 // TODO THIS PR
@@ -79,7 +77,11 @@ class GainAbility extends OngoingEffectValueWrapper {
                 return;
 
             case AbilityType.Triggered:
-                target.removeGainedTriggeredAbility(this.value);
+                Contract.assertHasKey(this.gainedAbilityForCard, target, `Attempting to unapply gain ability effect "${this.abilityIdentifier}" from card ${target.internalName} but it is not applied`);
+
+                target.removeGainedTriggeredAbility(this.gainedAbilityForCard.get(target));
+                this.gainedAbilityForCard.delete(target);
+
                 return;
 
             case AbilityType.Constant:
@@ -94,5 +96,3 @@ class GainAbility extends OngoingEffectValueWrapper {
         }
     }
 }
-
-module.exports = GainAbility;
