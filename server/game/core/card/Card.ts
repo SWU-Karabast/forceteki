@@ -57,6 +57,7 @@ export class Card extends OngoingEffectSource {
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
+    private nextAbilityIdx = 0;
     private _location: Location;
 
 
@@ -216,8 +217,22 @@ export class Card extends OngoingEffectSource {
     }
 
     public createActionAbility(properties: IActionAbilityProps): ActionAbility {
-        properties.cardName = this.title;
-        return new ActionAbility(this.game, this, properties);
+        return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
+    }
+
+    protected buildGeneralAbilityProps(abilityTypeDescriptor: string) {
+        return {
+            cardName: this.title,
+
+            // example: "wampa_triggered_0"
+            abilityIdentifier: `${this.internalName}_${abilityTypeDescriptor}_${this.getNextAbilityIdx()}`,
+        };
+    }
+
+    /** Increments the ability index counter used for adding an index number to an ability's ID */
+    private getNextAbilityIdx() {
+        this.nextAbilityIdx++;
+        return this.nextAbilityIdx - 1;
     }
 
 

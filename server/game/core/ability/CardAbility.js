@@ -20,12 +20,8 @@ class CardAbility extends CardAbilityStep {
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.cannotBeMirrored = !!properties.cannotBeMirrored;
-        this.abilityIdentifier = properties.abilityIdentifier;
-        this.origin = properties.origin;
-        if (!this.abilityIdentifier) {
-            // TODO: improve this so it at least increments the ability number
-            this.abilityIdentifier = this.printedAbility ? this.card.internalName + '_1' : '';
-        }
+        this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
+        this.gainAbilitySource = properties.gainAbilitySource;
     }
 
     locationOrDefault(card, location) {
@@ -161,15 +157,14 @@ class CardAbility extends CardAbilityStep {
             return;
         }
 
-        let origin = context.ability && context.ability.origin;
-        // if origin is the same as source then ignore it
-        if (origin === context.source) {
-            origin = null;
+        let gainAbilitySource = context.ability && context.ability.gainAbilitySource;
+        // if gainAbilitySource is the same as source then ignore it
+        if (gainAbilitySource === context.source) {
+            gainAbilitySource = null;
         }
 
-        // Player1 plays Assassination
-        let gainedAbility = origin ? '\'s gained ability from ' : '';
-        let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, origin];
+        let gainedAbility = gainAbilitySource ? '\'s gained ability from ' : '';
+        let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, gainAbilitySource];
         let costMessages = this.cost
             .map((cost) => {
                 if (cost.getCostMessage && cost.getCostMessage(context)) {

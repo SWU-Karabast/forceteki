@@ -49,6 +49,11 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     createCopies?: boolean;
 }
 
+export type IAbilityPropsWithType<TSource extends Card = Card> =
+    ITriggeredAbilityPropsWithType<TSource> |
+    IActionAbilityPropsWithType<TSource> |
+    IConstantAbilityPropsWithType<TSource>;
+
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
     collectiveTrigger?: boolean;
@@ -133,6 +138,7 @@ interface IAbilityProps<TContext extends AbilityContext> {
     optional?: boolean;
 
     printedAbility?: boolean;
+    gainAbilitySource?: Card;
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
@@ -220,10 +226,22 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
-export type NonParameterKeywordName =
+type NonParameterKeywordName =
     | KeywordName.Ambush
     | KeywordName.Grit
     | KeywordName.Overwhelm
     | KeywordName.Saboteur
     | KeywordName.Sentinel
     | KeywordName.Shielded;
+
+type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
+    type: AbilityType.Triggered;
+}
+
+type IActionAbilityPropsWithType<TSource extends Card = Card> = IActionAbilityProps<TSource> & {
+    type: AbilityType.Action;
+}
+
+type IConstantAbilityPropsWithType<TSource extends Card = Card> = IConstantAbilityProps<TSource> & {
+    type: AbilityType.Constant;
+}

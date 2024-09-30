@@ -92,21 +92,17 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     public createConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
-        properties.cardName = this.title;
-
         const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
 
-        return { duration: Duration.Persistent, sourceLocationFilter, ...properties };
+        return { duration: Duration.Persistent, sourceLocationFilter, ...properties, ...this.buildGeneralAbilityProps('constant') };
     }
 
     public createReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
-        properties.cardName = this.title;
-        return new ReplacementEffectAbility(this.game, this, properties);
+        return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
     }
 
     public createTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-        properties.cardName = this.title;
-        return new TriggeredAbility(this.game, this, properties);
+        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************

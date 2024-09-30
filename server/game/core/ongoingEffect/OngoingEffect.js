@@ -40,7 +40,7 @@ class OngoingEffect {
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
         this.impl = effectImpl;
-        this.ability = properties.ability;
+        this.ability = properties;
         this.targets = [];
         this.refreshContext();
         this.impl.duration = this.duration;

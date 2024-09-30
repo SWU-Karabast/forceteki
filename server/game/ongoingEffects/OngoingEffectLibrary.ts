@@ -11,7 +11,7 @@ import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import { AbilityType, EffectName, KeywordName, NonParameterKeywordName, PlayType } from '../core/Constants';
 import { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import { IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
+import { IAbilityPropsWithType, IActionAbilityProps, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import GainAbility from '../core/ongoingEffect/effectImpl/GainAbility';
 import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
@@ -99,11 +99,8 @@ export = {
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
-    gainAbility: (
-        abilityType: AbilityType,
-        properties: ITriggeredAbilityProps | IActionAbilityProps | IConstantAbility
-    ) =>
-        OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(abilityType, properties)),
+    gainAbility: (properties: IAbilityPropsWithType) =>
+        OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(properties)),
     gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties) =>
         OngoingEffectBuilder.card.static(EffectName.GainKeyword,
             typeof keywordOrKeywordProperties === 'string'

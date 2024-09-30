@@ -15,7 +15,8 @@ export default class GeneralKrellHeartlessTactician extends NonLeaderUnitCard {
             title: 'Other friendly units gain when defeated ability',
             targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source,
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(AbilityType.Triggered, {
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
+                type: AbilityType.Triggered,
                 title: 'Draw a card',
                 when: { onCardDefeated: (event, context) => event.card === context.source },
                 immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
