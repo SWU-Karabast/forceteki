@@ -7,7 +7,7 @@ import * as Contract from '../utils/Contract';
 import { AbilityType, CardType, KeywordName, Location, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import { IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import { IActionAbilityProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
@@ -115,6 +115,18 @@ export class UpgradeCard extends UpgradeCardParent {
             title: 'Give ability to the attached card',
             condition: gainCondition,
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...properties })
+        });
+    }
+
+    /**
+     * Adds an "attached card gains [X]" ability, where X is an action ability. You can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addGainActionAbilityTargetingAttached(properties: IActionAbilityProps<UnitCard>, gainCondition: (context: AbilityContext<this>) => boolean = null) {
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give ability to the attached card',
+            condition: gainCondition,
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Action, ...properties })
         });
     }
 

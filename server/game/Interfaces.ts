@@ -8,6 +8,7 @@ import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
+import { ICost } from './core/cost/ICost';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -145,7 +146,7 @@ type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbili
 interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
     locationFilter?: LocationFilter | LocationFilter[];
-    cost?: any;
+    cost?: ICost<TContext> | ICost<TContext>[];
     limit?: any;
     cardName?: string;
 
