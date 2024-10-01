@@ -582,6 +582,34 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    // TODO: could add a field to expect enabled or disabled per button
+    toHaveExactPromptButtons: function () {
+        return {
+            compare: function (player, buttons) {
+                let result = {};
+
+                if (!Array.isArray(buttons)) {
+                    throw new TestSetupError(`Parameter 'buttons' is not an array: ${buttons}`);
+                }
+
+                const actualButtons = player.currentPrompt().buttons.map((button) => button.text);
+
+                const expectedButtons = [...buttons];
+
+                result.pass = stringArraysEqual(actualButtons, expectedButtons);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact set of buttons but it does: ${expectedButtons.join(', ')}`;
+                } else {
+                    result.message = `Expected ${player.name} to have this exact set of buttons: '${expectedButtons.join(', ')}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+
+                return result;
+            }
+        };
     }
 };
 

@@ -12,6 +12,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.context = context;
         this.canCancel = true;
         this.initiateAbility = false;
+        this.payCostsOnly = false;
         this.events = [];
         this.targetResults = {};
         this.costResults = this.getCostResults();
@@ -116,20 +117,24 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
-        // if there is no effect and no costs, we can safely skip ability resolution
-        if (
-            this.context.ability.meetsRequirements(this.context, ['cost']) !== '' &&
-            (this.context.ability.cost == null ||
-            Array.isArray(this.context.ability.cost) && this.context.ability.cost.length === 0)
-        ) {
-            this.game.addMessage('Ability \'{0}\' on card {1} has no impact on game state so it is passed', this.context.ability.title, this.context.source.title);
-            this.cancelled = true;
-            this.resolutionComplete = true;
+        if (this.context.ability.meetsRequirements(this.context) !== '') {
+            if (
+                (this.context.ability.cost == null ||
+               Array.isArray(this.context.ability.cost) && this.context.ability.cost.length === 0)
+            ) {
+                // if there is no effect and no costs, we can safely skip the entire ability resolution
+                this.game.addMessage('Ability \'{0}\' on card {1} has no impact on game state so it is passed', this.context.ability.title, this.context.source.title);
+                this.cancelled = true;
+                this.resolutionComplete = true;
+            } else {
+                // if we can pay costs but the ability can't resolve, just pay the costs
+                this.payCostsOnly = true;
+            }
         }
     }
 
     resolveEarlyTargets() {
-        if (this.cancelled) {
+        if (this.cancelled || this.payCostsOnly) {
             return;
         }
 
@@ -227,7 +232,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     resolveTargets() {
-        if (this.cancelled) {
+        if (this.cancelled || this.payCostsOnly) {
             return;
         }
         this.context.stage = Stage.Target;
@@ -246,7 +251,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     initiateAbilityEffects() {
-        if (this.cancelled) {
+        if (this.cancelled || this.payCostsOnly) {
             for (const event of this.events) {
                 event.cancel();
             }
@@ -273,7 +278,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     executeHandler() {
-        if (this.cancelled || !this.initiateAbility) {
+        if (this.cancelled || !this.initiateAbility || this.payCostsOnly) {
             return;
         }
         this.context.stage = Stage.Effect;
