@@ -48,7 +48,7 @@ describe('Heroic Resolve', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'frontier-atrt', upgrades: ['heroic-resolve', 'heroic-resolve'] }],
+                        groundArena: [{ card: 'frontier-atrt', upgrades: ['heroic-resolve', 'heroic-resolve', 'academy-training'] }],
                     },
                     player2: {
                         groundArena: ['wampa', 'specforce-soldier']
@@ -75,10 +75,10 @@ describe('Heroic Resolve', function() {
 
                 expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa, this.specforceSoldier]);
                 this.player1.clickCard(this.wampa);
-                expect(this.frontierAtrt).toHaveExactUpgradeNames(['heroic-resolve']);
+                expect(this.frontierAtrt).toHaveExactUpgradeNames(['heroic-resolve', 'academy-training']);
                 expect(this.heroicResolve1).toBeInLocation('discard');
                 expect(this.wampa).toBeInLocation('discard');
-                expect(this.p2Base.damage).toBe(3); // extra 1 damage from the heroic resolve stat boost
+                expect(this.p2Base.damage).toBe(5); // extra 3 damage from upgrade stat boosts
                 expect(this.player1.countExhaustedResources()).toBe(2);
 
                 // activate second Heroic Resolve
@@ -93,10 +93,10 @@ describe('Heroic Resolve', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.specforceSoldier]);
 
                 this.player1.clickCard(this.specforceSoldier);
-                expect(this.frontierAtrt.isUpgraded()).toBe(false);
+                expect(this.frontierAtrt).toHaveExactUpgradeNames(['academy-training']);
                 expect(this.heroicResolve2).toBeInLocation('discard');
                 expect(this.specforceSoldier).toBeInLocation('discard');
-                expect(this.p2Base.damage).toBe(8);
+                expect(this.p2Base.damage).toBe(12);
                 expect(this.player1.countExhaustedResources()).toBe(4);
             });
         });
