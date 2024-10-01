@@ -22,9 +22,8 @@ export default class JediLightsaber extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
-        this.addGainTriggeredAbilityTargetingAttached({
+        this.addGainOnAttackAbilityTargetingAttached({
             title: 'Give the defender -2/-2 for this phase',
-            when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
 
             // need to check if the target is a base - if so, don't apply the stat modifier effect

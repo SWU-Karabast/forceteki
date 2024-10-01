@@ -381,17 +381,14 @@ Static upgrade stat bonuses from the printed upgrade values are automatically in
 
 Since most upgrade abilities target the attached card, we have helper methods available to declare such abilities succintly.
 
-Most upgrades say that the attached unit gains a triggered ability:
+Most upgrades say that the attached unit gains a triggered ability, for which we have the methods `addGainTriggeredAbilityTargetingAttached` and `addGainOnAttackAbilityTargetingAttached`. See Vambrace Grappleshot:
 ```typescript
 // Attached character gains ability 'On Attack: Exhaust the defender'
-this.addGainTriggeredAbilityTargetingAttached({
+this.addGainOnAttackAbilityTargetingAttached({
     title: 'Exhaust the defender on attack',
-    // note here that context.source refers to the attached unit card, not the upgrade itself
-    when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
-    targetResolver: {
-        cardCondition: (card, context) => card === context.event.attack.target,
-        immediateEffect: AbilityHelper.immediateEffects.exhaust()
-    }
+    immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
+        return { target: context.source.activeAttack?.target };
+    })
 });
 ```
 
@@ -404,16 +401,15 @@ this.addGainKeywordTargetingAttached({
 });
 ```
 
-If an attachment effect has a condition, it can be set using the optional second parameter of the setup method. See the implementation of the Fallen Lightsaber text, "If attached unit is a Force unit, it gains: “On Attack: Deal 1 damage to each ground unit the defending player controls.”
+If an attachment effect has a condition, it can be set using the `gainCondition` property. See the implementation of the Fallen Lightsaber text, "If attached unit is a Force unit, it gains: “On Attack: Deal 1 damage to each ground unit the defending player controls.”
 ```typescript
-this.addGainTriggeredAbilityTargetingAttached({
+this.addGainOnAttackAbilityTargetingAttached({
     title: 'Deal 1 damage to each ground unit the defending player controls',
-    when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
     immediateEffect: AbilityHelper.immediateEffects.damage((context) => {
         return { target: context.source.controller.opponent.getUnitsInPlay(Location.GroundArena), amount: 1 };
-    })
-},
-(context) => context.source.parentCard?.hasSomeTrait(Trait.Force));
+    }),
+    gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force)
+});
 ```
 
 In some rare cases an upgrade's ability targets the attached card without giving it any new abilities
