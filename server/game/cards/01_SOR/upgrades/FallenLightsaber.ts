@@ -26,9 +26,9 @@ export default class FallenLightsaber extends UpgradeCard {
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => {
                 return { target: context.source.controller.opponent.getUnitsInPlay(Location.GroundArena), amount: 1 };
-            })
-        },
-        (context) => context.source.parentCard?.hasSomeTrait(Trait.Force));
+            }),
+            gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force)
+        });
     }
 }
 

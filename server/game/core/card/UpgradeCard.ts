@@ -7,12 +7,22 @@ import * as Contract from '../utils/Contract';
 import { AbilityType, CardType, KeywordName, Location, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import { IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import { IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { AbilityContext } from '../ability/AbilityContext';
+
+interface IGainCondition<TSource extends UpgradeCard> {
+    gainCondition?: (context: AbilityContext<TSource>) => boolean
+}
+
+type ITriggeredAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
+
+type ITriggeredAbilityBasePropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
+
+type IKeywordPropertiesWithGainCondition<TSource extends UpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAbilitySetup(InPlayCard))));
 
@@ -104,17 +114,33 @@ export class UpgradeCard extends UpgradeCardParent {
         });
     }
 
-    // TODO: add "gainOnAttack", "gainWhenPlayed", "gainWhenDefeated" helpers
-    // TODO: refactor the gainCondition parameter to be a part of the properties object
     /**
      * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps<UnitCard>, gainCondition: (context: AbilityContext<this>) => boolean = null) {
+    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<this, UnitCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: gainCondition,
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(AbilityType.Triggered, properties)
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(AbilityType.Triggered, gainedAbilityProperties)
+        });
+    }
+
+    // TODO: add "gainWhenDefeated" helper
+    /**
+     * Adds an "attached card gains [X]" ability, where X is an "on attack" triggered ability. You can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, UnitCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+        const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
+
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give ability to the attached card',
+            condition: gainCondition,
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility(AbilityType.Triggered, propsWithWhen)
         });
     }
 
@@ -122,11 +148,13 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is a keyword ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainKeywordTargetingAttached(properties: IKeywordProperties, gainCondition: (context: AbilityContext<this>) => boolean = null) {
+    protected addGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<this>) {
+        const { gainCondition, ...keywordProperties } = properties;
+
         this.addConstantAbilityTargetingAttached({
             title: 'Give keyword to the attached card',
             condition: gainCondition,
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(properties)
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(keywordProperties)
         });
     }
 
