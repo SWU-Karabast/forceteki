@@ -20,8 +20,10 @@ class CardAbility extends CardAbilityStep {
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.cannotBeMirrored = !!properties.cannotBeMirrored;
-        this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
         this.gainAbilitySource = properties.gainAbilitySource;
+
+        // if an ability name wasn't provided, assume this ability was created for some one-off purpose and not attached to the card
+        this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
     }
 
     locationOrDefault(card, location) {
@@ -33,7 +35,7 @@ class CardAbility extends CardAbilityStep {
             return Location.Hand;
         }
         if (card.isLeader()) {
-            // check that this is a gained ability
+            // check that this is a gained ability - if it's a printed leader ability, it should have an explicit locationFilter based on which side of the card it's on
             Contract.assertFalse(this.printedAbility, 'Leader card abilities must explicitly assign properties.locationFilter for the correct active zone of the ability');
 
             return WildcardLocation.AnyArena;
@@ -158,10 +160,6 @@ class CardAbility extends CardAbilityStep {
         }
 
         let gainAbilitySource = context.ability && context.ability.gainAbilitySource;
-        // if gainAbilitySource is the same as source then ignore it
-        if (gainAbilitySource === context.source) {
-            gainAbilitySource = null;
-        }
 
         let gainedAbility = gainAbilitySource ? '\'s gained ability from ' : '';
         let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, gainAbilitySource];

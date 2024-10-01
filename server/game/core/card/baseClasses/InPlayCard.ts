@@ -113,7 +113,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     /**
      * Adds a dynamically gained triggered ability to the unit and immediately registers its triggers. Used for "gain ability" effects.
      *
-     * @returns The uuid of the triggered ability
+     * @returns The uuid of the created triggered ability
      */
     public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string {
         const addedAbility = this.createTriggeredAbility(properties);

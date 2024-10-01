@@ -487,7 +487,7 @@ export class Card extends OngoingEffectSource {
      * Duplicates of the same gained action from duplicates of the same source card can be added,
      * but only one will be presented to the user as an available action.
      *
-     * @returns The uuid of the action ability
+     * @returns The uuid of the created action ability
      */
     public addGainedActionAbility(properties: IActionAbilityProps): string {
         const addedAbility = this.createActionAbility(properties);
