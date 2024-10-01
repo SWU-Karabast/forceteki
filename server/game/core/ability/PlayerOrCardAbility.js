@@ -119,7 +119,7 @@ class PlayerOrCardAbility {
         // check legal targets exist
         // check costs can be paid
         // check for potential to change game state
-        if (!this.canPayCosts(context) && !ignoredRequirements.includes('cost')) {
+        if (!ignoredRequirements.includes('cost') && !this.canPayCosts(context)) {
             return 'cost';
         }
 
