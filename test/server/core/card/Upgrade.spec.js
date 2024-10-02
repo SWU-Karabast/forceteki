@@ -24,6 +24,7 @@ describe('Upgrade cards', function() {
 
                 expect(this.wampa.upgrades).toContain(this.academyTraining);
                 expect(this.wampa.upgrades).toContain(this.foundling);
+                expect(this.wampa.upgrades.length).toBe(2);
                 expect(this.wampa.getPower()).toBe(7);
                 expect(this.wampa.getHp()).toBe(8);
             });
