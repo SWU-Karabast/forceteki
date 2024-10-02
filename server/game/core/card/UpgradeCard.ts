@@ -29,6 +29,8 @@ const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAb
 export class UpgradeCard extends UpgradeCardParent {
     protected _parentCard?: UnitCard = null;
 
+    private attachCondition: (card: Card) => boolean;
+
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
@@ -85,7 +87,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * implementations must override this if they have specific attachment conditions.
      */
     public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
-        if (!targetCard.isUnit()) {
+        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
             return false;
         }
 
@@ -156,6 +158,13 @@ export class UpgradeCard extends UpgradeCardParent {
             condition: gainCondition,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(keywordProperties)
         });
+    }
+
+    /** Adds a condition that must return true for the upgrade to be allowed to attach to the passed card. */
+    protected setAttachCondition(attachCondition: (card: Card) => boolean) {
+        Contract.assertIsNullLike(this.attachCondition, 'Attach condition is already set');
+
+        this.attachCondition = attachCondition;
     }
 
     protected override initializeForCurrentLocation(prevLocation: Location): void {

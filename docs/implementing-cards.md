@@ -377,6 +377,18 @@ Some helper methods are available to make it easier to declare constant abilitie
 
 Static upgrade stat bonuses from the printed upgrade values are automatically included in combat calculations for the attached unit.
 
+#### Attachment requirements
+
+Some cards can only attach to cards that meet certain requirements. These requirements can be set with the `setAttachCondition()` method, which accepts a handler method accepting a potential card to attach to and returns true if the card is a legal attach target for this upgrade. See Vambrace Grappleshot, which can only attach to non-vehicles:
+
+```typescript
+public override setupCardAbilities() {
+    this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+
+    // ...set abilities here ...
+}
+```
+
 #### Effects targeting attached card
 
 Since most upgrade abilities target the attached card, we have helper methods available to declare such abilities succintly.
@@ -401,7 +413,7 @@ this.addGainKeywordTargetingAttached({
 });
 ```
 
-If an attachment effect has a condition, it can be set using the `gainCondition` property. See the implementation of the Fallen Lightsaber text, "If attached unit is a Force unit, it gains: “On Attack: Deal 1 damage to each ground unit the defending player controls.”
+If an attachment _effect_ has a condition - meaning that the effect is only active if certain conditions are met - it can be set using the `gainCondition` property. See the implementation of the Fallen Lightsaber text, "If attached unit is a Force unit, it gains: “On Attack: Deal 1 damage to each ground unit the defending player controls.”
 ```typescript
 this.addGainOnAttackAbilityTargetingAttached({
     title: 'Deal 1 damage to each ground unit the defending player controls',
