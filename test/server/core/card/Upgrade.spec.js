@@ -55,6 +55,28 @@ describe('Upgrade cards', function() {
             });
         });
 
+        describe('When an upgrade is attached to a leader', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'boba-fett#daimyo', deployed: true, upgrades: ['academy-training'] }
+                    },
+                    player2: {
+                        groundArena: ['atat-suppressor']
+                    }
+                });
+            });
+
+            it('its stat bonuses should be correctly applied during combat', function () {
+                this.player1.clickCard(this.bobaFett);
+                this.player1.clickCard(this.atatSuppressor);
+                expect(this.bobaFett).toBeInLocation('ground arena');
+                expect(this.bobaFett.damage).toBe(8);
+                expect(this.atatSuppressor.damage).toBe(6);
+            });
+        });
+
         describe('When an upgrade is attached,', function() {
             beforeEach(function () {
                 this.setupTest({

@@ -49,7 +49,6 @@ class DeckBuilder {
 
         allCards.push(this.getLeaderCard(playerCards, playerNumber));
         allCards.push(this.getBaseCard(playerCards, playerNumber));
-        // allCards.push(playerCards.base ? playerCards.base : defaultBase[playerNumber]);
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
         playerCards.resources = this.padCardListIfNeeded(playerCards.resources, defaultResourceCount);
@@ -71,6 +70,7 @@ class DeckBuilder {
 
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.groundArena));
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
+        inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.leader));
 
         //Collect all the cards together
         allCards = allCards.concat(inPlayCards);
@@ -96,15 +96,21 @@ class DeckBuilder {
             namedCards = namedCards.concat(playerEntry);
         } else if ('card' in playerEntry) {
             namedCards.push(playerEntry.card);
-            if ('upgrades' in playerEntry) {
-                namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(playerEntry.upgrades));
-            }
+            namedCards = namedCards.concat(this.getUpgradesFromCard(playerEntry));
         } else if (Array.isArray(playerEntry)) {
             playerEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(card)));
         } else {
             throw new TestSetupError(`Unknown test card specifier format: '${playerObject}'`);
         }
         return namedCards;
+    }
+
+    getUpgradesFromCard(playerEntry) {
+        if (playerEntry && typeof playerEntry !== 'string' && 'upgrades' in playerEntry) {
+            return this.getNamedCardsInPlayerEntry(playerEntry.upgrades);
+        }
+
+        return [];
     }
 
     padCardListIfNeeded(cardList, defaultCount) {
