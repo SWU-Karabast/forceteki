@@ -17,7 +17,7 @@ describe('Mandalorian Warrior', function () {
             it('should give an experience to mandalorian unit', function () {
                 // add experience to a mandalorian
                 this.player1.clickCard(this.mandalorianWarrior);
-                this.player1.clickPrompt('Give 1 experience to another Mandalorian unit')
+                this.player1.clickPrompt('Give 1 experience to another Mandalorian unit');
                 expect(this.protectorOfTheThrone.isUpgraded()).toBeTrue();
             });
         });
