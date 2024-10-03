@@ -57,3 +57,5 @@ Once you have vscode set up, use the `Debug All Jasmine Tests` profile or open a
 #### Debugging Tips
 - You can use the `debugger;` command in node to create a breakpoint in code that will be respected by the vscode debugger
 - VSCode has advanced breakpoint features such as conditional breakpoints that are extremely useful for debugging complex situations, we highly recommend reading the "Advanced breakpoint topics" section of this guide if you haven't used it before: https://code.visualstudio.com/docs/editor/debugging#_advanced-breakpoint-topics
+- See our [Debugging Guide](./docs/debugging-guide.md) for detailed guides on debugging cards
+
