@@ -1,3 +1,6 @@
+# IMPORTANT NOTE: DEPRECATED
+All content is being migrated to the [wiki](https://github.com/SWU-Karabast/forceteki/wiki), please use that in the future.
+
 # Implementing Cards
 
 To implement a card, follow these steps:
@@ -25,7 +28,7 @@ Note that some cards are marked as **Trivial** in the document. These cards eith
 #### Find a similar implementation
 If you're just getting started or working on a more complex card, it can be very useful to find another card that has similar behavior and use its implementation as a starting point. 
 
-Since we are still building up a catalog of SWU cards, you can also look through the catalog of L5R cards to see if you can find any that use similar key words / phrases. You can search [EmeraldDB](https://www.emeralddb.org/cards) and find the matching card implementation under [legacy_jigoku/server/game/cards](../legacy_jigoku/server/game/cards). Note that the repo has changed slightly from the L5R version so some details will have changed, the dev team can help with that (or with finding relevant card impls).
+Since we are still building up a catalog of SWU cards, if you are implementing a complex card with no existing reference you can also look through the catalog of L5R cards to see if you can find any that use similar key words / phrases. You can search [EmeraldDB](https://www.emeralddb.org/cards) and find the matching card implementation under [legacy_jigoku/server/game/cards](../legacy_jigoku/server/game/cards). Note that the repo has changed slightly from the L5R version so some details will have changed, the dev team can help with that (or with finding relevant card impls).
 
 ### Create a card file
 
@@ -104,7 +107,7 @@ The ability types and methods are:
 | --- | --- | --- | --- |
 | Constant ability | addConstantAbility | Abilities with no bold text that have an ongoing effect | [Entrenched](../server/game/cards/01_SOR/Entrenched.ts), [Sabine](../server/game/cards/01_SOR/SabineWrenExplosivesArtist.ts) |
 | Action ability | addActionAbility | Abilities with bold text and a cost that provide an action the player can take | [Grogu](../server/game/cards/02_SHD/GroguIrresistible.ts), [Salacious Crumb](../server/game/cards/02_SHD/SalaciousCrumbObnoxiousPet.ts) |
-| Triggered ability | addActionAbility | Abilities with bold text that trigger off of a game event to provide some effect | [Avenger](../server/game/cards/01_SOR/AvengerHuntingStarDestroyer.ts), [Fleet Lieutenant](../server/game/cards/01_SOR/FleetLieutenant.ts) |
+| Triggered ability | addTriggeredAbility | Abilities with bold text that trigger off of a game event to provide some effect | [Avenger](../server/game/cards/01_SOR/AvengerHuntingStarDestroyer.ts), [Fleet Lieutenant](../server/game/cards/01_SOR/FleetLieutenant.ts) |
 | Event ability | setEventAbility | Any ability printed on an Event card | [Daring Raid](../server/game/cards/02_SHD/DaringRaid.ts), [Vanquish](../server/game/cards/01_SOR/Vanquish.ts) |
 | Epic action ability | setEpicActionAbility | The Epic Action ability on a Base or Leader card | [Tarkintown](../server/game/cards/01_SOR/Tarkintown.ts) |
 | Replacement ability | addReplacementAbility | Any ability using the term "would" or "instead" which modifies another effect | [Shield](../server/game/cards/01_SOR/Shield.ts) |

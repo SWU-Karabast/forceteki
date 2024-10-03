@@ -659,7 +659,7 @@ class PlayerInteractionWrapper {
         mixed = mixed.filter((card) => typeof card === 'string');
         // Find cards objects for the rest
         mixed.forEach((card) => {
-            //Find only those cards that aren't already in the list
+            // Find only those cards that aren't already in the list
             var cardObject = this.filterCardsByName(card, locations).find((card) => !cardList.includes(card));
             if (!cardObject) {
                 throw new TestSetupError(`Could not find card named ${card}`);

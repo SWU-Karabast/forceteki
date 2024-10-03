@@ -72,7 +72,7 @@ class DeckBuilder {
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
         inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.leader));
 
-        //Collect all the cards together
+        // Collect all the cards together
         allCards = allCards.concat(inPlayCards);
 
         return [this.buildDeck(allCards), namedCards];
@@ -165,9 +165,9 @@ class DeckBuilder {
             if (typeof card === 'string') {
                 inPlayCards.push(card);
             } else {
-                //Add the card itself
+                // Add the card itself
                 inPlayCards.push(card.card);
-                //Add any upgrades
+                // Add any upgrades
                 if (card.upgrades) {
                     let nonTokenUpgrades = card.upgrades.filter((upgrade) =>
                         !['shield', 'experience'].includes(upgrade)

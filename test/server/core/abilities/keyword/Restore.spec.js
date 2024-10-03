@@ -57,6 +57,6 @@ describe('Restore keyword', function() {
             });
         });
 
-        //TODO test that a card that attacked and then is bounced back to hand (i.e. Waylay) doesn't receive a second Restore instance
+        // TODO test that a card that attacked and then is bounced back to hand (i.e. Waylay) doesn't receive a second Restore instance
     });
 });

@@ -140,7 +140,7 @@ class GameFlowWrapper {
                 break;
             case 'regroup':
                 this.skipRegroupPhase();
-                phaseChange = 4; //New turn
+                phaseChange = 4; // New turn
                 break;
             default:
                 break;
