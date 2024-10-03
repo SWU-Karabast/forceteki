@@ -1,3 +1,6 @@
+# IMPORTANT NOTE: DEPRECATED
+All content is being migrated to the [wiki](https://github.com/SWU-Karabast/forceteki/wiki), please use that in the future.
+
 # Unit Testing Cheat Sheet
 
 ### Test Actions / Utilities

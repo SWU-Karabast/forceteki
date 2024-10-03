@@ -18,7 +18,7 @@ describe('I Am Your Father', function() {
 
             it('does 7 damage to the target unit when the opponent selects that', function () {
                 this.player1.clickCard(this.iAmYourFather);
-                expect(this.player1).toBeAbleToSelectExactly([this.viperProbeDroid, this.darthVader]); //can target only opponent's units, including leaders
+                expect(this.player1).toBeAbleToSelectExactly([this.viperProbeDroid, this.darthVader]); // can target only opponent's units, including leaders
                 this.player1.clickCard(this.darthVader);
 
                 expect(this.player2).toHaveEnabledPromptButtons(['Darth Vader takes 7 damage', 'Opponent draws 3 cards']);

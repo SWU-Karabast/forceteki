@@ -21,7 +21,7 @@ export class Deck {
             allCards: [] as Card[]
         };
 
-        //deck
+        // deck
         for (const { count, card } of this.data.deckCards ?? []) {
             for (let i = 0; i < count; i++) {
                 const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
@@ -30,7 +30,7 @@ export class Deck {
             }
         }
 
-        //leader & base
+        // leader & base
         for (const { count, card } of this.data.base ?? []) {
             for (let i = 0; i < count; i++) {
                 if (card?.types.includes(CardType.Base)) {
