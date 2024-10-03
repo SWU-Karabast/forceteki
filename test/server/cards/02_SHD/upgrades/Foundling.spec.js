@@ -1,4 +1,4 @@
-describe('Foundling', function () {
+describe('Foundling\'s', function () {
     integration(function () {
         describe('Foundling', function () {
             beforeEach(function () {
@@ -14,7 +14,7 @@ describe('Foundling', function () {
                 });
             });
 
-            it('\'s ability should give the attached card the Mandalorian trait', function () {
+            it('ability should give the attached card the Mandalorian trait', function () {
                 // check battlefield marine trait
                 expect(this.battlefieldMarine.hasSomeTrait('mandalorian')).toBeFalse();
 
@@ -31,6 +31,8 @@ describe('Foundling', function () {
                 // mandalorian warrior should be able to add experience to battlefield marine
                 this.player1.clickCard(this.mandalorianWarrior);
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.protectorOfTheThrone]);
+                this.player1.clickCard(this.battlefieldMarine);
+                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'foundling']);
             });
         });
     });

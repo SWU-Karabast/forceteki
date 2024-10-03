@@ -18,6 +18,7 @@ describe('Mandalorian Warrior', function () {
             it('should give an experience to mandalorian unit', function () {
                 this.player1.clickCard(this.mandalorianWarrior);
                 expect(this.player1).toBeAbleToSelectExactly([this.protectorOfTheThrone, this.sabineWren, this.clanChallengers]);
+                expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.protectorOfTheThrone);
                 expect(this.protectorOfTheThrone.isUpgraded()).toBeTrue();
             });
