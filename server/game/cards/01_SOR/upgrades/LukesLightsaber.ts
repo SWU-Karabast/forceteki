@@ -12,15 +12,9 @@ export default class LukesLightsaber extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
-        if (targetCard.hasSomeTrait(Trait.Vehicle)) {
-            return false;
-        }
-
-        return super.canAttach(targetCard, controller);
-    }
-
     public override setupCardAbilities() {
+        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+
         this.addWhenPlayedAbility({
             title: 'Heal all damage from Luke and give him a shield token',
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
