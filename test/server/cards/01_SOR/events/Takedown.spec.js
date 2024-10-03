@@ -42,7 +42,7 @@ describe('Takedown', function() {
             });
 
             it('should defeat an downgrade unit', function () {
-                //snoke should add at-st on targets
+                // snoke should add at-st on targets
                 this.player1.clickCard(this.supremeLeaderSnoke);
                 this.player2.passAction();
                 this.player1.clickCard(this.takedown);
