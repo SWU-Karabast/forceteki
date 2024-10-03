@@ -1,7 +1,9 @@
 # Forceteki
 Implementation of the Star Wars Unlimited game rules, based on the [Ringteki](https://github.com/ringteki/ringteki) architecture.
 
-## Contributing
+We have a [Discord server](https://discord.gg/N6ZgcZ3SfA) for updates, bug reports, and coordinating dev work.
+
+### Contributing
 For details on how to get started adding cards, see the [wiki](https://github.com/SWU-Karabast/forceteki/wiki).
 
 ## Development Quickstart
