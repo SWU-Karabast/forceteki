@@ -14,7 +14,7 @@ describe('Mandalorian Warrior', function () {
                 });
             });
 
-            it('should give experience to mandalorian unit', function () {
+            it('should give an experience to mandalorian unit', function () {
                 // add experience to a mandalorian
                 this.player1.clickCard(this.mandalorianWarrior);
                 this.player1.clickPrompt('Give 1 experience to another Mandalorian unit')

@@ -14,7 +14,7 @@ describe('Foundling', function () {
                 });
             });
 
-            it('should gain mandalorian\'s trait', function () {
+            it('\'s ability should give the attached card the Mandalorian trait', function () {
                 // check battlefield marine trait
                 expect(this.battlefieldMarine.hasSomeTrait('mandalorian')).toBeFalse();
 
