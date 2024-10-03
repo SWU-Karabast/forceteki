@@ -12,6 +12,7 @@ describe('Protector of the Throne', function() {
                     }
                 });
             });
+
             it('should give it sentinel only as long as it is upgraded', function () {
                 this.player1.pass();
 

@@ -7,17 +7,18 @@ describe('Mandalorian Warrior', function () {
                     player1: {
                         hand: ['mandalorian-warrior'],
                         groundArena: ['protector-of-the-throne', 'battlefield-marine'],
+                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true }
                     },
                     player2: {
-                        groundArena: ['snowspeeder']
+                        groundArena: ['snowspeeder', 'clan-challengers']
                     }
                 });
             });
 
             it('should give an experience to mandalorian unit', function () {
-                // add experience to a mandalorian
                 this.player1.clickCard(this.mandalorianWarrior);
-                this.player1.clickPrompt('Give 1 experience to another Mandalorian unit');
+                expect(this.player1).toBeAbleToSelectExactly([this.protectorOfTheThrone, this.sabineWren, this.clanChallengers]);
+                this.player1.clickCard(this.protectorOfTheThrone);
                 expect(this.protectorOfTheThrone.isUpgraded()).toBeTrue();
             });
         });
