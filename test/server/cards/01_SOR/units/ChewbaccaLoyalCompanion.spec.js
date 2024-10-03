@@ -16,7 +16,7 @@ describe('Chewbacca, Loyal Companion', function() {
             it('readies Chewbacca when he is attacked', function () {
                 expect(this.chewbacca.exhausted).toBe(true);
                 this.player1.clickCard(this.specforceSoldier);
-                //Don't need to click Chewbacca due to sentinel
+                // Don't need to click Chewbacca due to sentinel
                 expect(this.chewbacca.exhausted).toBe(false);
 
                 this.player2.clickCard(this.chewbacca);

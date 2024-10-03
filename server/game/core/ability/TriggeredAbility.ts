@@ -76,7 +76,7 @@ export default class TriggeredAbility extends CardAbility {
         // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, event);
-            //console.log(event.name, this.card.name, this.isTriggeredByEvent(event, context), this.meetsRequirements(context));
+            // console.log(event.name, this.card.name, this.isTriggeredByEvent(event, context), this.meetsRequirements(context));
             if (
                 (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
@@ -156,7 +156,7 @@ export default class TriggeredAbility extends CardAbility {
     private checkAggregateWhen(events, window) {
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, events);
-            //console.log(events.map(event => event.name), this.card.name, this.aggregateWhen(events, context), this.meetsRequirements(context));
+            // console.log(events.map(event => event.name), this.card.name, this.aggregateWhen(events, context), this.meetsRequirements(context));
             if (
                 (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&

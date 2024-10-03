@@ -1,4 +1,4 @@
-/*eslint no-console:0 */
+/* eslint no-console:0 */
 const { default: axios } = require('axios');
 const { default: axiosRetry } = require('axios-retry');
 const { Agent } = require('https');

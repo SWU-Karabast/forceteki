@@ -5,7 +5,7 @@ import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSyste
 import Player from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
 
-//TODO: Need some future work to fully implement Thrawn
+// TODO: Need some future work to fully implement Thrawn
 export interface IViewCardProperties extends ICardTargetSystemProperties {
     viewType: ViewCardMode;
     sendChatMessage?: boolean;
