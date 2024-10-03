@@ -2,22 +2,22 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
 
-export default class GeneralDodonnaMassassiGroupCommander extends NonLeaderUnitCard {
+export default class GeneralVeersBlizzardForceCommander extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '9799982630',
-            internalName: 'general-dodonna#massassi-group-commander',
+            id: '1557302740',
+            internalName: 'general-veers#blizzard-force-commander'
         };
     }
 
     public override setupCardAbilities() {
         this.addConstantAbility({
-            title: 'Other friendly Rebel units get +1/+1',
+            title: 'Other friendly Imperial units get +1/+1',
             targetController: RelativePlayer.Self,
-            matchTarget: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Rebel),
+            matchTarget: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Imperial),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })
         });
     }
 }
 
-GeneralDodonnaMassassiGroupCommander.implemented = true;
+GeneralVeersBlizzardForceCommander.implemented = true;
