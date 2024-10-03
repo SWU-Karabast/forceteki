@@ -23,6 +23,8 @@ describe('General Krell, Heartless Tactician', function() {
                 // CASE 1: friendly and enemy unit trade, draw 1 card only
                 this.player1.clickCard(this.syndicateLackeys);
                 this.player1.clickCard(this.wampa);
+                expect(this.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                this.player1.clickPrompt('Draw a card');
                 expect(this.syndicateLackeys).toBeInLocation('discard');
                 expect(this.player1.handSize).toBe(startingHandSize + 1);
 
@@ -30,6 +32,8 @@ describe('General Krell, Heartless Tactician', function() {
                 this.player2.passAction();
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickCard(this.atatSuppressor);
+                expect(this.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                this.player1.clickPrompt('Draw a card');
                 expect(this.leiaOrgana).toBeInLocation('base');
                 expect(this.player1.handSize).toBe(startingHandSize + 2);
 
@@ -40,6 +44,8 @@ describe('General Krell, Heartless Tactician', function() {
                 this.player2.passAction();
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.atatSuppressor);
+                expect(this.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                this.player1.clickPrompt('Draw a card');
                 expect(this.battlefieldMarine).toBeInLocation('discard');
                 expect(this.player1.handSize).toBe(startingHandSize + 2);   // hand size goes down by 1 from playing the marine
 
@@ -81,6 +87,9 @@ describe('General Krell, Heartless Tactician', function() {
 
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.wampa);
+
+                expect(this.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                this.player1.clickPrompt('Draw a card');
 
                 expect(this.player1.handSize).toBe(startingHandSize + 1);
             });

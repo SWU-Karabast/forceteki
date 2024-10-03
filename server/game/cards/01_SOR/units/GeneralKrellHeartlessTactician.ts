@@ -18,6 +18,7 @@ export default class GeneralKrellHeartlessTactician extends NonLeaderUnitCard {
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
                 type: AbilityType.Triggered,
                 title: 'Draw a card',
+                optional: true,
                 when: { onCardDefeated: (event, context) => event.card === context.source },
                 immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
             })

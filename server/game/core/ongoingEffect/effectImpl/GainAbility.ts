@@ -18,12 +18,6 @@ export class GainAbility extends OngoingEffectValueWrapper<IActionAbilityPropsWi
         super(Object.assign(gainedAbilityProps, { printedAbility: false }));
 
         this.abilityType = gainedAbilityProps.type;
-
-        // TODO: is there anything in SWU that causes a card to gain a constant ability?
-        // if (this.abilityType === AbilityType.Constant && !this.properties.locationFilter) {
-        //     this.properties.locationFilter = WildcardLocation.AnyArena;
-        //     this.properties.abilityType = AbilityType.Constant;
-        // }
     }
 
     public override setContext(context) {

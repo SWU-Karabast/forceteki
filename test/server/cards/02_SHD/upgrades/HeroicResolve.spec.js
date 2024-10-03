@@ -51,11 +51,12 @@ describe('Heroic Resolve', function() {
                         groundArena: [{ card: 'frontier-atrt', upgrades: ['heroic-resolve', 'heroic-resolve', 'academy-training'] }],
                     },
                     player2: {
-                        groundArena: ['wampa', 'specforce-soldier']
+                        groundArena: ['wampa', 'specforce-soldier', { card: 'battlefield-marine', upgrades: ['heroic-resolve'] }]
                     }
                 });
 
-                [this.heroicResolve1, this.heroicResolve2] = this.player1.findCardsByName('heroic-resolve');
+                [this.p1HeroicResolve1, this.p1HeroicResolve2] = this.player1.findCardsByName('heroic-resolve');
+                this.p2HeroicResolve = this.player2.findCardByName('heroic-resolve');
             });
 
             it('should allow any attached copy of Heroic Resolve to be defeated', function () {
@@ -70,13 +71,13 @@ describe('Heroic Resolve', function() {
 
                 this.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
                 expect(this.player1).not.toHavePassAbilityButton();
-                expect(this.player1).toBeAbleToSelectExactly([this.heroicResolve1, this.heroicResolve2]);
-                this.player1.clickCard(this.heroicResolve1);
+                expect(this.player1).toBeAbleToSelectExactly([this.p1HeroicResolve1, this.p1HeroicResolve2]);   // should not be able to select opponent's upgrade
+                this.player1.clickCard(this.p1HeroicResolve1);
 
-                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa, this.specforceSoldier]);
+                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa, this.specforceSoldier, this.battlefieldMarine]);
                 this.player1.clickCard(this.wampa);
                 expect(this.frontierAtrt).toHaveExactUpgradeNames(['heroic-resolve', 'academy-training']);
-                expect(this.heroicResolve1).toBeInLocation('discard');
+                expect(this.p1HeroicResolve1).toBeInLocation('discard');
                 expect(this.wampa).toBeInLocation('discard');
                 expect(this.p2Base.damage).toBe(5); // extra 3 damage from upgrade stat boosts
                 expect(this.player1.countExhaustedResources()).toBe(2);
@@ -90,11 +91,11 @@ describe('Heroic Resolve', function() {
 
                 this.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
                 expect(this.player1).not.toHavePassAbilityButton();
-                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.specforceSoldier]);
+                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.specforceSoldier, this.battlefieldMarine]);
 
                 this.player1.clickCard(this.specforceSoldier);
                 expect(this.frontierAtrt).toHaveExactUpgradeNames(['academy-training']);
-                expect(this.heroicResolve2).toBeInLocation('discard');
+                expect(this.p1HeroicResolve2).toBeInLocation('discard');
                 expect(this.specforceSoldier).toBeInLocation('discard');
                 expect(this.p2Base.damage).toBe(12);
                 expect(this.player1.countExhaustedResources()).toBe(4);
