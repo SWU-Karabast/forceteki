@@ -45,10 +45,20 @@ describe('Recruit', function () {
                     expect(this.player1.deck.length).toBe(2);
                     expect([this.confiscate, this.iAmYourFather]).toAllBeInBottomOfDeck(this.player1, 2);
                 });
+            });
 
+            describe('when the deck is empty,', function() {
+                beforeEach(function () {
+                    this.setupTest({
+                        phase: 'action',
+                        player1: {
+                            hand: ['recruit'],
+                            deck: [],
+                        },
+                    });
+                });
 
-                it('when the deck is empty', function() {
-                    this.player1.setDeck([]);
+                it('should have no valid options to choose from', function() {
                     expect(this.player1.deck.length).toBe(0);
 
                     this.player1.clickCard(this.recruit);
@@ -59,7 +69,7 @@ describe('Recruit', function () {
                 });
             });
 
-            describe('no valid options', function() {
+            describe('when there are no valid options,', function() {
                 beforeEach(function () {
                     this.setupTest({
                         phase: 'action',
@@ -82,7 +92,8 @@ describe('Recruit', function () {
                 });
             });
 
-            describe('multiple valid options', function() {
+
+            describe('when there are multiple valid options,', function() {
                 beforeEach(function () {
                     this.setupTest({
                         phase: 'action',
