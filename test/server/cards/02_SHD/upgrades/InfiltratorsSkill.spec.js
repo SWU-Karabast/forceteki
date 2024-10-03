@@ -25,7 +25,7 @@ describe('Infiltrator\'s Skill', function() {
                 this.player1.clickCard(this.battlefieldMarine);
                 expect(this.player1).toBeAbleToSelectExactly([this.niimaOutpostConstables, this.p2Base]);
 
-                // defeat shielded pyke sentinel
+                // defeat shielded niima outpost constables
                 this.player1.clickCard(this.niimaOutpostConstables);
                 expect(this.battlefieldMarine.damage).toBe(2);
                 expect(this.niimaOutpostConstables.damage).toBe(4);
