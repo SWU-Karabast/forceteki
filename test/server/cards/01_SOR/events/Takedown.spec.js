@@ -17,7 +17,7 @@ describe('Takedown', function() {
                 });
             });
 
-            it('should defeat an ennemy', function () {
+            it('should defeat a ennemy', function () {
                 this.player1.clickCard(this.takedown);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.isbAgent, this.cartelSpacer, this.bobaFett, this.sabineWren]);
 
@@ -33,7 +33,7 @@ describe('Takedown', function() {
                 expect(this.pykeSentinel).toBeInLocation('discard');
             });
 
-            it('should defeat an leader', function () {
+            it('should defeat a leader', function () {
                 this.player1.clickCard(this.takedown);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.isbAgent, this.cartelSpacer, this.bobaFett, this.sabineWren]);
 
@@ -41,7 +41,7 @@ describe('Takedown', function() {
                 expect(this.sabineWren.deployed).toBeFalse();
             });
 
-            it('should defeat an downgrade unit', function () {
+            it('should defeat a unit with an hp reducing effect', function () {
                 // snoke should add at-st on targets
                 this.player1.clickCard(this.supremeLeaderSnoke);
                 this.player2.passAction();

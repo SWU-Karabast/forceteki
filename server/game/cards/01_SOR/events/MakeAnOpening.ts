@@ -13,18 +13,15 @@ export default class MakeAnOpening extends EventCard {
     public override setupCardAbilities () {
         this.setEventAbility({
             title: 'Give a unit -2/-2 for this phase. Heal 2 damage from your base',
-            targetResolvers: {
-                downgradeUnit: {
+            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 })
-                    })
-                },
-                heal: {
-                    cardTypeFilter: CardType.Base,
-                    immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 2 })
-                }
-            }
+                    innerSystem: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
+                    }),
+                }),
+                AbilityHelper.immediateEffects.heal((context) => ({ amount: 2, target: context.source.controller.base }))
+            ])
         });
     }
 }

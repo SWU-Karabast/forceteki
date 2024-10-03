@@ -14,7 +14,6 @@ export default class FellTheDragon extends EventCard {
         this.setEventAbility({
             title: 'Defeat a non-leader unit with 5 or more power',
             targetResolver: {
-                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 cardCondition: (card, _) => card.isNonLeaderUnit() && card.getPower() >= 5,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             }

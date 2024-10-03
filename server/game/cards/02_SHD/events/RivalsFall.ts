@@ -12,7 +12,7 @@ export default class RivalsFall extends EventCard {
 
     public override setupCardAbilities () {
         this.setEventAbility({
-            title: 'Defeat an unit',
+            title: 'Defeat a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),

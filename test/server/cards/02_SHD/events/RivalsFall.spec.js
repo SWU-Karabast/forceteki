@@ -16,7 +16,7 @@ describe('Rival\'s Fall', function() {
                 });
             });
 
-            it('should defeat an ennemy', function () {
+            it('should defeat a ennemy', function () {
                 this.player1.clickCard(this.rivalsFall);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.bobaFett]);
 
@@ -32,7 +32,7 @@ describe('Rival\'s Fall', function() {
                 expect(this.pykeSentinel).toBeInLocation('discard');
             });
 
-            it('should defeat an leader', function () {
+            it('should defeat a leader', function () {
                 this.player1.clickCard(this.rivalsFall);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.bobaFett]);
 

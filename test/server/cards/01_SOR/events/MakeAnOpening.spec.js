@@ -6,31 +6,26 @@ describe('Make an Opening', function () {
                     phase: 'action',
                     player1: {
                         hand: ['make-an-opening'],
-                        groundArena: ['pyke-sentinel', { card: 'gideon-hask#ruthless-loyalist', upgrades: ['entrenched'] }],
+                        groundArena: ['pyke-sentinel'],
                     },
                     player2: {
-                        groundArena: ['atst', 'isb-agent'],
+                        groundArena: ['isb-agent'],
                         spaceArena: ['cartel-spacer'],
                         leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true }
                     }
                 });
             });
 
-            it('should downgrade an unit and heal base', function () {
+            it('should reduce hp to a unit and heal your base', function () {
+                this.p1Base.damage = 5;
                 this.player1.clickCard(this.makeAnOpening);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.gideonHask, this.atst, this.isbAgent, this.cartelSpacer, this.sabineWren]);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.isbAgent, this.cartelSpacer, this.sabineWren]);
 
                 this.player1.clickCard(this.isbAgent);
-                // VBL : maybe a bug somewhere, if I keep this test here he fails, but at the end of event it works
-                // expect(this.isbAgent.getPower()).toBe(0);
-                // expect(this.isbAgent.remainingHp).toBe(1);
-
-                this.p1Base.damage = 5;
-                expect(this.player1).toBeAbleToSelectExactly([this.p1Base, this.p2Base]);
-                this.player1.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(3);
                 expect(this.isbAgent.getPower()).toBe(0);
                 expect(this.isbAgent.remainingHp).toBe(1);
+
+                expect(this.p1Base.damage).toBe(3);
             });
         });
     });
