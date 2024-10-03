@@ -42,10 +42,8 @@ describe('Waylay', function() {
                 this.player1.clickCard(this.entrenched);
                 // card attaches automatically as there's only one target
 
+                // card selects automatically as there's only one target
                 this.player2.clickCard(this.waylay);
-                expect(this.player2).toBeAbleToSelectExactly(this.wampa);
-
-                this.player2.clickCard(this.wampa);
                 expect(this.wampa).toBeInLocation('hand', this.player2);
 
                 // this expectation will automatically check that entrenched is in the owning player's discard
