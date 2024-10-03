@@ -37,6 +37,7 @@ export default tseslint.config(
             "jasmine/new-line-before-expect": 0,
             "jasmine/prefer-toHaveBeenCalledWith": 0,
 
+            "@stylistic/js/spaced-comment": ["error", "always"],
             "@stylistic/js/function-call-spacing": ["error", "never"],
             "@stylistic/js/padded-blocks": ["error", "never"],
             "@stylistic/js/object-curly-spacing": ["error", "always"],
@@ -52,7 +53,6 @@ export default tseslint.config(
             "@stylistic/js/implicit-arrow-linebreak": ["off"],
             "@stylistic/js/no-multi-spaces": ["error", { "ignoreEOLComments": true }],
             "@stylistic/js/multiline-comment-style": ["off"],
-            "@stylistic/js/spaced-comment": ["off"],
             "@stylistic/js/dot-location": ["error", "property"],
             "@stylistic/js/no-extra-parens": ["off"],
             "@stylistic/js/comma-dangle": ["error", "only-multiline"],
