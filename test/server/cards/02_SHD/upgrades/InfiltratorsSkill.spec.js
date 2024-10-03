@@ -8,7 +8,7 @@ describe('Infiltrator\'s Skill', function() {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['infiltrators-skill'] }],
                     },
                     player2: {
-                        groundArena: ['pyke-sentinel']
+                        groundArena: [{ card: 'pyke-sentinel', upgrades: ['shield'] }]
                     }
                 });
             });
@@ -16,6 +16,18 @@ describe('Infiltrator\'s Skill', function() {
             it('should ignore sentinel', function () {
                 this.player1.clickCard(this.battlefieldMarine);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.p2Base]);
+                // ignore sentinel
+                this.player1.clickCard(this.p2Base);
+                expect(this.p2Base.damage).toBe(4);
+            });
+            it('should ignore shield', function () {
+                this.player1.clickCard(this.battlefieldMarine);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.p2Base]);
+
+                // defeat shielded pyke sentinel
+                this.player1.clickCard(this.pykeSentinel);
+                expect(this.battlefieldMarine.damage).toBe(2);
+                expect(this.pykeSentinel).toBeInLocation('discard');
             });
         });
     });

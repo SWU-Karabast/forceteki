@@ -15,8 +15,10 @@ describe('Protector', function() {
 
             it('should be sentinel', function () {
                 this.player1.clickCard(this.battlefieldMarine);
-                //Snowspeeder automatically selected due to sentinel
+                // Snowspeeder automatically selected due to sentinel
                 expect(this.player2).toBeActivePlayer();
+                expect(this.snowspeeder.damage).toBe(3);
+                expect(this.battlefieldMarine).toBeInLocation('discard');
             });
         });
     });
