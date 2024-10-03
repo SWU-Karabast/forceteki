@@ -13,17 +13,12 @@ export default class JediLightsaber extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
-        if (targetCard.hasSomeTrait(Trait.Vehicle)) {
-            return false;
-        }
-
-        return super.canAttach(targetCard, controller);
-    }
-
     public override setupCardAbilities() {
-        this.addGainTriggeredAbilityTargetingAttached({ title: 'Give the defender -2/-2 for this phase',
-            when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
+        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+
+        this.addGainOnAttackAbilityTargetingAttached({
+            title: 'Give the defender -2/-2 for this phase',
+            gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
 
             // need to check if the target is a base - if so, don't apply the stat modifier effect
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -33,8 +28,8 @@ export default class JediLightsaber extends UpgradeCard {
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
                     target: (context.event.attack as Attack).target
                 }))
-            }) },
-        (context) => context.source.parentCard?.hasSomeTrait(Trait.Force));
+            })
+        });
     }
 }
 
