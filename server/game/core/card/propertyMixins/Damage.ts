@@ -66,6 +66,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
                 return;
             }
 
+            // damage is added here, and checks for effects such as defeat or game win are handled either in a subclass or in Game.resolveGameState
             this.damage += amount;
         }
 

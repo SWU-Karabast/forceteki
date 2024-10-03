@@ -103,6 +103,13 @@ export function assertHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: str
     }
 }
 
+export function assertDoesNotHaveKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): asserts map is NonNullable<Map<TKey, any>> {
+    assertNotNullLike(map);
+    if (map.has(key)) {
+        contractCheckImpl.fail(message ?? `Map should not contain key ${key} but it does`);
+    }
+}
+
 export function assertPositiveNonZero(val: number, message?: string): asserts val is NonNullable<number> {
     assertNotNullLikeOrNan(val);
     if (val <= 0) {

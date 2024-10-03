@@ -1,4 +1,4 @@
-import { v1 as uuidV1 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
@@ -9,7 +9,7 @@ import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import type Player from './Player';
 
 export abstract class GameObject {
-    public uuid = uuidV1();
+    public uuid = uuidv4();
     protected id: string;
     private ongoingEffects = [] as IOngoingCardEffect[];
     private nameField: string;
