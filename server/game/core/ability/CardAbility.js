@@ -122,7 +122,7 @@ class CardAbility extends CardAbilityStep {
 
     getLocationMessage(location, context) {
         if (location.matchTarget(/^\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b$/i)) {
-            //it's a uuid
+            // it's a uuid
             let source = context.game.findAnyCardInPlayByUuid(location);
             if (source) {
                 return `cards set aside by ${source.name}`;

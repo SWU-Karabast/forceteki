@@ -58,7 +58,7 @@ class PlayerOrCardAbility {
         this.immediateEffect = properties.immediateEffect;
         this.uuid = uuidv4();
 
-        //TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
+        // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
         this.resolveTriggersAfter = this.type === AbilityType.Triggered || !!properties.resolveTriggersAfter;
 
         this.buildTargetResolvers(properties);

@@ -645,7 +645,7 @@ global.integration = function (definitions) {
              * @param {Object} [options = {}] - specifies the state of the game
              */
             this.setupTest = function (options = {}) {
-                //Set defaults
+                // Set defaults
                 if (!options.player1) {
                     options.player1 = {};
                 }
@@ -671,11 +671,11 @@ global.integration = function (definitions) {
                     this.player1.player.promptedActionWindows[options.phase] = true;
                     this.player2.player.promptedActionWindows[options.phase] = true;
 
-                    //Advance the phases to the specified
+                    // Advance the phases to the specified
                     this.advancePhases(options.phase);
                 }
 
-                //Player stats
+                // Player stats
                 this.player1.damageToBase = options.player1.damageToBase ?? 0;
                 this.player2.damageToBase = options.player2.damageToBase ?? 0;
 

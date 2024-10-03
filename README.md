@@ -1,8 +1,8 @@
 # Forceteki
-Proof-of-concept for web based implementation of Star Wars Unlimited TCG. Very WIP.
+Implementation of the Star Wars Unlimited game rules, based on the [Ringteki](https://github.com/ringteki/ringteki) architecture.
 
 ## Contributing
-For details on how to get started adding cards, see the [contributor's guide](./docs/implementing-cards.md).
+For details on how to get started adding cards, see the [wiki](https://github.com/SWU-Karabast/forceteki/wiki).
 
 ## Development Quickstart
 Follow these instructions to get to the point of being able to run the [unit tests](./test/server/) locally.
@@ -57,3 +57,4 @@ Once you have vscode set up, use the `Debug All Jasmine Tests` profile or open a
 #### Debugging Tips
 - You can use the `debugger;` command in node to create a breakpoint in code that will be respected by the vscode debugger
 - VSCode has advanced breakpoint features such as conditional breakpoints that are extremely useful for debugging complex situations, we highly recommend reading the "Advanced breakpoint topics" section of this guide if you haven't used it before: https://code.visualstudio.com/docs/editor/debugging#_advanced-breakpoint-topics
+- See our [Debugging Guide](https://github.com/SWU-Karabast/forceteki/wiki/Debugging-Guide) for detailed guides on debugging cards

@@ -72,9 +72,9 @@ type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Pro
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
 
-//////////////
+// ////////////
 // CARD
-//////////////
+// ////////////
 // export function addToken(propertyFactory: PropsFactory<AddTokenProperties> = {}): GameSystem {
 //     return new AddTokenAction(propertyFactory);
 // }

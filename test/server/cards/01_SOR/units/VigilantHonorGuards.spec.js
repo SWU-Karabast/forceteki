@@ -16,7 +16,7 @@ describe('Vigilant Honor Guards', function() {
 
             it('should give it sentinel only as long as it is undamaged', function () {
                 this.player1.clickCard(this.consularSecurityForce);
-                //Honor Guards automatically selected due to sentinel
+                // Honor Guards automatically selected due to sentinel
                 expect(this.player2).toBeActivePlayer();
                 expect(this.vigilantHonorGuards.damage).toBe(3);
                 expect(this.consularSecurityForce.damage).toBe(4);
@@ -25,10 +25,10 @@ describe('Vigilant Honor Guards', function() {
                 this.consularSecurityForce.exhausted = false;
 
                 this.player1.clickCard(this.consularSecurityForce);
-                expect(this.player1).toBeAbleToSelectExactly([this.vigilantHonorGuards, this.p2Base]); //no sentinel
+                expect(this.player1).toBeAbleToSelectExactly([this.vigilantHonorGuards, this.p2Base]); // no sentinel
                 this.player1.clickCard(this.p2Base);
 
-                //checking if they regain sentinel when fully healed
+                // checking if they regain sentinel when fully healed
                 this.player2.clickCard(this.repair);
                 this.player2.clickCard(this.vigilantHonorGuards);
                 expect(this.vigilantHonorGuards.damage).toBe(0);
@@ -36,7 +36,7 @@ describe('Vigilant Honor Guards', function() {
                 this.consularSecurityForce.exhausted = false;
 
                 this.player1.clickCard(this.consularSecurityForce);
-                //Honor Guards automatically selected due to sentinel
+                // Honor Guards automatically selected due to sentinel
                 expect(this.player2).toBeActivePlayer();
                 expect(this.vigilantHonorGuards.damage).toBe(3);
                 expect(this.consularSecurityForce).toBeInLocation('discard');
