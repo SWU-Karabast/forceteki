@@ -8,26 +8,28 @@ describe('Infiltrator\'s Skill', function() {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['infiltrators-skill'] }],
                     },
                     player2: {
-                        groundArena: [{ card: 'pyke-sentinel', upgrades: ['shield'] }]
+                        groundArena: [{ card: 'niima-outpost-constables', upgrades: ['shield'] }]
                     }
                 });
             });
 
             it('should ignore sentinel', function () {
                 this.player1.clickCard(this.battlefieldMarine);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.p2Base]);
+                expect(this.player1).toBeAbleToSelectExactly([this.niimaOutpostConstables, this.p2Base]);
                 // ignore sentinel
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(4);
             });
+
             it('should ignore shield', function () {
                 this.player1.clickCard(this.battlefieldMarine);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.p2Base]);
+                expect(this.player1).toBeAbleToSelectExactly([this.niimaOutpostConstables, this.p2Base]);
 
                 // defeat shielded pyke sentinel
-                this.player1.clickCard(this.pykeSentinel);
+                this.player1.clickCard(this.niimaOutpostConstables);
                 expect(this.battlefieldMarine.damage).toBe(2);
-                expect(this.pykeSentinel).toBeInLocation('discard');
+                expect(this.niimaOutpostConstables.damage).toBe(4);
+                expect(this.niimaOutpostConstables.isUpgraded()).toBe(false);
             });
         });
     });
