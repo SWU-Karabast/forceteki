@@ -1,6 +1,6 @@
-import { BaseCard } from "../../../core/card/BaseCard";
-import AbilityHelper from "../../../AbilityHelper";
-import { WildcardCardType } from "../../../core/Constants";
+import { BaseCard } from '../../../core/card/BaseCard';
+import AbilityHelper from '../../../AbilityHelper';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class SecurityComplex extends BaseCard {
     protected override getImplementationId () {

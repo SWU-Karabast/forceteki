@@ -15,7 +15,7 @@ describe('SecurityComplex', function() {
                 });
             });
 
-            it('should give shiled to non-leader unit', function () {
+            it('should give shield to non-leader unit', function () {
                 this.player1.clickCard(this.securityComplex);
                 expect(this.player1).toBeAbleToSelectExactly([this.jedhaAgitator, this.wampa, this.frontierAtrt]);
 
