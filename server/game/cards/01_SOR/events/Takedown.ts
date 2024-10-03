@@ -5,8 +5,8 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class Takedown extends EventCard {
     protected override getImplementationId () {
         return {
-            id: '2587711125',
-            internalName: 'make-an-opening',
+            id: '4849184191',
+            internalName: 'takedown',
         };
     }
 
@@ -15,7 +15,7 @@ export default class Takedown extends EventCard {
             title: 'Defeat an unit with 5 or less remaining HP',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, _) => card.isUnit() && card.getHp() <= 5,
+                cardCondition: (card, _) => card.isUnit() && card.remainingHp <= 5,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             }
         });
