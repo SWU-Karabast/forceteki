@@ -11,11 +11,8 @@ export default class Foundling extends UpgradeCard {
     }
 
     public override setupCardAbilities () {
-        this.addConstantAbility({
-            title: 'Give Mandalorian\'s trait to the attached card',
-            condition: () => true,
-            matchTarget: (card, context) => card === context.source.parentCard,
-            targetController: RelativePlayer.Any,
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give the Mandalorian trait to the attached card',
             ongoingEffect: OngoingEffectBuilder.card.static(EffectName.AddTrait, 'mandalorian'),
         });
     }
