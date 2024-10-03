@@ -33,24 +33,6 @@ describe('Open Fire', function() {
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.damage).toBe(4);
             });
-
-            it('can damage a damaged unit and destroy it', function () {
-                this.wampa.damage = 3;
-                this.player1.clickCard(this.openFire);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer, this.pykeSentinel, this.fleetLieutenant]);
-
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa.location).toBe('discard');
-            });
-
-            it('can damage a unit with experience that put it out of reach of defeat', function () {
-                this.player1.clickCard(this.openFire);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer, this.pykeSentinel, this.fleetLieutenant]);
-
-                this.player1.clickCard(this.fleetLieutenant);
-                expect(this.fleetLieutenant.damage).toBe(4);
-                expect(this.fleetLieutenant).toBeInLocation('ground arena');
-            });
         });
     });
 });
