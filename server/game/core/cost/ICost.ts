@@ -9,24 +9,24 @@ export interface Result {
     cancelled?: boolean;
 }
 
-export interface ICost {
-    canPay(context: AbilityContext): boolean;
+export interface ICost<TContext extends AbilityContext = AbilityContext> {
+    canPay(context: TContext): boolean;
 
-    gameSystem?: GameSystem;
+    gameSystem?: GameSystem<TContext>;
     activePromptTitle?: string;
 
-    selectCardName?(player: Player, cardName: string, context: AbilityContext): boolean;
+    selectCardName?(player: Player, cardName: string, context: TContext): boolean;
     promptsPlayer?: boolean;
     dependsOn?: string;
     isPrintedResourceCost?: boolean;
     isPlayCost?: boolean;
     canIgnoreForTargeting?: boolean;
 
-    getActionName?(context: AbilityContext): string;
-    getCostMessage?(context: AbilityContext): unknown[];
-    hasTargetsChosenByInitiatingPlayer?(context: AbilityContext): boolean;
-    queueGenerateEventGameSteps?(events: GameEvent[], context: AbilityContext, result?: Result): void;
-    resolve?(context: AbilityContext, result: Result): void;
-    payEvent?(context: TriggeredAbilityContext): GameEvent | GameEvent[];
-    pay?(context: TriggeredAbilityContext): void;
+    getActionName?(context: TContext): string;
+    getCostMessage?(context: TContext): unknown[];
+    hasTargetsChosenByInitiatingPlayer?(context: TContext): boolean;
+    queueGenerateEventGameSteps?(events: GameEvent[], context: TContext, result?: Result): void;
+    resolve?(context: TContext, result: Result): void;
+    payEvent?(context: TContext): GameEvent | GameEvent[];
+    pay?(context: TContext): void;
 }
