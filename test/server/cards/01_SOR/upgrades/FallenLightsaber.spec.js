@@ -88,7 +88,7 @@ describe('Fallen Lightsaber', function() {
 
             it('should not be playable on vehicles', function () {
                 this.player1.clickCard(this.fallenLightsaber);
-                expect(this.battlefieldMarine.upgrades).toContain(this.fallenLightsaber);
+                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['fallen-lightsaber']);
             });
         });
     });

@@ -582,6 +582,34 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    // TODO: could add a field to expect enabled or disabled per button
+    toHaveExactPromptButtons: function () {
+        return {
+            compare: function (player, buttons) {
+                let result = {};
+
+                if (!Array.isArray(buttons)) {
+                    throw new TestSetupError(`Parameter 'buttons' is not an array: ${buttons}`);
+                }
+
+                const actualButtons = player.currentPrompt().buttons.map((button) => button.text);
+
+                const expectedButtons = [...buttons];
+
+                result.pass = stringArraysEqual(actualButtons, expectedButtons);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact set of buttons but it does: ${expectedButtons.join(', ')}`;
+                } else {
+                    result.message = `Expected ${player.name} to have this exact set of buttons: '${expectedButtons.join(', ')}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+
+                return result;
+            }
+        };
     }
 };
 
@@ -617,7 +645,7 @@ global.integration = function (definitions) {
              * @param {Object} [options = {}] - specifies the state of the game
              */
             this.setupTest = function (options = {}) {
-                //Set defaults
+                // Set defaults
                 if (!options.player1) {
                     options.player1 = {};
                 }
@@ -643,11 +671,11 @@ global.integration = function (definitions) {
                     this.player1.player.promptedActionWindows[options.phase] = true;
                     this.player2.player.promptedActionWindows[options.phase] = true;
 
-                    //Advance the phases to the specified
+                    // Advance the phases to the specified
                     this.advancePhases(options.phase);
                 }
 
-                //Player stats
+                // Player stats
                 this.player1.damageToBase = options.player1.damageToBase ?? 0;
                 this.player2.damageToBase = options.player2.damageToBase ?? 0;
 

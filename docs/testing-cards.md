@@ -1,3 +1,6 @@
+# IMPORTANT NOTE: DEPRECATED
+All content is being migrated to the [wiki](https://github.com/SWU-Karabast/forceteki/wiki), please use that in the future.
+
 # Writing Card Tests
 
 Unit tests for cards are located in [test/server/cards](../test/server/cards/).
@@ -111,8 +114,9 @@ it('should heal all damage from and give a shield to its holder when played, onl
 });
 ```
 
-If two copies of a card with identical names are provided, then **no** property name will be generated and you must add it manually yourself in the test setup using `findCardByName()` or `findCardsByName()`:
+If two copies of a card with identical names are provided, then **no** property name will be generated and you must add it manually yourself in the test setup using either `findCardByName()` or `findCardsByName()`. See examples below.
 
+Duplicate cards owned by different players (Avenger):
 ```javascript
 beforeEach(function () {
     this.setupTest({
@@ -130,5 +134,22 @@ beforeEach(function () {
 
     this.p1Avenger = this.player1.findCardByName('avenger#hunting-star-destroyer');
     this.p2Avenger = this.player2.findCardByName('avenger#hunting-star-destroyer');
+});
+```
+
+Duplicate cards owned by same player (Heroic Resolve):
+```javascript
+beforeEach(function () {
+    this.setupTest({
+        phase: 'action',
+        player1: {
+            groundArena: [{ card: 'frontier-atrt', upgrades: ['heroic-resolve', 'heroic-resolve'] }],
+        },
+        player2: {
+            groundArena: ['wampa', 'specforce-soldier']
+        }
+    });
+
+    [this.heroicResolve1, this.heroicResolve2] = this.player1.findCardsByName('heroic-resolve');
 });
 ```

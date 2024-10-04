@@ -17,7 +17,7 @@ describe('Relentless, Konstantine\'s Folly', function() {
             it('should nullify the effects of the first event the opponent plays each round', function () {
                 this.player1.clickCard(this.relentless);
 
-                //play an event, with no effect
+                // play an event, with no effect
                 let exhaustedResourcesBeforeCardPlay = this.player2.countExhaustedResources();
                 this.player2.clickCard(this.vanquish);
                 expect(this.player2.countExhaustedResources()).toBe(exhaustedResourcesBeforeCardPlay + 5);
@@ -26,14 +26,14 @@ describe('Relentless, Konstantine\'s Folly', function() {
 
                 this.player1.pass();
 
-                //play a second event, with effect
+                // play a second event, with effect
                 exhaustedResourcesBeforeCardPlay = this.player2.countExhaustedResources();
                 this.player2.clickCard(this.repair);
                 this.player2.clickCard(this.p2Base);
                 expect(this.player2.countExhaustedResources()).toBe(exhaustedResourcesBeforeCardPlay + 1);
                 expect(this.p2Base.damage).toBe(2);
 
-                //next round, it should nullify the first event played again
+                // next round, it should nullify the first event played again
                 this.moveToNextActionPhase();
                 this.player1.pass();
                 exhaustedResourcesBeforeCardPlay = this.player2.countExhaustedResources();

@@ -118,7 +118,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             let triggeredAbilities = super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
-            if (this._attackKeywordAbilities !== null || this.isBlank()) { //TODO: Why is this isBlank check even here?
+            if (this._attackKeywordAbilities !== null || this.isBlank()) { // TODO: Why is this isBlank check even here?
                 triggeredAbilities = triggeredAbilities.concat(this._attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
             }
             if (this._whenPlayedKeywordAbilities !== null || this.isBlank()) {
@@ -264,12 +264,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number) {
-            super.addDamage(amount);
-
-            // the defeat check will happen in the next call to Game.resolveGameState (typically when the event window resolves)
-        }
-
         public checkDefeated() {
             if (this.damage >= this.getHp() && !this.defeatEventEmitted) {
                 this.owner.defeatCard(this);

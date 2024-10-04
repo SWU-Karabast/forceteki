@@ -816,7 +816,7 @@ class Player extends GameObject {
      * @param {Location} location
      */
     isLegalLocationForCardType(cardType, location) {
-        //if we're trying to go into an additional pile, we're probably supposed to be there
+        // if we're trying to go into an additional pile, we're probably supposed to be there
         if (this.additionalPiles[location]) {
             return true;
         }

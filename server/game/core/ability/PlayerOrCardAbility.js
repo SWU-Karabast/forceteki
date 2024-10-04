@@ -6,6 +6,7 @@ const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
 const { has } = require('underscore');
+const { v4: uuidv4 } = require('uuid');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -55,8 +56,9 @@ class PlayerOrCardAbility {
         this.type = type;
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
+        this.uuid = uuidv4();
 
-        //TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
+        // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
         this.resolveTriggersAfter = this.type === AbilityType.Triggered || !!properties.resolveTriggersAfter;
 
         this.buildTargetResolvers(properties);
@@ -117,7 +119,7 @@ class PlayerOrCardAbility {
         // check legal targets exist
         // check costs can be paid
         // check for potential to change game state
-        if (!this.canPayCosts(context) && !ignoredRequirements.includes('cost')) {
+        if (!ignoredRequirements.includes('cost') && !this.canPayCosts(context)) {
             return 'cost';
         }
 

@@ -37,7 +37,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             event.card.exhaust();
         }
 
-        //moveCard sets all this stuff and only works if the owner is moving cards, so we're switching it around
+        // moveCard sets all this stuff and only works if the owner is moving cards, so we're switching it around
         if (event.card.controller !== finalController) {
             event.card.controller = finalController;
             event.card.setDefaultController(event.card.controller);

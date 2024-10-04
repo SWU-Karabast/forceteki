@@ -13,18 +13,11 @@ export default class VambraceGrappleshot extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
-        if (targetCard.hasSomeTrait(Trait.Vehicle)) {
-            return false;
-        }
-
-        return super.canAttach(targetCard, controller);
-    }
-
     public override setupCardAbilities() {
-        this.addGainTriggeredAbilityTargetingAttached({
+        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+
+        this.addGainOnAttackAbilityTargetingAttached({
             title: 'Exhaust the defender on attack',
-            when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
                 return { target: context.source.activeAttack?.target };
             })

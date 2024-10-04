@@ -12,23 +12,16 @@ export default class FallenLightsaber extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
-        if (targetCard.hasSomeTrait(Trait.Vehicle)) {
-            return false;
-        }
-
-        return super.canAttach(targetCard, controller);
-    }
-
     public override setupCardAbilities() {
-        this.addGainTriggeredAbilityTargetingAttached({
+        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+
+        this.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 1 damage to each ground unit the defending player controls',
-            when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => {
                 return { target: context.source.controller.opponent.getUnitsInPlay(Location.GroundArena), amount: 1 };
-            })
-        },
-        (context) => context.source.parentCard?.hasSomeTrait(Trait.Force));
+            }),
+            gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force)
+        });
     }
 }
 

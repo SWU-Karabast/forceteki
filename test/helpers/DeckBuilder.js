@@ -49,7 +49,6 @@ class DeckBuilder {
 
         allCards.push(this.getLeaderCard(playerCards, playerNumber));
         allCards.push(this.getBaseCard(playerCards, playerNumber));
-        // allCards.push(playerCards.base ? playerCards.base : defaultBase[playerNumber]);
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
         playerCards.resources = this.padCardListIfNeeded(playerCards.resources, defaultResourceCount);
@@ -71,8 +70,9 @@ class DeckBuilder {
 
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.groundArena));
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
+        inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.leader));
 
-        //Collect all the cards together
+        // Collect all the cards together
         allCards = allCards.concat(inPlayCards);
 
         return [this.buildDeck(allCards), namedCards];
@@ -96,15 +96,21 @@ class DeckBuilder {
             namedCards = namedCards.concat(playerEntry);
         } else if ('card' in playerEntry) {
             namedCards.push(playerEntry.card);
-            if ('upgrades' in playerEntry) {
-                namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(playerEntry.upgrades));
-            }
+            namedCards = namedCards.concat(this.getUpgradesFromCard(playerEntry));
         } else if (Array.isArray(playerEntry)) {
             playerEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(card)));
         } else {
             throw new TestSetupError(`Unknown test card specifier format: '${playerObject}'`);
         }
         return namedCards;
+    }
+
+    getUpgradesFromCard(playerEntry) {
+        if (playerEntry && typeof playerEntry !== 'string' && 'upgrades' in playerEntry) {
+            return this.getNamedCardsInPlayerEntry(playerEntry.upgrades);
+        }
+
+        return [];
     }
 
     padCardListIfNeeded(cardList, defaultCount) {
@@ -159,9 +165,9 @@ class DeckBuilder {
             if (typeof card === 'string') {
                 inPlayCards.push(card);
             } else {
-                //Add the card itself
+                // Add the card itself
                 inPlayCards.push(card.card);
-                //Add any upgrades
+                // Add any upgrades
                 if (card.upgrades) {
                     let nonTokenUpgrades = card.upgrades.filter((upgrade) =>
                         !['shield', 'experience'].includes(upgrade)
