@@ -1,6 +1,6 @@
-describe('Covert Strength', function () {
+describe('Moment of Glory', function () {
     integration(function () {
-        describe('Covert Strength\'s ability', function () {
+        describe('Moment of Glory\'s ability', function () {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
