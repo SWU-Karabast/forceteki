@@ -130,7 +130,7 @@ function parseSmuggleIfEnabled(keyword: KeywordName, cardText: string, cardName:
     const smuggleAspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
     const additionalSmuggleCosts = match.value[3] !== undefined;
 
-    // regex capture group will be numeric keyword value
+    // regex capture group will be keyword value with costs
     return new KeywordWithCostValues(KeywordName.Smuggle, smuggleCost, smuggleAspects, additionalSmuggleCosts);
 }
 

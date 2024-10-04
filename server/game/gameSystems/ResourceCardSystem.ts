@@ -41,7 +41,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
     public override getCostMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
-        return ['shuffling {0} into their deck', [properties.target]];
+        return ['moving {0} to resources', [properties.target]];
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

@@ -364,7 +364,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {Card | null} the Card, or null if the deck is empty
+     * @returns {Card | null} the Card,© or null if the deck is empty
      */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {
@@ -898,6 +898,7 @@ class Player extends GameObject {
     /**
      * Exhaust the specified number of resources
      */
+    // TODO: Create an ExhaustOrReadyResourcesSystem
     exhaustResources(count, priorityResources = []) {
         let priorityResourcesExhausted = 0;
         let readyResources = this.resources.filter((card) => !card.exhausted);

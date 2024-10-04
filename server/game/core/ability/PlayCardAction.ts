@@ -37,10 +37,8 @@ export abstract class PlayCardAction extends PlayerAction {
         ) {
             return 'cannotTrigger';
         }
-        if (PlayType.Smuggle === this.playType) {
-            if (!context.source.hasSomeKeyword(KeywordName.Smuggle)) {
-                return 'smuggleKeyword';
-            }
+        if (PlayType.Smuggle === this.playType && !context.source.hasSomeKeyword(KeywordName.Smuggle)) {
+            return 'smuggleKeyword';
         }
         return super.meetsRequirements(context, ignoredRequirements);
     }

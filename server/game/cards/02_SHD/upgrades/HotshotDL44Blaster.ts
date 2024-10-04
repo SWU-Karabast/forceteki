@@ -23,13 +23,11 @@ export default class HotshotDL44Blaster extends UpgradeCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'When Smuggled, attack with attached unit',
-            optional: false,
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 target: context.source.parentCard,
                 condition: context.event.playType === PlayType.Smuggle,
                 onTrue: AbilityHelper.immediateEffects.attack((context) => ({
                     attacker: context.source.parentCard,
-                    optional: false
                 })),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             }))

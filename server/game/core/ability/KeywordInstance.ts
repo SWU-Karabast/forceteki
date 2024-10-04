@@ -33,7 +33,7 @@ export class KeywordWithCostValues extends KeywordInstance {
         name: KeywordName,
         public readonly cost: number,
         public readonly aspects: Aspect[],
-        public readonly additionalCosts: boolean
+        public readonly additionalCosts: boolean // TODO: implement additional costs (First Light)
     ) {
         super(name);
     }

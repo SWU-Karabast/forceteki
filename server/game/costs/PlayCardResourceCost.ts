@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, Location, PlayType, RelativePlayer } from '../core/Constants';
+import { EventName, PlayType } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 
@@ -8,9 +8,9 @@ import { GameEvent } from '../core/event/GameEvent';
  * any cost adjusters in play that increase or decrease the play cost for the relevant card.
  */
 export class PlayCardResourceCost implements ICost {
-    public isPlayCost = true;
-    public isPrintedResourceCost = PlayType.PlayFromHand === this.playType;
-    public isSmuggleCost = PlayType.Smuggle === this.playType;
+    public readonly isPlayCost = true;
+    public readonly isPrintedResourceCost = PlayType.PlayFromHand === this.playType;
+    public readonly isSmuggleCost = PlayType.Smuggle === this.playType;
 
     // used for extending this class if any cards have unique after pay hooks
     protected afterPayHook?: ((event: any) => void) = null;

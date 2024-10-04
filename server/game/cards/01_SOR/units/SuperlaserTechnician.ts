@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location } from '../../../core/Constants';
 
 export default class SuperlaserTechnician extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,9 +13,8 @@ export default class SuperlaserTechnician extends NonLeaderUnitCard {
         this.addWhenDefeatedAbility({
             title: 'Put Superlaser Technician into play as a resource and ready it',
             optional: true,
-            //TODO: figure out how to change this from sequential to simultaneous while keeing the ready effect
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.resourceCard({ target: this, readyResource: true })])
+            // TODO: figure out how to change this from sequential to simultaneous while keeing the ready effect
+            immediateEffect: AbilityHelper.immediateEffects.resourceCard({ target: this, readyResource: true })
         });
     }
 }
