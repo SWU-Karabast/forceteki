@@ -1,3 +1,5 @@
+const { Trait } = require("../../../../../build/game/core/Constants");
+
 describe('Foundling\'s', function () {
     integration(function () {
         describe('Foundling', function () {
@@ -16,7 +18,7 @@ describe('Foundling\'s', function () {
 
             it('ability should give the attached card the Mandalorian trait', function () {
                 // check battlefield marine trait
-                expect(this.battlefieldMarine.hasSomeTrait('mandalorian')).toBeFalse();
+                expect(this.battlefieldMarine.hasSomeTrait(Trait.Mandalorian)).toBeFalse();
 
                 // add battlefield marine foundling
                 this.player1.clickCard(this.foundling);
@@ -24,8 +26,8 @@ describe('Foundling\'s', function () {
                 this.player1.clickCard(this.battlefieldMarine);
 
                 // check players units traits
-                expect(this.battlefieldMarine.hasSomeTrait('mandalorian')).toBeTrue();
-                expect(this.pykeSentinel.hasSomeTrait('mandalorian')).toBeFalse();
+                expect(this.battlefieldMarine.hasSomeTrait(Trait.Mandalorian)).toBeTrue();
+                expect(this.pykeSentinel.hasSomeTrait(Trait.Mandalorian)).toBeFalse();
 
                 this.player2.pass();
                 // mandalorian warrior should be able to add experience to battlefield marine
