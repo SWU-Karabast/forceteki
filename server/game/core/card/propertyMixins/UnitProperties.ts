@@ -264,12 +264,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number) {
-            super.addDamage(amount);
-
-            // the defeat check will happen in the next call to Game.resolveGameState (typically when the event window resolves)
-        }
-
         public checkDefeated() {
             if (this.damage >= this.getHp() && !this.defeatEventEmitted) {
                 this.owner.defeatCard(this);

@@ -63,7 +63,7 @@ describe('Shield', function() {
 
                 expect(this.cartelSpacer.damage).toBe(2);
                 expect(this.tielnFighter.damage).toBe(0);
-                expect(this.tielnFighter.upgrades.length).toBe(1);
+                expect(this.tielnFighter).toHaveExactUpgradeNames(['shield']);
 
                 expect(getShieldLocationsSorted(this.shields)).toEqual(['outside the game', 'space arena']);
 
