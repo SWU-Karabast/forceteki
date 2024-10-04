@@ -16,7 +16,7 @@ describe('Make an Opening', function () {
                 });
             });
 
-            it('should fully-reduce hp to a unit and heal your base', function () {
+            it('should reduce hp to a enemy unit and heal your base', function () {
                 this.p1Base.damage = 5;
                 this.player1.clickCard(this.makeAnOpening);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.sabineWren]);
@@ -28,7 +28,7 @@ describe('Make an Opening', function () {
                 expect(this.p1Base.damage).toBe(3);
             });
 
-            it('should reduce hp to a unit and heal your base', function () {
+            it('should reduce hp to an ally unit and heal your base', function () {
                 this.p1Base.damage = 5;
                 this.player1.clickCard(this.makeAnOpening);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.sabineWren]);
