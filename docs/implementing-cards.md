@@ -448,7 +448,7 @@ this.setEpicActionAbility({
     title: 'Deal 3 damage to a damaged non-leader unit',
     targetResolver: {
         cardTypeFilter: CardType.NonLeaderUnit,
-        cardCondition: (card) => (card as UnitCard).damage !== 0,
+        cardCondition: (card) => card.isUnit() && card.damage !== 0,
         immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
     }
 });

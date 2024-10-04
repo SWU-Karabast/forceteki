@@ -22,7 +22,7 @@ export default class AsteroidSanctuary extends EventCard {
                 },
                 shield: {
                     controller: RelativePlayer.Self,
-                    cardCondition: (card) => (card as UnitCard).cost <= 3,
+                    cardCondition: (card) => card.isUnit() && card.cost <= 3,
                     immediateEffect: AbilityHelper.immediateEffects.giveShield()
                 }
             }
