@@ -105,5 +105,34 @@ describe('Upgrade cards', function() {
                 expect(this.tielnFighter).toBeInLocation('discard');
             });
         });
+
+        describe('When an upgrade is attached,', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['waylay'],
+                        groundArena: ['pyke-sentinel'],
+                    },
+                    player2: {
+                        hand: ['entrenched'],
+                        groundArena: ['wampa'],
+                    }
+                });
+            });
+
+            it('and a unit is returned to its owner\'s hand, the upgrade should be in the upgrade\'s owner\'s hand', function () {
+                this.player1.passAction();
+                this.player2.clickCard('entrenched'); // Providing ownership
+                this.player2.clickCard(this.pykeSentinel);
+
+                this.player1.clickCard('waylay');
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel]);
+                this.player1.clickCard(this.pykeSentinel);
+
+                expect(this.pykeSentinel).toBeInLocation('hand', this.player1);
+                expect(this.entrenched).toBeInLocation('discard', this.player2);
+            });
+        });
     });
 });

@@ -5,49 +5,48 @@ describe('Waylay', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['waylay'],
-                        groundArena: [{ card: 'pyke-sentinel', upgrades: ['entrenched'] }],
+                        hand: ['waylay', 'waylay'],
+                        groundArena: ['pyke-sentinel'],
                     },
                     player2: {
+                        hand: ['entrenched'],
                         groundArena: ['wampa', 'superlaser-technician'],
-                        spaceArena: [{ card: 'imperial-interceptor', upgrades: ['academy-training'] }]
+                        spaceArena: [{ card: 'imperial-interceptor', upgrades: ['academy-training'] }],
+                        leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true }
                     }
                 });
             });
 
             it('can return a friendly or enemy unit to its owner\'s hand', function () {
-                this.player1.clickCard(this.waylay);
+                this.player1.clickCard('waylay');
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel, this.imperialInterceptor, this.superlaserTechnician]);
 
                 this.player1.clickCard(this.superlaserTechnician);
                 expect(this.superlaserTechnician).toBeInLocation('hand', this.player2);
             });
-        });
 
-        describe('Waylay\'s ability', function() {
-            beforeEach(function () {
-                this.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['entrenched'],
-                    },
-                    player2: {
-                        hand: ['waylay'],
-                        groundArena: ['wampa'],
-                    }
-                });
-            });
+            it('should allow the player to select a friendly unit to return to hand and should remove damage and be playable', function () {
+                this.pykeSentinel.damage = 2;
+                this.pykeSentinel.exhausted = false; // Making sure it doesn't retain state of unexhausted
 
-            it('when played on a friendly upgraded unit, it will cause the upgrade to be in the owner\'s discard', function () {
-                this.player1.clickCard(this.entrenched);
-                // card attaches automatically as there's only one target
+                this.player1.passAction();
+                this.player2.clickCard('entrenched'); // Providing ownership
+                this.player2.clickCard(this.pykeSentinel);
 
-                // card selects automatically as there's only one target
-                this.player2.clickCard(this.waylay);
-                expect(this.wampa).toBeInLocation('hand', this.player2);
+                this.player1.clickCard('waylay');
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel, this.superlaserTechnician, this.imperialInterceptor]);
 
-                // this expectation will automatically check that entrenched is in the owning player's discard
-                expect(this.entrenched).toBeInLocation('discard', this.player1);
+                this.player1.clickCard(this.pykeSentinel);
+                expect(this.pykeSentinel).toBeInLocation('hand', this.player1);
+                expect(this.entrenched).toBeInLocation('discard', this.player2);
+
+                this.player2.passAction();
+                this.player1.clickCard(this.pykeSentinel);
+                expect(this.pykeSentinel.damage).toBe(0); // Just making sure that the damage is not added back
+                expect(this.pykeSentinel.isUpgraded()).toBe(false);
+
+                expect(this.pykeSentinel).toBeInLocation('ground arena', this.player1);
+                expect(this.pykeSentinel.exhausted).toBe(true); // Does not retain state when returned to hand
             });
         });
     });
