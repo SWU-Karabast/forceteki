@@ -116,13 +116,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
-        // if there is no effect and no costs, we can safely skip ability resolution
-        if (
-            this.context.ability.meetsRequirements(this.context, ['cost']) !== '' &&
-            (this.context.ability.cost == null ||
-            Array.isArray(this.context.ability.cost) && this.context.ability.cost.length === 0)
-        ) {
-            this.game.addMessage('Ability \'{0}\' on card {1} has no impact on game state so it is passed', this.context.ability.title, this.context.source.title);
+        if (this.context.ability.meetsRequirements(this.context) !== '') {
             this.cancelled = true;
             this.resolutionComplete = true;
         }

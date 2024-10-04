@@ -50,7 +50,7 @@ describe('Vambrace Grappleshot', function() {
 
             it('should not be playable on vehicles', function () {
                 this.player1.clickCard(this.vambraceGrappleshot);
-                expect(this.battlefieldMarine.upgrades).toContain(this.vambraceGrappleshot);
+                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['vambrace-grappleshot']);
             });
         });
     });

@@ -24,6 +24,7 @@ describe('Upgrade cards', function() {
 
                 expect(this.wampa.upgrades).toContain(this.academyTraining);
                 expect(this.wampa.upgrades).toContain(this.foundling);
+                expect(this.wampa.upgrades.length).toBe(2);
                 expect(this.wampa.getPower()).toBe(7);
                 expect(this.wampa.getHp()).toBe(8);
             });
@@ -52,6 +53,28 @@ describe('Upgrade cards', function() {
                 this.player2.clickCard(this.entrenched);
                 expect(this.entrenched).toBeInLocation('discard');
                 expect(this.tielnFighter).toBeInLocation('discard');
+            });
+        });
+
+        describe('When an upgrade is attached to a leader', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'boba-fett#daimyo', deployed: true, upgrades: ['academy-training'] }
+                    },
+                    player2: {
+                        groundArena: ['atat-suppressor']
+                    }
+                });
+            });
+
+            it('its stat bonuses should be correctly applied during combat', function () {
+                this.player1.clickCard(this.bobaFett);
+                this.player1.clickCard(this.atatSuppressor);
+                expect(this.bobaFett).toBeInLocation('ground arena');
+                expect(this.bobaFett.damage).toBe(8);
+                expect(this.atatSuppressor.damage).toBe(6);
             });
         });
 
