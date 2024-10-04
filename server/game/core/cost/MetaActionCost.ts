@@ -7,20 +7,20 @@ import { randomItem } from '../utils/Helpers';
 import { GameSystemCost } from './GameSystemCost';
 import { GameEvent } from '../event/GameEvent';
 
-export class MetaActionCost extends GameSystemCost implements ICost {
+export class MetaActionCost<TContext extends AbilityContext = AbilityContext> extends GameSystemCost<TContext> implements ICost<TContext> {
     public constructor(
-        gameSystem: GameSystem,
+        gameSystem: GameSystem<TContext>,
         public activePromptTitle: string
     ) {
         super(gameSystem);
     }
 
-    public override getActionName(context: AbilityContext): string {
+    public override getActionName(context: TContext): string {
         const { innerSystem: gameSystem } = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         return gameSystem.name;
     }
 
-    public override canPay(context: AbilityContext): boolean {
+    public override canPay(context: TContext): boolean {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         const additionalProps = {
             controller: RelativePlayer.Self,
@@ -29,7 +29,7 @@ export class MetaActionCost extends GameSystemCost implements ICost {
         return this.gameSystem.hasLegalTarget(context, additionalProps);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext, result: Result): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: Result): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.checkTarget && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
@@ -58,11 +58,11 @@ export class MetaActionCost extends GameSystemCost implements ICost {
         this.gameSystem.queueGenerateEventGameSteps(events, context, additionalProps);
     }
 
-    public hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {
+    public hasTargetsChosenByInitiatingPlayer(context: TContext): boolean {
         return this.gameSystem.hasTargetsChosenByInitiatingPlayer(context);
     }
 
-    public override getCostMessage(context: AbilityContext): [string, any[]] {
+    public override getCostMessage(context: TContext): [string, any[]] {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         return properties.innerSystem.getCostMessage(context);
     }

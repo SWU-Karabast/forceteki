@@ -22,6 +22,7 @@ describe('Play upgrade from hand', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter, this.brightHope]);
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.upgrades).toContain(this.entrenched);
+                expect(this.wampa.upgrades.length).toBe(1);
                 expect(this.entrenched).toBeInLocation('ground arena');
                 expect(this.wampa.getPower()).toBe(7);
                 expect(this.wampa.getHp()).toBe(8);
@@ -35,6 +36,7 @@ describe('Play upgrade from hand', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter, this.brightHope]);
                 this.player1.clickCard(this.tielnFighter);
                 expect(this.tielnFighter.upgrades).toContain(this.academyTraining);
+                expect(this.wampa.upgrades.length).toBe(1);
                 expect(this.academyTraining).toBeInLocation('space arena');
                 expect(this.tielnFighter.getPower()).toBe(4);
                 expect(this.tielnFighter.getHp()).toBe(3);
@@ -48,6 +50,7 @@ describe('Play upgrade from hand', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter, this.brightHope]);
                 this.player1.clickCard(this.brightHope);
                 expect(this.brightHope.upgrades).toContain(this.resilient);
+                expect(this.wampa.upgrades.length).toBe(1);
                 expect(this.resilient).toBeInLocation('space arena', this.player2);
                 expect(this.brightHope.getPower()).toBe(2);
                 expect(this.brightHope.getHp()).toBe(9);

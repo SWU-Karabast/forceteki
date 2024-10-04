@@ -99,9 +99,27 @@ class PlayerInteractionWrapper {
 
             leaderCard.damage = leaderOptions.damage || 0;
             leaderCard.exhausted = leaderOptions.exhausted || false;
+
+            // Get the upgrades
+            if (leaderOptions.upgrades) {
+                leaderOptions.upgrades.forEach((upgradeName) => {
+                    const isToken = ['shield', 'experience'].includes(upgradeName);
+                    let upgrade;
+                    if (isToken) {
+                        upgrade = this.game.generateToken(this.player, upgradeName);
+                    } else {
+                        upgrade = this.findCardByName(upgradeName);
+                    }
+
+                    upgrade.attachTo(leaderCard);
+                });
+            }
         } else {
             if (leaderOptions.damage) {
                 throw new TestSetupError('Leader should not have damage when not deployed');
+            }
+            if (leaderOptions.upgrades) {
+                throw new TestSetupError('Leader should not have upgrades when not deployed');
             }
 
             leaderCard.exhausted = leaderOptions.exhausted || false;
@@ -201,8 +219,6 @@ class PlayerInteractionWrapper {
                 card.damage = options.damage;
             }
 
-            // Activate persistent effects of the card
-            // card.applyPersistentEffects();
             // Get the upgrades
             if (options.upgrades) {
                 options.upgrades.forEach((upgradeName) => {
@@ -271,6 +287,10 @@ class PlayerInteractionWrapper {
             this.moveCard(card, 'resource');
             card.exhausted = false;
         });
+    }
+
+    get handSize() {
+        return this.player.hand.length;
     }
 
     countSpendableResources() {

@@ -72,7 +72,6 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         } else {
             this.valueWrapper = new OngoingEffectValueWrapper(value);
         }
-        this.valueWrapper.reset();
     }
 
     public apply(target) {
