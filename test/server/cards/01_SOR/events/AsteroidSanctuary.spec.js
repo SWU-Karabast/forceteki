@@ -24,7 +24,8 @@ describe('Asteroid Sanctuary', function() {
                 this.player1.clickCard(this.viperProbeDroid);
                 expect(this.deathTrooper.exhausted).toBe(true);
                 expect(this.viperProbeDroid).toHaveExactUpgradeNames(['shield']);
-                expect(this.asteroidSanctuary).toBeInLocation('discard');
+
+                expect(this.player2).toBeActivePlayer();
             });
 
             describe('when there are no friendly units,', function() {
@@ -36,7 +37,8 @@ describe('Asteroid Sanctuary', function() {
 
                     this.player1.clickCard(this.deathTrooper);
                     expect(this.deathTrooper.exhausted).toBe(true);
-                    expect(this.asteroidSanctuary).toBeInLocation('discard');
+
+                    expect(this.player2).toBeActivePlayer();
                 });
             });
 
@@ -49,7 +51,8 @@ describe('Asteroid Sanctuary', function() {
 
                     this.player1.clickCard(this.viperProbeDroid);
                     expect(this.viperProbeDroid).toHaveExactUpgradeNames(['shield']);
-                    expect(this.asteroidSanctuary).toBeInLocation('discard');
+
+                    expect(this.player2).toBeActivePlayer();
                 });
             });
 
@@ -60,7 +63,7 @@ describe('Asteroid Sanctuary', function() {
 
                     this.player1.clickCard(this.asteroidSanctuary);
 
-                    expect(this.asteroidSanctuary).toBeInLocation('discard');
+                    expect(this.player2).toBeActivePlayer();
                 });
             });
         });
