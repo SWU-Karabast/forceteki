@@ -16,7 +16,7 @@ describe('Fell the Dragon', function() {
                 });
             });
 
-            it('should defeat a ennemy', function () {
+            it('should defeat a enemy', function () {
                 this.player1.clickCard(this.fellTheDragon);
                 expect(this.player1).toBeAbleToSelectExactly([this.avenger, this.atst, this.scoutBikePursuer]);
 

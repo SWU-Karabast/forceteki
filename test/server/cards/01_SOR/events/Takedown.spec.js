@@ -17,7 +17,7 @@ describe('Takedown', function() {
                 });
             });
 
-            it('should defeat a ennemy', function () {
+            it('should defeat a enemy', function () {
                 this.player1.clickCard(this.takedown);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.isbAgent, this.cartelSpacer, this.bobaFett, this.sabineWren]);
 

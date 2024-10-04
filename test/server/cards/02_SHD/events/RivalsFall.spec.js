@@ -16,7 +16,7 @@ describe('Rival\'s Fall', function() {
                 });
             });
 
-            it('should defeat a ennemy', function () {
+            it('should defeat a enemy', function () {
                 this.player1.clickCard(this.rivalsFall);
                 expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.bobaFett]);
 
