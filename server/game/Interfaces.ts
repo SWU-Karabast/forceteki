@@ -73,6 +73,7 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     collectiveTrigger?: boolean;
     targetResolver?: ITriggeredAbilityTargetResolver<TriggeredAbilityContext<TSource>>;
     targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;
+    immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
 }
