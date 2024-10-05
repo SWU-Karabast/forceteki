@@ -13,7 +13,7 @@ export default class PartisanInsurgent extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addConstantAbility({
             title: 'While you control another [Aggression] unit, this unit gains Raid 2',
-            condition: (context) => context.source.controller.getUnitsInPlay(WildcardLocation.AnyArena, (card) => card !== this && card.hasSomeAspect(Aspect.Aggression)).length > 0,
+            condition: (context) => context.source.controller.getOtherUnitsInPlayWithAspect(context.source, Aspect.Aggression).length > 0,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });
     }

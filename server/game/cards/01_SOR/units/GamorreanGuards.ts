@@ -13,7 +13,7 @@ export default class GamorreanGuards extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addConstantAbility({
             title: 'While you control another Cunning unit, this unit gains Sentinel',
-            condition: (context) => context.source.controller.getUnitsInPlay(WildcardLocation.AnyArena, (card) => card !== context.source && card.hasSomeAspect(Aspect.Cunning)).length > 0,
+            condition: (context) => context.source.controller.getOtherUnitsInPlayWithAspect(context.source, Aspect.Cunning).length > 0,
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
