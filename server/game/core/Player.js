@@ -856,7 +856,7 @@ class Player extends GameObject {
     }
 
     /**
-     * Returns the number of resources available to spend
+     * Returns the number of exhausted resources
      */
     countExhaustedResources() {
         return this.resources.reduce((count, card) => count += card.exhausted, 0);
@@ -879,6 +879,16 @@ class Player extends GameObject {
         let readyResources = this.resources.filter((card) => !card.exhausted);
         for (let i = 0; i < Math.min(count, readyResources.length); i++) {
             readyResources[i].exhausted = true;
+        }
+    }
+
+    /**
+     * Ready the specified number of resources
+     */
+    readyResources(count) {
+        let exhaustedResources = this.resources.filter((card) => card.exhausted);
+        for (let i = 0; i < Math.min(count, exhaustedResources.length); i++) {
+            exhaustedResources[i].exhausted = false;
         }
     }
 
