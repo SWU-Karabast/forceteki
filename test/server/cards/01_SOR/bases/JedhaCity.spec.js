@@ -14,7 +14,7 @@ describe('Jedha City', function() {
                 });
             });
 
-            it('should apply -4/0 to an unit for the phase', function () {
+            it('should apply -4/0 to a unit for the phase', function () {
                 this.player1.clickCard(this.jedhaCity);
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.pykeSentinel]);
 
