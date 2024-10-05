@@ -1,11 +1,11 @@
-describe('Supercommando Squad', function() {
+describe('Protector of the Throne', function() {
     integration(function() {
-        describe('Supercommando Squad\'s ability', function() {
+        describe('Protector of the Throne\'s ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'supercommando-squad', upgrades: ['shield'] }],
+                        groundArena: [{ card: 'protector-of-the-throne', upgrades: ['shield'] }],
                     },
                     player2: {
                         groundArena: ['wampa', 'jedha-agitator'],
@@ -17,20 +17,20 @@ describe('Supercommando Squad', function() {
                 this.player1.pass();
 
                 this.player2.clickCard(this.wampa);
-                // Supercommando Squad automatically selected due to sentinel
+                // Protector of the Throne automatically selected due to sentinel
 
                 expect(this.player1).toBeActivePlayer();
                 // no damage because of shield
-                expect(this.supercommandoSquad.damage).toBe(0);
-                expect(this.supercommandoSquad.isUpgraded()).toBe(false);
-                expect(this.wampa.damage).toBe(4);
+                expect(this.protectorOfTheThrone.damage).toBe(0);
+                expect(this.protectorOfTheThrone.isUpgraded()).toBe(false);
+                expect(this.wampa.damage).toBe(2);
 
                 this.player1.pass();
 
                 this.player2.clickCard(this.jedhaAgitator);
 
-                // player 2 should be able to select base and unit because supercommando squad is not sentinel anymore
-                expect(this.player2).toBeAbleToSelectExactly([this.supercommandoSquad, this.p1Base]);
+                // player 2 should be able to select base and unit because Protector of the Throne is not sentinel anymore
+                expect(this.player2).toBeAbleToSelectExactly([this.protectorOfTheThrone, this.p1Base]);
             });
         });
     });
