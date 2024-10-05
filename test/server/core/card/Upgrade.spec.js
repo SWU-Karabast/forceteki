@@ -120,7 +120,7 @@ describe('Upgrade cards', function() {
                 });
             });
 
-            it('First legion Snowtrooper attacking Death trooper should receive +2/+0, overwhelm and +1/+1 from experience upgrade. Defeating Death trooper and dealing 3 to base', function () {
+            it('its stat bonuses should be correctly applied on top of overwhelm when attacking.', function () {
                 // actions
                 this.player1.clickCard(this.firstLegionSnowtrooper);
                 expect(this.firstLegionSnowtrooper.getPower()).toBe(3);

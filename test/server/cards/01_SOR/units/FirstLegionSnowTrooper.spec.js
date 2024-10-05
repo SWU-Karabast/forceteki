@@ -1,6 +1,6 @@
 describe('First Legion Snow Trooper', function() {
     integration(function() {
-        describe('First Legion Snow Troopers ability', function() {
+        describe('First Legion Snow Trooper\'s ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
@@ -34,25 +34,22 @@ describe('First Legion Snow Trooper', function() {
                         groundArena: [{ card: 'first-legion-snowtrooper' }],
                     },
                     player2: {
-                        groundArena: [{ card: 'yoda#old-master', damage: 1 }],
+                        groundArena: [{ card: 'snowtrooper-lieutenant', damage: 1 }],
                         base: { card: 'dagobah-swamp', damage: 5 }
                     }
                 });
             });
 
-            it('Snowtrooper should receive overwhelm and +2/+0, defeating yoda and dealing 1 damage to opponents base.', function () {
+            it('First Legion Snow Trooper should receive overwhelm and +2/+0, defeating the Snowtrooper Lieutenant and dealing 3 damage to opponents base.', function () {
                 // Case 1: Defeating yoda and dealing 1 damage to opponents base
                 this.player1.clickCard(this.firstLegionSnowtrooper);
-                this.player1.clickCard(this.yoda);
+                this.player1.clickCard(this.snowtrooperLieutenant);
 
                 // Check board state
+                expect(this.snowtrooperLieutenant).toBeInLocation('discard');
                 expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
                 expect(this.firstLegionSnowtrooper.damage).toBe(2);
-                expect(this.p2Base.damage).toBe(6);
-
-                // Complete Yoda on death trigger
-                expect(this.player2).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
-                this.player2.clickPrompt('You');
+                expect(this.p2Base.damage).toBe(8);
                 expect(this.player2).toBeActivePlayer();
 
                 // Reset state
@@ -65,7 +62,7 @@ describe('First Legion Snow Trooper', function() {
                 // Check board state
                 expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
                 expect(this.firstLegionSnowtrooper.damage).toBe(2);
-                expect(this.p2Base.damage).toBe(8);
+                expect(this.p2Base.damage).toBe(10);
                 expect(this.player2).toBeActivePlayer();
             });
         });
