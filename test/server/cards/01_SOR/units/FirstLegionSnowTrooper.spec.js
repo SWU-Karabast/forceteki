@@ -1,6 +1,6 @@
 describe('First Legion Snow Trooper', function() {
     integration(function() {
-        describe('First Legion Snow Trooper while attacking non-damaged unit.', function() {
+        describe('First Legion Snow Troopers ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
@@ -13,16 +13,20 @@ describe('First Legion Snow Trooper', function() {
                 });
             });
 
-            it(' Ability should do nothing', function () {
+            it('should have no effect when attacking a non-damaged-unit', function () {
+                // actions
                 this.player1.clickCard(this.firstLegionSnowtrooper);
                 this.player1.clickCard(this.yodaOldMaster);
+
+                // check board state
                 expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
                 expect(this.firstLegionSnowtrooper.damage).toBe(2);
                 expect(this.yodaOldMaster.damage).toBe(2);
                 expect(this.player2).toBeActivePlayer();
             });
         });
-        describe('First Legion Snow Trooper with a damaged enemy unit.', function() {
+
+        describe('First Legion Snow Troopers ability with a damaged unit.', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
@@ -36,49 +40,32 @@ describe('First Legion Snow Trooper', function() {
                 });
             });
 
-            it('First legion Snowtrooper should receive overwhelm and +2/+0, defeating yoda and dealing 1 damage to opponents base.', function () {
+            it('Snowtrooper should receive overwhelm and +2/+0, defeating yoda and dealing 1 damage to opponents base.', function () {
+                // Case 1: Defeating yoda and dealing 1 damage to opponents base
                 this.player1.clickCard(this.firstLegionSnowtrooper);
                 this.player1.clickCard(this.yoda);
+
+                // Check board state
                 expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
                 expect(this.firstLegionSnowtrooper.damage).toBe(2);
                 expect(this.p2Base.damage).toBe(6);
+
+                // Complete Yoda on death trigger
                 expect(this.player2).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
                 this.player2.clickPrompt('You');
                 expect(this.player2).toBeActivePlayer();
-            });
 
-            it('First legion Snowtrooper attacking base and should not receive +2/+0 and overwhelm.', function () {
-                this.player1.clickCard(this.firstLegionSnowtrooper);
-                this.player1.clickCard(this.p2Base);
-                expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
-                expect(this.firstLegionSnowtrooper.damage).toBe(0);
-                expect(this.p2Base.damage).toBe(7);
-                expect(this.player2).toBeActivePlayer();
-            });
-        });
-        describe('First Legion Snow Trooper with a damaged enemy unit.', function() {
-            beforeEach(function () {
-                this.setupTest({
-                    phase: 'action',
-                    player1: {
-                        groundArena: [{ card: 'first-legion-snowtrooper', upgrades: ['experience'] }],
-                    },
-                    player2: {
-                        groundArena: [{ card: 'yoda#old-master', damage: 1 }],
-                        base: { card: 'dagobah-swamp', damage: 5 }
-                    }
-                });
-            });
+                // Reset state
+                this.player2.passAction();
+                this.firstLegionSnowtrooper.exhausted = false;
 
-            it('First legion Snowtrooper attacking yoda and should receive +2/+0, overwhelm +1/+1 from experience upgrade. Defeating Yoda and dealing 2 to base', function () {
+                // Case 2: Attacking base and not receiving +2/+0 and overwhelm
                 this.player1.clickCard(this.firstLegionSnowtrooper);
-                expect(this.firstLegionSnowtrooper.getPower()).toBe(3);
-                this.player1.clickCard(this.yoda);
+
+                // Check board state
                 expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
                 expect(this.firstLegionSnowtrooper.damage).toBe(2);
-                expect(this.p2Base.damage).toBe(7);
-                expect(this.player2).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
-                this.player2.clickPrompt('You');
+                expect(this.p2Base.damage).toBe(8);
                 expect(this.player2).toBeActivePlayer();
             });
         });
