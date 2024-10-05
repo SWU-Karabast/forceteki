@@ -1,5 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import { EventName } from '../core/Constants';
 import { CardType, Location, WildcardCardType } from '../core/Constants';
 import Player from '../core/Player.js';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
@@ -7,13 +8,12 @@ import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameS
 
 
 export interface IReadyResourcesSystemProperties extends IPlayerTargetSystemProperties {
-    amount?: number
+    amount: number
 }
 
 export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IReadyResourcesSystemProperties = IReadyResourcesSystemProperties> extends PlayerTargetSystem<TContext, TProperties> {
-    protected override defaultProperties: IReadyResourcesSystemProperties = {
-        amount: 1
-    };
+    public override readonly name = 'readyResources';
+    public override readonly eventName = EventName.OnReadyResources;
 
     public override eventHandler(event): void {
         event.player.readyResources(event.amount);
@@ -26,7 +26,8 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
     }
 
     public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
-        return player.countExhaustedResources() > 0;
+        const { isCost, amount } = this.generatePropertiesFromContext(context);
+        return !(isCost && player.countExhaustedResources() < amount) && super.canAffect(player, context, additionalProperties);
     }
 
     public override defaultTargets(context: TContext): Player[] {

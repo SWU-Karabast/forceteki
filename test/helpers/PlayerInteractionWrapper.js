@@ -115,6 +115,9 @@ class PlayerInteractionWrapper {
                 });
             }
         } else {
+            if (leaderOptions.deployed === false) {
+                leaderCard.undeploy();
+            }
             if (leaderOptions.damage) {
                 throw new TestSetupError('Leader should not have damage when not deployed');
             }

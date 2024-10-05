@@ -9,7 +9,7 @@ export interface IPayResourceCostProperties extends IPlayerTargetSystemPropertie
 
 export class PayResourceCostSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IPayResourceCostProperties> {
     public override readonly name = 'payResourceCost';
-    public override readonly eventName = EventName.OnSpendResources;
+    public override readonly eventName = EventName.onExhaustResources;
 
     public override eventHandler(event): void {
         event.player.exhaustResources(event.amount);

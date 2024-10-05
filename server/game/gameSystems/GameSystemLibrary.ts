@@ -264,10 +264,7 @@ export function drawSpecificCard<TContext extends AbilityContext = AbilityContex
 //     return new LastingEffectAction(propertyFactory);
 // } // duration = 'untilEndOfConflict', effect, targetController, condition, until
 
-/**
- * default amount = 1
- */
-export function readyResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadyResourcesSystemProperties, TContext> = {}): GameSystem<TContext> {
+export function readyResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadyResourcesSystemProperties, TContext>): GameSystem<TContext> {
     return new ReadyResourcesSystem<TContext>(propertyFactory);
 }
 

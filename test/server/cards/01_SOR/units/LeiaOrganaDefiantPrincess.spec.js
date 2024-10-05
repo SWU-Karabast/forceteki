@@ -25,7 +25,7 @@ describe('Leia Organa, Defiant Princess', function() {
                 expect(this.player1.countExhaustedResources()).toBe(exhaustedResourcesBeforeAbility - 1);
             });
 
-            it('should be able to exhaust an enemy unit', function () {
+            it('should be able to exhaust any unit', function () {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Exhaust a unit');
                 expect(this.player1).toBeAbleToSelectExactly([this.leiaOrgana, this.atst, this.cartelSpacer, this.jynErso, this.wampa, this.allianceXwing]);
@@ -33,11 +33,17 @@ describe('Leia Organa, Defiant Princess', function() {
                 expect(this.wampa.exhausted).toBe(true);
             });
 
-            it('should be able to exhaust a friendly unit', function () {
+            it('should do nothing if the controller selects "Exhaust a unit" when no other unit is on the field', function () {
+                this.player1.setLeaderStatus({ card: 'jyn-erso#resisting-oppression', deployed: false });
+                this.player1.setGroundArenaUnits([]);
+                this.player1.setSpaceArenaUnits([]);
+                this.player2.setGroundArenaUnits([]);
+                this.player2.setSpaceArenaUnits([]);
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Exhaust a unit');
-                this.player1.clickCard(this.jynErso);
-                expect(this.jynErso.exhausted).toBe(true);
+                expect(this.player2).toBeActivePlayer();
+                expect(this.leiaOrgana).toBeInLocation('ground arena');
+                expect(this.leiaOrgana.exhausted).toBe(true);
             });
         });
     });
