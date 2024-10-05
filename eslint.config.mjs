@@ -36,6 +36,7 @@ export default tseslint.config(
             "jasmine/missing-expect": 1,
             "jasmine/new-line-before-expect": 0,
             "jasmine/prefer-toHaveBeenCalledWith": 0,
+            "jasmine/new-line-between-declarations": 2,
 
             "@stylistic/js/spaced-comment": ["error", "always"],
             "@stylistic/js/function-call-spacing": ["error", "never"],
