@@ -14,6 +14,7 @@ describe('Patrolling V-Wing', function () {
             it('should draw', function () {
                 this.player1.clickCard(this.patrollingVwing);
                 expect(this.player1.hand.length).toBe(1);
+                expect(this.player2.hand.length).toBe(0);
             });
         });
     });

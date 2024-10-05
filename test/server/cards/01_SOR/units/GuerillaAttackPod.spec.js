@@ -40,6 +40,8 @@ describe('Guerilla Attack Pod', function () {
                 this.player1.clickCard(this.guerillaAttackPod);
                 expect(this.guerillaAttackPod.exhausted).toBeFalse();
             });
+
+            // TODO: when gain ambush is working, add test with  ECL to confirm that ambush > ready > attack sequence works right
         });
     });
 });

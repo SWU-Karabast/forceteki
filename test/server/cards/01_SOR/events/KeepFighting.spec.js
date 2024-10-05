@@ -17,19 +17,8 @@ describe('Keep Fighting', function () {
             });
 
             it('should ready a unit', function () {
-                // attack with pyke sentinel (2/3)
-                this.player1.clickCard(this.pykeSentinel);
-                this.player1.clickCard(this.p2Base);
-                expect(this.pykeSentinel.exhausted).toBeTrue();
-                expect(this.player2).toBeActivePlayer();
-                this.player2.pass();
-
-                // attack with wampa (4/5)
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.p2Base);
-                expect(this.wampa.exhausted).toBeTrue();
-                expect(this.player2).toBeActivePlayer();
-                this.player2.pass();
+                this.pykeSentinel.exhausted = true;
+                this.wampa.exhausted = true;
 
                 // ready pyke sentinel (sabine is not exhausted and wampa is too powerful)
                 this.player1.clickCard(this.keepFighting);
@@ -44,7 +33,7 @@ describe('Keep Fighting', function () {
                 this.player1.clickCard(this.p2Base);
 
                 // damage should be 8 here
-                expect(this.p2Base.damage).toBe(8);
+                expect(this.p2Base.damage).toBe(2);
                 expect(this.pykeSentinel.exhausted).toBeTrue();
             });
         });

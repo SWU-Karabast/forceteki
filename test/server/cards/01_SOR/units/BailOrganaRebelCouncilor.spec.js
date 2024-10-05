@@ -14,10 +14,11 @@ describe('Bail Organa', function () {
                 });
             });
 
-            it('should give an experience to an another ally', function () {
+            it('should give an Experience to an another friendly ally', function () {
                 this.player1.clickCard(this.bailOrgana);
                 this.player1.clickPrompt('Give an Experience token to another friendly unit');
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.redThree]);
+
                 this.player1.clickCard(this.battlefieldMarine);
                 expect(this.bailOrgana.exhausted).toBeTrue();
                 expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);

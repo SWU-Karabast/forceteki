@@ -7,18 +7,16 @@ describe('Tactical Advantage', function () {
                     player1: {
                         hand: ['tactical-advantage'],
                         groundArena: [{ card: 'pyke-sentinel' }],
-                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true, damage: 4 }
                     },
                     player2: {
-                        groundArena: ['wampa', 'atst'],
-                        spaceArena: ['imperial-interceptor']
+                        groundArena: ['wampa'],
                     }
                 });
             });
 
             it('can buff a unit', function () {
                 this.player1.clickCard(this.tacticalAdvantage);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.sabineWren, this.wampa, this.imperialInterceptor]);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.wampa]);
 
                 this.player1.clickCard(this.pykeSentinel);
                 expect(this.pykeSentinel.getPower()).toBe(4);

@@ -8,13 +8,7 @@ describe('Devastator', function () {
                         hand: ['devastator#inescapable'],
                         groundArena: ['seasoned-shoretrooper'],
                         // 14 resources
-                        resources: ['distant-patroller', 'distant-patroller',
-                            'distant-patroller', 'distant-patroller',
-                            'distant-patroller', 'distant-patroller',
-                            'distant-patroller', 'distant-patroller',
-                            'distant-patroller', 'distant-patroller',
-                            'distant-patroller', 'distant-patroller',
-                            'distant-patroller', 'distant-patroller']
+                        resources: 14
                     },
                     player2: {
                         groundArena: [{
@@ -29,6 +23,7 @@ describe('Devastator', function () {
                 this.player1.clickCard(this.devastator);
                 expect(this.player1).toBeAbleToSelectExactly([this.devastator, this.seasonedShoretrooper, this.ruggedSurvivors]);
                 expect(this.player1).toHavePassAbilityButton();
+
                 this.player1.clickCard(this.ruggedSurvivors);
                 expect(this.ruggedSurvivors.damage).toBe(14);
                 expect(this.player2).toBeActivePlayer();

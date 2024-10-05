@@ -19,16 +19,18 @@ describe('Red Three', function () {
                 expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.ruggedSurvivors, this.cargoJuggernaut]);
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(4);
-            });
 
-            it('should not give Raid 1 to non-heroism unit', function () {
+                // should not give Raid 1 to non-heroism unit
+                this.player2.pass();
+                this.p2Base.damage = 0;
                 this.player1.clickCard(this.deathTrooper);
                 expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.ruggedSurvivors, this.cargoJuggernaut]);
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(3);
-            });
 
-            it('should give Raid 1 and cumulate to another Raid values', function () {
+                // should give Raid 1 cumulative with other Raid values
+                this.player2.pass();
+                this.p2Base.damage = 0;
                 this.player1.clickCard(this.greenSquadronAwing);
                 expect(this.p2Base.damage).toBe(4);
             });

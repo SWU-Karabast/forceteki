@@ -141,6 +141,8 @@ class Player extends GameObject {
     getUnitsInPlay(arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
         return this.getArenaCards(arena).filter((card) => card.isUnit() && cardCondition(card));
     }
+
+
     /**
      * Get all units in designated play arena(s) owned by this player
      * @param { Aspect } aspect Aspect needed for units
