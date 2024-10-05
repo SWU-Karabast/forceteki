@@ -12,6 +12,7 @@ describe('', function() {
                     }
                 });
             });
+
             it('should not exhaust enemy unit', function () {
                 // no cunning ally : cartel spacer does not exhaust anybody
                 this.player1.clickCard(this.cartelSpacer);

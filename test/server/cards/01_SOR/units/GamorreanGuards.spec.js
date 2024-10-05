@@ -13,6 +13,7 @@ describe('Gamorrean Guards', function() {
                     }
                 });
             });
+
             it('should give it sentinel while he has a Cunning ally', function () {
                 this.player1.pass();
                 this.player2.clickCard(this.wampa);
