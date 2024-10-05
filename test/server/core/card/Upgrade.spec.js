@@ -120,7 +120,7 @@ describe('Upgrade cards', function() {
                 });
             });
 
-            it('its stat bonuses should be correctly applied on top of overwhelm when attacking.', function () {
+            it('its stat bonuses should be correctly applied on top of overwhelm and +2/+0 from Snowtrooper ability when attacking.', function () {
                 // actions
                 this.player1.clickCard(this.firstLegionSnowtrooper);
                 expect(this.firstLegionSnowtrooper.getPower()).toBe(3);
