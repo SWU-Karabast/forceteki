@@ -1,5 +1,5 @@
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { EffectName, RelativePlayer, Trait } from '../../../core/Constants';
+import { EffectName, Trait } from '../../../core/Constants';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
 
 export default class Foundling extends UpgradeCard {

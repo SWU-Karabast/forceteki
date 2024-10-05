@@ -1,7 +1,6 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
-import { abilityResourceCost } from '../../../costs/CostLibrary';
 
 export default class BailOrganaRebelCouncilor extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -16,9 +15,8 @@ export default class BailOrganaRebelCouncilor extends NonLeaderUnitCard {
             title: 'Give an Experience token to another friendly unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card !== this,
+                cardCondition: (card, context) => card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             },
         });

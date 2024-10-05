@@ -13,7 +13,7 @@ export default class KeepFighting extends EventCard {
         this.setEventAbility({
             title: 'Ready a unit with 3 or less power',
             targetResolver: {
-                cardCondition: (card) => card.isUnit() && card.getPower() <= 3 && card.exhausted,
+                cardCondition: (card) => card.isUnit() && card.getPower() <= 3,
                 immediateEffect: AbilityHelper.immediateEffects.ready(),
             }
         });

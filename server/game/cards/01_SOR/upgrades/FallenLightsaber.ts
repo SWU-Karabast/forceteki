@@ -1,8 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { CardType, KeywordName, Location, Trait, WildcardCardType } from '../../../core/Constants';
-import Player from '../../../core/Player';
+import { Location, Trait } from '../../../core/Constants';
 
 export default class FallenLightsaber extends UpgradeCard {
     protected override getImplementationId() {

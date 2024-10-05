@@ -33,7 +33,10 @@ describe('Keep Fighting', function () {
 
                 // ready pyke sentinel (sabine is not exhausted and wampa is too powerful)
                 this.player1.clickCard(this.keepFighting);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.sabineWren, this.imperialInterceptor]);
+                this.player1.clickCard(this.pykeSentinel);
                 expect(this.pykeSentinel.exhausted).toBeFalse();
+                expect(this.keepFighting.location).toBe('discard');
                 this.player2.pass();
 
                 // attack again with pyke sentinel
@@ -42,6 +45,7 @@ describe('Keep Fighting', function () {
 
                 // damage should be 8 here
                 expect(this.p2Base.damage).toBe(8);
+                expect(this.pykeSentinel.exhausted).toBeTrue();
             });
         });
     });
