@@ -17,6 +17,7 @@ describe('Admiral Motti', function() {
             it('should allow player to ready an imperial unit', function() {
                 // Attacks into cell block guard as the only valid attack
                 this.player1.clickCard(this.admiralMotti);
+                expect(this.player1).toHavePassAbilityButton();
 
                 // This includes:
                 // - Friendly units

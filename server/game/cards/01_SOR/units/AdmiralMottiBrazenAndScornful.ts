@@ -12,7 +12,7 @@ export default class AdmiralMottiBrazenAndScornful extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenDefeatedAbility({
-            title: 'Ready a villainy unit',
+            title: 'Ready a Villainy unit',
             optional: true,
             targetResolver: {
                 locationFilter: WildcardLocation.AnyArena,

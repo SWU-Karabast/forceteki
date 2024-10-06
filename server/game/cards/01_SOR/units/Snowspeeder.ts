@@ -16,7 +16,7 @@ export default class Snowspeeder extends NonLeaderUnitCard {
             targetResolver: {
                 locationFilter: Location.GroundArena,
                 controller: RelativePlayer.Opponent,
-                cardCondition: (card) => card.isUnit() && card.traits.has(Trait.Vehicle),
+                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
         });
