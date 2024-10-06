@@ -29,7 +29,7 @@ describe('Partisan Insurgent', function () {
                 // attack again with partisan insurgent, damage should be 1 because a-wing is dead
                 this.player1.clickCard(this.keepFighting);
                 this.player1.clickCard(this.partisanInsurgent);
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.partisanInsurgent);
                 expect(this.p2Base.damage).toBe(4);
             });
