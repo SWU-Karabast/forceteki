@@ -55,6 +55,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player2.pass();
                 this.player1.clickCard(this.bokatanKryze);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.protectorOfTheThrone, this.allianceXwing]);
+                expect(this.player1).not.toHavePassAbilityButton();
                 this.player1.clickCard(this.allianceXwing);
                 expect(this.protectorOfTheThrone.damage).toBe(0);
                 expect(this.allianceXwing.damage).toBe(1);
