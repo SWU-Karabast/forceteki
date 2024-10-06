@@ -466,11 +466,6 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    passAction() {
-        this.clickPrompt('Pass');
-    }
-
-
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();
 
@@ -608,7 +603,7 @@ class PlayerInteractionWrapper {
     /**
      * Player's action of passing priority
      */
-    pass() {
+    passAction() {
         if (!this.canAct) {
             throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
         }

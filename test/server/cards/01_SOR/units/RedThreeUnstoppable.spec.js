@@ -21,7 +21,7 @@ describe('Red Three', function () {
                 expect(this.p2Base.damage).toBe(4);
 
                 // should not give Raid 1 to non-heroism unit
-                this.player2.pass();
+                this.player2.passAction();
                 this.p2Base.damage = 0;
                 this.player1.clickCard(this.deathTrooper);
                 expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.ruggedSurvivors, this.cargoJuggernaut]);
@@ -29,7 +29,7 @@ describe('Red Three', function () {
                 expect(this.p2Base.damage).toBe(3);
 
                 // should give Raid 1 cumulative with other Raid values
-                this.player2.pass();
+                this.player2.passAction();
                 this.p2Base.damage = 0;
                 this.player1.clickCard(this.greenSquadronAwing);
                 expect(this.p2Base.damage).toBe(4);

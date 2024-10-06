@@ -21,7 +21,7 @@ describe('Vigilant Honor Guards', function() {
                 expect(this.vigilantHonorGuards.damage).toBe(3);
                 expect(this.consularSecurityForce.damage).toBe(4);
 
-                this.player2.pass();
+                this.player2.passAction();
                 this.consularSecurityForce.exhausted = false;
 
                 this.player1.clickCard(this.consularSecurityForce);

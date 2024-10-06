@@ -16,7 +16,7 @@ describe('Homestead Militia', function () {
             });
 
             it('should not gain Sentinel with 6 or more resources', function () {
-                this.player1.pass();
+                this.player1.passAction();
 
                 this.player2.clickCard(this.cargoJuggernaut);
                 // no sentinel, I can attack base
@@ -25,7 +25,7 @@ describe('Homestead Militia', function () {
                 expect(this.p1Base.damage).toBe(4);
 
                 this.player1.moveCard(this.wampa, 'resource');
-                this.player1.pass();
+                this.player1.passAction();
 
                 this.player2.clickCard(this.ruggedSurvivors);
                 // homestead militia automatically selected because of Sentinel
@@ -34,7 +34,7 @@ describe('Homestead Militia', function () {
 
                 // remove resource and check if homestead militia lost sentinel
                 this.player1.moveCard(this.wampa, 'hand', 'resource');
-                this.player1.pass();
+                this.player1.passAction();
                 this.player2.clickCard(this.atst);
                 expect(this.player2).toBeAbleToSelectExactly([this.p1Base, this.homesteadMilitia]);
                 this.player2.clickCard(this.p1Base);

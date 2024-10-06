@@ -302,7 +302,7 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is a type that can legally have triggered abilities
+     * Returns true if the card is a type that can legally have triggered abilities.
      * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
      */
     public canRegisterTriggeredAbilities(): this is InPlayCard {
@@ -310,10 +310,18 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is a type that can legally have constant abilities
+     * Returns true if the card is a type that can legally have constant abilities.
      * The returned type set is equivalent to {@link CardWithConstantAbilities}.
      */
     public canRegisterConstantAbilities(): this is InPlayCard {
+        return false;
+    }
+
+    /**
+     * Returns true if the card is a type that can be put into play and considered "in play."
+     * The returned type set is equivalent to {@link InPlayCard}.
+     */
+    public canBeInPlay(): this is InPlayCard {
         return false;
     }
 

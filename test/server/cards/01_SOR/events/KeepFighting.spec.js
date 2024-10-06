@@ -26,7 +26,7 @@ describe('Keep Fighting', function () {
                 this.player1.clickCard(this.pykeSentinel);
                 expect(this.pykeSentinel.exhausted).toBeFalse();
                 expect(this.keepFighting.location).toBe('discard');
-                this.player2.pass();
+                this.player2.passAction();
 
                 // attack again with pyke sentinel
                 this.player1.clickCard(this.pykeSentinel);
@@ -43,7 +43,7 @@ describe('Keep Fighting', function () {
                 this.player1.clickCard(this.pykeSentinel);
                 expect(this.pykeSentinel.exhausted).toBeFalse();
                 expect(this.keepFighting.location).toBe('discard');
-                this.player2.pass();
+                this.player2.passAction();
 
                 // attack again with pyke sentinel
                 this.player1.clickCard(this.pykeSentinel);
