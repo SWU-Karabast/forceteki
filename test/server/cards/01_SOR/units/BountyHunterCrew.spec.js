@@ -15,20 +15,24 @@ describe('Bounty Hunter Crew', function () {
                 });
             });
 
-            it('should return card to player hand', function () {
+            it('should return card to player hand from a discard pile', function () {
                 this.player1.clickCard(this.bountyHunterCrew);
                 this.player1.clickPrompt('Return an event from a discard pile');
                 expect(this.player1).toBeAbleToSelectExactly([this.keepFighting, this.disarm, this.tacticalAdvantage]);
+                expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.disarm);
                 expect(this.player1.hand.length).toBe(1);
+                expect(this.disarm.location).toBe('hand')
             });
 
-            it('should return card to opponent hand', function () {
+            it('should return card to opponent hand from a discard pile', function () {
                 this.player1.clickCard(this.bountyHunterCrew);
                 this.player1.clickPrompt('Return an event from a discard pile');
                 expect(this.player1).toBeAbleToSelectExactly([this.keepFighting, this.disarm, this.tacticalAdvantage]);
+                expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.tacticalAdvantage);
                 expect(this.player2.hand.length).toBe(1);
+                expect(this.tacticalAdvantage.location).toBe('hand')
             });
         });
     });

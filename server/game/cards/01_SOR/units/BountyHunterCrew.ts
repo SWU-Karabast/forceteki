@@ -13,8 +13,8 @@ export default class BountyHunterCrew extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
             title: 'Return an event from a discard pile',
+            optional: true,
             targetResolver: {
-                optional: true,
                 cardTypeFilter: CardType.Event,
                 locationFilter: Location.Discard,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand({ locationFilter: Location.Discard })
