@@ -22,8 +22,7 @@ describe('Rey, More Than a Scavenger', function () {
 
                 expect(this.rey.exhausted).toBeTrue();
                 expect(this.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                let exhaustedResources = this.player1.countExhaustedResources();
-                expect(exhaustedResources).toBe(1);
+                expect(this.player1.countExhaustedResources()).toBe(1);
             });
         });
 
@@ -50,25 +49,9 @@ describe('Rey, More Than a Scavenger', function () {
 
                 expect(this.rey.exhausted).toBeTrue();
                 expect(this.p2Base.damage).toBe(2);
-                expect(this.rey).toHaveExactUpgradeNames([]);
+                expect(this.rey.isUpgraded()).toBeFalse();
                 expect(this.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                const exhaustedResources = this.player1.countExhaustedResources();
-                expect(exhaustedResources).toBe(0);
-            });
-
-            it('should give an experience to a unit with 2 or less power', function () {
-                this.player1.clickCard(this.rey);
-                // need to order triggers between restore & on attack
-                this.player1.clickPrompt('Give an Experience token to a unit with 2 or less power');
-                expect(this.player1).toBeAbleToSelectExactly([this.rey, this.partisanInsurgent, this.greySquadronYwing]);
-                this.player1.clickCard(this.partisanInsurgent);
-
-                expect(this.rey.exhausted).toBeTrue();
-                expect(this.p2Base.damage).toBe(2);
-                expect(this.rey).toHaveExactUpgradeNames([]);
-                expect(this.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                let exhaustedResources = this.player1.countExhaustedResources();
-                expect(exhaustedResources).toBe(0);
+                expect(this.player1.countExhaustedResources()).toBe(0);
 
                 // rey can give experience to herself
                 this.rey.exhausted = false;
@@ -83,8 +66,7 @@ describe('Rey, More Than a Scavenger', function () {
                 expect(this.rey.exhausted).toBeTrue();
                 expect(this.p2Base.damage).toBe(3);
                 expect(this.rey).toHaveExactUpgradeNames(['experience']);
-                exhaustedResources = this.player1.countExhaustedResources();
-                expect(exhaustedResources).toBe(0);
+                expect(this.player1.countExhaustedResources()).toBe(0);
             });
         });
 
@@ -115,8 +97,7 @@ describe('Rey, More Than a Scavenger', function () {
                 expect(this.p2Base.damage).toBe(3);
                 expect(this.rey).toHaveExactUpgradeNames([]);
                 expect(this.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                let exhaustedResources = this.player1.countExhaustedResources();
-                expect(exhaustedResources).toBe(0);
+                expect(this.player1.countExhaustedResources()).toBe(0);
             });
         });
     });

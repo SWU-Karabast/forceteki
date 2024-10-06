@@ -22,7 +22,7 @@ describe('Bounty Hunter Crew', function () {
                 expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.disarm);
                 expect(this.player1.hand.length).toBe(1);
-                expect(this.disarm.location).toBe('hand')
+                expect(this.disarm.location).toBe('hand');
             });
 
             it('should return card to opponent hand from a discard pile', function () {
@@ -32,7 +32,7 @@ describe('Bounty Hunter Crew', function () {
                 expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.tacticalAdvantage);
                 expect(this.player2.hand.length).toBe(1);
-                expect(this.tacticalAdvantage.location).toBe('hand')
+                expect(this.tacticalAdvantage.location).toBe('hand');
             });
         });
     });
