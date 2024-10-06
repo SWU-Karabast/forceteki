@@ -36,16 +36,15 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities () {
         this.addOnAttackAbility({
             title: 'You may deal 1 damage to a unit. If you attacked with another Mandalorian unit this phase, you may deal 1 damage to a unit',
+            optional: true,
             targetResolvers: {
                 firstDmg: {
                     activePromptTitle: 'Deal 1 damage to a unit',
-                    optional: true,
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                 },
                 secondDmg: {
                     activePromptTitle: 'Deal 1 damage to a unit (second damage)',
-                    optional: true,
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.conditional({
                         condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
