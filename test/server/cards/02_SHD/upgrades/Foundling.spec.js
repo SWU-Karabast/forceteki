@@ -29,7 +29,7 @@ describe('Foundling\'s', function () {
                 expect(this.battlefieldMarine.hasSomeTrait(Trait.Mandalorian)).toBeTrue();
                 expect(this.pykeSentinel.hasSomeTrait(Trait.Mandalorian)).toBeFalse();
 
-                this.player2.pass();
+                this.player2.passAction();
                 // mandalorian warrior should be able to add experience to battlefield marine
                 this.player1.clickCard(this.mandalorianWarrior);
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.protectorOfTheThrone]);

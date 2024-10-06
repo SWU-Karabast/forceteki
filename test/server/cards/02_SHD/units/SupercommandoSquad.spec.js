@@ -14,7 +14,7 @@ describe('Supercommando Squad', function() {
             });
 
             it('should give it sentinel only as long as it is upgraded', function () {
-                this.player1.pass();
+                this.player1.passAction();
 
                 this.player2.clickCard(this.wampa);
                 // Supercommando Squad automatically selected due to sentinel
@@ -25,7 +25,7 @@ describe('Supercommando Squad', function() {
                 expect(this.supercommandoSquad.isUpgraded()).toBe(false);
                 expect(this.wampa.damage).toBe(4);
 
-                this.player1.pass();
+                this.player1.passAction();
 
                 this.player2.clickCard(this.jedhaAgitator);
 

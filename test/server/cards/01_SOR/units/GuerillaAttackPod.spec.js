@@ -26,14 +26,14 @@ describe('Guerilla Attack Pod', function () {
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(17);
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.guerillaAttackPod);
                 expect(this.guerillaAttackPod.exhausted).toBeFalse();
             });
 
             it('should be ready if p1 base have more than 15 damage', function () {
                 // attack with rugged survivors to trigger guerilla attack pod
-                this.player1.pass();
+                this.player1.passAction();
                 this.player2.clickCard(this.ruggedSurvivors);
                 this.player2.clickCard(this.p1Base);
                 expect(this.p1Base.damage).toBe(17);

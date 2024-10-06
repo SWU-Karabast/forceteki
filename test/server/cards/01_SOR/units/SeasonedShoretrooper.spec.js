@@ -42,7 +42,7 @@ describe('Seasoned Shoretrooper', function () {
                 this.p2Base.damage = 0;
                 this.seasonedShoretrooper.exhausted = false;
                 this.player1.moveCard(this.battlefieldMarine, 'resource');
-                this.player2.pass();
+                this.player2.passAction();
                 expect(this.player1.resources.length).toBe(7);
                 expect(this.seasonedShoretrooper.getPower()).toBe(4);
                 expect(this.seasonedShoretrooper.getHp()).toBe(3);
@@ -57,7 +57,7 @@ describe('Seasoned Shoretrooper', function () {
                 // remove 2 resources : seasoned shoretrooper lost its buff
                 this.player1.moveCard(this.battlefieldMarine, 'hand', 'resource');
                 this.player1.moveCard(this.wampa, 'hand', 'resource');
-                this.player2.pass();
+                this.player2.passAction();
                 expect(this.player1.resources.length).toBe(5);
                 expect(this.seasonedShoretrooper.getPower()).toBe(2);
                 expect(this.seasonedShoretrooper.getHp()).toBe(3);

@@ -15,7 +15,7 @@ describe('Gamorrean Guards', function() {
             });
 
             it('should give it sentinel while he has a Cunning ally', function () {
-                this.player1.pass();
+                this.player1.passAction();
                 this.player2.clickCard(this.wampa);
                 this.player2.clickCard(this.p1Base);
                 expect(this.p1Base.damage).toBe(4);
