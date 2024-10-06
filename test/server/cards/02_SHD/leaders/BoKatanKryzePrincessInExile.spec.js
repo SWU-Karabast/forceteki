@@ -29,12 +29,12 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(this.player2).toBeActivePlayer();
 
                 this.bokatanKryze.exhausted = false;
-                this.player2.pass();
+                this.player2.passAction();
 
                 // no attack done with mandalorian, ability has no effect
                 this.player1.clickCard(this.battlefieldMarine);
                 this.player1.clickCard(this.p2Base);
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.bokatanKryze);
                 expect(this.bokatanKryze.exhausted).toBeTrue();
                 expect(this.mandalorianWarrior.damage).toBe(0);
@@ -47,12 +47,12 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
 
                 // attack with a mandalorian
                 this.bokatanKryze.exhausted = false;
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.mandalorianWarrior);
                 this.player1.clickCard(this.p2Base);
 
                 // attack was done with mandalorian, ability should have an effect
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.bokatanKryze);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.protectorOfTheThrone, this.allianceXwing]);
                 expect(this.player1).not.toHavePassAbilityButton();
@@ -91,20 +91,20 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
 
                 // if you attack again with bo katan : only 1 damage trigger
                 this.bokatanKryze.exhausted = false;
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.bokatanKryze);
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
                 expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.bokatanKryze);
                 expect(this.player2).toBeActivePlayer();
-                this.player2.pass();
+                this.player2.passAction();
 
                 // attack with a mandalorian
                 this.player1.clickCard(this.mandalorianWarrior);
                 this.player1.clickCard(this.p2Base);
                 this.bokatanKryze.exhausted = false;
-                this.player2.pass();
+                this.player2.passAction();
 
                 // 2 triggers as we attack with another mandalorian (1 damage to 2 different unit)
                 this.player1.clickCard(this.bokatanKryze);
@@ -121,7 +121,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit)
                 this.bokatanKryze.exhausted = false;
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.bokatanKryze);
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
@@ -134,7 +134,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit who die on first damage)
                 this.bokatanKryze.exhausted = false;
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.bokatanKryze);
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);

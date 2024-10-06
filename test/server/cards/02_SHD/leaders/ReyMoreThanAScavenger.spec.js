@@ -18,6 +18,7 @@ describe('Rey, More Than a Scavenger', function () {
             it('should give an experience to a unit with 2 or less power', function () {
                 this.player1.clickCard(this.rey);
                 expect(this.player1).toBeAbleToSelectExactly([this.partisanInsurgent, this.greySquadronYwing]);
+                expect(this.player1).not.toHavePassAbilityButton();
                 this.player1.clickCard(this.partisanInsurgent);
 
                 expect(this.rey.exhausted).toBeTrue();
@@ -56,7 +57,7 @@ describe('Rey, More Than a Scavenger', function () {
                 // rey can give experience to herself
                 this.rey.exhausted = false;
                 this.p2Base.damage = 0;
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.rey);
                 // need to order triggers between restore & on attack
                 this.player1.clickPrompt('Give an Experience token to a unit with 2 or less power');
