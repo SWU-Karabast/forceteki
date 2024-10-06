@@ -14,7 +14,7 @@ describe('Rebel Assault', function () {
                 });
             });
 
-            it('should initiate 2 attacks with +1', function () {
+            it('should initiate 2 attacks with +1/+0', function () {
                 this.player1.clickCard(this.rebelAssault);
                 expect(this.player1).toBeAbleToSelectExactly([this.greenSquadronAwing, this.battlefieldMarine, this.chirrutImwe]);
 
@@ -28,7 +28,7 @@ describe('Rebel Assault', function () {
                 expect(this.p2Base.damage).toBe(8);
             });
 
-            it('should initiate only 1 attack with +1', function () {
+            it('should initiate only 1 attack with +1/+0', function () {
                 this.battlefieldMarine.exhausted = true;
                 this.chirrutImwe.exhausted = true;
 

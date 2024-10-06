@@ -1,4 +1,4 @@
-describe('', function () {
+describe('Cartel Spacer', function () {
     integration(function () {
         describe('Cartel Spacer\'s ability', function () {
             beforeEach(function () {
@@ -13,7 +13,7 @@ describe('', function () {
                 });
             });
 
-            it('should not exhaust enemy unit if there no Cunning ally', function () {
+            it('should not exhaust enemy unit if there is no Cunning ally', function () {
                 this.player1.clickCard(this.cartelSpacer);
                 expect(this.cartelSpacer.location).toBe('space arena');
                 expect(this.player2).toBeActivePlayer();
@@ -38,7 +38,7 @@ describe('', function () {
                 });
             });
 
-            it('should exhaust enemy unit as there is Cunning ally', function () {
+            it('should exhaust enemy unit when there is Cunning ally', function () {
                 this.player1.clickCard(this.cartelSpacer);
                 expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.partisanInsurgent]);
                 this.player1.clickCard(this.battlefieldMarine);

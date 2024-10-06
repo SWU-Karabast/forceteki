@@ -32,7 +32,24 @@ describe('Keep Fighting', function () {
                 this.player1.clickCard(this.pykeSentinel);
                 this.player1.clickCard(this.p2Base);
 
-                // damage should be 8 here
+                // damage should be 2 here
+                expect(this.p2Base.damage).toBe(2);
+                expect(this.pykeSentinel.exhausted).toBeTrue();
+            });
+
+            it('should not ready an unexhausted unit', function () {
+                this.player1.clickCard(this.keepFighting);
+                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.sabineWren, this.imperialInterceptor]);
+                this.player1.clickCard(this.pykeSentinel);
+                expect(this.pykeSentinel.exhausted).toBeFalse();
+                expect(this.keepFighting.location).toBe('discard');
+                this.player2.pass();
+
+                // attack again with pyke sentinel
+                this.player1.clickCard(this.pykeSentinel);
+                this.player1.clickCard(this.p2Base);
+
+                // damage should be 2 here
                 expect(this.p2Base.damage).toBe(2);
                 expect(this.pykeSentinel.exhausted).toBeTrue();
             });

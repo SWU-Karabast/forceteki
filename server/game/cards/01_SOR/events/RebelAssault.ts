@@ -23,7 +23,6 @@ export default class RebelAssault extends EventCard {
                 title: 'Attack with another Rebel unit. It gets +1/+0 for this attack',
                 initiateAttack: {
                     attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel),
-                    optional: false,
                     attackerLastingEffects: {
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
                     }
