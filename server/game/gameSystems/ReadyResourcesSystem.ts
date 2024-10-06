@@ -1,9 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import type { Card } from '../core/card/Card';
 import { EventName } from '../core/Constants';
-import { CardType, Location, WildcardCardType } from '../core/Constants';
 import Player from '../core/Player.js';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 
 
@@ -20,9 +17,8 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-        const message = 'ready {0} resources';
-        return [message, [properties.amount]];
+        const { amount } = this.generatePropertiesFromContext(context);
+        return amount === 1 ? ['ready a resource', []] : ['ready {0} resources', [amount]];
     }
 
     public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {

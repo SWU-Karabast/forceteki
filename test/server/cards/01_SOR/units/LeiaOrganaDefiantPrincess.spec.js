@@ -6,13 +6,13 @@ describe('Leia Organa, Defiant Princess', function() {
                     phase: 'action',
                     player1: {
                         hand: ['leia-organa#defiant-princess'],
-                        groundArena: [{ card: 'atst', exhausted: true }],
+                        groundArena: ['atst'],
                         spaceArena: [{ card: 'cartel-spacer', exhausted: false }],
                         leader: { card: 'jyn-erso#resisting-oppression', deployed: true, exhausted: false }
                     },
                     player2: {
                         groundArena: [{ card: 'wampa', exhausted: false }],
-                        spaceArena: [{ card: 'alliance-xwing', exhausted: true }]
+                        spaceArena: ['alliance-xwing']
                     }
                 });
             });
@@ -32,13 +32,19 @@ describe('Leia Organa, Defiant Princess', function() {
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.exhausted).toBe(true);
             });
+        });
+
+        describe('Leia Organa, Defiant Princess\'s when played ability', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['leia-organa#defiant-princess']
+                    }
+                });
+            });
 
             it('should do nothing if the controller selects "Exhaust a unit" when no other unit is on the field', function () {
-                this.player1.setLeaderStatus({ card: 'jyn-erso#resisting-oppression', deployed: false });
-                this.player1.setGroundArenaUnits([]);
-                this.player1.setSpaceArenaUnits([]);
-                this.player2.setGroundArenaUnits([]);
-                this.player2.setSpaceArenaUnits([]);
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Exhaust a unit');
                 expect(this.player2).toBeActivePlayer();
