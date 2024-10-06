@@ -5,6 +5,7 @@ on:
       - main
 jobs:
   lint:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
         - uses: actions/checkout@v4
@@ -16,6 +17,7 @@ jobs:
 
         - run: npx eslint --quiet
   test:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
         - uses: actions/checkout@v4

@@ -25,7 +25,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         if (!this.isComplete()) {
             this.highlightSelectableCards();
         } else {
-            this.game.getPlayers().forEach((player) => this.resourceSelectedCards(player));
+            this.complete();
         }
 
         return super.continue();
@@ -96,5 +96,16 @@ export class ResourcePrompt extends AllPlayerPrompt {
         } else {
             this.game.addMessage('{0} has not resourced any cards', player);
         }
+    }
+
+    public override complete() {
+        this.game.getPlayers().forEach((player) => this.resourceSelectedCards(player));
+
+        for (const player of this.game.getPlayers()) {
+            player.clearSelectedCards();
+            player.clearSelectableCards();
+        }
+
+        return super.complete();
     }
 }
