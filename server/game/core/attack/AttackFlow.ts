@@ -49,7 +49,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
 
         let overwhelmDamageOnly = false;
-        if (!this.attack.isDefenderInPlay()) {
+        if (!this.attack.isAttackTargetInPlay()) {
             if (!this.attack.hasOverwhelm()) {
                 this.context.game.addMessage('The attack does not resolve because the defender is no longer in play');
                 return;
@@ -110,7 +110,7 @@ export class AttackFlow extends BaseStepWithPipeline {
             attack: this.attack,
             handler: () => {
                 // only unregister if the attacker hasn't been moved out of the play area (e.g. defeated)
-                if (EnumHelpers.isArena(this.attack.attacker.location)) {
+                if (this.attack.isAttackerInPlay()) {
                     this.attack.attacker.unregisterAttackKeywords();
                 }
             }

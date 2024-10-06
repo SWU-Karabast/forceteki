@@ -55,10 +55,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy);
 
-        if (!context || !super.canAffect(card, context)) {
+        if (!super.canAffect(card, context)) {
             return false;
         // TODO SMUGGLE: impl here
-        } else if (EnumHelpers.isArena(card.location) || card.facedown) {
+        } else if (!card.canBeInPlay() || card.isInPlay() || card.facedown) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;

@@ -145,7 +145,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // *************************************** KEYWORD HELPERS ***************************************
         protected override cleanupBeforeMove(nextLocation: Location) {
-            if (EnumHelpers.isArena(this.location) && this.isAttacking()) {
+            if (this.isInPlay() && this.isAttacking()) {
                 this.unregisterAttackKeywords();
             }
         }

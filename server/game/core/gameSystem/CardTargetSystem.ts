@@ -148,7 +148,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             // add events to defeat any upgrades attached to this card. the events will be added as "contingent events"
             // in the event window, so they'll resolve in the same window but after the primary event
             for (const upgrade of (event.card.upgrades ?? []) as UpgradeCard[]) {
-                if (EnumHelpers.isArena(upgrade.location)) {
+                if (upgrade.isInPlay()) {
                     const attachmentEvent = context.game.actions
                         .defeat()
                         .generateEvent(upgrade, context.game.getFrameworkContext());

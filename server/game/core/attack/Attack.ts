@@ -35,11 +35,11 @@ export class Attack extends GameObject {
     }
 
     public isAttackerInPlay(): boolean {
-        return EnumHelpers.isArena(this.attacker.location);
+        return this.attacker.isInPlay();
     }
 
-    public isDefenderInPlay(): boolean {
-        return this.target.isBase() || EnumHelpers.isArena(this.target.location);
+    public isAttackTargetInPlay(): boolean {
+        return this.target.isBase() || this.target.isInPlay();
     }
 
     public isInvolved(card: Card): boolean {
@@ -54,7 +54,7 @@ export class Attack extends GameObject {
     }
 
     private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
-        Contract.assertTrue(EnumHelpers.isArena(involvedUnit.location), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`);
+        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`);
 
         return involvedUnit.getPower();
     }
