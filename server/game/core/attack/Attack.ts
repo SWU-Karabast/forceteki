@@ -38,7 +38,7 @@ export class Attack extends GameObject {
         return this.attacker.isInPlay();
     }
 
-    public isAttackTargetInPlay(): boolean {
+    public isAttackTargetLegal(): boolean {
         return this.target.isBase() || this.target.isInPlay();
     }
 

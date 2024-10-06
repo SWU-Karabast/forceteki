@@ -49,7 +49,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
 
         let overwhelmDamageOnly = false;
-        if (!this.attack.isAttackTargetInPlay()) {
+        if (!this.attack.isAttackTargetLegal()) {
             if (!this.attack.hasOverwhelm()) {
                 this.context.game.addMessage('The attack does not resolve because the defender is no longer in play');
                 return;
