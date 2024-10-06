@@ -3,7 +3,6 @@ import { Attack } from '../../../core/attack/Attack';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
-import Player from '../../../core/Player';
 
 export default class JediLightsaber extends UpgradeCard {
     protected override getImplementationId() {
