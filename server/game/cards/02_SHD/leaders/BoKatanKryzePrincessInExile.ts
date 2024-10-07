@@ -37,19 +37,20 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
         this.addOnAttackAbility({
             title: 'You may deal 1 damage to a unit. If you attacked with another Mandalorian unit this phase, you may deal 1 damage to a unit',
             optional: true,
-            targetResolvers: {
-                firstDmg: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                },
-                secondDmg: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
-                        onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction(),
+            targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
+                    AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                    AbilityHelper.immediateEffects.selectCard({
+                        cardTypeFilter: WildcardCardType.Unit,
+                        optional: true,
+                        innerSystem: AbilityHelper.immediateEffects.conditional({
+                            condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
+                            onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                            onFalse: AbilityHelper.immediateEffects.noAction(),
+                        })
                     })
-                }
+                ])
             }
         });
     }
