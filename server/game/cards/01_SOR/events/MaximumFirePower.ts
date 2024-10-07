@@ -36,7 +36,7 @@ export default class MaximumFirePower extends EventCard {
                 }
             },
             then: (thenContext) => ({
-                title: 'another friendly Imperial unit deals damage equal to its power to the same unit.',
+                title: 'Another friendly Imperial unit deals damage equal to its power to the same unit.',
                 targetResolver: {
                     controller: RelativePlayer.Self,
                     locationFilter: WildcardLocation.AnyArena,

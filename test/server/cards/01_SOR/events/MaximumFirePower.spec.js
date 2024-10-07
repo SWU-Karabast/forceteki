@@ -15,7 +15,7 @@ describe('Maximum Firepower', function() {
                 });
             });
 
-            it('should defeat wampa when picking Gladiator Stardestroyer first', function() {
+            it('should allow an Imperial unit to deal damage equal to its power to a unit, then stop if the target is defeated', function() {
                 // action play Maximum Firepower with gladiator star destroyer
                 this.player1.clickCard(this.maximumFirepower);
                 expect(this.player1).toBeAbleToSelectExactly([this.deathTrooper, this.tielnFighter, this.gladiatorStarDestroyer]);
@@ -30,7 +30,7 @@ describe('Maximum Firepower', function() {
                 expect(this.player2).toBeActivePlayer();
             });
 
-            it('should deal 5 damage to wampa and friendly units aren\'t exhausted', function () {
+            it('should allow two friendly Imperial units to deal damage equal to their power to a unit, one at a time', function () {
                 // action play Maximum Firepower
                 this.player1.clickCard(this.maximumFirepower);
                 expect(this.player1).toBeAbleToSelectExactly([this.deathTrooper, this.tielnFighter, this.gladiatorStarDestroyer]);
@@ -67,7 +67,7 @@ describe('Maximum Firepower', function() {
                 });
             });
 
-            it('should not trigger', function() {
+            it('should not trigger if there are no friendly Imperial units', function() {
                 // action play Maximum Firepower without target
                 this.player1.clickCard(this.maximumFirepower);
                 expect(this.maximumFirepower).toBeInLocation('discard');
