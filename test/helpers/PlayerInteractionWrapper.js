@@ -309,18 +309,15 @@ class PlayerInteractionWrapper {
      * Sets the contents of the conflict discard pile
      * @param {String[]} newContents - list of names of cards to be put in conflict discard
      */
-    setDiscard(newContents = []) {
+    setDiscard(newContents = [], prevLocations = ['deck']) {
         //  Move cards to the deck
-        this.discard.forEach((card) => {
-            this.moveCard(card, 'deck');
-        });
+        this.discard.forEach((card) => this.moveCard(card, 'deck'));
         // Move cards to the discard in reverse order
         // (helps with referring to cards by index)
-        newContents.reverse()
-            .forEach((name) => {
-                var card = this.findCardByName(name, 'deck');
-                this.moveCard(card, 'discard');
-            });
+        newContents.reverse().forEach((name) => {
+            const card = typeof name === 'string' ? this.findCardByName(name, prevLocations) : name;
+            this.moveCard(card, 'discard');
+        });
     }
 
     get initiativePlayer() {
@@ -469,11 +466,6 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    passAction() {
-        this.clickPrompt('Pass');
-    }
-
-
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();
 
@@ -611,7 +603,7 @@ class PlayerInteractionWrapper {
     /**
      * Player's action of passing priority
      */
-    pass() {
+    passAction() {
         if (!this.canAct) {
             throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
         }

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, Trait } from '../../../core/Constants';
+import { Trait } from '../../../core/Constants';
 
 export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
     protected override getImplementationId() {

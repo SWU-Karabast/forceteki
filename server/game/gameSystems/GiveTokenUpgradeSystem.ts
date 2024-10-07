@@ -21,7 +21,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         const properties = this.generatePropertiesFromContext(event.context);
 
         Contract.assertTrue(cardReceivingTokenUpgrade.isUnit());
-        Contract.assertTrue(EnumHelpers.isArena(cardReceivingTokenUpgrade.location));
+        Contract.assertTrue(cardReceivingTokenUpgrade.isInPlay());
 
         for (let i = 0; i < properties.amount; i++) {
             const tokenUpgrade = event.context.game.generateToken(event.context.source.controller, properties.tokenType);
@@ -47,7 +47,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
 
         if (
             !card.isUnit() ||
-            !EnumHelpers.isArena(card.location) ||
+            !card.isInPlay() ||
             properties.amount === 0
         ) {
             return false;

@@ -39,7 +39,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
-        if (!EnumHelpers.isArena(card.location)) {
+        if (!card.canBeInPlay() || !card.isInPlay()) {
             return false;
         }
         return super.canAffect(card, context);
