@@ -6,7 +6,7 @@ import {
     WildcardLocation
 } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+
 export default class MaximumFirePower extends EventCard {
     protected override getImplementationId () {
         return {
@@ -25,31 +25,27 @@ export default class MaximumFirePower extends EventCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
                 },
-                selectedTarget: {
+                damageTarget: {
                     dependsOn: 'firstImperial',
                     locationFilter: WildcardLocation.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (_, context) => (context.player.getUnitsInPlay(WildcardLocation.AnyArena, (card) =>
-                        card.hasSomeTrait(Trait.Imperial)).length > 0),
+                    cardCondition: (_, context) => (context.player.getUnitsInPlay(WildcardLocation.AnyArena,
+                        (card) => card.hasSomeTrait(Trait.Imperial)).length > 0),
                     immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
                         ({ amount: context.targets.firstImperial.getPower() })),
                 }
             },
-            then: (context) => ({
-                title: 'Then, another friendly Imperial unit deals damage equal to its power to the same unit.',
+            then: (thenContext) => ({
+                title: 'another friendly Imperial unit deals damage equal to its power to the same unit.',
                 targetResolver: {
                     controller: RelativePlayer.Self,
                     locationFilter: WildcardLocation.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card) => card.hasSomeTrait(Trait.Imperial) && card !== context.targets.firstImperial,
-                    immediateEffect: AbilityHelper.immediateEffects.conditional((context2) => ({
-                        condition: EnumHelpers.isArena(context.targets.selectedTarget.location),
-                        onTrue: AbilityHelper.immediateEffects.damage({ target: context.targets.selectedTarget, amount: context2.target.getPower() }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
-                    }))
+                    cardCondition: (card) => card.hasSomeTrait(Trait.Imperial) && card !== thenContext.targets.firstImperial,
+                    immediateEffect: AbilityHelper.immediateEffects.damage((damageContext) =>
+                        ({ target: thenContext.targets.damageTarget, amount: damageContext.target.getPower() })),
                 }
             })
-
         });
     }
 }

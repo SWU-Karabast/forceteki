@@ -7,10 +7,10 @@ describe('Maximum Firepower', function() {
                     player1: {
                         hand: ['maximum-firepower'],
                         groundArena: ['death-trooper'],
-                        spaceArena: ['tieln-fighter', 'gladiator-star-destroyer'],
+                        spaceArena: ['tieln-fighter', { card: 'gladiator-star-destroyer', upgrades: ['experience'] }],
                     },
                     player2: {
-                        groundArena: ['wampa']
+                        groundArena: [{ card: 'wampa', upgrades: ['experience'] }, 'first-legion-snowtrooper']
                     }
                 });
             });
@@ -22,7 +22,7 @@ describe('Maximum Firepower', function() {
                 this.player1.clickCard(this.gladiatorStarDestroyer);
 
                 // action check for next unit selection
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.deathTrooper, this.tielnFighter, this.gladiatorStarDestroyer]);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.deathTrooper, this.tielnFighter, this.gladiatorStarDestroyer, this.firstLegionSnowtrooper]);
                 this.player1.clickCard(this.wampa);
 
                 // check game state
@@ -37,7 +37,7 @@ describe('Maximum Firepower', function() {
                 this.player1.clickCard(this.deathTrooper);
 
                 // action check where we select wampa
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.deathTrooper, this.tielnFighter, this.gladiatorStarDestroyer]);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.deathTrooper, this.tielnFighter, this.gladiatorStarDestroyer, this.firstLegionSnowtrooper]);
                 this.player1.clickCard(this.wampa);
 
                 // third action set where we select tielnfighter and check if wampa received damage
@@ -47,10 +47,12 @@ describe('Maximum Firepower', function() {
                 this.player1.clickCard(this.tielnFighter);
 
                 // end game stat
-                expect(this.wampa.location).toBe('discard');
+                expect(this.wampa.damage).toBe(5);
+                expect(this.wampa.location).toBe('ground arena');
                 expect(this.player2).toBeActivePlayer();
             });
         });
+
         describe('Maximum Firepower\'s ability', function () {
             beforeEach(function () {
                 this.setupTest({
@@ -60,7 +62,7 @@ describe('Maximum Firepower', function() {
                         groundArena: ['jedha-agitator'],
                     },
                     player2: {
-                        groundArena: ['wampa']
+                        groundArena: ['wampa', 'first-legion-snowtrooper']
                     }
                 });
             });
