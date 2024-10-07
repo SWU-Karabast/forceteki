@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+
 export default class FirstLegionSnowtrooper extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
