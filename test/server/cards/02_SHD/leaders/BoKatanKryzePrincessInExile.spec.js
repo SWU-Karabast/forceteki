@@ -111,7 +111,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
                 expect(this.player1).toHavePassAbilityButton();
-                this.player1.clickCard(this.protectorOfTheThrone);
+                this.player1.clickCardNonChecking(this.protectorOfTheThrone);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
                 expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.allianceXwing);
@@ -126,7 +126,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
                 expect(this.player1).toHavePassAbilityButton();
-                this.player1.clickCard(this.battlefieldMarine);
+                this.player1.clickCardNonChecking(this.battlefieldMarine);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
                 expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.battlefieldMarine);
@@ -139,7 +139,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
                 expect(this.player1).toHavePassAbilityButton();
-                this.player1.clickCard(this.jedhaAgitator);
+                this.player1.clickCardNonChecking(this.jedhaAgitator);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
                 expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.jedhaAgitator);
