@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { TokenName, WildcardCardType, WildcardLocation } from '../../../core/Constants';
 
 export default class MomentOfPeace extends EventCard {
     protected override getImplementationId() {
