@@ -17,7 +17,7 @@ export default class BountyHunterCrew extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: CardType.Event,
                 locationFilter: Location.Discard,
-                immediateEffect: AbilityHelper.immediateEffects.returnToHand({ locationFilter: Location.Discard })
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             }
         });
     }
