@@ -7,7 +7,6 @@ const GameSystems = require('../gameSystems/GameSystemLibrary');
 const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
 const Contract = require('./utils/Contract');
-
 const {
     AbilityType,
     CardType,
