@@ -13,6 +13,7 @@ export default tseslint.config(
         files: ["**/*.js", "**/*.ts"],
         ...jasmine.configs.recommended,
         ...eslint.configs.recommended,
+        ...importPlugin.flatConfigs.recommended,
         extends: [
             stylisticJs.configs['all-flat']
         ],
