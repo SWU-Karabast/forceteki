@@ -43,8 +43,8 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
                     AbilityHelper.immediateEffects.damage({ amount: 1 }),
                     AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
-                        optional: true,
                         innerSystem: AbilityHelper.immediateEffects.conditional({
+                            optional: true,
                             condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
                             onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                             onFalse: AbilityHelper.immediateEffects.noAction(),
