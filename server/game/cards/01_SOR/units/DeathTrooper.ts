@@ -18,6 +18,7 @@ export default class DeathTrooper extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     locationFilter: Location.GroundArena,
+                    optional: true,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 },
                 theirGroundUnit: {
