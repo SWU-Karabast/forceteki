@@ -55,4 +55,8 @@ export class InitiateAttackAction extends PlayerAction {
 
         new AttackStepsSystem(attackSystemProperties).resolve(context.target, context);
     }
+
+    public override isAttackAction(): this is InitiateAttackAction {
+        return true;
+    }
 }
