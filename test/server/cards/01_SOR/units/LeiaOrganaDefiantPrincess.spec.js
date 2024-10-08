@@ -6,13 +6,13 @@ describe('Leia Organa, Defiant Princess', function() {
                     phase: 'action',
                     player1: {
                         hand: ['leia-organa#defiant-princess'],
-                        groundArena: ['atst'],
-                        spaceArena: [{ card: 'cartel-spacer', exhausted: false }],
-                        leader: { card: 'jyn-erso#resisting-oppression', deployed: true, exhausted: false }
+                        groundArena: [{ card: 'atst', exhausted: true }],
+                        spaceArena: ['cartel-spacer'],
+                        leader: { card: 'jyn-erso#resisting-oppression', deployed: true }
                     },
                     player2: {
-                        groundArena: [{ card: 'wampa', exhausted: false }],
-                        spaceArena: ['alliance-xwing']
+                        groundArena: ['wampa'],
+                        spaceArena: [{ card: 'alliance-xwing', exhausted: true }]
                     }
                 });
             });
@@ -25,10 +25,11 @@ describe('Leia Organa, Defiant Princess', function() {
                 expect(this.player1.countExhaustedResources()).toBe(exhaustedResourcesBeforeAbility - 1);
             });
 
-            it('should be able to exhaust any unit', function () {
+            it('should be able to target any unit to exhaust', function () {
                 this.player1.clickCard(this.leiaOrgana);
                 this.player1.clickPrompt('Exhaust a unit');
                 expect(this.player1).toBeAbleToSelectExactly([this.leiaOrgana, this.atst, this.cartelSpacer, this.jynErso, this.wampa, this.allianceXwing]);
+                expect(this.wampa.exhausted).toBe(false);
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa.exhausted).toBe(true);
             });
