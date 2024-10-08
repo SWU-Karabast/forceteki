@@ -6,14 +6,14 @@ export enum AssertMode {
 }
 
 interface IContractCheckImpl {
-    fail(message: string): void;
+    fail(message: string): never;
 }
 
 class AssertContractCheckImpl implements IContractCheckImpl {
     public constructor(private readonly breakpoint: boolean) {
     }
 
-    public fail(message: string): void {
+    public fail(message: string): never {
         if (this.breakpoint) {
             debugger;
         }
@@ -124,6 +124,6 @@ export function assertNonNegative(val: number, message?: string): asserts val is
     }
 }
 
-export function fail(message: string): void {
+export function fail(message: string): never {
     contractCheckImpl.fail(message);
 }

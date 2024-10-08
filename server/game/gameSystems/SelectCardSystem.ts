@@ -6,6 +6,7 @@ import { CardTypeFilter, EffectName, Location, RelativePlayer, TargetMode } from
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { GameEvent } from '../core/event/GameEvent';
+import * as Contract from '../core/utils/Contract';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     activePromptTitle?: string;
@@ -117,7 +118,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
         let buttons = [];
         buttons = properties.cancelHandler ? buttons.concat({ text: 'Cancel', arg: 'cancel' }) : buttons;
-        buttons = properties.innerSystem.isOptional(context) ? buttons.concat({ text: 'Pass ability', arg: 'passAbility' }) : buttons;
+        buttons = properties.innerSystem.isOptional(context) ? buttons.concat({ text: 'Choose no target', arg: 'noTarget' }) : buttons;
 
         const defaultProperties = {
             context: context,
@@ -140,10 +141,10 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 return true;
             },
             onMenuCommand: (player, arg) => {
-                if (arg === 'passAbility') {
+                if (arg === 'noTarget' || arg === 'cancel') {
                     return true;
                 }
-                return true;
+                Contract.fail(`Unknown menu option '${arg}'`);
             }
         };
         const finalProperties = Object.assign(defaultProperties, properties);

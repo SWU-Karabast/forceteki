@@ -86,12 +86,6 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
         return [message, []];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
-        return searchCountAmount !== 0 && this.getDeck(player).length > 0 && super.canAffect(player, context);
-    }
-
     public override defaultTargets(context: TContext): Player[] {
         return [context.player];
     }
