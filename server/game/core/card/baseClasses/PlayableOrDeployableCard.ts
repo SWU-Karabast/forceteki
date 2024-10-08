@@ -58,7 +58,6 @@ export class PlayableOrDeployableCard extends Card {
         return true;
     }
 
-
     protected setExhaustEnabled(enabledStatus: boolean) {
         this._exhausted = enabledStatus ? true : null;
     }

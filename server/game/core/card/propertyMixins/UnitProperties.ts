@@ -41,7 +41,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
-        private defeatEventEmitted = false;
+
+        /** If true, then this unit has taken sufficient damage to be defeated but not yet been removed from the field */
+        private _pendingDefeat? = null;
+
+        public get pendingDefeat() {
+            this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
+            return this._pendingDefeat;
+        }
 
         public get upgrades(): UpgradeCard[] {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
@@ -94,6 +101,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public override isUnit(): this is UnitCard {
             return true;
+        }
+
+        protected setUpgradesEnabled(enabledStatus: boolean) {
+            this._upgrades = enabledStatus ? [] : null;
+        }
+
+        protected override setDamageEnabled(enabledStatus: boolean): void {
+            super.setDamageEnabled(enabledStatus);
+            this._pendingDefeat = enabledStatus ? false : null;
         }
 
         // ***************************************** ATTACK HELPERS *****************************************
@@ -265,9 +281,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // ***************************************** STAT HELPERS *****************************************
         public checkDefeated() {
-            if (this.damage >= this.getHp() && !this.defeatEventEmitted) {
+            if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 this.owner.defeatCard(this);
-                this.defeatEventEmitted = true;
+                this._pendingDefeat = true;
             }
         }
 
@@ -361,10 +377,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             // }
 
             super.leavesPlay();
-        }
-
-        protected setUpgradesEnabled(enabledStatus: boolean) {
-            this._upgrades = enabledStatus ? [] : null;
         }
     };
 }

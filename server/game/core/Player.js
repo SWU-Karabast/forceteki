@@ -909,7 +909,7 @@ class Player extends GameObject {
             return;
         }
 
-        this.game.addSubwindowEvents(GameSystems.defeat().generateEvent(card, this.game.getFrameworkContext()));
+        this.game.addSubwindowEvents(GameSystems.defeat({ target: card }).generateEvent(card, this.game.getFrameworkContext()));
     }
 
     /**

@@ -50,7 +50,7 @@ describe('General Veers, Blizzard Force Commander', function() {
                 // Correctly apply buffs to attacks
                 this.player1.clickCard(this.tieAdvanced);
                 this.player1.clickCard(this.relentless);
-                expect(this.tieAdvanced.defeatEventEmitted).toBe(true);
+                expect(this.tieAdvanced).toBeInLocation('discard');
                 expect(this.relentless.damage).toBe(4);
             });
         });
