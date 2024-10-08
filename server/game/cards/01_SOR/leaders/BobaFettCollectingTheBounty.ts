@@ -12,7 +12,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
             title: 'Ready a resource',
-            cost: [AbilityHelper.costs.exhaustSelf()],
+            cost: AbilityHelper.costs.exhaustSelf(),
             when: {
                 onCardReturnedToHand: (event, context) => event.card.isUnit() && event.card.controller !== context.source.controller && context.source.controller.resources.some((resource) => resource.exhausted),
                 onCardDefeated: (event, context) => event.card.isUnit() && event.card.controller !== context.source.controller && context.source.controller.resources.some((resource) => resource.exhausted),
