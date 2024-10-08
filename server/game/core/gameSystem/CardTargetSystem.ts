@@ -124,6 +124,16 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+        // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
+        // we're the system that is enacting the defeat
+        if (card.isUnit() && card.isInPlay() && card.pendingDefeat && !this.isPendingDefeatFor(card, context)) {
+            return false;
+        }
+
+        return super.canAffect(card, context, additionalProperties);
+    }
+
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
@@ -148,7 +158,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             // add events to defeat any upgrades attached to this card. the events will be added as "contingent events"
             // in the event window, so they'll resolve in the same window but after the primary event
             for (const upgrade of (event.card.upgrades ?? []) as UpgradeCard[]) {
-                if (EnumHelpers.isArena(upgrade.location)) {
+                if (upgrade.isInPlay()) {
                     const attachmentEvent = context.game.actions
                         .defeat()
                         .generateEvent(upgrade, context.game.getFrameworkContext());
@@ -176,6 +186,11 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         //         );
         //     }
         // };
+    }
+
+    /** Returns true if this system is enacting the pending defeat (i.e., delayed defeat from damage) for the specified card */
+    protected isPendingDefeatFor(card: Card, context: TContext) {
+        return false;
     }
 
     /**

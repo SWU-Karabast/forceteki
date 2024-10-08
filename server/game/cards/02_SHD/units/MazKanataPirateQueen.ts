@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class MazKanataPirateQueen extends NonLeaderUnitCard {

@@ -60,12 +60,9 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         const target = event.target;
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (
-            !EnumHelpers.isArena(properties.attacker.location) || !EnumHelpers.isAttackableLocation(target.location)
-        ) {
-            context.game.addMessage(
-                'The attack cannot proceed as the attacker or defender is no longer in play'
-            );
+        Contract.assertTrue(properties.attacker.isUnit());
+        if (!properties.attacker.isInPlay() || !EnumHelpers.isAttackableLocation(target.location)) {
+            context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
             return;
         }
 
@@ -101,7 +98,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         Contract.assertNotNullLike(properties.attacker);
         Contract.assertTrue(properties.attacker.isUnit());
 
-        if (!EnumHelpers.isArena(properties.attacker.location)) {
+        if (!properties.attacker.isInPlay()) {
             return false;
         }
         if (!super.canAffect(targetCard, context)) {

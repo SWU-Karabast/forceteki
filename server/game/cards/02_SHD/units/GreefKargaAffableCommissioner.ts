@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, WildcardCardType } from '../../../core/Constants';
 
 export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
     protected override getImplementationId() {

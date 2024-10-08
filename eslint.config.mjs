@@ -2,7 +2,8 @@ import jasmine from "eslint-plugin-jasmine";
 import globals from "globals";
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import stylisticJs from '@stylistic/eslint-plugin-js'
+import stylisticJs from '@stylistic/eslint-plugin-js';
+import importPlugin from 'eslint-plugin-import';
 
 export default tseslint.config(
     {
@@ -12,12 +13,14 @@ export default tseslint.config(
         files: ["**/*.js", "**/*.ts"],
         ...jasmine.configs.recommended,
         ...eslint.configs.recommended,
+        ...importPlugin.flatConfigs.recommended,
         extends: [
             stylisticJs.configs['all-flat']
         ],
         plugins: {
             jasmine,
             '@stylistic/js': stylisticJs,
+            'import': importPlugin,
         },
 
         languageOptions: {
@@ -36,6 +39,9 @@ export default tseslint.config(
             "jasmine/missing-expect": 1,
             "jasmine/new-line-before-expect": 0,
             "jasmine/prefer-toHaveBeenCalledWith": 0,
+            "jasmine/new-line-between-declarations": 2,
+
+            "import/newline-after-import": ["error"],
 
             "@stylistic/js/spaced-comment": ["error", "always"],
             "@stylistic/js/function-call-spacing": ["error", "never"],
