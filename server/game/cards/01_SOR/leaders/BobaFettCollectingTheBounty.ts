@@ -1,7 +1,11 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 
 export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
+    private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
+
     protected override getImplementationId() {
         return {
             id: '4626028465',
@@ -9,15 +13,24 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
         };
     }
 
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+        this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase(registrar, this);
+    }
+
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
             title: 'Ready a resource',
             cost: AbilityHelper.costs.exhaustSelf(),
             when: {
-                onCardReturnedToHand: (event, context) => event.card.isUnit() && event.card.controller !== context.source.controller && context.source.controller.resources.some((resource) => resource.exhausted),
-                onCardDefeated: (event, context) => event.card.isUnit() && event.card.controller !== context.source.controller && context.source.controller.resources.some((resource) => resource.exhausted),
+                onCardLeavesPlay: (event, context) =>
+                    event.card.isUnit() && event.card.controller !== context.source.controller
             },
-            immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 1 })
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) =>
+                    context.source.controller.resources.some((resource) => resource.exhausted),
+                onTrue: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
+                onFalse: AbilityHelper.immediateEffects.noAction(),
+            })
         });
     }
 
@@ -27,7 +40,17 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },
-            immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 2 })
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) => {
+                    const opponentCardsLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.getCardsLeftPlayControlledByPlayer(context.source.controller.opponent);
+                    const opponentUnitsLeftPlayThisPhase = opponentCardsLeftPlayThisPhase.filter((card) => card.isUnit());
+                    const playerHasResourcesToReady = context.source.controller.resources.some((resource) => resource.exhausted);
+                    return opponentUnitsLeftPlayThisPhase.length > 0 && playerHasResourcesToReady;
+                },
+                onTrue: AbilityHelper.immediateEffects.readyResources({ amount: 2 }),
+                onFalse: AbilityHelper.immediateEffects.noAction(),
+
+            })
         });
     }
 }
