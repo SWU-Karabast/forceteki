@@ -12,43 +12,57 @@ describe('Boba Fett, Collecting the Bounty', function() {
                         resources: 6,
                     },
                     player2: {
-                        groundArena: ['cell-block-guard'],
+                        groundArena: ['viper-probe-droid', 'cell-block-guard', 'wampa'],
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
                     },
                 });
             });
 
-            it('should ready a resource when an enemy unit leaves play - defeated', function() {
+            it('should ready a resource when an enemy unit leaves play', function() {
+                const reset = () => {
+                    this.player2.passAction();
+                    this.player1.setResourceCount(6);
+                    this.bobaFett.exhausted = false;
+                };
+
+                // Case 1 - when defeating an enemy unit
                 this.player1.clickCard(this.rivalsFall);
-                this.player1.clickCard(this.cellBlockGuard);
+                this.player1.clickCard(this.viperProbeDroid);
 
                 expect(this.player1.countSpendableResources()).toBe(1);
                 expect(this.bobaFett.exhausted).toBeTrue();
-            });
 
-            it('should ready a resource when an enemy unit leaves play - returned to hand', function() {
+                // Case 2 - when returning an enemy unit to hand
+                reset();
+
                 this.player1.clickCard(this.cantinaBouncer);
-                this.player1.clickCard(this.cellBlockGuard);
+                this.player1.clickCard(this.wampa);
 
                 expect(this.player1.countSpendableResources()).toBe(2);
                 expect(this.bobaFett.exhausted).toBeTrue();
-            });
 
-            it('should ready a resource when an enemy leader unit leaves play', function() {
+                // Case 3 - when defeating an enemy leader unit
+                reset();
+                this.player1.moveCard(this.rivalsFall, 'hand');
+
                 this.player1.clickCard(this.rivalsFall);
                 this.player1.clickCard(this.lukeSkywalker);
 
                 expect(this.player1.countSpendableResources()).toBe(1);
                 expect(this.bobaFett.exhausted).toBeTrue();
-            });
 
-            it('should not ready a resource if there are no exhausted resources', function() {
+                // Case 4 - when there are no exhausted resources
+                reset();
+
                 this.player1.clickCard(this.deathStarStormtrooper);
 
                 expect(this.bobaFett.exhausted).toBeFalse();
-            });
 
-            it('should not ready a resource when a friendly unit leaves play', function() {
+                // Case 5 - when a friendly unit leaves play
+                reset();
+                this.player1.moveCard(this.rivalsFall, 'hand');
+                this.player1.moveCard(this.deathStarStormtrooper, 'ground arena');
+
                 this.player1.clickCard(this.rivalsFall);
                 this.player1.clickCard(this.deathStarStormtrooper);
 
