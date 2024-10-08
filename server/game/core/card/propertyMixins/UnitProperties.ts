@@ -280,6 +280,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
+        public override addDamage(amount: number): void {
+            super.addDamage(amount);
+
+            this.checkDefeated();
+        }
+
         public checkDefeated() {
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 this.owner.defeatCard(this);
