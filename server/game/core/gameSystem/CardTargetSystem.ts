@@ -203,6 +203,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             (event.card.isToken() || event.card.isLeader()) &&
             !EnumHelpers.isArena(event.destination)
         ) {
+            // TODO: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
             event.context.game.actions.defeat({ target: event.card }).resolve();
         }
 
