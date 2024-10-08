@@ -30,7 +30,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         // appears at the appropriate times during the prompt flow for that ability
         // TODO: add interface for this in Interfaces.ts when we convert to TS
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
-            buttonText: 'Pass ability',
+            buttonText: this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass ability',
             arg: 'passAbility',
             hasBeenShown: false,
             handler: () => {

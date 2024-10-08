@@ -24,7 +24,7 @@ describe('The Force is With Me', function() {
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa).toHaveExactUpgradeNames(['experience', 'experience']);
                 expect(this.player1).toBeAbleToSelectExactly([this.specforceSoldier, this.p2Base]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
 
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(6);
@@ -56,7 +56,7 @@ describe('The Force is With Me', function() {
                 this.player1.clickCard(this.wampa);
                 expect(this.wampa).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
                 expect(this.player1).toBeAbleToSelectExactly([this.specforceSoldier, this.p2Base]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
 
                 this.player1.clickCard(this.p2Base);
                 expect(this.p2Base.damage).toBe(6);

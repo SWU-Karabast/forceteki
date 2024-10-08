@@ -33,7 +33,7 @@ describe('Leia Organa, Alliance General', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.allianceXwing]);
                 expect(this.player1).toHavePassAbilityButton();
                 this.player1.clickCard(this.allianceXwing);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
                 this.player1.clickCard(this.p2Base);
                 expect(this.allianceXwing.exhausted).toBe(true);
                 expect(this.p2Base.damage).toBe(2);
@@ -158,7 +158,7 @@ describe('Leia Organa, Alliance General', function() {
                 expect(this.player1).toHavePassAbilityButton();
 
                 this.player1.clickCard(this.fleetLieutenant);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
                 this.player1.clickCard(this.p2Base);
                 expect(this.fleetLieutenant.exhausted).toBe(true);
                 expect(this.p2Base.damage).toBe(3);
