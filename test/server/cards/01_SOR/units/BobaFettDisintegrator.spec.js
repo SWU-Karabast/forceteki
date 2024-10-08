@@ -1,10 +1,11 @@
-describe('First Legion Snow Trooper', function() {
+describe('Boba Fett Disintegrator', function() {
     integration(function() {
         describe('Boba Fett Disintegrator\'s ability', function () {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
                     player1: {
+                        hand: ['repair'],
                         groundArena: ['boba-fett#disintegrator'],
                     },
                     player2: {
@@ -17,7 +18,6 @@ describe('First Legion Snow Trooper', function() {
             it('should have no effect when attacking a ready unit or a exhausted unit played this turn', function () {
                 // Case 1 attacking a ready card
                 expect(this.player1).toBeActivePlayer();
-                expect(this.player1).toBeAbleToSelectExactly([this.bobaFett]);
                 this.player1.clickCard(this.bobaFett);
                 this.player1.clickCard(this.wampa);
 
@@ -45,14 +45,17 @@ describe('First Legion Snow Trooper', function() {
 
             it('Should activate when attacking a exhausted unit played in a previous phase', function() {
                 this.player1.passAction();
-                this.player2.clickCard(this.wampa);
-                this.player2.clickCard(this.bobaFett);
-                this.player1.clickCard(this.bobaFett);
-                this.player1.clickCard(this.wampa);
+                this.player2.clickCard(this.steadfastBattalion);
+                this.moveToNextActionPhase();
 
+
+                this.steadfastBattalion.exhausted = true;
+                this.player1.clickCard(this.bobaFett);
+                expect(this.steadfastBattalion.location).toBe('ground arena');
+                this.player1.clickCard(this.steadfastBattalion);
                 // check board state
-                expect(this.wampa.location).toBe('discard');
-                expect(this.bobaFettDisintegrator.damage).toBe(4);
+                expect(this.bobaFett.location).toBe('discard');
+                expect(this.steadfastBattalion.location).toBe('discard');
             });
         });
     });

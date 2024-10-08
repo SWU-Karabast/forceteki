@@ -7,11 +7,6 @@ export default class BobaFettDisintegrator extends NonLeaderUnitCard {
     // initiate watcher record
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
 
-    // setup watcher
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar) {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
-    }
-
     protected override getImplementationId() {
         return {
             id: '4156799805',
@@ -19,18 +14,24 @@ export default class BobaFettDisintegrator extends NonLeaderUnitCard {
         };
     }
 
+    // setup watcher
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar) {
+        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
+    }
+
     public override setupCardAbilities() {
         this.addOnAttackAbility({
             title: 'If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.',
-            targetResolver: {
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 }),
-                cardCondition: (card) => {
+            immediateEffect: AbilityHelper.immediateEffects.conditional((attackContext) => ({
+                condition: (_) => {
                     // we find the cards that the opponent played this phase and check if it's the card targeted
                     const playedCardsByOpponentThisPhaseWithCriteria = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
-                        playedCardEntry.playedBy === card.controller && card === playedCardEntry.card);
-                    return playedCardsByOpponentThisPhaseWithCriteria.length === 0 && !card.canBeExhausted();
-                }
-            }
+                        playedCardEntry.playedBy === attackContext.source.activeAttack.target.controller && attackContext.source.activeAttack.target === playedCardEntry.card);
+                    return playedCardsByOpponentThisPhaseWithCriteria.length === 0 && attackContext.source.activeAttack.target.isUnit() && attackContext.source.activeAttack.target.exhausted;
+                },
+                onTrue: AbilityHelper.immediateEffects.damage({ target: attackContext.source.activeAttack.target, amount: 3 }),
+                onFalse: AbilityHelper.immediateEffects.noAction()
+            })),
         });
     }
 }
