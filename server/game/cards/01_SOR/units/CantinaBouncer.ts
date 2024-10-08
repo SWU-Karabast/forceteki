@@ -1,0 +1,24 @@
+import AbilityHelper from '../../../AbilityHelper';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+
+export default class CantinaBouncer extends NonLeaderUnitCard {
+    protected override getImplementationId() {
+        return {
+            id: '1021495802',
+            internalName: 'cantina-bouncer',
+        };
+    }
+
+    public override setupCardAbilities() {
+        this.addWhenPlayedAbility({
+            title: 'Return a non-leader unit to its owner\'s hand.',
+            optional: true,
+            targetResolver: {
+                cardCondition: (card) => card.isNonLeaderUnit(),
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand(),
+            }
+        });
+    }
+}
+
+CantinaBouncer.implemented = true;
