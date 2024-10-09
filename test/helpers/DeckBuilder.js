@@ -88,13 +88,13 @@ class DeckBuilder {
 
     getNamedCardsInPlayerEntry(playerEntry) {
         let namedCards = [];
-        if (typeof playerEntry === 'number' || typeof playerEntry == null) {
+        if (typeof playerEntry === 'number' || typeof playerEntry === 'boolean' || playerEntry === null) {
             return [];
         }
 
         if (typeof playerEntry === 'string') {
             namedCards = namedCards.concat(playerEntry);
-        } else if ('card' in playerEntry) {
+        } else if (!!playerEntry.card) {
             namedCards.push(playerEntry.card);
             namedCards = namedCards.concat(this.getUpgradesFromCard(playerEntry));
         } else if (Array.isArray(playerEntry)) {
@@ -181,7 +181,7 @@ class DeckBuilder {
         return inPlayCards;
     }
 
-    buildDeck(cardInternalNames) {
+    buildDeck(cardInternalNames, cards) {
         var cardCounts = {};
         cardInternalNames.forEach((internalName) => {
             var cardData = this.getCard(internalName);

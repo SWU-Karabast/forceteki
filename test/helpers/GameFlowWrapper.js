@@ -1,8 +1,8 @@
 /* global jasmine */
 
-const Game = require('../../build/game/core/Game.js');
+const Game = require('../../server/game/core/Game.js');
 const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
-const Settings = require('../../build/Settings.js');
+const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
 
 class GameFlowWrapper {
@@ -32,13 +32,11 @@ class GameFlowWrapper {
     }
 
     get firstPlayer() {
-        return this.allPlayers.find((player) => player.initiativePlayer);
+        return (!!this.game.initiativePlayer ? this.allPlayers.find((playerWrapper) => playerWrapper.player.id === this.game.initiativePlayer.id) : this.player1) || this.player1;
     }
 
-    eachPlayerInInitiativeOrder(handler) {
-        var playersInOrder = this.allPlayers.sort((player) => !player.initiativePlayer);
-
-        playersInOrder.forEach((player) => handler(player));
+    allPlayersInInitiativeOrder() {
+        return this.allPlayers.concat().sort((playerWrapper) => this.game.initiativePlayer.id === playerWrapper.player.id ? -1 : 1);
     }
 
     /**
@@ -50,7 +48,7 @@ class GameFlowWrapper {
             return player.hasPrompt('Waiting for opponent to take an action or pass') ? 1 : 0;
         };
 
-        var playersInPromptedOrder = this.allPlayers.sort((playerA, playerB) =>
+        var playersInPromptedOrder = this.allPlayers.concat().sort((playerA, playerB) =>
             playerPromptStateToSortOrder(playerA) - playerPromptStateToSortOrder(playerB)
         );
         playersInPromptedOrder.forEach((player) => handler(player));
@@ -61,7 +59,7 @@ class GameFlowWrapper {
      */
     resourceAnyTwo() {
         this.guardCurrentPhase('setup');
-        this.allPlayers.forEach((player) => player.clickAnyOfSelectableCards(2));
+        this.allPlayersInInitiativeOrder().forEach((player) => player.clickAnyOfSelectableCards(2));
         this.game.continue();
     }
 
@@ -74,7 +72,7 @@ class GameFlowWrapper {
      */
     keepStartingHand() {
         this.guardCurrentPhase('setup');
-        this.eachPlayerInInitiativeOrder((player) => player.clickPrompt('No'));
+        this.allPlayersInInitiativeOrder().forEach((player) => player.clickPrompt('No'));
     }
 
 
@@ -82,7 +80,8 @@ class GameFlowWrapper {
      * Skips setup phase with defaults
      */
     skipSetupPhase() {
-        this.selectInitiativePlayer(this.player1);
+        //console.log('Setting Initiative to ' + this.firstPlayer.player.id + ', default: ' + this.game.initiativePlayer?.id)
+        this.selectInitiativePlayer(this.firstPlayer);
         this.keepStartingHand();
         this.resourceAnyTwo();
     }
@@ -117,7 +116,7 @@ class GameFlowWrapper {
      */
     skipRegroupPhase() {
         this.guardCurrentPhase('regroup');
-        var playersInPromptedOrder = this.allPlayers.sort((player) => player.hasPrompt('Waiting for opponent to choose cards to resource'));
+        var playersInPromptedOrder = this.allPlayers.concat().sort((player) => player.hasPrompt('Waiting for opponent to choose cards to resource'));
         playersInPromptedOrder.forEach((player) => player.clickPrompt('Done'));
         this.guardCurrentPhase('action');
     }
@@ -194,9 +193,9 @@ class GameFlowWrapper {
     /**
      * Get an array of the latest chat messages
      * @param {Number} numBack - number of messages back from the latest to retrieve
-     * @param {Boolean} reverse - reverse the retrieved elements so the array is easily read when printed
+     * @param {Boolean} inOrder - reverse the retrieved elements so the array is displayed in the order the messages occurred.
      */
-    getChatLogs(numBack = 1, reverse = true) {
+    getChatLogs(numBack = 1, inOrder = true) {
         let results = [];
         for (let i = 0; i < this.game.messages.length && i < numBack; i++) {
             let result = '';
@@ -207,7 +206,7 @@ class GameFlowWrapper {
             results.push(result);
         }
 
-        return reverse ? results.reverse() : results;
+        return inOrder ? results.reverse() : results;
 
         function getChatString(item) {
             if (Array.isArray(item)) {
