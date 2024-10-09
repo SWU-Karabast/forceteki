@@ -43,7 +43,6 @@ describe('Boba Fett Disintegrator', function() {
             });
 
             it('Should activate when attacking a exhausted unit not played in this phase.', function() {
-
                 // actual attack action
                 this.consularSecurityForce.exhausted = true;
                 this.player1.clickCard(this.bobaFett);
