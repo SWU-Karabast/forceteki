@@ -23,7 +23,7 @@ class GameOverPrompt extends AllPlayerPrompt {
             };
         }
         return {
-            promptTitle: 'Game Tied',
+            promptTitle: 'Tie Game',
             menuTitle: 'The game ends in a draw!',
             buttons: [{ text: 'Continue Playing' }]
         };
