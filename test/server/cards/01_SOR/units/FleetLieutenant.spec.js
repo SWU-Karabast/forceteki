@@ -61,7 +61,7 @@ describe('Fleet Lieutenant', function() {
 
                 this.player1.clickCard(this.monMothma);
 
-                this.player1.clickPrompt('Pass ability');
+                this.player1.clickPrompt('Pass attack');
                 expect(this.player2).toBeActivePlayer();
                 expect(this.monMothma.exhausted).toBe(false);
             });

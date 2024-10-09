@@ -32,9 +32,9 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
 
                 // play a villainy card
                 this.darthVader.exhausted = false;
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.tielnFighter);
-                this.player2.pass();
+                this.player2.passAction();
 
                 // use ability with effect
                 exhaustedResourcesBeforeAbilityUsed = this.player1.countExhaustedResources();

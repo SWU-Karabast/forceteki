@@ -158,6 +158,7 @@ export enum EventName {
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardDefeated = 'onCardDefeated',
     OnCardExhausted = 'onCardExhausted',
+    OnCardLeavesPlay = 'onCardLeavesPlay',
     OnCardMoved = 'onCardMoved',
     OnCardPlayed = 'onCardPlayed',
     OnCardReadied = 'onCardReadied',
@@ -171,6 +172,7 @@ export enum EventName {
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
     OnEffectApplied = 'onEffectApplied',
+    onExhaustResources = 'onExhaustResources',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
@@ -179,10 +181,10 @@ export enum EventName {
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
+    OnReadyResources = 'onReadyResources',
     OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
     OnRoundEnded = 'onRoundEnded',
     OnRoundEndedCleanup = 'onRoundEndedCleanup',
-    OnSpendResources = 'onSpendResources',
     OnStatusTokenDiscarded = 'onStatusTokenDiscarded',
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
@@ -317,6 +319,7 @@ export enum AbilityRestriction {
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
 

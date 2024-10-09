@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class SurpriseStrike extends EventCard {
     protected override getImplementationId() {

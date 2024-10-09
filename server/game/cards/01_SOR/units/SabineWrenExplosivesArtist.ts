@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityRestriction, CardType, WildcardCardType } from '../../../core/Constants';
+import { AbilityRestriction } from '../../../core/Constants';
 import * as Helpers from '../../../core/utils/Helpers';
 
 export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {

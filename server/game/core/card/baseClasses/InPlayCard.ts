@@ -25,7 +25,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected constantAbilities: IConstantAbility[] = [];
     protected triggeredAbilities: TriggeredAbility[] = [];
 
-    // ********************************************** CONSTRUCTOR **********************************************
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -33,8 +32,15 @@ export class InPlayCard extends PlayableOrDeployableCard {
         Contract.assertFalse(this.printedType === CardType.Event);
     }
 
+    public isInPlay(): boolean {
+        return EnumHelpers.isArena(this.location);
+    }
 
-    // **************************************** ABILITY GETTERS ****************************************
+    public override canBeInPlay(): this is InPlayCard {
+        return true;
+    }
+
+    // ********************************************** ABILITY GETTERS **********************************************
     /**
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
      * don’t have any special styling

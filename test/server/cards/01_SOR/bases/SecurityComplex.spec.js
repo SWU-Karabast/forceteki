@@ -1,4 +1,4 @@
-describe('SecurityComplex', function() {
+describe('Security Complex', function() {
     integration(function() {
         describe('Security Complex\'s ability', function() {
             beforeEach(function () {
