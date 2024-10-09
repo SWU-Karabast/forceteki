@@ -158,6 +158,7 @@ export enum EventName {
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardDefeated = 'onCardDefeated',
     OnCardExhausted = 'onCardExhausted',
+    OnCardLeavesPlay = 'onCardLeavesPlay',
     OnCardMoved = 'onCardMoved',
     OnCardPlayed = 'onCardPlayed',
     OnCardReadied = 'onCardReadied',
@@ -318,6 +319,7 @@ export enum AbilityRestriction {
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
 

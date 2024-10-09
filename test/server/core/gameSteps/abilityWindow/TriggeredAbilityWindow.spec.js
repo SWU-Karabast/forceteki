@@ -48,7 +48,6 @@ describe('Simultaneous triggers', function() {
             });
         });
 
-        // TODO: test a unit that triggers on other units being defeated, being defeated at the same time as other units
         describe('Two units with a when defeated ability killing each other', function () {
             beforeEach(function () {
                 this.setupTest({
