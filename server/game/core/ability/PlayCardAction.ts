@@ -20,16 +20,16 @@ export abstract class PlayCardAction extends PlayerAction {
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
-            !ignoredRequirements.includes('location') &&
-            !context.player.isCardInPlayableLocation(context.source, this.playType)
-        ) {
-            return 'location';
-        }
-        if (
             !ignoredRequirements.includes('phase') &&
             context.game.currentPhase !== PhaseName.Action
         ) {
             return 'phase';
+        }
+        if (
+            !ignoredRequirements.includes('location') &&
+            !context.player.isCardInPlayableLocation(context.source, this.playType)
+        ) {
+            return 'location';
         }
         if (
             !ignoredRequirements.includes('cannotTrigger') &&

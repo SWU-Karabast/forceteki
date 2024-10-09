@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, Location, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ready } from './GameSystemLibrary';
@@ -8,7 +8,7 @@ import { ready } from './GameSystemLibrary';
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
     // faceup?: boolean;
-    changePlayer?: boolean; // TODO: this might be needed for Arquitens Assault Cruiser
+    targetPlayer?: RelativePlayer; // TODO: this might be needed for Arquitens Assault Cruiser
     readyResource?: boolean;
 }
 
@@ -19,7 +19,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
     protected override defaultProperties: IResourceCardProperties = {
         // TODO: remove completely if faceup logic is not needed
         // faceup: false,
-        changePlayer: false,
+        targetPlayer: RelativePlayer.Self,
         readyResource: false
     };
 
@@ -31,7 +31,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         //TODO: Is there a better/cleaner way to handle one or multiple cards here?
         const cards = [].concat(properties.target);
         cards.forEach((card) => {
-            const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
+            const player = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
             player.moveCard(card, Location.Resource);
             if (properties.readyResource) {
                 context.game.openEventWindow(ready({ target: card }).generateEvent(context.source, context));
@@ -47,10 +47,10 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
         const destinationController = Array.isArray(properties.target)
-            ? properties.changePlayer
+            ? properties.targetPlayer === RelativePlayer.Opponent
                 ? properties.target[0].controller.opponent
                 : properties.target[0].controller
-            : properties.changePlayer
+            : properties.targetPlayer === RelativePlayer.Opponent
                 ? properties.target.controller.opponent
                 : properties.target.controller;
         return [
@@ -60,9 +60,9 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
-        const { changePlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
+        const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
         return (
-            (!changePlayer ||
+            (targetPlayer === RelativePlayer.Self ||
                 (!card.hasRestriction(EffectName.TakeControl, context) &&
                     !card.anotherUniqueInPlay(context.player))) &&
             context.player.isLegalLocationForCardType(card.type, Location.Resource) &&

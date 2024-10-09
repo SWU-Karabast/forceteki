@@ -1,13 +1,8 @@
-import { PlayEventAction } from '../../../actions/PlayEventAction';
-import { PlayUnitAction } from '../../../actions/PlayUnitAction';
-import { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { CardType, EventName, KeywordName, Location, PlayType } from '../../Constants';
+import { CardType } from '../../Constants';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
-import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
-import { NonLeaderUnitCard } from '../NonLeaderUnitCard';
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
@@ -46,18 +41,6 @@ export class PlayableOrDeployableCard extends Card {
 
     public override getActions(): PlayerOrCardAbility[] {
         const actions = this.defaultActions.concat(super.getActions());
-
-        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            if (this.isUnit()) {
-                actions.push(new PlayUnitAction(this, PlayType.Smuggle));
-            }
-            if (this.isEvent()) {
-                actions.push(new PlayEventAction(this, PlayType.Smuggle));
-            }
-            if (this.isUpgrade()) {
-                actions.push(new PlayUpgradeAction(this, PlayType.Smuggle));
-            }
-        }
 
         return actions;
     }

@@ -342,8 +342,10 @@ export class Card extends OngoingEffectSource {
         return keywords;
     }
 
-    public getKeyword(keywordName: KeywordName): KeywordInstance {
-        return this.getKeywords().find((keyword) => keyword.valueOf() === keywordName);
+    public getKeywordWithCostValues(keywordName: KeywordName): KeywordWithCostValues {
+        const keyword = this.getKeywords().find((keyword) => keyword.valueOf() === keywordName);
+        Contract.assertTrue(keyword.hasCostValue(), `Keyword ${keywordName} does not have cost values.`);
+        return keyword as KeywordWithCostValues;
     }
 
     public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {

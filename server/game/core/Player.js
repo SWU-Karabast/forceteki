@@ -581,7 +581,7 @@ class Player extends GameObject {
             return [];
         }
 
-        let playerAspects = this.getAspects();
+        let playerAspects =  this.getAspects();
 
         let penaltyAspects = [];
         for (const aspect of costAspects) {
@@ -636,16 +636,23 @@ class Player extends GameObject {
     getAdjustedCost(playingType, card, target, ignoreType = false) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
-        let aspects = card.aspects;
-        let cost = card.cost;
+        let aspects;
+        let cost;
 
-        if (playingType === PlayType.Smuggle) {
-            const smuggleInstance = card.getKeyword(KeywordName.Smuggle);
-            if (smuggleInstance.hasCostValue()) {
+        switch(playingType) {
+            case PlayType.PlayFromHand:
+                aspects = card.aspects;
+                cost = card.cost;
+                break;
+            case PlayType.Smuggle:
+                const smuggleInstance = card.getKeywordWithCostValues(KeywordName.Smuggle);
                 aspects = smuggleInstance.aspects;
                 cost = smuggleInstance.cost;
-            }
+                break;
+            default:
+                Contract.fail('Invalid Play Type');
         }
+
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
             aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
@@ -921,9 +928,7 @@ class Player extends GameObject {
     exhaustResources(count, priorityResources = []) {
         let priorityResourcesExhausted = 0;
         let readyResources = this.resources.filter((card) => !card.exhausted);
-        if (priorityResources.length > 0) {
-
-        }
+        
         priorityResources.forEach((priority) => {
             let foundResource = readyResources.find((resource) => resource === priority);
             if (foundResource !== undefined) {

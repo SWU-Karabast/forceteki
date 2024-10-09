@@ -13,11 +13,10 @@ export default class SmugglersAid extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Heal 3 damage from your base',
-            targetResolver: {
-                cardTypeFilter: CardType.Base,
-                controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 3 })
-            }
+            immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
+                amount: 3,
+                target: context.source.controller.base
+            }))
         });
     }
 }

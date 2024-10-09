@@ -2,10 +2,11 @@ import Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
-import { CardType, Location } from '../Constants';
+import { CardType, KeywordName, Location, PlayType } from '../Constants';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
+import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 
@@ -21,6 +22,15 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
 
     public override isNonLeaderUnit(): this is NonLeaderUnitCard {
         return true;
+    }
+
+    public override getActions(): PlayerOrCardAbility[] {
+        const actions = super.getActions();
+
+        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+            actions.push(new PlayUnitAction(this, PlayType.Smuggle));
+        }
+        return actions;
     }
 
     protected override initializeForCurrentLocation(prevLocation: Location): void {
