@@ -26,7 +26,7 @@ export default class BobaFettDisintegrator extends NonLeaderUnitCard {
                 condition: (_) => {
                     // we find the cards that the opponent played this phase and check if it's the card targeted
                     const playedCardsByOpponentThisPhaseWithCriteria = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
-                        playedCardEntry.playedBy === attackContext.source.activeAttack.target.controller && attackContext.source.activeAttack.target === playedCardEntry.card);
+                        playedCardEntry.playedBy === attackContext.source.activeAttack.target.owner && attackContext.source.activeAttack.target === playedCardEntry.card);
                     return playedCardsByOpponentThisPhaseWithCriteria.length === 0 && attackContext.source.activeAttack.target.isUnit() && attackContext.source.activeAttack.target.exhausted;
                 },
                 onTrue: AbilityHelper.immediateEffects.damage({ target: attackContext.source.activeAttack.target, amount: 3 }),

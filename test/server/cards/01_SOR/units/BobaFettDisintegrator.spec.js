@@ -10,6 +10,7 @@ describe('Boba Fett Disintegrator', function() {
                     },
                     player2: {
                         groundArena: ['wampa'],
+                        leader: 'luke-skywalker#faithful-friend',
                         hand: ['steadfast-battalion', 'battlefield-marine'],
                     }
                 });
@@ -44,6 +45,7 @@ describe('Boba Fett Disintegrator', function() {
             });
 
             it('Should activate when attacking a exhausted unit played in a previous phase', function() {
+                // first phase actions
                 this.player1.passAction();
                 this.player2.clickCard(this.steadfastBattalion);
                 this.moveToNextActionPhase();
@@ -53,9 +55,31 @@ describe('Boba Fett Disintegrator', function() {
                 this.player1.clickCard(this.bobaFett);
                 expect(this.steadfastBattalion.location).toBe('ground arena');
                 this.player1.clickCard(this.steadfastBattalion);
+
                 // check board state
                 expect(this.bobaFett.location).toBe('discard');
                 expect(this.steadfastBattalion.location).toBe('discard');
+            });
+
+            it('Should activate when attacking a exhausted leader unit deployed in a previous phase', function() {
+                this.player1.passAction();
+                this.player2.clickCard(this.lukeSkywalker);
+                this.player2.clickPrompt('Deploy Luke Skywalker');
+                this.lukeSkywalker.exhausted = true;
+                this.player1.clickCard(this.bobaFett);
+                this.player1.clickCard(this.lukeSkywalker);
+                expect(this.lukeSkywalker.damage).toBe(3);
+                this.moveToNextActionPhase();
+
+                // reset state
+                this.lukeSkywalker.exhausted = true;
+                this.lukeSkywalker.damage = 0;
+                this.bobaFett.damage = 0;
+                this.player1.clickCard(this.bobaFett);
+                this.player1.clickCard(this.lukeSkywalker);
+
+                // check board state
+                expect(this.lukeSkywalker.damage).toBe(6);
             });
         });
     });
