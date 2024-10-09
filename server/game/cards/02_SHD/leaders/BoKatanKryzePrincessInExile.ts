@@ -36,22 +36,24 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities () {
         this.addOnAttackAbility({
             title: 'You may deal 1 damage to a unit. If you attacked with another Mandalorian unit this phase, you may deal 1 damage to a unit',
-            optional: true,
-            targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    AbilityHelper.immediateEffects.selectCard({
-                        cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.conditional({
-                            optional: true,
-                            condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
-                            onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                            onFalse: AbilityHelper.immediateEffects.noAction(),
-                        })
+            immediateEffect: AbilityHelper.immediateEffects.sequential([
+                AbilityHelper.immediateEffects.selectCard({
+                    cardTypeFilter: WildcardCardType.Unit,
+                    innerSystem: AbilityHelper.immediateEffects.damage({
+                        optional: true,
+                        amount: 1
+                    }),
+                }),
+                AbilityHelper.immediateEffects.selectCard({
+                    cardTypeFilter: WildcardCardType.Unit,
+                    innerSystem: AbilityHelper.immediateEffects.conditional({
+                        optional: true,
+                        condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
+                        onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                        onFalse: AbilityHelper.immediateEffects.noAction(),
                     })
-                ])
-            }
+                })
+            ])
         });
     }
 }

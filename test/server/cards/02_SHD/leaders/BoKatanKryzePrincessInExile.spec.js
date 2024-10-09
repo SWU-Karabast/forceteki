@@ -83,7 +83,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player1.clickCard(this.bokatanKryze);
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.protectorOfTheThrone);
                 expect(this.p2Base.damage).toBe(4);
                 expect(this.protectorOfTheThrone.damage).toBe(1);
@@ -95,7 +95,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player1.clickCard(this.bokatanKryze);
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.bokatanKryze);
                 expect(this.player2).toBeActivePlayer();
                 this.player2.passAction();
@@ -110,7 +110,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player1.clickCard(this.bokatanKryze);
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 // prompt does not change between 2 effects of bo katan ability
                 this.player1.clickCardNonChecking(this.protectorOfTheThrone);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
@@ -126,7 +126,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player1.clickCard(this.bokatanKryze);
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 // prompt does not change between 2 effects of bo katan ability
                 this.player1.clickCardNonChecking(this.battlefieldMarine);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
@@ -140,13 +140,27 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 this.player1.clickCard(this.bokatanKryze);
                 this.player1.clickCard(this.p2Base);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 // prompt does not change between 2 effects of bo katan ability
-                this.player1.clickCardNonChecking(this.jedhaAgitator);
+                this.player1.clickCard(this.jedhaAgitator);
                 expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing]);
                 expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.bokatanKryze);
                 expect(this.jedhaAgitator.location).toBe('discard');
+                expect(this.player2).toBeActivePlayer();
+
+                // 2 triggers as we attack with another mandalorian (2 damage to 1 unit who die on first damage)
+                this.bokatanKryze.exhausted = false;
+                this.player2.passAction();
+                this.player1.clickCard(this.bokatanKryze);
+                this.player1.clickCard(this.p2Base);
+                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing]);
+                expect(this.player1).toHaveChooseNoTargetButton();
+                // prompt does not change between 2 effects of bo katan ability
+                this.player1.clickPrompt('Choose no target');
+                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing]);
+                expect(this.player1).toHaveChooseNoTargetButton();
+                this.player1.clickCard(this.bokatanKryze);
                 expect(this.player2).toBeActivePlayer();
             });
         });
