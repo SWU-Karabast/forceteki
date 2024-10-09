@@ -47,6 +47,7 @@ import { NoActionSystem, INoActionSystemProperties } from './NoActionSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { ReadySystem, IReadySystemProperties } from './ReadySystem';
+import { ReadyResourcesSystem, IReadyResourcesSystemProperties } from './ReadyResourcesSystem';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
 import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 import { ResourceCardSystem, IResourceCardProperties } from './ResourceCardSystem';
@@ -73,9 +74,9 @@ type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Pro
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
 
-//////////////
+// ////////////
 // CARD
-//////////////
+// ////////////
 // export function addToken(propertyFactory: PropsFactory<AddTokenProperties> = {}): GameSystem {
 //     return new AddTokenAction(propertyFactory);
 // }
@@ -270,6 +271,10 @@ export function drawSpecificCard<TContext extends AbilityContext = AbilityContex
 // export function playerLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
 //     return new LastingEffectAction(propertyFactory);
 // } // duration = 'untilEndOfConflict', effect, targetController, condition, until
+
+export function readyResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadyResourcesSystemProperties, TContext>): GameSystem<TContext> {
+    return new ReadyResourcesSystem<TContext>(propertyFactory);
+}
 
 // //////////////
 // // GENERIC

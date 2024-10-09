@@ -1,8 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { BaseCard } from '../../../core/card/BaseCard';
-import { UnitCard } from '../../../core/card/CardTypes';
-import { CardType, WildcardCardType } from '../../../core/Constants';
-
 
 export default class Tarkintown extends BaseCard {
     protected override getImplementationId() {

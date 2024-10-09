@@ -99,9 +99,32 @@ class PlayerInteractionWrapper {
 
             leaderCard.damage = leaderOptions.damage || 0;
             leaderCard.exhausted = leaderOptions.exhausted || false;
+
+            // Get the upgrades
+            if (leaderOptions.upgrades) {
+                leaderOptions.upgrades.forEach((upgradeName) => {
+                    const isToken = ['shield', 'experience'].includes(upgradeName);
+                    let upgrade;
+                    if (isToken) {
+                        upgrade = this.game.generateToken(this.player, upgradeName);
+                    } else {
+                        upgrade = this.findCardByName(upgradeName);
+                    }
+
+                    upgrade.attachTo(leaderCard);
+                });
+            }
         } else {
+            if (leaderOptions.deployed === false) {
+                if (leaderCard.deployed === true) {
+                    leaderCard.undeploy();
+                }
+            }
             if (leaderOptions.damage) {
                 throw new TestSetupError('Leader should not have damage when not deployed');
+            }
+            if (leaderOptions.upgrades) {
+                throw new TestSetupError('Leader should not have upgrades when not deployed');
             }
 
             leaderCard.exhausted = leaderOptions.exhausted || false;
@@ -201,8 +224,6 @@ class PlayerInteractionWrapper {
                 card.damage = options.damage;
             }
 
-            // Activate persistent effects of the card
-            //card.applyPersistentEffects();
             // Get the upgrades
             if (options.upgrades) {
                 options.upgrades.forEach((upgradeName) => {
@@ -273,6 +294,10 @@ class PlayerInteractionWrapper {
         });
     }
 
+    get handSize() {
+        return this.player.hand.length;
+    }
+
     countSpendableResources() {
         return this.player.countSpendableResources();
     }
@@ -289,18 +314,15 @@ class PlayerInteractionWrapper {
      * Sets the contents of the conflict discard pile
      * @param {String[]} newContents - list of names of cards to be put in conflict discard
      */
-    setDiscard(newContents = []) {
+    setDiscard(newContents = [], prevLocations = ['deck']) {
         //  Move cards to the deck
-        this.discard.forEach((card) => {
-            this.moveCard(card, 'deck');
-        });
+        this.discard.forEach((card) => this.moveCard(card, 'deck'));
         // Move cards to the discard in reverse order
         // (helps with referring to cards by index)
-        newContents.reverse()
-            .forEach((name) => {
-                var card = this.findCardByName(name, 'deck');
-                this.moveCard(card, 'discard');
-            });
+        newContents.reverse().forEach((name) => {
+            const card = typeof name === 'string' ? this.findCardByName(name, prevLocations) : name;
+            this.moveCard(card, 'discard');
+        });
     }
 
     get initiativePlayer() {
@@ -449,11 +471,6 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    passAction() {
-        this.clickPrompt('Pass');
-    }
-
-
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();
 
@@ -591,7 +608,7 @@ class PlayerInteractionWrapper {
     /**
      * Player's action of passing priority
      */
-    pass() {
+    passAction() {
         if (!this.canAct) {
             throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
         }
@@ -643,7 +660,7 @@ class PlayerInteractionWrapper {
         mixed = mixed.filter((card) => typeof card === 'string');
         // Find cards objects for the rest
         mixed.forEach((card) => {
-            //Find only those cards that aren't already in the list
+            // Find only those cards that aren't already in the list
             var cardObject = this.filterCardsByName(card, locations).find((card) => !cardList.includes(card));
             if (!cardObject) {
                 throw new TestSetupError(`Could not find card named ${card}`);

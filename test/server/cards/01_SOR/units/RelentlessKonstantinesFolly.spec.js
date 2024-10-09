@@ -17,25 +17,25 @@ describe('Relentless, Konstantine\'s Folly', function() {
             it('should nullify the effects of the first event the opponent plays each round', function () {
                 this.player1.clickCard(this.relentless);
 
-                //play an event, with no effect
+                // play an event, with no effect
                 let exhaustedResourcesBeforeCardPlay = this.player2.countExhaustedResources();
                 this.player2.clickCard(this.vanquish);
                 expect(this.player2.countExhaustedResources()).toBe(exhaustedResourcesBeforeCardPlay + 5);
                 expect(this.relentless).toBeInLocation('space arena');
                 expect(this.vanquish).toBeInLocation('discard');
 
-                this.player1.pass();
+                this.player1.passAction();
 
-                //play a second event, with effect
+                // play a second event, with effect
                 exhaustedResourcesBeforeCardPlay = this.player2.countExhaustedResources();
                 this.player2.clickCard(this.repair);
                 this.player2.clickCard(this.p2Base);
                 expect(this.player2.countExhaustedResources()).toBe(exhaustedResourcesBeforeCardPlay + 1);
                 expect(this.p2Base.damage).toBe(2);
 
-                //next round, it should nullify the first event played again
+                // next round, it should nullify the first event played again
                 this.moveToNextActionPhase();
-                this.player1.pass();
+                this.player1.passAction();
                 exhaustedResourcesBeforeCardPlay = this.player2.countExhaustedResources();
                 this.player2.clickCard(this.momentOfPeace);
                 expect(this.player2.countExhaustedResources()).toBe(exhaustedResourcesBeforeCardPlay + 1);
@@ -43,7 +43,7 @@ describe('Relentless, Konstantine\'s Folly', function() {
             });
 
             it('should not nullify a second or later event even if Relentless was played after the first event', function () {
-                this.player1.pass();
+                this.player1.passAction();
 
                 this.player2.clickCard(this.repair);
                 this.player2.clickCard(this.p2Base);
@@ -59,7 +59,7 @@ describe('Relentless, Konstantine\'s Folly', function() {
             it('should not nullify an event played by its controller', function () {
                 this.player1.clickCard(this.relentless);
 
-                this.player2.pass();
+                this.player2.passAction();
 
                 this.player1.clickCard(this.daringRaid);
                 expect(this.player1).toBeAbleToSelectExactly([this.p1Base, this.p2Base, this.relentless]);

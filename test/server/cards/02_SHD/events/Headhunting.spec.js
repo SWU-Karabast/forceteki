@@ -21,10 +21,10 @@ describe('Headhunting', function() {
 
                 // first attack, bounty hunter
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.reputableHunter);
                 expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
                 this.player1.clickCard(this.consularSecurityForce);
                 expect(this.reputableHunter.exhausted).toBe(true);
                 expect(this.consularSecurityForce.damage).toBe(5);
@@ -33,10 +33,10 @@ describe('Headhunting', function() {
                 // second attack, non-bounty-hunter
                 this.consularSecurityForce.damage = 0;
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.theMandalorian, this.wampa]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.atst);
                 expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
                 this.player1.clickCard(this.consularSecurityForce);
                 expect(this.atst.exhausted).toBe(true);
                 expect(this.consularSecurityForce.damage).toBe(6);
@@ -45,10 +45,10 @@ describe('Headhunting', function() {
                 // third attack, leader bounty hunter
                 this.consularSecurityForce.damage = 0;
                 expect(this.player1).toBeAbleToSelectExactly([this.theMandalorian, this.wampa]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.theMandalorian);
                 expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
                 this.player1.clickCard(this.consularSecurityForce);
                 expect(this.theMandalorian.exhausted).toBe(true);
                 expect(this.consularSecurityForce.damage).toBe(6);
@@ -58,27 +58,27 @@ describe('Headhunting', function() {
             });
 
             // TODO: have a UI discussion on how we want the flow of passing to work in this situation
-            it('should be able to be passed', function () {
+            it('should be able to select no target', function () {
                 this.player1.clickCard(this.headhunting);
 
                 // first attack - skip target resolution, go straight to next attack
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
-                this.player1.clickPrompt('Pass ability');
+                this.player1.clickPrompt('Choose no target');
 
                 // second attack - select an attacker and go to target resolution, then pass
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.atst);
                 expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                this.player1.clickPrompt('Pass ability');
+                this.player1.clickPrompt('Pass attack');
                 expect(this.atst.exhausted).toBe(false);
 
                 // third attack - let it resolve to confirm things are working
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.theMandalorian);
                 expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
                 this.player1.clickCard(this.consularSecurityForce);
                 expect(this.theMandalorian.exhausted).toBe(true);
                 expect(this.consularSecurityForce.damage).toBe(6);
@@ -108,10 +108,10 @@ describe('Headhunting', function() {
 
                 // first attack, bounty hunter
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHaveChooseNoTargetButton();
                 this.player1.clickCard(this.reputableHunter);
                 expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
                 this.player1.clickCard(this.consularSecurityForce);
                 expect(this.reputableHunter.exhausted).toBe(true);
                 expect(this.consularSecurityForce.damage).toBe(5);
@@ -120,7 +120,7 @@ describe('Headhunting', function() {
                 // second attack, non-bounty-hunter - goes straight to target resolution since only one legal attacker
                 this.consularSecurityForce.damage = 0;
                 expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(this.player1).toHavePassAttackButton();
                 this.player1.clickCard(this.consularSecurityForce);
                 expect(this.atst.exhausted).toBe(true);
                 expect(this.consularSecurityForce.damage).toBe(6);

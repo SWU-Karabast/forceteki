@@ -8,7 +8,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                         hand: ['tieln-fighter', 'swoop-racer'],
                         groundArena: ['atst'],
                         leader: 'darth-vader#dark-lord-of-the-sith',
-                        resources: 6 //making vader undeployable makes testing the activated ability's condition smoother
+                        resources: 6 // making vader undeployable makes testing the activated ability's condition smoother
                     },
                     player2: {
                         spaceArena: ['alliance-xwing'],
@@ -18,7 +18,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
             });
 
             it('should only have an effect if the controller played a villainy card this phase, but still be usable otherwise', function () {
-                //no card played; ability has no effect
+                // no card played; ability has no effect
                 let exhaustedResourcesBeforeAbilityUsed = this.player1.countExhaustedResources();
                 this.player1.clickCard(this.darthVader);
 
@@ -30,13 +30,13 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 expect(this.p1Base.damage).toBe(0);
                 expect(this.p2Base.damage).toBe(0);
 
-                //play a villainy card
+                // play a villainy card
                 this.darthVader.exhausted = false;
-                this.player2.pass();
+                this.player2.passAction();
                 this.player1.clickCard(this.tielnFighter);
-                this.player2.pass();
+                this.player2.passAction();
 
-                //use ability with effect
+                // use ability with effect
                 exhaustedResourcesBeforeAbilityUsed = this.player1.countExhaustedResources();
                 this.player1.clickCard(this.darthVader);
 

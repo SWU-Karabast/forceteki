@@ -1,4 +1,4 @@
-import { v1 as uuidV1 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
@@ -9,7 +9,7 @@ import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import type Player from './Player';
 
 export abstract class GameObject {
-    public uuid = uuidV1();
+    public uuid = uuidv4();
     protected id: string;
     private ongoingEffects = [] as IOngoingCardEffect[];
     private nameField: string;
@@ -84,18 +84,18 @@ export abstract class GameObject {
         // let targetingCost = context.player.getTargetingCost(context.source, targets);
 
         if (context.stage === Stage.PreTarget || context.stage === Stage.Cost) {
-            //We haven't paid the cost yet, so figure out what it will cost to play this so we can know how much fate we'll have available for targeting
+            // We haven't paid the cost yet, so figure out what it will cost to play this so we can know how much fate we'll have available for targeting
             let resourceCost = 0;
             // @ts-expect-error
             if (context.ability.getAdjustedCost) {
-                //we only want to consider the ability cost, not the card cost
+                // we only want to consider the ability cost, not the card cost
                 // @ts-expect-error
                 resourceCost = context.ability.getAdjustedCost(context);
             }
 
             // return (context.player.countSpendableResources() >= targetingCost);
         } else if (context.stage === Stage.Target || context.stage === Stage.Effect) {
-            //We paid costs first, or targeting has to be done after costs have been paid
+            // We paid costs first, or targeting has to be done after costs have been paid
             // return (context.player.countSpendableResources() >= targetingCost);
         }
 

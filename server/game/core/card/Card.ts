@@ -57,6 +57,7 @@ export class Card extends OngoingEffectSource {
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
+    private nextAbilityIdx = 0;
     private _location: Location;
 
 
@@ -123,9 +124,20 @@ export class Card extends OngoingEffectSource {
      * abilities have a cost in brackets that must be paid in order to use the ability.
      */
     public getActionAbilities(): ActionAbility[] {
-        return this.isBlank() ? []
-            : this.actionAbilities
-                .concat(this.getGainedAbilityEffects<ActionAbility>(AbilityType.Action));
+        const deduplicatedActionAbilities: ActionAbility[] = [];
+
+        const seenSourceUuids = new Set<string>();
+        for (const action of this.actionAbilities) {
+            if (action.printedAbility) {
+                deduplicatedActionAbilities.push(action);
+            } else if (!seenSourceUuids.has(action.gainAbilitySource.uuid)) {
+                // Deduplicate any identical gained action abilities from the same source card (e.g., two Heroic Resolve actions)
+                deduplicatedActionAbilities.push(action);
+                seenSourceUuids.add(action.gainAbilitySource.uuid);
+            }
+        }
+
+        return deduplicatedActionAbilities;
     }
 
     /**
@@ -133,8 +145,7 @@ export class Card extends OngoingEffectSource {
      * actions such as playing a card or attacking, as well as any action abilities from card text.
      */
     public getActions(): PlayerOrCardAbility[] {
-        return this.isBlank() ? []
-            : this.getActionAbilities();
+        return this.getActionAbilities();
     }
 
 
@@ -215,9 +226,23 @@ export class Card extends OngoingEffectSource {
     protected setupStateWatchers(registrar: StateWatcherRegistrar) {
     }
 
-    public createActionAbility(properties: IActionAbilityProps): ActionAbility {
-        properties.cardName = this.title;
-        return new ActionAbility(this.game, this, properties);
+    public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
+        return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
+    }
+
+    protected buildGeneralAbilityProps(abilityTypeDescriptor: string) {
+        return {
+            cardName: this.title,
+
+            // example: "wampa_triggered_0"
+            abilityIdentifier: `${this.internalName}_${abilityTypeDescriptor}_${this.getNextAbilityIdx()}`,
+        };
+    }
+
+    /** Increments the ability index counter used for adding an index number to an ability's ID */
+    private getNextAbilityIdx() {
+        this.nextAbilityIdx++;
+        return this.nextAbilityIdx - 1;
     }
 
 
@@ -277,7 +302,7 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is a type that can legally have triggered abilities
+     * Returns true if the card is a type that can legally have triggered abilities.
      * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
      */
     public canRegisterTriggeredAbilities(): this is InPlayCard {
@@ -285,10 +310,18 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is a type that can legally have constant abilities
+     * Returns true if the card is a type that can legally have constant abilities.
      * The returned type set is equivalent to {@link CardWithConstantAbilities}.
      */
     public canRegisterConstantAbilities(): this is InPlayCard {
+        return false;
+    }
+
+    /**
+     * Returns true if the card is a type that can be put into play and considered "in play."
+     * The returned type set is equivalent to {@link InPlayCard}.
+     */
+    public canBeInPlay(): this is InPlayCard {
         return false;
     }
 
@@ -371,10 +404,6 @@ export class Card extends OngoingEffectSource {
 
     public canInitiateKeywords(context: AbilityContext): boolean {
         return !this.facedown && !this.hasRestriction(AbilityRestriction.InitiateKeywords, context);
-    }
-
-    protected getGainedAbilityEffects<TAbility>(abilityType: AbilityType): TAbility[] {
-        return this.getOngoingEffectValues(EffectName.GainAbility).filter((ability) => ability.type === abilityType);
     }
 
 
@@ -464,6 +493,29 @@ export class Card extends OngoingEffectSource {
     }
 
     // ******************************************* MISC *******************************************
+    /**
+     * Adds a dynamically gained action ability to the unit. Used for "gain ability" effects.
+     *
+     * Duplicates of the same gained action from duplicates of the same source card can be added,
+     * but only one will be presented to the user as an available action.
+     *
+     * @returns The uuid of the created action ability
+     */
+    public addGainedActionAbility(properties: IActionAbilityProps): string {
+        const addedAbility = this.createActionAbility(properties);
+        this.actionAbilities.push(addedAbility);
+
+        return addedAbility.uuid;
+    }
+
+    /** Removes a dynamically gained action ability */
+    public removeGainedActionAbility(removeAbilityUuid: string): void {
+        const updatedAbilityList = this.actionAbilities.filter((ability) => ability.uuid !== removeAbilityUuid);
+        Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
+
+        this.actionAbilities = updatedAbilityList;
+    }
+
     protected assertPropertyEnabled(propertyVal: any, propertyName: string) {
         Contract.assertNotNullLike(propertyVal, this.buildPropertyDisabledStr(propertyName));
     }

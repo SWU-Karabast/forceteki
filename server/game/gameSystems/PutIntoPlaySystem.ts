@@ -37,7 +37,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             event.card.exhaust();
         }
 
-        //moveCard sets all this stuff and only works if the owner is moving cards, so we're switching it around
+        // moveCard sets all this stuff and only works if the owner is moving cards, so we're switching it around
         if (event.card.controller !== finalController) {
             event.card.controller = finalController;
             event.card.setDefaultController(event.card.controller);
@@ -56,11 +56,11 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         const player = this.getPutIntoPlayPlayer(contextCopy);
         const location = card.location;
 
-        if (!context || !super.canAffect(card, context)) {
+        if (!super.canAffect(card, context)) {
             return false;
-        } else if (EnumHelpers.isArena(location) || (card.facedown && Location.Resource !== location)) {
+        } else if (!card.canBeInPlay() || card.isInPlay() || (card.facedown && card.location !== Location.Resource)) {
             return false;
-        } else if (Location.Resource === location && !card.hasSomeKeyword(KeywordName.Smuggle)) {
+        } else if (card.location === Location.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;

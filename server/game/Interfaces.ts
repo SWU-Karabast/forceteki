@@ -8,6 +8,7 @@ import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
+import { ICost } from './core/cost/ICost';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -41,6 +42,7 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     targetLocationFilter?: LocationFilter;
     targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardName?: string;
+    uuid?: string;
 
     // TODO: can we get a real signature here
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -49,11 +51,29 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     createCopies?: boolean;
 }
 
+export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
+    type: AbilityType.Triggered;
+}
+
+export type IActionAbilityPropsWithType<TSource extends Card = Card> = IActionAbilityProps<TSource> & {
+    type: AbilityType.Action;
+}
+
+export type IConstantAbilityPropsWithType<TSource extends Card = Card> = IConstantAbilityProps<TSource> & {
+    type: AbilityType.Constant;
+}
+
+export type IAbilityPropsWithType<TSource extends Card = Card> =
+    ITriggeredAbilityPropsWithType<TSource> |
+    IActionAbilityPropsWithType<TSource> |
+    IConstantAbilityPropsWithType<TSource>;
+
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
     collectiveTrigger?: boolean;
     targetResolver?: ITriggeredAbilityTargetResolver<TriggeredAbilityContext<TSource>>;
     targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;
+    immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
 }
@@ -107,6 +127,11 @@ export type WhenType<TSource extends Card = Card> = {
         [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
     };
 
+export interface GainAbilitySource {
+    card: Card;
+    abilityUuid: string;
+}
+
 // ********************************************** INTERNAL TYPES **********************************************
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
     when: WhenType<TSource>;
@@ -122,7 +147,7 @@ type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbili
 interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
     locationFilter?: LocationFilter | LocationFilter[];
-    cost?: any;
+    cost?: ICost<TContext> | ICost<TContext>[];
     limit?: any;
     cardName?: string;
 
@@ -133,6 +158,7 @@ interface IAbilityProps<TContext extends AbilityContext> {
     optional?: boolean;
 
     printedAbility?: boolean;
+    gainAbilitySource?: GainAbilitySource;
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
@@ -220,7 +246,7 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
-export type NonParameterKeywordName =
+type NonParameterKeywordName =
     | KeywordName.Ambush
     | KeywordName.Grit
     | KeywordName.Overwhelm

@@ -24,6 +24,7 @@ describe('Upgrade cards', function() {
 
                 expect(this.wampa.upgrades).toContain(this.academyTraining);
                 expect(this.wampa.upgrades).toContain(this.foundling);
+                expect(this.wampa.upgrades.length).toBe(2);
                 expect(this.wampa.getPower()).toBe(7);
                 expect(this.wampa.getHp()).toBe(8);
             });
@@ -55,6 +56,28 @@ describe('Upgrade cards', function() {
             });
         });
 
+        describe('When an upgrade is attached to a leader', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'boba-fett#daimyo', deployed: true, upgrades: ['academy-training'] }
+                    },
+                    player2: {
+                        groundArena: ['atat-suppressor']
+                    }
+                });
+            });
+
+            it('its stat bonuses should be correctly applied during combat', function () {
+                this.player1.clickCard(this.bobaFett);
+                this.player1.clickCard(this.atatSuppressor);
+                expect(this.bobaFett).toBeInLocation('ground arena');
+                expect(this.bobaFett.damage).toBe(8);
+                expect(this.atatSuppressor.damage).toBe(6);
+            });
+        });
+
         describe('When an upgrade is attached,', function() {
             beforeEach(function () {
                 this.setupTest({
@@ -80,6 +103,34 @@ describe('Upgrade cards', function() {
                 this.player2.clickCard(this.confiscate);
                 expect(this.entrenched).toBeInLocation('discard');
                 expect(this.tielnFighter).toBeInLocation('discard');
+            });
+        });
+
+        describe('When an upgrade is attached', function() {
+            beforeEach(function () {
+                this.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'first-legion-snowtrooper', upgrades: ['experience'] }],
+                    },
+                    player2: {
+                        groundArena: [{ card: 'death-trooper', damage: 1 }],
+                        base: { card: 'dagobah-swamp', damage: 5 }
+                    }
+                });
+            });
+
+            it('its stat bonuses should be correctly applied on top of overwhelm and +2/+0 from Snowtrooper ability when attacking.', function () {
+                // actions
+                this.player1.clickCard(this.firstLegionSnowtrooper);
+                expect(this.firstLegionSnowtrooper.getPower()).toBe(3);
+                this.player1.clickCard(this.deathTrooper);
+
+                // check board state
+                expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
+                expect(this.firstLegionSnowtrooper.damage).toBe(3);
+                expect(this.p2Base.damage).toBe(8);
+                expect(this.player2).toBeActivePlayer();
             });
         });
     });

@@ -22,14 +22,14 @@ describe('Gladiator Star Destroyer', function() {
                 this.player1.clickCard(this.directorKrennic);
 
                 this.player2.clickCard(this.wampa);
-                //Krennic automatically attacked due to sentinel
+                // Krennic automatically attacked due to sentinel
                 expect(this.directorKrennic.damage).toBe(4);
                 expect(this.wampa.damage).toBe(2);
 
                 this.moveToNextActionPhase();
 
-                //should no longer have sentinel
-                this.player1.pass();
+                // should no longer have sentinel
+                this.player1.passAction();
                 this.player2.clickCard(this.wampa);
                 expect(this.player2).toBeAbleToSelectExactly([this.directorKrennic, this.p1Base]);
             });

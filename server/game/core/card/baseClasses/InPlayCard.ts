@@ -7,6 +7,8 @@ import * as EnumHelpers from '../../utils/EnumHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
+import { Card } from '../Card';
+import { v4 as uuidv4 } from 'uuid';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -23,7 +25,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected constantAbilities: IConstantAbility[] = [];
     protected triggeredAbilities: TriggeredAbility[] = [];
 
-    // ********************************************** CONSTRUCTOR **********************************************
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -31,16 +32,21 @@ export class InPlayCard extends PlayableOrDeployableCard {
         Contract.assertFalse(this.printedType === CardType.Event);
     }
 
+    public isInPlay(): boolean {
+        return EnumHelpers.isArena(this.location);
+    }
 
-    // **************************************** ABILITY GETTERS ****************************************
+    public override canBeInPlay(): this is InPlayCard {
+        return true;
+    }
+
+    // ********************************************** ABILITY GETTERS **********************************************
     /**
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
      * don’t have any special styling
      */
     public getConstantAbilities(): IConstantAbility[] {
-        return this.isBlank() ? []
-            : this.constantAbilities
-                .concat(this.getGainedAbilityEffects<IConstantAbility>(AbilityType.Constant));
+        return this.constantAbilities;
     }
 
     /**
@@ -49,9 +55,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * “When Defeated,” and “On Attack” abilities
      */
     public getTriggeredAbilities(): TriggeredAbility[] {
-        return this.isBlank() ? []
-            : this.triggeredAbilities
-                .concat(this.getGainedAbilityEffects<TriggeredAbility>(AbilityType.Triggered));
+        return this.triggeredAbilities;
     }
 
     public override canRegisterConstantAbilities(): this is InPlayCard {
@@ -91,25 +95,65 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.addTriggeredAbility(triggeredProperties);
     }
 
-    public createConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
-        properties.cardName = this.title;
-
+    public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
         const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
 
-        return { duration: Duration.Persistent, sourceLocationFilter, ...properties };
+        return {
+            duration: Duration.Persistent,
+            sourceLocationFilter,
+            ...properties,
+            ...this.buildGeneralAbilityProps('constant'),
+            uuid: uuidv4()
+        };
     }
 
-    public createReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
-        properties.cardName = this.title;
-        return new ReplacementEffectAbility(this.game, this, properties);
+    public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
+        return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
     }
 
-    public createTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-        properties.cardName = this.title;
-        return new TriggeredAbility(this.game, this, properties);
+    public createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
+        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
+    /**
+     * Adds a dynamically gained triggered ability to the unit and immediately registers its triggers. Used for "gain ability" effects.
+     *
+     * @returns The uuid of the created triggered ability
+     */
+    public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string {
+        const addedAbility = this.createTriggeredAbility(properties);
+        this.triggeredAbilities.push(addedAbility);
+        addedAbility.registerEvents();
+
+        return addedAbility.uuid;
+    }
+
+    /** Removes a dynamically gained triggered ability and unregisters its effects */
+    public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
+        let abilityToRemove: TriggeredAbility = null;
+        const remainingAbilities: TriggeredAbility[] = [];
+
+        for (const triggeredAbility of this.triggeredAbilities) {
+            if (triggeredAbility.uuid === removeAbilityUuid) {
+                if (abilityToRemove) {
+                    Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
+                }
+
+                abilityToRemove = triggeredAbility;
+            } else {
+                remainingAbilities.push(triggeredAbility);
+            }
+        }
+
+        if (abilityToRemove == null) {
+            Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
+        }
+
+        this.triggeredAbilities = remainingAbilities;
+        abilityToRemove.unregisterEvents();
+    }
+
     /** Update the context of each constant ability. Used when the card's controller has changed. */
     public updateConstantAbilityContexts() {
         for (const constantAbility of this.constantAbilities) {

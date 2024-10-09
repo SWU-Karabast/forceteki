@@ -13,7 +13,6 @@ export default class SuperlaserTechnician extends NonLeaderUnitCard {
         this.addWhenDefeatedAbility({
             title: 'Put Superlaser Technician into play as a resource and ready it',
             optional: true,
-            // TODO: figure out how to change this from sequential to simultaneous while keeing the ready effect
             immediateEffect: AbilityHelper.immediateEffects.resourceCard({ target: this, readyResource: true })
         });
     }

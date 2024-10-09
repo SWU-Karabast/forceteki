@@ -41,7 +41,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
-        private defeatEventEmitted = false;
+
+        /** If true, then this unit has taken sufficient damage to be defeated but not yet been removed from the field */
+        private _pendingDefeat? = null;
+
+        public get pendingDefeat() {
+            this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
+            return this._pendingDefeat;
+        }
 
         public get upgrades(): UpgradeCard[] {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
@@ -96,6 +103,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return true;
         }
 
+        protected setUpgradesEnabled(enabledStatus: boolean) {
+            this._upgrades = enabledStatus ? [] : null;
+        }
+
+        protected override setDamageEnabled(enabledStatus: boolean): void {
+            super.setDamageEnabled(enabledStatus);
+            this._pendingDefeat = enabledStatus ? false : null;
+        }
+
         // ***************************************** ATTACK HELPERS *****************************************
         /**
          * Check if there are any effect restrictions preventing this unit from attacking the passed target.
@@ -118,7 +134,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             let triggeredAbilities = super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
-            if (this._attackKeywordAbilities !== null || this.isBlank()) { //TODO: Why is this isBlank check even here?
+            if (this._attackKeywordAbilities !== null || this.isBlank()) { // TODO: Why is this isBlank check even here?
                 triggeredAbilities = triggeredAbilities.concat(this._attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
             }
             if (this._whenPlayedKeywordAbilities !== null || this.isBlank()) {
@@ -145,7 +161,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // *************************************** KEYWORD HELPERS ***************************************
         protected override cleanupBeforeMove(nextLocation: Location) {
-            if (EnumHelpers.isArena(this.location) && this.isAttacking()) {
+            if (this.isInPlay() && this.isAttacking()) {
                 this.unregisterAttackKeywords();
             }
         }
@@ -264,16 +280,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number) {
+        public override addDamage(amount: number): void {
             super.addDamage(amount);
 
-            // the defeat check will happen in the next call to Game.resolveGameState (typically when the event window resolves)
+            this.checkDefeated();
         }
 
         public checkDefeated() {
-            if (this.damage >= this.getHp() && !this.defeatEventEmitted) {
+            if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 this.owner.defeatCard(this);
-                this.defeatEventEmitted = true;
+                this._pendingDefeat = true;
             }
         }
 
@@ -367,10 +383,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             // }
 
             super.leavesPlay();
-        }
-
-        protected setUpgradesEnabled(enabledStatus: boolean) {
-            this._upgrades = enabledStatus ? [] : null;
         }
     };
 }

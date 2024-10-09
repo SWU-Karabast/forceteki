@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class GeneralDodonnaMassassiGroupCommander extends NonLeaderUnitCard {
     protected override getImplementationId() {

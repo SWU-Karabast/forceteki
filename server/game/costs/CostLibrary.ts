@@ -17,15 +17,15 @@ import { ReturnToHandFromPlaySystem } from '../gameSystems/ReturnToHandFromPlayS
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 import Player from '../core/Player';
 
-type SelectCostProperties = Omit<ISelectCardProperties, 'gameSystem'>;
+type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;
 
-function getSelectCost(
-    gameSystem: CardTargetSystem,
-    properties: undefined | SelectCostProperties,
+function getSelectCost<TContext extends AbilityContext = AbilityContext>(
+    gameSystem: CardTargetSystem<TContext>,
+    properties: undefined | SelectCostProperties<TContext>,
     activePromptTitle: string
 ) {
-    return new MetaActionCost(
-        GameSystems.selectCard(Object.assign({ gameSystem: gameSystem }, properties)),
+    return new MetaActionCost<TContext>(
+        GameSystems.selectCard(Object.assign({ innerSystem: gameSystem }, properties)),
         activePromptTitle
     );
 }
@@ -33,8 +33,8 @@ function getSelectCost(
 /**
  * Cost that will bow the card that initiated the ability.
  */
-export function exhaustSelf(): ICost {
-    return new GameSystemCost(GameSystems.exhaust({ isCost: true }));
+export function exhaustSelf<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
+    return new GameSystemCost<TContext>(GameSystems.exhaust<TContext>({ isCost: true }));
 }
 
 // /**
@@ -44,37 +44,37 @@ export function exhaustSelf(): ICost {
 //     return new GameSystemCost(GameSystems.sacrifice());
 // }
 
-// /**
-//  * Cost that requires sacrificing a card that matches the passed condition
-//  * predicate function.
-//  */
-// export function sacrifice(properties: SelectCostProperties): Cost {
-//     return getSelectCost(GameSystems.sacrifice(), properties, 'Select card to sacrifice');
-// }
+/**
+ * Cost that requires defeating a card that matches the passed condition
+ * predicate function.
+ */
+export function defeat<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
+    return getSelectCost(GameSystems.defeat<TContext>(), properties, 'Select card to defeat');
+}
 
 /**
  * Cost that will return to hand from the play area the card that initiated the ability
  */
-export function returnSelfToHandFromPlay(): ICost {
-    return new GameSystemCost(GameSystems.returnToHandFromPlay({ isCost: true }));
+export function returnSelfToHandFromPlay<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
+    return new GameSystemCost<TContext>(GameSystems.returnToHandFromPlay({ isCost: true }));
 }
 
-/**
- * Cost that will return a selected card to hand from any area which matches the passed condition
- * @deprecated This has not yet been tested
- */
-export function returnToHand(properties: SelectCostProperties): ICost {
-    return getSelectCost(GameSystems.returnToHand(), properties, 'Select card to return to hand');
-}
+// /**
+//  * Cost that will return a selected card to hand from any area which matches the passed condition
+//  * @deprecated This has not yet been tested
+//  */
+// export function returnToHand(properties: SelectCostProperties): ICost {
+//     return getSelectCost(GameSystems.returnToHand(), properties, 'Select card to return to hand');
+// }
 
-/**
- * Simplified version of {@link returnToHand} that will return a selected card to hand from the
- * play area which matches the passed condition
- * @deprecated This has not yet been tested
- */
-export function returnToHandFromPlay(properties: SelectCostProperties): ICost {
-    return getSelectCost(GameSystems.returnToHandFromPlay(), properties, 'Select card to return to hand');
-}
+// /**
+//  * Simplified version of {@link returnToHand} that will return a selected card to hand from the
+//  * play area which matches the passed condition
+//  * @deprecated This has not yet been tested
+//  */
+// export function returnToHandFromPlay(properties: SelectCostProperties): ICost {
+//     return getSelectCost(GameSystems.returnToHandFromPlay(), properties, 'Select card to return to hand');
+// }
 
 // /**
 //  * Cost that will return a selected card to the appropriate deck which matches the passed
@@ -91,18 +91,18 @@ export function returnToHandFromPlay(properties: SelectCostProperties): ICost {
 //     return new GameSystemCost(GameSystems.returnToHand());
 // }
 
-/**
- * Cost that will shuffle a selected card into the relevant deck which matches the passed
- * condition.
- * @deprecated This has not yet been tested
- */
-export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
-    return getSelectCost(
-        GameSystems.moveCard({ destination: Location.Deck, shuffle: true }),
-        properties,
-        'Select card to shuffle into deck'
-    );
-}
+// /**
+//  * Cost that will shuffle a selected card into the relevant deck which matches the passed
+//  * condition.
+//  * @deprecated This has not yet been tested
+//  */
+// export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
+//     return getSelectCost(
+//         GameSystems.moveCard({ destination: Location.Deck, shuffle: true }),
+//         properties,
+//         'Select card to shuffle into deck'
+//     );
+// }
 
 // /**
 //  * Cost that requires discarding a specific card.
@@ -182,12 +182,12 @@ export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
 //     return new GameSystemCost(GameSystems.discardStatusToken());
 // }
 
-/**
- * Cost that will put into play the card that initiated the ability
- */
-export function putSelfIntoPlay(): ICost {
-    return new GameSystemCost(GameSystems.putIntoPlay());
-}
+// /**
+//  * Cost that will put into play the card that initiated the ability
+//  */
+// export function putSelfIntoPlay(): ICost {
+//     return new GameSystemCost(GameSystems.putIntoPlay());
+// }
 
 // /**
 //  * Cost that will prompt for a card
@@ -232,8 +232,8 @@ export function putSelfIntoPlay(): ICost {
  * adjuster effects the play has activated. Upon playing the card, all
  * matching adjuster effects will expire, if applicable.
  */
-export function payPlayCardResourceCost(playType: PlayType, ignoreType = false): ICost {
-    return new PlayCardResourceCost(ignoreType, playType);
+export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(playType: PlayType, ignoreType = false): ICost<TContext> {
+    return new PlayCardResourceCost<TContext>(playType, ignoreType);
 }
 
 // /**
@@ -246,11 +246,11 @@ export function payPlayCardResourceCost(playType: PlayType, ignoreType = false):
 /**
  * Cost in which the player must pay a fixed, non-reduceable amount of fate.
  */
-export function abilityResourceCost(amount: number | ((context: AbilityContext) => number)): ICost {
-    return new GameSystemCost(
+export function abilityResourceCost<TContext extends AbilityContext = AbilityContext>(amount: number | ((context: TContext) => number)): ICost<TContext> {
+    return new GameSystemCost<TContext>(
         typeof amount === 'function'
-            ? GameSystems.payResourceCost((context) => ({ target: context.player, amount: amount(context) }))
-            : GameSystems.payResourceCost((context) => ({ target: context.player, amount }))
+            ? GameSystems.payResourceCost<TContext>((context) => ({ target: context.player, amount: amount(context) }))
+            : GameSystems.payResourceCost<TContext>((context) => ({ target: context.player, amount }))
     );
 }
 

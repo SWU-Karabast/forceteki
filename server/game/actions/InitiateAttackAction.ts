@@ -25,8 +25,8 @@ export class InitiateAttackAction extends PlayerAction {
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
-            context.game.currentPhase !== PhaseName.Action &&
-            !ignoredRequirements.includes('phase')
+            !ignoredRequirements.includes('phase') &&
+            context.game.currentPhase !== PhaseName.Action
         ) {
             return 'phase';
         }
@@ -34,8 +34,8 @@ export class InitiateAttackAction extends PlayerAction {
             return 'player';
         }
         if (
-            !EnumHelpers.isArena(context.source.location) &&
-            !ignoredRequirements.includes('location')
+            !ignoredRequirements.includes('location') &&
+            !EnumHelpers.isArena(context.source.location)
         ) {
             return 'location';
         }
@@ -54,5 +54,9 @@ export class InitiateAttackAction extends PlayerAction {
         });
 
         new AttackStepsSystem(attackSystemProperties).resolve(context.target, context);
+    }
+
+    public override isAttackAction(): this is InitiateAttackAction {
+        return true;
     }
 }

@@ -30,7 +30,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         // appears at the appropriate times during the prompt flow for that ability
         // TODO: add interface for this in Interfaces.ts when we convert to TS
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
-            buttonText: 'Pass ability',
+            buttonText: this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass ability',
             arg: 'passAbility',
             hasBeenShown: false,
             handler: () => {
@@ -116,13 +116,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
-        // if there is no effect and no costs, we can safely skip ability resolution
-        if (
-            this.context.ability.meetsRequirements(this.context, ['cost']) !== '' &&
-            (this.context.ability.cost == null ||
-            Array.isArray(this.context.ability.cost) && this.context.ability.cost.length === 0)
-        ) {
-            this.game.addMessage('Ability \'{0}\' on card {1} has no impact on game state so it is passed', this.context.ability.title, this.context.source.title);
+        if (this.context.ability.meetsRequirements(this.context) !== '') {
             this.cancelled = true;
             this.resolutionComplete = true;
         }

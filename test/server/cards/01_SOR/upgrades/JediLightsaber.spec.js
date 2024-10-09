@@ -107,7 +107,7 @@ describe('Jedi Lightsaber', function() {
 
             it('should not be playable on vehicles', function () {
                 this.player1.clickCard(this.jediLightsaber);
-                expect(this.battlefieldMarine.upgrades).toContain(this.jediLightsaber);
+                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
             });
         });
     });
