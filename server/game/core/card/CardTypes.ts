@@ -57,6 +57,10 @@ export type PlayableCard =
     UpgradeCard |
     NonLeaderUnitCard;
 
+/** Type union for any card type that can enter play (with deploy or played) */
+export type EnteredPlayCard =
+    UnitCard;
+
 // Base is the only type of card that isn't in the PlayableOrDeployable subclass
 type PlayableOrDeployableCardTypes = Exclude<AnyCard, BaseCard>;
 
