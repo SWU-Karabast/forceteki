@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { EffectName, EventName } from '../Constants';
+import { EventName } from '../Constants';
 import type { Attack } from './Attack';
 import type Game from '../Game';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
@@ -64,13 +64,24 @@ export class AttackFlow extends BaseStepWithPipeline {
         if (overwhelmDamageOnly) {
             damageEvents = [AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).generateEvent(this.attack.target.controller.base, this.context)];
         } else {
+            // we check if attacker has dealDamageBeforeDefender
+            if (this.attack.hasDealsDamageBeforeDefender()) {
+                this.context.game.openEventWindow(this.createBeforeDefenderDamageEvents(), true);
+
+                // we check if the defender is still a legal target
+                if (!this.attack.isAttackTargetLegal()) {
+                    this.context.game.addMessage('The defenders attack does not resolve because the defender is no longer in play');
+                    return;
+                }
+            }
+
             damageEvents = this.createDamageEvents();
         }
 
         this.context.game.openEventWindow(damageEvents, true);
     }
 
-    private createDamageEvents(): GameEvent[] {
+    private createBeforeDefenderDamageEvents(): GameEvent[] {
         const damageEvents = [];
 
         // event for damage dealt to target by attacker
@@ -96,8 +107,39 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
 
         damageEvents.push(attackerDamageEvent);
+        return damageEvents;
+    }
 
-        // event for damage dealt to attacker by defender, if any
+    private createDamageEvents(): GameEvent[] {
+        const damageEvents = [];
+
+        // if the attacker has the effect DealsDamageBeforeDefender skip attacker
+        if (!this.attack.hasDealsDamageBeforeDefender()) {
+            // event for damage dealt to target by attacker
+            const attackerDamageEvent: any = AbilityHelper.immediateEffects.damage({
+                amount: this.attack.getAttackerTotalPower(),
+                isCombatDamage: true,
+            }).generateEvent(this.attack.target, this.context);
+
+            if (this.attack.hasOverwhelm()) {
+                attackerDamageEvent.setContingentEventsGenerator((event) => {
+                    const attackTarget: Card = event.card;
+
+                    if (!attackTarget.isUnit() || event.damage <= attackTarget.remainingHp) {
+                        return [];
+                    }
+
+                    const overwhelmEvent = AbilityHelper.immediateEffects.damage({
+                        amount: event.damage - event.card.remainingHp,
+                    }).generateEvent(event.card.controller.base, this.context);
+
+                    return [overwhelmEvent];
+                });
+            }
+
+            damageEvents.push(attackerDamageEvent);
+        }
+        // event for damage dealt to attacker by defender, if any.
         if (!this.attack.target.isBase()) {
             damageEvents.push(AbilityHelper.immediateEffects.damage({ amount: this.attack.getTargetTotalPower(), isCombatDamage: true }).generateEvent(this.attack.attacker, this.context));
         }

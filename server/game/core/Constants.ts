@@ -72,6 +72,7 @@ export enum EffectName {
     // "cannot" effects
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotAttackBase = 'cannotAttackBase',
+    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
     CannotBeAttacked = 'cannotBeAttacked',
 }
 
