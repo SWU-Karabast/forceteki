@@ -216,6 +216,68 @@ var customMatchers = {
             }
         };
     },
+    toHaveChooseNoTargetButton: function (util, customEqualityMatchers) {
+        return {
+            compare: function (actual) {
+                var buttons = actual.currentPrompt().buttons;
+                var result = {};
+
+                result.pass = buttons.some(
+                    (button) => !button.disabled && util.equals(button.text, 'Choose no target', customEqualityMatchers)
+                );
+
+                if (result.pass) {
+                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Choose no target' but it did.`;
+                } else {
+                    result.message = `Expected ${actual.name} to have enabled prompt button 'Choose no target' `;
+
+                    if (buttons.length > 0) {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message += `but it had buttons:\n${buttonText}`;
+                    } else {
+                        result.message += 'but it had no buttons';
+                    }
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+
+                return result;
+            }
+        };
+    },
+    toHavePassAttackButton: function (util, customEqualityMatchers) {
+        return {
+            compare: function (actual) {
+                var buttons = actual.currentPrompt().buttons;
+                var result = {};
+
+                result.pass = buttons.some(
+                    (button) => !button.disabled && util.equals(button.text, 'Pass attack', customEqualityMatchers)
+                );
+
+                if (result.pass) {
+                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Pass attack' but it did.`;
+                } else {
+                    result.message = `Expected ${actual.name} to have enabled prompt button 'Pass attack' `;
+
+                    if (buttons.length > 0) {
+                        var buttonText = buttons.map(
+                            (button) => '[' + button.text + (button.disabled ? ' (disabled) ' : '') + ']'
+                        ).join('\n');
+                        result.message += `but it had buttons:\n${buttonText}`;
+                    } else {
+                        result.message += 'but it had no buttons';
+                    }
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+
+                return result;
+            }
+        };
+    },
     toBeAbleToSelect: function () {
         return {
             compare: function (player, card) {
