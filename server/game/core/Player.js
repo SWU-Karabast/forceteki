@@ -27,6 +27,7 @@ const { BaseCard } = require('./card/BaseCard');
 const { LeaderCard } = require('./card/LeaderCard');
 const { LeaderUnitCard } = require('./card/LeaderUnitCard');
 const { Card } = require('./card/Card');
+const { PlayableOrDeployableCard } = require('./card/baseClasses/PlayableOrDeployableCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -926,19 +927,29 @@ class Player extends GameObject {
      */
     // TODO: Create an ExhaustOrReadyResourcesSystem
     exhaustResources(count, priorityResources = []) {
-        let priorityResourcesExhausted = 0;
-        let readyResources = this.resources.filter((card) => !card.exhausted);
+        Contract.assertTrue(this.countSpendableResources() >= count,
+            `Attempting to exhaust ${count} resources but only ${this.countSpendableResources()} are available`);
 
-        priorityResources.forEach((priority) => {
-            let foundResource = readyResources.find((resource) => resource === priority);
-            if (foundResource !== undefined) {
-                foundResource.exhausted = true;
-                priorityResourcesExhausted++;
-            }
-        });
-        for (let i = 0; i < Math.min((count - priorityResourcesExhausted), readyResources.length); i++) {
-            readyResources[i].exhausted = true;
+        const readyPriorityResources = priorityResources.filter((resource) => !resource.exhausted);
+        const regularResourcesToReady = count - this.readyResourcesInList(readyPriorityResources, count);
+
+        if (regularResourcesToReady > 0) {
+            const readyRegularResources = this.resources.filter((card) => !card.exhausted);
+            this.readyResourcesInList(readyRegularResources, regularResourcesToReady);
         }
+    }
+
+    /**
+     * Returns how many resources were readied
+     */
+    readyResourcesInList(resources, count) {
+        if (count < resources.length) {
+            resources.slice(0, count).forEach((resource) => resource.exhaust());
+            return count;
+        }
+
+        resources.forEach((resource) => resource.exhaust());
+        return resources.length;
     }
 
     /**
