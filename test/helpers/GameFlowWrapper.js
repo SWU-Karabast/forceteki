@@ -31,12 +31,8 @@ class GameFlowWrapper {
         this.allPlayers = [this.player1, this.player2];
     }
 
-    get firstPlayer() {
-        return (!!this.game.initiativePlayer ? this.allPlayers.find((playerWrapper) => playerWrapper.player.id === this.game.initiativePlayer.id) : this.player1) || this.player1;
-    }
-
     allPlayersInInitiativeOrder() {
-        return this.allPlayers.concat().sort((playerWrapper) => this.game.initiativePlayer.id === playerWrapper.player.id ? -1 : 1);
+        return [...this.allPlayers].sort((playerWrapper) => this.game.initiativePlayer.id === playerWrapper.player.id ? -1 : 1);
     }
 
     /**
@@ -48,7 +44,7 @@ class GameFlowWrapper {
             return player.hasPrompt('Waiting for opponent to take an action or pass') ? 1 : 0;
         };
 
-        var playersInPromptedOrder = this.allPlayers.concat().sort((playerA, playerB) =>
+        var playersInPromptedOrder = [...this.allPlayers].sort((playerA, playerB) =>
             playerPromptStateToSortOrder(playerA) - playerPromptStateToSortOrder(playerB)
         );
         playersInPromptedOrder.forEach((player) => handler(player));
@@ -80,8 +76,8 @@ class GameFlowWrapper {
      * Skips setup phase with defaults
      */
     skipSetupPhase() {
-        //console.log('Setting Initiative to ' + this.firstPlayer.player.id + ', default: ' + this.game.initiativePlayer?.id)
-        this.selectInitiativePlayer(this.firstPlayer);
+        const startingPlayer = (!!this.game.initiativePlayer ? this.allPlayers.find((playerWrapper) => playerWrapper.player.id === this.game.initiativePlayer.id) : this.player1) || this.player1;
+        this.selectInitiativePlayer(startingPlayer);
         this.keepStartingHand();
         this.resourceAnyTwo();
     }
@@ -116,7 +112,7 @@ class GameFlowWrapper {
      */
     skipRegroupPhase() {
         this.guardCurrentPhase('regroup');
-        var playersInPromptedOrder = this.allPlayers.concat().sort((player) => player.hasPrompt('Waiting for opponent to choose cards to resource'));
+        var playersInPromptedOrder = [...this.allPlayers].sort((player) => player.hasPrompt('Waiting for opponent to choose cards to resource'));
         playersInPromptedOrder.forEach((player) => player.clickPrompt('Done'));
         this.guardCurrentPhase('action');
     }

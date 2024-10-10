@@ -14,7 +14,6 @@ export default class BazeMalbusTempleGuardian extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'While you have the initiative, this unit gains Sentinel',
             condition: (context) => context.source.controller.hasInitiative(),
-            matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
     }
