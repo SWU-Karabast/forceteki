@@ -11,10 +11,10 @@ describe('Smuggler\'s Aid', function() {
             });
 
             it('heals base from hand', function () {
-                this.p1Base.damage = 3;
+                this.p1Base.damage = 5;
 
                 this.player1.clickCard(this.smugglersAid);
-                expect(this.p1Base.damage).toBe(0);
+                expect(this.p1Base.damage).toBe(2);
             });
         });
 
@@ -30,10 +30,10 @@ describe('Smuggler\'s Aid', function() {
             });
 
             it('heals base from Smuggle', function () {
-                this.p1Base.damage = 3;
+                this.p1Base.damage = 5;
 
                 this.player1.clickCard(this.smugglersAid);
-                expect(this.p1Base.damage).toBe(0);
+                expect(this.p1Base.damage).toBe(2);
             });
         });
     });

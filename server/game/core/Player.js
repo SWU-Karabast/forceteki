@@ -581,7 +581,7 @@ class Player extends GameObject {
             return [];
         }
 
-        let playerAspects =  this.getAspects();
+        let playerAspects = this.getAspects();
 
         let penaltyAspects = [];
         for (const aspect of costAspects) {
@@ -639,7 +639,7 @@ class Player extends GameObject {
         let aspects;
         let cost;
 
-        switch(playingType) {
+        switch (playingType) {
             case PlayType.PlayFromHand:
                 aspects = card.aspects;
                 cost = card.cost;
@@ -928,7 +928,7 @@ class Player extends GameObject {
     exhaustResources(count, priorityResources = []) {
         let priorityResourcesExhausted = 0;
         let readyResources = this.resources.filter((card) => !card.exhausted);
-        
+
         priorityResources.forEach((priority) => {
             let foundResource = readyResources.find((resource) => resource === priority);
             if (foundResource !== undefined) {

@@ -36,7 +36,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         // TODO: remove this completely if determinmed we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
-        //TODO: Is there a better/cleaner way to handle one or multiple cards here?
+        // TODO: Is there a better/cleaner way to handle one or multiple cards here?
         const cards = [].concat(properties.target);
         cards.forEach((card) => {
             if (properties.switch && properties.switchTarget) {

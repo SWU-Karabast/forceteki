@@ -16,7 +16,7 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
                 keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
             }
         } else if (keywordName === KeywordName.Smuggle) {
-            const smuggleValuesOrNull = parseSmuggleIfEnabled(keywordName, cardText, cardName);
+            const smuggleValuesOrNull = parseSmuggleIfEnabled(cardText, cardName);
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
@@ -110,10 +110,8 @@ function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: strin
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
-function parseSmuggleIfEnabled(keyword: KeywordName, cardText: string, cardName: string): KeywordWithCostValues {
-    Contract.assertTrue(KeywordName.Smuggle === keyword);
-
-    const regex = getRegexForKeyword(keyword);
+function parseSmuggleIfEnabled(cardText: string, cardName: string): KeywordWithCostValues {
+    const regex = getRegexForKeyword(KeywordName.Smuggle);
     const matchIter = cardText.matchAll(regex);
 
     const match = matchIter.next();
@@ -122,7 +120,7 @@ function parseSmuggleIfEnabled(keyword: KeywordName, cardText: string, cardName:
     }
 
     if (matchIter.next().done !== true) {
-        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${cardName}, but found multiple`);
+        throw new Error(`Expected to match at most one instance of enabled keyword ${KeywordName.Smuggle} in card ${cardName}, but found multiple`);
     }
 
     const smuggleCost = Number(match.value[1]);

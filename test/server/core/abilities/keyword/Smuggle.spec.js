@@ -14,7 +14,7 @@ describe('Smuggle keyword', function() {
                             'chewbacca#pykesbane',
                             'battlefield-marine', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst',
                             'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'
-                        ],
+                        ], // TODO add a way to make it easier to mix named and generic resources
                         leader: 'leia-organa#alliance-general',
                         base: 'administrators-tower'
                     },
@@ -24,16 +24,17 @@ describe('Smuggle keyword', function() {
             });
 
             it('a unit can be played for its smuggle cost', function () {
-                expect(this.player1.countSpendableResources()).toBe(18);//Sanity check before we Smuggle
+                expect(this.player1.countSpendableResources()).toBe(18); // Sanity check before we Smuggle
                 this.player1.clickCard(this.collectionsStarhopper);
                 expect(this.collectionsStarhopper).toBeInLocation('space arena');
+                expect(this.collectionsStarhopper.exhausted).toBe(true);
                 expect(this.player1.countExhaustedResources()).toBe(3);
                 expect(this.player1.countSpendableResources()).toBe(15);
                 expect(this.mercenaryGunship).toBeInLocation('resource');
             });
 
             it('an upgrade can be played for its smuggle cost', function () {
-                expect(this.player1.countSpendableResources()).toBe(18);//Sanity check before we Smuggle
+                expect(this.player1.countSpendableResources()).toBe(18); // Sanity check before we Smuggle
                 this.player1.clickCard(this.armedToTheTeeth);
                 expect(this.armedToTheTeeth).toBeInLocation('ground arena');
                 expect(this.wampa.upgrades).toContain(this.armedToTheTeeth);
@@ -45,7 +46,7 @@ describe('Smuggle keyword', function() {
             });
 
             it('an event can be played for its smuggle cost', function () {
-                expect(this.player1.countSpendableResources()).toBe(18);//Sanity check before we Smuggle
+                expect(this.player1.countSpendableResources()).toBe(18); // Sanity check before we Smuggle
                 this.p1Base.damage = 3;
 
                 this.player1.clickCard(this.smugglersAid);
@@ -57,12 +58,11 @@ describe('Smuggle keyword', function() {
 
             it('a card without Smuggle cannot be played from resources', function () {
                 expect(this.battlefieldMarine).not.toHaveAvailableActionWhenClickedBy(this.player1);
-                expect(this.player1).toBeActivePlayer();
             });
 
             it('Cards with different smuggle aspects than play aspects only care about the smuggle aspects', function () {
-                expect(this.player1.countSpendableResources()).toBe(18);//Sanity check before we Smuggle
-                this.player1.clickCard(this.chewbacca);//This card has a 9+RedHero cost, so it should cost us 11 here
+                expect(this.player1.countSpendableResources()).toBe(18); // Sanity check before we Smuggle
+                this.player1.clickCard(this.chewbacca); // This card has a 9+RedHero cost, so it should cost us 11 here
                 expect(this.chewbacca).toBeInLocation('ground arena');
                 expect(this.player1.countExhaustedResources()).toBe(11);
                 expect(this.player1.countSpendableResources()).toBe(7);

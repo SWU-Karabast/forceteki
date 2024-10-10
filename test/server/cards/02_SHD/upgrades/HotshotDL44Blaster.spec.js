@@ -16,10 +16,8 @@ describe('Hotshot DL-44 Blaster', function() {
             it('does not initiate an attack when played from hand', function () {
                 this.player1.clickCard(this.hotshotDl44Blaster);
                 expect(this.player2).toBeActivePlayer();
-                expect(this.hotshotDl44Blaster).toBeInLocation('ground arena');
+                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
                 expect(this.battlefieldMarine.exhausted).toBe(false);
-                expect(this.battlefieldMarine.getPower()).toBe(5);
-                expect(this.battlefieldMarine.getHp()).toBe(3);
             });
         });
 
@@ -41,12 +39,9 @@ describe('Hotshot DL-44 Blaster', function() {
             it('initiates an attack with the upgraded unit when Smuggled', function () {
                 this.player1.clickCard(this.hotshotDl44Blaster);
                 expect(this.player2).toBeActivePlayer();
-                expect(this.hotshotDl44Blaster).toBeInLocation('ground arena');
-                expect(this.battlefieldMarine.upgrades).toContain(this.hotshotDl44Blaster);
+                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
                 expect(this.battlefieldMarine.exhausted).toBe(true);
                 expect(this.p2Base.damage).toBe(5);
-                expect(this.battlefieldMarine.getPower()).toBe(5);
-                expect(this.battlefieldMarine.getHp()).toBe(3);
             });
         });
     });

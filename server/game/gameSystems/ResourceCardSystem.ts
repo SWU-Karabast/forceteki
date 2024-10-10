@@ -28,7 +28,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // TODO: remove this completely if determinmed we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
-        //TODO: Is there a better/cleaner way to handle one or multiple cards here?
+        // TODO: Is there a better/cleaner way to handle one or multiple cards here?
         const cards = [].concat(properties.target);
         cards.forEach((card) => {
             const player = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;

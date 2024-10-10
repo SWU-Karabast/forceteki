@@ -12,7 +12,7 @@ export abstract class PlayCardAction extends PlayerAction {
     protected playType: PlayType;
 
     public constructor(card: Card, title: string, playType: PlayType, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
-        const fullTitle = title + (PlayType.Smuggle === playType ? ' with Smuggle' : '');//TODO is there a cleaner way to do this?
+        const fullTitle = title + (PlayType.Smuggle === playType ? ' with Smuggle' : '');// TODO is there a cleaner way to do this?
         super(card, fullTitle, additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
 
         this.playType = playType;

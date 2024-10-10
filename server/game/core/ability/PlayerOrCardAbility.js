@@ -176,7 +176,7 @@ class PlayerOrCardAbility {
 
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = this.cost.map((a) => a);
-        if (context.ignoreResourceCost) { //TODO: Add more complex logic in Play For Free PR
+        if (context.ignoreResourceCost) { // TODO: Add more complex logic in Play For Free PR
             costs = costs.filter((cost) => !cost.isPrintedResourceCost);
         }
 
