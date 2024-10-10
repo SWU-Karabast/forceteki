@@ -24,9 +24,9 @@ npm install
 # NOTE: TWI cards are currently being filtered out
 npm run get-cards
 
-# run this to transpile (build) the code. the 'npm test' command will automatically run this as well.
+# run this to transpile (build) the code. the 'npm test' command will automatically run it's own build script.
 # rm -r build/  # needed if files are added / deleted / renamed between builds
-npx tsc
+npm run build
 
 # run code linter (recommend configuring this automatically with Visual Studio Code)
 npm run lint
@@ -40,8 +40,11 @@ npm test
 npm run test-parallel
 
 # run a specific test file only
-npm test test/server/cards/01_SOR/LukeSkywalkerFaithfulFriend.spec.js
+npm test test/server/cards/01_SOR/leaders/LukeSkywalkerFaithfulFriend.spec.js
 npm test **/LukeSkywalkerFaithfulFriend.spec.js # use path globbing (may look different depending on your shell)
+
+# re-run a specific test file w/o rebuilding the server folder or copying the card json unless they are missing from the build folder.
+npm run test-fast test/server/cards/01_SOR/leaders/LukeSkywalkerFaithfulFriend.spec.js
 ```
 
 **Known issue with `test-parallel`**: in some cases when a test fails using `npm run test-parallel`, there will be a json stringify and it will not explain which test failed, only which suite. In this case you must re-run the tests using the standard `npm test` to determine the specifics.

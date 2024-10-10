@@ -1,4 +1,4 @@
-const { Trait } = require('../../../../../build/game/core/Constants');
+const { Trait } = require('../../../../../server/game/core/Constants');
 
 describe('Foundling\'s', function () {
     integration(function () {

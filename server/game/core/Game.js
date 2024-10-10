@@ -64,6 +64,7 @@ class Game extends EventEmitter {
         this.roundNumber = 0;
         this.initialFirstPlayer = null;
         this.initiativePlayer = null;
+        this.isInitiativeClaimed = false;
         this.actionPhaseActivePlayer = null;
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
@@ -772,12 +773,9 @@ class Game extends EventEmitter {
     }
 
     claimInitiative(player) {
-        this.addMessage('{0} claims initiative', player);
-
         this.initiativePlayer = player;
-        player.passedActionPhase = true;
-
-        // TODO: eventually we'll probably need an event window here
+        this.isInitiativeClaimed = true;
+        this.createEventAndOpenWindow(EventName.OnClaimInitiative, { player }, true);
 
         // update game state for the sake of constant abilities that check initiative
         this.resolveGameState();
