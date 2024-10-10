@@ -15,16 +15,16 @@ class GameOverPrompt extends AllPlayerPrompt {
 
     /** @override */
     activePrompt() {
-        if (this.winner) {
+        if (Array.isArray(this.winner)) {
             return {
-                promptTitle: 'Game Won',
-                menuTitle: this.winner.name + ' has won the game!',
+                promptTitle: 'Tie Game',
+                menuTitle: 'The game ended in a draw!',
                 buttons: [{ text: 'Continue Playing' }]
             };
         }
         return {
-            promptTitle: 'Tie Game',
-            menuTitle: 'The game ends in a draw!',
+            promptTitle: 'Game Won',
+            menuTitle: this.winner.name + ' has won the game!',
             buttons: [{ text: 'Continue Playing' }]
         };
     }

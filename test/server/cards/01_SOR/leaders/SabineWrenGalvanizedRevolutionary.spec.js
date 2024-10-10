@@ -39,6 +39,16 @@ describe('Sabine Wren, Galvanized Revolutionary', function() {
                 expect(this.p1Base.damage).toBe(0);
                 expect(this.rebelPathfinder.damage).toBe(2);
             });
+
+            it('should deal 1 damage to the opponent\'s base on attack before combat damage', function () {
+                this.p2Base.damage = 29;
+                this.player1.clickCard(this.sabineWren);
+                this.player1.clickCard(this.rebelPathfinder);
+                expect(this.player1).toHavePrompt('player1 has won the game!');
+                expect(this.p2Base.damage).toBe(30);
+                expect(this.p1Base.damage).toBe(0);
+                expect(this.rebelPathfinder.damage).toBe(0);
+            });
         });
     });
 });

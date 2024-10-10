@@ -15,7 +15,7 @@ export default class SabineWrenGalvanizedRevolutionary extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 1,
-                target: context.game.getPlayers().map((player) => player.base)
+                target: [context.player.base, context.player.opponent.base]
             }))
         });
     }
@@ -25,9 +25,7 @@ export default class SabineWrenGalvanizedRevolutionary extends LeaderUnitCard {
             title: 'Deal 1 damage to each enemy base',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 1,
-                target: context.game.getPlayers()
-                    .filter((player) => player !== context.player)
-                    .map((player) => player.base)
+                target: context.player.opponent.base
             }))
         });
     }

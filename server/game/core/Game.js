@@ -446,36 +446,32 @@ class Game extends EventEmitter {
     //  * Check to see if a base(or both bases) has been destroyed
     //  */
     checkWinCondition() {
-        let losingPlayers = [];
-        for (const player of this.getPlayers()) {
-            if (player.base.damage >= player.base.getHp()) {
-                losingPlayers.push(player);
-            }
-        }
+        const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp());
         if (losingPlayers.length === 1) {
             this.endGame(losingPlayers[0].opponent, 'base destroyed');
         } else if (losingPlayers.length === 2) { // draw game
-            this.endGame(null, 'both bases destroyed');
+            this.endGame(losingPlayers, 'both bases destroyed');
         }
     }
 
     /**
      * Display message declaring victory for one player, and record stats for
      * the game
-     * @param {Player | null} winner
+     * @param {Player | Player[]} winner
      * @param {String} reason
      */
     endGame(winner, reason) {
         if (this.winner) {
+            // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
 
-        if (winner) {
-            this.addMessage('{0} has won the game', winner);
-            this.winner = winner;
-        } else {
+        if (Array.isArray(winner)) {
             this.addMessage('The game ends in a draw');
+        } else {
+            this.addMessage('{0} has won the game', winner);
         }
+        this.winner = winner;
 
 
         this.finishedAt = new Date();
