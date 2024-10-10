@@ -1,16 +1,13 @@
-import type { AbilityContext } from '../ability/AbilityContext';
-import { EventName } from '../Constants';
-import type { Attack } from './Attack';
-import type Game from '../Game';
-import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
-import { SimpleStep } from '../gameSteps/SimpleStep';
-import { handler } from '../../gameSystems/GameSystemLibrary';
-import { CardWithDamageProperty } from '../card/CardTypes';
+import type {AbilityContext} from '../ability/AbilityContext';
+import {EventName, Location} from '../Constants';
+import type {Attack} from './Attack';
+import {BaseStepWithPipeline} from '../gameSteps/BaseStepWithPipeline';
+import {SimpleStep} from '../gameSteps/SimpleStep';
+import {CardWithDamageProperty} from '../card/CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import * as Contract from '../utils/Contract';
 import AbilityHelper from '../../AbilityHelper';
-import { GameEvent } from '../event/GameEvent';
-import { Card } from '../card/Card';
+import {GameEvent} from '../event/GameEvent';
+import {Card} from '../card/Card';
 
 export class AttackFlow extends BaseStepWithPipeline {
     public constructor(
@@ -66,10 +63,11 @@ export class AttackFlow extends BaseStepWithPipeline {
         } else {
             // we check if attacker has dealDamageBeforeDefender
             if (this.attack.hasDealsDamageBeforeDefender()) {
-                this.context.game.openEventWindow(this.createBeforeDefenderDamageEvents(), true);
+                damageEvents = this.createBeforeDefenderDamageEvents();
+                this.context.game.openEventWindow(damageEvents, true);
 
                 // we check if the defender is still a legal target
-                if (!this.attack.isAttackTargetLegal()) {
+                if (this.attack.attacker.getPower() >= this.attack.target.remainingHp) {
                     this.context.game.addMessage('The defenders attack does not resolve because the defender is no longer in play');
                     return;
                 }
