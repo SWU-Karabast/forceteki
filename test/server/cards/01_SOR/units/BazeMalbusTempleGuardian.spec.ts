@@ -49,6 +49,7 @@ describe('Baze Malbus, Temple Guardian', function() {
                     });
                 });
 
+                // Checks that sentinel works initially, and then after it is claimed sentinel is no longer active.
                 it('has sentinel until initiative is claimed by opposing player', function () {
                     const { context } = contextRef;
 
