@@ -1,8 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EventName } from '../core/Constants';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import { GameEvent } from '../core/event/GameEvent';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDeployLeaderProperties extends ICardTargetSystemProperties {}
@@ -17,7 +18,15 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
     public eventHandler(event): void {
         Contract.assertTrue(event.card.isLeader());
 
+        const deployedEvent = new GameEvent(this.eventName, {
+            player: event.context.source.controller,
+            card: event.card,
+            context: event.context
+        });
+
+        event.context.game.addMessage('{0} plays {1}', event.context.player, event.context.source);
         event.card.deploy();
+        event.context.game.openEventWindow(deployedEvent, true);
     }
 
     public override canAffect(card: Card, context: TContext): boolean {

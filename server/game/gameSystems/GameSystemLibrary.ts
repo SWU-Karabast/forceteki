@@ -64,6 +64,7 @@ import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
 import { MetaSystem } from '../core/gameSystem/MetaSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import { DiscardCardFromHandSystem, IDiscardCardFromHandProperties } from './DiscardCardFromHandSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -103,9 +104,9 @@ export function deploy<TContext extends AbilityContext = AbilityContext>(propert
 export function defeat<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDefeatCardProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new DefeatCardSystem<TContext>(propertyFactory);
 }
-// export function discardCard(propertyFactory: PropsFactory<DiscardCardProperties> = {}): CardGameAction {
-//     return new DiscardCardAction(propertyFactory);
-// }
+export function discardCard<TContext extends AbilityContext = AbilityContext> (propertyFactory: PropsFactory<IDiscardCardFromHandProperties> = {}): CardTargetSystem<TContext> {
+    return new DiscardCardFromHandSystem<TContext>(propertyFactory);
+}
 // export function discardFromPlay(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): GameSystem {
 //     return new DiscardFromPlayAction(propertyFactory);
 // }
