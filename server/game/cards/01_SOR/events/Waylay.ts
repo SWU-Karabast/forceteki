@@ -15,8 +15,7 @@ export default class Waylay extends EventCard {
             title: 'Return a non-leader unit to its owner\'s hand',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                locationFilter: WildcardLocation.AnyArena,
-                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
+                immediateEffect: AbilityHelper.immediateEffects.returnToHandFromPlay()
             }
         });
     }

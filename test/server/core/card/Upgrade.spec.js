@@ -107,7 +107,6 @@ describe('Upgrade cards', function() {
         });
 
         describe('When an upgrade is attached', function() {
-
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
@@ -121,6 +120,7 @@ describe('Upgrade cards', function() {
                         base: { card: 'dagobah-swamp', damage: 5 }
                     }
                 });
+            });
 
             it('its stat bonuses should be correctly applied on top of overwhelm and +2/+0 from Snowtrooper ability when attacking.', function () {
                 // actions
@@ -134,14 +134,14 @@ describe('Upgrade cards', function() {
                 expect(this.p2Base.damage).toBe(8);
                 expect(this.player2).toBeActivePlayer();
             });
-  
+
             it('and a unit is returned to its owner\'s hand, the upgrade should be in the upgrade\'s owner\'s hand', function () {
                 this.player1.passAction();
                 this.player2.clickCard('entrenched'); // Providing ownership
                 this.player2.clickCard(this.pykeSentinel);
 
                 this.player1.clickCard('waylay');
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel]);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel, this.deathTrooper, this.firstLegionSnowtrooper]);
                 this.player1.clickCard(this.pykeSentinel);
 
                 expect(this.pykeSentinel).toBeInLocation('hand', this.player1);
