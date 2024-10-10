@@ -46,7 +46,7 @@ export class UpgradeCard extends UpgradeCardParent {
     /** The card that this card is underneath */
     public get parentCard(): UnitCard {
         Contract.assertNotNullLike(this._parentCard);
-        Contract.assertTrue(EnumHelpers.isArena(this.location));
+        Contract.assertTrue(this.isInPlay());
 
         return this._parentCard;
     }
@@ -60,7 +60,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public attachTo(newParentCard: UnitCard) {
         Contract.assertTrue(newParentCard.isUnit());
-        Contract.assertTrue(EnumHelpers.isArena(newParentCard.location));
+        Contract.assertTrue(newParentCard.isInPlay());
 
         if (this._parentCard) {
             this.unattach();

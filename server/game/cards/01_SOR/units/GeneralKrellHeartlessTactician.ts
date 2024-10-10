@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, RelativePlayer } from '../../../core/Constants';
 
 export default class GeneralKrellHeartlessTactician extends NonLeaderUnitCard {
     protected override getImplementationId() {

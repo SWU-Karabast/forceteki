@@ -60,4 +60,4 @@ export type PlayableCard =
 // Base is the only type of card that isn't in the PlayableOrDeployable subclass
 type PlayableOrDeployableCardTypes = Exclude<AnyCard, BaseCard>;
 
-type InPlayCard = Exclude<AnyCard, BaseCard | EventCard>;
+export type InPlayCard = Exclude<AnyCard, BaseCard | EventCard>;

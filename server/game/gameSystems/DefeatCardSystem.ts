@@ -39,10 +39,27 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
-        if (!EnumHelpers.isArena(card.location)) {
+        if (
+            card.location !== Location.Resource &&
+            (!card.canBeInPlay() || !card.isInPlay())
+        ) {
             return false;
         }
         return super.canAffect(card, context);
+    }
+
+    /** Returns true if this system is enacting the pending defeat (i.e., delayed defeat from damage) for the specified card */
+    protected override isPendingDefeatFor(card: Card, context: TContext) {
+        const { target } = this.generatePropertiesFromContext(context);
+
+        if (Array.isArray(target)) {
+            if (target.length === 1) {
+                return target[0] === card;
+            }
+            return false;
+        }
+
+        return target === card;
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {

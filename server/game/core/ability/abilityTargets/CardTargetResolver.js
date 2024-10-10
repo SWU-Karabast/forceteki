@@ -118,6 +118,9 @@ class CardTargetResolver {
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;
             }
+            if (this.selector.optional) {
+                buttons.push({ text: 'Choose no target', arg: 'noTarget' });
+            }
             if (context.ability.type === 'action') {
                 waitingPromptTitle = 'Waiting for opponent to take an action or pass';
             } else {
@@ -145,15 +148,23 @@ class CardTargetResolver {
                 return true;
             },
             onMenuCommand: (player, arg) => {
-                if (arg === 'costsFirst') {
-                    targetResults.payCostsFirst = true;
-                    return true;
-                } else if (arg === passPrompt?.arg) {
-                    this.cancel(targetResults);
-                    passPrompt.handler();
-                    return true;
+                switch (arg) {
+                    case 'costsFirst':
+                        targetResults.payCostsFirst = true;
+                        return true;
+
+                    case passPrompt?.arg:
+                        this.cancel(targetResults);
+                        passPrompt.handler();
+                        return true;
+
+                    case 'cancel':
+                    case 'noTarget':
+                        return true;
+
+                    default:
+                        Contract.fail(`Unknown menu option '${arg}'`);
                 }
-                return true;
             }
         };
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));

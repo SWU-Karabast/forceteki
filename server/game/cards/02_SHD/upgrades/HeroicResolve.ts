@@ -1,10 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { AbilityContext } from '../../../core/ability/AbilityContext';
-import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
-import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
-import Player from '../../../core/Player';
+import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class HeroicResolve extends UpgradeCard {
     protected override getImplementationId() {

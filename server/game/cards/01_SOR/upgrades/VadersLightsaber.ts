@@ -2,7 +2,6 @@ import AbilityHelper from '../../../AbilityHelper';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Location, Trait, WildcardCardType } from '../../../core/Constants';
-import Player from '../../../core/Player';
 
 export default class VadersLightsaber extends UpgradeCard {
     protected override getImplementationId() {

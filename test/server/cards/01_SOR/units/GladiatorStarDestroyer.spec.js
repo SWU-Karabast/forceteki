@@ -29,7 +29,7 @@ describe('Gladiator Star Destroyer', function() {
                 this.moveToNextActionPhase();
 
                 // should no longer have sentinel
-                this.player1.pass();
+                this.player1.passAction();
                 this.player2.clickCard(this.wampa);
                 expect(this.player2).toBeAbleToSelectExactly([this.directorKrennic, this.p1Base]);
             });

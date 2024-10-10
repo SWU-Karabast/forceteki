@@ -314,6 +314,11 @@ class PlayerOrCardAbility {
     isKeywordAbility() {
         return false;
     }
+
+    /** @returns {this is import('../../actions/InitiateAttackAction.js').InitiateAttackAction} */
+    isAttackAction() {
+        return false;
+    }
 }
 
 module.exports = PlayerOrCardAbility;
