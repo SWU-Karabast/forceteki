@@ -9,7 +9,7 @@ describe('Claim Initiative', function() {
 
             it('the active player can claim the initiative', function () {
                 const { context } = contextRef;
-                
+
                 expect(context.player1).toHaveClaimInitiativeAbilityButton();
                 context.player1.claimInitiative();
 
@@ -24,12 +24,12 @@ describe('Claim Initiative', function() {
                 });
 
                 const { context } = contextRef;
-                context.player1.claimInitiative();                
+                context.player1.claimInitiative();
             });
 
             it('the active player can claim the initiative', function () {
                 const { context } = contextRef;
-                
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player2).not.toHaveClaimInitiativeAbilityButton();
             });

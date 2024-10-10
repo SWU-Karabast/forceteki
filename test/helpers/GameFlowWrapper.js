@@ -32,7 +32,7 @@ class GameFlowWrapper {
     }
 
     allPlayersInInitiativeOrder() {
-        return [...this.allPlayers].sort((playerWrapper) => this.game.initiativePlayer.id === playerWrapper.player.id ? -1 : 1);
+        return [...this.allPlayers].sort((playerWrapper) => (this.game.initiativePlayer.id === playerWrapper.player.id ? -1 : 1));
     }
 
     /**

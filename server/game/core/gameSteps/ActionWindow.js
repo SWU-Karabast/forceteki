@@ -97,7 +97,7 @@ class ActionWindow extends UiPrompt {
         let buttons = [
             { text: 'Pass', arg: 'pass' }
         ];
-        if(!this.game.isInitiativeClaimed) {
+        if (!this.game.isInitiativeClaimed) {
             buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative' });
         }
         if (this.game.manualMode) {
@@ -148,7 +148,7 @@ class ActionWindow extends UiPrompt {
     }
 
     pass(showMessage = true) {
-        if(showMessage) {
+        if (showMessage) {
             this.game.addMessage('{0} passes', this.activePlayer);
         }
 
@@ -177,7 +177,7 @@ class ActionWindow extends UiPrompt {
     }
 
     claimInitiative() {
-        this.game.addMessage('{0} claims initiative and passes', this.activePlayer);        
+        this.game.addMessage('{0} claims initiative and passes', this.activePlayer);
         this.game.claimInitiative(this.activePlayer);
 
         // Calls this.complete()

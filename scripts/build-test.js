@@ -10,20 +10,19 @@ function runCommand(command) {
 const isFast = process.argv.length > 2 && process.argv[2] === '--fast-build';
 
 let buildAll = !isFast;
-if(!fs.existsSync('./build/server')) {
+if (!fs.existsSync('./build/server')) {
     fs.mkdirSync('./build/server', { recursive: true });
     buildAll = true;
 }
 
-if(!buildAll && !fs.existsSync('./build/test/json')) {
+if (!buildAll && !fs.existsSync('./build/test/json')) {
     fs.mkdirSync('./build/test/json', { recursive: true });
     runCommand('cpy ./test/json/ ./build/');
 }
 
-if(!buildAll) {
+if (!buildAll) {
     runCommand('tsc -p ./test/tsconfig.json');
-}
-else {
+} else {
     /*
     // Backup if concurrently breaks anything.
     runCommand('tsc -p tsconfig.testserver.json && tsc -p tsconfig.test.json && cpy ./test/json/ ./build/');

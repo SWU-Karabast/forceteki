@@ -733,9 +733,13 @@ beforeEach(function () {
 global.integration = function (definitions) {
     describe('- integration -', function () {
         /**
-         * @type {SwuTestContextRef} 
+         * @type {SwuTestContextRef}
          */
-        const contextRef = { context: null, setupTest: function (options) { this.context.setupTest(options) } };
+        const contextRef = {
+            context: null, setupTest: function (options) {
+                this.context.setupTest(options);
+            }
+        };
         beforeEach(function () {
             const newContext = {};
             contextRef.context = newContext;
@@ -768,11 +772,10 @@ global.integration = function (definitions) {
                     options.player2 = {};
                 }
                 this.game.gameMode = GameMode.Premier;
-                
-                if(options.player1.hasInitiative) {
+
+                if (options.player1.hasInitiative) {
                     this.game.initiativePlayer = this.player1Object;
-                }
-                else if(options.player2.hasInitiative) {
+                } else if (options.player2.hasInitiative) {
                     this.game.initiativePlayer = this.player2Object;
                 }
 

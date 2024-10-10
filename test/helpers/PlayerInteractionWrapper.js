@@ -7,10 +7,10 @@ const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual } =
 
 class PlayerInteractionWrapper {
     /**
-     * 
-     * @param {Game} game 
-     * @param {Player} player 
-     * @param {GameFlowWrapper} testContext 
+     *
+     * @param {Game} game
+     * @param {Player} player
+     * @param {GameFlowWrapper} testContext
      */
     constructor(game, player, testContext) {
         this.game = game;
@@ -489,8 +489,7 @@ class PlayerInteractionWrapper {
 
         if (currentPrompt.buttons.length <= index) {
             throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${
-                    this.player.name
+                `Couldn't click on Button '${index}' for ${this.player.name
                 }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
@@ -499,8 +498,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${
-                    this.player.name
+                `Couldn't click on Button '${index}' for ${this.player.name
                 }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
@@ -519,8 +517,7 @@ class PlayerInteractionWrapper {
 
         if (!promptControl) {
             throw new TestSetupError(
-                `Couldn't click card '${cardName}' for ${
-                    this.player.name
+                `Couldn't click card '${cardName}' for ${this.player.name
                 } - unable to find control '${controlName}'. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }

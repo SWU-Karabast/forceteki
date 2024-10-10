@@ -125,10 +125,8 @@ export default tseslint.config(
     {
         files: ["test/**/*.ts"],
         extends: [
-            ...jasmine.configs.recommended,
             ...tseslint.configs.strict,
             ...tseslint.configs.stylistic,
-            ...importPlugin.flatConfigs.recommended,
         ],
         rules: {
             "jasmine/no-spec-dupes": 0,

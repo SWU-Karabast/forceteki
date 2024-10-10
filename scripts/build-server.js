@@ -7,7 +7,7 @@ function runCommand(command) {
     execSync(command, { stdio: 'inherit' });
 }
 
-if(!fs.existsSync('./build/server')) {
+if (!fs.existsSync('./build/server')) {
     fs.mkdirSync('./build/server', { recursive: true });
 }
 runCommand('tsc');

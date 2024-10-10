@@ -5,14 +5,14 @@ type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
 type PlayerInteractionWrapper = import('./PlayerInteractionWrapper');
 
-declare var integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
+declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
 
-type SwuTestContextRef = {
+interface SwuTestContextRef {
     context: SwuTestContext;
     setupTest: (options?: SwuSetupTestOptions) => void;
 }
 
-type SwuTestContext = {
+interface SwuTestContext {
     flow: GameFlowWrapper;
     game: Game;
     player1Object: Player;
@@ -40,7 +40,7 @@ type SwuTestContext = {
     [field: string]: any;
 }
 
-type SwuSetupTestOptions = {
+interface SwuSetupTestOptions {
     phase?: string;
     player1?: SwuPlayerSetupOptions;
     player2?: SwuPlayerSetupOptions;
@@ -48,7 +48,7 @@ type SwuSetupTestOptions = {
     [field: string]: any;
 }
 
-type SwuPlayerSetupOptions = {
+interface SwuPlayerSetupOptions {
     groundArena?: any[];
     spaceArena?: any[];
     hand?: any[];
