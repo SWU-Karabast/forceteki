@@ -50,6 +50,7 @@ import { ReadySystem, IReadySystemProperties } from './ReadySystem';
 import { ReadyResourcesSystem, IReadyResourcesSystemProperties } from './ReadyResourcesSystem';
 // import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
 import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
+import { ResourceCardSystem, IResourceCardProperties } from './ResourceCardSystem';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
 // import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
 import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
@@ -159,6 +160,13 @@ export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(pr
 // }
 export function ready<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadySystemProperties, TContext> = {}): GameSystem<TContext> {
     return new ReadySystem<TContext>(propertyFactory);
+}
+
+/**
+ * default changePlayers = false
+ */
+export function resourceCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IResourceCardProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new ResourceCardSystem<TContext>(propertyFactory);
 }
 // export function removeFromGame(propertyFactory: PropsFactory<RemoveFromGameProperties> = {}): CardGameAction {
 //     return new RemoveFromGameAction(propertyFactory);

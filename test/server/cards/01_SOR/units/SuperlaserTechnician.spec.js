@@ -23,6 +23,7 @@ describe('Superlaser Technician', function() {
 
                 expect(this.player1.countSpendableResources()).toBe(readyResourcesBeforeTrigger + 1);
                 expect(this.superlaserTechnician).toBeInLocation('resource');
+                expect(this.superlaserTechnician.exhausted).toBe(false);
                 expect(this.player2).toBeActivePlayer();
             });
         });

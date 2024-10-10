@@ -11,7 +11,7 @@ import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import CardAbility from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
-import { KeywordInstance } from '../ability/KeywordInstance';
+import { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
@@ -340,6 +340,12 @@ export class Card extends OngoingEffectSource {
         }
 
         return keywords;
+    }
+
+    public getKeywordWithCostValues(keywordName: KeywordName): KeywordWithCostValues {
+        const keyword = this.getKeywords().find((keyword) => keyword.valueOf() === keywordName);
+        Contract.assertTrue(keyword.hasCostValue(), `Keyword ${keywordName} does not have cost values.`);
+        return keyword as KeywordWithCostValues;
     }
 
     public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {

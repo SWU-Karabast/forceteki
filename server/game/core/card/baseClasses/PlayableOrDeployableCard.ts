@@ -1,8 +1,7 @@
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { CardType, EventName, Location } from '../../Constants';
+import { CardType } from '../../Constants';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
-import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
 
 // required for mixins to be based on this class
@@ -41,7 +40,9 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public override getActions(): PlayerOrCardAbility[] {
-        return this.defaultActions.concat(super.getActions());
+        const actions = this.defaultActions.concat(super.getActions());
+
+        return actions;
     }
 
     public exhaust() {

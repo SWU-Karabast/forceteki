@@ -10,6 +10,10 @@ export class KeywordInstance {
         return this instanceof KeywordWithNumericValue;
     }
 
+    public hasCostValue(): this is KeywordWithCostValues {
+        return this instanceof KeywordWithCostValues;
+    }
+
     public valueOf() {
         return this.name;
     }
@@ -28,7 +32,8 @@ export class KeywordWithCostValues extends KeywordInstance {
     public constructor(
         name: KeywordName,
         public readonly cost: number,
-        public readonly costAspects: Aspect[]
+        public readonly aspects: Aspect[],
+        public readonly additionalCosts: boolean // TODO: implement additional costs (First Light)
     ) {
         super(name);
     }
