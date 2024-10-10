@@ -111,8 +111,8 @@ describe('Upgrade cards', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                      hand: ['waylay'],
-                      groundArena: [{ card: 'first-legion-snowtrooper', upgrades: ['experience'] }, 'pyke-sentinel'],
+                        hand: ['waylay'],
+                        groundArena: [{ card: 'first-legion-snowtrooper', upgrades: ['experience'] }, 'pyke-sentinel'],
                     },
                     player2: {
                         hand: ['entrenched'],
