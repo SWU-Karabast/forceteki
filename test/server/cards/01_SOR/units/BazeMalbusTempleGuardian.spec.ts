@@ -40,7 +40,7 @@ describe('Baze Malbus, Temple Guardian', function() {
                     contextRef.setupTest({
                         phase: 'action',
                         player1: {
-                            groundArena: ['fleet-lieutenant', 'baze-malbus#temple-guardian'],
+                            groundArena: ['baze-malbus#temple-guardian'],
                             hasInitiative: true
                         },
                         player2: {
@@ -54,8 +54,7 @@ describe('Baze Malbus, Temple Guardian', function() {
                     const { context } = contextRef;
 
                     expect(context.player1).toBeActivePlayer();
-                    context.player1.clickCard(context.fleetLieutenant);
-                    context.player1.clickCard(context.p2Base);
+                    context.player1.passAction();
 
                     context.player2.clickCard(context.battlefieldMarine);     
                                    
