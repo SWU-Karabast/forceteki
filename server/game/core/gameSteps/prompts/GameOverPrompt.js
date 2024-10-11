@@ -1,6 +1,6 @@
 const { AllPlayerPrompt } = require('./AllPlayerPrompt');
 
-class GameWonPrompt extends AllPlayerPrompt {
+class GameOverPrompt extends AllPlayerPrompt {
     constructor(game, winner) {
         super(game);
         this.winner = winner;
@@ -15,6 +15,13 @@ class GameWonPrompt extends AllPlayerPrompt {
 
     /** @override */
     activePrompt() {
+        if (Array.isArray(this.winner)) {
+            return {
+                promptTitle: 'Tie Game',
+                menuTitle: 'The game ended in a draw!',
+                buttons: [{ text: 'Continue Playing' }]
+            };
+        }
         return {
             promptTitle: 'Game Won',
             menuTitle: this.winner.name + ' has won the game!',
@@ -37,4 +44,4 @@ class GameWonPrompt extends AllPlayerPrompt {
     }
 }
 
-module.exports = GameWonPrompt;
+module.exports = GameOverPrompt;
