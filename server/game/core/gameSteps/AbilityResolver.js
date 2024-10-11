@@ -4,6 +4,7 @@ const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js')
 const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
 const { Location, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
+const Contract = require('../utils/Contract.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
     constructor(game, context, optional = false) {
@@ -256,7 +257,8 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         // If this is an event, move it to discard before resolving the ability
         if (this.context.ability.isCardPlayed() && this.context.ability.card.isEvent()) {
-            this.game.actions.moveCard({ destination: Location.Discard }).resolve(this.context.source, this.context);
+            Contract.assertHasProperty(this.context.ability, 'moveEventToDiscard');
+            this.context.ability.moveEventToDiscard(this.context);
         }
 
         if (this.context.ability.isActivatedAbility()) {

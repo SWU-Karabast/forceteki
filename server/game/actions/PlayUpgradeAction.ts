@@ -31,7 +31,10 @@ export class PlayUpgradeAction extends PlayCardAction {
             .generateEvent(context.target, context),
         cardPlayedEvent];
 
-        super.handleSmuggle(context);
+        if (context.playType === PlayType.Smuggle) {
+            events.push(this.generateSmuggleEvent(context));
+        }
+
         context.game.openEventWindow(events, this.resolveTriggersAfter);
     }
 

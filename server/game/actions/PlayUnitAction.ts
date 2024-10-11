@@ -38,7 +38,10 @@ export class PlayUnitAction extends PlayCardAction {
             cardPlayedEvent
         ];
 
-        super.handleSmuggle(context);
+        if (context.playType === PlayType.Smuggle) {
+            events.push(this.generateSmuggleEvent(context));
+        }
+
         context.game.openEventWindow(events, this.resolveTriggersAfter);
     }
 

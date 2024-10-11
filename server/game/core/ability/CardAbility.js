@@ -221,11 +221,6 @@ class CardAbility extends CardAbilityStep {
     isActivatedAbility() {
         return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.type);
     }
-
-    /** @override */
-    isCardPlayed() {
-        return !this.isKeywordAbility() && this.card.isEvent();
-    }
 }
 
 module.exports = CardAbility;

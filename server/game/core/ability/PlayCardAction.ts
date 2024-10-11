@@ -72,13 +72,7 @@ export abstract class PlayCardAction extends PlayerAction {
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
-    public handleSmuggle(context: PlayCardContext) {
-        if (this.playType === PlayType.Smuggle) {
-            context.game.openEventWindow([
-                resourceCard({
-                    target: context.player.getTopCardOfDeck()
-                }).generateEvent(context.source, context)
-            ]);
-        }
+    public generateSmuggleEvent(context: PlayCardContext) {
+        return resourceCard({ target: context.player.getTopCardOfDeck() }).generateEvent(context.source, context);
     }
 }

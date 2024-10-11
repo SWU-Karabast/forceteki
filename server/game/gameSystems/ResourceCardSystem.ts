@@ -37,7 +37,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         player.moveCard(card, Location.Resource);
     }
 
-    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: {}): void {
+    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: any): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
         const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
 
