@@ -35,13 +35,8 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         const player = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
         player.moveCard(card, Location.Resource);
         if (properties.readyResource) {
-            context.game.openEventWindow(ready({ target: card }).generateEvent(context.source, context));
-
             event.setContingentEventsGenerator((event) => {
-                const readyResourceEvent = ready({ target: card }).generateEvent(context.source, context);
-                const contingentEvents = [readyResourceEvent];
-
-                return contingentEvents;
+                return [ready({ target: card }).generateEvent(context.source, context)];
             });
         }
     }

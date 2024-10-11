@@ -38,7 +38,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         // TODO: Is there a better/cleaner way to handle one or multiple cards here?
         const cards = [].concat(properties.target);
-        cards.forEach((card) => {
+        for (const card of cards) {
             if (properties.switch && properties.switchTarget) {
                 const otherCard = properties.switchTarget;
                 card.owner.moveCard(otherCard, card.location);
@@ -63,7 +63,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             // else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
             //     card.facedown = false;
             // }
-        });
+        }
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {

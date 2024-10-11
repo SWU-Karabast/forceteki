@@ -651,7 +651,7 @@ class Player extends GameObject {
                 cost = smuggleInstance.cost;
                 break;
             default:
-                Contract.fail('Invalid Play Type');
+                Contract.fail(`Invalid Play Type ${playingType}`);
         }
 
         let penaltyAspects = this.getPenaltyAspects(aspects);

@@ -10,10 +10,7 @@ import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand) {
-        super(card, 'Play this upgrade', playType, [],
-            { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({
-                upgrade: context.source
-            })) });
+        super(card, 'Play this upgrade', playType, [], { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source })) });
     }
 
     public override executeHandler(context: PlayCardContext) {

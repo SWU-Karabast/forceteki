@@ -18,16 +18,10 @@ export abstract class PlayCardAction extends PlayerAction {
         this.playType = playType;
     }
 
-    /**
-     * Returns the appropriate title for the action based on the PlayType
-     * @param title The play title
-     * @param playType The play type
-     * @returns The play title for the action
-     */
     private static getTitle(title: string, playType: PlayType): string {
         switch (playType) {
             case PlayType.Smuggle:
-                return title + 'with Smuggle';
+                return title + ' with Smuggle';
             default:
                 return title;
         }
