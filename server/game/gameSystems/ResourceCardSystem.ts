@@ -5,6 +5,7 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ready } from './GameSystemLibrary';
 import * as Contract from '../core/utils/Contract';
+import { GameEvent } from '../core/event/GameEvent';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
@@ -34,11 +35,18 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
         const player = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
         player.moveCard(card, Location.Resource);
+    }
+
+    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: {}): void {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
+        const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
+
         if (properties.readyResource) {
             event.setContingentEventsGenerator((event) => {
                 return [ready({ target: card }).generateEvent(context.source, context)];
             });
         }
+        super.updateEvent(event, target, context, additionalProperties);
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {
