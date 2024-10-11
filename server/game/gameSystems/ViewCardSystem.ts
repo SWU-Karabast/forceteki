@@ -7,12 +7,22 @@ import * as Helpers from '../core/utils/Helpers';
 
 // TODO: Need some future work to fully implement Thrawn
 export interface IViewCardProperties extends ICardTargetSystemProperties {
+    viewType: ViewCardMode;
     sendChatMessage?: boolean;
     message?: string | ((context) => string);
     messageArgs?: (cards: any) => any[];
 
     /** The player who is viewing or revealing the card. */
     player?: Player;
+}
+
+export enum ViewCardMode {
+
+    /** A player looks at card(s) */
+    LookAt = 'lookAt',
+
+    /** A player reveals card(s) to all players */
+    Reveal = 'reveal'
 }
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IViewCardProperties> {

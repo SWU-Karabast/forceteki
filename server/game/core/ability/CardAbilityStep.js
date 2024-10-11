@@ -105,6 +105,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
                     window.setThenAbilityStep((context) => new CardAbilityStep(this.game, this.card, this.getConcreteThen(this.properties.then, context)), context);
                 }
             } else if (this.properties.then) {
+                // if no events for the current step, skip directly to the "then" step (if any)
                 const then = typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
                 if (then.thenCondition && then.thenCondition(context)) {
                     let cardAbilityStep = new CardAbilityStep(this.game, this.card, then);

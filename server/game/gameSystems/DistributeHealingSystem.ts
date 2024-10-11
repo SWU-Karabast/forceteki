@@ -3,7 +3,7 @@ import { StatefulPromptType } from '../core/gameSteps/StatefulPromptInterfaces';
 import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { HealSystem } from './HealSystem';
 
-export type IDistributeHealingSystemProperties<TContext extends AbilityContext = AbilityContext> = Omit<IDistributeAmongTargetsSystemProperties<TContext>, 'effectType'>;
+export type IDistributeHealingSystemProperties<TContext extends AbilityContext = AbilityContext> = IDistributeAmongTargetsSystemProperties<TContext>;
 
 /**
  * System for distributing healing among target cards.

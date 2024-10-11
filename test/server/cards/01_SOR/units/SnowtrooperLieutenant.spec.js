@@ -1,6 +1,6 @@
 describe('Snowtrooper Lieutenant', function() {
     integration(function() {
-        describe('Snowtrooper Lieutenant\'s ability', function() {
+        describe('Snowtrooper lieutenant\'s ability', function() {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',

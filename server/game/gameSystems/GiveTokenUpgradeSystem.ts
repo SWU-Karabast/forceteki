@@ -7,6 +7,7 @@ import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
+    tokenType: TokenName,
     amount?: number
 }
 
@@ -14,12 +15,6 @@ export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties
 export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IGiveTokenUpgradeProperties> {
     public override readonly eventName = EventName.OnUpgradeAttached;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
-    protected override readonly defaultProperties: IGiveTokenUpgradeProperties = {
-        amount: 1
-    };
-
-    public abstract override readonly name: string;
-    protected abstract readonly tokenType: TokenName;
 
     public override eventHandler(event, additionalProperties = {}): void {
         const cardReceivingTokenUpgrade = event.card;
@@ -29,7 +24,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         Contract.assertTrue(cardReceivingTokenUpgrade.isInPlay());
 
         for (let i = 0; i < properties.amount; i++) {
-            const tokenUpgrade = event.context.game.generateToken(event.context.source.controller, this.tokenType);
+            const tokenUpgrade = event.context.game.generateToken(event.context.source.controller, properties.tokenType);
             tokenUpgrade.attachTo(cardReceivingTokenUpgrade);
         }
     }
@@ -38,9 +33,9 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         const properties = this.generatePropertiesFromContext(context);
 
         if (properties.amount === 1) {
-            return ['attach a {0} to {1}', [this.tokenType, properties.target]];
+            return ['attach a {0} to {1}', [properties.tokenType, properties.target]];
         }
-        return ['attach {0} {1}s to {2}', [properties.amount, this.tokenType, properties.target]];
+        return ['attach {0} {1}s to {2}', [properties.amount, properties.tokenType, properties.target]];
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {

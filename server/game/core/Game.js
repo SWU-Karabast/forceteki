@@ -637,6 +637,12 @@ class Game extends EventEmitter {
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
     }
 
+    /**
+     * Gets the results of a "stateful" prompt from the frontend. This is for more
+     * involved prompts such as distributing damage / healing that require the frontend
+     * to gather some state and send back, instead of just individual clicks.
+     * @param {import('./gameSteps/StatefulPromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     */
     statefulPromptResults(playerName, result) {
         var player = this.getPlayerByName(playerName);
 

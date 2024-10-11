@@ -5,7 +5,7 @@ import { DamageSystem } from './DamageSystem';
 import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { HealSystem } from './HealSystem';
 
-export type IDistributeDamageSystemProperties<TContext extends AbilityContext = AbilityContext> = Omit<IDistributeAmongTargetsSystemProperties<TContext>, 'effectType'>;
+export type IDistributeDamageSystemProperties<TContext extends AbilityContext = AbilityContext> = IDistributeAmongTargetsSystemProperties<TContext>;
 
 /**
  * System for distributing damage among target cards.

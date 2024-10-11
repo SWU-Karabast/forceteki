@@ -9,6 +9,8 @@ import { UiPrompt } from './UiPrompt';
 /**
  * Prompt for distributing healing or damage among target cards.
  * Response data must be returned via {@link Game.statefulPromptResults}.
+ *
+ * Result will be passed to `properties.resultsHandler`.
  */
 export class DistributeAmongTargetsPrompt extends UiPrompt {
     private readonly _activePrompt: IPlayerPromptStateProperties;
@@ -22,7 +24,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         super(game);
         this.player = player;
         if (!properties.waitingPromptTitle) {
-            properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
+            properties.waitingPromptTitle = 'Waiting for opponent to choose targets for ' + properties.source.name;
         }
         this.properties = properties;
         game.getPlayers().forEach((player) => player.clearSelectableCards());
@@ -72,7 +74,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
     }
 
     public override waitingPrompt(): IPlayerPromptStateProperties {
-        return { menuTitle: this.properties.waitingPromptTitle || 'Waiting for opponent' };
+        return { menuTitle: this.properties.waitingPromptTitle };
     }
 
     public override menuCommand(player: Player, arg: string, method: string): boolean {

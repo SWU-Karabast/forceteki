@@ -21,7 +21,6 @@ export interface IDistributeAmongTargetsPromptProperties {
     resultsHandler: (results: IDistributeAmongTargetsPromptResults) => void;
 }
 
-// TODO: should these be passing something other than Card objects, such as uuids?
 export interface IDistributeAmongTargetsPromptData {
     type: StatefulPromptType;
     amount: number;

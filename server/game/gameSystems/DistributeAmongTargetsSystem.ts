@@ -19,7 +19,7 @@ export interface IDistributeAmongTargetsSystemProperties<TContext extends Abilit
      */
     canChooseNoTargets: boolean;
 
-    /** If true, the amount distributed can be less than the provided amount */
+    /** If true, the amount distributed can be less than `amountToDistribute` */
     canDistributeLess?: boolean;
 
     activePromptTitle?: string;
@@ -60,6 +60,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
 
         const legalTargets = properties.selector.getAllLegalTargets(context);
 
+        // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets
         if (!properties.canChooseNoTargets && legalTargets.length === 1) {
             const amountToDistribute = this.getAmountToDistribute(properties.amountToDistribute, context);
             events.push(this.generateEffectEvent(legalTargets[0], context, amountToDistribute));
