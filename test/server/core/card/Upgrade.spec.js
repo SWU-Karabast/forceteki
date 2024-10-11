@@ -135,7 +135,7 @@ describe('Upgrade cards', function() {
                 expect(this.player2).toBeActivePlayer();
             });
 
-            it('and a unit is returned to its owner\'s hand, the upgrade should be in the upgrade\'s owner\'s hand', function () {
+            it('and a unit is returned to its owner\'s hand, the upgrade should be in the upgrade\'s owner\'s discard pile', function () {
                 this.player1.passAction();
                 this.player2.clickCard('entrenched'); // Providing ownership
                 this.player2.clickCard(this.pykeSentinel);
