@@ -7,6 +7,7 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
+import { MetaSystem } from '../core/gameSystem/MetaSystem';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     activePromptTitle?: string;
@@ -19,7 +20,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     message?: string;
     manuallyRaiseEvent?: boolean;
     messageArgs?: (card: Card, player: RelativePlayer, properties: ISelectCardProperties<TContext>) => any[];
-    innerSystem: CardTargetSystem<TContext>;
+    innerSystem: CardTargetSystem<TContext> | MetaSystem<TContext>;
     selector?: BaseCardSelector;
     mode?: TargetMode;
     numCards?: number;

@@ -297,7 +297,8 @@ export function replacementEffect<TContext extends TriggeredAbilityContext = Tri
 // export function chooseAction(propertyFactory: PropsFactory<ChooseActionProperties>): GameSystem {
 //     return new ChooseGameAction(propertyFactory);
 // } // choices, activePromptTitle = 'Select one'
-export function conditional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IConditionalSystemProperties<TContext>, TContext>): GameSystem<TContext> {
+// TODO: remove the return type from all of these
+export function conditional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IConditionalSystemProperties<TContext>, TContext>) {
     return new ConditionalSystem<TContext>(propertyFactory);
 }
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>): GameSystem {
