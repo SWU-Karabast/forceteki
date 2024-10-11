@@ -4,6 +4,7 @@ import { CardType, EffectName, Location, RelativePlayer, WildcardCardType } from
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ready } from './GameSystemLibrary';
+import * as Contract from '../core/utils/Contract';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
@@ -28,15 +29,21 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // TODO: remove this completely if determinmed we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
-        // TODO: Is there a better/cleaner way to handle one or multiple cards here?
-        const cards = [].concat(properties.target);
-        cards.forEach((card) => {
-            const player = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
-            player.moveCard(card, Location.Resource);
-            if (properties.readyResource) {
-                context.game.openEventWindow(ready({ target: card }).generateEvent(context.source, context));
-            }
-        });
+        // TODO: If we ever need to resource multiple cards at once, this will need an update
+        const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
+
+        const player = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
+        player.moveCard(card, Location.Resource);
+        if (properties.readyResource) {
+            context.game.openEventWindow(ready({ target: card }).generateEvent(context.source, context));
+
+            event.setContingentEventsGenerator((event) => {
+                const readyResourceEvent = ready({ target: card }).generateEvent(context.source, context);
+                const contingentEvents = [readyResourceEvent];
+
+                return contingentEvents;
+            });
+        }
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {
@@ -46,13 +53,9 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
-        const destinationController = Array.isArray(properties.target)
-            ? properties.targetPlayer === RelativePlayer.Opponent
-                ? properties.target[0].controller.opponent
-                : properties.target[0].controller
-            : properties.targetPlayer === RelativePlayer.Opponent
-                ? properties.target.controller.opponent
-                : properties.target.controller;
+        const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
+
+        const destinationController = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
         return [
             'move {0} to {1}\'s resources',
             [properties.target, destinationController]
