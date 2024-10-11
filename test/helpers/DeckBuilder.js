@@ -5,6 +5,7 @@ const TestSetupError = require('./TestSetupError.js');
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
+const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base'];
 const deckFillerCard = 'underworld-thug';
 const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
@@ -80,27 +81,36 @@ class DeckBuilder {
 
     getAllNamedCards(playerObject) {
         let namedCards = [];
-        for (const key in playerObject) {
-            namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(playerObject[key]));
+        for (const key of playerCardProperties) {
+            var value = playerObject[key];
+            if (value === undefined) {
+                continue;
+            }
+
+            namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(value));
         }
         return namedCards;
     }
 
     getNamedCardsInPlayerEntry(playerEntry) {
         let namedCards = [];
-        if (typeof playerEntry === 'number' || typeof playerEntry == null) {
+        // If number, this might be used by padCardListIfNeeded, and should simply return an array.
+        if (typeof playerEntry === 'number') {
             return [];
+        }
+        if (playerEntry === null) {
+            throw new TestSetupError(`Null test card specifier format: '${playerEntry}'`);
         }
 
         if (typeof playerEntry === 'string') {
             namedCards = namedCards.concat(playerEntry);
+        } else if (Array.isArray(playerEntry)) {
+            playerEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(card)));
         } else if ('card' in playerEntry) {
             namedCards.push(playerEntry.card);
             namedCards = namedCards.concat(this.getUpgradesFromCard(playerEntry));
-        } else if (Array.isArray(playerEntry)) {
-            playerEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(card)));
         } else {
-            throw new TestSetupError(`Unknown test card specifier format: '${playerObject}'`);
+            throw new TestSetupError(`Unknown test card specifier format: '${playerEntry}'`);
         }
         return namedCards;
     }
@@ -181,7 +191,7 @@ class DeckBuilder {
         return inPlayCards;
     }
 
-    buildDeck(cardInternalNames) {
+    buildDeck(cardInternalNames, cards) {
         var cardCounts = {};
         cardInternalNames.forEach((internalName) => {
             var cardData = this.getCard(internalName);

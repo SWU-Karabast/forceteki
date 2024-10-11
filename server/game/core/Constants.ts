@@ -188,7 +188,7 @@ export enum EventName {
     OnStatusTokenDiscarded = 'onStatusTokenDiscarded',
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
-    OnTakeInitiative = 'onTakeInitiative',
+    OnClaimInitiative = 'onClaimInitiative',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
     Unnamed = 'unnamedEvent',
@@ -321,6 +321,7 @@ export enum StateWatcherName {
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
+    CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado

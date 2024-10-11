@@ -46,5 +46,6 @@ export class ActionPhase extends Phase {
         for (const player of this.game.getPlayers()) {
             player.cleanupFromActionPhase();
         }
+        this.game.isInitiativeClaimed = false;
     }
 }

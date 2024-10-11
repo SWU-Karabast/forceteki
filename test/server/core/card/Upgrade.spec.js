@@ -111,10 +111,12 @@ describe('Upgrade cards', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'first-legion-snowtrooper', upgrades: ['experience'] }],
+                        hand: ['waylay'],
+                        groundArena: [{ card: 'first-legion-snowtrooper', upgrades: ['experience'] }, 'pyke-sentinel'],
                     },
                     player2: {
-                        groundArena: [{ card: 'death-trooper', damage: 1 }],
+                        hand: ['entrenched'],
+                        groundArena: [{ card: 'death-trooper', damage: 1 }, 'wampa'],
                         base: { card: 'dagobah-swamp', damage: 5 }
                     }
                 });
@@ -131,6 +133,19 @@ describe('Upgrade cards', function() {
                 expect(this.firstLegionSnowtrooper.damage).toBe(3);
                 expect(this.p2Base.damage).toBe(8);
                 expect(this.player2).toBeActivePlayer();
+            });
+
+            it('and a unit is returned to its owner\'s hand, the upgrade should be in the upgrade\'s owner\'s discard pile', function () {
+                this.player1.passAction();
+                this.player2.clickCard('entrenched'); // Providing ownership
+                this.player2.clickCard(this.pykeSentinel);
+
+                this.player1.clickCard('waylay');
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel, this.deathTrooper, this.firstLegionSnowtrooper]);
+                this.player1.clickCard(this.pykeSentinel);
+
+                expect(this.pykeSentinel).toBeInLocation('hand', this.player1);
+                expect(this.entrenched).toBeInLocation('discard', this.player2);
             });
         });
     });
