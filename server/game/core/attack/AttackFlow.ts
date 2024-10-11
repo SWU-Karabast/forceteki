@@ -1,13 +1,13 @@
-import type {AbilityContext} from '../ability/AbilityContext';
-import {EventName, Location} from '../Constants';
-import type {Attack} from './Attack';
-import {BaseStepWithPipeline} from '../gameSteps/BaseStepWithPipeline';
-import {SimpleStep} from '../gameSteps/SimpleStep';
-import {CardWithDamageProperty} from '../card/CardTypes';
+import type { AbilityContext } from '../ability/AbilityContext';
+import { EventName, Location } from '../Constants';
+import type { Attack } from './Attack';
+import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
+import { SimpleStep } from '../gameSteps/SimpleStep';
+import { CardWithDamageProperty } from '../card/CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
-import {GameEvent} from '../event/GameEvent';
-import {Card} from '../card/Card';
+import { GameEvent } from '../event/GameEvent';
+import { Card } from '../card/Card';
 
 export class AttackFlow extends BaseStepWithPipeline {
     public constructor(
@@ -60,23 +60,31 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         if (overwhelmDamageOnly) {
             damageEvents = [AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).generateEvent(this.attack.target.controller.base, this.context)];
+            this.context.game.openEventWindow(damageEvents, true);
         } else {
             // we check if attacker has dealDamageBeforeDefender
             if (this.attack.hasDealsDamageBeforeDefender()) {
-                damageEvents = this.createBeforeDefenderDamageEvents();
+                const attackerDamageEvents = this.createBeforeDefenderDamageEvents();
+                this.context.game.openEventWindow(attackerDamageEvents, true);
+                this.pipeline.queueStep(new SimpleStep(this.game, () => this.checkDefenderStatus(), 'checkDefenderStatus'));
+
+            } else {
+                damageEvents = this.createDamageEvents();
                 this.context.game.openEventWindow(damageEvents, true);
-
-                // we check if the defender is still a legal target
-                if (this.attack.attacker.getPower() >= this.attack.target.remainingHp) {
-                    this.context.game.addMessage('The defenders attack does not resolve because the defender is no longer in play');
-                    return;
-                }
             }
-
-            damageEvents = this.createDamageEvents();
         }
 
-        this.context.game.openEventWindow(damageEvents, true);
+
+    }
+
+    private checkDefenderStatus(): void {
+        if (this.game.currentAttack.target.isAttackTargetLegal()) {
+            const damageEvents = this.createDamageEvents();
+            this.context.game.openEventWindow(damageEvents, true);
+        } else {
+            this.context.game.addMessage('The defenders attack does not resolve because the defender is no longer in play');
+            return;
+        }
     }
 
     private createBeforeDefenderDamageEvents(): GameEvent[] {
