@@ -62,32 +62,26 @@ export class AttackFlow extends BaseStepWithPipeline {
             damageEvents = [AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).generateEvent(this.attack.target.controller.base, this.context)];
             this.context.game.openEventWindow(damageEvents, true);
         } else {
+            this.context.game.openEventWindow(this.createAttackerDamageEvents(), true);
             // we check if attacker has dealDamageBeforeDefender
             if (this.attack.hasDealsDamageBeforeDefender()) {
-                const attackerDamageEvents = this.createBeforeDefenderDamageEvents();
-                this.context.game.openEventWindow(attackerDamageEvents, true);
-                this.pipeline.queueStep(new SimpleStep(this.game, () => this.checkDefenderStatus(), 'checkDefenderStatus'));
-
+                // On true we queue a simple step for checking if the defender is still in play
+                this.context.game.queueSimpleStep(() => {
+                    if (!this.attack.target.isBase() && this.attack.target.isInPlay()) {
+                        const defenderDamageEvent = AbilityHelper.immediateEffects.damage({ amount: this.attack.getTargetTotalPower(), isCombatDamage: true }).generateEvent(this.attack.attacker, this.context);
+                        this.context.game.openEventWindow(defenderDamageEvent, true);
+                    }
+                }, 'check and queue event for defender damage');
             } else {
-                damageEvents = this.createDamageEvents();
-                this.context.game.openEventWindow(damageEvents, true);
+                if (!this.attack.target.isBase()) {
+                    const newDefenderDamageEvent = AbilityHelper.immediateEffects.damage({ amount: this.attack.getTargetTotalPower(), isCombatDamage: true }).generateEvent(this.attack.attacker, this.context);
+                    this.context.game.openEventWindow(newDefenderDamageEvent, true);
+                }
             }
         }
-
-
     }
 
-    private checkDefenderStatus(): void {
-        if (this.game.currentAttack.target.isAttackTargetLegal()) {
-            const damageEvents = this.createDamageEvents();
-            this.context.game.openEventWindow(damageEvents, true);
-        } else {
-            this.context.game.addMessage('The defenders attack does not resolve because the defender is no longer in play');
-            return;
-        }
-    }
-
-    private createBeforeDefenderDamageEvents(): GameEvent[] {
+    private createAttackerDamageEvents(): GameEvent[] {
         const damageEvents = [];
 
         // event for damage dealt to target by attacker
@@ -113,43 +107,6 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
 
         damageEvents.push(attackerDamageEvent);
-        return damageEvents;
-    }
-
-    private createDamageEvents(): GameEvent[] {
-        const damageEvents = [];
-
-        // if the attacker has the effect DealsDamageBeforeDefender skip attacker
-        if (!this.attack.hasDealsDamageBeforeDefender()) {
-            // event for damage dealt to target by attacker
-            const attackerDamageEvent: any = AbilityHelper.immediateEffects.damage({
-                amount: this.attack.getAttackerTotalPower(),
-                isCombatDamage: true,
-            }).generateEvent(this.attack.target, this.context);
-
-            if (this.attack.hasOverwhelm()) {
-                attackerDamageEvent.setContingentEventsGenerator((event) => {
-                    const attackTarget: Card = event.card;
-
-                    if (!attackTarget.isUnit() || event.damage <= attackTarget.remainingHp) {
-                        return [];
-                    }
-
-                    const overwhelmEvent = AbilityHelper.immediateEffects.damage({
-                        amount: event.damage - event.card.remainingHp,
-                    }).generateEvent(event.card.controller.base, this.context);
-
-                    return [overwhelmEvent];
-                });
-            }
-
-            damageEvents.push(attackerDamageEvent);
-        }
-        // event for damage dealt to attacker by defender, if any.
-        if (!this.attack.target.isBase()) {
-            damageEvents.push(AbilityHelper.immediateEffects.damage({ amount: this.attack.getTargetTotalPower(), isCombatDamage: true }).generateEvent(this.attack.attacker, this.context));
-        }
-
         return damageEvents;
     }
 
