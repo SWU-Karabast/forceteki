@@ -23,13 +23,11 @@ export default class BobaFettDisintegrator extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.',
             immediateEffect: AbilityHelper.immediateEffects.conditional((attackContext) => ({
-                condition: () => {
-                    // we find the cards that the opponent played this phase and check if it's the card targeted
-                    return this.cardsEnteredPlayThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
-                        playedCardEntry.playedBy === attackContext.source.activeAttack.target.owner && attackContext.source.activeAttack.target === playedCardEntry.card).length === 0 &&
-                        attackContext.source.activeAttack.target.isUnit() && attackContext.source.activeAttack.target.exhausted;
-                },
-                onTrue: AbilityHelper.immediateEffects.damage({ target: attackContext.source.activeAttack.target, amount: 3 }),
+                // check if target card was played this turn and if it is a unit and exhausted
+                condition: () => this.cardsEnteredPlayThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
+                    playedCardEntry.playedBy === attackContext.source.activeAttack?.target.owner && attackContext.source.activeAttack?.target === playedCardEntry.card).length === 0 &&
+                        attackContext.source.activeAttack?.target.isUnit() && attackContext.source.activeAttack?.target.exhausted,
+                onTrue: AbilityHelper.immediateEffects.damage({ target: attackContext.source.activeAttack?.target, amount: 3 }),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })),
         });

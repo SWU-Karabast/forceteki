@@ -1,6 +1,6 @@
-describe('Boba Fett Disintegrator', function() {
+describe('Boba Fett, Disintegrator', function() {
     integration(function() {
-        describe('Boba Fett Disintegrator\'s ability', function () {
+        describe('Boba Fett, Disintegrator\'s ability', function () {
             beforeEach(function () {
                 this.setupTest({
                     phase: 'action',
@@ -15,7 +15,13 @@ describe('Boba Fett Disintegrator', function() {
                 });
             });
 
-            it('while attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.', function () {
+            it('while attacking an exhausted unit that didn\'t enter play this round, should deal 3 damage to the defender', function () {
+                const reset = () => {
+                    this.bobaFett.damage = 0;
+                    this.bobaFett.exhausted = false;
+                    this.consularSecurityForce.damage = 0;
+                    this.consularSecurityForce.exhausted = false;
+                };
                 // Case 1 attacking a ready card
                 this.player1.passAction();
                 this.player2.clickCard(this.consularSecurityForce);
@@ -33,9 +39,7 @@ describe('Boba Fett Disintegrator', function() {
                 expect(this.bobaFett.damage).toBe(3);
 
                 // reset board state
-                this.bobaFett.damage = 0;
-                this.bobaFett.exhausted = false;
-                this.consularSecurityForce.damage = 0;
+                reset();
 
                 // Case 2 attacking a card played this turn
                 expect(this.player2).toBeActivePlayer();
@@ -49,9 +53,7 @@ describe('Boba Fett Disintegrator', function() {
                 expect(this.bobaFett.damage).toBe(4);
 
                 // reset state
-                this.bobaFett.damage = 0;
-                this.bobaFett.exhausted = false;
-                this.lomPyke.damage = 0;
+                reset();
 
                 // Case 3 Ability activates when attacking an exhausted unit not played in this phase
                 this.consularSecurityForce.exhausted = true;
@@ -64,10 +66,8 @@ describe('Boba Fett Disintegrator', function() {
                 expect(this.consularSecurityForce.damage).toBe(6);
 
                 // reset state
-                this.bobaFett.damage = 0;
-                this.bobaFett.exhausted = false;
-                this.consularSecurityForce.damage = 0;
-                this.consularSecurityForce.exhausted = false;
+                reset();
+
                 this.player2.passAction();
 
                 // Case 4 Ability should activate when attacking leader deployed previous phase
@@ -94,10 +94,7 @@ describe('Boba Fett Disintegrator', function() {
                 expect(this.consularSecurityForce.exhausted).toBe(true);
 
                 // reset state
-                this.consularSecurityForce.damage = 0;
-                this.bobaFett.exhausted = false;
-                this.bobaFett.damage = 0;
-                this.consularSecurityForce.exhausted = false;
+                reset();
 
                 // Case 6 Ability should activate when selecting vambrace-grappleshots ability before Boba Fetts.
                 this.player2.clickCard(this.entrenched);

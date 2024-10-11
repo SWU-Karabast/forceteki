@@ -2,17 +2,17 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import Player from '../core/Player';
-import { EnteredPlayCard, PlayableCard } from '../core/card/CardTypes';
-import Game from '../core/Game';
+import { InPlayCard } from '../core/card/CardTypes';
 import { Card } from '../core/card/Card';
 
 export interface EnteredCardEntry {
-    card: EnteredPlayCard,
+    card: InPlayCard,
     playedBy: Player
 }
 
 export type ICardsEnteredPlayThisPhase = EnteredCardEntry[];
 
+// there is a known issue where CardsEnteredPlayThisPhaseWatcher currently doesn't work with leaders
 export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEntry[]> {
     public constructor(
         registrar: StateWatcherRegistrar,
