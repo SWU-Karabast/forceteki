@@ -5,7 +5,7 @@ import { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, EventName, PlayType } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
-import { attachUpgrade, resourceCard } from '../gameSystems/GameSystemLibrary';
+import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
@@ -34,12 +34,7 @@ export class PlayUpgradeAction extends PlayCardAction {
             .generateEvent(context.target, context),
         cardPlayedEvent];
 
-        if (this.playType === PlayType.Smuggle) {
-            events.push(resourceCard({
-                target: context.player.getTopCardOfDeck()
-            }).generateEvent(context.source, context));
-        }
-
+        super.handleSmuggle(context);
         context.game.openEventWindow(events, this.resolveTriggersAfter);
     }
 

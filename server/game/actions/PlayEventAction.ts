@@ -1,10 +1,7 @@
-import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { AbilityRestriction, PlayType } from '../core/Constants.js';
 import { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract.js';
-import { EventCard } from '../core/card/EventCard.js';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.js';
-import { resourceCard } from '../gameSystems/GameSystemLibrary.js';
 
 export class PlayEventAction extends PlayCardAction {
     public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand) {
@@ -20,13 +17,7 @@ export class PlayEventAction extends PlayCardAction {
             context.source,
         );
 
-        if (this.playType === PlayType.Smuggle) {
-            context.game.openEventWindow([
-                resourceCard({
-                    target: context.player.getTopCardOfDeck()
-                }).generateEvent(context.source, context)
-            ]);
-        }
+        super.handleSmuggle(context);
         context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 

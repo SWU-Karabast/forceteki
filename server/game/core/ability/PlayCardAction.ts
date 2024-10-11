@@ -1,4 +1,5 @@
 import * as CostLibrary from '../../costs/CostLibrary';
+import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import { IActionTargetResolver } from '../../TargetInterfaces';
 import { Card } from '../card/Card';
 import { KeywordName, PhaseName, PlayType, Stage } from '../Constants';
@@ -12,10 +13,24 @@ export abstract class PlayCardAction extends PlayerAction {
     protected playType: PlayType;
 
     public constructor(card: Card, title: string, playType: PlayType, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
-        const fullTitle = title + (PlayType.Smuggle === playType ? ' with Smuggle' : '');// TODO is there a cleaner way to do this?
-        super(card, fullTitle, additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
+        super(card, PlayCardAction.getTitle(title, playType), additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
 
         this.playType = playType;
+    }
+
+    /**
+     * Returns the appropriate title for the action based on the PlayType
+     * @param title The play title
+     * @param playType The play type
+     * @returns The play title for the action
+     */
+    private static getTitle(title: string, playType: PlayType): string {
+        switch (playType) {
+            case PlayType.Smuggle:
+                return title + 'with Smuggle';
+            default:
+                return title;
+        }
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
@@ -61,5 +76,15 @@ export abstract class PlayCardAction extends PlayerAction {
     public override getAdjustedCost(context) {
         const resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
+    }
+
+    public handleSmuggle(context: PlayCardContext) {
+        if (this.playType === PlayType.Smuggle) {
+            context.game.openEventWindow([
+                resourceCard({
+                    target: context.player.getTopCardOfDeck()
+                }).generateEvent(context.source, context)
+            ]);
+        }
     }
 }
