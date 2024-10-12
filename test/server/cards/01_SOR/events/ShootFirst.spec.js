@@ -29,7 +29,6 @@ describe('Shoot First', function () {
             });
 
             it('should initiate attack with +1/+0 and while attacking deal damage before the defender and giving the grit unit its effect before attacker receives damage.', function () {
-
                 this.player1.clickCard(this.shootFirst);
                 expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce, this.firstLegionSnowtrooper]);
                 this.player1.clickCard(this.consularSecurityForce);
