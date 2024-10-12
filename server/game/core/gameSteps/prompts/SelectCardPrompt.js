@@ -1,6 +1,7 @@
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
+const Contract = require('../../utils/Contract.js');
 const { UiPrompt } = require('./UiPrompt.js');
 
 /**
@@ -246,7 +247,7 @@ class SelectCardPrompt extends UiPrompt {
             this.complete();
             return true;
         }
-        return false;
+        Contract.fail(`Unexpected menu command: '${arg}'`);
     }
 
     /** @override */

@@ -23,7 +23,9 @@ describe('Open Fire', function() {
                 expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer, this.pykeSentinel, this.fleetLieutenant]);
 
                 this.player1.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer).toHaveExactUpgradeNames([]);
+                expect(this.cartelSpacer.isUpgraded()).toBe(false);
+                expect(this.cartelSpacer.damage).toBe(0);
+                expect(this.cartelSpacer).toBeInLocation('space arena', this.player2);
             });
 
             it('can damage a unit without a shield, dealing damage to the unit with health to spare', function () {

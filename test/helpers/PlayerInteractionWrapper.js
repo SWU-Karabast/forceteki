@@ -1,8 +1,17 @@
-const { detectBinary } = require('../../build/Util.js');
+const Game = require('../../server/game/core/Game.js');
+const Player = require('../../server/game/core/Player.js');
+const { detectBinary } = require('../../server/Util.js');
+const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
 const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual } = require('./Util.js');
 
 class PlayerInteractionWrapper {
+    /**
+     *
+     * @param {Game} game
+     * @param {Player} player
+     * @param {GameFlowWrapper} testContext
+     */
     constructor(game, player, testContext) {
         this.game = game;
         this.player = player;
@@ -329,6 +338,10 @@ class PlayerInteractionWrapper {
         return this.game.initiativePlayer;
     }
 
+    get hasInitiative() {
+        return this.game.initiativePlayer != null && this.game.initiativePlayer.id === this.player.id;
+    }
+
     get actionPhaseActivePlayer() {
         return this.game.actionPhaseActivePlayer;
     }
@@ -471,13 +484,31 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
+    setDistributeDamagePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
+    }
+
+    setDistributeHealingPromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
+    }
+
+    setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
+        const promptResults = {
+            valueDistribution: cardDistributionMap,
+            type
+        };
+
+        this.game.statefulPromptResults(this.player.name, promptResults);
+        this.game.continue();
+        // this.checkUnserializableGameState();
+    }
+
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();
 
         if (currentPrompt.buttons.length <= index) {
             throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${
-                    this.player.name
+                `Couldn't click on Button '${index}' for ${this.player.name
                 }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
@@ -486,8 +517,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${
-                    this.player.name
+                `Couldn't click on Button '${index}' for ${this.player.name
                 }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
@@ -506,8 +536,7 @@ class PlayerInteractionWrapper {
 
         if (!promptControl) {
             throw new TestSetupError(
-                `Couldn't click card '${cardName}' for ${
-                    this.player.name
+                `Couldn't click card '${cardName}' for ${this.player.name
                 } - unable to find control '${controlName}'. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );
         }
@@ -613,6 +642,16 @@ class PlayerInteractionWrapper {
             throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
         }
         this.clickPrompt('Pass');
+    }
+
+    /**
+     * Player's action of passing priority
+     */
+    claimInitiative() {
+        if (!this.canAct) {
+            throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
+        }
+        this.clickPrompt('Claim Initiative');
     }
 
     /**

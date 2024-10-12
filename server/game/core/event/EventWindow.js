@@ -17,7 +17,7 @@ class EventWindow extends BaseStepWithPipeline {
         super(game);
 
         this.events = [];
-        this.thenAbilitySteps = [];
+        this.thenAbilityComponents = null;
         events.forEach((event) => {
             if (!event.cancelled) {
                 this.addEvent(event);
@@ -46,8 +46,8 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
-            new SimpleStep(this.game, () => this.checkSubwindowEvents(), 'checkSubwindowEvents'),
-            new SimpleStep(this.game, () => this.checkThenAbilitySteps(), 'checkThenAbilitySteps'),
+            new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'checkSubwindowEvents'),
+            new SimpleStep(this.game, () => this.resolveThenAbilityStep(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
             new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
         ]);
@@ -64,8 +64,10 @@ class EventWindow extends BaseStepWithPipeline {
         return event;
     }
 
-    addThenAbilityStep(ability, context, condition = (event) => event.isFullyResolved(event)) {
-        this.thenAbilitySteps.push({ ability, context, condition });
+    setThenAbilityStep(thenAbilityGenerator, context) {
+        Contract.assertIsNullLike(this.thenAbilityComponents, 'Attempting to set event window\'s then ability but it is already set');
+
+        this.thenAbilityComponents = { generator: thenAbilityGenerator, context };
     }
 
     addSubwindowEvents(events) {
@@ -150,17 +152,23 @@ class EventWindow extends BaseStepWithPipeline {
         this.game.resolveGameState(this.eventsToExecute.some((event) => event.handler), this.eventsToExecute);
     }
 
-    // resolve any "then" abilities
-    checkThenAbilitySteps() {
-        for (const cardAbilityStep of this.thenAbilitySteps) {
-            if (cardAbilityStep.context.events.every((event) => cardAbilityStep.condition(event))) {
-                this.game.resolveAbility(cardAbilityStep.ability.createContext(cardAbilityStep.context.player));
-            }
+    // if the effect has an additional "then" step, resolve it
+    resolveThenAbilityStep() {
+        if (this.thenAbilityComponents == null) {
+            return;
+        }
+
+        const context = this.thenAbilityComponents.context;
+        const thenAbility = this.thenAbilityComponents.generator(context);
+
+        const condition = thenAbility.condition || (() => true);
+        if (context.events.every((event) => condition(event))) {
+            this.game.resolveAbility(thenAbility.createContext(context.player));
         }
     }
 
     // resolve any events queued for a subwindow (typically defeat events)
-    checkSubwindowEvents() {
+    resolveSubwindowEvents() {
         if (this.subwindowEvents.length > 0) {
             this.queueStep(new EventWindow(this.game, this.subwindowEvents));
         }

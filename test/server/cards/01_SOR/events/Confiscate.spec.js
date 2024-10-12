@@ -48,7 +48,7 @@ describe('Confiscate', function() {
                 expect(this.wampa.isUpgraded()).toBe(false);
 
                 // this expectation will automatically check that entrenched is in the owning player's discard
-                expect(this.entrenched).toBeInLocation('discard');
+                expect(this.entrenched).toBeInLocation('discard', this.player1);
             });
         });
     });

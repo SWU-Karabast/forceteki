@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "target": "ES2020",
+        "sourceMap": true,
+        "outDir": "../build",
+        "allowJs": true,
+        "checkJs": false,
+        "lib": [
+            "ES2020",
+            "ES2021.Intl"
+        ],
+        "esModuleInterop": true,
+        "strictBindCallApply": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": [
+            "node",
+            "jasmine"
+        ],
+        "noImplicitOverride": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": false,
+        "resolveJsonModule": true
+    }
+}

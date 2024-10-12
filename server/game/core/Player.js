@@ -16,16 +16,18 @@ const {
     RelativePlayer,
     Aspect,
     WildcardLocation,
-    PlayType
+    PlayType,
+    KeywordName
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
-const Card = require('./card/Card');
 const Helpers = require('./utils/Helpers');
 const AbilityHelper = require('../AbilityHelper');
 const { BaseCard } = require('./card/BaseCard');
 const { LeaderCard } = require('./card/LeaderCard');
 const { LeaderUnitCard } = require('./card/LeaderUnitCard');
+const { Card } = require('./card/Card');
+const { PlayableOrDeployableCard } = require('./card/baseClasses/PlayableOrDeployableCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -68,6 +70,7 @@ class Player extends GameObject {
 
         this.playableLocations = [
             new PlayableLocation(PlayType.PlayFromHand, this, Location.Hand),
+            new PlayableLocation(PlayType.Smuggle, this, Location.Resource)
         ];
 
         this.limitedPlayed = 0;
@@ -380,6 +383,17 @@ class Player extends GameObject {
     // }
 
     /**
+     * Returns ths top card of the player's deck
+     * @returns {Card | null} the Card,© or null if the deck is empty
+     */
+    getTopCardOfDeck() {
+        if (this.drawDeck.length > 0) {
+            return this.drawDeck[0];
+        }
+        return null;
+    }
+
+    /**
      * Draws the passed number of cards from the top of the conflict deck into this players hand, shuffling and deducting honor if necessary
      * @param {number} numCards
      */
@@ -623,12 +637,29 @@ class Player extends GameObject {
     getAdjustedCost(playingType, card, target, ignoreType = false) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
-        let penaltyAspects = this.getPenaltyAspects(card.aspects);
+        let aspects;
+        let cost;
+
+        switch (playingType) {
+            case PlayType.PlayFromHand:
+                aspects = card.aspects;
+                cost = card.cost;
+                break;
+            case PlayType.Smuggle:
+                const smuggleInstance = card.getKeywordWithCostValues(KeywordName.Smuggle);
+                aspects = smuggleInstance.aspects;
+                cost = smuggleInstance.cost;
+                break;
+            default:
+                Contract.fail(`Invalid Play Type ${playingType}`);
+        }
+
+        let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
             aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
         }
 
-        let penalizedCost = card.cost + aspectPenaltiesTotal;
+        let penalizedCost = cost + aspectPenaltiesTotal;
         return this.runAdjustersForCostType(playingType, penalizedCost, card, target, ignoreType);
     }
 
@@ -894,11 +925,28 @@ class Player extends GameObject {
     /**
      * Exhaust the specified number of resources
      */
-    exhaustResources(count) {
-        let readyResources = this.resources.filter((card) => !card.exhausted);
-        for (let i = 0; i < Math.min(count, readyResources.length); i++) {
-            readyResources[i].exhausted = true;
+    // TODO: Create an ExhaustOrReadyResourcesSystem
+    exhaustResources(count, priorityResources = []) {
+        const readyPriorityResources = priorityResources.filter((resource) => !resource.exhausted);
+        const regularResourcesToReady = count - this.readyResourcesInList(readyPriorityResources, count);
+
+        if (regularResourcesToReady > 0) {
+            const readyRegularResources = this.resources.filter((card) => !card.exhausted);
+            this.readyResourcesInList(readyRegularResources, regularResourcesToReady);
         }
+    }
+
+    /**
+     * Returns how many resources were readied
+     */
+    readyResourcesInList(resources, count) {
+        if (count < resources.length) {
+            resources.slice(0, count).forEach((resource) => resource.exhaust());
+            return count;
+        }
+
+        resources.forEach((resource) => resource.exhaust());
+        return resources.length;
     }
 
     /**

@@ -2,23 +2,14 @@ import { v1 as uuid } from 'uuid';
 import type Player from '../../Player';
 import { BaseStep } from '../BaseStep';
 import * as Contract from '../../utils/Contract';
-
-interface ActivePrompt {
-    buttons: { text: string; arg?: string; command?: string }[];
-    menuTitle: string;
-    promptTitle?: string;
-
-    controls?: { type: string; source: any; targets: any }[];
-    selectCard?: boolean;
-    selectOrder?: unknown;
-    selectRing?: boolean;
-}
+import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
+import { IStatefulPromptResults } from '../StatefulPromptInterfaces';
 
 export abstract class UiPrompt extends BaseStep {
     public completed = false;
     public uuid = uuid();
 
-    public abstract activePrompt(player: Player): ActivePrompt;
+    public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
 
     public abstract menuCommand(player: Player, arg: string, method: string): boolean;
 
@@ -70,7 +61,7 @@ export abstract class UiPrompt extends BaseStep {
         return true;
     }
 
-    private addDefaultCommandToButtons(original?: ActivePrompt) {
+    private addDefaultCommandToButtons(original?: IPlayerPromptStateProperties) {
         Contract.assertNotNullLike(original);
 
         const newPrompt = { ...original };

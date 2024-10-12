@@ -1,5 +1,6 @@
 import Game from '../../Game';
 import type Player from '../../Player';
+import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { ResourcePrompt } from './ResourcePrompt';
 
@@ -22,7 +23,7 @@ export class VariableResourcePrompt extends ResourcePrompt {
         return this.playersDone[player.name];
     }
 
-    public override activePrompt() {
+    public override activePrompt(): IPlayerPromptStateProperties {
         const promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`;
 
         return {
