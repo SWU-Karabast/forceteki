@@ -927,9 +927,6 @@ class Player extends GameObject {
      */
     // TODO: Create an ExhaustOrReadyResourcesSystem
     exhaustResources(count, priorityResources = []) {
-        Contract.assertTrue(this.countSpendableResources() >= count,
-            `Attempting to exhaust ${count} resources but only ${this.countSpendableResources()} are available`);
-
         const readyPriorityResources = priorityResources.filter((resource) => !resource.exhausted);
         const regularResourcesToReady = count - this.readyResourcesInList(readyPriorityResources, count);
 
