@@ -50,6 +50,7 @@ describe('Deals Damage Before Defender', function () {
                 // check board state
                 expect(this.moistureFarmer.damage).toBe(3);
                 expect(this.phaseiiiDarkTrooper.damage).toBe(1);
+                expect(this.phaseiiiDarkTrooper).toHaveExactUpgradeNames(['experience']);
             });
         });
     });
