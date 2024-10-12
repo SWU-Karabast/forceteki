@@ -8,23 +8,23 @@ import { Stage } from '../../Constants';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 export class SelectTargetResolver extends TargetResolverBaseClass<ISelectTargetResolver<AbilityContext>> {
-    public constructor(name:string, properties:ISelectTargetResolver<AbilityContext>, ability:PlayerOrCardAbility) {
+    public constructor(name: string, properties: ISelectTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
     }
 
-    protected override hasLegalTarget(context:AbilityContext):boolean {
+    protected override hasLegalTarget(context: AbilityContext): boolean {
         const keys = Object.keys(this.getChoices(context));
         return keys.some((key) => this.isChoiceLegal(key, context));
     }
 
-    private getChoices(context:AbilityContext):IChoicesInterface {
+    private getChoices(context: AbilityContext): IChoicesInterface {
         if (typeof this.properties.choices === 'function') {
             return this.properties.choices(context);
         }
         return this.properties.choices;
     }
 
-    private isChoiceLegal(key:string, context:AbilityContext) {
+    private isChoiceLegal(key: string, context: AbilityContext) {
         const contextCopy = context.copy({});
         contextCopy.selects[this.name] = new SelectChoice(key);
         if (this.name === 'target') {
@@ -43,7 +43,7 @@ export class SelectTargetResolver extends TargetResolverBaseClass<ISelectTargetR
         return choice.hasLegalTarget(contextCopy);
     }
 
-    protected override getGameSystems(context:AbilityContext): GameSystem | GameSystem[] {
+    protected override getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
         if (!context.selects[this.name]) {
             return [];
         }
@@ -54,12 +54,12 @@ export class SelectTargetResolver extends TargetResolverBaseClass<ISelectTargetR
         return [];
     }
 
-    protected override getAllLegalTargets(context):string[] {
+    protected override getAllLegalTargets(context): string[] {
         return Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
     }
 
     // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
-    protected override resolve(context:AbilityContext, targetResults, passPrompt = null) {
+    protected override resolve(context: AbilityContext, targetResults, passPrompt = null) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;
         }
@@ -113,11 +113,11 @@ export class SelectTargetResolver extends TargetResolverBaseClass<ISelectTargetR
         }
     }
 
-    protected override checkTarget(context:AbilityContext):boolean {
+    protected override checkTarget(context: AbilityContext): boolean {
         return !!context.selects[this.name] && this.isChoiceLegal(context.selects[this.name].choice, context);
     }
 
-    protected override hasTargetsChosenByInitiatingPlayer(context:AbilityContext):boolean {
+    protected override hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {
         const actions = Object.values(this.getChoices(context)).filter((value) => typeof value !== 'function');
         return actions.some((action) => action.hasTargetsChosenByInitiatingPlayer(context));
     }

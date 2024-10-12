@@ -5,7 +5,7 @@ import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameS
 
 
 export interface IReadyResourcesSystemProperties extends IPlayerTargetSystemProperties {
-    amount: number
+    amount: number;
 }
 
 export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IReadyResourcesSystemProperties = IReadyResourcesSystemProperties> extends PlayerTargetSystem<TContext, TProperties> {

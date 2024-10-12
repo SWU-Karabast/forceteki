@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, LocationFilter, CardTypeFilter } from './co
 import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
-/* eslint @stylistic/js/lines-around-comment: off */
+/* eslint @stylistic/lines-around-comment: off */
 
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
@@ -20,23 +20,25 @@ export type IActionTargetResolver<TContext extends AbilityContext = AbilityConte
 export type IActionTargetsResolver<TContext extends AbilityContext = AbilityContext> = Record<string, IActionTargetResolver<TContext>>;
 
 export type ICardTargetResolver<TContext extends AbilityContext> =
-    | ICardExactlyUpToTargetResolver<TContext>
-    | ICardExactlyUpToVariableTargetResolver<TContext>
-    | ICardMaxStatTargetResolver<TContext>
-    | CardSingleUnlimitedTargetResolver<TContext>;
+  | ICardExactlyUpToTargetResolver<TContext>
+  | ICardExactlyUpToVariableTargetResolver<TContext>
+  | ICardMaxStatTargetResolver<TContext>
+  | CardSingleUnlimitedTargetResolver<TContext>;
 
 export interface ISelectTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
-        mode: TargetMode.Select;
-        choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
-        condition?: (context: TContext) => boolean;
-        checkTarget?: boolean;
-    }
+    mode: TargetMode.Select;
+    choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
+    condition?: (context: TContext) => boolean;
+    checkTarget?: boolean;
+}
 
 export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: string;
     locationFilter?: LocationFilter | LocationFilter[];
+
     /** Filter cards by their controller */
     controller?: ((context: TContext) => RelativePlayer) | RelativePlayer;
+
     /** Selects which player is choosing the target (defaults to the player controlling the source card) */
     choosingPlayer?: ((context: TContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
@@ -45,8 +47,8 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
 }
 
 export interface IPlayerTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
-    mode: TargetMode.Player,
-    immediateEffect?:PlayerTargetSystem<TContext>
+    mode: TargetMode.Player;
+    immediateEffect?: PlayerTargetSystem<TContext>;
 }
 
 export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, ((context: TContext) => boolean) | GameSystem<TContext>>;

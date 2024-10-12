@@ -11,7 +11,7 @@ import { RelativePlayer } from '../../Constants';
 export abstract class TargetResolverBaseClass<TProps extends ITargetResolverBase<AbilityContext>> {
     protected dependentTarget = null;
     protected dependentCost = null;
-    public constructor(protected name:string, protected properties:TProps, ability:PlayerOrCardAbility) {
+    public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility) {
         if (this.properties.dependsOn) {
             const dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
 
@@ -27,20 +27,20 @@ export abstract class TargetResolverBaseClass<TProps extends ITargetResolverBase
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
     }
 
-    protected abstract hasLegalTarget(context):boolean
+    protected abstract hasLegalTarget(context): boolean;
 
-    protected getGameSystems(context:AbilityContext): GameSystem | GameSystem[] {
+    protected getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
         return this.properties.immediateEffect ? [this.properties.immediateEffect] : [];
     }
 
 
-    protected abstract getAllLegalTargets(context:AbilityContext):any[]
+    protected abstract getAllLegalTargets(context: AbilityContext): any[];
 
 
-    protected abstract resolve(context:AbilityContext, targetResults, passPrompt)
+    protected abstract resolve(context: AbilityContext, targetResults, passPrompt);
 
 
-    protected abstract checkTarget(context:AbilityContext):boolean
+    protected abstract checkTarget(context: AbilityContext): boolean;
 
     protected getChoosingPlayer(context) {
         let playerProp = this.properties.choosingPlayer;
@@ -51,5 +51,5 @@ export abstract class TargetResolverBaseClass<TProps extends ITargetResolverBase
     }
 
 
-    protected abstract hasTargetsChosenByInitiatingPlayer(context:AbilityContext):boolean
+    protected abstract hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean;
 }

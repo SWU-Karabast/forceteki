@@ -17,7 +17,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
 
     /** Already resolved effects / abilities */
-    protected resolved: { ability: TriggeredAbilityContext, event: GameEvent }[] = [];
+    protected resolved: { ability: TriggeredAbilityContext; event: GameEvent }[] = [];
 
     /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;

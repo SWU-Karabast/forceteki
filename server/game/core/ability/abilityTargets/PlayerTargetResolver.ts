@@ -31,7 +31,7 @@ export class PlayerTargetResolver extends TargetResolverBaseClass<IPlayerTargetR
         return context.game.getPlayers();
     }
 
-    protected override resolve(context:AbilityContext, targetResults, passPrompt = null) {
+    protected override resolve(context: AbilityContext, targetResults, passPrompt = null) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;
         }

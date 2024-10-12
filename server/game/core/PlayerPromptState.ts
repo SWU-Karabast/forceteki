@@ -3,7 +3,7 @@ import { IDistributeAmongTargetsPromptData } from './gameSteps/StatefulPromptInt
 import type Player from './Player';
 
 export interface IPlayerPromptStateProperties {
-    buttons?: { text: string; arg?: string; command?: string, card?: Card }[];
+    buttons?: { text: string; arg?: string; command?: string; card?: Card }[];
     menuTitle: string;
     promptTitle?: string;
 

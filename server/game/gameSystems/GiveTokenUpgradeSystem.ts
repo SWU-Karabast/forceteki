@@ -7,8 +7,8 @@ import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
-    tokenType: TokenName,
-    amount?: number
+    tokenType: TokenName;
+    amount?: number;
 }
 
 /** Base class for managing the logic for giving token upgrades to cards (currently shield and experience) */
