@@ -2,8 +2,8 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type CardAbility from './core/ability/CardAbility';
-import type { RelativePlayer, TargetMode, LocationFilter, CardTypeFilter } from './core/Constants';
+import { RelativePlayer, TargetMode, LocationFilter, CardTypeFilter } from './core/Constants';
+import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/js/lines-around-comment: off */
@@ -15,7 +15,7 @@ export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityCon
 
 export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> = Record<string, ITriggeredAbilityTargetResolver<TContext> & ITriggeredAbilityTargetResolver<TContext>>;
 
-export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> = (ICardTargetResolver<TContext>) | ISelectTargetResolver<TContext>;
+export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> = (ICardTargetResolver<TContext>) | ISelectTargetResolver<TContext> | IPlayerTargetResolver<TContext>;
 
 export type IActionTargetsResolver<TContext extends AbilityContext = AbilityContext> = Record<string, IActionTargetResolver<TContext>>;
 
@@ -32,7 +32,6 @@ export interface ISelectTargetResolver<TContext extends AbilityContext> extends 
         checkTarget?: boolean;
     }
 
-// Exported for TargetResolverBaseClass
 export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: string;
     locationFilter?: LocationFilter | LocationFilter[];
@@ -43,6 +42,11 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     hideIfNoLegalTargets?: boolean;
     immediateEffect?: GameSystem<TContext>;
     dependsOn?: string;
+}
+
+export interface IPlayerTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
+    mode: TargetMode.Player,
+    immediateEffect?:PlayerTargetSystem<TContext>
 }
 
 export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, ((context: TContext) => boolean) | GameSystem<TContext>>;

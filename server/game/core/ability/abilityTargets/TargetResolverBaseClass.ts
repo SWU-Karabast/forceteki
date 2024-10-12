@@ -27,22 +27,20 @@ export abstract class TargetResolverBaseClass<TProps extends ITargetResolverBase
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
     }
 
-    protected hasLegalTarget(context):boolean {
-        return false;
-    }
+    protected abstract hasLegalTarget(context):boolean
 
     protected getGameSystems(context:AbilityContext): GameSystem | GameSystem[] {
         return this.properties.immediateEffect ? [this.properties.immediateEffect] : [];
     }
 
 
-    protected abstract getAllLegalTargets(context:AbilityContext)
+    protected abstract getAllLegalTargets(context:AbilityContext):any[]
 
 
     protected abstract resolve(context:AbilityContext, targetResults, passPrompt)
 
 
-    protected abstract checkTarget(context:AbilityContext)
+    protected abstract checkTarget(context:AbilityContext):boolean
 
     protected getChoosingPlayer(context) {
         let playerProp = this.properties.choosingPlayer;

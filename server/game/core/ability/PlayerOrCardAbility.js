@@ -6,6 +6,7 @@ const Contract = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
 const { has } = require('underscore');
 const { v4: uuidv4 } = require('uuid');
+const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -102,10 +103,11 @@ class PlayerOrCardAbility {
     }
 
     buildTargetResolver(name, properties) {
-        if (properties.mode === TargetMode.Select) {
-            return new SelectTargetResolver(name, properties, this);
+        switch (properties.mode) {
+            case TargetMode.Select: return new SelectTargetResolver(name, properties, this);
+            case TargetMode.Player: return new PlayerTargetResolver(name, properties, this);
+            default: return new CardTargetResolver(name, properties, this);
         }
-        return new CardTargetResolver(name, properties, this);
     }
 
     /**

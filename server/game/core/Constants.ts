@@ -103,6 +103,7 @@ export enum TargetMode {
     Exactly = 'exactly',
     ExactlyVariable = 'exactlyVariable',
     MaxStat = 'maxStat',
+    Player = 'player',
     Select = 'select',
     Single = 'single',
     Unlimited = 'unlimited',

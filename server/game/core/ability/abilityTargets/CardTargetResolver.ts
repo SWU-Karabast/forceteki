@@ -160,7 +160,7 @@ export class CardTargetResolver extends TargetResolverBaseClass<ICardTargetResol
         targetResults.cancelled = true;
     }
 
-    protected override checkTarget(context:AbilityContext) {
+    protected override checkTarget(context:AbilityContext):boolean {
         if (!context.targets[this.name]) {
             return false;
         } else if (context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {

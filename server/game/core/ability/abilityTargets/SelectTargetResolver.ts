@@ -113,7 +113,7 @@ export class SelectTargetResolver extends TargetResolverBaseClass<ISelectTargetR
         }
     }
 
-    protected override checkTarget(context:AbilityContext) {
+    protected override checkTarget(context:AbilityContext):boolean {
         return !!context.selects[this.name] && this.isChoiceLegal(context.selects[this.name].choice, context);
     }
 
