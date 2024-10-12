@@ -1,13 +1,12 @@
 import CardAbility from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
-import { Stage, CardType, EffectName, AbilityType } from '../Constants';
+import { Stage, AbilityType } from '../Constants';
 import { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
 import { GameEvent } from '../event/GameEvent';
 import { Card } from '../card/Card';
 import Game from '../Game';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
-import type CardAbilityStep from './CardAbilityStep';
 import { CardWithTriggeredAbilities } from '../card/CardTypes';
 
 interface IEventRegistration {
