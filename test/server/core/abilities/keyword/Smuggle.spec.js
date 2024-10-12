@@ -5,12 +5,12 @@ describe('Smuggle keyword', function() {
                 this.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['wampa'],
+                        groundArena: [{ card: 'wampa', damage: 4 }, 'pyke-sentinel'],
                         hand: [],
                         deck: ['mercenary-gunship'],
                         resources: ['armed-to-the-teeth',
                             'collections-starhopper',
-                            'smugglers-aid',
+                            'covert-strength',
                             'chewbacca#pykesbane',
                             'battlefield-marine', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst',
                             'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'
@@ -36,10 +36,12 @@ describe('Smuggle keyword', function() {
             it('an upgrade can be played for its smuggle cost', function () {
                 expect(this.player1.countSpendableResources()).toBe(18); // Sanity check before we Smuggle
                 this.player1.clickCard(this.armedToTheTeeth);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel]);
+                this.player1.clickCard(this.wampa);
                 expect(this.armedToTheTeeth).toBeInLocation('ground arena');
                 expect(this.wampa.upgrades).toContain(this.armedToTheTeeth);
 
-                // This costs 6 due to the lack of a red aspect on base or leader
+                // This costs 6 due to the lack of a red aspect
                 expect(this.player1.countExhaustedResources()).toBe(6);
                 expect(this.player1.countSpendableResources()).toBe(12);
                 expect(this.mercenaryGunship).toBeInLocation('resource');
@@ -47,13 +49,18 @@ describe('Smuggle keyword', function() {
 
             it('an event can be played for its smuggle cost', function () {
                 expect(this.player1.countSpendableResources()).toBe(18); // Sanity check before we Smuggle
-                this.p1Base.damage = 3;
 
-                this.player1.clickCard(this.smugglersAid);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.player1.countExhaustedResources()).toBe(3);
-                expect(this.player1.countSpendableResources()).toBe(15);
+                this.player1.clickCard(this.covertStrength);
+                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel]);
+
+                // This costs 5 due to the lack of a blue aspect
+                expect(this.player1.countExhaustedResources()).toBe(5);
+                expect(this.player1.countSpendableResources()).toBe(13);
                 expect(this.mercenaryGunship).toBeInLocation('resource');
+
+                this.player1.clickCard(this.wampa);
+                expect(this.wampa.getPower()).toBe(5);
+                expect(this.wampa.getHp()).toBe(6);
             });
 
             it('a card without Smuggle cannot be played from resources', function () {
