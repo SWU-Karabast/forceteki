@@ -30,7 +30,7 @@ export class AttackFlow extends BaseStepWithPipeline {
             EventName.OnAttackDamageResolved,
             { attack: this.attack },
             true,
-            this.dealDamage()
+            () => this.dealDamage()
         );
     }
 
