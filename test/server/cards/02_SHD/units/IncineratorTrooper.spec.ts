@@ -1,8 +1,8 @@
 describe('Incinerator Trooper', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Incinerator Trooper\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['incinerator-trooper'],
@@ -15,23 +15,24 @@ describe('Incinerator Trooper', function() {
             });
 
             it('should defeat enemy ground unit before taking damage.', function () {
+                const { context } = contextRef;
                 // Case 1 it defeats the ground unit before taking damage
-                this.player1.clickCard(this.incineratorTrooper);
-                this.player1.clickCard(this.jedhaAgitator);
+                context.player1.clickCard(context.incineratorTrooper);
+                context.player1.clickCard(context.jedhaAgitator);
 
                 // check board state
-                expect(this.incineratorTrooper.damage).toBe(0);
-                expect(this.jedhaAgitator.location).toBe('discard');
+                expect(context.incineratorTrooper.damage).toBe(0);
+                expect(context.jedhaAgitator.location).toBe('discard');
 
                 // Case 2 attacking wampa should defeat incinerator-trooper and give 2 damage to wampa
-                this.player2.passAction();
-                this.incineratorTrooper.exhausted = false;
-                this.player1.clickCard(this.incineratorTrooper);
-                this.player1.clickCard(this.wampa);
+                context.player2.passAction();
+                context.incineratorTrooper.exhausted = false;
+                context.player1.clickCard(context.incineratorTrooper);
+                context.player1.clickCard(context.wampa);
 
                 // check board state
-                expect(this.incineratorTrooper.location).toBe('discard');
-                expect(this.wampa.damage).toBe(2);
+                expect(context.incineratorTrooper.location).toBe('discard');
+                expect(context.wampa.damage).toBe(2);
             });
         });
     });

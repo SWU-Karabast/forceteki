@@ -1,8 +1,8 @@
 describe('Shoot First', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Shoot First Ability', function () {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['shoot-first'],
@@ -15,15 +15,16 @@ describe('Shoot First', function () {
             });
 
             it('should initiate attack with +1/+0 and while attacking deal damage before the defender', function () {
-                this.player1.clickCard(this.shootFirst);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.battlefieldMarine]);
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.r2d2);
+                const { context } = contextRef;
+                context.player1.clickCard(context.shootFirst);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.r2d2);
 
                 // check game state
-                expect(this.r2d2.location).toBe('discard');
-                expect(this.battlefieldMarine.damage).toBe(0);
-                expect(this.shootFirst.location).toBe('discard');
+                expect(context.r2d2.location).toBe('discard');
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.shootFirst.location).toBe('discard');
             });
         });
     });

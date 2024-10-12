@@ -1,8 +1,8 @@
 describe('Phase-iii Dark Trooper', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Phase-iii Dark Trooper\'s ability', function () {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['phaseiii-dark-trooper'],
@@ -14,12 +14,13 @@ describe('Phase-iii Dark Trooper', function () {
             });
 
             it('should give experience token to Phase-iii Dark Trooper when it receives damage.', function () {
-                this.player1.clickCard(this.phaseiiiDarkTrooper);
-                this.player1.clickCard(this.r2d2);
+                const { context } = contextRef;
+                context.player1.clickCard(context.phaseiiiDarkTrooper);
+                context.player1.clickCard(context.r2d2);
 
                 // check board state
-                expect(this.phaseiiiDarkTrooper.damage).toBe(1);
-                expect(this.phaseiiiDarkTrooper).toHaveExactUpgradeNames(['experience']);
+                expect(context.phaseiiiDarkTrooper.damage).toBe(1);
+                expect(context.phaseiiiDarkTrooper).toHaveExactUpgradeNames(['experience']);
             });
         });
     });
