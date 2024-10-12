@@ -79,11 +79,11 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         const { changePlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
         return (
             (!changePlayer ||
-                (!card.hasRestriction(EffectName.TakeControl, context) &&
-                    !card.anotherUniqueInPlay(context.player))) &&
-            (context.player.isLegalLocationForCardType(card.type, Location.Hand)) &&
-            !EnumHelpers.isArena(card.location) &&
-            super.canAffect(card, context)
+              (!card.hasRestriction(EffectName.TakeControl, context) &&
+                !card.anotherUniqueInPlay(context.player))) &&
+                (context.player.isLegalLocationForCardType(card.type, Location.Hand)) &&
+                !EnumHelpers.isArena(card.location) &&
+                super.canAffect(card, context)
         );
     }
 }

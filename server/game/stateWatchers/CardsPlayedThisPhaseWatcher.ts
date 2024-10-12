@@ -7,8 +7,8 @@ import Game from '../core/Game';
 import { Card } from '../core/card/Card';
 
 export interface PlayedCardEntry {
-    card: PlayableCard,
-    playedBy: Player
+    card: PlayableCard;
+    playedBy: Player;
 }
 
 export type ICardsPlayedThisPhase = PlayedCardEntry[];

@@ -14,8 +14,8 @@ export default class FirstLegionSnowtrooper extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'While attacking a damaged unit, this unit gets +2/+0 and gains Overwhelm.',
             condition: (context) => context.source.isAttacking() &&
-                context.source.activeAttack?.target.isUnit() &&
-                (context.source.activeAttack?.target.isInPlay() && context.source.activeAttack?.target.damage > 0),
+              context.source.activeAttack?.target.isUnit() &&
+              (context.source.activeAttack?.target.isInPlay() && context.source.activeAttack?.target.damage > 0),
             ongoingEffect: [AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm), AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })],
         });
     }

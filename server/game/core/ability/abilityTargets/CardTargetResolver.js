@@ -39,8 +39,8 @@ class CardTargetResolver {
                 return false;
             }
             return (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                   (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy) &&
-                   (!properties.cardCondition || properties.cardCondition(card, contextCopy)));
+              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy) &&
+                (!properties.cardCondition || properties.cardCondition(card, contextCopy)));
         };
         return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
@@ -185,7 +185,7 @@ class CardTargetResolver {
             cards = [cards];
         }
         return (cards.every((card) => this.selector.canTarget(card, context, context.choosingPlayerOverride || this.getChoosingPlayer(context))) &&
-                this.selector.hasEnoughSelected(cards, context) && !this.selector.hasExceededLimit(cards, context));
+          this.selector.hasEnoughSelected(cards, context) && !this.selector.hasExceededLimit(cards, context));
     }
 
     getChoosingPlayer(context) {

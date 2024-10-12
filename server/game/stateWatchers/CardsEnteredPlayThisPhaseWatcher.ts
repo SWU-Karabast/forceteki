@@ -6,8 +6,8 @@ import { InPlayCard } from '../core/card/CardTypes';
 import { Card } from '../core/card/Card';
 
 export interface EnteredCardEntry {
-    card: InPlayCard,
-    playedBy: Player
+    card: InPlayCard;
+    playedBy: Player;
 }
 
 export type ICardsEnteredPlayThisPhase = EnteredCardEntry[];

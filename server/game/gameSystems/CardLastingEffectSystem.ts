@@ -59,11 +59,11 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
         return (
             super.canAffect(card, context) &&
-            properties.effect.some(
-                (props) =>
-                    props.impl.canBeApplied(card) &&
-                    !lastingEffectRestrictions.some((condition) => condition(props.effect))
-            )
+              properties.effect.some(
+                  (props) =>
+                      props.impl.canBeApplied(card) &&
+                      !lastingEffectRestrictions.some((condition) => condition(props.effect))
+              )
         );
     }
 }

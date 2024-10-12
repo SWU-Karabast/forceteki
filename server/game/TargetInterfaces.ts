@@ -6,7 +6,7 @@ import type CardAbility from './core/ability/CardAbility';
 import type { RelativePlayer, TargetMode, CardType, Location, EventName, PhaseName, LocationFilter, WildcardCardType, CardTypeFilter } from './core/Constants';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
-/* eslint @stylistic/js/lines-around-comment: off */
+/* eslint @stylistic/lines-around-comment: off */
 
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
@@ -25,8 +25,10 @@ type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Recor
 interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: string;
     locationFilter?: LocationFilter | LocationFilter[];
+
     /** Filter cards by their controller */
     controller?: ((context: TContext) => RelativePlayer) | RelativePlayer;
+
     /** Selects which player is choosing the target (defaults to the player controlling the source card) */
     choosingPlayer?: ((context: TContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
@@ -77,11 +79,11 @@ interface CardSingleUnlimitedTargetResolver<TContext extends AbilityContext> ext
 }
 
 type ICardTargetResolver<TContext extends AbilityContext> =
-    | ICardExactlyUpToTargetResolver<TContext>
-    | ICardExactlyUpToVariableTargetResolver<TContext>
-    | ICardMaxStatTargetResolver<TContext>
-    | CardSingleUnlimitedTargetResolver<TContext>
-    | IAbilityTargetResolver<TContext>;
+  | ICardExactlyUpToTargetResolver<TContext>
+  | ICardExactlyUpToVariableTargetResolver<TContext>
+  | ICardMaxStatTargetResolver<TContext>
+  | CardSingleUnlimitedTargetResolver<TContext>
+  | IAbilityTargetResolver<TContext>;
 
 interface IActionCardTargetResolver<TContext extends AbilityContext> {
     cardCondition?: (card: Card, context?: TContext) => boolean;

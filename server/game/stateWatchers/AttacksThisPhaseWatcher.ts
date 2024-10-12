@@ -7,10 +7,10 @@ import { Card } from '../core/card/Card';
 import { BaseCard } from '../core/card/BaseCard';
 
 export interface AttackEntry {
-    attacker: UnitCard,
-    attackingPlayer: Player,
-    target: UnitCard | BaseCard,
-    defendingPlayer: Player
+    attacker: UnitCard;
+    attackingPlayer: Player;
+    target: UnitCard | BaseCard;
+    defendingPlayer: Player;
 }
 
 export type IAttacksThisPhase = AttackEntry[];

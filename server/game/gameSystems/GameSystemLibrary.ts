@@ -73,7 +73,7 @@ import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
-/* eslint @stylistic/js/lines-around-comment: off */
+/* eslint @stylistic/lines-around-comment: off */
 
 // ////////////
 // CARD
@@ -153,6 +153,7 @@ export function moveCard<TContext extends AbilityContext = AbilityContext>(prope
 export function payResourceCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPayResourceCostProperties, TContext>): GameSystem<TContext> {
     return new PayResourceCostSystem<TContext>(propertyFactory);
 }
+
 /**
  * default status = ordinary
  */
@@ -193,6 +194,7 @@ export function returnToHand<TContext extends AbilityContext = AbilityContext>(p
 export function returnToHandFromPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new ReturnToHandFromPlaySystem<TContext>(propertyFactory);
 }
+
 /**
  * default chatMessage = false
  */

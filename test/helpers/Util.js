@@ -28,7 +28,7 @@ function convertNonDuplicateCardNamesToProperties(players, cardNames) {
     let nonDuplicateCards = [];
     for (let i = 0; i < propertyNamesWithCards.length; i++) {
         if (propertyNamesWithCards[i].propertyName === propertyNamesWithCards[i - 1]?.propertyName ||
-            propertyNamesWithCards[i].propertyName === propertyNamesWithCards[i + 1]?.propertyName
+          propertyNamesWithCards[i].propertyName === propertyNamesWithCards[i + 1]?.propertyName
         ) {
             continue;
         }
@@ -127,7 +127,7 @@ function promptStatesEqual(promptState1, promptState2) {
     }
 
     return stringArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
-        stringArraysEqual(promptState1.selectableCards, promptState2.selectableCards);
+      stringArraysEqual(promptState1.selectableCards, promptState2.selectableCards);
 }
 
 function stringArraysEqual(ara1, ara2) {

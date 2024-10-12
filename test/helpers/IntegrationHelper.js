@@ -223,7 +223,7 @@ var customMatchers = {
 
                 result.pass = buttons.some(
                     (button) => !button.disabled &&
-                        (util.equals(button.text, 'Choose no target', customEqualityMatchers) || util.equals(button.text, 'Choose no targets', customEqualityMatchers))
+                      (util.equals(button.text, 'Choose no target', customEqualityMatchers) || util.equals(button.text, 'Choose no targets', customEqualityMatchers))
                 );
 
                 if (result.pass) {
