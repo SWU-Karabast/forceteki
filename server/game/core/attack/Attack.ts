@@ -33,7 +33,7 @@ export class Attack extends GameObject {
         return this.attacker.hasSomeKeyword(KeywordName.Overwhelm);
     }
 
-    public hasDealsDamageBeforeDefender(): boolean {
+    public attackerDealsDamageBeforeDefender(): boolean {
         return this.attacker.hasOngoingEffect(EffectName.DealsDamageBeforeDefender);
     }
 

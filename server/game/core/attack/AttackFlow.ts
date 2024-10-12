@@ -46,7 +46,6 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
 
         let overwhelmDamageOnly = false;
-        const dealsDamageBeforeDefender = this.attack.hasDealsDamageBeforeDefender();
         if (!this.attack.isAttackTargetLegal()) {
             if (!this.attack.hasOverwhelm()) {
                 this.context.game.addMessage('The attack does not resolve because the defender is no longer in play');
@@ -57,33 +56,32 @@ export class AttackFlow extends BaseStepWithPipeline {
             overwhelmDamageOnly = true;
         }
 
-        let damageEvents: GameEvent[] = [];
-
+        const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
         if (overwhelmDamageOnly) {
-            damageEvents = [AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).generateEvent(this.attack.target.controller.base, this.context)];
+            const damageEvents = [AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).generateEvent(this.attack.target.controller.base, this.context)];
             this.context.game.openEventWindow(damageEvents, true);
-        } else if (dealsDamageBeforeDefender) {
-            damageEvents.push(this.createAttackerDamageEvents());
+        } else if (attackerDealsDamageBeforeDefender) {
+            const damageEvents = [this.createAttackerDamageEvent()];
             this.context.game.openEventWindow(damageEvents, true);
             this.context.game.queueSimpleStep(() => {
                 if (!this.attack.target.isBase() && this.attack.target.isInPlay()) {
-                    const defenderDamageEvent = this.createDefenderDamageEvents();
+                    const defenderDamageEvent = this.createDefenderDamageEvent();
                     this.context.game.openEventWindow(defenderDamageEvent, true);
                 }
             }, 'check and queue event for defender damage');
         } else {
             // normal attack
-            damageEvents.push(this.createAttackerDamageEvents());
+            const damageEvents = [this.createAttackerDamageEvent()];
             if (!this.attack.target.isBase()) {
-                damageEvents.push(this.createDefenderDamageEvents());
+                damageEvents.push(this.createDefenderDamageEvent());
             }
             this.context.game.openEventWindow(damageEvents, true);
         }
     }
 
-    private createAttackerDamageEvents(): GameEvent {
+    private createAttackerDamageEvent(): GameEvent {
         // event for damage dealt to target by attacker
-        const attackerDamageEvent: GameEvent = AbilityHelper.immediateEffects.damage({
+        const attackerDamageEvent = AbilityHelper.immediateEffects.damage({
             amount: this.attack.getAttackerTotalPower(),
             isCombatDamage: true,
         }).generateEvent(this.attack.target, this.context);
@@ -107,7 +105,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         return attackerDamageEvent;
     }
 
-    private createDefenderDamageEvents(): GameEvent {
+    private createDefenderDamageEvent(): GameEvent {
         return AbilityHelper.immediateEffects.damage({
             amount: this.attack.getTargetTotalPower(),
             isCombatDamage: true

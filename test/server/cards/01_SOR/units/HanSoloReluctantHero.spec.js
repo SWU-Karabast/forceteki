@@ -20,7 +20,6 @@ describe('Han Solo Reluctant Hero', function() {
                     this.hanSolo.damage = 0;
                     this.consularSecurityForce.damage = 0;
                     this.consularSecurityForce.exhausted = false;
-                    this.player2.passAction();
                 };
                 // Case 1 attack action shouldn't deal damage to the shielded wampa and should deal 4 damage to Han Solo
                 this.player1.clickCard(this.hanSolo);
@@ -34,6 +33,7 @@ describe('Han Solo Reluctant Hero', function() {
                 // reset board
                 reset();
 
+                this.player2.passAction();
                 // Case 2 attack action should defeat wampa and no damage on hansolo
                 this.player1.clickCard(this.hanSolo);
                 this.player1.clickCard(this.wampa);
@@ -51,6 +51,28 @@ describe('Han Solo Reluctant Hero', function() {
                 // check board state
                 expect(this.consularSecurityForce.damage).toBe(6);
                 expect(this.hanSolo.damage).toBe(3);
+
+                // reset board
+                reset();
+
+                // Case 4 check if Han Solo takes damage
+                this.player2.clickCard(this.consularSecurityForce);
+                this.player2.clickCard(this.hanSolo);
+
+                // check board state
+                expect(this.hanSolo.damage).toBe(3);
+                this.consularSecurityForce.exhausted = false;
+
+                // reset board
+                reset();
+
+                // Case 5 han solo dies
+                this.hanSolo.damage = 3;
+                this.player1.clickCard(this.hanSolo);
+                this.player1.clickCard(this.consularSecurityForce);
+
+                // Check board state
+                expect(this.hanSolo.location).toBe('discard');
             });
         });
     });

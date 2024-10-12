@@ -51,6 +51,7 @@ export enum EffectName {
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
+    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
     EntersPlayForOpponent = 'entersPlayForOpponent',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
@@ -72,7 +73,6 @@ export enum EffectName {
     // "cannot" effects
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotAttackBase = 'cannotAttackBase',
-    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
     CannotBeAttacked = 'cannotBeAttacked',
 }
 
