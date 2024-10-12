@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { EventName, Location } from '../Constants';
+import { EventName } from '../Constants';
 import type { Attack } from './Attack';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
@@ -62,10 +62,10 @@ export class AttackFlow extends BaseStepWithPipeline {
             damageEvents = [AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).generateEvent(this.attack.target.controller.base, this.context)];
             this.context.game.openEventWindow(damageEvents, true);
         } else {
-            this.context.game.openEventWindow(this.createAttackerDamageEvents(), true);
             // we check if attacker has dealDamageBeforeDefender
             if (this.attack.hasDealsDamageBeforeDefender()) {
                 // On true we queue a simple step for checking if the defender is still in play
+                this.context.game.openEventWindow(this.createAttackerDamageEvents(), true);
                 this.context.game.queueSimpleStep(() => {
                     if (!this.attack.target.isBase() && this.attack.target.isInPlay()) {
                         const defenderDamageEvent = AbilityHelper.immediateEffects.damage({ amount: this.attack.getTargetTotalPower(), isCombatDamage: true }).generateEvent(this.attack.attacker, this.context);
@@ -73,10 +73,15 @@ export class AttackFlow extends BaseStepWithPipeline {
                     }
                 }, 'check and queue event for defender damage');
             } else {
+                damageEvents = this.createAttackerDamageEvents();
                 if (!this.attack.target.isBase()) {
-                    const newDefenderDamageEvent = AbilityHelper.immediateEffects.damage({ amount: this.attack.getTargetTotalPower(), isCombatDamage: true }).generateEvent(this.attack.attacker, this.context);
-                    this.context.game.openEventWindow(newDefenderDamageEvent, true);
+                    const defenderDamageEvent = AbilityHelper.immediateEffects.damage({
+                        amount: this.attack.getTargetTotalPower(),
+                        isCombatDamage: true
+                    }).generateEvent(this.attack.attacker, this.context);
+                    damageEvents.push(defenderDamageEvent);
                 }
+                this.context.game.openEventWindow(damageEvents, true);
             }
         }
     }
