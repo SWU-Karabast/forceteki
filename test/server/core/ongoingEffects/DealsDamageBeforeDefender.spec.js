@@ -6,18 +6,19 @@ describe('Deals Damage Before Defender', function () {
                     phase: 'action',
                     player1: {
                         hand: ['shoot-first'],
-                        groundArena: ['consular-security-force', 'first-legion-snowtrooper', 'han-solo#reluctant-hero'],
+                        groundArena: ['consular-security-force', 'first-legion-snowtrooper', 'han-solo#reluctant-hero', 'moisture-farmer'],
                     },
                     player2: {
-                        groundArena: [{ card: 'r2d2#ignoring-protocol', damage: 1 }, { card: 'scout-bike-pursuer', upgrades: ['experience'] }, 'phaseiii-dark-trooper'],
-                        base: { card: 'dagobah-swamp', damage: 0 }
+                        groundArena: [{ card: 'r2d2#ignoring-protocol', damage: 1 }, { card: 'scout-bike-pursuer', upgrades: ['experience'] }],
+                        base: { card: 'dagobah-swamp', damage: 0 },
+                        hand: ['phaseiii-dark-trooper']
                     }
                 });
             });
 
             it('should initiate attack with +1/+0 and while attacking deal damage before the defender and overwhelm damage to base.', function () {
                 this.player1.clickCard(this.shootFirst);
-                expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce, this.firstLegionSnowtrooper, this.hanSolo]);
+                expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce, this.firstLegionSnowtrooper, this.hanSolo, this.moistureFarmer]);
                 this.player1.clickCard(this.firstLegionSnowtrooper);
                 this.player1.clickCard(this.r2d2);
 
@@ -30,7 +31,7 @@ describe('Deals Damage Before Defender', function () {
 
             it('should initiate attack with +1/+0 and while attacking deal damage before the defender and giving the grit unit its effect before attacker receives damage.', function () {
                 this.player1.clickCard(this.shootFirst);
-                expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce, this.firstLegionSnowtrooper, this.hanSolo]);
+                expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce, this.firstLegionSnowtrooper, this.hanSolo, this.moistureFarmer]);
                 this.player1.clickCard(this.consularSecurityForce);
                 this.player1.clickCard(this.scoutBikePursuer);
 
@@ -41,12 +42,14 @@ describe('Deals Damage Before Defender', function () {
             });
 
             it('Attack should defeat the target before its ability triggers', function() {
-                this.player1.clickCard(this.hanSolo);
-                this.player1.clickCard(this.phaseiiiDarkTrooper);
+                this.player1.passAction();
+                this.player2.clickCard(this.phaseiiiDarkTrooper);
+                this.player1.clickCard(this.shootFirst);
+                this.player1.clickCard(this.moistureFarmer);
 
                 // check board state
-                expect(this.hanSolo.damage).toBe(3);
-                expect(this.phaseiiiDarkTrooper.location).toBe('discard');
+                expect(this.moistureFarmer.damage).toBe(3);
+                expect(this.phaseiiiDarkTrooper.damage).toBe(1);
             });
         });
     });
