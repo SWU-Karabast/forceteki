@@ -33,6 +33,7 @@ const { EffectName, EventName, Location, TokenName } = require('./Constants.js')
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
+const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -598,6 +599,16 @@ class Game extends EventEmitter {
     }
 
     /**
+     * Prompt for distributing healing or damage among target cards.
+     * Response data must be returned via {@link Game.statefulPromptResults}.
+     */
+    promptDistributeAmongTargets(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DistributeAmongTargetsPrompt(this, player, properties));
+    }
+
+    /**
      * This function is called by the client whenever a player clicks a button
      * in a prompt
      * @param {String} playerName
@@ -608,12 +619,22 @@ class Game extends EventEmitter {
      */
     menuButton(playerName, arg, uuid, method) {
         var player = this.getPlayerByName(playerName);
-        if (!player) {
-            return false;
-        }
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
+    }
+
+    /**
+     * Gets the results of a "stateful" prompt from the frontend. This is for more
+     * involved prompts such as distributing damage / healing that require the frontend
+     * to gather some state and send back, instead of just individual clicks.
+     * @param {import('./gameSteps/StatefulPromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     */
+    statefulPromptResults(playerName, result) {
+        var player = this.getPlayerByName(playerName);
+
+        // check to see if the current step in the pipeline is waiting for input
+        return this.pipeline.handleStatefulPromptResults(player, result);
     }
 
     /**

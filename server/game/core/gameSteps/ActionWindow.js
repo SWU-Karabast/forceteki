@@ -142,8 +142,7 @@ class ActionWindow extends UiPrompt {
                 return true;
 
             default:
-                Contract.fail(`Unknown menu choice: ${choice}`);
-                return false;
+                Contract.fail(`Unknown menu command: ${choice}`);
         }
     }
 

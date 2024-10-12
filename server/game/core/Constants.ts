@@ -105,7 +105,6 @@ export enum TargetMode {
     MaxStat = 'maxStat',
     Select = 'select',
     Single = 'single',
-    Token = 'token',
     Unlimited = 'unlimited',
     UpTo = 'upTo',
     UpToVariable = 'upToVariable'

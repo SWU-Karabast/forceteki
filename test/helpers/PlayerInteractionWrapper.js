@@ -484,6 +484,25 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
+    setDistributeDamagePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
+    }
+
+    setDistributeHealingPromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
+    }
+
+    setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
+        const promptResults = {
+            valueDistribution: cardDistributionMap,
+            type
+        };
+
+        this.game.statefulPromptResults(this.player.name, promptResults);
+        this.game.continue();
+        // this.checkUnserializableGameState();
+    }
+
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();
 

@@ -3,17 +3,20 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
+import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLastingEffectSystem';
+import { CardPhaseLastingEffectSystem, ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
 import { DamageSystem, IDamageProperties } from './DamageSystem';
 import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
 import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
+import { DistributeDamageSystem, IDistributeDamageSystemProperties } from './DistributeDamageSystem';
+import { DistributeHealingSystem, IDistributeHealingSystemProperties } from './DistributeHealingSystem';
 // import { CardMenuAction, CardMenuProperties } from './CardMenuAction';
 // import { ChooseActionProperties, ChooseGameAction } from './ChooseGameAction';
 // import { ChosenDiscardAction, ChosenDiscardProperties } from './ChosenDiscardAction';
 // import { ChosenReturnToDeckAction, ChosenReturnToDeckProperties } from './ChosenReturnToDeckAction';
-import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
 // import { CreateTokenAction, CreateTokenProperties } from './CreateTokenAction';
-import { SearchDeckSystem, ISearchDeckProperties } from './SearchDeckSystem';
 // import { DetachAction, DetachActionProperties } from './DetachAction';
 // import { DiscardCardAction, DiscardCardProperties } from './DiscardCardAction';
 // import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
@@ -30,8 +33,6 @@ import { HealSystem, IHealProperties } from './HealSystem';
 import { InitiateAttackSystem, IInitiateAttackProperties } from './InitiateAttackSystem';
 // import { JointGameAction } from './JointGameAction';
 // import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
-import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLastingEffectSystem';
-import { CardPhaseLastingEffectSystem, ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
 // import { LastingEffectRingAction, LastingEffectRingProperties } from './LastingEffectRingAction';
 import { LookAtSystem, ILookAtProperties } from './LookAtSystem';
 // import { MatchingDiscardAction, MatchingDiscardProperties } from './MatchingDiscardAction';
@@ -57,13 +58,13 @@ import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSyste
 import { ReturnToHandFromPlaySystem, IReturnToHandFromPlayProperties } from './ReturnToHandFromPlaySystem';
 import { RevealSystem, IRevealProperties } from './RevealSystem';
 import { PayResourceCostSystem, IPayResourceCostProperties } from './PayResourceCostSystem';
+import { SearchDeckSystem, ISearchDeckProperties } from './SearchDeckSystem';
 import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
 // import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
 // import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
 import { SequentialSystem } from './SequentialSystem';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
-import { MetaSystem } from '../core/gameSystem/MetaSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
@@ -92,8 +93,14 @@ export function cardLastingEffect<TContext extends AbilityContext = AbilityConte
 // export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
 //     return new CreateTokenAction(propertyFactory);
 // }
-export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDamageProperties, TContext>): GameSystem<TContext> {
+export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDamageProperties, TContext>) {
     return new DamageSystem<TContext>(propertyFactory);
+}
+export function distributeDamageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeDamageSystemProperties, TContext>) {
+    return new DistributeDamageSystem<TContext>(propertyFactory);
+}
+export function distributeHealingAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeHealingSystemProperties, TContext>) {
+    return new DistributeHealingSystem<TContext>(propertyFactory);
 }
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
@@ -113,7 +120,7 @@ export function defeat<TContext extends AbilityContext = AbilityContext>(propert
 export function exhaust<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new ExhaustSystem<TContext>(propertyFactory);
 }
-export function forThisPhaseCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties, TContext>): GameSystem<TContext> {
+export function forThisPhaseCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties, TContext>) {
     return new CardPhaseLastingEffectSystem<TContext>(propertyFactory);
 }
 export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveExperienceProperties, TContext> = {}): CardTargetSystem<TContext> {
@@ -298,7 +305,8 @@ export function replacementEffect<TContext extends TriggeredAbilityContext = Tri
 // export function chooseAction(propertyFactory: PropsFactory<ChooseActionProperties>): GameSystem {
 //     return new ChooseGameAction(propertyFactory);
 // } // choices, activePromptTitle = 'Select one'
-export function conditional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IConditionalSystemProperties<TContext>, TContext>): GameSystem<TContext> {
+// TODO: remove the return type from all of these
+export function conditional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IConditionalSystemProperties<TContext>, TContext>) {
     return new ConditionalSystem<TContext>(propertyFactory);
 }
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>): GameSystem {

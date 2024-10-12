@@ -222,13 +222,14 @@ var customMatchers = {
                 var result = {};
 
                 result.pass = buttons.some(
-                    (button) => !button.disabled && util.equals(button.text, 'Choose no target', customEqualityMatchers)
+                    (button) => !button.disabled &&
+                        (util.equals(button.text, 'Choose no target', customEqualityMatchers) || util.equals(button.text, 'Choose no targets', customEqualityMatchers))
                 );
 
                 if (result.pass) {
-                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Choose no target' but it did.`;
+                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Choose no target(s)' but it did.`;
                 } else {
-                    result.message = `Expected ${actual.name} to have enabled prompt button 'Choose no target' `;
+                    result.message = `Expected ${actual.name} to have enabled prompt button 'Choose no target(s)' `;
 
                     if (buttons.length > 0) {
                         var buttonText = buttons.map(

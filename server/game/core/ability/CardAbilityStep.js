@@ -90,10 +90,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
     executeGameActions(context) {
         context.events = [];
         let systems = this.getGameSystems(context);
-        let then = this.properties.then;
-        if (then && typeof then === 'function') {
-            then = then(context);
-        }
         for (const system of systems) {
             this.game.queueSimpleStep(() => {
                 system.queueGenerateEventGameSteps(context.events, context);
@@ -104,12 +100,17 @@ class CardAbilityStep extends PlayerOrCardAbility {
             let eventsToResolve = context.events.filter((event) => !event.cancelled && !event.resolved);
             if (eventsToResolve.length > 0) {
                 let window = this.openEventWindow(eventsToResolve);
-                if (then) {
-                    window.addThenAbilityStep(new CardAbilityStep(this.game, this.card, then), context, then.thenCondition);
+
+                if (this.properties.then) {
+                    window.setThenAbilityStep((context) => new CardAbilityStep(this.game, this.card, this.getConcreteThen(this.properties.then, context)), context);
                 }
-            } else if (then && then.thenCondition && then.thenCondition(context)) {
-                let cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
-                this.game.resolveAbility(cardAbilityStep.createContext(context.player));
+            } else if (this.properties.then) {
+                // if no events for the current step, skip directly to the "then" step (if any)
+                const then = typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
+                if (then.thenCondition && then.thenCondition(context)) {
+                    let cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
+                    this.game.resolveAbility(cardAbilityStep.createContext(context.player));
+                }
             }
         }, `resolve events for ${this}`);
     }
@@ -121,6 +122,13 @@ class CardAbilityStep extends PlayerOrCardAbility {
     /** @override */
     isCardAbility() {
         return true;
+    }
+
+    getConcreteThen(then, context) {
+        if (then && typeof then === 'function') {
+            return then(context);
+        }
+        return then;
     }
 }
 
