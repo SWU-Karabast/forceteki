@@ -9,7 +9,7 @@ describe('Deals Damage Before Defender', function () {
                         groundArena: ['consular-security-force', 'first-legion-snowtrooper', 'han-solo#reluctant-hero'],
                     },
                     player2: {
-                        groundArena: [{ card: 'r2d2#ignoring-protocol', damage: 1 }, { card: 'scout-bike-pursuer', upgrades: ['experience'] }, { card: 'phaseiii-dark-trooper', damage: 0 }],
+                        groundArena: [{ card: 'r2d2#ignoring-protocol', damage: 1 }, { card: 'scout-bike-pursuer', upgrades: ['experience'] }, 'phaseiii-dark-trooper'],
                         base: { card: 'dagobah-swamp', damage: 0 }
                     }
                 });
@@ -40,14 +40,13 @@ describe('Deals Damage Before Defender', function () {
                 expect(this.shootFirst.location).toBe('discard');
             });
 
-            it('Attack should defeat the target before its ability triggers', function(){
+            it('Attack should defeat the target before its ability triggers', function() {
                 this.player1.clickCard(this.hanSolo);
                 this.player1.clickCard(this.phaseiiiDarkTrooper);
 
                 // check board state
                 expect(this.hanSolo.damage).toBe(3);
                 expect(this.phaseiiiDarkTrooper.location).toBe('discard');
-
             });
         });
     });
