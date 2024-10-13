@@ -3,7 +3,8 @@ import AbilityResolver from '../core/gameSteps/AbilityResolver';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
-import { CardType, PlayType } from '../core/Constants';
+import { CardType, PlayType, MetaEventName } from '../core/Constants';
+import { isPlayable } from '../core/card/CardTypes';
 import * as GameSystemLibrary from './GameSystemLibrary';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { PlayUnitAction } from '../actions/PlayUnitAction';
@@ -26,6 +27,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
  */
 export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPlayCardProperties> {
     public override readonly name = 'playCard';
+    public override readonly eventName = MetaEventName.PlayCard;
     protected override readonly targetTypeFilter = [CardType.BasicUnit, CardType.BasicUpgrade, CardType.Event];
     protected override readonly defaultProperties: IPlayCardProperties = {
         ignoredRequirements: [],
@@ -55,6 +57,9 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+        if (!(isPlayable(card))) {
+            return false;
+        }
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (!super.canAffect(card, context)) {
             return false;
