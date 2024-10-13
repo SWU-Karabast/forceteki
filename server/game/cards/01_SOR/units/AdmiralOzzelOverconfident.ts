@@ -21,7 +21,7 @@ export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
                     locationFilter: Location.Hand,
                     optional: true,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
-                    innerSystem: AbilityHelper.immediateEffects.playCard({entersReady:true})
+                    innerSystem: AbilityHelper.immediateEffects.playCard({ entersReady: true })
                 }),
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Ready a unit',

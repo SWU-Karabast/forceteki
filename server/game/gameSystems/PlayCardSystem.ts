@@ -1,13 +1,10 @@
 import type { Card } from '../core/card/Card';
 import AbilityResolver from '../core/gameSteps/AbilityResolver';
-import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { UnitCard } from '../core/card/CardTypes';
-import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import { CardType, PlayType } from '../core/Constants';
-import { IAttackProperties } from './AttackStepsSystem';
+import { isPlayable } from '../core/card/CardTypes';
 import * as GameSystemLibrary from './GameSystemLibrary';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { PlayUnitAction } from '../actions/PlayUnitAction';
@@ -16,9 +13,11 @@ import { PlayEventAction } from '../actions/PlayEventAction';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
+
     /** By default, the system will inherit the `optional` property from the activating ability. Use this to override the behavior. */
     optional?: boolean;
     entersReady?: boolean;
+    playType?: PlayType;
 }
 
 /**
@@ -29,7 +28,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     protected override readonly defaultProperties: IPlayCardProperties = {
         ignoredRequirements: [],
         optional: false,
-        entersReady: false
+        entersReady: false,
+        playType: PlayType.PlayFromHand
     };
 
     public eventHandler(event, additionalProperties): void {
@@ -48,17 +48,20 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        event.playCardAbility = this.generatePlayCardAbility(target);
+        event.playCardAbility = this.generatePlayCardAbility(target, this.properties.playType);
         event.optional = properties.optional == null ? context.ability.optional : properties.optional;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+        if (!(isPlayable(card))) {
+            return false;
+        }
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (!super.canAffect(card, context)) {
             return false;
         }
 
-        const playCardAbility = this.generatePlayCardAbility(card);
+        const playCardAbility = this.generatePlayCardAbility(card, this.properties.playType);
         const newContext = playCardAbility.createContext(context.player);
 
         return !playCardAbility.meetsRequirements(newContext, properties.ignoredRequirements);
@@ -67,12 +70,12 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     /**
      * Generate a play card ability for the specified card.
      */
-    private generatePlayCardAbility(card: Card) {
-        switch(card.type) {
-            case CardType.BasicUnit: return new PlayUnitAction(card, PlayType.PlayFromHand, this.properties.entersReady);
-            case CardType.BasicUpgrade: return new PlayUpgradeAction(card);
-            case CardType.Event: return new PlayEventAction(card);
-            default: Contract.fail(`Attempted to play a card with invalid type ${card.type} as part of an ability`)
+    private generatePlayCardAbility(card: Card, playType: PlayType) {
+        switch (card.type) {
+            case CardType.BasicUnit: return new PlayUnitAction(card, playType, this.properties.entersReady);
+            case CardType.BasicUpgrade: return new PlayUpgradeAction(card, playType);
+            case CardType.Event: return new PlayEventAction(card, playType);
+            default: Contract.fail(`Attempted to play a card with invalid type ${card.type} as part of an ability`);
         }
     }
 }
