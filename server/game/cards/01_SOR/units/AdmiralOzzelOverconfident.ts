@@ -18,6 +18,7 @@ export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Play an Imperial unit from your hand. It enters play ready',
                     cardTypeFilter: CardType.BasicUnit,
+                    // TODO: figure out how to make this assume that the played card must be from hand, unless specified otherwise
                     locationFilter: Location.Hand,
                     optional: true,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
