@@ -1,10 +1,9 @@
 import { GameObject } from '../GameObject';
-import * as EnumHelpers from '../utils/EnumHelpers';
 import type Game from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
-import { KeywordName } from '../Constants';
+import { EffectName, KeywordName } from '../Constants';
 
 
 type StatisticTotal = number;
@@ -32,6 +31,10 @@ export class Attack extends GameObject {
 
     public hasOverwhelm(): boolean {
         return this.attacker.hasSomeKeyword(KeywordName.Overwhelm);
+    }
+
+    public attackerDealsDamageBeforeDefender(): boolean {
+        return this.attacker.hasOngoingEffect(EffectName.DealsDamageBeforeDefender);
     }
 
     public isAttackerInPlay(): boolean {
