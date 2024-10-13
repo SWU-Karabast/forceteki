@@ -1,3 +1,4 @@
+import AbilityHelper from '../AbilityHelper';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import { EventName, Location } from '../core/Constants';
@@ -38,5 +39,23 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;
+        // If there are not enough cards left in deck to draw the specified amount, instead draw the remainder and take damage to base equal to thrice the difference.
+        event.checkCondition = () => {
+            if (event.cancelled || event.resolved || event.name === EventName.Unnamed) {
+                return;
+            }
+            if (!event.condition(this)) {
+                event.cancel();
+            }
+            if (event.amount > event.player.drawDeck.length) {
+                const newEvents = [];
+                newEvents.push(AbilityHelper.immediateEffects.damage({ amount: (event.amount - event.player.drawDeck.length) * 3 }).generateEvent(event.player.base, event.context));
+                if (event.player.drawDeck.length > 0) {
+                    newEvents.push(AbilityHelper.immediateEffects.draw({ amount: event.player.drawDeck.length }).generateEvent(event.player, event.context));
+                }
+                event.context.game.openEventWindow(newEvents);
+                event.cancel();
+            }
+        };
     }
 }
