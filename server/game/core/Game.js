@@ -843,7 +843,7 @@ class Game extends EventEmitter {
      * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
      * tell whether or not the handler resolved successfully
      */
-    createEventAndOpenWindow(eventName, params = {}, ownsTriggerWindow = false, handler = () => true) {
+    createEventAndOpenWindow(eventName, params = {}, ownsTriggerWindow = false, handler = () => undefined) {
         let event = new GameEvent(eventName, params, handler);
         this.openEventWindow([event], ownsTriggerWindow);
         return event;

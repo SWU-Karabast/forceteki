@@ -82,3 +82,11 @@ interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends IC
 interface CardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode?: TargetMode.Single | TargetMode.Unlimited;
 }
+
+interface IActionCardTargetResolver<TContext extends AbilityContext> {
+    cardCondition?: (card: Card, context?: TContext) => boolean;
+}
+
+interface ITriggeredAbilityCardTargetResolver<TContext extends AbilityContext> {
+    cardCondition?: (card: Card, context?: TContext) => boolean;
+}
