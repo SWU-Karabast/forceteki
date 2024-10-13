@@ -8,7 +8,7 @@ describe('Han Solo Reluctant Hero', function() {
                         hand: ['han-solo#reluctant-hero'],
                     },
                     player2: {
-                        groundArena: [{ card: 'wampa', upgrades: ['shield'] }, 'consular-security-force']
+                        groundArena: [{ card: 'wampa', upgrades: ['shield'] }, 'consular-security-force', 'battlefield-marine']
 
                     }
                 });
@@ -57,12 +57,12 @@ describe('Han Solo Reluctant Hero', function() {
                 reset();
 
                 // Case 4 check if Han Solo takes damage
-                context.player2.clickCard(context.consularSecurityForce);
+                context.player2.clickCard(context.battlefieldMarine);
                 context.player2.clickCard(context.hanSolo);
 
                 // check board state
                 expect(context.hanSolo.damage).toBe(3);
-                context.consularSecurityForce.exhausted = false;
+                expect(context.battlefieldMarine.location).toBe('discard');
 
                 // reset board
                 reset();

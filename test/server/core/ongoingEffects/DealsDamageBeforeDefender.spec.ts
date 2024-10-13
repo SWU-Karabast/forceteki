@@ -9,14 +9,17 @@ describe('Deals Damage Before Defender', function () {
                         groundArena: ['consular-security-force', 'first-legion-snowtrooper', 'han-solo#reluctant-hero', 'moisture-farmer'],
                     },
                     player2: {
-                        groundArena: [{ card: 'r2d2#ignoring-protocol', damage: 1 }, { card: 'scout-bike-pursuer', upgrades: ['experience'] }],
+                        groundArena: [{ card: 'r2d2#ignoring-protocol', damage: 1 }, {
+                            card: 'scout-bike-pursuer',
+                            upgrades: ['experience']
+                        }],
                         base: { card: 'dagobah-swamp', damage: 0 },
                         hand: ['phaseiii-dark-trooper']
                     }
                 });
             });
 
-            it('should initiate attack with +1/+0 and while attacking deal damage before the defender and overwhelm damage to base.', function () {
+            it('Shoot First should initiate attack with +1/+0 and while attacking deal damage before the defender and overwhelm damage to base.', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.shootFirst);
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.firstLegionSnowtrooper, context.hanSolo, context.moistureFarmer]);
@@ -30,7 +33,7 @@ describe('Deals Damage Before Defender', function () {
                 expect(context.p2Base.damage).toBe(2);
             });
 
-            it('should initiate attack with +1/+0 and while attacking deal damage before the defender and giving the grit unit its effect before attacker receives damage.', function () {
+            it('Shoot First should initiate attack with +1/+0 and while attacking deal damage before the defender and giving the grit unit its effect before attacker receives damage.', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.shootFirst);
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.firstLegionSnowtrooper, context.hanSolo, context.moistureFarmer]);
@@ -42,13 +45,25 @@ describe('Deals Damage Before Defender', function () {
                 expect(context.scoutBikePursuer.damage).toBe(4);
                 expect(context.shootFirst.location).toBe('discard');
             });
+        });
 
-            it('Attack should defeat the target before its ability triggers', function() {
+        describe('Deals Damage Before Defender', function () {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['shoot-first'],
+                        groundArena: ['moisture-farmer'],
+                    },
+                    player2: {
+                        groundArena: ['phaseiii-dark-trooper'],
+                    }
+                });
+            });
+
+            it('Shoot First should initiate attack with +1/+0, dealing damage before the defender. The defender\'s trigger should not activate before all damage is resolved.', function () {
                 const { context } = contextRef;
-                context.player1.passAction();
-                context.player2.clickCard(context.phaseiiiDarkTrooper);
                 context.player1.clickCard(context.shootFirst);
-                context.player1.clickCard(context.moistureFarmer);
 
                 // check board state
                 expect(context.moistureFarmer.damage).toBe(3);

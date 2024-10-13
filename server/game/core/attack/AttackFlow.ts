@@ -25,15 +25,6 @@ export class AttackFlow extends BaseStepWithPipeline {
         ]);
     }
 
-    private openDealDamageWindow(): void {
-        this.context.game.createEventAndOpenWindow(
-            EventName.OnAttackDamageResolved,
-            { attack: this.attack },
-            true,
-            () => this.dealDamage()
-        );
-    }
-
     private setCurrentAttack() {
         this.attack.previousAttack = this.game.currentAttack;
         this.game.currentAttack = this.attack;
@@ -46,6 +37,15 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.attack.target.setActiveAttack(this.attack);
 
         this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack }, true);
+    }
+
+    private openDealDamageWindow(): void {
+        this.context.game.createEventAndOpenWindow(
+            EventName.OnAttackDamageResolved,
+            { attack: this.attack },
+            true,
+            () => this.dealDamage()
+        );
     }
 
     private dealDamage(): void {
@@ -67,15 +67,12 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
         if (overwhelmDamageOnly) {
-            const damageEvents = [AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).generateEvent(this.attack.target.controller.base, this.context)];
-            this.context.game.openEventWindow(damageEvents);
+            AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).resolve(this.attack.target.controller.base, this.context);
         } else if (attackerDealsDamageBeforeDefender) {
-            const damageEvents = [this.createAttackerDamageEvent()];
-            this.context.game.openEventWindow(damageEvents);
+            this.context.game.openEventWindow(this.createAttackerDamageEvent());
             this.context.game.queueSimpleStep(() => {
                 if (!this.attack.target.isBase() && this.attack.target.isInPlay()) {
-                    const defenderDamageEvent = this.createDefenderDamageEvent();
-                    this.context.game.openEventWindow(defenderDamageEvent);
+                    this.context.game.openEventWindow(this.createDefenderDamageEvent());
                 }
             }, 'check and queue event for defender damage');
         } else {
