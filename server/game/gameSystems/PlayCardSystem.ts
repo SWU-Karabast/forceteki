@@ -6,29 +6,35 @@ import { UnitCard } from '../core/card/CardTypes';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
+import { CardType, PlayType } from '../core/Constants';
 import { IAttackProperties } from './AttackStepsSystem';
 import * as GameSystemLibrary from './GameSystemLibrary';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
+import { PlayUnitAction } from '../actions/PlayUnitAction';
+import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
+import { PlayEventAction } from '../actions/PlayEventAction';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
-
+    ignoredRequirements?: string[];
     /** By default, the system will inherit the `optional` property from the activating ability. Use this to override the behavior. */
     optional?: boolean;
+    entersReady?: boolean;
 }
 
 /**
- * This system is a helper for initiating attacks from abilities (see {@link GameSystemLibrary.attack}).
- * The `target` property is the unit that will be attacking. The system resolves the {@link InitiateAttackAction}
- * ability for the passed unit, which will trigger resolution of the attack target.
+ * This system is a helper for playing cards from abilities (see {@link GameSystemLibrary.playCard}).
  */
-export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPlayCardProperties<TContext>> {
+export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPlayCardProperties> {
     public override readonly name = 'playCard';
     protected override readonly defaultProperties: IPlayCardProperties = {
+        ignoredRequirements: [],
+        optional: false,
+        entersReady: false
     };
 
     public eventHandler(event, additionalProperties): void {
         const player = event.player;
-        const newContext = (event.attackAbility as PlayCardAction).createContext(player);
+        const newContext = (event.playCardAbility as PlayCardAction).createContext(player);
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
     }
 
@@ -37,39 +43,36 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return ['play {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, attacker, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        Contract.assertTrue(attacker.isUnit());
 
-        super.addPropertiesToEvent(event, attacker, context, additionalProperties);
+        super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties);
+        event.playCardAbility = this.generatePlayCardAbility(target);
         event.optional = properties.optional == null ? context.ability.optional : properties.optional;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (
-            !card.isUnit() ||
-            !super.canAffect(card, context) ||
-            !properties.attackerCondition(card, context)
-        ) {
+        if (!super.canAffect(card, context)) {
             return false;
         }
 
-        const attackAbility = this.generateAttackAbilityNoTarget(card, properties);
-        const newContext = attackAbility.createContext(context.player);
+        const playCardAbility = this.generatePlayCardAbility(card);
+        const newContext = playCardAbility.createContext(context.player);
 
-        return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements) &&
-            attackAbility.hasSomeLegalTarget(newContext);
+        return !playCardAbility.meetsRequirements(newContext, properties.ignoredRequirements);
     }
 
     /**
-     * Generate an attack ability for the specified card.
-     * Uses the passed properties but strips out the `target` property to avoid overriding it in the attack.
+     * Generate a play card ability for the specified card.
      */
-    private generateAttackAbilityNoTarget(card: UnitCard, properties: IAttackProperties) {
-        const { target, ...propertiesNoTarget } = properties;
-        return new InitiateAttackAction(card, propertiesNoTarget);
+    private generatePlayCardAbility(card: Card) {
+        switch(card.type) {
+            case CardType.BasicUnit: return new PlayUnitAction(card, PlayType.PlayFromHand, this.properties.entersReady);
+            case CardType.BasicUpgrade: return new PlayUpgradeAction(card);
+            case CardType.Event: return new PlayEventAction(card);
+            default: Contract.fail(`Attempted to play a card with invalid type ${card.type} as part of an ability`)
+        }
     }
 }
