@@ -1,8 +1,8 @@
 describe('Rival\'s Fall', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Rival\'s Fall\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['rivals-fall'],
@@ -17,27 +17,33 @@ describe('Rival\'s Fall', function() {
             });
 
             it('should defeat a enemy', function () {
-                this.player1.clickCard(this.rivalsFall);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.bobaFett]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.atst);
-                expect(this.atst).toBeInLocation('discard');
+                context.player1.clickCard(context.rivalsFall);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.bobaFett]);
+
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toBeInLocation('discard');
             });
 
             it('should defeat an ally', function () {
-                this.player1.clickCard(this.rivalsFall);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.bobaFett]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel).toBeInLocation('discard');
+                context.player1.clickCard(context.rivalsFall);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.bobaFett]);
+
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel).toBeInLocation('discard');
             });
 
             it('should defeat a leader', function () {
-                this.player1.clickCard(this.rivalsFall);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.bobaFett]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.bobaFett);
-                expect(this.bobaFett.deployed).toBeFalse();
+                context.player1.clickCard(context.rivalsFall);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.bobaFett]);
+
+                context.player1.clickCard(context.bobaFett);
+                expect(context.bobaFett.deployed).toBeFalse();
             });
         });
     });

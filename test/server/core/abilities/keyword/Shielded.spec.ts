@@ -1,8 +1,8 @@
 describe('Shielded keyword', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit with the Shielded keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['crafty-smuggler']
@@ -11,9 +11,11 @@ describe('Shielded keyword', function() {
             });
 
             it('enters play, it receives a shield', function () {
-                this.player1.clickCard(this.craftySmuggler);
-                expect(this.craftySmuggler).toHaveExactUpgradeNames(['shield']);
-                expect(this.player2).toBeActivePlayer();
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.craftySmuggler);
+                expect(context.craftySmuggler).toHaveExactUpgradeNames(['shield']);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

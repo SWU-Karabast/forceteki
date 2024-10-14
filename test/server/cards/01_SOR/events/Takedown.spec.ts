@@ -1,8 +1,8 @@
 describe('Takedown', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Takedown\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['takedown', 'supreme-leader-snoke#shadow-ruler'],
@@ -18,38 +18,46 @@ describe('Takedown', function() {
             });
 
             it('should defeat a enemy', function () {
-                this.player1.clickCard(this.takedown);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.isbAgent, this.cartelSpacer, this.bobaFett, this.sabineWren]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.isbAgent);
-                expect(this.isbAgent).toBeInLocation('discard');
+                context.player1.clickCard(context.takedown);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.isbAgent, context.cartelSpacer, context.bobaFett, context.sabineWren]);
+
+                context.player1.clickCard(context.isbAgent);
+                expect(context.isbAgent).toBeInLocation('discard');
             });
 
             it('should defeat an ally', function () {
-                this.player1.clickCard(this.takedown);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.isbAgent, this.cartelSpacer, this.bobaFett, this.sabineWren]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel).toBeInLocation('discard');
+                context.player1.clickCard(context.takedown);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.isbAgent, context.cartelSpacer, context.bobaFett, context.sabineWren]);
+
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel).toBeInLocation('discard');
             });
 
             it('should defeat a leader', function () {
-                this.player1.clickCard(this.takedown);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.isbAgent, this.cartelSpacer, this.bobaFett, this.sabineWren]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.sabineWren);
-                expect(this.sabineWren.deployed).toBeFalse();
+                context.player1.clickCard(context.takedown);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.isbAgent, context.cartelSpacer, context.bobaFett, context.sabineWren]);
+
+                context.player1.clickCard(context.sabineWren);
+                expect(context.sabineWren.deployed).toBeFalse();
             });
 
             it('should defeat a unit with an hp reducing effect', function () {
-                // snoke should add at-st on targets
-                this.player1.clickCard(this.supremeLeaderSnoke);
-                this.player2.passAction();
-                this.player1.clickCard(this.takedown);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.bobaFett, this.sabineWren]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.atst);
-                expect(this.atst).toBeInLocation('discard');
+                // snoke should add at-st on targets
+                context.player1.clickCard(context.supremeLeaderSnoke);
+                context.player2.passAction();
+                context.player1.clickCard(context.takedown);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.bobaFett, context.sabineWren]);
+
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toBeInLocation('discard');
             });
         });
     });

@@ -1,8 +1,8 @@
 describe('Clan Challengers', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Clan Challengers\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'clan-challengers', upgrades: ['academy-training'] }]
@@ -14,19 +14,21 @@ describe('Clan Challengers', function() {
             });
 
             it('should give Overwhelm to itself when upgraded', function () {
-                this.player1.clickCard(this.clanChallengers);
-                this.player1.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.wampa).toBeInLocation('discard');
-                expect(this.p2Base.damage).toBe(3); // 3 printed + 3 raid + 2 upgrade = 8, wampa has 5 hp
-                expect(this.clanChallengers.exhausted).toBe(true);
-                expect(this.clanChallengers.damage).toBe(4);
+                context.player1.clickCard(context.clanChallengers);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toBeInLocation('discard');
+                expect(context.p2Base.damage).toBe(3); // 3 printed + 3 raid + 2 upgrade = 8, wampa has 5 hp
+                expect(context.clanChallengers.exhausted).toBe(true);
+                expect(context.clanChallengers.damage).toBe(4);
             });
         });
 
         describe('Clan Challengers\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['clan-challengers']
@@ -38,13 +40,15 @@ describe('Clan Challengers', function() {
             });
 
             it('should not give Overwhelm to itself when not upgraded', function () {
-                this.player1.clickCard(this.clanChallengers);
-                this.player1.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.wampa).toBeInLocation('discard');
-                expect(this.p2Base.damage).toBe(0);
-                expect(this.clanChallengers.exhausted).toBe(true);
-                expect(this.clanChallengers.damage).toBe(4);
+                context.player1.clickCard(context.clanChallengers);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toBeInLocation('discard');
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.clanChallengers.exhausted).toBe(true);
+                expect(context.clanChallengers.damage).toBe(4);
             });
         });
     });

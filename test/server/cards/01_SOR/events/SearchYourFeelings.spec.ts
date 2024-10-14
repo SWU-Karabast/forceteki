@@ -1,8 +1,8 @@
 describe('Search Your Feelings', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Search Your Feelings\' ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['search-your-feelings'],
@@ -12,62 +12,70 @@ describe('Search Your Feelings', function() {
             });
 
             it('should be able to retrieve ANY card from the deck', function () {
+                const { context } = contextRef;
+
                 // Play card
-                this.player1.clickCard(this.searchYourFeelings);
-                expect(this.searchYourFeelings).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, this.cartelSpacer.title, this.cellBlockGuard.title,
-                    this.pykeSentinel.title, this.volunteerSoldier.title, 'Take nothing']);
+                context.player1.clickCard(context.searchYourFeelings);
+                expect(context.searchYourFeelings).toBeInLocation('discard');
+                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, context.cartelSpacer.title, context.cellBlockGuard.title,
+                    context.pykeSentinel.title, context.volunteerSoldier.title, 'Take nothing']);
 
                 // Choose card
-                this.player1.clickPrompt(this.battlefieldMarine.title);
-                expect(this.player2).toBeActivePlayer();
-                expect(this.battlefieldMarine).toBeInLocation('hand');
-                expect(this.player1.deck.length).toBe(4);
+                context.player1.clickPrompt(context.battlefieldMarine.title);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toBeInLocation('hand');
+                expect(context.player1.deck.length).toBe(4);
             });
 
             it('should be able to choose no cards', function () {
+                const { context } = contextRef;
+
                 // Play card
-                this.player1.clickCard(this.searchYourFeelings);
-                expect(this.searchYourFeelings).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, this.cartelSpacer.title, this.cellBlockGuard.title,
-                    this.pykeSentinel.title, this.volunteerSoldier.title, 'Take nothing']);
+                context.player1.clickCard(context.searchYourFeelings);
+                expect(context.searchYourFeelings).toBeInLocation('discard');
+                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, context.cartelSpacer.title, context.cellBlockGuard.title,
+                    context.pykeSentinel.title, context.volunteerSoldier.title, 'Take nothing']);
 
                 // Choose card
-                this.player1.clickPrompt('Take nothing');
-                expect(this.player2).toBeActivePlayer();
-                expect(this.player1.deck.length).toBe(5);
+                context.player1.clickPrompt('Take nothing');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.deck.length).toBe(5);
             });
 
             it('works with just one card in deck', function () {
+                const { context } = contextRef;
+
                 // Set up deck
-                this.player1.setDeck([this.battlefieldMarine]);
+                context.player1.setDeck([context.battlefieldMarine]);
 
                 // Play card
-                this.player1.clickCard(this.searchYourFeelings);
-                expect(this.searchYourFeelings).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons([this.battlefieldMarine, 'Take nothing']);
+                context.player1.clickCard(context.searchYourFeelings);
+                expect(context.searchYourFeelings).toBeInLocation('discard');
+                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, 'Take nothing']);
 
                 // Choose card
-                this.player1.clickPrompt(this.battlefieldMarine.title);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickPrompt(context.battlefieldMarine.title);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('does nothing if deck is empty', function () {
+                const { context } = contextRef;
+
                 // Set up deck
-                this.player1.setDeck([]);
+                context.player1.setDeck([]);
 
                 // Play card
-                this.player1.clickCard(this.searchYourFeelings);
-                expect(this.searchYourFeelings).toBeInLocation('discard');
+                context.player1.clickCard(context.searchYourFeelings);
+                expect(context.searchYourFeelings).toBeInLocation('discard');
 
                 // Nothing happens since there are no cards in deck
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('Search Your Feelings\' ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['search-your-feelings'],
@@ -77,16 +85,18 @@ describe('Search Your Feelings', function() {
             });
 
             it('shuffles the deck', function () {
-                let preShuffleDeck = this.player1.deck;
+                const { context } = contextRef;
+
+                const preShuffleDeck = context.player1.deck;
 
                 // Sanity check for the comparison
-                expect(preShuffleDeck).toEqual(this.player1.deck);
+                expect(preShuffleDeck).toEqual(context.player1.deck);
 
                 // Take nothing (deck will still shuffle)
-                this.player1.clickCard(this.searchYourFeelings);
-                this.player1.clickPrompt('Take nothing');
+                context.player1.clickCard(context.searchYourFeelings);
+                context.player1.clickPrompt('Take nothing');
 
-                expect(preShuffleDeck).not.toEqual(this.player1.deck);
+                expect(preShuffleDeck).not.toEqual(context.player1.deck);
             });
         });
     });

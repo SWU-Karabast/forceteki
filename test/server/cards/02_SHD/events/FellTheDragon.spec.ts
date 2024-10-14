@@ -1,8 +1,8 @@
 describe('Fell the Dragon', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Fell the Dragon\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['fell-the-dragon'],
@@ -17,19 +17,23 @@ describe('Fell the Dragon', function() {
             });
 
             it('should defeat an enemy', function () {
-                this.player1.clickCard(this.fellTheDragon);
-                expect(this.player1).toBeAbleToSelectExactly([this.avenger, this.atst, this.scoutBikePursuer]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.atst);
-                expect(this.atst).toBeInLocation('discard');
+                context.player1.clickCard(context.fellTheDragon);
+                expect(context.player1).toBeAbleToSelectExactly([context.avenger, context.atst, context.scoutBikePursuer]);
+
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toBeInLocation('discard');
             });
 
             it('should defeat an ally', function () {
-                this.player1.clickCard(this.fellTheDragon);
-                expect(this.player1).toBeAbleToSelectExactly([this.avenger, this.atst, this.scoutBikePursuer]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.avenger);
-                expect(this.avenger).toBeInLocation('discard');
+                context.player1.clickCard(context.fellTheDragon);
+                expect(context.player1).toBeAbleToSelectExactly([context.avenger, context.atst, context.scoutBikePursuer]);
+
+                context.player1.clickCard(context.avenger);
+                expect(context.avenger).toBeInLocation('discard');
             });
         });
     });

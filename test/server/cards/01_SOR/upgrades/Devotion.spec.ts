@@ -1,8 +1,8 @@
 describe('Devotion', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Devotion\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', upgrades: ['devotion'] }],
@@ -13,14 +13,16 @@ describe('Devotion', function() {
             });
 
             it('should cause the attached card to heal 2 damage from base on attack', function () {
-                this.p1Base.damage = 5;
+                const { context } = contextRef;
+
+                context.p1Base.damage = 5;
 
                 // attack resolves automatically since there's only one target (p2Base)
-                this.player1.clickCard(this.wampa);
+                context.player1.clickCard(context.wampa);
 
-                expect(this.p1Base.damage).toBe(3);
-                expect(this.p2Base.damage).toBe(5);
-                expect(this.wampa.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(3);
+                expect(context.p2Base.damage).toBe(5);
+                expect(context.wampa.exhausted).toBe(true);
             });
         });
     });

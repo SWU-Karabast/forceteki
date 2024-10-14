@@ -1,8 +1,8 @@
 describe('Grit keyword', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit with the Grit keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'scout-bike-pursuer', damage: 2 }],
@@ -14,24 +14,28 @@ describe('Grit keyword', function() {
             });
 
             it('is damaged, power should be increased by damage amount', function () {
-                expect(this.scoutBikePursuer.getPower()).toBe(3);
+                const { context } = contextRef;
 
-                this.player2.setActivePlayer();
-                this.player2.clickCard(this.regionalGovernor);
-                this.player2.clickCard(this.scoutBikePursuer);
+                expect(context.scoutBikePursuer.getPower()).toBe(3);
 
-                expect(this.regionalGovernor.damage).toBe(3);
+                context.player2.setActivePlayer();
+                context.player2.clickCard(context.regionalGovernor);
+                context.player2.clickCard(context.scoutBikePursuer);
+
+                expect(context.regionalGovernor.damage).toBe(3);
             });
 
             it('has no damage, it should not have increased power', function () {
-                this.scoutBikePursuer.damage = 0;
-                expect(this.scoutBikePursuer.getPower()).toBe(1);
+                const { context } = contextRef;
+
+                context.scoutBikePursuer.damage = 0;
+                expect(context.scoutBikePursuer.getPower()).toBe(1);
             });
         });
 
         describe('When a unit with the Grit keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist'],
@@ -43,13 +47,15 @@ describe('Grit keyword', function() {
             });
 
             it('gains damage when the attack is declared', function () {
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickCard(this.wookieeWarrior);
-                expect(this.player1).toBeAbleToSelectExactly([this.wookieeWarrior, this.p1Base, this.p2Base]);
-                this.player1.clickCard(this.wookieeWarrior);
-                expect(this.sabineWren).toBeInLocation('discard');
-                expect(this.wookieeWarrior.damage).toBe(3);
-                expect(this.wookieeWarrior.getPower()).toBe(5);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.wookieeWarrior);
+                expect(context.player1).toBeAbleToSelectExactly([context.wookieeWarrior, context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.wookieeWarrior);
+                expect(context.sabineWren).toBeInLocation('discard');
+                expect(context.wookieeWarrior.damage).toBe(3);
+                expect(context.wookieeWarrior.getPower()).toBe(5);
             });
         });
     });

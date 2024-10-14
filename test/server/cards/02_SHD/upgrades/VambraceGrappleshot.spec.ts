@@ -1,8 +1,8 @@
 describe('Vambrace Grappleshot', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Vambrace Grappleshot\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['vambrace-grappleshot'] }],
@@ -14,30 +14,34 @@ describe('Vambrace Grappleshot', function() {
             });
 
             it('should exhaust the defender on attack', function () {
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.snowspeeder);
+                const { context } = contextRef;
 
-                expect(this.snowspeeder.damage).toBe(5);
-                expect(this.battlefieldMarine.damage).toBe(3);
-                expect(this.snowspeeder.exhausted).toBe(true);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.snowspeeder);
+
+                expect(context.snowspeeder.damage).toBe(5);
+                expect(context.battlefieldMarine.damage).toBe(3);
+                expect(context.snowspeeder.exhausted).toBe(true);
             });
 
             it('should not have any effect after being removed', function () {
-                this.vambraceGrappleshot.unattach();
-                this.player1.moveCard(this.vambraceGrappleshot, 'discard');
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.snowspeeder);
+                context.vambraceGrappleshot.unattach();
+                context.player1.moveCard(context.vambraceGrappleshot, 'discard');
 
-                expect(this.snowspeeder.damage).toBe(3);
-                expect(this.battlefieldMarine).toBeInLocation('discard');
-                expect(this.snowspeeder.exhausted).toBe(false);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.snowspeeder);
+
+                expect(context.snowspeeder.damage).toBe(3);
+                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.snowspeeder.exhausted).toBe(false);
             });
         });
 
         describe('Vambrace Grappleshot', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['vambrace-grappleshot'],
@@ -49,8 +53,10 @@ describe('Vambrace Grappleshot', function() {
             });
 
             it('should not be playable on vehicles', function () {
-                this.player1.clickCard(this.vambraceGrappleshot);
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['vambrace-grappleshot']);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.vambraceGrappleshot);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['vambrace-grappleshot']);
             });
         });
     });

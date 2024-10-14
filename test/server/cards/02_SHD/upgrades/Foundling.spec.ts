@@ -4,7 +4,7 @@ describe('Foundling\'s', function () {
     integration(function () {
         describe('Foundling', function () {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['foundling', 'mandalorian-warrior'],
@@ -17,24 +17,26 @@ describe('Foundling\'s', function () {
             });
 
             it('ability should give the attached card the Mandalorian trait', function () {
+                const { context } = contextRef;
+
                 // check battlefield marine trait
-                expect(this.battlefieldMarine.hasSomeTrait(Trait.Mandalorian)).toBeFalse();
+                expect(context.battlefieldMarine.hasSomeTrait(Trait.Mandalorian)).toBeFalse();
 
                 // add battlefield marine foundling
-                this.player1.clickCard(this.foundling);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.snowspeeder, this.pykeSentinel, this.protectorOfTheThrone]);
-                this.player1.clickCard(this.battlefieldMarine);
+                context.player1.clickCard(context.foundling);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.snowspeeder, context.pykeSentinel, context.protectorOfTheThrone]);
+                context.player1.clickCard(context.battlefieldMarine);
 
                 // check players units traits
-                expect(this.battlefieldMarine.hasSomeTrait(Trait.Mandalorian)).toBeTrue();
-                expect(this.pykeSentinel.hasSomeTrait(Trait.Mandalorian)).toBeFalse();
+                expect(context.battlefieldMarine.hasSomeTrait(Trait.Mandalorian)).toBeTrue();
+                expect(context.pykeSentinel.hasSomeTrait(Trait.Mandalorian)).toBeFalse();
 
-                this.player2.passAction();
+                context.player2.passAction();
                 // mandalorian warrior should be able to add experience to battlefield marine
-                this.player1.clickCard(this.mandalorianWarrior);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.protectorOfTheThrone]);
-                this.player1.clickCard(this.battlefieldMarine);
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'foundling']);
+                context.player1.clickCard(context.mandalorianWarrior);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.protectorOfTheThrone]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'foundling']);
             });
         });
     });

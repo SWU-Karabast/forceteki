@@ -1,8 +1,8 @@
 describe('Hotshot DL-44 Blaster', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Hotshot DL-44 Blaster\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -14,16 +14,18 @@ describe('Hotshot DL-44 Blaster', function() {
             });
 
             it('does not initiate an attack when played from hand', function () {
-                this.player1.clickCard(this.hotshotDl44Blaster);
-                expect(this.player2).toBeActivePlayer();
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
-                expect(this.battlefieldMarine.exhausted).toBe(false);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hotshotDl44Blaster);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
+                expect(context.battlefieldMarine.exhausted).toBe(false);
             });
         });
 
         describe('Hotshot DL-44 Blaster\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: [],
@@ -37,11 +39,13 @@ describe('Hotshot DL-44 Blaster', function() {
             });
 
             it('initiates an attack with the upgraded unit when Smuggled', function () {
-                this.player1.clickCard(this.hotshotDl44Blaster);
-                expect(this.player2).toBeActivePlayer();
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
-                expect(this.battlefieldMarine.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(5);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hotshotDl44Blaster);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
+                expect(context.battlefieldMarine.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(5);
             });
         });
     });

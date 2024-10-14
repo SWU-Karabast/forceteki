@@ -1,8 +1,8 @@
 describe('Repair', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Repair\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['repair'],
@@ -17,40 +17,48 @@ describe('Repair', function() {
             });
 
             it('can heal a unit', function () {
-                this.wampa.damage = 3;
-                this.player1.clickCard(this.repair);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.imperialInterceptor, this.p2Base]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa.damage).toBe(0);
+                context.wampa.damage = 3;
+                context.player1.clickCard(context.repair);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(0);
             });
 
             it('can heal a base', function () {
-                this.p1Base.damage = 3;
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.repair);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.imperialInterceptor, this.p2Base]);
+                context.p1Base.damage = 3;
 
-                this.player1.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(0);
+                context.player1.clickCard(context.repair);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);
+
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(0);
             });
 
             it('can select a target with no damage', function () {
-                this.player1.clickCard(this.repair);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.imperialInterceptor, this.p2Base]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(0);
+                context.player1.clickCard(context.repair);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);
+
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(0);
             });
 
             it('will heal a target with 1 or 2 damage to full', function () {
-                this.p1Base.damage = 2;
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.repair);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.imperialInterceptor, this.p2Base]);
+                context.p1Base.damage = 2;
 
-                this.player1.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(0);
+                context.player1.clickCard(context.repair);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);
+
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(0);
             });
         });
     });

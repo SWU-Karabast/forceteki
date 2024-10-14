@@ -1,8 +1,8 @@
 describe('Security Complex', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Security Complex\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         base: 'security-complex',
@@ -16,11 +16,13 @@ describe('Security Complex', function() {
             });
 
             it('should give shield to non-leader unit', function () {
-                this.player1.clickCard(this.securityComplex);
-                expect(this.player1).toBeAbleToSelectExactly([this.jedhaAgitator, this.wampa, this.frontierAtrt]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.jedhaAgitator);
-                expect(this.jedhaAgitator).toHaveExactUpgradeNames(['shield']);
+                context.player1.clickCard(context.securityComplex);
+                expect(context.player1).toBeAbleToSelectExactly([context.jedhaAgitator, context.wampa, context.frontierAtrt]);
+
+                context.player1.clickCard(context.jedhaAgitator);
+                expect(context.jedhaAgitator).toHaveExactUpgradeNames(['shield']);
             });
         });
     });

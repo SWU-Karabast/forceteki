@@ -1,8 +1,10 @@
 describe('Covert Strength', function () {
     integration(function () {
         describe('Covert Strength\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['covert-strength'],
@@ -18,30 +20,36 @@ describe('Covert Strength', function () {
             });
 
             it('can heal a unit', function () {
-                this.player1.clickCard(this.covertStrength);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.sabineWren, this.cartelSpacer, this.wampa, this.imperialInterceptor]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.sabineWren);
-                expect(this.sabineWren.damage).toBe(2);
-                expect(this.sabineWren).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickCard(context.covertStrength);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.sabineWren, context.cartelSpacer, context.wampa, context.imperialInterceptor]);
+
+                context.player1.clickCard(context.sabineWren);
+                expect(context.sabineWren.damage).toBe(2);
+                expect(context.sabineWren).toHaveExactUpgradeNames(['experience']);
             });
 
             it('can fully-heal a unit', function () {
-                this.player1.clickCard(this.covertStrength);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.sabineWren, this.cartelSpacer, this.wampa, this.imperialInterceptor]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel.damage).toBe(0);
-                expect(this.pykeSentinel).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickCard(context.covertStrength);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.sabineWren, context.cartelSpacer, context.wampa, context.imperialInterceptor]);
+
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel.damage).toBe(0);
+                expect(context.pykeSentinel).toHaveExactUpgradeNames(['experience']);
             });
 
             it('can select a target with no damage', function () {
-                this.player1.clickCard(this.covertStrength);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.sabineWren, this.cartelSpacer, this.wampa, this.imperialInterceptor]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer.damage).toBe(0);
-                expect(this.cartelSpacer).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickCard(context.covertStrength);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.sabineWren, context.cartelSpacer, context.wampa, context.imperialInterceptor]);
+
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer.damage).toBe(0);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['experience']);
             });
         });
     });

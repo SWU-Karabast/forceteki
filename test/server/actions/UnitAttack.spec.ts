@@ -1,8 +1,8 @@
 describe('Basic attack', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit attacks', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     // TODO: helper function for automatically selecting a leader and / or base that match the aspects of the card under test
                     phase: 'action',
                     player1: {
@@ -19,71 +19,85 @@ describe('Basic attack', function() {
             });
 
             it('the player should only be able to select opponent\'s units in the same arena and base', function () {
-                this.player1.clickCard(this.wampa);
-                expect(this.player1).toHavePrompt('Choose a target for attack');
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toHavePrompt('Choose a target for attack');
 
                 // TODO: test helper for managing attacks
                 // can target opponent's ground units and base but not space units
-                expect(this.player1).toBeAbleToSelectExactly([this.frontierAtrt, this.enfysNest, this.p2Base]);
+                expect(context.player1).toBeAbleToSelectExactly([context.frontierAtrt, context.enfysNest, context.p2Base]);
             });
 
             it('from space arena to another unit in the space arena, attack should resolve correctly', function () {
-                this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.allianceXwing);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.allianceXwing);
 
                 // attack against base should immediately resolve without prompt for a target, since only one is available
-                expect(this.cartelSpacer.damage).toBe(2);
-                expect(this.cartelSpacer.exhausted).toBe(true);
-                expect(this.allianceXwing.damage).toBe(2);
-                expect(this.allianceXwing.exhausted).toBe(false);
+                expect(context.cartelSpacer.damage).toBe(2);
+                expect(context.cartelSpacer.exhausted).toBe(true);
+                expect(context.allianceXwing.damage).toBe(2);
+                expect(context.allianceXwing.exhausted).toBe(false);
             });
 
             it('another unit and neither is defeated, both should receive damage and attacker should be exhausted', function () {
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.frontierAtrt);
+                const { context } = contextRef;
 
-                expect(this.wampa.damage).toBe(3);
-                expect(this.frontierAtrt.damage).toBe(4);
-                expect(this.wampa.exhausted).toBe(true);
-                expect(this.frontierAtrt.exhausted).toBe(false);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.frontierAtrt);
+
+                expect(context.wampa.damage).toBe(3);
+                expect(context.frontierAtrt.damage).toBe(4);
+                expect(context.wampa.exhausted).toBe(true);
+                expect(context.frontierAtrt.exhausted).toBe(false);
             });
 
             it('another unit and both are defeated, both should be in discard', function () {
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.enfysNest);
+                const { context } = contextRef;
 
-                expect(this.wampa).toBeInLocation('discard');
-                expect(this.enfysNest).toBeInLocation('discard');
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.enfysNest);
+
+                expect(context.wampa).toBeInLocation('discard');
+                expect(context.enfysNest).toBeInLocation('discard');
             });
 
             it('another unit and both are defeated, both should be in discard', function () {
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.enfysNest);
+                const { context } = contextRef;
 
-                expect(this.wampa).toBeInLocation('discard');
-                expect(this.enfysNest).toBeInLocation('discard');
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.enfysNest);
+
+                expect(context.wampa).toBeInLocation('discard');
+                expect(context.enfysNest).toBeInLocation('discard');
             });
 
             it('base with non-lethal damage, base should be damaged and attacker should be exhausted', function () {
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.p2Base);
+                const { context } = contextRef;
 
-                expect(this.wampa.damage).toBe(0);
-                expect(this.wampa.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(4);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.wampa.damage).toBe(0);
+                expect(context.wampa.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(4);
             });
 
             it('base with lethal damage, game should end immediately', function () {
-                this.p2Base.damage = 28;
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.p2Base);
+                const { context } = contextRef;
+
+                context.p2Base.damage = 28;
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.p2Base);
 
                 // we still expect this since it should've been done before the attack
-                expect(this.wampa.exhausted).toBe(true);
+                expect(context.wampa.exhausted).toBe(true);
 
-                expect(this.p2Base.damage).toBe(32);
-                expect(this.player1).toHavePrompt('player1 has won the game!');
-                expect(this.player2).toHavePrompt('player1 has won the game!');
+                expect(context.p2Base.damage).toBe(32);
+                expect(context.player1).toHavePrompt('player1 has won the game!');
+                expect(context.player2).toHavePrompt('player1 has won the game!');
             });
         });
     });

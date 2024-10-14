@@ -1,8 +1,10 @@
 describe('Steadfast Battalion', function () {
     integration(function () {
         describe('Steadfast Battalion\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['steadfast-battalion', 'battlefield-marine'],
@@ -13,20 +15,24 @@ describe('Steadfast Battalion', function () {
             });
 
             it('should give a unit +2/+2 if you control a leader unit', function () {
-                this.player1.clickCard(this.steadfastBattalion);
-                this.player1.clickCard(this.battlefieldMarine);
-                expect(this.battlefieldMarine.getPower()).toBe(5);
+                const { context } = contextRef;
 
-                this.player2.passAction();
-                this.player1.clickCard(this.battlefieldMarine);
+                context.player1.clickCard(context.steadfastBattalion);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.battlefieldMarine);
                 // steadfast battalion: 5 + battlefieldMarine: 3+2 = 10
-                expect(this.p2Base.damage).toBe(10);
+                expect(context.p2Base.damage).toBe(10);
             });
         });
 
         describe('Steadfast Battalion\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['steadfast-battalion', 'battlefield-marine'],
@@ -36,13 +42,15 @@ describe('Steadfast Battalion', function () {
             });
 
             it('should not give a unit +2/+2 if you do not control a leader unit', function () {
-                this.player1.clickCard(this.steadfastBattalion);
-                expect(this.battlefieldMarine.getPower()).toBe(3);
+                const { context } = contextRef;
 
-                this.player2.passAction();
-                this.player1.clickCard(this.battlefieldMarine);
+                context.player1.clickCard(context.steadfastBattalion);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.battlefieldMarine);
                 // steadfast battalion: 5 + battlefieldMarine: 3 = 8
-                expect(this.p2Base.damage).toBe(8);
+                expect(context.p2Base.damage).toBe(8);
             });
         });
     });

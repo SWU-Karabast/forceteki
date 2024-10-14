@@ -1,8 +1,8 @@
 describe('Smuggler\'s Aid', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Smuggler\'s Aid\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['smugglers-aid']
@@ -11,16 +11,18 @@ describe('Smuggler\'s Aid', function() {
             });
 
             it('heals base from hand', function () {
-                this.p1Base.damage = 5;
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.smugglersAid);
-                expect(this.p1Base.damage).toBe(2);
+                context.p1Base.damage = 5;
+
+                context.player1.clickCard(context.smugglersAid);
+                expect(context.p1Base.damage).toBe(2);
             });
         });
 
         describe('Smuggler\'s Aid\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: [],
@@ -30,10 +32,12 @@ describe('Smuggler\'s Aid', function() {
             });
 
             it('heals base from Smuggle', function () {
-                this.p1Base.damage = 5;
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.smugglersAid);
-                expect(this.p1Base.damage).toBe(2);
+                context.p1Base.damage = 5;
+
+                context.player1.clickCard(context.smugglersAid);
+                expect(context.p1Base.damage).toBe(2);
             });
         });
     });

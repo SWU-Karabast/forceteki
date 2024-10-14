@@ -1,8 +1,8 @@
 describe('Clan Wren Rescuer', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Clan Wren Rescuer\'s when played ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['clan-wren-rescuer'],
@@ -15,12 +15,14 @@ describe('Clan Wren Rescuer', function() {
             });
 
             it('should give an experience token to a unit', function () {
-                this.player1.clickCard(this.clanWrenRescuer);
-                expect(this.player1).not.toHavePassAbilityButton();
-                expect(this.player1).toBeAbleToSelectExactly([this.clanWrenRescuer, this.wampa, this.cartelSpacer]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.clanWrenRescuer);
-                expect(this.clanWrenRescuer).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickCard(context.clanWrenRescuer);
+                expect(context.player1).not.toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.clanWrenRescuer, context.wampa, context.cartelSpacer]);
+
+                context.player1.clickCard(context.clanWrenRescuer);
+                expect(context.clanWrenRescuer).toHaveExactUpgradeNames(['experience']);
             });
         });
     });

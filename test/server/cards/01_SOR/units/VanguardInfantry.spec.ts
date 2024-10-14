@@ -1,8 +1,8 @@
 describe('Vanguard Infantry', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Vanguard Infantry\'s when defeated ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish'],
@@ -16,33 +16,39 @@ describe('Vanguard Infantry', function() {
             });
 
             it('should give an experience token to a unit when defeated in combat', function () {
-                this.player1.clickCard(this.vanguardInfantry);
-                this.player1.clickCard(this.wampa);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.wampa, this.cartelSpacer]);
-                expect(this.player1).toHavePassAbilityButton();
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickCard(context.vanguardInfantry);
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.cartelSpacer]);
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['experience']);
             });
 
             it('should give an experience token to a unit when defeated by an ability', function () {
-                this.player1.clickCard(this.vanquish);
-                this.player1.clickCard(this.vanguardInfantry);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.wampa, this.cartelSpacer]);
-                expect(this.player1).toHavePassAbilityButton();
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.battlefieldMarine);
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.vanguardInfantry);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.cartelSpacer]);
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
             });
 
             it('should be able to be passed', function () {
-                this.player1.clickCard(this.vanguardInfantry);
-                this.player1.clickCard(this.wampa);
-                this.player1.clickPrompt('Pass ability');
+                const { context } = contextRef;
 
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames([]);
-                expect(this.wampa).toHaveExactUpgradeNames([]);
-                expect(this.cartelSpacer).toHaveExactUpgradeNames([]);
+                context.player1.clickCard(context.vanguardInfantry);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickPrompt('Pass ability');
+
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
+                expect(context.wampa).toHaveExactUpgradeNames([]);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames([]);
             });
         });
     });

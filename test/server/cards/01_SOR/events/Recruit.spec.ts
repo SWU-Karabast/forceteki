@@ -1,9 +1,9 @@
 describe('Recruit', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Recruit\'s ability - ', function () {
             describe('when there is one valid option,', function () {
                 beforeEach(function () {
-                    this.setupTest({
+                    contextRef.setupTest({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -13,43 +13,49 @@ describe('Recruit', function () {
                 });
 
                 it('should prompt to choose a unit from the top 5 cards, reveal it, draw it, and move the rest to the bottom of the deck', function() {
-                    this.player1.clickCard(this.recruit);
-                    expect(this.player1).toHavePrompt('Select a card to reveal');
-                    expect(this.player1).toHaveDisabledPromptButtons([this.confiscate.title, this.iAmYourFather.title, this.surpriseStrike.title, this.vanquish.title]);
-                    expect(this.player1).toHaveEnabledPromptButtons([this.viperProbeDroid.title, 'Take nothing']);
+                    const { context } = contextRef;
 
-                    this.player1.clickPrompt(this.viperProbeDroid.title);
-                    expect(this.getChatLogs(2)).toContain('player1 takes Viper Probe Droid');
-                    expect(this.viperProbeDroid).toBeInLocation('hand');
+                    context.player1.clickCard(context.recruit);
+                    expect(context.player1).toHavePrompt('Select a card to reveal');
+                    expect(context.player1).toHaveDisabledPromptButtons([context.confiscate.title, context.iAmYourFather.title, context.surpriseStrike.title, context.vanquish.title]);
+                    expect(context.player1).toHaveEnabledPromptButtons([context.viperProbeDroid.title, 'Take nothing']);
 
-                    expect(this.confiscate).toBeInBottomOfDeck(this.player1, 4);
-                    expect(this.iAmYourFather).toBeInBottomOfDeck(this.player1, 4);
-                    expect(this.surpriseStrike).toBeInBottomOfDeck(this.player1, 4);
-                    expect(this.vanquish).toBeInBottomOfDeck(this.player1, 4);
+                    context.player1.clickPrompt(context.viperProbeDroid.title);
+                    expect(context.getChatLogs(2)).toContain('player1 takes Viper Probe Droid');
+                    expect(context.viperProbeDroid).toBeInLocation('hand');
+
+                    expect(context.confiscate).toBeInBottomOfDeck(context.player1, 4);
+                    expect(context.iAmYourFather).toBeInBottomOfDeck(context.player1, 4);
+                    expect(context.surpriseStrike).toBeInBottomOfDeck(context.player1, 4);
+                    expect(context.vanquish).toBeInBottomOfDeck(context.player1, 4);
                 });
 
                 it('should be allowed to choose nothing and place all cards on the bottom of the deck', function () {
-                    this.player1.clickCard(this.recruit);
-                    this.player1.clickPrompt('Take nothing');
+                    const { context } = contextRef;
 
-                    expect([this.viperProbeDroid, this.confiscate, this.iAmYourFather, this.surpriseStrike, this.vanquish]).toAllBeInBottomOfDeck(this.player1, 5);
+                    context.player1.clickCard(context.recruit);
+                    context.player1.clickPrompt('Take nothing');
+
+                    expect([context.viperProbeDroid, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]).toAllBeInBottomOfDeck(context.player1, 5);
                 });
 
                 it('should allow selection when deck has less than five cards', function() {
-                    this.player1.setDeck([this.viperProbeDroid, this.confiscate, this.iAmYourFather]);
-                    this.player1.clickCard(this.recruit);
-                    expect(this.player1).toHaveEnabledPromptButtons([this.viperProbeDroid.title, 'Take nothing']);
-                    expect(this.player1).toHaveDisabledPromptButtons([this.confiscate.title, this.iAmYourFather.title]);
-                    this.player1.clickPrompt(this.viperProbeDroid.title);
+                    const { context } = contextRef;
 
-                    expect(this.player1.deck.length).toBe(2);
-                    expect([this.confiscate, this.iAmYourFather]).toAllBeInBottomOfDeck(this.player1, 2);
+                    context.player1.setDeck([context.viperProbeDroid, context.confiscate, context.iAmYourFather]);
+                    context.player1.clickCard(context.recruit);
+                    expect(context.player1).toHaveEnabledPromptButtons([context.viperProbeDroid.title, 'Take nothing']);
+                    expect(context.player1).toHaveDisabledPromptButtons([context.confiscate.title, context.iAmYourFather.title]);
+                    context.player1.clickPrompt(context.viperProbeDroid.title);
+
+                    expect(context.player1.deck.length).toBe(2);
+                    expect([context.confiscate, context.iAmYourFather]).toAllBeInBottomOfDeck(context.player1, 2);
                 });
             });
 
             describe('when the deck is empty,', function() {
                 beforeEach(function () {
-                    this.setupTest({
+                    contextRef.setupTest({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -59,19 +65,21 @@ describe('Recruit', function () {
                 });
 
                 it('should have no valid options to choose from', function() {
-                    expect(this.player1.deck.length).toBe(0);
+                    const { context } = contextRef;
 
-                    this.player1.clickCard(this.recruit);
-                    expect(this.recruit).toBeInLocation('discard');
-                    expect(this.player1.deck.length).toBe(0);
+                    expect(context.player1.deck.length).toBe(0);
 
-                    expect(this.player2).toBeActivePlayer();
+                    context.player1.clickCard(context.recruit);
+                    expect(context.recruit).toBeInLocation('discard');
+                    expect(context.player1.deck.length).toBe(0);
+
+                    expect(context.player2).toBeActivePlayer();
                 });
             });
 
             describe('when there are no valid options,', function() {
                 beforeEach(function () {
-                    this.setupTest({
+                    contextRef.setupTest({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -81,21 +89,23 @@ describe('Recruit', function () {
                 });
 
                 it('should have no valid options to choose from', function() {
-                    this.player1.clickCard(this.recruit);
-                    expect(this.player1).toHavePrompt('Select a card to reveal');
-                    expect(this.player1).toHaveDisabledPromptButtons([this.disarm.title, this.confiscate.title, this.iAmYourFather.title, this.surpriseStrike.title, this.vanquish.title]);
-                    expect(this.player1).toHaveEnabledPromptButton('Take nothing');
+                    const { context } = contextRef;
 
-                    this.player1.clickPrompt('Take nothing');
+                    context.player1.clickCard(context.recruit);
+                    expect(context.player1).toHavePrompt('Select a card to reveal');
+                    expect(context.player1).toHaveDisabledPromptButtons([context.disarm.title, context.confiscate.title, context.iAmYourFather.title, context.surpriseStrike.title, context.vanquish.title]);
+                    expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                    expect([this.disarm, this.confiscate, this.iAmYourFather, this.surpriseStrike, this.vanquish]).toAllBeInBottomOfDeck(this.player1, 5);
+                    context.player1.clickPrompt('Take nothing');
+
+                    expect([context.disarm, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]).toAllBeInBottomOfDeck(context.player1, 5);
                 });
             });
 
 
             describe('when there are multiple valid options,', function() {
                 beforeEach(function () {
-                    this.setupTest({
+                    contextRef.setupTest({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -105,19 +115,21 @@ describe('Recruit', function () {
                 });
 
                 it('should have multiple valid options to choose from', function() {
-                    this.player1.clickCard(this.recruit);
-                    expect(this.player1).toHavePrompt('Select a card to reveal');
-                    expect(this.player1).toHaveDisabledPromptButtons([this.confiscate.title, this.iAmYourFather.title, this.surpriseStrike.title]);
-                    expect(this.player1).toHaveEnabledPromptButtons([this.viperProbeDroid.title, this.cellBlockGuard.title, 'Take nothing']);
+                    const { context } = contextRef;
 
-                    this.player1.clickPrompt(this.cellBlockGuard.title);
-                    expect(this.getChatLogs(2)).toContain('player1 takes Cell Block Guard');
-                    expect(this.cellBlockGuard).toBeInLocation('hand');
+                    context.player1.clickCard(context.recruit);
+                    expect(context.player1).toHavePrompt('Select a card to reveal');
+                    expect(context.player1).toHaveDisabledPromptButtons([context.confiscate.title, context.iAmYourFather.title, context.surpriseStrike.title]);
+                    expect(context.player1).toHaveEnabledPromptButtons([context.viperProbeDroid.title, context.cellBlockGuard.title, 'Take nothing']);
 
-                    expect(this.viperProbeDroid).toBeInBottomOfDeck(this.player1, 4);
-                    expect(this.confiscate).toBeInBottomOfDeck(this.player1, 4);
-                    expect(this.iAmYourFather).toBeInBottomOfDeck(this.player1, 4);
-                    expect(this.surpriseStrike).toBeInBottomOfDeck(this.player1, 4);
+                    context.player1.clickPrompt(context.cellBlockGuard.title);
+                    expect(context.getChatLogs(2)).toContain('player1 takes Cell Block Guard');
+                    expect(context.cellBlockGuard).toBeInLocation('hand');
+
+                    expect(context.viperProbeDroid).toBeInBottomOfDeck(context.player1, 4);
+                    expect(context.confiscate).toBeInBottomOfDeck(context.player1, 4);
+                    expect(context.iAmYourFather).toBeInBottomOfDeck(context.player1, 4);
+                    expect(context.surpriseStrike).toBeInBottomOfDeck(context.player1, 4);
                 });
             });
         });

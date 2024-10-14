@@ -1,8 +1,8 @@
 describe('Medal Ceremony', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Medal Ceremony\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['medal-ceremony'],
@@ -17,131 +17,139 @@ describe('Medal Ceremony', function() {
             });
 
             it('should give an experience to any Rebel units that attacked this phase, up to 3', function () {
+                const { context } = contextRef;
+
                 // attack 1: our rebel
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
 
                 // attack 2: their non-rebel
-                this.player2.clickCard(this.wampa);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
 
                 // attack 3: our rebel (leader)
-                this.player1.clickCard(this.chirrutImwe);
-                this.player1.clickCard(this.wampa);
+                context.player1.clickCard(context.chirrutImwe);
+                context.player1.clickCard(context.wampa);
 
                 // attack 4: their rebel
-                this.player2.clickCard(this.consularSecurityForce);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.consularSecurityForce);
+                context.player2.clickCard(context.p1Base);
 
                 // attack 5: our non-rebel
-                this.player1.clickCard(this.frontierAtrt);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.frontierAtrt);
+                context.player1.clickCard(context.p2Base);
 
                 // attack 6: their rebel
-                this.player2.clickCard(this.allianceXwing);
+                context.player2.clickCard(context.allianceXwing);
 
                 // attack 7: our rebel (goes to discard)
-                this.player1.clickCard(this.allianceDispatcher);
-                this.player1.clickCard(this.wampa);
+                context.player1.clickCard(context.allianceDispatcher);
+                context.player1.clickCard(context.wampa);
 
-                this.player2.passAction();
+                context.player2.passAction();
 
-                this.player1.clickCard(this.medalCeremony);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.chirrutImwe, this.consularSecurityForce, this.allianceXwing]);
+                context.player1.clickCard(context.medalCeremony);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.chirrutImwe, context.consularSecurityForce, context.allianceXwing]);
 
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.chirrutImwe);
-                this.player1.clickCard(this.allianceXwing);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.chirrutImwe);
+                context.player1.clickCard(context.allianceXwing);
 
                 // click on a fourth card just to confirm it doesn't work
-                this.player1.clickCardNonChecking(this.consularSecurityForce);
+                context.player1.clickCardNonChecking(context.consularSecurityForce);
 
-                this.player1.clickPrompt('Done');
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
-                expect(this.chirrutImwe).toHaveExactUpgradeNames(['experience']);
-                expect(this.allianceXwing).toHaveExactUpgradeNames(['experience']);
-                expect(this.consularSecurityForce.isUpgraded()).toBe(false);
+                context.player1.clickPrompt('Done');
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                expect(context.chirrutImwe).toHaveExactUpgradeNames(['experience']);
+                expect(context.allianceXwing).toHaveExactUpgradeNames(['experience']);
+                expect(context.consularSecurityForce.isUpgraded()).toBe(false);
             });
 
             it('should give only as many experience tokens as available Rebel units that have attacked', function () {
+                const { context } = contextRef;
+
                 // attack 1: our rebel
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
 
                 // attack 2: their non-rebel
-                this.player2.clickCard(this.wampa);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
 
                 // attack 3: our non-rebel
-                this.player1.clickCard(this.frontierAtrt);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.frontierAtrt);
+                context.player1.clickCard(context.p2Base);
 
                 // attack 4: their rebel
-                this.player2.clickCard(this.consularSecurityForce);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.consularSecurityForce);
+                context.player2.clickCard(context.p1Base);
 
-                this.player1.clickCard(this.medalCeremony);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.consularSecurityForce]);
+                context.player1.clickCard(context.medalCeremony);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.consularSecurityForce]);
 
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.consularSecurityForce);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.consularSecurityForce);
 
-                this.player1.clickPrompt('Done');
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
-                expect(this.consularSecurityForce).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickPrompt('Done');
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                expect(context.consularSecurityForce).toHaveExactUpgradeNames(['experience']);
             });
 
             it('should allow selecting fewer targets than available', function () {
+                const { context } = contextRef;
+
                 // attack 1: our rebel
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
 
                 // attack 2: their non-rebel
-                this.player2.clickCard(this.wampa);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
 
                 // attack 3: our non-rebel
-                this.player1.clickCard(this.frontierAtrt);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.frontierAtrt);
+                context.player1.clickCard(context.p2Base);
 
                 // attack 4: their rebel
-                this.player2.clickCard(this.consularSecurityForce);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.consularSecurityForce);
+                context.player2.clickCard(context.p1Base);
 
-                this.player1.clickCard(this.medalCeremony);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.consularSecurityForce]);
+                context.player1.clickCard(context.medalCeremony);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.consularSecurityForce]);
 
-                this.player1.clickCard(this.battlefieldMarine);
+                context.player1.clickCard(context.battlefieldMarine);
 
-                this.player1.clickPrompt('Done');
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
-                expect(this.consularSecurityForce.isUpgraded()).toBe(false);
+                context.player1.clickPrompt('Done');
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                expect(context.consularSecurityForce.isUpgraded()).toBe(false);
             });
 
             it('should allow selecting no targets', function () {
+                const { context } = contextRef;
+
                 // attack 1: our rebel
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
 
                 // attack 2: their non-rebel
-                this.player2.clickCard(this.wampa);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
 
                 // attack 3: our non-rebel
-                this.player1.clickCard(this.frontierAtrt);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.frontierAtrt);
+                context.player1.clickCard(context.p2Base);
 
                 // attack 4: their rebel
-                this.player2.clickCard(this.consularSecurityForce);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.consularSecurityForce);
+                context.player2.clickCard(context.p1Base);
 
-                this.player1.clickCard(this.medalCeremony);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.consularSecurityForce]);
+                context.player1.clickCard(context.medalCeremony);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.consularSecurityForce]);
 
-                this.player1.clickPrompt('Done');
-                expect(this.consularSecurityForce.isUpgraded()).toBe(false);
-                expect(this.consularSecurityForce.isUpgraded()).toBe(false);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickPrompt('Done');
+                expect(context.consularSecurityForce.isUpgraded()).toBe(false);
+                expect(context.consularSecurityForce.isUpgraded()).toBe(false);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

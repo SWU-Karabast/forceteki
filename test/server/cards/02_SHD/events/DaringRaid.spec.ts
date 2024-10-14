@@ -1,8 +1,8 @@
 describe('Daring Raid', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Daring Raid\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['daring-raid'],
@@ -17,19 +17,23 @@ describe('Daring Raid', function() {
             });
 
             it('can deal damage to a unit', function () {
-                this.player1.clickCard(this.daringRaid);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.imperialInterceptor, this.p2Base]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa.damage).toBe(2);
+                context.player1.clickCard(context.daringRaid);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(2);
             });
 
             it('can deal damage to a base', function () {
-                this.player1.clickCard(this.daringRaid);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.p1Base, this.wampa, this.imperialInterceptor, this.p2Base]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(2);
+                context.player1.clickCard(context.daringRaid);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);
+
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(2);
             });
         });
     });

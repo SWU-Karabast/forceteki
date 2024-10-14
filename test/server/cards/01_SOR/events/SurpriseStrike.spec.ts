@@ -1,8 +1,8 @@
 describe('Surprise Strike', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Surprise Strike\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['surprise-strike'],
@@ -16,23 +16,25 @@ describe('Surprise Strike', function() {
             });
 
             it('should allowing triggering an attack and give the attacker +3/+0', function () {
-                this.player1.clickCard(this.surpriseStrike);
-                expect(this.player1).toBeAbleToSelectExactly([this.isbAgent, this.tielnFighter]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.isbAgent);
-                expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.atst, this.p2Base]);
+                context.player1.clickCard(context.surpriseStrike);
+                expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.tielnFighter]);
 
-                this.player1.clickCard(this.sundariPeacekeeper);
-                expect(this.isbAgent.exhausted).toBe(true);
-                expect(this.sundariPeacekeeper.damage).toBe(4);
-                expect(this.isbAgent.damage).toBe(1);
+                context.player1.clickCard(context.isbAgent);
+                expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.atst, context.p2Base]);
+
+                context.player1.clickCard(context.sundariPeacekeeper);
+                expect(context.isbAgent.exhausted).toBe(true);
+                expect(context.sundariPeacekeeper.damage).toBe(4);
+                expect(context.isbAgent.damage).toBe(1);
 
                 // second attack to confirm that the buff is gone
-                this.isbAgent.exhausted = false;
-                this.player2.passAction();
-                this.player1.clickCard(this.isbAgent);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(1);
+                context.isbAgent.exhausted = false;
+                context.player2.passAction();
+                context.player1.clickCard(context.isbAgent);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(1);
             });
         });
     });

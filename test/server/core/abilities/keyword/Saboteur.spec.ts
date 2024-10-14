@@ -1,8 +1,8 @@
 describe('Saboteur keyword', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit with the Saboteur keyword attacks', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['resourceful-pursuers']
@@ -17,23 +17,27 @@ describe('Saboteur keyword', function() {
             });
 
             it('it may bypass Sentinel', function () {
-                this.player1.clickCard(this.resourcefulPursuers);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.echoBaseDefender, this.p2Base]);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(5);
-                expect(this.resourcefulPursuers.damage).toBe(0);
-                expect(this.echoBaseDefender).toBeInLocation('ground arena');
-                expect(this.wampa.location).toBe('ground arena');
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.resourcefulPursuers);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.echoBaseDefender, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(5);
+                expect(context.resourcefulPursuers.damage).toBe(0);
+                expect(context.echoBaseDefender).toBeInLocation('ground arena');
+                expect(context.wampa.location).toBe('ground arena');
             });
 
             it('a unit with shields, the shields are defeated before the attack', function () {
-                this.player1.clickCard(this.resourcefulPursuers);
-                this.player1.clickCard(this.wampa);
-                expect(this.resourcefulPursuers.damage).toBe(4);
-                expect(this.echoBaseDefender).toBeInLocation('ground arena');
-                expect(this.wampa.damage).toBe(5);
-                expect(this.wampa).toBeInLocation('ground arena');
-                expect(this.wampa).toHaveExactUpgradeNames(['resilient']);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.resourcefulPursuers);
+                context.player1.clickCard(context.wampa);
+                expect(context.resourcefulPursuers.damage).toBe(4);
+                expect(context.echoBaseDefender).toBeInLocation('ground arena');
+                expect(context.wampa.damage).toBe(5);
+                expect(context.wampa).toBeInLocation('ground arena');
+                expect(context.wampa).toHaveExactUpgradeNames(['resilient']);
             });
         });
     });

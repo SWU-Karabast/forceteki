@@ -1,8 +1,8 @@
 describe('Restore keyword', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit with the Restore keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['regional-sympathizers'],
@@ -13,20 +13,22 @@ describe('Restore keyword', function() {
             });
 
             it('attacks, base should be healed by the restore amount', function () {
-                this.p1Base.damage = 5;
+                const { context } = contextRef;
+
+                context.p1Base.damage = 5;
 
                 // attack resolves automatically since there's only one target (p2Base)
-                this.player1.clickCard(this.regionalSympathizers);
+                context.player1.clickCard(context.regionalSympathizers);
 
-                expect(this.p1Base.damage).toBe(3);
-                expect(this.p2Base.damage).toBe(3);
-                expect(this.regionalSympathizers.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(3);
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.regionalSympathizers.exhausted).toBe(true);
             });
         });
 
         describe('When a unit with the Restore keyword and a gained Restore ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'regional-sympathizers', upgrades: ['devotion'] }],
@@ -37,23 +39,25 @@ describe('Restore keyword', function() {
             });
 
             it('attacks, base should be healed by the cumulative restore amount', function () {
-                this.p1Base.damage = 5;
+                const { context } = contextRef;
+
+                context.p1Base.damage = 5;
 
                 // attack resolves automatically since there's only one target (p2Base)
-                this.player1.clickCard(this.regionalSympathizers);
+                context.player1.clickCard(context.regionalSympathizers);
 
-                expect(this.p1Base.damage).toBe(1);
-                expect(this.p2Base.damage).toBe(4);
-                expect(this.regionalSympathizers.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(1);
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.regionalSympathizers.exhausted).toBe(true);
 
                 // second attack to ensure ability deregistration is working
-                this.player2.passAction();
+                context.player2.passAction();
 
-                this.regionalSympathizers.exhausted = false;
-                this.player1.clickCard(this.regionalSympathizers);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.p2Base.damage).toBe(8);
-                expect(this.regionalSympathizers.exhausted).toBe(true);
+                context.regionalSympathizers.exhausted = false;
+                context.player1.clickCard(context.regionalSympathizers);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(8);
+                expect(context.regionalSympathizers.exhausted).toBe(true);
             });
         });
 

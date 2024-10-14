@@ -1,8 +1,8 @@
 describe('Protector', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Protector\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -14,11 +14,13 @@ describe('Protector', function() {
             });
 
             it('should be sentinel', function () {
-                this.player1.clickCard(this.battlefieldMarine);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
                 // Snowspeeder automatically selected due to sentinel
-                expect(this.player2).toBeActivePlayer();
-                expect(this.snowspeeder.damage).toBe(3);
-                expect(this.battlefieldMarine).toBeInLocation('discard');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.snowspeeder.damage).toBe(3);
+                expect(context.battlefieldMarine).toBeInLocation('discard');
             });
         });
     });

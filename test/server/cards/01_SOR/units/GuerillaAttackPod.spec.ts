@@ -1,8 +1,10 @@
 describe('Guerilla Attack Pod', function () {
     integration(function () {
         describe('Guerilla Attack Pod\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['guerilla-attack-pod'],
@@ -17,28 +19,34 @@ describe('Guerilla Attack Pod', function () {
             });
 
             it('should not be ready if no base have more than 15 damage', function () {
-                this.player1.clickCard(this.guerillaAttackPod);
-                expect(this.guerillaAttackPod.exhausted).toBeTrue();
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.guerillaAttackPod);
+                expect(context.guerillaAttackPod.exhausted).toBeTrue();
             });
 
             it('should be ready if p2 base have more than 15 damage', function () {
+                const { context } = contextRef;
+
                 // attack with battlefield marine to trigger guerilla attack pod
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(17);
-                this.player2.passAction();
-                this.player1.clickCard(this.guerillaAttackPod);
-                expect(this.guerillaAttackPod.exhausted).toBeFalse();
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(17);
+                context.player2.passAction();
+                context.player1.clickCard(context.guerillaAttackPod);
+                expect(context.guerillaAttackPod.exhausted).toBeFalse();
             });
 
             it('should be ready if p1 base have more than 15 damage', function () {
+                const { context } = contextRef;
+
                 // attack with rugged survivors to trigger guerilla attack pod
-                this.player1.passAction();
-                this.player2.clickCard(this.ruggedSurvivors);
-                this.player2.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(17);
-                this.player1.clickCard(this.guerillaAttackPod);
-                expect(this.guerillaAttackPod.exhausted).toBeFalse();
+                context.player1.passAction();
+                context.player2.clickCard(context.ruggedSurvivors);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(17);
+                context.player1.clickCard(context.guerillaAttackPod);
+                expect(context.guerillaAttackPod.exhausted).toBeFalse();
             });
 
             // TODO: when gain ambush is working, add test with  ECL to confirm that ambush > ready > attack sequence works right

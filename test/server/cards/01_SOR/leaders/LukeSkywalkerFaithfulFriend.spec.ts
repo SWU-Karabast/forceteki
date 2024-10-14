@@ -1,8 +1,8 @@
 describe('Luke Skywalker, Faithful Friend', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Luke\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['battlefield-marine', 'cartel-spacer', 'alliance-xwing'],
@@ -17,43 +17,47 @@ describe('Luke Skywalker, Faithful Friend', function() {
             });
 
             it('should give a friendly heroism unit played by us this turn a shield token', function () {
-                this.player1.clickCard(this.battlefieldMarine);
+                const { context } = contextRef;
 
-                this.player2.clickCard(this.allianceDispatcher);
+                context.player1.clickCard(context.battlefieldMarine);
 
-                this.player1.clickCard(this.cartelSpacer);
+                context.player2.clickCard(context.allianceDispatcher);
 
-                this.player2.passAction();
+                context.player1.clickCard(context.cartelSpacer);
 
-                const resourcesSpentBeforeLukeActivation = this.player1.countExhaustedResources();
-                this.player1.clickCard(this.lukeSkywalker);
-                this.player1.clickPrompt('Give a shield to a heroism unit you played this phase');
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
-                expect(this.lukeSkywalker.exhausted).toBe(true);
-                expect(this.player1.countExhaustedResources()).toBe(resourcesSpentBeforeLukeActivation + 1);
+                context.player2.passAction();
+
+                const resourcesSpentBeforeLukeActivation = context.player1.countExhaustedResources();
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Give a shield to a heroism unit you played this phase');
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(context.lukeSkywalker.exhausted).toBe(true);
+                expect(context.player1.countExhaustedResources()).toBe(resourcesSpentBeforeLukeActivation + 1);
             });
 
             it('should not be able to give a shield to a unit played in the previous phase', function () {
-                this.player1.clickCard(this.battlefieldMarine);
+                const { context } = contextRef;
 
-                this.moveToNextActionPhase();
+                context.player1.clickCard(context.battlefieldMarine);
 
-                this.player1.clickCard(this.allianceXwing);
+                context.moveToNextActionPhase();
 
-                this.player2.passAction();
+                context.player1.clickCard(context.allianceXwing);
 
-                const resourcesSpentBeforeLukeActivation = this.player1.countExhaustedResources();
-                this.player1.clickCard(this.lukeSkywalker);
-                this.player1.clickPrompt('Give a shield to a heroism unit you played this phase');
-                expect(this.allianceXwing).toHaveExactUpgradeNames(['shield']);
-                expect(this.lukeSkywalker.exhausted).toBe(true);
-                expect(this.player1.countExhaustedResources()).toBe(resourcesSpentBeforeLukeActivation + 1);
+                context.player2.passAction();
+
+                const resourcesSpentBeforeLukeActivation = context.player1.countExhaustedResources();
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Give a shield to a heroism unit you played this phase');
+                expect(context.allianceXwing).toHaveExactUpgradeNames(['shield']);
+                expect(context.lukeSkywalker.exhausted).toBe(true);
+                expect(context.player1.countExhaustedResources()).toBe(resourcesSpentBeforeLukeActivation + 1);
             });
         });
 
         describe('Luke\'s deployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst'],
@@ -68,31 +72,33 @@ describe('Luke Skywalker, Faithful Friend', function() {
             });
 
             it('should give any unit a shield token on attack', function () {
-                this.player1.clickCard(this.lukeSkywalker);
-                this.player1.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.player1).toHavePrompt('Choose a card');
-                expect(this.player1).toHavePassAbilityButton();
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter, this.wampa, this.tieAdvanced]);
-                this.player1.clickCard(this.tielnFighter);
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickCard(context.wampa);
 
-                expect(this.tielnFighter).toHaveExactUpgradeNames(['shield']);
-                expect(this.lukeSkywalker.damage).toBe(4);
-                expect(this.wampa.damage).toBe(4);
+                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter, context.wampa, context.tieAdvanced]);
+                context.player1.clickCard(context.tielnFighter);
+
+                expect(context.tielnFighter).toHaveExactUpgradeNames(['shield']);
+                expect(context.lukeSkywalker.damage).toBe(4);
+                expect(context.wampa.damage).toBe(4);
 
                 // reset for a second attack to confirm that shield gets applied to wampa before the attack damage happens
-                this.lukeSkywalker.damage = 0;
-                this.lukeSkywalker.exhausted = false;
-                this.wampa.damage = 0;
-                this.player2.passAction();
+                context.lukeSkywalker.damage = 0;
+                context.lukeSkywalker.exhausted = false;
+                context.wampa.damage = 0;
+                context.player2.passAction();
 
-                this.player1.clickCard(this.lukeSkywalker);
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.wampa);
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.wampa);
 
-                expect(this.lukeSkywalker.damage).toBe(4);
-                expect(this.wampa.damage).toBe(0);
-                expect(this.wampa.isUpgraded()).toBe(false);
+                expect(context.lukeSkywalker.damage).toBe(4);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.wampa.isUpgraded()).toBe(false);
             });
         });
     });

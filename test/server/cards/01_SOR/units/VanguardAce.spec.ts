@@ -1,8 +1,8 @@
 describe('Vanguard Ace', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Vanguard Ace\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['vanguard-ace', 'daring-raid', 'battlefield-marine', 'academy-training', 'frontier-atrt'],
@@ -14,44 +14,50 @@ describe('Vanguard Ace', function() {
             });
 
             it('gains 1 experience for each other card played by the controller this phase', function () {
-                this.player1.clickCard(this.daringRaid);
-                this.player1.clickCard(this.p2Base);
+                const { context } = contextRef;
 
-                this.player2.clickCard(this.wampa);
+                context.player1.clickCard(context.daringRaid);
+                context.player1.clickCard(context.p2Base);
 
-                this.player1.clickCard(this.battlefieldMarine);
+                context.player2.clickCard(context.wampa);
 
-                this.player2.clickCard(this.atst);
+                context.player1.clickCard(context.battlefieldMarine);
 
-                this.player1.clickCard(this.academyTraining);
-                this.player1.clickCard(this.battlefieldMarine);
+                context.player2.clickCard(context.atst);
 
-                this.player2.passAction();
+                context.player1.clickCard(context.academyTraining);
+                context.player1.clickCard(context.battlefieldMarine);
 
-                this.player1.clickCard(this.vanguardAce);
-                expect(this.vanguardAce).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.vanguardAce);
+                expect(context.vanguardAce).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
 
             it('gains no experience if no other cards have been played', function () {
-                this.player1.clickCard(this.vanguardAce);
-                expect(this.vanguardAce.isUpgraded()).toBe(false);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.vanguardAce);
+                expect(context.vanguardAce.isUpgraded()).toBe(false);
             });
 
             it('does not count cards played in the previous phase', function () {
-                this.player1.clickCard(this.daringRaid);
-                this.player1.clickCard(this.p2Base);
+                const { context } = contextRef;
 
-                this.player2.passAction();
+                context.player1.clickCard(context.daringRaid);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
 
                 // TODO: fix this
-                this.moveToNextActionPhase();
+                context.moveToNextActionPhase();
 
-                this.player1.clickCard(this.battlefieldMarine);
+                context.player1.clickCard(context.battlefieldMarine);
 
-                this.player2.clickCard(this.atst);
+                context.player2.clickCard(context.atst);
 
-                this.player1.clickCard(this.vanguardAce);
-                expect(this.vanguardAce).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickCard(context.vanguardAce);
+                expect(context.vanguardAce).toHaveExactUpgradeNames(['experience']);
             });
 
             // TODO TAKE CONTROL: check that state watchers still work if the card is played by the opponent

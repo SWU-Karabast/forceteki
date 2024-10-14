@@ -1,8 +1,8 @@
 describe('Gamorrean Guards', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Gamorrean Guards\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['strafing-gunship'],
@@ -15,20 +15,22 @@ describe('Gamorrean Guards', function() {
             });
 
             it('should give it sentinel while he has a Cunning ally', function () {
-                this.player1.passAction();
-                this.player2.clickCard(this.wampa);
-                this.player2.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(4);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.strafingGunship);
-                expect(this.strafingGunship.location).toBe('space arena');
-                expect(this.player2).toBeActivePlayer();
+                context.player1.passAction();
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(4);
 
-                this.player2.clickCard(this.battlefieldMarine);
+                context.player1.clickCard(context.strafingGunship);
+                expect(context.strafingGunship.location).toBe('space arena');
+                expect(context.player2).toBeActivePlayer();
+
+                context.player2.clickCard(context.battlefieldMarine);
                 // Gamorrean Guards automatically selected due to sentinel
-                expect(this.battlefieldMarine.location).toBe('discard');
-                expect(this.player1).toBeActivePlayer();
-                expect(this.gamorreanGuards.damage).toBe(3);
+                expect(context.battlefieldMarine.location).toBe('discard');
+                expect(context.player1).toBeActivePlayer();
+                expect(context.gamorreanGuards.damage).toBe(3);
             });
         });
     });

@@ -1,8 +1,8 @@
 describe('Open Fire', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Open Fire\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['open-fire'],
@@ -19,21 +19,25 @@ describe('Open Fire', function() {
             // Similarly this should allow for units behind a sentinal to be selected
 
             it('can damage a unit with a shield, removing only the shield', function () {
-                this.player1.clickCard(this.openFire);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer, this.pykeSentinel, this.fleetLieutenant]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer.isUpgraded()).toBe(false);
-                expect(this.cartelSpacer.damage).toBe(0);
-                expect(this.cartelSpacer).toBeInLocation('space arena', this.player2);
+                context.player1.clickCard(context.openFire);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.pykeSentinel, context.fleetLieutenant]);
+
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer.isUpgraded()).toBe(false);
+                expect(context.cartelSpacer.damage).toBe(0);
+                expect(context.cartelSpacer).toBeInLocation('space arena', context.player2);
             });
 
             it('can damage a unit without a shield, dealing damage to the unit with health to spare', function () {
-                this.player1.clickCard(this.openFire);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer, this.pykeSentinel, this.fleetLieutenant]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa.damage).toBe(4);
+                context.player1.clickCard(context.openFire);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.pykeSentinel, context.fleetLieutenant]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(4);
             });
         });
     });

@@ -1,8 +1,12 @@
 describe('Homestead Militia', function () {
+    const { context } = contextRef;
+
     integration(function () {
         describe('Homestead Militia\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['wampa', 'battlefield-marine'],
@@ -16,29 +20,31 @@ describe('Homestead Militia', function () {
             });
 
             it('should not gain Sentinel with 6 or more resources', function () {
-                this.player1.passAction();
+                const { context } = contextRef;
 
-                this.player2.clickCard(this.cargoJuggernaut);
+                context.player1.passAction();
+
+                context.player2.clickCard(context.cargoJuggernaut);
                 // no sentinel, I can attack base
-                expect(this.player2).toBeAbleToSelectExactly([this.p1Base, this.homesteadMilitia]);
-                this.player2.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(4);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.homesteadMilitia]);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(4);
 
-                this.player1.moveCard(this.wampa, 'resource');
-                this.player1.passAction();
+                context.player1.moveCard(context.wampa, 'resource');
+                context.player1.passAction();
 
-                this.player2.clickCard(this.ruggedSurvivors);
+                context.player2.clickCard(context.ruggedSurvivors);
                 // homestead militia automatically selected because of Sentinel
-                expect(this.player1).toBeActivePlayer();
-                expect(this.homesteadMilitia.damage).toBe(3);
+                expect(context.player1).toBeActivePlayer();
+                expect(context.homesteadMilitia.damage).toBe(3);
 
                 // remove resource and check if homestead militia lost sentinel
-                this.player1.moveCard(this.wampa, 'hand', 'resource');
-                this.player1.passAction();
-                this.player2.clickCard(this.atst);
-                expect(this.player2).toBeAbleToSelectExactly([this.p1Base, this.homesteadMilitia]);
-                this.player2.clickCard(this.p1Base);
-                expect(this.p1Base.damage).toBe(10);
+                context.player1.moveCard(context.wampa, 'hand', 'resource');
+                context.player1.passAction();
+                context.player2.clickCard(context.atst);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.homesteadMilitia]);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(10);
             });
         });
     });

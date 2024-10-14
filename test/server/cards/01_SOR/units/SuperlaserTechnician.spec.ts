@@ -1,8 +1,8 @@
 describe('Superlaser Technician', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Superlaser Technician\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['superlaser-technician']
@@ -14,17 +14,19 @@ describe('Superlaser Technician', function() {
             });
 
             it('should allow the controller to put the defeated Technician into play as a resource and ready it', function () {
-                this.player1.clickCard(this.superlaserTechnician);
-                this.player1.clickCard(this.sundariPeacekeeper);
+                const { context } = contextRef;
 
-                const readyResourcesBeforeTrigger = this.player1.countSpendableResources();
-                expect(this.player1).toHavePassAbilityPrompt('Put Superlaser Technician into play as a resource and ready it');
-                this.player1.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
+                context.player1.clickCard(context.superlaserTechnician);
+                context.player1.clickCard(context.sundariPeacekeeper);
 
-                expect(this.player1.countSpendableResources()).toBe(readyResourcesBeforeTrigger + 1);
-                expect(this.superlaserTechnician).toBeInLocation('resource');
-                expect(this.superlaserTechnician.exhausted).toBe(false);
-                expect(this.player2).toBeActivePlayer();
+                const readyResourcesBeforeTrigger = context.player1.countSpendableResources();
+                expect(context.player1).toHavePassAbilityPrompt('Put Superlaser Technician into play as a resource and ready it');
+                context.player1.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
+
+                expect(context.player1.countSpendableResources()).toBe(readyResourcesBeforeTrigger + 1);
+                expect(context.superlaserTechnician).toBeInLocation('resource');
+                expect(context.superlaserTechnician.exhausted).toBe(false);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

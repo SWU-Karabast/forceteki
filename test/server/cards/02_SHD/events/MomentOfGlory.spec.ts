@@ -1,8 +1,10 @@
 describe('Moment of Glory', function () {
     integration(function () {
         describe('Moment of Glory\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['moment-of-glory'],
@@ -17,18 +19,20 @@ describe('Moment of Glory', function () {
             });
 
             it('can buff a unit', function () {
-                this.player1.clickCard(this.momentOfGlory);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.sabineWren, this.wampa, this.imperialInterceptor]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel.getPower()).toBe(6);
-                expect(this.pykeSentinel.getHp()).toBe(7);
+                context.player1.clickCard(context.momentOfGlory);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.sabineWren, context.wampa, context.imperialInterceptor]);
 
-                this.player2.clickCard(this.atst);
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel.getPower()).toBe(6);
+                expect(context.pykeSentinel.getHp()).toBe(7);
+
+                context.player2.clickCard(context.atst);
                 // pyke sentinel is automatically choose
-                expect(this.atst.damage).toBe(6);
-                expect(this.pykeSentinel.damage).toBe(6);
-                expect(this.pykeSentinel).toBeInLocation('ground arena');
+                expect(context.atst.damage).toBe(6);
+                expect(context.pykeSentinel.damage).toBe(6);
+                expect(context.pykeSentinel).toBeInLocation('ground arena');
             });
         });
     });

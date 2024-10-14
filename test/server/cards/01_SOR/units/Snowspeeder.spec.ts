@@ -2,7 +2,7 @@ describe('Snowspeeder', function() {
     integration(function () {
         describe('Snowspeeder\'s ability -', function() {
             beforeEach(function() {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['snowspeeder'],
@@ -16,13 +16,13 @@ describe('Snowspeeder', function() {
             });
 
             it('should exhaust chosen enemy Vehicle ground unit', function() {
-                this.player1.clickCard(this.snowspeeder);
-                this.player1.clickPrompt('Ambush');
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.occupierSiegeTank]);
+                context.player1.clickCard(context.snowspeeder);
+                context.player1.clickPrompt('Ambush');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.occupierSiegeTank]);
 
-                this.player1.clickCard(this.atst);
+                context.player1.clickCard(context.atst);
 
-                expect(this.atst.exhausted).toBe(true);
+                expect(context.atst.exhausted).toBe(true);
             });
         });
     });

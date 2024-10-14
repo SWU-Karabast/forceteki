@@ -1,8 +1,8 @@
 describe('Cantina Bouncer', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Cantina Bouncer\'s ability', function() {
             beforeEach(function() {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['cantina-bouncer'],
@@ -17,12 +17,12 @@ describe('Cantina Bouncer', function() {
             });
 
             it('should allow player to return an non-leader unit to its owner\'s hand', function() {
-                this.player1.clickCard(this.cantinaBouncer);
-                expect(this.player1).toBeAbleToSelectExactly([this.viperProbeDroid, this.cantinaBouncer, this.wampa]);
-                expect(this.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.cantinaBouncer);
+                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.cantinaBouncer, context.wampa]);
+                expect(context.player1).toHavePassAbilityButton();
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa).toBeInLocation('hand');
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInLocation('hand');
             });
         });
     });

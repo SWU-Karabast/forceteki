@@ -1,8 +1,8 @@
 describe('Raid keyword', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit with the Raid keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['cantina-braggart'],
@@ -14,35 +14,39 @@ describe('Raid keyword', function() {
             });
 
             it('attacks, power should be increased by raid amount', function () {
-                this.player1.clickCard(this.cantinaBraggart);
-                this.player1.clickCard(this.p2Base);
-                expect(this.cantinaBraggart.exhausted).toBe(true);
-                expect(this.cantinaBraggart.getPower()).toBe(0);
-                expect(this.p2Base.damage).toBe(2);
+                const { context } = contextRef;
 
-                this.cantinaBraggart.exhausted = false;
-                this.player2.passAction();
+                context.player1.clickCard(context.cantinaBraggart);
+                context.player1.clickCard(context.p2Base);
+                expect(context.cantinaBraggart.exhausted).toBe(true);
+                expect(context.cantinaBraggart.getPower()).toBe(0);
+                expect(context.p2Base.damage).toBe(2);
 
-                this.player1.clickCard(this.cantinaBraggart);
-                this.player1.clickCard(this.p2Base);
-                expect(this.cantinaBraggart.getPower()).toBe(0);
-                expect(this.p2Base.damage).toBe(4);
+                context.cantinaBraggart.exhausted = false;
+                context.player2.passAction();
+
+                context.player1.clickCard(context.cantinaBraggart);
+                context.player1.clickCard(context.p2Base);
+                expect(context.cantinaBraggart.getPower()).toBe(0);
+                expect(context.p2Base.damage).toBe(4);
             });
 
             it('defends, power should not be increased by raid amount', function () {
-                this.player2.setActivePlayer();
-                this.player2.clickCard(this.battlefieldMarine);
-                this.player2.clickCard(this.cantinaBraggart);
+                const { context } = contextRef;
 
-                expect(this.battlefieldMarine.damage).toBe(0);
-                expect(this.cantinaBraggart).toBeInLocation('discard');
+                context.player2.setActivePlayer();
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.cantinaBraggart);
+
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.cantinaBraggart).toBeInLocation('discard');
             });
         });
 
         // TODO Test that Red Three raid buff stacks and is then removed when Red Three is out of play
         // describe('When a unit with the Raid keyword and a gained Raid ability', function() {
         //     beforeEach(function () {
-        //         this.setupTest({
+        //         contextRef.setupTest({
         //             phase: 'action',
         //             player1: {
         //                 groundArena: ['cantina-braggart'],
@@ -51,14 +55,16 @@ describe('Raid keyword', function() {
         //                 groundArena: ['battlefield-marine'],
         //             }
         //         });
-        //         this.cantinaBraggart = this.player1.findCardByName('cantina-braggart');
-        //         this.battlefieldMarine = this.player2.findCardByName('battlefield-marine');
+        //         context.cantinaBraggart = context.player1.findCardByName('cantina-braggart');
+        //         context.battlefieldMarine = context.player2.findCardByName('battlefield-marine');
 
-        //         this.p1Base = this.player1.base;
-        //         this.p2Base = this.player2.base;
+        //         context.p1Base = context.player1.base;
+        //         context.p2Base = context.player2.base;
         //     });
 
         //     it('attacks, base should have the cumulative raid amount', function () {
+        const { context } = contextRef;
+
         //     });
         // });
 

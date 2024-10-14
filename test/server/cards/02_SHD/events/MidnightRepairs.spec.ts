@@ -1,8 +1,10 @@
 describe('Midnight Repairs', function () {
     integration(function () {
         describe('Midnight Repairs\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['midnight-repairs'],
@@ -18,56 +20,62 @@ describe('Midnight Repairs', function () {
             });
 
             it('should remove 8 total damage from friendly and enemy units', function () {
-                this.player1.clickCard(this.midnightRepairs);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.sabineWren, this.wampa, this.imperialInterceptor]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.setDistributeHealingPromptState(new Map([
-                    [this.pykeSentinel, 2],
-                    [this.cartelSpacer, 2],
-                    [this.sabineWren, 3],
-                    [this.wampa, 1]
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.midnightRepairs);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.sabineWren, context.wampa, context.imperialInterceptor]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.setDistributeHealingPromptState(new Map([
+                    [context.pykeSentinel, 2],
+                    [context.cartelSpacer, 2],
+                    [context.sabineWren, 3],
+                    [context.wampa, 1]
                 ]));
 
-                expect(this.pykeSentinel.damage).toBe(0);
-                expect(this.cartelSpacer.damage).toBe(0);
-                expect(this.sabineWren.damage).toBe(1);
-                expect(this.wampa.damage).toBe(2);
-                expect(this.imperialInterceptor.damage).toBe(1);
-                expect(this.player2).toBeActivePlayer();
+                expect(context.pykeSentinel.damage).toBe(0);
+                expect(context.cartelSpacer.damage).toBe(0);
+                expect(context.sabineWren.damage).toBe(1);
+                expect(context.wampa.damage).toBe(2);
+                expect(context.imperialInterceptor.damage).toBe(1);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should be able to remove less than 8 damage', function () {
-                this.player1.clickCard(this.midnightRepairs);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.sabineWren, this.wampa, this.imperialInterceptor]);
-                this.player1.setDistributeHealingPromptState(new Map([
-                    [this.sabineWren, 3],
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.midnightRepairs);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.sabineWren, context.wampa, context.imperialInterceptor]);
+                context.player1.setDistributeHealingPromptState(new Map([
+                    [context.sabineWren, 3],
                 ]));
 
-                expect(this.pykeSentinel.damage).toBe(1);
-                expect(this.cartelSpacer.damage).toBe(0);
-                expect(this.sabineWren.damage).toBe(1);
-                expect(this.wampa.damage).toBe(3);
-                expect(this.imperialInterceptor.damage).toBe(1);
-                expect(this.player2).toBeActivePlayer();
+                expect(context.pykeSentinel.damage).toBe(1);
+                expect(context.cartelSpacer.damage).toBe(0);
+                expect(context.sabineWren.damage).toBe(1);
+                expect(context.wampa.damage).toBe(3);
+                expect(context.imperialInterceptor.damage).toBe(1);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should be able to choose 0 targets', function () {
-                this.player1.clickCard(this.midnightRepairs);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.cartelSpacer, this.sabineWren, this.wampa, this.imperialInterceptor]);
-                this.player1.clickPrompt('Choose no targets');
+                const { context } = contextRef;
 
-                expect(this.pykeSentinel.damage).toBe(1);
-                expect(this.cartelSpacer.damage).toBe(0);
-                expect(this.sabineWren.damage).toBe(4);
-                expect(this.wampa.damage).toBe(3);
-                expect(this.imperialInterceptor.damage).toBe(1);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.midnightRepairs);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.sabineWren, context.wampa, context.imperialInterceptor]);
+                context.player1.clickPrompt('Choose no targets');
+
+                expect(context.pykeSentinel.damage).toBe(1);
+                expect(context.cartelSpacer.damage).toBe(0);
+                expect(context.sabineWren.damage).toBe(4);
+                expect(context.wampa.damage).toBe(3);
+                expect(context.imperialInterceptor.damage).toBe(1);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('Midnight Repairs\'s ability, if there is only one target for healing,', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['midnight-repairs'],
@@ -79,8 +87,10 @@ describe('Midnight Repairs', function () {
             });
 
             it('should not automatically select that target', function () {
-                this.player1.clickCard(this.midnightRepairs);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine]);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.midnightRepairs);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
             });
         });
     });

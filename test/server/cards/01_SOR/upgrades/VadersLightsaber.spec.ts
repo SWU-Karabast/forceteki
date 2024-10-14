@@ -1,8 +1,8 @@
 describe('Vader\'s Lightsaber', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Vader\'s Lightsaber\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['vaders-lightsaber'],
@@ -17,32 +17,36 @@ describe('Vader\'s Lightsaber', function() {
             });
 
             it('should deal 4 damage to a ground unit when attached to the Darth Vader unit', function () {
-                this.player1.clickCard(this.vadersLightsaber);
-                expect(this.player1).toBeAbleToSelectExactly([this.darthVader, this.wampa]);    // cannot attach to vehicles
-                this.player1.clickCard(this.darthVader);
+                const { context } = contextRef;
 
-                expect(this.darthVader).toHaveExactUpgradeNames(['vaders-lightsaber']);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.darthVader]);
-                expect(this.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.vadersLightsaber);
+                expect(context.player1).toBeAbleToSelectExactly([context.darthVader, context.wampa]);    // cannot attach to vehicles
+                context.player1.clickCard(context.darthVader);
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa.damage).toBe(4);
+                expect(context.darthVader).toHaveExactUpgradeNames(['vaders-lightsaber']);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.darthVader]);
+                expect(context.player1).toHavePassAbilityButton();
 
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(4);
+
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should do nothing when attached to a unit that is not Darth Vader', function () {
-                this.player1.clickCard(this.vadersLightsaber);
-                this.player1.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.wampa).toHaveExactUpgradeNames(['vaders-lightsaber']);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.vadersLightsaber);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toHaveExactUpgradeNames(['vaders-lightsaber']);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('Vader\'s Lightsaber\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['vaders-lightsaber'],
@@ -57,17 +61,19 @@ describe('Vader\'s Lightsaber', function() {
             });
 
             it('should deal 4 damage to a ground unit when attached to the Darth Vader leader', function () {
-                this.player1.clickCard(this.vadersLightsaber);
-                this.player1.clickCard(this.darthVader);
+                const { context } = contextRef;
 
-                expect(this.darthVader).toHaveExactUpgradeNames(['vaders-lightsaber']);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.darthVader]);
-                expect(this.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.vadersLightsaber);
+                context.player1.clickCard(context.darthVader);
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa.damage).toBe(4);
+                expect(context.darthVader).toHaveExactUpgradeNames(['vaders-lightsaber']);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.darthVader]);
+                expect(context.player1).toHavePassAbilityButton();
 
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(4);
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

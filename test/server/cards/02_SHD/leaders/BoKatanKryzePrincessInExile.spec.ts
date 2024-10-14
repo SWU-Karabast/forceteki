@@ -1,8 +1,8 @@
 describe('Bo-Katan Kryze, Princess in Exile', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Bo-Katan\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['mandalorian-warrior', 'battlefield-marine'],
@@ -17,55 +17,57 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
             });
 
             it('should only have an effect if the controller played has attack with a mandalorian this phase, but still be usable otherwise', function () {
-                // no attack done; ability has no effect
-                expect(this.bokatanKryze).toHaveAvailableActionWhenClickedBy(this.player1);
-                expect(this.bokatanKryze.exhausted).toBeTrue();
-                expect(this.mandalorianWarrior.damage).toBe(0);
-                expect(this.battlefieldMarine.damage).toBe(0);
-                expect(this.protectorOfTheThrone.damage).toBe(0);
-                expect(this.allianceXwing.damage).toBe(0);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.p2Base.damage).toBe(0);
-                expect(this.player2).toBeActivePlayer();
+                const { context } = contextRef;
 
-                this.bokatanKryze.exhausted = false;
-                this.player2.passAction();
+                // no attack done; ability has no effect
+                expect(context.bokatanKryze).toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.bokatanKryze.exhausted).toBeTrue();
+                expect(context.mandalorianWarrior.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.protectorOfTheThrone.damage).toBe(0);
+                expect(context.allianceXwing.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+
+                context.bokatanKryze.exhausted = false;
+                context.player2.passAction();
 
                 // no attack done with mandalorian, ability has no effect
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.p2Base);
-                this.player2.passAction();
-                this.player1.clickCard(this.bokatanKryze);
-                expect(this.bokatanKryze.exhausted).toBeTrue();
-                expect(this.mandalorianWarrior.damage).toBe(0);
-                expect(this.battlefieldMarine.damage).toBe(0);
-                expect(this.protectorOfTheThrone.damage).toBe(0);
-                expect(this.allianceXwing.damage).toBe(0);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.p2Base.damage).toBe(3);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+                context.player2.passAction();
+                context.player1.clickCard(context.bokatanKryze);
+                expect(context.bokatanKryze.exhausted).toBeTrue();
+                expect(context.mandalorianWarrior.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.protectorOfTheThrone.damage).toBe(0);
+                expect(context.allianceXwing.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
 
                 // attack with a mandalorian
-                this.bokatanKryze.exhausted = false;
-                this.player2.passAction();
-                this.player1.clickCard(this.mandalorianWarrior);
-                this.player1.clickCard(this.p2Base);
+                context.bokatanKryze.exhausted = false;
+                context.player2.passAction();
+                context.player1.clickCard(context.mandalorianWarrior);
+                context.player1.clickCard(context.p2Base);
 
                 // attack was done with mandalorian, ability should have an effect
-                this.player2.passAction();
-                this.player1.clickCard(this.bokatanKryze);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.protectorOfTheThrone, this.allianceXwing]);
-                expect(this.player1).not.toHavePassAbilityButton();
-                this.player1.clickCard(this.allianceXwing);
-                expect(this.protectorOfTheThrone.damage).toBe(0);
-                expect(this.allianceXwing.damage).toBe(1);
-                expect(this.bokatanKryze.exhausted).toBeTrue();
+                context.player2.passAction();
+                context.player1.clickCard(context.bokatanKryze);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.protectorOfTheThrone, context.allianceXwing]);
+                expect(context.player1).not.toHavePassAbilityButton();
+                context.player1.clickCard(context.allianceXwing);
+                expect(context.protectorOfTheThrone.damage).toBe(0);
+                expect(context.allianceXwing.damage).toBe(1);
+                expect(context.bokatanKryze.exhausted).toBeTrue();
             });
         });
 
         describe('Bo-Katan\'s deployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['mandalorian-warrior', 'battlefield-marine'],
@@ -79,89 +81,91 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
             });
 
             it('should deal one damage to 1 or 2 units depends on if you already attack with mandalorian', function () {
+                const { context } = contextRef;
+
                 // first attack : only 1 damage
-                this.player1.clickCard(this.bokatanKryze);
-                this.player1.clickCard(this.p2Base);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.protectorOfTheThrone);
-                expect(this.p2Base.damage).toBe(4);
-                expect(this.protectorOfTheThrone.damage).toBe(1);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.protectorOfTheThrone);
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.protectorOfTheThrone.damage).toBe(1);
+                expect(context.player2).toBeActivePlayer();
 
                 // if you attack again with bo katan : only 1 damage trigger
-                this.bokatanKryze.exhausted = false;
-                this.player2.passAction();
-                this.player1.clickCard(this.bokatanKryze);
-                this.player1.clickCard(this.p2Base);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.bokatanKryze);
-                expect(this.player2).toBeActivePlayer();
-                this.player2.passAction();
+                context.bokatanKryze.exhausted = false;
+                context.player2.passAction();
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.bokatanKryze);
+                expect(context.player2).toBeActivePlayer();
+                context.player2.passAction();
 
                 // attack with a mandalorian
-                this.player1.clickCard(this.mandalorianWarrior);
-                this.player1.clickCard(this.p2Base);
-                this.bokatanKryze.exhausted = false;
-                this.player2.passAction();
+                context.player1.clickCard(context.mandalorianWarrior);
+                context.player1.clickCard(context.p2Base);
+                context.bokatanKryze.exhausted = false;
+                context.player2.passAction();
 
                 // 2 triggers as we attack with another mandalorian (1 damage to 2 different unit)
-                this.player1.clickCard(this.bokatanKryze);
-                this.player1.clickCard(this.p2Base);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toHaveChooseNoTargetButton();
                 // prompt does not change between 2 effects of bo katan ability
-                this.player1.clickCardNonChecking(this.protectorOfTheThrone);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.allianceXwing);
-                expect(this.allianceXwing.damage).toBe(1);
+                context.player1.clickCardNonChecking(context.protectorOfTheThrone);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.allianceXwing);
+                expect(context.allianceXwing.damage).toBe(1);
                 // 1 damage from previously
-                expect(this.protectorOfTheThrone.damage).toBe(2);
+                expect(context.protectorOfTheThrone.damage).toBe(2);
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit)
-                this.bokatanKryze.exhausted = false;
-                this.player2.passAction();
-                this.player1.clickCard(this.bokatanKryze);
-                this.player1.clickCard(this.p2Base);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHaveChooseNoTargetButton();
+                context.bokatanKryze.exhausted = false;
+                context.player2.passAction();
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toHaveChooseNoTargetButton();
                 // prompt does not change between 2 effects of bo katan ability
-                this.player1.clickCardNonChecking(this.battlefieldMarine);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.battlefieldMarine);
-                expect(this.battlefieldMarine.damage).toBe(2);
+                context.player1.clickCardNonChecking(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine.damage).toBe(2);
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit who die on first damage)
-                this.bokatanKryze.exhausted = false;
-                this.player2.passAction();
-                this.player1.clickCard(this.bokatanKryze);
-                this.player1.clickCard(this.p2Base);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing, this.jedhaAgitator]);
-                expect(this.player1).toHaveChooseNoTargetButton();
+                context.bokatanKryze.exhausted = false;
+                context.player2.passAction();
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toHaveChooseNoTargetButton();
                 // prompt does not change between 2 effects of bo katan ability
-                this.player1.clickCard(this.jedhaAgitator);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.bokatanKryze);
-                expect(this.jedhaAgitator.location).toBe('discard');
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.jedhaAgitator);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.bokatanKryze);
+                expect(context.jedhaAgitator.location).toBe('discard');
+                expect(context.player2).toBeActivePlayer();
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit who die on first damage)
-                this.bokatanKryze.exhausted = false;
-                this.player2.passAction();
-                this.player1.clickCard(this.bokatanKryze);
-                this.player1.clickCard(this.p2Base);
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing]);
-                expect(this.player1).toHaveChooseNoTargetButton();
+                context.bokatanKryze.exhausted = false;
+                context.player2.passAction();
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
+                expect(context.player1).toHaveChooseNoTargetButton();
                 // prompt does not change between 2 effects of bo katan ability
-                this.player1.clickPrompt('Choose no target');
-                expect(this.player1).toBeAbleToSelectExactly([this.mandalorianWarrior, this.battlefieldMarine, this.bokatanKryze, this.protectorOfTheThrone, this.allianceXwing]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.bokatanKryze);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickPrompt('Choose no target');
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.bokatanKryze);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

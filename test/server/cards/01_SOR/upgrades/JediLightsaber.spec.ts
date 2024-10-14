@@ -1,8 +1,8 @@
 describe('Jedi Lightsaber', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Jedi Lightsaber\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'grogu#irresistible', upgrades: ['jedi-lightsaber'] }],
@@ -15,61 +15,63 @@ describe('Jedi Lightsaber', function() {
             });
 
             it('should give -2/-2 to the defender when attached to a Force unit', function () {
-                // CASE 1: defender survives
-                this.player1.clickCard(this.grogu);
-                this.player1.clickPrompt('Attack');
-                this.player1.clickCard(this.atst);
+                const { context } = contextRef;
 
-                expect(this.grogu.damage).toBe(4);
-                expect(this.grogu.exhausted).toBe(true);
-                expect(this.atst.damage).toBe(3);
-                expect(this.atst.getPower()).toBe(4);
-                expect(this.atst.getHp()).toBe(5);
-                expect(this.atst.remainingHp).toBe(2);
+                // CASE 1: defender survives
+                context.player1.clickCard(context.grogu);
+                context.player1.clickPrompt('Attack');
+                context.player1.clickCard(context.atst);
+
+                expect(context.grogu.damage).toBe(4);
+                expect(context.grogu.exhausted).toBe(true);
+                expect(context.atst.damage).toBe(3);
+                expect(context.atst.getPower()).toBe(4);
+                expect(context.atst.getHp()).toBe(5);
+                expect(context.atst.remainingHp).toBe(2);
 
                 // CASE 1.1: unit with -2/-2 does an attack to confirm its stats
-                this.grogu.damage = 0;
-                this.player2.clickCard(this.atst);
-                this.player2.clickCard(this.grogu);
-                expect(this.grogu.damage).toBe(4);
-                expect(this.atst).toBeInLocation('discard');
+                context.grogu.damage = 0;
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.grogu);
+                expect(context.grogu.damage).toBe(4);
+                expect(context.atst).toBeInLocation('discard');
 
                 // CASE 2: defender dies from combined attack damage and hp effect
-                this.grogu.exhausted = false;
-                this.grogu.damage = 0;
-                this.player1.clickCard(this.grogu);
-                this.player1.clickPrompt('Attack');
-                this.player1.clickCard(this.wampa);
+                context.grogu.exhausted = false;
+                context.grogu.damage = 0;
+                context.player1.clickCard(context.grogu);
+                context.player1.clickPrompt('Attack');
+                context.player1.clickCard(context.wampa);
 
-                expect(this.grogu.damage).toBe(2);
-                expect(this.grogu.exhausted).toBe(true);
-                expect(this.wampa).toBeInLocation('discard');
+                expect(context.grogu.damage).toBe(2);
+                expect(context.grogu.exhausted).toBe(true);
+                expect(context.wampa).toBeInLocation('discard');
 
                 // CASE 3: defender dies from hp effect before attack resolves
-                this.player2.passAction();
-                this.grogu.exhausted = false;
-                this.grogu.damage = 0;
-                this.player1.clickCard(this.grogu);
-                this.player1.clickPrompt('Attack');
-                this.player1.clickCard(this.specforceSoldier);
+                context.player2.passAction();
+                context.grogu.exhausted = false;
+                context.grogu.damage = 0;
+                context.player1.clickCard(context.grogu);
+                context.player1.clickPrompt('Attack');
+                context.player1.clickCard(context.specforceSoldier);
 
-                expect(this.grogu.damage).toBe(0);
-                expect(this.grogu.exhausted).toBe(true);
-                expect(this.specforceSoldier).toBeInLocation('discard');
+                expect(context.grogu.damage).toBe(0);
+                expect(context.grogu.exhausted).toBe(true);
+                expect(context.specforceSoldier).toBeInLocation('discard');
 
                 // CASE 4: no effect when attacking a base
-                this.player2.passAction();
-                this.grogu.exhausted = false;
-                this.player1.clickCard(this.grogu);
-                this.player1.clickPrompt('Attack');
+                context.player2.passAction();
+                context.grogu.exhausted = false;
+                context.player1.clickCard(context.grogu);
+                context.player1.clickPrompt('Attack');
 
-                expect(this.p2Base.getHp()).toBe(30);
+                expect(context.p2Base.getHp()).toBe(30);
             });
         });
 
         describe('Jedi Lightsaber\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber'] }],
@@ -81,20 +83,22 @@ describe('Jedi Lightsaber', function() {
             });
 
             it('should not do anything when not attached to a Force unit', function () {
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.consularSecurityForce);
+                const { context } = contextRef;
 
-                expect(this.consularSecurityForce.getPower()).toBe(3);
-                expect(this.consularSecurityForce.getHp()).toBe(7);
-                expect(this.consularSecurityForce.damage).toBe(6);
-                expect(this.battlefieldMarine.damage).toBe(3);
-                expect(this.battlefieldMarine.exhausted).toBe(true);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                expect(context.consularSecurityForce.getPower()).toBe(3);
+                expect(context.consularSecurityForce.getHp()).toBe(7);
+                expect(context.consularSecurityForce.damage).toBe(6);
+                expect(context.battlefieldMarine.damage).toBe(3);
+                expect(context.battlefieldMarine.exhausted).toBe(true);
             });
         });
 
         describe('Jedi Lightsaber', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['jedi-lightsaber'],
@@ -106,8 +110,10 @@ describe('Jedi Lightsaber', function() {
             });
 
             it('should not be playable on vehicles', function () {
-                this.player1.clickCard(this.jediLightsaber);
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.jediLightsaber);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
             });
         });
     });

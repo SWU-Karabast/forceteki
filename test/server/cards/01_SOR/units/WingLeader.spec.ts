@@ -1,8 +1,8 @@
 describe('Wing Leader', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Wing Leader\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['wing-leader'],
@@ -15,19 +15,23 @@ describe('Wing Leader', function() {
             });
 
             it('can give two experience to a unit', function () {
-                this.player1.clickCard(this.wingLeader);
-                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.rebelPathfinder]);
-                this.player1.clickCard(this.fleetLieutenant);
+                const { context } = contextRef;
 
-                expect(this.fleetLieutenant).toHaveExactUpgradeNames(['experience', 'experience']);
+                context.player1.clickCard(context.wingLeader);
+                expect(context.player1).toBeAbleToSelectExactly([context.fleetLieutenant, context.rebelPathfinder]);
+                context.player1.clickCard(context.fleetLieutenant);
+
+                expect(context.fleetLieutenant).toHaveExactUpgradeNames(['experience', 'experience']);
             });
 
             it('can give two experience to a unit that already has an experience', function () {
-                this.player1.clickCard(this.wingLeader);
-                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.rebelPathfinder]);
-                this.player1.clickCard(this.rebelPathfinder);
+                const { context } = contextRef;
 
-                expect(this.rebelPathfinder).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
+                context.player1.clickCard(context.wingLeader);
+                expect(context.player1).toBeAbleToSelectExactly([context.fleetLieutenant, context.rebelPathfinder]);
+                context.player1.clickCard(context.rebelPathfinder);
+
+                expect(context.rebelPathfinder).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
         });
     });

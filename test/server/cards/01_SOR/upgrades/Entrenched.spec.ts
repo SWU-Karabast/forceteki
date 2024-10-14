@@ -1,8 +1,8 @@
 describe('Entrenched', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Entrenched\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', upgrades: ['entrenched'] }],
@@ -15,21 +15,25 @@ describe('Entrenched', function() {
             });
 
             it('should prevent a unit from being able to attack base', function () {
-                this.player1.clickCard(this.tielnFighter);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tielnFighter);
 
                 // attack resolved automatically since there's only one legal target
-                expect(this.brightHope.damage).toBe(5);
-                expect(this.tielnFighter.damage).toBe(2);
+                expect(context.brightHope.damage).toBe(5);
+                expect(context.tielnFighter.damage).toBe(2);
             });
 
             it('should prevent a unit with no opposing arena units from having the option to attack', function () {
-                expect(this.wampa).not.toHaveAvailableActionWhenClickedBy(this.player1);
+                const { context } = contextRef;
+
+                expect(context.wampa).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
 
         describe('Entrenched\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['entrenched'],
@@ -42,14 +46,16 @@ describe('Entrenched', function() {
             });
 
             it('should work on an opponent\'s unit', function () {
+                const { context } = contextRef;
+
                 // play entrenched on opponent's card
-                this.player1.clickCard(this.entrenched);
-                this.player1.clickCard(this.tielnFighter);
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickCard(context.tielnFighter);
 
                 // perform attack, resolves automatically since there's only one legal target
-                this.player2.clickCard(this.tielnFighter);
-                expect(this.brightHope.damage).toBe(5);
-                expect(this.tielnFighter.damage).toBe(2);
+                context.player2.clickCard(context.tielnFighter);
+                expect(context.brightHope.damage).toBe(5);
+                expect(context.tielnFighter.damage).toBe(2);
             });
         });
     });

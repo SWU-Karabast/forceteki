@@ -1,8 +1,8 @@
 describe('Grogu, Irresistible', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Grogu\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['grogu#irresistible', 'wampa'],
@@ -17,26 +17,28 @@ describe('Grogu, Irresistible', function() {
             });
 
             it('should exhaust a selected enemy unit', function () {
-                this.player1.clickCard(this.grogu);
-                this.player1.clickPrompt('Exhaust an enemy unit');
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.grogu);
+                context.player1.clickPrompt('Exhaust an enemy unit');
 
                 // can target opponent's units only
-                expect(this.player1).toBeAbleToSelectExactly([this.frontierAtrt, this.enfysNest]);
+                expect(context.player1).toBeAbleToSelectExactly([context.frontierAtrt, context.enfysNest]);
 
-                this.player1.clickCard(this.enfysNest);
-                expect(this.grogu.exhausted).toBe(true);
-                expect(this.enfysNest.exhausted).toBe(true);
+                context.player1.clickCard(context.enfysNest);
+                expect(context.grogu.exhausted).toBe(true);
+                expect(context.enfysNest.exhausted).toBe(true);
 
-                this.player2.passAction();
+                context.player2.passAction();
 
                 // this is a general test of the exhaustSelf cost mechanic, don't need to repeat it for other cards that have an exhaustSelf cost
-                expect(this.grogu).not.toHaveAvailableActionWhenClickedBy(this.player1);
+                expect(context.grogu).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
 
         describe('Grogu\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['grogu#irresistible'],
@@ -47,11 +49,13 @@ describe('Grogu, Irresistible', function() {
             });
 
             it('should activate with no targets', function () {
-                this.player1.clickCard(this.grogu);
-                expect(this.player1).toHaveEnabledPromptButton('Attack');
-                expect(this.player1).toHaveEnabledPromptButton('Exhaust an enemy unit');
-                this.player1.clickPrompt('Exhaust an enemy unit');
-                expect(this.grogu.exhausted).toBe(true);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.grogu);
+                expect(context.player1).toHaveEnabledPromptButton('Attack');
+                expect(context.player1).toHaveEnabledPromptButton('Exhaust an enemy unit');
+                context.player1.clickPrompt('Exhaust an enemy unit');
+                expect(context.grogu.exhausted).toBe(true);
             });
         });
     });

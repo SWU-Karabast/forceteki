@@ -1,8 +1,8 @@
 describe('General Krell, Heartless Tactician', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Krell\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['battlefield-marine'],
@@ -18,56 +18,58 @@ describe('General Krell, Heartless Tactician', function() {
             });
 
             it('grants a "draw card on defeat" ability to all other friendly units', function () {
-                const startingHandSize = this.player1.handSize;
+                const { context } = contextRef;
+
+                const startingHandSize = context.player1.handSize;
 
                 // CASE 1: friendly and enemy unit trade, draw 1 card only
-                this.player1.clickCard(this.syndicateLackeys);
-                this.player1.clickCard(this.wampa);
-                expect(this.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                this.player1.clickPrompt('Draw a card');
-                expect(this.syndicateLackeys).toBeInLocation('discard');
-                expect(this.player1.handSize).toBe(startingHandSize + 1);
+                context.player1.clickCard(context.syndicateLackeys);
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                context.player1.clickPrompt('Draw a card');
+                expect(context.syndicateLackeys).toBeInLocation('discard');
+                expect(context.player1.handSize).toBe(startingHandSize + 1);
 
                 // CASE 2: friendly leader dies, draw card
-                this.player2.passAction();
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickCard(this.atatSuppressor);
-                expect(this.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                this.player1.clickPrompt('Draw a card');
-                expect(this.leiaOrgana).toBeInLocation('base');
-                expect(this.player1.handSize).toBe(startingHandSize + 2);
+                context.player2.passAction();
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickCard(context.atatSuppressor);
+                expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                context.player1.clickPrompt('Draw a card');
+                expect(context.leiaOrgana).toBeInLocation('base');
+                expect(context.player1.handSize).toBe(startingHandSize + 2);
 
                 // CASE 3: unit played while Krell is on the field gains the effect
-                this.player2.passAction();
-                this.player1.clickCard(this.battlefieldMarine);
-                this.battlefieldMarine.exhausted = false;
-                this.player2.passAction();
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.atatSuppressor);
-                expect(this.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                this.player1.clickPrompt('Draw a card');
-                expect(this.battlefieldMarine).toBeInLocation('discard');
-                expect(this.player1.handSize).toBe(startingHandSize + 2);   // hand size goes down by 1 from playing the marine
+                context.player2.passAction();
+                context.player1.clickCard(context.battlefieldMarine);
+                context.battlefieldMarine.exhausted = false;
+                context.player2.passAction();
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.atatSuppressor);
+                expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                context.player1.clickPrompt('Draw a card');
+                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.player1.handSize).toBe(startingHandSize + 2);   // hand size goes down by 1 from playing the marine
 
                 // CASE 4: Krell dies, no card
-                this.player2.passAction();
-                this.player1.clickCard(this.generalKrell);
-                this.player1.clickCard(this.atatSuppressor);
-                expect(this.generalKrell).toBeInLocation('discard');
-                expect(this.player1.handSize).toBe(startingHandSize + 2);
+                context.player2.passAction();
+                context.player1.clickCard(context.generalKrell);
+                context.player1.clickCard(context.atatSuppressor);
+                expect(context.generalKrell).toBeInLocation('discard');
+                expect(context.player1.handSize).toBe(startingHandSize + 2);
 
                 // CASE 5: friendly unit dies after Krell, no card
-                this.player2.passAction();
-                this.player1.clickCard(this.allianceXwing);
-                this.player1.clickCard(this.avenger);
-                expect(this.allianceXwing).toBeInLocation('discard');
-                expect(this.player1.handSize).toBe(startingHandSize + 2);
+                context.player2.passAction();
+                context.player1.clickCard(context.allianceXwing);
+                context.player1.clickCard(context.avenger);
+                expect(context.allianceXwing).toBeInLocation('discard');
+                expect(context.player1.handSize).toBe(startingHandSize + 2);
             });
         });
 
         describe('Krell\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['general-krell#heartless-tactician'],
@@ -80,18 +82,20 @@ describe('General Krell, Heartless Tactician', function() {
             });
 
             it('works when he is played onto the field after other units', function () {
-                this.player1.clickCard(this.generalKrell);
+                const { context } = contextRef;
 
-                const startingHandSize = this.player1.handSize;
-                this.player2.passAction();
+                context.player1.clickCard(context.generalKrell);
 
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.wampa);
+                const startingHandSize = context.player1.handSize;
+                context.player2.passAction();
 
-                expect(this.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                this.player1.clickPrompt('Draw a card');
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.wampa);
 
-                expect(this.player1.handSize).toBe(startingHandSize + 1);
+                expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                context.player1.clickPrompt('Draw a card');
+
+                expect(context.player1.handSize).toBe(startingHandSize + 1);
             });
         });
 

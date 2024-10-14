@@ -1,8 +1,8 @@
 describe('Confiscate', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Confiscate\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['confiscate'],
@@ -16,18 +16,20 @@ describe('Confiscate', function() {
             });
 
             it('can defeat an upgrade on a friendly or enemy unit', function () {
-                this.player1.clickCard(this.confiscate);
-                expect(this.player1).toBeAbleToSelectExactly([this.entrenched, this.academyTraining]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.academyTraining);
-                expect(this.imperialInterceptor.isUpgraded()).toBe(false);
-                expect(this.academyTraining).toBeInLocation('discard');
+                context.player1.clickCard(context.confiscate);
+                expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.academyTraining]);
+
+                context.player1.clickCard(context.academyTraining);
+                expect(context.imperialInterceptor.isUpgraded()).toBe(false);
+                expect(context.academyTraining).toBeInLocation('discard');
             });
         });
 
         describe('Confiscate\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['confiscate', 'entrenched'],
@@ -39,16 +41,18 @@ describe('Confiscate', function() {
             });
 
             it('when played on a friendly upgrade attached to an enemy unit will cause the upgrade to be in friendly discard', function () {
-                this.player1.clickCard(this.entrenched);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.entrenched);
                 // card attaches automatically as there's only one target
 
-                this.player2.passAction();
+                context.player2.passAction();
 
-                this.player1.clickCard(this.confiscate);
-                expect(this.wampa.isUpgraded()).toBe(false);
+                context.player1.clickCard(context.confiscate);
+                expect(context.wampa.isUpgraded()).toBe(false);
 
                 // this expectation will automatically check that entrenched is in the owning player's discard
-                expect(this.entrenched).toBeInLocation('discard', this.player1);
+                expect(context.entrenched).toBeInLocation('discard', context.player1);
             });
         });
     });

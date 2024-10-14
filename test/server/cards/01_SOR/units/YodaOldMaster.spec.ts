@@ -1,8 +1,8 @@
 describe('Yoda, Old Master', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Yoda\'s When Defeated ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['yoda#old-master'],
@@ -17,51 +17,59 @@ describe('Yoda, Old Master', function() {
             });
 
             it('should draw a card for each selected player', function () {
-                this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.rogueSquadronSkirmisher);
-                expect(this.yoda).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                const { context } = contextRef;
 
-                this.player1.clickPrompt('You');
-                expect(this.player1.hand.length).toBe(2);
-                expect(this.player2.hand.length).toBe(0);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.rogueSquadronSkirmisher);
+                expect(context.yoda).toBeInLocation('discard');
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+
+                context.player1.clickPrompt('You');
+                expect(context.player1.hand.length).toBe(2);
+                expect(context.player2.hand.length).toBe(0);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should draw a card for each selected player', function () {
-                this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.rogueSquadronSkirmisher);
-                expect(this.yoda).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                const { context } = contextRef;
 
-                this.player1.clickPrompt('Opponent');
-                expect(this.player1.hand.length).toBe(1);
-                expect(this.player2.hand.length).toBe(1);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.rogueSquadronSkirmisher);
+                expect(context.yoda).toBeInLocation('discard');
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+
+                context.player1.clickPrompt('Opponent');
+                expect(context.player1.hand.length).toBe(1);
+                expect(context.player2.hand.length).toBe(1);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should draw a card for each selected player', function () {
-                this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.rogueSquadronSkirmisher);
-                expect(this.yoda).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                const { context } = contextRef;
 
-                this.player1.clickPrompt('You and Opponent');
-                expect(this.player1.hand.length).toBe(2);
-                expect(this.player2.hand.length).toBe(1);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.rogueSquadronSkirmisher);
+                expect(context.yoda).toBeInLocation('discard');
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+
+                context.player1.clickPrompt('You and Opponent');
+                expect(context.player1.hand.length).toBe(2);
+                expect(context.player2.hand.length).toBe(1);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should draw a card for each selected player', function () {
-                this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.rogueSquadronSkirmisher);
-                expect(this.yoda).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                const { context } = contextRef;
 
-                this.player1.clickPrompt('No one');
-                expect(this.player1.hand.length).toBe(1);
-                expect(this.player2.hand.length).toBe(0);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.rogueSquadronSkirmisher);
+                expect(context.yoda).toBeInLocation('discard');
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+
+                context.player1.clickPrompt('No one');
+                expect(context.player1.hand.length).toBe(1);
+                expect(context.player2.hand.length).toBe(0);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

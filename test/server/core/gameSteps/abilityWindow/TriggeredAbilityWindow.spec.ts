@@ -1,8 +1,8 @@
 describe('Simultaneous triggers', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Chewbacca being attacked by Sabine', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist']
@@ -14,43 +14,49 @@ describe('Simultaneous triggers', function() {
             });
 
             it('should prompt the active player(controller of Sabine) which player\'s triggers to resolve first', function () {
-                this.player1.clickCard(this.sabineWren);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
                 // Don't need to click Chewbacca due to sentinel
-                expect(this.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
-                expect(this.player2).toHavePrompt('Waiting for opponent to choose a player to resolve their triggers first');
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                expect(context.player2).toHavePrompt('Waiting for opponent to choose a player to resolve their triggers first');
 
-                this.player1.clickPrompt('You');
-                expect(this.chewbacca.exhausted).toBe(true);
-                expect(this.player1).toBeAbleToSelectExactly([this.p1Base, this.p2Base, this.chewbacca]);
-                expect(this.chewbacca.damage).toBe(0);
+                context.player1.clickPrompt('You');
+                expect(context.chewbacca.exhausted).toBe(true);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.chewbacca]);
+                expect(context.chewbacca.damage).toBe(0);
 
-                this.player1.clickCard(this.p1Base);
-                expect(this.player2).toBeActivePlayer();
-                expect(this.chewbacca.damage).toBe(2);
-                expect(this.chewbacca.exhausted).toBe(false);
+                context.player1.clickCard(context.p1Base);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.chewbacca.damage).toBe(2);
+                expect(context.chewbacca.exhausted).toBe(false);
             });
 
             it('should have the triggers work in either order', function () {
-                this.player1.clickCard(this.sabineWren);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
                 // Don't need to click Chewbacca due to sentinel
-                expect(this.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
-                expect(this.player2).toHavePrompt('Waiting for opponent to choose a player to resolve their triggers first');
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                expect(context.player2).toHavePrompt('Waiting for opponent to choose a player to resolve their triggers first');
 
-                this.player1.clickPrompt('Opponent');
-                expect(this.chewbacca.exhausted).toBe(false);
-                expect(this.player1).toBeAbleToSelectExactly([this.p1Base, this.p2Base, this.chewbacca]);
-                expect(this.chewbacca.damage).toBe(0);
+                context.player1.clickPrompt('Opponent');
+                expect(context.chewbacca.exhausted).toBe(false);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.chewbacca]);
+                expect(context.chewbacca.damage).toBe(0);
 
-                this.player1.clickCard(this.p1Base);
-                expect(this.player2).toBeActivePlayer();
-                expect(this.chewbacca.damage).toBe(2);
-                expect(this.chewbacca.exhausted).toBe(false);
+                context.player1.clickCard(context.p1Base);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.chewbacca.damage).toBe(2);
+                expect(context.chewbacca.exhausted).toBe(false);
             });
         });
 
         describe('Two units with a when defeated ability killing each other', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'yoda#old-master', damage: 3 }],
@@ -64,43 +70,47 @@ describe('Simultaneous triggers', function() {
             });
 
             it('should let the active player choose which player\'s triggers happen first', function () {
-                this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.vanguardInfantry);
-                expect(this.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                const { context } = contextRef;
 
-                this.player1.clickPrompt('You');
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.vanguardInfantry);
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
 
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
-                expect(this.player1.hand.length).toBe(0);
-                this.player1.clickPrompt('You');
-                expect(this.player1.hand.length).toBe(1);
+                context.player1.clickPrompt('You');
 
-                expect(this.player2).toBeAbleToSelectExactly([this.allianceXwing, this.battlefieldMarine]);
-                expect(this.allianceXwing).toHaveExactUpgradeNames([]);
-                this.player2.clickCard(this.allianceXwing);
-                expect(this.allianceXwing).toHaveExactUpgradeNames(['experience']);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(context.player1.hand.length).toBe(0);
+                context.player1.clickPrompt('You');
+                expect(context.player1.hand.length).toBe(1);
 
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player2).toBeAbleToSelectExactly([context.allianceXwing, context.battlefieldMarine]);
+                expect(context.allianceXwing).toHaveExactUpgradeNames([]);
+                context.player2.clickCard(context.allianceXwing);
+                expect(context.allianceXwing).toHaveExactUpgradeNames(['experience']);
+
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should have the triggers work in either order', function () {
-                this.player1.clickCard(this.yoda);
-                this.player1.clickCard(this.vanguardInfantry);
-                expect(this.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                const { context } = contextRef;
 
-                this.player1.clickPrompt('Opponent');
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.vanguardInfantry);
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
 
-                expect(this.player2).toBeAbleToSelectExactly([this.allianceXwing, this.battlefieldMarine]);
-                expect(this.allianceXwing).toHaveExactUpgradeNames([]);
-                this.player2.clickCard(this.allianceXwing);
-                expect(this.allianceXwing).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickPrompt('Opponent');
 
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
-                expect(this.player1.hand.length).toBe(0);
-                this.player1.clickPrompt('You');
-                expect(this.player1.hand.length).toBe(1);
+                expect(context.player2).toBeAbleToSelectExactly([context.allianceXwing, context.battlefieldMarine]);
+                expect(context.allianceXwing).toHaveExactUpgradeNames([]);
+                context.player2.clickCard(context.allianceXwing);
+                expect(context.allianceXwing).toHaveExactUpgradeNames(['experience']);
 
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(context.player1.hand.length).toBe(0);
+                context.player1.clickPrompt('You');
+                expect(context.player1.hand.length).toBe(1);
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

@@ -1,8 +1,8 @@
 describe('Headhunting', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Headhunting\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['headhunting'],
@@ -17,80 +17,84 @@ describe('Headhunting', function() {
             });
 
             it('should attack with three units', function () {
-                this.player1.clickCard(this.headhunting);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.headhunting);
 
                 // first attack, bounty hunter
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.reputableHunter);
-                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAttackButton();
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.reputableHunter.exhausted).toBe(true);
-                expect(this.consularSecurityForce.damage).toBe(5);
-                expect(this.reputableHunter.damage).toBe(3);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.reputableHunter);
+                expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
+                expect(context.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.reputableHunter.exhausted).toBe(true);
+                expect(context.consularSecurityForce.damage).toBe(5);
+                expect(context.reputableHunter.damage).toBe(3);
 
                 // second attack, non-bounty-hunter
-                this.consularSecurityForce.damage = 0;
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.theMandalorian, this.wampa]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.atst);
-                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAttackButton();
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.atst.exhausted).toBe(true);
-                expect(this.consularSecurityForce.damage).toBe(6);
-                expect(this.atst.damage).toBe(3);
+                context.consularSecurityForce.damage = 0;
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.theMandalorian, context.wampa]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.atst);
+                expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
+                expect(context.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.atst.exhausted).toBe(true);
+                expect(context.consularSecurityForce.damage).toBe(6);
+                expect(context.atst.damage).toBe(3);
 
                 // third attack, leader bounty hunter
-                this.consularSecurityForce.damage = 0;
-                expect(this.player1).toBeAbleToSelectExactly([this.theMandalorian, this.wampa]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.theMandalorian);
-                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAttackButton();
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.theMandalorian.exhausted).toBe(true);
-                expect(this.consularSecurityForce.damage).toBe(6);
-                expect(this.theMandalorian.damage).toBe(3);
+                context.consularSecurityForce.damage = 0;
+                expect(context.player1).toBeAbleToSelectExactly([context.theMandalorian, context.wampa]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.theMandalorian);
+                expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
+                expect(context.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.theMandalorian.exhausted).toBe(true);
+                expect(context.consularSecurityForce.damage).toBe(6);
+                expect(context.theMandalorian.damage).toBe(3);
 
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player2).toBeActivePlayer();
             });
 
             // TODO: have a UI discussion on how we want the flow of passing to work in this situation
             it('should be able to select no target', function () {
-                this.player1.clickCard(this.headhunting);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.headhunting);
 
                 // first attack - skip target resolution, go straight to next attack
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
-                this.player1.clickPrompt('Choose no target');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
+                context.player1.clickPrompt('Choose no target');
 
                 // second attack - select an attacker and go to target resolution, then pass
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.atst);
-                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                this.player1.clickPrompt('Pass attack');
-                expect(this.atst.exhausted).toBe(false);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.atst);
+                expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
+                context.player1.clickPrompt('Pass attack');
+                expect(context.atst.exhausted).toBe(false);
 
                 // third attack - let it resolve to confirm things are working
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter, this.theMandalorian, this.wampa]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.theMandalorian);
-                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAttackButton();
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.theMandalorian.exhausted).toBe(true);
-                expect(this.consularSecurityForce.damage).toBe(6);
-                expect(this.theMandalorian.damage).toBe(3);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.theMandalorian);
+                expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
+                expect(context.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.theMandalorian.exhausted).toBe(true);
+                expect(context.consularSecurityForce.damage).toBe(6);
+                expect(context.theMandalorian.damage).toBe(3);
 
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('Headhunting\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['headhunting'],
@@ -104,29 +108,31 @@ describe('Headhunting', function() {
             });
 
             it('should attack with as many units as available and then stop', function () {
-                this.player1.clickCard(this.headhunting);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.headhunting);
 
                 // first attack, bounty hunter
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.reputableHunter]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.clickCard(this.reputableHunter);
-                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAttackButton();
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.reputableHunter.exhausted).toBe(true);
-                expect(this.consularSecurityForce.damage).toBe(5);
-                expect(this.reputableHunter.damage).toBe(3);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.reputableHunter);
+                expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
+                expect(context.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.reputableHunter.exhausted).toBe(true);
+                expect(context.consularSecurityForce.damage).toBe(5);
+                expect(context.reputableHunter.damage).toBe(3);
 
                 // second attack, non-bounty-hunter - goes straight to target resolution since only one legal attacker
-                this.consularSecurityForce.damage = 0;
-                expect(this.player1).toBeAbleToSelectExactly([this.bountyGuildInitiate, this.consularSecurityForce]);
-                expect(this.player1).toHavePassAttackButton();
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.atst.exhausted).toBe(true);
-                expect(this.consularSecurityForce.damage).toBe(6);
-                expect(this.atst.damage).toBe(3);
+                context.consularSecurityForce.damage = 0;
+                expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
+                expect(context.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.atst.exhausted).toBe(true);
+                expect(context.consularSecurityForce.damage).toBe(6);
+                expect(context.atst.damage).toBe(3);
 
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

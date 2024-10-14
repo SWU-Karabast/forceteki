@@ -1,8 +1,8 @@
 describe('Infiltrator\'s Skill', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Infiltrator\'s Skill\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['infiltrators-skill'] }],
@@ -14,22 +14,26 @@ describe('Infiltrator\'s Skill', function() {
             });
 
             it('should ignore sentinel', function () {
-                this.player1.clickCard(this.battlefieldMarine);
-                expect(this.player1).toBeAbleToSelectExactly([this.niimaOutpostConstables, this.p2Base]);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.niimaOutpostConstables, context.p2Base]);
                 // ignore sentinel
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(4);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(4);
             });
 
             it('should ignore shield', function () {
-                this.player1.clickCard(this.battlefieldMarine);
-                expect(this.player1).toBeAbleToSelectExactly([this.niimaOutpostConstables, this.p2Base]);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.niimaOutpostConstables, context.p2Base]);
 
                 // defeat shielded niima outpost constables
-                this.player1.clickCard(this.niimaOutpostConstables);
-                expect(this.battlefieldMarine.damage).toBe(2);
-                expect(this.niimaOutpostConstables.damage).toBe(4);
-                expect(this.niimaOutpostConstables.isUpgraded()).toBe(false);
+                context.player1.clickCard(context.niimaOutpostConstables);
+                expect(context.battlefieldMarine.damage).toBe(2);
+                expect(context.niimaOutpostConstables.damage).toBe(4);
+                expect(context.niimaOutpostConstables.isUpgraded()).toBe(false);
             });
         });
     });

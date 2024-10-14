@@ -1,8 +1,8 @@
 describe('Obi-Wan Kenobi, Following Fate', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Obi-Wan Kenobi, Following Fate\'s when defeated ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish']
@@ -14,26 +14,30 @@ describe('Obi-Wan Kenobi, Following Fate', function() {
             });
 
             it('should give 2 experience tokens to another friendly unit, and draw the controller a card only if that unit has the "Force" trait', function () {
-                this.player1.clickCard(this.vanquish);
-                this.player1.clickCard(this.obiwanKenobi);
+                const { context } = contextRef;
 
-                expect(this.player2).toBeAbleToSelectExactly([this.yoda, this.consularSecurityForce]);
-                let handSizeBeforeTriggerResolves = this.player2.hand.length;
-                this.player2.clickCard(this.consularSecurityForce);
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.obiwanKenobi);
 
-                expect(this.consularSecurityForce).toHaveExactUpgradeNames(['experience', 'experience']);
-                expect(this.player2.hand.length).toBe(handSizeBeforeTriggerResolves);
+                expect(context.player2).toBeAbleToSelectExactly([context.yoda, context.consularSecurityForce]);
+                const handSizeBeforeTriggerResolves = context.player2.hand.length;
+                context.player2.clickCard(context.consularSecurityForce);
+
+                expect(context.consularSecurityForce).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.player2.hand.length).toBe(handSizeBeforeTriggerResolves);
             });
 
             it('should draw the controller a card if the target unit has the "Force" trait', function () {
-                this.player1.clickCard(this.vanquish);
-                this.player1.clickCard(this.obiwanKenobi);
+                const { context } = contextRef;
 
-                let handSizeBeforeTriggerResolves = this.player2.hand.length;
-                this.player2.clickCard(this.yoda);
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.obiwanKenobi);
 
-                expect(this.yoda).toHaveExactUpgradeNames(['experience', 'experience']);
-                expect(this.player2.hand.length).toBe(handSizeBeforeTriggerResolves + 1);
+                const handSizeBeforeTriggerResolves = context.player2.hand.length;
+                context.player2.clickCard(context.yoda);
+
+                expect(context.yoda).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.player2.hand.length).toBe(handSizeBeforeTriggerResolves + 1);
             });
         });
     });

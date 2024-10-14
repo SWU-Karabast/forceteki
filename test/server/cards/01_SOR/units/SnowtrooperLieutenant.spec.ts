@@ -1,8 +1,8 @@
 describe('Snowtrooper Lieutenant', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Snowtrooper lieutenant\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['snowtrooper-lieutenant'],
@@ -16,35 +16,39 @@ describe('Snowtrooper Lieutenant', function() {
             });
 
             it('should allowing triggering an attack by a unit when played', function () {
-                this.player1.clickCard(this.snowtrooperLieutenant);
-                expect(this.snowtrooperLieutenant).toBeInLocation('ground arena');
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.admiralPiett]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.wampa);
-                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.sundariPeacekeeper]);
+                context.player1.clickCard(context.snowtrooperLieutenant);
+                expect(context.snowtrooperLieutenant).toBeInLocation('ground arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.admiralPiett]);
 
-                this.player1.clickCard(this.sundariPeacekeeper);
-                expect(this.wampa.exhausted).toBe(true);
-                expect(this.wampa.damage).toBe(1);
-                expect(this.sundariPeacekeeper.damage).toBe(4);
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.sundariPeacekeeper]);
+
+                context.player1.clickCard(context.sundariPeacekeeper);
+                expect(context.wampa.exhausted).toBe(true);
+                expect(context.wampa.damage).toBe(1);
+                expect(context.sundariPeacekeeper.damage).toBe(4);
             });
 
             it('if used with an imperial unit should give it +2 power', function () {
-                this.player1.clickCard(this.snowtrooperLieutenant);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.admiralPiett);
-                this.player1.clickCard(this.sundariPeacekeeper);
-                expect(this.sundariPeacekeeper.damage).toBe(3);
-                expect(this.admiralPiett.damage).toBe(1);
+                context.player1.clickCard(context.snowtrooperLieutenant);
+
+                context.player1.clickCard(context.admiralPiett);
+                context.player1.clickCard(context.sundariPeacekeeper);
+                expect(context.sundariPeacekeeper.damage).toBe(3);
+                expect(context.admiralPiett.damage).toBe(1);
 
                 // do a second attack to confirm that the +2 bonus has expired
-                this.player2.passAction();
-                this.admiralPiett.exhausted = false;
-                this.player1.clickCard(this.admiralPiett);
-                this.player1.clickCard(this.sundariPeacekeeper);
+                context.player2.passAction();
+                context.admiralPiett.exhausted = false;
+                context.player1.clickCard(context.admiralPiett);
+                context.player1.clickCard(context.sundariPeacekeeper);
 
-                expect(this.admiralPiett.damage).toBe(2);
-                expect(this.sundariPeacekeeper.damage).toBe(4);
+                expect(context.admiralPiett.damage).toBe(2);
+                expect(context.sundariPeacekeeper.damage).toBe(4);
             });
         });
     });

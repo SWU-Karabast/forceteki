@@ -1,8 +1,8 @@
 describe('Vigilant Honor Guards', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Vigilant Honor Guards\' ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['consular-security-force']
@@ -15,31 +15,33 @@ describe('Vigilant Honor Guards', function() {
             });
 
             it('should give it sentinel only as long as it is undamaged', function () {
-                this.player1.clickCard(this.consularSecurityForce);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.consularSecurityForce);
                 // Honor Guards automatically selected due to sentinel
-                expect(this.player2).toBeActivePlayer();
-                expect(this.vigilantHonorGuards.damage).toBe(3);
-                expect(this.consularSecurityForce.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.vigilantHonorGuards.damage).toBe(3);
+                expect(context.consularSecurityForce.damage).toBe(4);
 
-                this.player2.passAction();
-                this.consularSecurityForce.exhausted = false;
+                context.player2.passAction();
+                context.consularSecurityForce.exhausted = false;
 
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.player1).toBeAbleToSelectExactly([this.vigilantHonorGuards, this.p2Base]); // no sentinel
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.player1).toBeAbleToSelectExactly([context.vigilantHonorGuards, context.p2Base]); // no sentinel
+                context.player1.clickCard(context.p2Base);
 
                 // checking if they regain sentinel when fully healed
-                this.player2.clickCard(this.repair);
-                this.player2.clickCard(this.vigilantHonorGuards);
-                expect(this.vigilantHonorGuards.damage).toBe(0);
+                context.player2.clickCard(context.repair);
+                context.player2.clickCard(context.vigilantHonorGuards);
+                expect(context.vigilantHonorGuards.damage).toBe(0);
 
-                this.consularSecurityForce.exhausted = false;
+                context.consularSecurityForce.exhausted = false;
 
-                this.player1.clickCard(this.consularSecurityForce);
+                context.player1.clickCard(context.consularSecurityForce);
                 // Honor Guards automatically selected due to sentinel
-                expect(this.player2).toBeActivePlayer();
-                expect(this.vigilantHonorGuards.damage).toBe(3);
-                expect(this.consularSecurityForce).toBeInLocation('discard');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.vigilantHonorGuards.damage).toBe(3);
+                expect(context.consularSecurityForce).toBeInLocation('discard');
             });
         });
     });

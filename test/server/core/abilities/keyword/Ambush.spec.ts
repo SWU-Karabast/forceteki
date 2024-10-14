@@ -1,8 +1,8 @@
 describe('Ambush keyword', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -16,24 +16,26 @@ describe('Ambush keyword', function() {
             });
 
             it('enters play, Ambush allows readying and attacking an enemy unit', function () {
-                this.player1.clickCard(this.syndicateLackeys);
-                expect(this.player1).toHavePassAbilityPrompt('Ambush');
-                this.player1.clickPrompt('Ambush');
+                const { context } = contextRef;
 
-                expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce, this.snowspeeder]);
+                context.player1.clickCard(context.syndicateLackeys);
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Ambush');
 
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.syndicateLackeys.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(0);
-                expect(this.syndicateLackeys.damage).toBe(3);
-                expect(this.consularSecurityForce.damage).toBe(5);
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.snowspeeder]);
+
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.syndicateLackeys.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.syndicateLackeys.damage).toBe(3);
+                expect(context.consularSecurityForce.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -47,21 +49,23 @@ describe('Ambush keyword', function() {
             });
 
             it('enters play and there is only one target, Ambush will automatically choose it', function () {
-                this.player1.clickCard(this.syndicateLackeys);
-                expect(this.player1).toHavePassAbilityPrompt('Ambush');
-                this.player1.clickPrompt('Ambush');
+                const { context } = contextRef;
 
-                expect(this.syndicateLackeys.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(0);
-                expect(this.syndicateLackeys.damage).toBe(3);
-                expect(this.consularSecurityForce.damage).toBe(5);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.syndicateLackeys);
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Ambush');
+
+                expect(context.syndicateLackeys.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.syndicateLackeys.damage).toBe(3);
+                expect(context.consularSecurityForce.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -74,9 +78,11 @@ describe('Ambush keyword', function() {
             });
 
             it('enters play and there is no target, the Ambush prompt will not happen', function () {
-                this.player1.clickCard(this.syndicateLackeys);
-                expect(this.syndicateLackeys.exhausted).toBe(true);
-                expect(this.player2).toBeActivePlayer();
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.syndicateLackeys);
+                expect(context.syndicateLackeys.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

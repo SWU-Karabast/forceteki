@@ -1,8 +1,10 @@
 describe('Cartel Spacer', function () {
     integration(function () {
         describe('Cartel Spacer\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['cartel-spacer'],
@@ -14,19 +16,23 @@ describe('Cartel Spacer', function () {
             });
 
             it('should not exhaust enemy unit if there is no Cunning ally', function () {
-                this.player1.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer.location).toBe('space arena');
-                expect(this.player2).toBeActivePlayer();
+                const { context } = contextRef;
 
-                expect(this.atst.exhausted).toBeFalse();
-                expect(this.battlefieldMarine.exhausted).toBeFalse();
-                expect(this.partisanInsurgent.exhausted).toBeFalse();
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer.location).toBe('space arena');
+                expect(context.player2).toBeActivePlayer();
+
+                expect(context.atst.exhausted).toBeFalse();
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.partisanInsurgent.exhausted).toBeFalse();
             });
         });
 
         describe('Cartel Spacer\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['cartel-spacer'],
@@ -39,14 +45,16 @@ describe('Cartel Spacer', function () {
             });
 
             it('should exhaust enemy unit when there is Cunning ally', function () {
-                this.player1.clickCard(this.cartelSpacer);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.partisanInsurgent]);
-                this.player1.clickCard(this.battlefieldMarine);
-                expect(this.player2).toBeActivePlayer();
+                const { context } = contextRef;
 
-                expect(this.atst.exhausted).toBeFalse();
-                expect(this.partisanInsurgent.exhausted).toBeFalse();
-                expect(this.battlefieldMarine.exhausted).toBeTrue();
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.partisanInsurgent]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeActivePlayer();
+
+                expect(context.atst.exhausted).toBeFalse();
+                expect(context.partisanInsurgent.exhausted).toBeFalse();
+                expect(context.battlefieldMarine.exhausted).toBeTrue();
             });
         });
     });

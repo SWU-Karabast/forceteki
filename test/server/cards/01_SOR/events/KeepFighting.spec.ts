@@ -1,8 +1,8 @@
 describe('Keep Fighting', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Keep Fighting\'s ability', function () {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['keep-fighting'],
@@ -17,41 +17,45 @@ describe('Keep Fighting', function () {
             });
 
             it('should ready a unit', function () {
-                this.pykeSentinel.exhausted = true;
-                this.wampa.exhausted = true;
+                const { context } = contextRef;
+
+                context.pykeSentinel.exhausted = true;
+                context.wampa.exhausted = true;
 
                 // ready pyke sentinel (sabine is not exhausted and wampa is too powerful)
-                this.player1.clickCard(this.keepFighting);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.sabineWren, this.imperialInterceptor]);
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel.exhausted).toBeFalse();
-                expect(this.keepFighting.location).toBe('discard');
-                this.player2.passAction();
+                context.player1.clickCard(context.keepFighting);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.sabineWren, context.imperialInterceptor]);
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel.exhausted).toBeFalse();
+                expect(context.keepFighting.location).toBe('discard');
+                context.player2.passAction();
 
                 // attack again with pyke sentinel
-                this.player1.clickCard(this.pykeSentinel);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.pykeSentinel);
+                context.player1.clickCard(context.p2Base);
 
                 // damage should be 2 here
-                expect(this.p2Base.damage).toBe(2);
-                expect(this.pykeSentinel.exhausted).toBeTrue();
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.pykeSentinel.exhausted).toBeTrue();
             });
 
             it('should not ready an unexhausted unit', function () {
-                this.player1.clickCard(this.keepFighting);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.sabineWren, this.imperialInterceptor]);
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel.exhausted).toBeFalse();
-                expect(this.keepFighting.location).toBe('discard');
-                this.player2.passAction();
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.keepFighting);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.sabineWren, context.imperialInterceptor]);
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel.exhausted).toBeFalse();
+                expect(context.keepFighting.location).toBe('discard');
+                context.player2.passAction();
 
                 // attack again with pyke sentinel
-                this.player1.clickCard(this.pykeSentinel);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.pykeSentinel);
+                context.player1.clickCard(context.p2Base);
 
                 // damage should be 2 here
-                expect(this.p2Base.damage).toBe(2);
-                expect(this.pykeSentinel.exhausted).toBeTrue();
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.pykeSentinel.exhausted).toBeTrue();
             });
         });
     });

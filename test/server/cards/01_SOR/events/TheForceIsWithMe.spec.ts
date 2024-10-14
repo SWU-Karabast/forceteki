@@ -1,8 +1,8 @@
 describe('The Force is With Me', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('The Force is With Me\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['the-force-is-with-me'],
@@ -17,24 +17,26 @@ describe('The Force is With Me', function() {
             });
 
             it('should give 2 experience and attack, if no force unit present', function () {
-                this.player1.clickCard(this.theForceIsWithMe);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter]);
-                expect(this.player1).not.toHavePassAbilityButton();
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa).toHaveExactUpgradeNames(['experience', 'experience']);
-                expect(this.player1).toBeAbleToSelectExactly([this.specforceSoldier, this.p2Base]);
-                expect(this.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.theForceIsWithMe);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.tielnFighter]);
+                expect(context.player1).not.toHavePassAbilityButton();
 
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(6);
-                expect(this.wampa.exhausted).toBe(true);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.player1).toBeAbleToSelectExactly([context.specforceSoldier, context.p2Base]);
+                expect(context.player1).toHavePassAttackButton();
+
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(6);
+                expect(context.wampa.exhausted).toBe(true);
             });
         });
 
         describe('The Force is With Me\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['the-force-is-with-me'],
@@ -49,32 +51,36 @@ describe('The Force is With Me', function() {
             });
 
             it('should give 2 experience, a shield, and then attack, if a force unit is present', function () {
-                this.player1.clickCard(this.theForceIsWithMe);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter, this.chirrutImwe]);
-                expect(this.player1).not.toHavePassAbilityButton();
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
-                expect(this.player1).toBeAbleToSelectExactly([this.specforceSoldier, this.p2Base]);
-                expect(this.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.theForceIsWithMe);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.tielnFighter, context.chirrutImwe]);
+                expect(context.player1).not.toHavePassAbilityButton();
 
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(6);
-                expect(this.wampa.exhausted).toBe(true);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
+                expect(context.player1).toBeAbleToSelectExactly([context.specforceSoldier, context.p2Base]);
+                expect(context.player1).toHavePassAttackButton();
+
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(6);
+                expect(context.wampa.exhausted).toBe(true);
             });
 
             it('should work if the unit can\'t attack', function () {
-                this.player1.clickCard(this.theForceIsWithMe);
-                this.player1.clickCard(this.chirrutImwe);
-                expect(this.chirrutImwe).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
+                const { context } = contextRef;
 
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.theForceIsWithMe);
+                context.player1.clickCard(context.chirrutImwe);
+                expect(context.chirrutImwe).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('The Force is With Me\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['the-force-is-with-me'],
@@ -86,10 +92,12 @@ describe('The Force is With Me', function() {
             });
 
             it('should do nothing if no legal target', function () {
-                this.player1.clickCard(this.theForceIsWithMe);
-                expect(this.theForceIsWithMe).toBeInLocation('discard');
+                const { context } = contextRef;
 
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.theForceIsWithMe);
+                expect(context.theForceIsWithMe).toBeInLocation('discard');
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

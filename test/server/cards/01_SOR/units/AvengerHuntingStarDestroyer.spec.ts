@@ -1,8 +1,8 @@
 describe('Avenger, Hunting Star Destroyer', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Avenger\'s destroy ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['avenger#hunting-star-destroyer'],
@@ -17,56 +17,62 @@ describe('Avenger, Hunting Star Destroyer', function() {
                     }
                 });
 
-                this.p1Avenger = this.player1.findCardByName('avenger#hunting-star-destroyer');
-                this.p2Avenger = this.player2.findCardByName('avenger#hunting-star-destroyer');
+                context.p1Avenger = context.player1.findCardByName('avenger#hunting-star-destroyer');
+                context.p2Avenger = context.player2.findCardByName('avenger#hunting-star-destroyer');
             });
 
             it('forces opponent to defeat friendly non-leader unit when Avenger is played', function () {
+                const { context } = contextRef;
+
                 // Play Avenger
-                this.player1.clickCard(this.p1Avenger);
+                context.player1.clickCard(context.p1Avenger);
 
                 // Player 2 must choose its own unit
-                expect(this.player2).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer, this.p2Avenger]);
-                this.player2.clickCard(this.cartelSpacer);
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.p2Avenger]);
+                context.player2.clickCard(context.cartelSpacer);
 
                 // Chosen unit defeated
-                expect(this.cartelSpacer).toBeInLocation('discard');
+                expect(context.cartelSpacer).toBeInLocation('discard');
             });
 
             it('forces opponent to defeat friendly non-leader unit when Avenger attacks', function () {
-                this.player2.setActivePlayer();
+                const { context } = contextRef;
+
+                context.player2.setActivePlayer();
 
                 // Attack with Avenger, choose base as target
-                this.player2.clickCard(this.p2Avenger);
-                this.player2.clickCard(this.p1Base);
+                context.player2.clickCard(context.p2Avenger);
+                context.player2.clickCard(context.p1Base);
 
                 // Player 1 must choose its own unit
-                expect(this.player1).toBeAbleToSelectExactly([this.imperialInterceptor, this.pykeSentinel]);
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel).toBeInLocation('discard');
-                expect(this.p1Base.damage).toBe(8);
+                expect(context.player1).toBeAbleToSelectExactly([context.imperialInterceptor, context.pykeSentinel]);
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.p1Base.damage).toBe(8);
             });
 
             it('allows the defender to be defeated and end the attack', function () {
-                this.player2.setActivePlayer();
+                const { context } = contextRef;
+
+                context.player2.setActivePlayer();
 
                 // Attack with Avenger, choose interceptor as target
-                this.player2.clickCard(this.p2Avenger);
-                this.player2.clickCard(this.imperialInterceptor);
+                context.player2.clickCard(context.p2Avenger);
+                context.player2.clickCard(context.imperialInterceptor);
 
                 // Interceptor not yet destroyed
-                expect(this.imperialInterceptor).toBeInLocation('space arena');
+                expect(context.imperialInterceptor).toBeInLocation('space arena');
 
                 // Player 1 must choose its own unit
-                expect(this.player1).toBeAbleToSelectExactly([this.imperialInterceptor, this.pykeSentinel]);
+                expect(context.player1).toBeAbleToSelectExactly([context.imperialInterceptor, context.pykeSentinel]);
 
                 // Choose the defender and check it was destroyed
-                this.player1.clickCard(this.imperialInterceptor);
-                expect(this.imperialInterceptor).toBeInLocation('discard');
+                context.player1.clickCard(context.imperialInterceptor);
+                expect(context.imperialInterceptor).toBeInLocation('discard');
 
                 // Ensure no damage happened
-                expect(this.p2Avenger.damage).toBe(0);
-                expect(this.p1Base.damage).toBe(0);
+                expect(context.p2Avenger.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
             });
         });
     });

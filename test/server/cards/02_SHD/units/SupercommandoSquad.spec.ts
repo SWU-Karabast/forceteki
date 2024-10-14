@@ -1,8 +1,8 @@
 describe('Supercommando Squad', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Supercommando Squad\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'supercommando-squad', upgrades: ['shield'] }],
@@ -14,23 +14,25 @@ describe('Supercommando Squad', function() {
             });
 
             it('should give it sentinel only as long as it is upgraded', function () {
-                this.player1.passAction();
+                const { context } = contextRef;
 
-                this.player2.clickCard(this.wampa);
+                context.player1.passAction();
+
+                context.player2.clickCard(context.wampa);
                 // Supercommando Squad automatically selected due to sentinel
 
-                expect(this.player1).toBeActivePlayer();
+                expect(context.player1).toBeActivePlayer();
                 // no damage because of shield
-                expect(this.supercommandoSquad.damage).toBe(0);
-                expect(this.supercommandoSquad.isUpgraded()).toBe(false);
-                expect(this.wampa.damage).toBe(4);
+                expect(context.supercommandoSquad.damage).toBe(0);
+                expect(context.supercommandoSquad.isUpgraded()).toBe(false);
+                expect(context.wampa.damage).toBe(4);
 
-                this.player1.passAction();
+                context.player1.passAction();
 
-                this.player2.clickCard(this.jedhaAgitator);
+                context.player2.clickCard(context.jedhaAgitator);
 
                 // player 2 should be able to select base and unit because supercommando squad is not sentinel anymore
-                expect(this.player2).toBeAbleToSelectExactly([this.supercommandoSquad, this.p1Base]);
+                expect(context.player2).toBeAbleToSelectExactly([context.supercommandoSquad, context.p1Base]);
             });
         });
     });

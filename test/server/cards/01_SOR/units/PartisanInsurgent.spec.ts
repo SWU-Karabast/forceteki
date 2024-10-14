@@ -1,8 +1,10 @@
 describe('Partisan Insurgent', function () {
     integration(function () {
         describe('Partisan Insurgent\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['keep-fighting'],
@@ -16,22 +18,24 @@ describe('Partisan Insurgent', function () {
             });
 
             it('should give Raid 2 while having Aggression units ', function () {
+                const { context } = contextRef;
+
                 // attack with partisan insurgent, a-wing is here so damage should be 3
-                this.player1.clickCard(this.partisanInsurgent);
-                expect(this.player2).toBeActivePlayer();
-                expect(this.p2Base.damage).toBe(3);
+                context.player1.clickCard(context.partisanInsurgent);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(3);
 
                 // kill a-wing
-                this.player2.clickCard(this.systemPatrolCraft);
-                this.player2.clickCard(this.greenSquadronAwing);
-                expect(this.greenSquadronAwing.location).toBe('discard');
+                context.player2.clickCard(context.systemPatrolCraft);
+                context.player2.clickCard(context.greenSquadronAwing);
+                expect(context.greenSquadronAwing.location).toBe('discard');
 
                 // attack again with partisan insurgent, damage should be 1 because a-wing is dead
-                this.player1.clickCard(this.keepFighting);
-                this.player1.clickCard(this.partisanInsurgent);
-                this.player2.passAction();
-                this.player1.clickCard(this.partisanInsurgent);
-                expect(this.p2Base.damage).toBe(4);
+                context.player1.clickCard(context.keepFighting);
+                context.player1.clickCard(context.partisanInsurgent);
+                context.player2.passAction();
+                context.player1.clickCard(context.partisanInsurgent);
+                expect(context.p2Base.damage).toBe(4);
             });
         });
     });

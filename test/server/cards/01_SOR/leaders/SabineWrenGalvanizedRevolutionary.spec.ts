@@ -1,8 +1,8 @@
 describe('Sabine Wren, Galvanized Revolutionary', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Sabine\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         leader: 'sabine-wren#galvanized-revolutionary'
@@ -11,17 +11,19 @@ describe('Sabine Wren, Galvanized Revolutionary', function() {
             });
 
             it('should deal 1 damage to both bases', function () {
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickPrompt('Deal 1 damage to each base');
-                expect(this.p1Base.damage).toBe(1);
-                expect(this.p2Base.damage).toBe(1);
-                expect(this.sabineWren.exhausted).toBe(true);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickPrompt('Deal 1 damage to each base');
+                expect(context.p1Base.damage).toBe(1);
+                expect(context.p2Base.damage).toBe(1);
+                expect(context.sabineWren.exhausted).toBe(true);
             });
         });
 
         describe('Sabine\'s deployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true }
@@ -33,21 +35,25 @@ describe('Sabine Wren, Galvanized Revolutionary', function() {
             });
 
             it('should deal 1 damage to the opponent\'s base on attack', function () {
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickCard(this.rebelPathfinder);
-                expect(this.p2Base.damage).toBe(1);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.rebelPathfinder.damage).toBe(2);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.rebelPathfinder);
+                expect(context.p2Base.damage).toBe(1);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.rebelPathfinder.damage).toBe(2);
             });
 
             it('should deal 1 damage to the opponent\'s base on attack before combat damage', function () {
-                this.p2Base.damage = 29;
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickCard(this.rebelPathfinder);
-                expect(this.player1).toHavePrompt('player1 has won the game!');
-                expect(this.p2Base.damage).toBe(30);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.rebelPathfinder.damage).toBe(0);
+                const { context } = contextRef;
+
+                context.p2Base.damage = 29;
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.rebelPathfinder);
+                expect(context.player1).toHavePrompt('player1 has won the game!');
+                expect(context.p2Base.damage).toBe(30);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.rebelPathfinder.damage).toBe(0);
             });
         });
     });

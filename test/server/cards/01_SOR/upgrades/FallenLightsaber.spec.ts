@@ -1,8 +1,8 @@
 describe('Fallen Lightsaber', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Fallen Lightsaber\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'guardian-of-the-whills', upgrades: ['fallen-lightsaber'] }, 'battlefield-marine'],
@@ -15,39 +15,41 @@ describe('Fallen Lightsaber', function() {
             });
 
             it('should deal 1 damage to all enemy ground units on attack when attached to a Force unit', function () {
-                this.player1.clickCard(this.guardianOfTheWhills);
-                this.player1.clickCard(this.p2Base);
+                const { context } = contextRef;
 
-                expect(this.p2Base.damage).toBe(5);
-                expect(this.snowspeeder.damage).toBe(1);
-                expect(this.wampa.damage).toBe(1);
-                expect(this.cartelSpacer.damage).toBe(0);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.guardianOfTheWhills.damage).toBe(0);
-                expect(this.battlefieldMarine.damage).toBe(0);
+                context.player1.clickCard(context.guardianOfTheWhills);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(5);
+                expect(context.snowspeeder.damage).toBe(1);
+                expect(context.wampa.damage).toBe(1);
+                expect(context.cartelSpacer.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.guardianOfTheWhills.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
 
                 // second attack with no saber to confirm the effect is gone
-                this.fallenLightsaber.unattach();
-                this.player1.moveCard(this.fallenLightsaber, 'discard');
-                this.guardianOfTheWhills.exhausted = false;
-                this.player2.passAction();
+                context.fallenLightsaber.unattach();
+                context.player1.moveCard(context.fallenLightsaber, 'discard');
+                context.guardianOfTheWhills.exhausted = false;
+                context.player2.passAction();
 
-                this.player1.clickCard(this.guardianOfTheWhills);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.guardianOfTheWhills);
+                context.player1.clickCard(context.p2Base);
 
-                expect(this.p2Base.damage).toBe(7);
-                expect(this.snowspeeder.damage).toBe(1);
-                expect(this.wampa.damage).toBe(1);
-                expect(this.cartelSpacer.damage).toBe(0);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.guardianOfTheWhills.damage).toBe(0);
-                expect(this.battlefieldMarine.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(7);
+                expect(context.snowspeeder.damage).toBe(1);
+                expect(context.wampa.damage).toBe(1);
+                expect(context.cartelSpacer.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.guardianOfTheWhills.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
             });
         });
 
         describe('Fallen Lightsaber\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['fallen-lightsaber'] }, 'atst'],
@@ -60,22 +62,24 @@ describe('Fallen Lightsaber', function() {
             });
 
             it('should not do anything when not attached to a Force unit', function () {
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.p2Base);
+                const { context } = contextRef;
 
-                expect(this.p2Base.damage).toBe(6);
-                expect(this.snowspeeder.damage).toBe(0);
-                expect(this.wampa.damage).toBe(0);
-                expect(this.cartelSpacer.damage).toBe(0);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.atst.damage).toBe(0);
-                expect(this.battlefieldMarine.damage).toBe(0);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(6);
+                expect(context.snowspeeder.damage).toBe(0);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.cartelSpacer.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.atst.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
             });
         });
 
         describe('Fallen Lightsaber', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['fallen-lightsaber'],
@@ -87,8 +91,10 @@ describe('Fallen Lightsaber', function() {
             });
 
             it('should not be playable on vehicles', function () {
-                this.player1.clickCard(this.fallenLightsaber);
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['fallen-lightsaber']);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.fallenLightsaber);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['fallen-lightsaber']);
             });
         });
     });

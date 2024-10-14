@@ -1,8 +1,8 @@
 describe('Sabine Wren, Explosives Artist', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Sabine', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist', 'battlefield-marine'],
@@ -18,24 +18,28 @@ describe('Sabine Wren, Explosives Artist', function() {
             });
 
             it('should not be targetable when 3 friendly aspects are in play', function () {
-                this.player2.setActivePlayer();
-                this.player2.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.player2).toBeAbleToSelectExactly([this.battlefieldMarine, this.p1Base]);
+                context.player2.setActivePlayer();
+                context.player2.clickCard(context.wampa);
+
+                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base]);
             });
 
             it('should be targetable when less than 3 friendly aspects are in play', function () {
-                this.player1.setSpaceArenaUnits([]);
-                this.player2.setActivePlayer();
-                this.player2.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.player2).toBeAbleToSelectExactly([this.battlefieldMarine, this.p1Base, this.sabineWren]);
+                context.player1.setSpaceArenaUnits([]);
+                context.player2.setActivePlayer();
+                context.player2.clickCard(context.wampa);
+
+                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base, context.sabineWren]);
             });
         });
 
         describe('Sabine\'s active ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist', 'battlefield-marine'],
@@ -48,42 +52,44 @@ describe('Sabine Wren, Explosives Artist', function() {
             });
 
             it('should deal 1 damage to the defender or a base', function () {
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickCard(this.moddedCohort);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.moddedCohort);
 
                 // case 1: deal damage to defender
-                expect(this.player1).toBeAbleToSelectExactly([this.moddedCohort, this.p1Base, this.p2Base]);
-                this.player1.clickCard(this.moddedCohort);
-                expect(this.sabineWren.damage).toBe(2);
-                expect(this.moddedCohort.damage).toBe(3);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.p2Base.damage).toBe(0);
+                expect(context.player1).toBeAbleToSelectExactly([context.moddedCohort, context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.moddedCohort);
+                expect(context.sabineWren.damage).toBe(2);
+                expect(context.moddedCohort.damage).toBe(3);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(0);
 
-                this.sabineWren.damage = 0;
-                this.sabineWren.exhausted = false;
-                this.moddedCohort.damage = 0;
-                this.player2.passAction();
+                context.sabineWren.damage = 0;
+                context.sabineWren.exhausted = false;
+                context.moddedCohort.damage = 0;
+                context.player2.passAction();
 
                 // case 2: deal damage to base when attacking unit
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickCard(this.moddedCohort);
-                this.player1.clickCard(this.p2Base);
-                expect(this.sabineWren.damage).toBe(2);
-                expect(this.moddedCohort.damage).toBe(2);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.p2Base.damage).toBe(1);
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.moddedCohort);
+                context.player1.clickCard(context.p2Base);
+                expect(context.sabineWren.damage).toBe(2);
+                expect(context.moddedCohort.damage).toBe(2);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(1);
 
-                this.sabineWren.exhausted = false;
-                this.p2Base.damage = 0;
-                this.player2.passAction();
+                context.sabineWren.exhausted = false;
+                context.p2Base.damage = 0;
+                context.player2.passAction();
 
                 // case 3: deal damage to base when attacking base
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickCard(this.p2Base);
-                expect(this.player1).toBeAbleToSelectExactly([this.p1Base, this.p2Base]);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p1Base.damage).toBe(0);
-                expect(this.p2Base.damage).toBe(3);
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(3);
             });
         });
     });

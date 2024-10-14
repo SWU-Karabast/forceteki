@@ -1,8 +1,8 @@
 describe('Asteroid Sanctuary', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Asteroid Sanctuary\'s ability -', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['asteroid-sanctuary'],
@@ -15,55 +15,63 @@ describe('Asteroid Sanctuary', function() {
             });
 
             it('should exhaust an enemy unit and give a friendly unit that costs 3 or less a shield', function() {
-                this.player1.clickCard(this.asteroidSanctuary);
-                expect(this.player1).toBeAbleToSelectExactly([this.deathTrooper, this.superlaserTechnician]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.deathTrooper);
-                expect(this.player1).toBeAbleToSelectExactly([this.viperProbeDroid, this.deathStarStormtrooper]);
+                context.player1.clickCard(context.asteroidSanctuary);
+                expect(context.player1).toBeAbleToSelectExactly([context.deathTrooper, context.superlaserTechnician]);
 
-                this.player1.clickCard(this.viperProbeDroid);
-                expect(this.deathTrooper.exhausted).toBe(true);
-                expect(this.viperProbeDroid).toHaveExactUpgradeNames(['shield']);
+                context.player1.clickCard(context.deathTrooper);
+                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.deathStarStormtrooper]);
 
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.viperProbeDroid);
+                expect(context.deathTrooper.exhausted).toBe(true);
+                expect(context.viperProbeDroid).toHaveExactUpgradeNames(['shield']);
+
+                expect(context.player2).toBeActivePlayer();
             });
 
             describe('when there are no friendly units,', function() {
                 it('should allow player to exhaust an enemy unit', function() {
-                    this.player1.setGroundArenaUnits([]);
+                    const { context } = contextRef;
 
-                    this.player1.clickCard(this.asteroidSanctuary);
-                    expect(this.player1).toBeAbleToSelectExactly([this.deathTrooper, this.superlaserTechnician]);
+                    context.player1.setGroundArenaUnits([]);
 
-                    this.player1.clickCard(this.deathTrooper);
-                    expect(this.deathTrooper.exhausted).toBe(true);
+                    context.player1.clickCard(context.asteroidSanctuary);
+                    expect(context.player1).toBeAbleToSelectExactly([context.deathTrooper, context.superlaserTechnician]);
 
-                    expect(this.player2).toBeActivePlayer();
+                    context.player1.clickCard(context.deathTrooper);
+                    expect(context.deathTrooper.exhausted).toBe(true);
+
+                    expect(context.player2).toBeActivePlayer();
                 });
             });
 
             describe('when there are no enemy units,', function() {
                 it('should allow player to give a friendly unit that costs 3 or less a shield', function() {
-                    this.player2.setGroundArenaUnits([]);
+                    const { context } = contextRef;
 
-                    this.player1.clickCard(this.asteroidSanctuary);
-                    expect(this.player1).toBeAbleToSelectExactly([this.viperProbeDroid, this.deathStarStormtrooper]);
+                    context.player2.setGroundArenaUnits([]);
 
-                    this.player1.clickCard(this.viperProbeDroid);
-                    expect(this.viperProbeDroid).toHaveExactUpgradeNames(['shield']);
+                    context.player1.clickCard(context.asteroidSanctuary);
+                    expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.deathStarStormtrooper]);
 
-                    expect(this.player2).toBeActivePlayer();
+                    context.player1.clickCard(context.viperProbeDroid);
+                    expect(context.viperProbeDroid).toHaveExactUpgradeNames(['shield']);
+
+                    expect(context.player2).toBeActivePlayer();
                 });
             });
 
             describe('when there are no targets,', function() {
                 it('can be played to no effect', function() {
-                    this.player1.setGroundArenaUnits([]);
-                    this.player2.setGroundArenaUnits([]);
+                    const { context } = contextRef;
 
-                    this.player1.clickCard(this.asteroidSanctuary);
+                    context.player1.setGroundArenaUnits([]);
+                    context.player2.setGroundArenaUnits([]);
 
-                    expect(this.player2).toBeActivePlayer();
+                    context.player1.clickCard(context.asteroidSanctuary);
+
+                    expect(context.player2).toBeActivePlayer();
                 });
             });
         });

@@ -1,8 +1,8 @@
 describe('Shield', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Shield\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish'],
@@ -15,34 +15,38 @@ describe('Shield', function() {
             });
 
             it('should defeat itself to prevent damage to the attached unit', function () {
-                this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.tielnFighter);
+                const { context } = contextRef;
 
-                expect(this.cartelSpacer.damage).toBe(2);
-                expect(this.tielnFighter.damage).toBe(0);
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.tielnFighter);
 
-                expect(this.shield).toBeInLocation('outside the game');
-                expect(this.tielnFighter.isUpgraded()).toBe(false);
+                expect(context.cartelSpacer.damage).toBe(2);
+                expect(context.tielnFighter.damage).toBe(0);
+
+                expect(context.shield).toBeInLocation('outside the game');
+                expect(context.tielnFighter.isUpgraded()).toBe(false);
 
                 // second attack to confirm that shield effect is off
-                this.player2.clickCard(this.tielnFighter);
-                this.player2.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer).toBeInLocation('discard');
-                expect(this.tielnFighter).toBeInLocation('discard');
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInLocation('discard');
             });
 
             it('should be removed from the game when the attached unit is defeated', function () {
-                this.player1.clickCard(this.vanquish);
-                this.player1.clickCard(this.tielnFighter);
+                const { context } = contextRef;
 
-                expect(this.tielnFighter).toBeInLocation('discard');
-                expect(this.shield).toBeInLocation('outside the game');
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.tielnFighter);
+
+                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.shield).toBeInLocation('outside the game');
             });
         });
 
         describe('Shield\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         spaceArena: ['cartel-spacer']
@@ -52,35 +56,37 @@ describe('Shield', function() {
                     }
                 });
 
-                this.shields = this.player2.findCardsByName('shield');
+                context.shields = context.player2.findCardsByName('shield');
             });
 
             it('should defeat itself to prevent damage to the attached unit', function () {
+                const { context } = contextRef;
+
                 const getShieldLocationsSorted = (shields) => shields.map((shield) => shield.location).sort();
 
-                this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.tielnFighter);
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.tielnFighter);
 
-                expect(this.cartelSpacer.damage).toBe(2);
-                expect(this.tielnFighter.damage).toBe(0);
-                expect(this.tielnFighter).toHaveExactUpgradeNames(['shield']);
+                expect(context.cartelSpacer.damage).toBe(2);
+                expect(context.tielnFighter.damage).toBe(0);
+                expect(context.tielnFighter).toHaveExactUpgradeNames(['shield']);
 
-                expect(getShieldLocationsSorted(this.shields)).toEqual(['outside the game', 'space arena']);
+                expect(getShieldLocationsSorted(context.shields)).toEqual(['outside the game', 'space arena']);
 
                 // second attack
-                this.player2.clickCard(this.tielnFighter);
-                this.player2.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer).toBeInLocation('discard');
-                expect(this.tielnFighter.damage).toBe(0);
-                expect(this.tielnFighter.isUpgraded()).toBe(false);
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer).toBeInLocation('discard');
+                expect(context.tielnFighter.damage).toBe(0);
+                expect(context.tielnFighter.isUpgraded()).toBe(false);
 
-                expect(getShieldLocationsSorted(this.shields)).toEqual(['outside the game', 'outside the game']);
+                expect(getShieldLocationsSorted(context.shields)).toEqual(['outside the game', 'outside the game']);
             });
         });
 
         describe('When a shield is created', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['moment-of-peace']
@@ -92,13 +98,15 @@ describe('Shield', function() {
             });
 
             it('its owner and controller should be the player who created it', function () {
-                this.player1.clickCard(this.momentOfPeace);
+                const { context } = contextRef;
 
-                expect(this.tielnFighter.upgrades.length).toBe(1);
-                const shield = this.tielnFighter.upgrades[0];
+                context.player1.clickCard(context.momentOfPeace);
+
+                expect(context.tielnFighter.upgrades.length).toBe(1);
+                const shield = context.tielnFighter.upgrades[0];
                 expect(shield.internalName).toBe('shield');
-                expect(shield.owner).toBe(this.player1.player);
-                expect(shield.controller).toBe(this.player1.player);
+                expect(shield.owner).toBe(context.player1.player);
+                expect(shield.controller).toBe(context.player1.player);
             });
         });
     });

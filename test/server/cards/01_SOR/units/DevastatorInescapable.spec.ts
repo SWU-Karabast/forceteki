@@ -1,8 +1,10 @@
 describe('Devastator', function () {
     integration(function () {
         describe('Devastator\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['devastator#inescapable'],
@@ -20,13 +22,15 @@ describe('Devastator', function () {
             });
 
             it('should buff him with 6 or more resources', function () {
-                this.player1.clickCard(this.devastator);
-                expect(this.player1).toBeAbleToSelectExactly([this.devastator, this.seasonedShoretrooper, this.ruggedSurvivors]);
-                expect(this.player1).toHavePassAbilityButton();
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.ruggedSurvivors);
-                expect(this.ruggedSurvivors.damage).toBe(14);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.devastator);
+                expect(context.player1).toBeAbleToSelectExactly([context.devastator, context.seasonedShoretrooper, context.ruggedSurvivors]);
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.ruggedSurvivors);
+                expect(context.ruggedSurvivors.damage).toBe(14);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

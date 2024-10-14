@@ -1,8 +1,8 @@
 describe('Emperor Palpatine, Master of the Dark Side', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Palpatine\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],
@@ -17,38 +17,42 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
             });
 
             it('should distribute damage among targets when played', function () {
-                this.player1.clickCard(this.emperorPalpatine);
-                expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce, this.wampa, this.tielnFighter, this.bobaFett]);
-                this.player1.setDistributeDamagePromptState(new Map([
-                    [this.consularSecurityForce, 2],
-                    [this.wampa, 2],
-                    [this.tielnFighter, 1],
-                    [this.bobaFett, 1]
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.emperorPalpatine);
+                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.wampa, context.tielnFighter, context.bobaFett]);
+                context.player1.setDistributeDamagePromptState(new Map([
+                    [context.consularSecurityForce, 2],
+                    [context.wampa, 2],
+                    [context.tielnFighter, 1],
+                    [context.bobaFett, 1]
                 ]));
 
-                expect(this.consularSecurityForce.damage).toBe(2);
-                expect(this.wampa.damage).toBe(2);
-                expect(this.tielnFighter).toBeInLocation('discard');
-                expect(this.bobaFett.damage).toBe(1);
+                expect(context.consularSecurityForce.damage).toBe(2);
+                expect(context.wampa.damage).toBe(2);
+                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.bobaFett.damage).toBe(1);
             });
 
             it('should be able to put all damage on a single target and exceed its HP total', function () {
-                this.player1.clickCard(this.emperorPalpatine);
-                expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce, this.wampa, this.tielnFighter, this.bobaFett]);
-                this.player1.setDistributeDamagePromptState(new Map([
-                    [this.tielnFighter, 6]
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.emperorPalpatine);
+                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.wampa, context.tielnFighter, context.bobaFett]);
+                context.player1.setDistributeDamagePromptState(new Map([
+                    [context.tielnFighter, 6]
                 ]));
 
-                expect(this.consularSecurityForce.damage).toBe(0);
-                expect(this.wampa.damage).toBe(0);
-                expect(this.tielnFighter).toBeInLocation('discard');
-                expect(this.bobaFett.damage).toBe(0);
+                expect(context.consularSecurityForce.damage).toBe(0);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.bobaFett.damage).toBe(0);
             });
         });
 
         describe('Palpatine\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],
@@ -62,20 +66,22 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
             });
 
             it('should have all on-defeat effects from damage go into the same triggered ability window', function () {
-                this.player1.clickCard(this.emperorPalpatine);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter, this.generalKrell]);
-                this.player1.setDistributeDamagePromptState(new Map([
-                    [this.tielnFighter, 1],
-                    [this.wampa, 5]
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.emperorPalpatine);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.tielnFighter, context.generalKrell]);
+                context.player1.setDistributeDamagePromptState(new Map([
+                    [context.tielnFighter, 1],
+                    [context.wampa, 5]
                 ]));
 
-                expect(this.player2).toHaveExactPromptButtons(['Draw a card', 'Draw a card']);
+                expect(context.player2).toHaveExactPromptButtons(['Draw a card', 'Draw a card']);
             });
         });
 
         describe('Palpatine\'s ability, if there is only one target,', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],
@@ -88,16 +94,18 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
             });
 
             it('should automatically deal all damage to that target', function () {
-                this.player1.clickCard(this.emperorPalpatine);
-                expect(this.consularSecurityForce.damage).toBe(6);
-                expect(this.battlefieldMarine.damage).toBe(0);
-                expect(this.player2).toBeActivePlayer();
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.emperorPalpatine);
+                expect(context.consularSecurityForce.damage).toBe(6);
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('Palpatine\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],
@@ -109,9 +117,11 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
             });
 
             it('should do nothing if there are no enemy units', function () {
-                this.player1.clickCard(this.emperorPalpatine);
-                expect(this.battlefieldMarine.damage).toBe(0);
-                expect(this.player2).toBeActivePlayer();
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.emperorPalpatine);
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

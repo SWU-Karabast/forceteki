@@ -1,8 +1,8 @@
 describe('Experience', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Experience\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         spaceArena: [{ card: 'cartel-spacer', upgrades: ['experience'] }]
@@ -14,35 +14,37 @@ describe('Experience', function() {
             });
 
             it('should grant the attached unit +1/+1 and be removed from game when unit is defeated', function () {
-                this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.valiantAssaultShip);
+                const { context } = contextRef;
 
-                expect(this.cartelSpacer.damage).toBe(3);
-                expect(this.valiantAssaultShip.damage).toBe(3);
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.valiantAssaultShip);
+
+                expect(context.cartelSpacer.damage).toBe(3);
+                expect(context.valiantAssaultShip.damage).toBe(3);
 
                 // second attack to confirm that experience effect is still on
-                this.player2.passAction();
-                this.cartelSpacer.exhausted = false;
+                context.player2.passAction();
+                context.cartelSpacer.exhausted = false;
 
-                this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(3);
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(3);
 
                 // third attack to confirm that token goes to discard
-                this.player2.passAction();
-                this.cartelSpacer.exhausted = false;
+                context.player2.passAction();
+                context.cartelSpacer.exhausted = false;
 
-                this.player1.clickCard(this.cartelSpacer);
-                this.player1.clickCard(this.valiantAssaultShip);
-                expect(this.cartelSpacer).toBeInLocation('discard');
-                expect(this.valiantAssaultShip).toBeInLocation('discard');
-                expect(this.experience).toBeInLocation('outside the game');
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.valiantAssaultShip);
+                expect(context.cartelSpacer).toBeInLocation('discard');
+                expect(context.valiantAssaultShip).toBeInLocation('discard');
+                expect(context.experience).toBeInLocation('outside the game');
             });
         });
 
         describe('Experience', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['confiscate'],
@@ -54,17 +56,19 @@ describe('Experience', function() {
             });
 
             it('should be removed from the game when defeated', function () {
-                this.player1.clickCard(this.confiscate);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.confiscate);
 
                 // ability will resolve automatically since there's only one legal target
-                expect(this.cartelSpacer.isUpgraded()).toBe(false);
-                expect(this.experience).toBeInLocation('outside the game');
+                expect(context.cartelSpacer.isUpgraded()).toBe(false);
+                expect(context.experience).toBeInLocation('outside the game');
             });
         });
 
         describe('When an experience token is created', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['clan-wren-rescuer']
@@ -76,14 +80,16 @@ describe('Experience', function() {
             });
 
             it('its owner and controller should be the player who created it', function () {
-                this.player1.clickCard(this.clanWrenRescuer);
-                this.player1.clickCard(this.tielnFighter);
+                const { context } = contextRef;
 
-                expect(this.tielnFighter.upgrades.length).toBe(1);
-                const experience = this.tielnFighter.upgrades[0];
+                context.player1.clickCard(context.clanWrenRescuer);
+                context.player1.clickCard(context.tielnFighter);
+
+                expect(context.tielnFighter.upgrades.length).toBe(1);
+                const experience = context.tielnFighter.upgrades[0];
                 expect(experience.internalName).toBe('experience');
-                expect(experience.owner).toBe(this.player1.player);
-                expect(experience.controller).toBe(this.player1.player);
+                expect(experience.owner).toBe(context.player1.player);
+                expect(experience.controller).toBe(context.player1.player);
             });
         });
     });

@@ -1,8 +1,10 @@
 describe('Mandalorian Warrior', function () {
     integration(function () {
         describe('Mandalorian Warrior\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['mandalorian-warrior'],
@@ -16,11 +18,13 @@ describe('Mandalorian Warrior', function () {
             });
 
             it('should give an experience to mandalorian unit', function () {
-                this.player1.clickCard(this.mandalorianWarrior);
-                expect(this.player1).toBeAbleToSelectExactly([this.protectorOfTheThrone, this.sabineWren, this.clanChallengers]);
-                expect(this.player1).toHavePassAbilityButton();
-                this.player1.clickCard(this.protectorOfTheThrone);
-                expect(this.protectorOfTheThrone.isUpgraded()).toBeTrue();
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.mandalorianWarrior);
+                expect(context.player1).toBeAbleToSelectExactly([context.protectorOfTheThrone, context.sabineWren, context.clanChallengers]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.protectorOfTheThrone);
+                expect(context.protectorOfTheThrone.isUpgraded()).toBeTrue();
             });
         });
     });

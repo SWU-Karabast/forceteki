@@ -1,8 +1,8 @@
 describe('Grand Moff Tarkin, Death Star Overseer', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Grand Moff Tarkin\'s Ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['grand-moff-tarkin#death-star-overseer'],
@@ -14,73 +14,75 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                     }
                 });
 
-                this.p1Tarkin = this.player1.findCardByName('grand-moff-tarkin#death-star-overseer');
-                this.p2tarkin = this.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
+                context.p1Tarkin = context.player1.findCardByName('grand-moff-tarkin#death-star-overseer');
+                context.p2tarkin = context.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
             });
 
             it('should prompt to choose up to 2 Imperials from the top 5 cards, reveal chosen, draw them, and put the rest on the bottom of the deck', function () {
-                this.player1.clickCard(this.p1Tarkin);
-                expect(this.player1).toHavePrompt('Select up to 2 cards to reveal');
-                expect(this.player1).toHaveEnabledPromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title, 'Take nothing']);
-                expect(this.player1).toHaveDisabledPromptButtons([this.battlefieldMarine.title, this.wampa.title]);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.p1Tarkin);
+                expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+                expect(context.player1).toHaveEnabledPromptButtons([context.academyDefenseWalker.title, context.cellBlockGuard.title, context.scoutBikePursuer.title, 'Take nothing']);
+                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.wampa.title]);
 
                 // Choose Cell Block Guard and Scout Bike Pursuer
-                this.player1.clickPrompt(this.cellBlockGuard.title);
-                this.player1.clickPrompt(this.scoutBikePursuer.title);
-                expect(this.getChatLogs(2)).toContain('player1 takes Cell Block Guard and Scout Bike Pursuer');
+                context.player1.clickPrompt(context.cellBlockGuard.title);
+                context.player1.clickPrompt(context.scoutBikePursuer.title);
+                expect(context.getChatLogs(2)).toContain('player1 takes Cell Block Guard and Scout Bike Pursuer');
 
                 // Check cards in hand
-                expect(this.cellBlockGuard).toBeInLocation('hand');
-                expect(this.scoutBikePursuer).toBeInLocation('hand');
+                expect(context.cellBlockGuard).toBeInLocation('hand');
+                expect(context.scoutBikePursuer).toBeInLocation('hand');
 
                 // Check cards in deck
-                expect(this.player1.deck.length).toBe(6);
-                expect([this.academyDefenseWalker, this.battlefieldMarine, this.wampa]).toAllBeInBottomOfDeck(this.player1, 3);
+                expect(context.player1.deck.length).toBe(6);
+                expect([context.academyDefenseWalker, context.battlefieldMarine, context.wampa]).toAllBeInBottomOfDeck(context.player1, 3);
             });
 
             it('should be allowed to pick just one card', function() {
-                this.player1.clickCard(this.p1Tarkin);
-                expect(this.player1).toHaveEnabledPromptButtons([this.academyDefenseWalker.title, this.cellBlockGuard.title, this.scoutBikePursuer.title]);
-                expect(this.player1).toHaveDisabledPromptButtons([this.battlefieldMarine.title, this.wampa.title]);
+                context.player1.clickCard(context.p1Tarkin);
+                expect(context.player1).toHaveEnabledPromptButtons([context.academyDefenseWalker.title, context.cellBlockGuard.title, context.scoutBikePursuer.title]);
+                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.wampa.title]);
 
                 // Done prompt doesn't show up til one card selected
-                expect(this.player1).not.toHaveEnabledPromptButton('Done');
-                this.player1.clickPrompt(this.cellBlockGuard.title);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt(context.cellBlockGuard.title);
 
                 // Cell Block Guard and Take nothing should no longer be present
-                expect(this.player1).toHaveEnabledPromptButtons([this.academyDefenseWalker.title, this.scoutBikePursuer.title]);
-                expect(this.player1).not.toHaveEnabledPromptButton(this.cellBlockGuard.title);
-                expect(this.player1).not.toHaveEnabledPromptButton('Take nothing');
-                expect(this.player1).not.toHaveDisabledPromptButton(this.cellBlockGuard.title);
+                expect(context.player1).toHaveEnabledPromptButtons([context.academyDefenseWalker.title, context.scoutBikePursuer.title]);
+                expect(context.player1).not.toHaveEnabledPromptButton(context.cellBlockGuard.title);
+                expect(context.player1).not.toHaveEnabledPromptButton('Take nothing');
+                expect(context.player1).not.toHaveDisabledPromptButton(context.cellBlockGuard.title);
 
                 // Click Done
-                expect(this.player1).toHaveEnabledPromptButton('Done');
-                this.player1.clickPrompt('Done');
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
 
                 // Check card location and that player 2 now active
-                expect(this.cellBlockGuard).toBeInLocation('hand');
-                expect(this.player1.deck.length).toBe(7);
-                expect(this.player2).toBeActivePlayer();
+                expect(context.cellBlockGuard).toBeInLocation('hand');
+                expect(context.player1.deck.length).toBe(7);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should be able to choose no cards', function() {
-                this.player1.clickCard(this.p1Tarkin);
-                this.player1.clickPrompt('Take nothing');
+                context.player1.clickCard(context.p1Tarkin);
+                context.player1.clickPrompt('Take nothing');
 
-                expect([this.academyDefenseWalker, this.battlefieldMarine, this.cellBlockGuard, this.scoutBikePursuer, this.wampa]).toAllBeInBottomOfDeck(this.player1, 5);
-                expect(this.player2).toBeActivePlayer();
+                expect([context.academyDefenseWalker, context.battlefieldMarine, context.cellBlockGuard, context.scoutBikePursuer, context.wampa]).toAllBeInBottomOfDeck(context.player1, 5);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('no cards matching criteria', function() {
-                this.player2.setActivePlayer();
-                this.player2.clickCard(this.p2tarkin);
-                expect(this.player2).toHaveDisabledPromptButtons([this.clanWrenRescuer.title, this.concordDawnInterceptors.title, this.gentleGiant.title, this.systemPatrolCraft.title, this.villageProtectors.title]);
-                expect(this.player2).toHaveEnabledPromptButton('Take nothing');
-                this.player2.clickPrompt('Take nothing');
+                context.player2.setActivePlayer();
+                context.player2.clickCard(context.p2tarkin);
+                expect(context.player2).toHaveDisabledPromptButtons([context.clanWrenRescuer.title, context.concordDawnInterceptors.title, context.gentleGiant.title, context.systemPatrolCraft.title, context.villageProtectors.title]);
+                expect(context.player2).toHaveEnabledPromptButton('Take nothing');
+                context.player2.clickPrompt('Take nothing');
 
                 // Check that top 5 cards are now on the bottom of the deck
-                expect([this.clanWrenRescuer, this.concordDawnInterceptors, this.gentleGiant, this.systemPatrolCraft, this.villageProtectors]).toAllBeInBottomOfDeck(this.player2, 5);
-                expect(this.player1).toBeActivePlayer();
+                expect([context.clanWrenRescuer, context.concordDawnInterceptors, context.gentleGiant, context.systemPatrolCraft, context.villageProtectors]).toAllBeInBottomOfDeck(context.player2, 5);
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

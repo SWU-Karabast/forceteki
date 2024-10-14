@@ -1,8 +1,8 @@
 describe('Moment of Peace', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Moment of Peace\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['moment-of-peace'],
@@ -15,19 +15,23 @@ describe('Moment of Peace', function() {
             });
 
             it('can give a shield to a unit', function () {
-                this.player1.clickCard(this.momentOfPeace);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa).toHaveExactUpgradeNames(['shield']);
+                context.player1.clickCard(context.momentOfPeace);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toHaveExactUpgradeNames(['shield']);
             });
 
             it('can give a shield to a unit that already has a shield', function () {
-                this.player1.clickCard(this.momentOfPeace);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.cartelSpacer]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.cartelSpacer);
-                expect(this.cartelSpacer).toHaveExactUpgradeNames(['shield', 'shield']);
+                context.player1.clickCard(context.momentOfPeace);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer]);
+
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['shield', 'shield']);
             });
         });
     });

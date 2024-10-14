@@ -1,8 +1,8 @@
 describe('Chewbacca, Loyal Companion', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Chewbacca\'s when attacked ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['specforce-soldier', 'alliance-dispatcher']
@@ -14,17 +14,19 @@ describe('Chewbacca, Loyal Companion', function() {
             });
 
             it('readies Chewbacca when he is attacked', function () {
-                expect(this.chewbacca.exhausted).toBe(true);
-                this.player1.clickCard(this.specforceSoldier);
+                const { context } = contextRef;
+
+                expect(context.chewbacca.exhausted).toBe(true);
+                context.player1.clickCard(context.specforceSoldier);
                 // Don't need to click Chewbacca due to sentinel
-                expect(this.chewbacca.exhausted).toBe(false);
+                expect(context.chewbacca.exhausted).toBe(false);
 
-                this.player2.clickCard(this.chewbacca);
-                this.player2.clickCard(this.p1Base);
-                expect(this.chewbacca.exhausted).toBe(true);
+                context.player2.clickCard(context.chewbacca);
+                context.player2.clickCard(context.p1Base);
+                expect(context.chewbacca.exhausted).toBe(true);
 
-                this.player1.clickCard(this.allianceDispatcher);
-                expect(this.chewbacca.exhausted).toBe(false);
+                context.player1.clickCard(context.allianceDispatcher);
+                expect(context.chewbacca.exhausted).toBe(false);
             });
         });
     });

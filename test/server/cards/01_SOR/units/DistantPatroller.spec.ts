@@ -1,8 +1,10 @@
 describe('Distant Patroller', function () {
     integration(function () {
         describe('Distant Patroller\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-trooper'],
@@ -16,13 +18,15 @@ describe('Distant Patroller', function () {
             });
 
             it('should give a shield to an another ally', function () {
+                const { context } = contextRef;
+
                 // kill distant patroller on sentinel
-                this.player1.clickCard(this.distantPatroller);
-                expect(this.player1).toBeAbleToSelectExactly([this.deathTrooper, this.avenger, this.infernoFour, this.systemPatrolCraft, this.chirrutImwe]);
+                context.player1.clickCard(context.distantPatroller);
+                expect(context.player1).toBeAbleToSelectExactly([context.deathTrooper, context.avenger, context.infernoFour, context.systemPatrolCraft, context.chirrutImwe]);
                 // add a shield on avenger
-                this.player1.clickCard(this.avenger);
-                expect(this.distantPatroller.location).toBe('discard');
-                expect(this.avenger).toHaveExactUpgradeNames(['shield']);
+                context.player1.clickCard(context.avenger);
+                expect(context.distantPatroller.location).toBe('discard');
+                expect(context.avenger).toHaveExactUpgradeNames(['shield']);
             });
         });
     });

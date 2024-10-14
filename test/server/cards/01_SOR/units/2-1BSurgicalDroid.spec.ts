@@ -1,8 +1,8 @@
 describe('2-1B Surgical Droid', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('2-1B Surgical Droid\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -17,62 +17,70 @@ describe('2-1B Surgical Droid', function() {
             });
 
             it('should heal a target with 1 damage to full', function () {
+                const { context } = contextRef;
+
                 // Attack
-                this.player1.clickCard(this._21bSurgicalDroid);
-                expect(this._21bSurgicalDroid).toBeInLocation('ground arena');
-                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context._21bSurgicalDroid);
+                expect(context._21bSurgicalDroid).toBeInLocation('ground arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
+                context.player1.clickCard(context.p2Base);
 
                 // Healing Target
-                expect(this.player1).toBeAbleToSelectExactly([this.r2d2, this.c3po, this.wampa]);
-                this.player1.clickCard(this.c3po);
+                expect(context.player1).toBeAbleToSelectExactly([context.r2d2, context.c3po, context.wampa]);
+                context.player1.clickCard(context.c3po);
 
                 // Confirm Results
-                expect(this._21bSurgicalDroid.exhausted).toBe(true);
-                expect(this.c3po.damage).toBe(0);
+                expect(context._21bSurgicalDroid.exhausted).toBe(true);
+                expect(context.c3po.damage).toBe(0);
             });
 
             it('should heal 2 damage from a unit', function () {
+                const { context } = contextRef;
+
                 // Attack
-                this.player1.clickCard(this._21bSurgicalDroid);
-                expect(this._21bSurgicalDroid).toBeInLocation('ground arena');
-                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context._21bSurgicalDroid);
+                expect(context._21bSurgicalDroid).toBeInLocation('ground arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
+                context.player1.clickCard(context.p2Base);
 
                 // Healing Target
-                expect(this.player1).toBeAbleToSelectExactly([this.r2d2, this.c3po, this.wampa]);
-                this.player1.clickCard(this.r2d2);
+                expect(context.player1).toBeAbleToSelectExactly([context.r2d2, context.c3po, context.wampa]);
+                context.player1.clickCard(context.r2d2);
 
                 // Confirm Results
-                expect(this._21bSurgicalDroid.exhausted).toBe(true);
-                expect(this.r2d2.damage).toBe(1);
+                expect(context._21bSurgicalDroid.exhausted).toBe(true);
+                expect(context.r2d2.damage).toBe(1);
             });
 
             it('should be able to heal an enemy unit', function () {
+                const { context } = contextRef;
+
                 // Attack
-                this.player1.clickCard(this._21bSurgicalDroid);
-                expect(this.wampa.damage).toBe(2);
-                expect(this._21bSurgicalDroid).toBeInLocation('ground arena');
-                expect(this.player1).toBeAbleToSelectExactly([this.p2Base, this.wampa]);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context._21bSurgicalDroid);
+                expect(context.wampa.damage).toBe(2);
+                expect(context._21bSurgicalDroid).toBeInLocation('ground arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
+                context.player1.clickCard(context.p2Base);
 
                 // Healing Target
-                expect(this.player1).toBeAbleToSelectExactly([this.r2d2, this.c3po, this.wampa]);
-                this.player1.clickCard(this.wampa);
+                expect(context.player1).toBeAbleToSelectExactly([context.r2d2, context.c3po, context.wampa]);
+                context.player1.clickCard(context.wampa);
 
                 // Confirm Results
-                expect(this._21bSurgicalDroid.exhausted).toBe(true);
-                expect(this.wampa.damage).toBe(0);
+                expect(context._21bSurgicalDroid.exhausted).toBe(true);
+                expect(context.wampa.damage).toBe(0);
             });
 
             it('should be able to be passed', function () {
-                expect(this.r2d2.damage).toBe(3);
-                this.player1.clickCard(this._21bSurgicalDroid);
-                this.player1.clickCard(this.p2Base);
+                const { context } = contextRef;
 
-                this.player1.clickPrompt('Pass ability');
-                expect(this._21bSurgicalDroid.exhausted).toBe(true);
-                expect(this.r2d2.damage).toBe(3);
+                expect(context.r2d2.damage).toBe(3);
+                context.player1.clickCard(context._21bSurgicalDroid);
+                context.player1.clickCard(context.p2Base);
+
+                context.player1.clickPrompt('Pass ability');
+                expect(context._21bSurgicalDroid.exhausted).toBe(true);
+                expect(context.r2d2.damage).toBe(3);
             });
         });
     });

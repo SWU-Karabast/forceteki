@@ -1,8 +1,8 @@
 describe('Waylay', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Waylay\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['waylay', 'waylay'],
@@ -18,34 +18,38 @@ describe('Waylay', function() {
             });
 
             it('can return a friendly or enemy unit to its owner\'s hand', function () {
-                this.player1.clickCard('waylay');
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel, this.imperialInterceptor, this.superlaserTechnician]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.superlaserTechnician);
-                expect(this.superlaserTechnician).toBeInLocation('hand', this.player2);
+                context.player1.clickCard('waylay');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.imperialInterceptor, context.superlaserTechnician]);
+
+                context.player1.clickCard(context.superlaserTechnician);
+                expect(context.superlaserTechnician).toBeInLocation('hand', context.player2);
             });
 
             it('should allow the player to select a friendly unit to return to hand and should remove damage and be playable', function () {
-                this.pykeSentinel.damage = 2;
+                const { context } = contextRef;
 
-                this.player1.passAction();
-                this.player2.clickCard('entrenched'); // Providing ownership
-                this.player2.clickCard(this.pykeSentinel);
+                context.pykeSentinel.damage = 2;
 
-                this.player1.clickCard('waylay');
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel, this.superlaserTechnician, this.imperialInterceptor]);
+                context.player1.passAction();
+                context.player2.clickCard('entrenched'); // Providing ownership
+                context.player2.clickCard(context.pykeSentinel);
 
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel).toBeInLocation('hand', this.player1);
-                expect(this.entrenched).toBeInLocation('discard', this.player2);
+                context.player1.clickCard('waylay');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.superlaserTechnician, context.imperialInterceptor]);
 
-                this.player2.passAction();
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel.damage).toBe(0); // Just making sure that the damage is not added back
-                expect(this.pykeSentinel.isUpgraded()).toBe(false);
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel).toBeInLocation('hand', context.player1);
+                expect(context.entrenched).toBeInLocation('discard', context.player2);
 
-                expect(this.pykeSentinel).toBeInLocation('ground arena', this.player1);
-                expect(this.pykeSentinel.exhausted).toBe(true); // Does not retain state when returned to hand
+                context.player2.passAction();
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel.damage).toBe(0); // Just making sure that the damage is not added back
+                expect(context.pykeSentinel.isUpgraded()).toBe(false);
+
+                expect(context.pykeSentinel).toBeInLocation('ground arena', context.player1);
+                expect(context.pykeSentinel.exhausted).toBe(true); // Does not retain state when returned to hand
             });
         });
     });

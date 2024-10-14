@@ -1,8 +1,8 @@
 describe('Director Krennic, Aspiring to Authority', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Krennic\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', damage: 1 }, 'battlefield-marine'],
@@ -16,30 +16,32 @@ describe('Director Krennic, Aspiring to Authority', function() {
             });
 
             it('should give friendly damaged units +1/+0', function () {
-                expect(this.wampa.getPower()).toBe(5);
-                expect(this.wampa.getHp()).toBe(5);
+                const { context } = contextRef;
 
-                expect(this.battlefieldMarine.getPower()).toBe(3);
-                expect(this.battlefieldMarine.getHp()).toBe(3);
+                expect(context.wampa.getPower()).toBe(5);
+                expect(context.wampa.getHp()).toBe(5);
 
-                expect(this.cartelSpacer.getPower()).toBe(3);
-                expect(this.cartelSpacer.getHp()).toBe(3);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
 
-                expect(this.consularSecurityForce.getPower()).toBe(3);
-                expect(this.consularSecurityForce.getHp()).toBe(7);
+                expect(context.cartelSpacer.getPower()).toBe(3);
+                expect(context.cartelSpacer.getHp()).toBe(3);
+
+                expect(context.consularSecurityForce.getPower()).toBe(3);
+                expect(context.consularSecurityForce.getHp()).toBe(7);
 
                 // do an attack to ensure the ability is being applied correctly in combat
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.consularSecurityForce);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.consularSecurityForce);
 
-                expect(this.wampa.damage).toBe(4);
-                expect(this.consularSecurityForce.damage).toBe(6);
+                expect(context.wampa.damage).toBe(4);
+                expect(context.consularSecurityForce.damage).toBe(6);
             });
         });
 
         describe('Krennic\'s deployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', damage: 1 }, 'battlefield-marine'],
@@ -53,27 +55,29 @@ describe('Director Krennic, Aspiring to Authority', function() {
             });
 
             it('should give friendly damaged units +1/+0', function () {
-                expect(this.directorKrennic.getPower()).toBe(3);
-                expect(this.directorKrennic.getHp()).toBe(7);
+                const { context } = contextRef;
 
-                expect(this.wampa.getPower()).toBe(5);
-                expect(this.wampa.getHp()).toBe(5);
+                expect(context.directorKrennic.getPower()).toBe(3);
+                expect(context.directorKrennic.getHp()).toBe(7);
 
-                expect(this.battlefieldMarine.getPower()).toBe(3);
-                expect(this.battlefieldMarine.getHp()).toBe(3);
+                expect(context.wampa.getPower()).toBe(5);
+                expect(context.wampa.getHp()).toBe(5);
 
-                expect(this.cartelSpacer.getPower()).toBe(3);
-                expect(this.cartelSpacer.getHp()).toBe(3);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
 
-                expect(this.consularSecurityForce.getPower()).toBe(3);
-                expect(this.consularSecurityForce.getHp()).toBe(7);
+                expect(context.cartelSpacer.getPower()).toBe(3);
+                expect(context.cartelSpacer.getHp()).toBe(3);
+
+                expect(context.consularSecurityForce.getPower()).toBe(3);
+                expect(context.consularSecurityForce.getHp()).toBe(7);
 
                 // do an attack to ensure the ability is being applied correctly in combat
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.consularSecurityForce);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.consularSecurityForce);
 
-                expect(this.wampa.damage).toBe(4);
-                expect(this.consularSecurityForce.damage).toBe(6);
+                expect(context.wampa.damage).toBe(4);
+                expect(context.consularSecurityForce.damage).toBe(6);
             });
         });
     });

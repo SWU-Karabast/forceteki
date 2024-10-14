@@ -1,8 +1,10 @@
 describe('Bounty Hunter Crew', function () {
     integration(function () {
         describe('Bounty Hunter Crew\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['bounty-hunter-crew'],
@@ -16,23 +18,27 @@ describe('Bounty Hunter Crew', function () {
             });
 
             it('should return card to player hand from a discard pile', function () {
-                this.player1.clickCard(this.bountyHunterCrew);
-                this.player1.clickPrompt('Return an event from a discard pile');
-                expect(this.player1).toBeAbleToSelectExactly([this.keepFighting, this.disarm, this.tacticalAdvantage]);
-                expect(this.player1).toHavePassAbilityButton();
-                this.player1.clickCard(this.disarm);
-                expect(this.player1.hand.length).toBe(1);
-                expect(this.disarm.location).toBe('hand');
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bountyHunterCrew);
+                context.player1.clickPrompt('Return an event from a discard pile');
+                expect(context.player1).toBeAbleToSelectExactly([context.keepFighting, context.disarm, context.tacticalAdvantage]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.disarm);
+                expect(context.player1.hand.length).toBe(1);
+                expect(context.disarm.location).toBe('hand');
             });
 
             it('should return card to opponent hand from a discard pile', function () {
-                this.player1.clickCard(this.bountyHunterCrew);
-                this.player1.clickPrompt('Return an event from a discard pile');
-                expect(this.player1).toBeAbleToSelectExactly([this.keepFighting, this.disarm, this.tacticalAdvantage]);
-                expect(this.player1).toHavePassAbilityButton();
-                this.player1.clickCard(this.tacticalAdvantage);
-                expect(this.player2.hand.length).toBe(1);
-                expect(this.tacticalAdvantage.location).toBe('hand');
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bountyHunterCrew);
+                context.player1.clickPrompt('Return an event from a discard pile');
+                expect(context.player1).toBeAbleToSelectExactly([context.keepFighting, context.disarm, context.tacticalAdvantage]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.tacticalAdvantage);
+                expect(context.player2.hand.length).toBe(1);
+                expect(context.tacticalAdvantage.location).toBe('hand');
             });
         });
     });

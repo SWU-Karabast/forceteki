@@ -1,8 +1,8 @@
 describe('Grand Moff Tarkin, Oversector Governor', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Tarkin\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],
@@ -17,20 +17,22 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
             });
 
             it('should give a friendly imperial unit an experience token', function () {
-                this.player1.clickCard(this.grandMoffTarkin);
-                this.player1.clickPrompt('Give an experience token to an Imperial unit');
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.atst);
-                expect(this.grandMoffTarkin.exhausted).toBe(true);
-                expect(this.atst).toHaveExactUpgradeNames(['experience']);
-                expect(this.player1.countExhaustedResources()).toBe(1);
+                context.player1.clickCard(context.grandMoffTarkin);
+                context.player1.clickPrompt('Give an experience token to an Imperial unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter]);
+
+                context.player1.clickCard(context.atst);
+                expect(context.grandMoffTarkin.exhausted).toBe(true);
+                expect(context.atst).toHaveExactUpgradeNames(['experience']);
+                expect(context.player1.countExhaustedResources()).toBe(1);
             });
         });
 
         describe('Tarkin\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -43,19 +45,21 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
             });
 
             it('can be activated with no target', function () {
-                this.player1.clickCard(this.grandMoffTarkin);
-                this.player1.clickPrompt('Give an experience token to an Imperial unit');
+                const { context } = contextRef;
 
-                expect(this.player2).toBeActivePlayer();
-                expect(this.grandMoffTarkin.exhausted).toBe(true);
-                expect(this.player1.countExhaustedResources()).toBe(1);
+                context.player1.clickCard(context.grandMoffTarkin);
+                context.player1.clickPrompt('Give an experience token to an Imperial unit');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.grandMoffTarkin.exhausted).toBe(true);
+                expect(context.player1.countExhaustedResources()).toBe(1);
             });
         });
 
 
         describe('Tarkin\'s deployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],
@@ -70,17 +74,19 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
             });
 
             it('should give a friendly imperial unit an experience token on attack', function () {
-                this.player1.clickCard(this.grandMoffTarkin);
-                this.player1.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.player1).toHavePrompt('Choose a card');
-                expect(this.player1).toHavePassAbilityButton();
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
-                this.player1.clickCard(this.tielnFighter);
+                context.player1.clickCard(context.grandMoffTarkin);
+                context.player1.clickCard(context.wampa);
 
-                expect(this.tielnFighter).toHaveExactUpgradeNames(['experience']);
-                expect(this.grandMoffTarkin.damage).toBe(4);
-                expect(this.wampa.damage).toBe(2);
+                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter]);
+                context.player1.clickCard(context.tielnFighter);
+
+                expect(context.tielnFighter).toHaveExactUpgradeNames(['experience']);
+                expect(context.grandMoffTarkin.damage).toBe(4);
+                expect(context.wampa.damage).toBe(2);
             });
         });
     });

@@ -1,8 +1,8 @@
 describe('Tie Avanced', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Tie Avanced\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['tie-advanced'],
@@ -15,19 +15,23 @@ describe('Tie Avanced', function() {
             });
 
             it('can give two experience to a unit', function () {
-                this.player1.clickCard(this.tieAdvanced);
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
-                this.player1.clickCard(this.atst);
+                const { context } = contextRef;
 
-                expect(this.atst).toHaveExactUpgradeNames(['experience', 'experience']);
+                context.player1.clickCard(context.tieAdvanced);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter]);
+                context.player1.clickCard(context.atst);
+
+                expect(context.atst).toHaveExactUpgradeNames(['experience', 'experience']);
             });
 
             it('can give two experience to a unit that already has an experience', function () {
-                this.player1.clickCard(this.tieAdvanced);
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.tielnFighter]);
-                this.player1.clickCard(this.tielnFighter);
+                const { context } = contextRef;
 
-                expect(this.tielnFighter).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
+                context.player1.clickCard(context.tieAdvanced);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter]);
+                context.player1.clickCard(context.tielnFighter);
+
+                expect(context.tielnFighter).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
         });
     });

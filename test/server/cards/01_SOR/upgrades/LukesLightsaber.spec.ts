@@ -1,8 +1,8 @@
 describe('Luke\'s Lightsaber', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Luke\'s Lightsaber\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['lukes-lightsaber'],
@@ -13,32 +13,38 @@ describe('Luke\'s Lightsaber', function() {
             });
 
             it('should heal all damage from and give a shield to its holder when played, only if that unit is Luke Skywalker', function () {
-                this.player1.clickCard(this.lukesLightsaber);
-                expect(this.player1).toBeAbleToSelectExactly([this.lukeSkywalkerJediKnight, this.lukeSkywalkerFaithfulFriend, this.battlefieldMarine]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.lukeSkywalkerJediKnight);
+                context.player1.clickCard(context.lukesLightsaber);
+                expect(context.player1).toBeAbleToSelectExactly([context.lukeSkywalkerJediKnight, context.lukeSkywalkerFaithfulFriend, context.battlefieldMarine]);
 
-                expect(this.lukeSkywalkerJediKnight.damage).toBe(0);
-                expect(this.lukeSkywalkerJediKnight).toHaveExactUpgradeNames(['lukes-lightsaber', 'shield', 'shield']);
+                context.player1.clickCard(context.lukeSkywalkerJediKnight);
+
+                expect(context.lukeSkywalkerJediKnight.damage).toBe(0);
+                expect(context.lukeSkywalkerJediKnight).toHaveExactUpgradeNames(['lukes-lightsaber', 'shield', 'shield']);
             });
 
             it('should give a shield to Luke when played on him even if it doesn\'t heal any damage', function () {
-                this.player1.clickCard(this.lukesLightsaber);
-                expect(this.player1).toBeAbleToSelectExactly([this.lukeSkywalkerJediKnight, this.lukeSkywalkerFaithfulFriend, this.battlefieldMarine]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.lukeSkywalkerFaithfulFriend);
+                context.player1.clickCard(context.lukesLightsaber);
+                expect(context.player1).toBeAbleToSelectExactly([context.lukeSkywalkerJediKnight, context.lukeSkywalkerFaithfulFriend, context.battlefieldMarine]);
 
-                expect(this.lukeSkywalkerFaithfulFriend).toHaveExactUpgradeNames(['lukes-lightsaber', 'shield']);
+                context.player1.clickCard(context.lukeSkywalkerFaithfulFriend);
+
+                expect(context.lukeSkywalkerFaithfulFriend).toHaveExactUpgradeNames(['lukes-lightsaber', 'shield']);
             });
 
             it('should have no effect on any unit other than Luke Skywalker', function () {
-                this.player1.clickCard(this.lukesLightsaber);
-                expect(this.player1).toBeAbleToSelectExactly([this.lukeSkywalkerJediKnight, this.lukeSkywalkerFaithfulFriend, this.battlefieldMarine]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.battlefieldMarine);
+                context.player1.clickCard(context.lukesLightsaber);
+                expect(context.player1).toBeAbleToSelectExactly([context.lukeSkywalkerJediKnight, context.lukeSkywalkerFaithfulFriend, context.battlefieldMarine]);
 
-                expect(this.battlefieldMarine.damage).toBe(2);
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['lukes-lightsaber']);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine.damage).toBe(2);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['lukes-lightsaber']);
             });
         });
     });

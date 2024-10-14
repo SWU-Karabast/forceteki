@@ -1,8 +1,10 @@
 describe('Tactical Advantage', function () {
     integration(function () {
         describe('Tactical Advantage\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['tactical-advantage'],
@@ -15,18 +17,20 @@ describe('Tactical Advantage', function () {
             });
 
             it('can buff a unit', function () {
-                this.player1.clickCard(this.tacticalAdvantage);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.wampa]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.pykeSentinel);
-                expect(this.pykeSentinel.getPower()).toBe(4);
-                expect(this.pykeSentinel.getHp()).toBe(5);
+                context.player1.clickCard(context.tacticalAdvantage);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa]);
 
-                this.player2.clickCard(this.wampa);
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.pykeSentinel.getPower()).toBe(4);
+                expect(context.pykeSentinel.getHp()).toBe(5);
+
+                context.player2.clickCard(context.wampa);
                 // pyke sentinel is automatically choose
-                expect(this.wampa.damage).toBe(4);
-                expect(this.pykeSentinel.damage).toBe(4);
-                expect(this.pykeSentinel).toBeInLocation('ground arena');
+                expect(context.wampa.damage).toBe(4);
+                expect(context.pykeSentinel.damage).toBe(4);
+                expect(context.pykeSentinel).toBeInLocation('ground arena');
             });
         });
     });

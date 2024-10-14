@@ -1,8 +1,10 @@
 describe('Patrolling V-Wing', function () {
     integration(function () {
         describe('Patrolling V-Wing\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['patrolling-vwing'],
@@ -12,9 +14,11 @@ describe('Patrolling V-Wing', function () {
             });
 
             it('should draw', function () {
-                this.player1.clickCard(this.patrollingVwing);
-                expect(this.player1.hand.length).toBe(1);
-                expect(this.player2.hand.length).toBe(0);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.patrollingVwing);
+                expect(context.player1.hand.length).toBe(1);
+                expect(context.player2.hand.length).toBe(0);
             });
         });
     });

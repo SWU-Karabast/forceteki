@@ -1,6 +1,8 @@
 describe('Phase-iii Dark Trooper', function () {
     integration(function (contextRef) {
         describe('Phase-iii Dark Trooper\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

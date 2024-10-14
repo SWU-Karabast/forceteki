@@ -1,8 +1,8 @@
 describe('Leader cards', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Undeployed leaders', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],
@@ -18,83 +18,89 @@ describe('Leader cards', function() {
             });
 
             it('should not be able to deploy if there are too few resources', function () {
-                this.player1.setResourceCount(3);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.grandMoffTarkin);
-                expect(this.player1).not.toHaveEnabledPromptButton('Deploy Grand Moff Tarkin');
+                context.player1.setResourceCount(3);
+
+                context.player1.clickCard(context.grandMoffTarkin);
+                expect(context.player1).not.toHaveEnabledPromptButton('Deploy Grand Moff Tarkin');
 
                 // resolve the Tarkin ability and click him again to make sure he presents no options
-                this.player1.clickCard(this.atst);
-                this.player2.passAction();
-                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(this.player1);
+                context.player1.clickCard(context.atst);
+                context.player2.passAction();
+                expect(context.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
             it('should be able to trigger active abilities and be readied at the regroup phase if exhausted', function () {
-                this.player1.setResourceCount(3);
+                const { context } = contextRef;
+
+                context.player1.setResourceCount(3);
 
                 // resolve the Tarkin ability to exhaust him
-                this.player1.clickCard(this.grandMoffTarkin);
-                this.player1.clickCard(this.atst);
-                expect(this.grandMoffTarkin.exhausted).toBe(true);
+                context.player1.clickCard(context.grandMoffTarkin);
+                context.player1.clickCard(context.atst);
+                expect(context.grandMoffTarkin.exhausted).toBe(true);
 
                 // confirm he has no action available
-                this.player2.passAction();
-                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(this.player1);
+                context.player2.passAction();
+                expect(context.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(context.player1);
 
                 // move to next action phase to confirm that Tarkin is readied
-                this.moveToNextActionPhase();
-                expect(this.grandMoffTarkin.exhausted).toBe(false);
+                context.moveToNextActionPhase();
+                expect(context.grandMoffTarkin.exhausted).toBe(false);
             });
 
             it('should be able to deploy, activate leader unit side abilities, and be defeated', function () {
+                const { context } = contextRef;
+
                 // exhaust 1 resource just to be sure it doesn't impact the deploy ability
-                this.player1.exhaustResources(1);
+                context.player1.exhaustResources(1);
 
-                expect(this.grandMoffTarkin.deployed).toBe(false);
-                this.player1.clickCard(this.grandMoffTarkin);
-                this.player1.clickPrompt('Deploy Grand Moff Tarkin');
+                expect(context.grandMoffTarkin.deployed).toBe(false);
+                context.player1.clickCard(context.grandMoffTarkin);
+                context.player1.clickPrompt('Deploy Grand Moff Tarkin');
 
-                expect(this.grandMoffTarkin.deployed).toBe(true);
-                expect(this.grandMoffTarkin).toBeInLocation('ground arena');
-                expect(this.grandMoffTarkin.exhausted).toBe(false);
-                expect(this.player2).toBeActivePlayer();
+                expect(context.grandMoffTarkin.deployed).toBe(true);
+                expect(context.grandMoffTarkin).toBeInLocation('ground arena');
+                expect(context.grandMoffTarkin.exhausted).toBe(false);
+                expect(context.player2).toBeActivePlayer();
 
-                this.player2.passAction();
+                context.player2.passAction();
 
                 // attack and confirm that targeting works
-                this.player1.clickCard(this.grandMoffTarkin);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.p2Base]);
-                this.player1.clickCard(this.wampa);
+                context.player1.clickCard(context.grandMoffTarkin);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
+                context.player1.clickCard(context.wampa);
 
                 // on attack ability
-                expect(this.player1).toHavePrompt('Choose a card');
-                this.player1.clickPrompt('Pass ability');
+                expect(context.player1).toHavePrompt('Choose a card');
+                context.player1.clickPrompt('Pass ability');
 
-                expect(this.grandMoffTarkin.damage).toBe(4);
-                expect(this.wampa.damage).toBe(2);
+                expect(context.grandMoffTarkin.damage).toBe(4);
+                expect(context.wampa.damage).toBe(2);
 
                 // defeat leader
-                this.player2.clickCard(this.wampa);
-                this.player2.clickCard(this.grandMoffTarkin);
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.grandMoffTarkin);
 
-                expect(this.wampa.damage).toBe(4);
-                expect(this.grandMoffTarkin.deployed).toBe(false);
-                expect(this.grandMoffTarkin.location).toBe('base');
-                expect(this.grandMoffTarkin.exhausted).toBe(true);
+                expect(context.wampa.damage).toBe(4);
+                expect(context.grandMoffTarkin.deployed).toBe(false);
+                expect(context.grandMoffTarkin.location).toBe('base');
+                expect(context.grandMoffTarkin.exhausted).toBe(true);
 
                 // confirm no action available (can't deploy)
-                expect(this.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(this.player1);
+                expect(context.grandMoffTarkin).not.toHaveAvailableActionWhenClickedBy(context.player1);
 
                 // move to next action phase and confirm that deploy still isn't available
-                this.moveToNextActionPhase();
-                this.player1.clickCard(this.grandMoffTarkin);
-                expect(this.player1).not.toHaveEnabledPromptButton('Deploy Grand Moff Tarkin');
+                context.moveToNextActionPhase();
+                context.player1.clickCard(context.grandMoffTarkin);
+                expect(context.player1).not.toHaveEnabledPromptButton('Deploy Grand Moff Tarkin');
             });
         });
 
         describe('Deployed leaders', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],
@@ -107,22 +113,24 @@ describe('Leader cards', function() {
                     }
                 });
 
-                this.p1Base = this.player1.base;
-                this.p2Base = this.player2.base;
+                context.p1Base = context.player1.base;
+                context.p2Base = context.player2.base;
             });
 
             it('should have functioning keywords and be exhausted on attack', function () {
-                this.p1Base.damage = 5;
-                this.player1.clickCard(this.directorKrennic);
-                this.player1.clickCard(this.player2.base);
+                const { context } = contextRef;
 
-                expect(this.p1Base.damage).toBe(3);
-                expect(this.p2Base.damage).toBe(2);
-                expect(this.directorKrennic.exhausted).toBe(true);
+                context.p1Base.damage = 5;
+                context.player1.clickCard(context.directorKrennic);
+                context.player1.clickCard(context.player2.base);
 
-                this.player2.passAction();
+                expect(context.p1Base.damage).toBe(3);
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.directorKrennic.exhausted).toBe(true);
 
-                expect(this.directorKrennic).not.toHaveAvailableActionWhenClickedBy(this.player1);
+                context.player2.passAction();
+
+                expect(context.directorKrennic).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
     });

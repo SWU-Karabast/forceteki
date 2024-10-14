@@ -1,8 +1,10 @@
 describe('Rey, More Than a Scavenger', function () {
     integration(function () {
         describe('Rey\'s undeployed ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         leader: 'rey#more-than-a-scavenger',
@@ -16,20 +18,24 @@ describe('Rey, More Than a Scavenger', function () {
             });
 
             it('should give an experience to a unit with 2 or less power', function () {
-                this.player1.clickCard(this.rey);
-                expect(this.player1).toBeAbleToSelectExactly([this.partisanInsurgent, this.greySquadronYwing]);
-                expect(this.player1).not.toHavePassAbilityButton();
-                this.player1.clickCard(this.partisanInsurgent);
+                const { context } = contextRef;
 
-                expect(this.rey.exhausted).toBeTrue();
-                expect(this.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                expect(this.player1.countExhaustedResources()).toBe(1);
+                context.player1.clickCard(context.rey);
+                expect(context.player1).toBeAbleToSelectExactly([context.partisanInsurgent, context.greySquadronYwing]);
+                expect(context.player1).not.toHavePassAbilityButton();
+                context.player1.clickCard(context.partisanInsurgent);
+
+                expect(context.rey.exhausted).toBeTrue();
+                expect(context.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
+                expect(context.player1.countExhaustedResources()).toBe(1);
             });
         });
 
         describe('Rey\'s deployed ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         leader: { card: 'rey#more-than-a-scavenger', deployed: true },
@@ -42,38 +48,42 @@ describe('Rey, More Than a Scavenger', function () {
             });
 
             it('should give an experience to a unit with 2 or less power', function () {
-                this.player1.clickCard(this.rey);
-                // need to order triggers between restore & on attack
-                this.player1.clickPrompt('Give an Experience token to a unit with 2 or less power');
-                expect(this.player1).toBeAbleToSelectExactly([this.rey, this.partisanInsurgent, this.greySquadronYwing]);
-                this.player1.clickCard(this.partisanInsurgent);
+                const { context } = contextRef;
 
-                expect(this.rey.exhausted).toBeTrue();
-                expect(this.p2Base.damage).toBe(2);
-                expect(this.rey.isUpgraded()).toBeFalse();
-                expect(this.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                expect(this.player1.countExhaustedResources()).toBe(0);
+                context.player1.clickCard(context.rey);
+                // need to order triggers between restore & on attack
+                context.player1.clickPrompt('Give an Experience token to a unit with 2 or less power');
+                expect(context.player1).toBeAbleToSelectExactly([context.rey, context.partisanInsurgent, context.greySquadronYwing]);
+                context.player1.clickCard(context.partisanInsurgent);
+
+                expect(context.rey.exhausted).toBeTrue();
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.rey.isUpgraded()).toBeFalse();
+                expect(context.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
+                expect(context.player1.countExhaustedResources()).toBe(0);
 
                 // rey can give experience to herself
-                this.rey.exhausted = false;
-                this.p2Base.damage = 0;
-                this.player2.passAction();
-                this.player1.clickCard(this.rey);
+                context.rey.exhausted = false;
+                context.p2Base.damage = 0;
+                context.player2.passAction();
+                context.player1.clickCard(context.rey);
                 // need to order triggers between restore & on attack
-                this.player1.clickPrompt('Give an Experience token to a unit with 2 or less power');
-                expect(this.player1).toBeAbleToSelectExactly([this.rey, this.partisanInsurgent, this.greySquadronYwing]);
-                this.player1.clickCard(this.rey);
+                context.player1.clickPrompt('Give an Experience token to a unit with 2 or less power');
+                expect(context.player1).toBeAbleToSelectExactly([context.rey, context.partisanInsurgent, context.greySquadronYwing]);
+                context.player1.clickCard(context.rey);
 
-                expect(this.rey.exhausted).toBeTrue();
-                expect(this.p2Base.damage).toBe(3);
-                expect(this.rey).toHaveExactUpgradeNames(['experience']);
-                expect(this.player1.countExhaustedResources()).toBe(0);
+                expect(context.rey.exhausted).toBeTrue();
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.rey).toHaveExactUpgradeNames(['experience']);
+                expect(context.player1.countExhaustedResources()).toBe(0);
             });
         });
 
         describe('Rey\'s deployed ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         leader: { card: 'rey#more-than-a-scavenger', deployed: true },
@@ -87,18 +97,20 @@ describe('Rey, More Than a Scavenger', function () {
             });
 
             it('should give an experience to a unit with 2 or less power (be careful Raid)', function () {
-                this.player1.clickCard(this.rey);
-                // need to order triggers between restore & on attack
-                this.player1.clickPrompt('Give an Experience token to a unit with 2 or less power');
-                // rey should not be selectable because Red Three give her Raid 1
-                expect(this.player1).toBeAbleToSelectExactly([this.redThree, this.partisanInsurgent, this.greySquadronYwing]);
-                this.player1.clickCard(this.partisanInsurgent);
+                const { context } = contextRef;
 
-                expect(this.rey.exhausted).toBeTrue();
-                expect(this.p2Base.damage).toBe(3);
-                expect(this.rey).toHaveExactUpgradeNames([]);
-                expect(this.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                expect(this.player1.countExhaustedResources()).toBe(0);
+                context.player1.clickCard(context.rey);
+                // need to order triggers between restore & on attack
+                context.player1.clickPrompt('Give an Experience token to a unit with 2 or less power');
+                // rey should not be selectable because Red Three give her Raid 1
+                expect(context.player1).toBeAbleToSelectExactly([context.redThree, context.partisanInsurgent, context.greySquadronYwing]);
+                context.player1.clickCard(context.partisanInsurgent);
+
+                expect(context.rey.exhausted).toBeTrue();
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.rey).toHaveExactUpgradeNames([]);
+                expect(context.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
+                expect(context.player1.countExhaustedResources()).toBe(0);
             });
         });
     });

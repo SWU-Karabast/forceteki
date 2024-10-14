@@ -1,8 +1,8 @@
 describe('Gladiator Star Destroyer', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Gladiator Star Destroyer\'s when played ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['gladiator-star-destroyer'],
@@ -16,22 +16,24 @@ describe('Gladiator Star Destroyer', function() {
             });
 
             it('should give any one target unit sentinel for the rest of the phase', function () {
-                this.player1.clickCard(this.gladiatorStarDestroyer);
-                expect(this.player1).toBeAbleToSelectExactly([this.gladiatorStarDestroyer, this.directorKrennic, this.wampa, this.cartelSpacer]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.directorKrennic);
+                context.player1.clickCard(context.gladiatorStarDestroyer);
+                expect(context.player1).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.directorKrennic, context.wampa, context.cartelSpacer]);
 
-                this.player2.clickCard(this.wampa);
+                context.player1.clickCard(context.directorKrennic);
+
+                context.player2.clickCard(context.wampa);
                 // Krennic automatically attacked due to sentinel
-                expect(this.directorKrennic.damage).toBe(4);
-                expect(this.wampa.damage).toBe(2);
+                expect(context.directorKrennic.damage).toBe(4);
+                expect(context.wampa.damage).toBe(2);
 
-                this.moveToNextActionPhase();
+                context.moveToNextActionPhase();
 
                 // should no longer have sentinel
-                this.player1.passAction();
-                this.player2.clickCard(this.wampa);
-                expect(this.player2).toBeAbleToSelectExactly([this.directorKrennic, this.p1Base]);
+                context.player1.passAction();
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toBeAbleToSelectExactly([context.directorKrennic, context.p1Base]);
             });
         });
     });

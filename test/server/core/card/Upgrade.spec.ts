@@ -1,8 +1,8 @@
 describe('Upgrade cards', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When an upgrade is attached', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['foundling'],
@@ -18,47 +18,55 @@ describe('Upgrade cards', function() {
 
 
             it('it should stack bonuses with other applied upgrades', function () {
-                this.player1.clickCard(this.foundling);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.tielnFighter, this.brightHope]);
-                this.player1.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.wampa.upgrades).toContain(this.academyTraining);
-                expect(this.wampa.upgrades).toContain(this.foundling);
-                expect(this.wampa.upgrades.length).toBe(2);
-                expect(this.wampa.getPower()).toBe(7);
-                expect(this.wampa.getHp()).toBe(8);
+                context.player1.clickCard(context.foundling);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.tielnFighter, context.brightHope]);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.upgrades).toContain(context.academyTraining);
+                expect(context.wampa.upgrades).toContain(context.foundling);
+                expect(context.wampa.upgrades.length).toBe(2);
+                expect(context.wampa.getPower()).toBe(7);
+                expect(context.wampa.getHp()).toBe(8);
             });
 
             it('its stat bonuses should be correctly applied during combat', function () {
-                this.player1.clickCard(this.tielnFighter);
-                expect(this.brightHope.damage).toBe(5);
-                expect(this.tielnFighter.damage).toBe(2);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tielnFighter);
+                expect(context.brightHope.damage).toBe(5);
+                expect(context.tielnFighter.damage).toBe(2);
             });
 
             it('and the owner is defeated, the upgrade should also be defeated', function () {
-                this.tielnFighter.damage = 3;
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.tielnFighter);
+                context.tielnFighter.damage = 3;
 
-                expect(this.brightHope.damage).toBe(5);
-                expect(this.tielnFighter).toBeInLocation('discard');
-                expect(this.entrenched).toBeInLocation('discard');
+                context.player1.clickCard(context.tielnFighter);
+
+                expect(context.brightHope.damage).toBe(5);
+                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.entrenched).toBeInLocation('discard');
             });
 
             it('and is giving an hp boost keeping the attached unit alive, the attached unit should be defeated when the upgrade is defeated', function () {
-                this.tielnFighter.damage = 2;
-                this.player1.passAction();
+                const { context } = contextRef;
 
-                this.player2.clickCard(this.confiscate);
-                this.player2.clickCard(this.entrenched);
-                expect(this.entrenched).toBeInLocation('discard');
-                expect(this.tielnFighter).toBeInLocation('discard');
+                context.tielnFighter.damage = 2;
+                context.player1.passAction();
+
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.entrenched);
+                expect(context.entrenched).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInLocation('discard');
             });
         });
 
         describe('When an upgrade is attached to a leader', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         leader: { card: 'boba-fett#daimyo', deployed: true, upgrades: ['academy-training'] }
@@ -70,17 +78,19 @@ describe('Upgrade cards', function() {
             });
 
             it('its stat bonuses should be correctly applied during combat', function () {
-                this.player1.clickCard(this.bobaFett);
-                this.player1.clickCard(this.atatSuppressor);
-                expect(this.bobaFett).toBeInLocation('ground arena');
-                expect(this.bobaFett.damage).toBe(8);
-                expect(this.atatSuppressor.damage).toBe(6);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.atatSuppressor);
+                expect(context.bobaFett).toBeInLocation('ground arena');
+                expect(context.bobaFett.damage).toBe(8);
+                expect(context.atatSuppressor.damage).toBe(6);
             });
         });
 
         describe('When an upgrade is attached,', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         spaceArena: [{ card: 'tieln-fighter', upgrades: ['entrenched'] }]
@@ -93,22 +103,26 @@ describe('Upgrade cards', function() {
             });
 
             it('its stat bonuses should be correctly applied on top of constant effects modifying stats', function () {
-                expect(this.tielnFighter.getPower()).toBe(3);
-                expect(this.tielnFighter.getHp()).toBe(2);
+                const { context } = contextRef;
+
+                expect(context.tielnFighter.getPower()).toBe(3);
+                expect(context.tielnFighter.getHp()).toBe(2);
             });
 
             it('and is giving an hp boost keeping the attached unit alive against stat modifying effects, the attached unit should be defeated when the upgrade is defeated', function () {
-                this.player1.passAction();
+                const { context } = contextRef;
 
-                this.player2.clickCard(this.confiscate);
-                expect(this.entrenched).toBeInLocation('discard');
-                expect(this.tielnFighter).toBeInLocation('discard');
+                context.player1.passAction();
+
+                context.player2.clickCard(context.confiscate);
+                expect(context.entrenched).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInLocation('discard');
             });
         });
 
         describe('When an upgrade is attached', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -123,29 +137,33 @@ describe('Upgrade cards', function() {
             });
 
             it('its stat bonuses should be correctly applied on top of overwhelm and +2/+0 from Snowtrooper ability when attacking.', function () {
+                const { context } = contextRef;
+
                 // actions
-                this.player1.clickCard(this.firstLegionSnowtrooper);
-                expect(this.firstLegionSnowtrooper.getPower()).toBe(3);
-                this.player1.clickCard(this.deathTrooper);
+                context.player1.clickCard(context.firstLegionSnowtrooper);
+                expect(context.firstLegionSnowtrooper.getPower()).toBe(3);
+                context.player1.clickCard(context.deathTrooper);
 
                 // check board state
-                expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
-                expect(this.firstLegionSnowtrooper.damage).toBe(3);
-                expect(this.p2Base.damage).toBe(8);
-                expect(this.player2).toBeActivePlayer();
+                expect(context.firstLegionSnowtrooper.exhausted).toBe(true);
+                expect(context.firstLegionSnowtrooper.damage).toBe(3);
+                expect(context.p2Base.damage).toBe(8);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('and a unit is returned to its owner\'s hand, the upgrade should be in the upgrade\'s owner\'s discard pile', function () {
-                this.player1.passAction();
-                this.player2.clickCard('entrenched'); // Providing ownership
-                this.player2.clickCard(this.pykeSentinel);
+                const { context } = contextRef;
 
-                this.player1.clickCard('waylay');
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.pykeSentinel, this.deathTrooper, this.firstLegionSnowtrooper]);
-                this.player1.clickCard(this.pykeSentinel);
+                context.player1.passAction();
+                context.player2.clickCard('entrenched'); // Providing ownership
+                context.player2.clickCard(context.pykeSentinel);
 
-                expect(this.pykeSentinel).toBeInLocation('hand', this.player1);
-                expect(this.entrenched).toBeInLocation('discard', this.player2);
+                context.player1.clickCard('waylay');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.deathTrooper, context.firstLegionSnowtrooper]);
+                context.player1.clickCard(context.pykeSentinel);
+
+                expect(context.pykeSentinel).toBeInLocation('hand', context.player1);
+                expect(context.entrenched).toBeInLocation('discard', context.player2);
             });
         });
     });

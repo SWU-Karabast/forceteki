@@ -1,8 +1,8 @@
 describe('Leia Organa, Alliance General', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Leia\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist', 'atst', 'battlefield-marine', 'fleet-lieutenant', { card: 'rebel-pathfinder', exhausted: true }],
@@ -17,99 +17,105 @@ describe('Leia Organa, Alliance General', function() {
             });
 
             it('should attack with two Rebel units', function () {
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickPrompt('Attack with a Rebel unit');
-                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).not.toHavePassAbilityButton();
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.sundariPeacekeeper);
-                expect(this.battlefieldMarine.exhausted).toBe(true);
-                expect(this.sundariPeacekeeper.damage).toBe(3);
-                expect(this.battlefieldMarine.damage).toBe(1);
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickPrompt('Attack with a Rebel unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.battlefieldMarine, context.fleetLieutenant, context.allianceXwing]);
+                expect(context.player1).not.toHavePassAbilityButton();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.sundariPeacekeeper);
+                expect(context.battlefieldMarine.exhausted).toBe(true);
+                expect(context.sundariPeacekeeper.damage).toBe(3);
+                expect(context.battlefieldMarine.damage).toBe(1);
 
                 // second attack
-                expect(this.player1).toBeActivePlayer();
-                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).toHavePassAbilityButton();
-                this.player1.clickCard(this.allianceXwing);
-                expect(this.player1).toHavePassAttackButton();
-                this.player1.clickCard(this.p2Base);
-                expect(this.allianceXwing.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(2);
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.fleetLieutenant, context.allianceXwing]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.allianceXwing);
+                expect(context.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.p2Base);
+                expect(context.allianceXwing.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(2);
 
-                expect(this.player2).toBeActivePlayer();
-                expect(this.leiaOrgana.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.leiaOrgana.exhausted).toBe(true);
             });
 
             it('should allow passing the second attack', function () {
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickPrompt('Attack with a Rebel unit');
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.sundariPeacekeeper);
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickPrompt('Attack with a Rebel unit');
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.sundariPeacekeeper);
 
                 // second attack
-                expect(this.player1).toBeActivePlayer();
-                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).toHavePassAbilityButton();
-                this.player1.clickPrompt('Pass ability');
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.fleetLieutenant, context.allianceXwing]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass ability');
 
-                expect(this.player2).toBeActivePlayer();
-                expect(this.leiaOrgana.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.leiaOrgana.exhausted).toBe(true);
             });
 
             it('should allow appropriate attack triggers to happen when either attack is declared', function () {
+                const { context } = contextRef;
+
                 // unit with trigger first
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickPrompt('Attack with a Rebel unit');
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickCard(this.sundariPeacekeeper);
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickPrompt('Attack with a Rebel unit');
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.sundariPeacekeeper);
 
                 // being prompted for Sabine trigger target
-                expect(this.sabineWren.damage).toBe(0);
-                expect(this.sundariPeacekeeper.damage).toBe(0);
-                expect(this.p2Base.damage).toBe(0);
-                expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.p1Base, this.p2Base]);
-                this.player1.clickCard(this.p2Base);
+                expect(context.sabineWren.damage).toBe(0);
+                expect(context.sundariPeacekeeper.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
 
                 // trigger and attack go through
-                expect(this.p2Base.damage).toBe(1);
-                expect(this.sabineWren.damage).toBe(1);
-                expect(this.sundariPeacekeeper.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(1);
+                expect(context.sabineWren.damage).toBe(1);
+                expect(context.sundariPeacekeeper.damage).toBe(2);
 
                 // second attack
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.fleetLieutenant, this.allianceXwing]);
-                this.player1.clickCard(this.allianceXwing);
-                this.player1.clickCard(this.tieAdvanced);
-                expect(this.allianceXwing).toBeInLocation('discard');
-                expect(this.tieAdvanced).toBeInLocation('discard');
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.fleetLieutenant, context.allianceXwing]);
+                context.player1.clickCard(context.allianceXwing);
+                context.player1.clickCard(context.tieAdvanced);
+                expect(context.allianceXwing).toBeInLocation('discard');
+                expect(context.tieAdvanced).toBeInLocation('discard');
 
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player2).toBeActivePlayer();
 
-                this.moveToNextActionPhase();
+                context.moveToNextActionPhase();
 
                 // unit with trigger second
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickPrompt('Attack with a Rebel unit');
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickPrompt('Attack with a Rebel unit');
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
 
                 // second attack
-                expect(this.player1).toBeAbleToSelectExactly([this.sabineWren, this.fleetLieutenant, this.rebelPathfinder]);
-                this.player1.clickCard(this.sabineWren);
-                this.player1.clickCard(this.sundariPeacekeeper);
+                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.fleetLieutenant, context.rebelPathfinder]);
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.sundariPeacekeeper);
 
                 // being prompted for Sabine trigger target
-                expect(this.sabineWren.damage).toBe(1);
-                expect(this.sundariPeacekeeper.damage).toBe(2);
-                expect(this.player1).toBeAbleToSelectExactly([this.sundariPeacekeeper, this.p1Base, this.p2Base]);
+                expect(context.sabineWren.damage).toBe(1);
+                expect(context.sundariPeacekeeper.damage).toBe(2);
+                expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.p1Base, context.p2Base]);
             });
         });
 
         describe('Leia\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', { card: 'rebel-pathfinder', exhausted: true }],
@@ -124,15 +130,17 @@ describe('Leia Organa, Alliance General', function() {
             });
 
             it('can be activated with no target', function () {
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickPrompt('Attack with a Rebel unit');
-                expect(this.player2).toBeActivePlayer();
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickPrompt('Attack with a Rebel unit');
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('Leia\'s deployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'fleet-lieutenant', { card: 'battlefield-marine', exhausted: true }],
@@ -147,47 +155,49 @@ describe('Leia Organa, Alliance General', function() {
             });
 
             it('should allow attacking with another Rebel unit', function () {
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickCard(this.sundariPeacekeeper);
+                const { context } = contextRef;
 
-                expect(this.leiaOrgana.exhausted).toBe(true);
-                expect(this.leiaOrgana.damage).toBe(1);
-                expect(this.sundariPeacekeeper.damage).toBe(4);
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickCard(context.sundariPeacekeeper);
 
-                expect(this.player1).toBeAbleToSelectExactly([this.fleetLieutenant, this.allianceXwing]);
-                expect(this.player1).toHavePassAbilityButton();
+                expect(context.leiaOrgana.exhausted).toBe(true);
+                expect(context.leiaOrgana.damage).toBe(1);
+                expect(context.sundariPeacekeeper.damage).toBe(4);
 
-                this.player1.clickCard(this.fleetLieutenant);
-                expect(this.player1).toHavePassAttackButton();
-                this.player1.clickCard(this.p2Base);
-                expect(this.fleetLieutenant.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(3);
-                expect(this.fleetLieutenant.damage).toBe(0);
+                expect(context.player1).toBeAbleToSelectExactly([context.fleetLieutenant, context.allianceXwing]);
+                expect(context.player1).toHavePassAbilityButton();
 
-                this.player2.passAction();
+                context.player1.clickCard(context.fleetLieutenant);
+                expect(context.player1).toHavePassAttackButton();
+                context.player1.clickCard(context.p2Base);
+                expect(context.fleetLieutenant.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.fleetLieutenant.damage).toBe(0);
+
+                context.player2.passAction();
 
                 // second Leia attack to confirm that passing the ability works
-                this.leiaOrgana.exhausted = false;
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickCard(this.p2Base);
-                expect(this.leiaOrgana.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(7);
+                context.leiaOrgana.exhausted = false;
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickCard(context.p2Base);
+                expect(context.leiaOrgana.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(7);
 
-                expect(this.player1).toHaveEnabledPromptButton('Attack with another Rebel unit');
-                expect(this.player1).toHaveEnabledPromptButton('Pass');
-                this.player1.clickPrompt('Pass');
+                expect(context.player1).toHaveEnabledPromptButton('Attack with another Rebel unit');
+                expect(context.player1).toHaveEnabledPromptButton('Pass');
+                context.player1.clickPrompt('Pass');
 
-                this.player2.passAction();
+                context.player2.passAction();
 
                 // third Leia attack to confirm that the ability isn't triggered if there is no legal attacker
-                this.allianceXwing.exhausted = true;
-                this.leiaOrgana.exhausted = false;
-                this.player1.clickCard(this.leiaOrgana);
-                this.player1.clickCard(this.p2Base);
-                expect(this.leiaOrgana.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(11);
+                context.allianceXwing.exhausted = true;
+                context.leiaOrgana.exhausted = false;
+                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickCard(context.p2Base);
+                expect(context.leiaOrgana.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(11);
 
-                expect(this.player2).toBeActivePlayer();
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

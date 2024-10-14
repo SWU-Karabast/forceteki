@@ -1,8 +1,8 @@
 describe('General Dodonna, Massassi Group Commander', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('General Dodonna\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'general-dodonna#massassi-group-commander', 'wampa'],
@@ -16,32 +16,34 @@ describe('General Dodonna, Massassi Group Commander', function() {
             });
 
             it('should give +1/+1 to all other friendly Rebel units', function () {
-                expect(this.battlefieldMarine.getPower()).toBe(4);
-                expect(this.battlefieldMarine.getHp()).toBe(4);
+                const { context } = contextRef;
 
-                expect(this.wampa.getPower()).toBe(4);
-                expect(this.wampa.getHp()).toBe(5);
+                expect(context.battlefieldMarine.getPower()).toBe(4);
+                expect(context.battlefieldMarine.getHp()).toBe(4);
 
-                expect(this.generalDodonna.getPower()).toBe(4);
-                expect(this.generalDodonna.getHp()).toBe(4);
+                expect(context.wampa.getPower()).toBe(4);
+                expect(context.wampa.getHp()).toBe(5);
 
-                expect(this.allianceXwing.getPower()).toBe(3);
-                expect(this.allianceXwing.getHp()).toBe(4);
+                expect(context.generalDodonna.getPower()).toBe(4);
+                expect(context.generalDodonna.getHp()).toBe(4);
 
-                expect(this.leiaOrgana.getPower()).toBe(4);
-                expect(this.leiaOrgana.getHp()).toBe(7);
+                expect(context.allianceXwing.getPower()).toBe(3);
+                expect(context.allianceXwing.getHp()).toBe(4);
 
-                expect(this.consularSecurityForce.getPower()).toBe(3);
-                expect(this.consularSecurityForce.getHp()).toBe(7);
+                expect(context.leiaOrgana.getPower()).toBe(4);
+                expect(context.leiaOrgana.getHp()).toBe(7);
 
-                expect(this.specforceSoldier.getPower()).toBe(2);
-                expect(this.specforceSoldier.getHp()).toBe(2);
+                expect(context.consularSecurityForce.getPower()).toBe(3);
+                expect(context.consularSecurityForce.getHp()).toBe(7);
+
+                expect(context.specforceSoldier.getPower()).toBe(2);
+                expect(context.specforceSoldier.getHp()).toBe(2);
 
                 // test stats are effective for an attack
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.consularSecurityForce);
-                expect(this.battlefieldMarine.damage).toBe(3);
-                expect(this.consularSecurityForce.damage).toBe(4);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.battlefieldMarine.damage).toBe(3);
+                expect(context.consularSecurityForce.damage).toBe(4);
             });
         });
     });

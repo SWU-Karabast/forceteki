@@ -1,8 +1,8 @@
 describe('Iden Version, Inferno Squad Commander', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Iden\'s undeployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -16,50 +16,52 @@ describe('Iden Version, Inferno Squad Commander', function() {
             });
 
             it('should heal 1 from if an opponent\'s unit was defeated this phase', function () {
-                // case 1: nothing happens, no cards defeated
-                this.player1.clickCard(this.idenVersio);
-                this.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
-                expect(this.idenVersio.exhausted).toBe(true);
-                expect(this.p1Base.damage).toBe(5);
+                const { context } = contextRef;
 
-                this.idenVersio.exhausted = false;
-                this.player2.passAction();
+                // case 1: nothing happens, no cards defeated
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+                expect(context.idenVersio.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(5);
+
+                context.idenVersio.exhausted = false;
+                context.player2.passAction();
 
                 // case 2: friendly unit defeated
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.atst);
-                this.player2.passAction();
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.atst);
+                context.player2.passAction();
 
-                this.player1.clickCard(this.idenVersio);
-                this.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
-                expect(this.idenVersio.exhausted).toBe(true);
-                expect(this.p1Base.damage).toBe(5);
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+                expect(context.idenVersio.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(5);
 
-                this.idenVersio.exhausted = false;
-                this.player2.passAction();
+                context.idenVersio.exhausted = false;
+                context.player2.passAction();
 
                 // case 3: enemy unit defeated
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.specforceSoldier);
-                this.player2.passAction();
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.specforceSoldier);
+                context.player2.passAction();
 
-                this.player1.clickCard(this.idenVersio);
-                this.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
-                expect(this.idenVersio.exhausted).toBe(true);
-                expect(this.p1Base.damage).toBe(4);
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+                expect(context.idenVersio.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(4);
 
                 // case 4: next action phase, ability should no longer be active
-                this.moveToNextActionPhase();
-                this.player1.clickCard(this.idenVersio);
-                this.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
-                expect(this.idenVersio.exhausted).toBe(true);
-                expect(this.p1Base.damage).toBe(4);
+                context.moveToNextActionPhase();
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+                expect(context.idenVersio.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(4);
             });
         });
 
         describe('Iden\'s deployed ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -73,17 +75,19 @@ describe('Iden Version, Inferno Squad Commander', function() {
             });
 
             it('should heal 1 from base when an enemy unit is defeated', function () {
-                // case 1: friendly unit defeated
-                this.player1.clickCard(this.battlefieldMarine);
-                this.player1.clickCard(this.atst);
-                expect(this.p1Base.damage).toBe(5);
+                const { context } = contextRef;
 
-                this.player2.passAction();
+                // case 1: friendly unit defeated
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.atst);
+                expect(context.p1Base.damage).toBe(5);
+
+                context.player2.passAction();
 
                 // case 2: enemy unit defeated
-                this.player1.clickCard(this.wampa);
-                this.player1.clickCard(this.specforceSoldier);
-                expect(this.p1Base.damage).toBe(4);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.specforceSoldier);
+                expect(context.p1Base.damage).toBe(4);
             });
 
             // TODO: once leader shields and defeat timing is fixed, add a test for Iden's ability to heal base when she is defeated

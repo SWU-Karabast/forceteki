@@ -1,8 +1,10 @@
 describe('Seasoned Shoretrooper', function () {
     integration(function () {
         describe('Seasoned Shoretrooper\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['wampa', 'battlefield-marine'],
@@ -16,58 +18,60 @@ describe('Seasoned Shoretrooper', function () {
             });
 
             it('should buff him with 6 or more resources', function () {
+                const { context } = contextRef;
+
                 // with 5 resources it should not be buff
-                expect(this.seasonedShoretrooper.getPower()).toBe(2);
-                this.player1.clickCard(this.seasonedShoretrooper);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(2);
+                expect(context.seasonedShoretrooper.getPower()).toBe(2);
+                context.player1.clickCard(context.seasonedShoretrooper);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
 
                 // with 6 resources, power should be buff
-                this.player1.moveCard(this.wampa, 'resource');
+                context.player1.moveCard(context.wampa, 'resource');
                 // soft-pass
-                this.player2.clickCard(this.ruggedSurvivors);
-                this.player2.clickCard(this.p1Base);
-                expect(this.player1.resources.length).toBe(6);
-                expect(this.seasonedShoretrooper.getPower()).toBe(4);
-                expect(this.seasonedShoretrooper.getHp()).toBe(3);
+                context.player2.clickCard(context.ruggedSurvivors);
+                context.player2.clickCard(context.p1Base);
+                expect(context.player1.resources.length).toBe(6);
+                expect(context.seasonedShoretrooper.getPower()).toBe(4);
+                expect(context.seasonedShoretrooper.getHp()).toBe(3);
 
                 // reset and check damage
-                this.p2Base.damage = 0;
-                this.seasonedShoretrooper.exhausted = false;
-                this.player1.clickCard(this.seasonedShoretrooper);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(4);
+                context.p2Base.damage = 0;
+                context.seasonedShoretrooper.exhausted = false;
+                context.player1.clickCard(context.seasonedShoretrooper);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(4);
 
                 // with 6 or more resources, power should be buff
-                this.p2Base.damage = 0;
-                this.seasonedShoretrooper.exhausted = false;
-                this.player1.moveCard(this.battlefieldMarine, 'resource');
-                this.player2.passAction();
-                expect(this.player1.resources.length).toBe(7);
-                expect(this.seasonedShoretrooper.getPower()).toBe(4);
-                expect(this.seasonedShoretrooper.getHp()).toBe(3);
+                context.p2Base.damage = 0;
+                context.seasonedShoretrooper.exhausted = false;
+                context.player1.moveCard(context.battlefieldMarine, 'resource');
+                context.player2.passAction();
+                expect(context.player1.resources.length).toBe(7);
+                expect(context.seasonedShoretrooper.getPower()).toBe(4);
+                expect(context.seasonedShoretrooper.getHp()).toBe(3);
 
                 // reset and check damage
-                this.p2Base.damage = 0;
-                this.seasonedShoretrooper.exhausted = false;
-                this.player1.clickCard(this.seasonedShoretrooper);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(4);
+                context.p2Base.damage = 0;
+                context.seasonedShoretrooper.exhausted = false;
+                context.player1.clickCard(context.seasonedShoretrooper);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(4);
 
                 // remove 2 resources : seasoned shoretrooper lost its buff
-                this.player1.moveCard(this.battlefieldMarine, 'hand', 'resource');
-                this.player1.moveCard(this.wampa, 'hand', 'resource');
-                this.player2.passAction();
-                expect(this.player1.resources.length).toBe(5);
-                expect(this.seasonedShoretrooper.getPower()).toBe(2);
-                expect(this.seasonedShoretrooper.getHp()).toBe(3);
+                context.player1.moveCard(context.battlefieldMarine, 'hand', 'resource');
+                context.player1.moveCard(context.wampa, 'hand', 'resource');
+                context.player2.passAction();
+                expect(context.player1.resources.length).toBe(5);
+                expect(context.seasonedShoretrooper.getPower()).toBe(2);
+                expect(context.seasonedShoretrooper.getHp()).toBe(3);
 
                 // reset and check damage
-                this.p2Base.damage = 0;
-                this.seasonedShoretrooper.exhausted = false;
-                this.player1.clickCard(this.seasonedShoretrooper);
-                this.player1.clickCard(this.p2Base);
-                expect(this.p2Base.damage).toBe(2);
+                context.p2Base.damage = 0;
+                context.seasonedShoretrooper.exhausted = false;
+                context.player1.clickCard(context.seasonedShoretrooper);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
             });
         });
     });

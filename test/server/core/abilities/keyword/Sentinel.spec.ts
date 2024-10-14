@@ -1,8 +1,8 @@
 describe('Sentinel keyword', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit with the Sentinel keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['liberated-slaves'],
@@ -15,17 +15,19 @@ describe('Sentinel keyword', function() {
             });
 
             it('is in play, it must be targeted by an attack', function () {
-                this.player1.clickCard(this.liberatedSlaves);
-                expect(this.liberatedSlaves.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(0);
-                expect(this.liberatedSlaves.damage).toBe(4);
-                expect(this.echoBaseDefender).toBeInLocation('discard');
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.liberatedSlaves);
+                expect(context.liberatedSlaves.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.liberatedSlaves.damage).toBe(4);
+                expect(context.echoBaseDefender).toBeInLocation('discard');
             });
         });
 
         describe('When two units with the Sentinel keyword', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['liberated-slaves'],
@@ -38,13 +40,15 @@ describe('Sentinel keyword', function() {
             });
 
             it('are in play, either may be targeted by an attack', function () {
-                this.player1.clickCard(this.liberatedSlaves);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.echoBaseDefender]);
-                this.player1.clickCard(this.echoBaseDefender);
-                expect(this.liberatedSlaves.exhausted).toBe(true);
-                expect(this.p2Base.damage).toBe(0);
-                expect(this.liberatedSlaves.damage).toBe(4);
-                expect(this.echoBaseDefender).toBeInLocation('discard');
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.liberatedSlaves);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.echoBaseDefender]);
+                context.player1.clickCard(context.echoBaseDefender);
+                expect(context.liberatedSlaves.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.liberatedSlaves.damage).toBe(4);
+                expect(context.echoBaseDefender).toBeInLocation('discard');
             });
         });
     });

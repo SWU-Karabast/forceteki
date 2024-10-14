@@ -1,8 +1,8 @@
 describe('Death Trooper', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Death Trooper\'s When Played ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['death-trooper'],
@@ -17,39 +17,45 @@ describe('Death Trooper', function() {
             });
 
             // it('cannot be passed', function () {
+            const { context } = contextRef;
+
             //     // Play Death Trooper
-            //     this.player1.clickCard(this.deathTrooper);
-            //     expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-            //     expect(this.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
+            //     context.player1.clickCard(context.deathTrooper);
+            //     expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.deathTrooper]);
+            //     expect(context.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
             // });
 
             it('can only target ground units & can damage itself', function () {
+                const { context } = contextRef;
+
                 // Play Death Trooper
-                this.player1.clickCard(this.deathTrooper);
+                context.player1.clickCard(context.deathTrooper);
 
                 // Choose Friendly
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-                expect(this.player1).not.toHavePassAbilityButton();
-                this.player1.clickCard(this.deathTrooper);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.deathTrooper]);
+                expect(context.player1).not.toHavePassAbilityButton();
+                context.player1.clickCard(context.deathTrooper);
 
                 // Choose Enemy
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.superlaserTechnician]);
-                expect(this.player1).not.toHavePassAbilityButton();
-                this.player1.clickCard(this.wampa);
-                expect(this.deathTrooper.damage).toEqual(2);
-                expect(this.wampa.damage).toEqual(2);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.superlaserTechnician]);
+                expect(context.player1).not.toHavePassAbilityButton();
+                context.player1.clickCard(context.wampa);
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
             });
 
             // it('works when no enemy ground units', function () {
+            const { context } = contextRef;
+
             //     // Play Death Trooper
-            //     this.player2.setGroundArenaUnits([]);
-            //     this.player1.clickCard(this.deathTrooper);
+            //     context.player2.setGroundArenaUnits([]);
+            //     context.player1.clickCard(context.deathTrooper);
 
             //     // Choose Friendly
-            //     expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.deathTrooper]);
-            //     expect(this.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
-            //     this.player1.clickCard(this.deathTrooper);
-            //     expect(this.deathTrooper.damage).toEqual(2);
+            //     expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.deathTrooper]);
+            //     expect(context.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
+            //     context.player1.clickCard(context.deathTrooper);
+            //     expect(context.deathTrooper.damage).toEqual(2);
             // });
         });
     });

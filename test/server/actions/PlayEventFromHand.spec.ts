@@ -1,8 +1,8 @@
 describe('Play event from hand', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When an event is played', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['daring-raid', 'repair'],
@@ -17,20 +17,22 @@ describe('Play event from hand', function() {
             });
 
             it('it should end up in discard and resources should be exhausted', function () {
-                this.player1.clickCard(this.daringRaid);
-                this.player1.clickCard(this.wampa);
+                const { context } = contextRef;
 
-                expect(this.daringRaid).toBeInLocation('discard');
-                expect(this.player1.countExhaustedResources()).toBe(1);
+                context.player1.clickCard(context.daringRaid);
+                context.player1.clickCard(context.wampa);
 
-                this.player2.passAction();
+                expect(context.daringRaid).toBeInLocation('discard');
+                expect(context.player1.countExhaustedResources()).toBe(1);
+
+                context.player2.passAction();
 
                 // play a second event with an aspect penalty
-                this.player1.clickCard(this.repair);
-                this.player1.clickCard(this.wampa);
+                context.player1.clickCard(context.repair);
+                context.player1.clickCard(context.wampa);
 
-                expect(this.repair).toBeInLocation('discard');
-                expect(this.player1.countExhaustedResources()).toBe(4);
+                expect(context.repair).toBeInLocation('discard');
+                expect(context.player1.countExhaustedResources()).toBe(4);
             });
 
             // TODO: add a test of Restock to make sure it can target itself in the discard pile

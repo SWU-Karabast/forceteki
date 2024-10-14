@@ -1,8 +1,8 @@
 describe('Disarm', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Disarm\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['disarm'],
@@ -19,15 +19,17 @@ describe('Disarm', function() {
             });
 
             it('should apply -4/0 to an enemy unit for the phase', function () {
-                this.player1.clickCard(this.disarm);
-                expect(this.player1).toBeAbleToSelectExactly([this.atst, this.isbAgent, this.tielnFighter, this.cartelSpacer]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.atst);
-                expect(this.atst.getPower()).toBe(2);
+                context.player1.clickCard(context.disarm);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.isbAgent, context.tielnFighter, context.cartelSpacer]);
+
+                context.player1.clickCard(context.atst);
+                expect(context.atst.getPower()).toBe(2);
 
                 // move to next phase and confirm effect is ended
-                this.moveToNextActionPhase();
-                expect(this.atst.getPower()).toBe(6);
+                context.moveToNextActionPhase();
+                expect(context.atst.getPower()).toBe(6);
             });
         });
     });

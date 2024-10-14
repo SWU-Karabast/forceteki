@@ -1,8 +1,10 @@
 describe('Bail Organa', function () {
     integration(function () {
         describe('Bail Organa\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['bail-organa#rebel-councilor', 'battlefield-marine'],
@@ -15,13 +17,15 @@ describe('Bail Organa', function () {
             });
 
             it('should give an Experience to an another friendly unit', function () {
-                this.player1.clickCard(this.bailOrgana);
-                this.player1.clickPrompt('Give an Experience token to another friendly unit');
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.redThree]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.battlefieldMarine);
-                expect(this.bailOrgana.exhausted).toBeTrue();
-                expect(this.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                context.player1.clickCard(context.bailOrgana);
+                context.player1.clickPrompt('Give an Experience token to another friendly unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.redThree]);
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.bailOrgana.exhausted).toBeTrue();
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
             });
         });
     });

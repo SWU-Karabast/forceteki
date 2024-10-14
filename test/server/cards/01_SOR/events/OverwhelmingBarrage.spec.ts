@@ -1,8 +1,8 @@
 describe('Overwhelming Barrage', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Overwhelming Barrage\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['overwhelming-barrage'],
@@ -18,79 +18,85 @@ describe('Overwhelming Barrage', function() {
             });
 
             it('should give a friendly unit +2/+2 for the phase and allow it to distribute its power as damage across other units', function () {
-                this.player1.clickCard(this.overwhelmingBarrage);
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.battlefieldMarine, this.leiaOrgana]);
-                this.player1.clickCard(this.wampa);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.leiaOrgana, this.atst, this.tielnFighter, this.hanSolo]);
-                expect(this.player1).toHaveChooseNoTargetButton();
-                this.player1.setDistributeDamagePromptState(new Map([
-                    [this.atst, 2],
-                    [this.battlefieldMarine, 2],
-                    [this.tielnFighter, 1],
-                    [this.hanSolo, 1]
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.overwhelmingBarrage);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.leiaOrgana]);
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.leiaOrgana, context.atst, context.tielnFighter, context.hanSolo]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.setDistributeDamagePromptState(new Map([
+                    [context.atst, 2],
+                    [context.battlefieldMarine, 2],
+                    [context.tielnFighter, 1],
+                    [context.hanSolo, 1]
                 ]));
 
-                expect(this.leiaOrgana.damage).toBe(0);
-                expect(this.wampa.damage).toBe(0);
-                expect(this.atst.damage).toBe(2);
-                expect(this.battlefieldMarine.damage).toBe(2);
-                expect(this.tielnFighter).toBeInLocation('discard');
-                expect(this.hanSolo.damage).toBe(1);
+                expect(context.leiaOrgana.damage).toBe(0);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.atst.damage).toBe(2);
+                expect(context.battlefieldMarine.damage).toBe(2);
+                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.hanSolo.damage).toBe(1);
 
                 // attack into wampa to confirm stats buff
-                this.atst.damage = 0;
-                this.player2.clickCard(this.atst);
-                this.player2.clickCard(this.wampa);
-                expect(this.wampa).toBeInLocation('ground arena');
-                expect(this.wampa.damage).toBe(6);
-                expect(this.atst).toBeInLocation('ground arena');
-                expect(this.atst.damage).toBe(6);
+                context.atst.damage = 0;
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa).toBeInLocation('ground arena');
+                expect(context.wampa.damage).toBe(6);
+                expect(context.atst).toBeInLocation('ground arena');
+                expect(context.atst.damage).toBe(6);
             });
 
             it('should be able to put all damage on a single target and exceed its HP total', function () {
-                this.player1.clickCard(this.overwhelmingBarrage);
-                this.player1.clickCard(this.wampa);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.leiaOrgana, this.atst, this.tielnFighter, this.hanSolo]);
-                this.player1.setDistributeDamagePromptState(new Map([
-                    [this.tielnFighter, 6]
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.overwhelmingBarrage);
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.leiaOrgana, context.atst, context.tielnFighter, context.hanSolo]);
+                context.player1.setDistributeDamagePromptState(new Map([
+                    [context.tielnFighter, 6]
                 ]));
 
-                expect(this.leiaOrgana.damage).toBe(0);
-                expect(this.wampa.damage).toBe(0);
-                expect(this.atst.damage).toBe(0);
-                expect(this.wampa.damage).toBe(0);
-                expect(this.tielnFighter).toBeInLocation('discard');
-                expect(this.hanSolo.damage).toBe(0);
+                expect(context.leiaOrgana.damage).toBe(0);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.atst.damage).toBe(0);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.hanSolo.damage).toBe(0);
             });
 
             it('should be able to choose 0 targets', function () {
-                this.player1.clickCard(this.overwhelmingBarrage);
-                this.player1.clickCard(this.wampa);
-                expect(this.player1).toBeAbleToSelectExactly([this.battlefieldMarine, this.leiaOrgana, this.atst, this.tielnFighter, this.hanSolo]);
-                this.player1.clickPrompt('Choose no targets');
+                const { context } = contextRef;
 
-                expect(this.leiaOrgana.damage).toBe(0);
-                expect(this.wampa.damage).toBe(0);
-                expect(this.atst.damage).toBe(0);
-                expect(this.wampa.damage).toBe(0);
-                expect(this.tielnFighter.damage).toBe(0);
-                expect(this.hanSolo.damage).toBe(0);
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.overwhelmingBarrage);
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.leiaOrgana, context.atst, context.tielnFighter, context.hanSolo]);
+                context.player1.clickPrompt('Choose no targets');
+
+                expect(context.leiaOrgana.damage).toBe(0);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.atst.damage).toBe(0);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.tielnFighter.damage).toBe(0);
+                expect(context.hanSolo.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
 
                 // attack into wampa to confirm stats buff
-                this.atst.damage = 0;
-                this.player2.clickCard(this.atst);
-                this.player2.clickCard(this.wampa);
-                expect(this.wampa).toBeInLocation('ground arena');
-                expect(this.wampa.damage).toBe(6);
-                expect(this.atst).toBeInLocation('ground arena');
-                expect(this.atst.damage).toBe(6);
+                context.atst.damage = 0;
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa).toBeInLocation('ground arena');
+                expect(context.wampa.damage).toBe(6);
+                expect(context.atst).toBeInLocation('ground arena');
+                expect(context.atst.damage).toBe(6);
             });
         });
 
         describe('Overwhelming Barrage\'s ability, if there is only one target for damage,', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['overwhelming-barrage'],
@@ -103,8 +109,10 @@ describe('Overwhelming Barrage', function() {
             });
 
             it('should not automatically select that target', function () {
-                this.player1.clickCard(this.overwhelmingBarrage);
-                expect(this.player1).toBeAbleToSelectExactly([this.consularSecurityForce]);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.overwhelmingBarrage);
+                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
             });
         });
     });

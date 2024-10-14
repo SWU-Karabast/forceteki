@@ -1,10 +1,10 @@
 describe('Superlaser Blast', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Superlaser Blast', function() {
-            integration(function() {
+            integration(function(contextRef) {
                 describe('Superlaser Blast\' ability', function() {
                     beforeEach(function () {
-                        this.setupTest({
+                        contextRef.setupTest({
                             phase: 'action',
                             player1: {
                                 hand: ['superlaser-blast'],
@@ -21,13 +21,15 @@ describe('Superlaser Blast', function() {
                     });
 
                     it('should defeat all units', function () {
-                        this.player1.clickCard(this.superlaserBlast);
-                        expect(this.atst).toBeInLocation('discard');
-                        expect(this.cartelSpacer).toBeInLocation('discard');
-                        expect(this.wampa).toBeInLocation('discard');
-                        expect(this.allianceXwing).toBeInLocation('discard');
-                        expect(this.bobaFett).toBeInLocation('base');
-                        expect(this.lukeSkywalker).toBeInLocation('base');
+                        const { context } = contextRef;
+
+                        context.player1.clickCard(context.superlaserBlast);
+                        expect(context.atst).toBeInLocation('discard');
+                        expect(context.cartelSpacer).toBeInLocation('discard');
+                        expect(context.wampa).toBeInLocation('discard');
+                        expect(context.allianceXwing).toBeInLocation('discard');
+                        expect(context.bobaFett).toBeInLocation('base');
+                        expect(context.lukeSkywalker).toBeInLocation('base');
                     });
                 });
             });

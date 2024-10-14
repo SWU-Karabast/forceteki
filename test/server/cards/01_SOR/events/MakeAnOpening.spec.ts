@@ -1,8 +1,10 @@
 describe('Make an Opening', function () {
     integration(function () {
         describe('Make an Opening\'s ability', function () {
+            const { context } = contextRef;
+
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['make-an-opening'],
@@ -17,27 +19,31 @@ describe('Make an Opening', function () {
             });
 
             it('should reduce hp to a enemy unit and heal your base', function () {
-                this.p1Base.damage = 5;
-                this.player1.clickCard(this.makeAnOpening);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.sabineWren]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.isbAgent);
-                expect(this.isbAgent.getPower()).toBe(0);
-                expect(this.isbAgent.remainingHp).toBe(1);
+                context.p1Base.damage = 5;
+                context.player1.clickCard(context.makeAnOpening);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.sabineWren]);
 
-                expect(this.p1Base.damage).toBe(3);
+                context.player1.clickCard(context.isbAgent);
+                expect(context.isbAgent.getPower()).toBe(0);
+                expect(context.isbAgent.remainingHp).toBe(1);
+
+                expect(context.p1Base.damage).toBe(3);
             });
 
             it('should reduce hp to an ally unit and heal your base', function () {
-                this.p1Base.damage = 5;
-                this.player1.clickCard(this.makeAnOpening);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.atst, this.isbAgent, this.cartelSpacer, this.sabineWren]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.atst);
-                expect(this.atst.getPower()).toBe(4);
-                expect(this.atst.remainingHp).toBe(5);
+                context.p1Base.damage = 5;
+                context.player1.clickCard(context.makeAnOpening);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.sabineWren]);
 
-                expect(this.p1Base.damage).toBe(3);
+                context.player1.clickCard(context.atst);
+                expect(context.atst.getPower()).toBe(4);
+                expect(context.atst.remainingHp).toBe(5);
+
+                expect(context.p1Base.damage).toBe(3);
             });
         });
     });

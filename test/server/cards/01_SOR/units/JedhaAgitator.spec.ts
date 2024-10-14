@@ -1,8 +1,8 @@
 describe('Jedha Agitator', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Jedha Agitator\'s on attack ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['jedha-agitator'],
@@ -15,17 +15,19 @@ describe('Jedha Agitator', function() {
             });
 
             it('should do nothing if no leader is deployed', function () {
-                this.player1.clickCard(this.jedhaAgitator);
-                this.player1.clickCard(this.p2Base);
-                expect(this.jedhaAgitator.exhausted).toBe(true);
+                const { context } = contextRef;
 
-                expect(this.player2).toBeActivePlayer();
+                context.player1.clickCard(context.jedhaAgitator);
+                context.player1.clickCard(context.p2Base);
+                expect(context.jedhaAgitator.exhausted).toBe(true);
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
         describe('Jedha Agitator\'s on attack ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['jedha-agitator', 'battlefield-marine'],
@@ -40,50 +42,52 @@ describe('Jedha Agitator', function() {
             });
 
             it('should deal 2 damage to a ground unit or base if a leader is deployed', function () {
+                const { context } = contextRef;
+
                 // ************** CASE 1: deal damage to a ground unit **************
-                this.player1.clickCard(this.jedhaAgitator);
-                this.player1.clickCard(this.p2Base);
+                context.player1.clickCard(context.jedhaAgitator);
+                context.player1.clickCard(context.p2Base);
 
-                expect(this.player1).toHaveEnabledPromptButton('If you control a leader unit, deal 2 damage to a ground unit or base');
-                expect(this.player1).toHaveEnabledPromptButton('Saboteur: defeat all shields');
-                expect(this.jedhaAgitator.exhausted).toBe(true);
+                expect(context.player1).toHaveEnabledPromptButton('If you control a leader unit, deal 2 damage to a ground unit or base');
+                expect(context.player1).toHaveEnabledPromptButton('Saboteur: defeat all shields');
+                expect(context.jedhaAgitator.exhausted).toBe(true);
 
-                this.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
-                expect(this.player1).toBeAbleToSelectExactly([this.wampa, this.jedhaAgitator, this.battlefieldMarine, this.p1Base, this.p2Base, this.hunter]);
-                this.player1.clickCard(this.wampa);
-                expect(this.wampa.damage).toBe(2);
-                expect(this.p2Base.damage).toBe(2);
+                context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.jedhaAgitator, context.battlefieldMarine, context.p1Base, context.p2Base, context.hunter]);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(2);
 
-                expect(this.player2).toBeActivePlayer();
-                this.player2.passAction();
-                this.jedhaAgitator.exhausted = false;
+                expect(context.player2).toBeActivePlayer();
+                context.player2.passAction();
+                context.jedhaAgitator.exhausted = false;
 
                 // ************** CASE 2: deal damage to base **************
-                this.player1.clickCard(this.jedhaAgitator);
-                this.player1.clickCard(this.p2Base);
-                this.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
-                this.player1.clickCard(this.p1Base);
-                expect(this.jedhaAgitator.exhausted).toBe(true);
-                expect(this.p1Base.damage).toBe(2);
-                expect(this.p2Base.damage).toBe(4);
+                context.player1.clickCard(context.jedhaAgitator);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
+                context.player1.clickCard(context.p1Base);
+                expect(context.jedhaAgitator.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(4);
 
-                this.player2.passAction();
-                this.jedhaAgitator.exhausted = false;
+                context.player2.passAction();
+                context.jedhaAgitator.exhausted = false;
 
                 // ************** CASE 3: deal damage to self **************
-                this.player1.clickCard(this.jedhaAgitator);
-                this.player1.clickCard(this.p2Base);
-                this.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
-                this.player1.clickCard(this.jedhaAgitator);
-                expect(this.jedhaAgitator).toBeInLocation('discard');
-                expect(this.p1Base.damage).toBe(2);
-                expect(this.p2Base.damage).toBe(4);     // attack did not resolve
+                context.player1.clickCard(context.jedhaAgitator);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
+                context.player1.clickCard(context.jedhaAgitator);
+                expect(context.jedhaAgitator).toBeInLocation('discard');
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(4);     // attack did not resolve
             });
         });
 
         describe('Jedha Agitator\'s on attack ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['jedha-agitator', 'battlefield-marine'],
@@ -98,14 +102,16 @@ describe('Jedha Agitator', function() {
             });
 
             it('should not prevent the Saboteur shield defeat if used to defeat itself', function () {
-                this.player1.clickCard(this.jedhaAgitator);
-                this.player1.clickCard(this.wampa);
-                this.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
-                this.player1.clickCard(this.jedhaAgitator);
+                const { context } = contextRef;
 
-                expect(this.jedhaAgitator).toBeInLocation('discard');
-                expect(this.wampa.isUpgraded()).toBe(false);
-                expect(this.wampa.damage).toBe(0);
+                context.player1.clickCard(context.jedhaAgitator);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
+                context.player1.clickCard(context.jedhaAgitator);
+
+                expect(context.jedhaAgitator).toBeInLocation('discard');
+                expect(context.wampa.isUpgraded()).toBe(false);
+                expect(context.wampa.damage).toBe(0);
             });
         });
     });

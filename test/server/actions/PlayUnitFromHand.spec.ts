@@ -1,8 +1,8 @@
 describe('Play unit from hand', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('When a unit is played', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['cartel-spacer', 'first-legion-snowtrooper', 'battlefield-marine'],
@@ -17,30 +17,36 @@ describe('Play unit from hand', function() {
             });
 
             it('it should land in the correct arena exausted and resources should be exhausted', function () {
-                this.player1.clickCard(this.cartelSpacer);
+                const { context } = contextRef;
 
-                expect(this.cartelSpacer).toBeInLocation('space arena');
-                expect(this.cartelSpacer.exhausted).toBe(true);
-                expect(this.player1.countSpendableResources()).toBe(4);
-                expect(this.player1.countExhaustedResources()).toBe(2);
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.cartelSpacer).toBeInLocation('space arena');
+                expect(context.cartelSpacer.exhausted).toBe(true);
+                expect(context.player1.countSpendableResources()).toBe(4);
+                expect(context.player1.countExhaustedResources()).toBe(2);
             });
 
             it('it should cost 2 extra resources for one aspect penalty', function () {
-                this.player1.clickCard(this.firstLegionSnowtrooper);
+                const { context } = contextRef;
 
-                expect(this.firstLegionSnowtrooper).toBeInLocation('ground arena');
-                expect(this.firstLegionSnowtrooper.exhausted).toBe(true);
-                expect(this.player1.countSpendableResources()).toBe(2);
-                expect(this.player1.countExhaustedResources()).toBe(4);
+                context.player1.clickCard(context.firstLegionSnowtrooper);
+
+                expect(context.firstLegionSnowtrooper).toBeInLocation('ground arena');
+                expect(context.firstLegionSnowtrooper.exhausted).toBe(true);
+                expect(context.player1.countSpendableResources()).toBe(2);
+                expect(context.player1.countExhaustedResources()).toBe(4);
             });
 
             it('it should cost 4 extra resources for two aspect penalties', function () {
-                this.player1.clickCard(this.battlefieldMarine);
+                const { context } = contextRef;
 
-                expect(this.battlefieldMarine).toBeInLocation('ground arena');
-                expect(this.battlefieldMarine.exhausted).toBe(true);
-                expect(this.player1.countSpendableResources()).toBe(0);
-                expect(this.player1.countExhaustedResources()).toBe(6);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInLocation('ground arena');
+                expect(context.battlefieldMarine.exhausted).toBe(true);
+                expect(context.player1.countSpendableResources()).toBe(0);
+                expect(context.player1.countExhaustedResources()).toBe(6);
             });
         });
     });

@@ -1,8 +1,8 @@
 describe('Imperial Interceptor', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Imperial Interceptor\'s When Played ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['imperial-interceptor'],
@@ -17,32 +17,38 @@ describe('Imperial Interceptor', function() {
             });
 
             it('can only select space units, can be passed and can damage a target', function () {
+                const { context } = contextRef;
+
                 // Play Imperial Interceptor
-                this.player1.clickCard(this.imperialInterceptor);
-                expect(this.player1).toHaveEnabledPromptButtons('Pass ability');
-                expect(this.player1).toBeAbleToSelectExactly([this.systemPatrolCraft, this.gladiatorStarDestroyer, this.imperialInterceptor]);
+                context.player1.clickCard(context.imperialInterceptor);
+                expect(context.player1).toHaveEnabledPromptButtons('Pass ability');
+                expect(context.player1).toBeAbleToSelectExactly([context.systemPatrolCraft, context.gladiatorStarDestroyer, context.imperialInterceptor]);
 
                 // Select another target and apply damage
-                this.player1.clickCard(this.systemPatrolCraft);
-                expect(this.systemPatrolCraft.damage).toEqual(3);
+                context.player1.clickCard(context.systemPatrolCraft);
+                expect(context.systemPatrolCraft.damage).toEqual(3);
             });
 
             it('can select itself and it is defeated', function () {
+                const { context } = contextRef;
+
                 // Play Imperial Interceptor
-                this.player1.clickCard(this.imperialInterceptor);
-                this.player1.clickCard(this.imperialInterceptor);
-                expect(this.imperialInterceptor).toBeInLocation('discard');
+                context.player1.clickCard(context.imperialInterceptor);
+                context.player1.clickCard(context.imperialInterceptor);
+                expect(context.imperialInterceptor).toBeInLocation('discard');
             });
 
             it('should be able to be passed', function () {
+                const { context } = contextRef;
+
                 // Play Imperial Interceptor
-                this.player1.clickCard(this.imperialInterceptor);
+                context.player1.clickCard(context.imperialInterceptor);
 
                 // Pass the ability to damage another unit
-                this.player1.clickPrompt('Pass ability');
-                expect(this.imperialInterceptor.damage).toEqual(0);
-                expect(this.gladiatorStarDestroyer.damage).toEqual(0);
-                expect(this.systemPatrolCraft.damage).toEqual(0);
+                context.player1.clickPrompt('Pass ability');
+                expect(context.imperialInterceptor.damage).toEqual(0);
+                expect(context.gladiatorStarDestroyer.damage).toEqual(0);
+                expect(context.systemPatrolCraft.damage).toEqual(0);
             });
         });
     });

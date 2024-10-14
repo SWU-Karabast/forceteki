@@ -1,8 +1,8 @@
 describe('Supreme Leader Snoke, Shadow Ruler', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Snoke\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],
@@ -18,24 +18,26 @@ describe('Supreme Leader Snoke, Shadow Ruler', function() {
             });
 
             it('should give -2/-2 to all enemy non-leader units', function () {
-                this.player1.clickCard(this.supremeLeaderSnoke);
+                const { context } = contextRef;
 
-                expect(this.battlefieldMarine.getPower()).toBe(3);
-                expect(this.battlefieldMarine.getHp()).toBe(3);
+                context.player1.clickCard(context.supremeLeaderSnoke);
 
-                expect(this.wampa.getPower()).toBe(2);
-                expect(this.wampa.getHp()).toBe(3);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
 
-                expect(this.cartelSpacer.getPower()).toBe(0);
-                expect(this.cartelSpacer.getHp()).toBe(1);
+                expect(context.wampa.getPower()).toBe(2);
+                expect(context.wampa.getHp()).toBe(3);
 
-                expect(this.specforceSoldier).toBeInLocation('discard');
+                expect(context.cartelSpacer.getPower()).toBe(0);
+                expect(context.cartelSpacer.getHp()).toBe(1);
 
-                expect(this.jynErso.getPower()).toBe(4);
-                expect(this.jynErso.getHp()).toBe(7);
+                expect(context.specforceSoldier).toBeInLocation('discard');
 
-                this.player2.clickCard(this.deathStarStormtrooper);
-                expect(this.deathStarStormtrooper).toBeInLocation('discard');
+                expect(context.jynErso.getPower()).toBe(4);
+                expect(context.jynErso.getHp()).toBe(7);
+
+                context.player2.clickCard(context.deathStarStormtrooper);
+                expect(context.deathStarStormtrooper).toBeInLocation('discard');
             });
         });
     });

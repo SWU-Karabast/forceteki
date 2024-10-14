@@ -1,8 +1,8 @@
 describe('Vanquish', function() {
-    integration(function() {
+    integration(function(contextRef) {
         describe('Vanquish\'s ability', function() {
             beforeEach(function () {
-                this.setupTest({
+                contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish'],
@@ -17,11 +17,13 @@ describe('Vanquish', function() {
             });
 
             it('should defeat any non-leader unit', function () {
-                this.player1.clickCard(this.vanquish);
-                expect(this.player1).toBeAbleToSelectExactly([this.pykeSentinel, this.wampa, this.imperialInterceptor]);
+                const { context } = contextRef;
 
-                this.player1.clickCard(this.imperialInterceptor);
-                expect(this.imperialInterceptor).toBeInLocation('discard');
+                context.player1.clickCard(context.vanquish);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa, context.imperialInterceptor]);
+
+                context.player1.clickCard(context.imperialInterceptor);
+                expect(context.imperialInterceptor).toBeInLocation('discard');
             });
         });
     });
