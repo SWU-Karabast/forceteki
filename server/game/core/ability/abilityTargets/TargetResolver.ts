@@ -8,39 +8,39 @@ import { RelativePlayer } from '../../Constants';
 /**
  * Base class for all target resolvers.
  */
-export abstract class TargetResolverBaseClass<TProps extends ITargetResolverBase<AbilityContext>> {
+export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityContext>> {
     protected dependentTarget = null;
     protected dependentCost = null;
+
     public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility) {
         if (this.properties.dependsOn) {
             const dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
 
             // assert that the target we depend on actually exists
             Contract.assertNotNullLike(dependsOnTarget);
+            // TODO: Change the dependsOn system to allow multiple dependent targets.
+            if (dependsOnTarget.dependentTarget != null) {
+                throw new Error('Attempting to set a dependent target for source target <insert target name here> but it already has one. Having multiple dependent targets for the same source target has not yet been implemented');
+            }
 
             dependsOnTarget.dependentTarget = this;
         }
     }
 
+    protected abstract hasLegalTarget(context): boolean;
+
+    protected abstract getAllLegalTargets(context: AbilityContext): any[];
+
+    protected abstract resolve(context: AbilityContext, targetResults, passPrompt);
+
+    protected abstract checkTarget(context: AbilityContext): boolean;
+
+    protected abstract hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean;
+
     protected canResolve(context) {
         // if this depends on another target, that will check hasLegalTarget already
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
     }
-
-    protected abstract hasLegalTarget(context): boolean;
-
-    protected getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
-        return this.properties.immediateEffect ? [this.properties.immediateEffect] : [];
-    }
-
-
-    protected abstract getAllLegalTargets(context: AbilityContext): any[];
-
-
-    protected abstract resolve(context: AbilityContext, targetResults, passPrompt);
-
-
-    protected abstract checkTarget(context: AbilityContext): boolean;
 
     protected getChoosingPlayer(context) {
         let playerProp = this.properties.choosingPlayer;
@@ -50,6 +50,7 @@ export abstract class TargetResolverBaseClass<TProps extends ITargetResolverBase
         return playerProp === RelativePlayer.Opponent ? context.player.opponent : context.player;
     }
 
-
-    protected abstract hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean;
+    protected getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
+        return this.properties.immediateEffect ? [this.properties.immediateEffect] : [];
+    }
 }

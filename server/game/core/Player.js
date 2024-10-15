@@ -398,25 +398,15 @@ class Player extends GameObject {
      * @param {number} numCards
      */
     drawCardsToHand(numCards) {
-        let remainingCards = 0;
-
         if (numCards > this.drawDeck.length) {
-            // remainingCards = numCards - this.deck.size();
-            // let cards = this.deck.toArray();
-            // this.deckRanOutOfCards('conflict');
-            // this.game.queueSimpleStep(() => {
-            //     for (let card of cards) {
-            //         this.moveCard(card, Location.Hand);
-            //     }
-            // });
-            // this.game.queueSimpleStep(() => this.drawCardsToHand(remainingCards));
-
-            // TODO OVERDRAW: fill out this implementation
-            throw new Error('Deck ran out of cards');
-        } else {
-            for (let card of this.drawDeck.slice(0, numCards)) {
-                this.moveCard(card, Location.Hand);
-            }
+            // Game log message about empty deck damage(the damage itself is handled in DrawSystem.updateEvent()).
+            this.game.addMessage('{0} attempts to draw {1} cards from their empty deck and takes {2} damage instead ',
+                this.name, numCards - this.drawDeck.length, 3 * (numCards - this.drawDeck.length)
+            );
+            numCards = this.drawDeck.length;
+        }
+        for (let card of this.drawDeck.slice(0, numCards)) {
+            this.moveCard(card, Location.Hand);
         }
     }
 

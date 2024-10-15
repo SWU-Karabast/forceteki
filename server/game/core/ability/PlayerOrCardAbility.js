@@ -104,9 +104,12 @@ class PlayerOrCardAbility {
 
     buildTargetResolver(name, properties) {
         switch (properties.mode) {
-            case TargetMode.Select: return new SelectTargetResolver(name, properties, this);
-            case TargetMode.Player: return new PlayerTargetResolver(name, properties, this);
-            default: return new CardTargetResolver(name, properties, this);
+            case TargetMode.Select:
+                return new SelectTargetResolver(name, properties, this);
+            case TargetMode.Player:
+                return new PlayerTargetResolver(name, properties, this);
+            default:
+                return new CardTargetResolver(name, properties, this);
         }
     }
 

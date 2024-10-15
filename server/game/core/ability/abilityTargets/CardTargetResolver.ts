@@ -1,7 +1,7 @@
 import { ICardTargetResolver } from '../../../TargetInterfaces';
 import { AbilityContext } from '../AbilityContext';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
-import { TargetResolverBaseClass } from './TargetResolverBaseClass';
+import { TargetResolver } from './TargetResolver';
 import CardSelector from '../../cardSelector/CardSelector';
 import { Card } from '../../card/Card';
 import { Stage, EffectName } from '../../Constants';
@@ -13,7 +13,7 @@ import * as EnumHelpers from '../../utils/EnumHelpers.js';
 /**
  * Target resolver for selecting cards for the target of an effect.
  */
-export class CardTargetResolver extends TargetResolverBaseClass<ICardTargetResolver<AbilityContext>> {
+export class CardTargetResolver extends TargetResolver<ICardTargetResolver<AbilityContext>> {
     private selector;
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
@@ -41,7 +41,7 @@ export class CardTargetResolver extends TargetResolverBaseClass<ICardTargetResol
     }
 
     private getContextCopy(card: Card, context: AbilityContext) {
-        const contextCopy = context.copy({});
+        const contextCopy = context.copy();
         contextCopy.targets[this.name] = card;
         if (this.name === 'target') {
             contextCopy.target = card;

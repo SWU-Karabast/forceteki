@@ -1,11 +1,13 @@
-import { TargetResolverBaseClass } from './TargetResolverBaseClass';
+import { TargetResolver } from './TargetResolver';
 import { IPlayerTargetResolver } from '../../../TargetInterfaces';
 import { AbilityContext } from '../AbilityContext';
 import type Player from '../../Player';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { Stage } from '../../Constants';
 
-export class PlayerTargetResolver extends TargetResolverBaseClass<IPlayerTargetResolver<AbilityContext>> {
+// This currently assumes that every player will always be a legal target for any effect it's given.
+// TODO: Make a PlayerSelector class(see the use of property "selector" in CardTargetResolver) to help determine target legality. Use it to replace placeholder override functions below.
+export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<AbilityContext>> {
     public constructor(name: string, properties: IPlayerTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
 
@@ -15,7 +17,7 @@ export class PlayerTargetResolver extends TargetResolverBaseClass<IPlayerTargetR
     }
 
     protected override hasLegalTarget(context: any): boolean {
-        // I don't think there are cases of player-targeting abilities that are sometimes invalid, but I could be wrong.
+        // Placeholder.
         return true;
     }
 
@@ -28,6 +30,7 @@ export class PlayerTargetResolver extends TargetResolverBaseClass<IPlayerTargetR
     }
 
     protected override getAllLegalTargets(context: AbilityContext): Player[] {
+        // Placeholder.
         return context.game.getPlayers();
     }
 

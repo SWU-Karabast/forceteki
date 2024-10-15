@@ -1,13 +1,13 @@
 import { ISelectTargetResolver, IChoicesInterface } from '../../../TargetInterfaces';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { AbilityContext } from '../AbilityContext';
-import { TargetResolverBaseClass } from './TargetResolverBaseClass';
+import { TargetResolver } from './TargetResolver';
 import { GameSystem } from '../../gameSystem/GameSystem';
 import { SelectChoice } from './SelectChoice';
 import { Stage } from '../../Constants';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
-export class SelectTargetResolver extends TargetResolverBaseClass<ISelectTargetResolver<AbilityContext>> {
+export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext>> {
     public constructor(name: string, properties: ISelectTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
     }

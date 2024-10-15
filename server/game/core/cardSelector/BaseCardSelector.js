@@ -2,7 +2,7 @@ const { Location, RelativePlayer, WildcardLocation } = require('../Constants');
 const Contract = require('../utils/Contract');
 const EnumHelpers = require('../utils/EnumHelpers');
 
-// TODO: once converted to TS, make this abstract
+// TODO: once converted to TS, make this abstract. Also, move the code in CardSelector.js to here.
 class BaseCardSelector {
     constructor(properties) {
         this.cardCondition = properties.cardCondition;

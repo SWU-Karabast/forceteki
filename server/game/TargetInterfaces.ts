@@ -10,8 +10,8 @@ import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
-    | (ICardTargetResolver<TContext>)
-    | ISelectTargetResolver<TContext>;
+  | ICardTargetResolver<TContext>
+  | ISelectTargetResolver<TContext>;
 
 export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> = Record<string, ITriggeredAbilityTargetResolver<TContext> & ITriggeredAbilityTargetResolver<TContext>>;
 

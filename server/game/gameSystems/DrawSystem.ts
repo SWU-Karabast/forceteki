@@ -1,9 +1,11 @@
 import AbilityHelper from '../AbilityHelper';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import { EventName, Location } from '../core/Constants';
+import { EventName } from '../core/Constants';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import Player from '../core/Player';
+import { GameEvent } from '../core/event/GameEvent';
+import { DamageSystem } from './DamageSystem';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -39,23 +41,21 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;
-        // If there are not enough cards left in deck to draw the specified amount, instead draw the remainder and take damage to base equal to thrice the difference.
-        event.checkCondition = () => {
-            if (event.cancelled || event.resolved || event.name === EventName.Unnamed) {
-                return;
-            }
-            if (!event.condition(this)) {
-                event.cancel();
-            }
+    }
+
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+        event.setContingentEventsGenerator((event) => {
+            // Add a contingent event to deal damage for any cards the player fails to draw due to not having enough left in their deck.
+            const contingentEvents = [];
             if (event.amount > event.player.drawDeck.length) {
-                const newEvents = [];
-                newEvents.push(AbilityHelper.immediateEffects.damage({ amount: (event.amount - event.player.drawDeck.length) * 3 }).generateEvent(event.player.base, event.context));
-                if (event.player.drawDeck.length > 0) {
-                    newEvents.push(AbilityHelper.immediateEffects.draw({ amount: event.player.drawDeck.length }).generateEvent(event.player, event.context));
-                }
-                event.context.game.openEventWindow(newEvents);
-                event.cancel();
+                const damageAmount = 3 * (event.amount - event.player.drawDeck.length);
+                contingentEvents.push(new DamageSystem({
+                    target: event.player.base,
+                    amount: damageAmount
+                }).generateEvent(event.player.base, context));
             }
-        };
+            return contingentEvents;
+        });
     }
 }
