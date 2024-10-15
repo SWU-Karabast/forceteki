@@ -89,7 +89,8 @@ export class AttackFlow extends BaseStepWithPipeline {
         // event for damage dealt to target by attacker
         const attackerDamageEvent = AbilityHelper.immediateEffects.damage({
             amount: this.attack.getAttackerTotalPower(),
-            combatDamageSourceAttack: this.attack,
+            isCombatDamage: true,
+            sourceAttack: this.attack,
         }).generateEvent(this.attack.target, this.context);
 
         if (this.attack.hasOverwhelm()) {
@@ -114,7 +115,8 @@ export class AttackFlow extends BaseStepWithPipeline {
     private createDefenderDamageEvent(): GameEvent {
         return AbilityHelper.immediateEffects.damage({
             amount: this.attack.getTargetTotalPower(),
-            combatDamageSourceAttack: this.attack
+            isCombatDamage: true,
+            sourceAttack: this.attack
         }).generateEvent(this.attack.attacker, this.context);
     }
 

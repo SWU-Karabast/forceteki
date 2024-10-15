@@ -11,9 +11,10 @@ import CardAbility from '../core/ability/CardAbility';
 export interface IDamageProperties extends ICardTargetSystemProperties {
     amount: number;
     isOverwhelmDamage?: boolean;
+    isCombatDamage?: boolean;
 
-    /** if provided, indicates that the damage originated from an attack not a card ability */
-    combatDamageSourceAttack?: Attack;
+    /** must be provided if-and-only-if isCombatDamamge = true */
+    sourceAttack?: Attack;
 }
 
 // TODO: for this and the heal system, need to figure out how to handle the situation where 0 damage
@@ -30,9 +31,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
-        const { amount, target, combatDamageSourceAttack } = this.generatePropertiesFromContext(context);
+        const { amount, target, sourceAttack } = this.generatePropertiesFromContext(context);
 
-        if (combatDamageSourceAttack) {
+        if (sourceAttack) {
             return ['deal {1} combat damage to {0}', [amount, target]];
         }
         return ['deal {1} damage to {0}', [amount, target]];
@@ -51,7 +52,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
     public override generatePropertiesFromContext(context: TContext, additionalProperties?: any) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
-        Contract.assertFalse(!!properties.combatDamageSourceAttack && properties.isOverwhelmDamage, 'Overwhelm damage must not be combat damage');
+        Contract.assertFalse(properties.isCombatDamage && properties.isOverwhelmDamage, 'Overwhelm damage must not be combat damage');
+        Contract.assertTrue(!!properties.isCombatDamage === !!properties.sourceAttack, 'Source attack must be provided if and only if isCombatDamage is true');
 
         return properties;
     }
@@ -61,16 +63,16 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
         event.damage = properties.amount;
-        event.isCombatDamage = !!properties.combatDamageSourceAttack;
+        event.isCombatDamage = !!properties.sourceAttack;
         event.isOverwhelmDamage = properties.isOverwhelmDamage;
 
         if (event.isCombatDamage) {
             const damageSource: IDamageOrDefeatSource = {
-                player: properties.combatDamageSourceAttack.attacker.controller,
+                player: properties.sourceAttack.attacker.controller,
                 details: {
                     type: DamageOrDefeatSourceType.Attack,
-                    attack: properties.combatDamageSourceAttack,
-                    attacker: properties.combatDamageSourceAttack.attacker
+                    attack: properties.sourceAttack,
+                    attacker: properties.sourceAttack.attacker
                 }
             };
 
