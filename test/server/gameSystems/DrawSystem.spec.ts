@@ -51,6 +51,19 @@ describe('Drawing cards', function() {
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player1.deck.length).toBe(0);
             });
+
+            it('but empties their deck in the process and takes lethal damage due to overdraw, the game should end immediately after the draw', function () {
+                const { context } = contextRef;
+
+                context.player2.setBaseStatus({ card: context.p2Base.internalName, damage: 27 });
+                context.player1.clickCard(context.missionBriefing);
+                context.player1.clickPrompt('Opponent');
+
+                expect(context.p2Base.damage).toBe(30);
+                expect(context.player1).toHavePrompt('player1 has won the game!');
+                expect(context.player2).toHavePrompt('player1 has won the game!');
+                expect(context.player2.hand.length).toBe(1);
+            });
         });
     });
 });
