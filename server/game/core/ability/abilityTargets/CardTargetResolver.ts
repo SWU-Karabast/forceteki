@@ -2,7 +2,7 @@ import { ICardTargetResolver } from '../../../TargetInterfaces';
 import { AbilityContext } from '../AbilityContext';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
-import CardSelector from '../../cardSelector/CardSelector';
+import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { Card } from '../../card/Card';
 import { Stage, EffectName } from '../../Constants';
 import type Player from '../../Player';
@@ -37,7 +37,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy) &&
                 (!properties.cardCondition || properties.cardCondition(card, contextCopy)));
         };
-        return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
+        return CardSelectorFactory.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
 
     private getContextCopy(card: Card, context: AbilityContext) {

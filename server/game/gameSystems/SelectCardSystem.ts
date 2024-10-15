@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import CardSelector from '../core/cardSelector/CardSelector';
+import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import { CardTypeFilter, EffectName, Location, LocationFilter, RelativePlayer, TargetMode } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -73,7 +73,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                     context,
                     Object.assign({}, additionalProperties, properties.innerSystemProperties(card))
                 ) && properties.cardCondition(card, context);
-            properties.selector = CardSelector.for(Object.assign({}, properties, { cardCondition }));
+            properties.selector = CardSelectorFactory.for(Object.assign({}, properties, { cardCondition }));
         }
         return properties;
     }

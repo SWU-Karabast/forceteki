@@ -28,9 +28,9 @@ const ModeToSelector = {
     upToVariable: (p) => new UpToVariableXCardSelector(p.numCardsFunc, p)
 };
 
-class CardSelector {
+class CardSelectorFactory {
     static for(properties) {
-        properties = CardSelector.getDefaultedProperties(properties);
+        properties = CardSelectorFactory.getDefaultedProperties(properties);
 
         let factory = ModeToSelector[properties.mode];
 
@@ -61,4 +61,4 @@ class CardSelector {
     }
 }
 
-module.exports = CardSelector;
+module.exports = CardSelectorFactory;
