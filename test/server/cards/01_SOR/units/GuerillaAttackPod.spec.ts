@@ -1,8 +1,6 @@
 describe('Guerilla Attack Pod', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Guerilla Attack Pod\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

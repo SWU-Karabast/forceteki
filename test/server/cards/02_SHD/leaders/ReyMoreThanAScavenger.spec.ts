@@ -1,8 +1,6 @@
 describe('Rey, More Than a Scavenger', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Rey\'s undeployed ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -32,8 +30,6 @@ describe('Rey, More Than a Scavenger', function () {
         });
 
         describe('Rey\'s deployed ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

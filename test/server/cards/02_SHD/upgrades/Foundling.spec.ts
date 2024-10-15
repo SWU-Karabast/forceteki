@@ -1,7 +1,7 @@
-const { Trait } = require('../../../../../server/game/core/Constants');
+import { Trait } from '../../../../../server/game/core/Constants';
 
 describe('Foundling\'s', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Foundling', function () {
             beforeEach(function () {
                 contextRef.setupTest({

@@ -59,6 +59,7 @@ describe('Heroic Resolve', function() {
                     }
                 });
 
+                const { context } = contextRef;
                 [context.p1HeroicResolve1, context.p1HeroicResolve2] = context.player1.findCardsByName('heroic-resolve');
                 context.p2HeroicResolve = context.player2.findCardByName('heroic-resolve');
             });
@@ -121,6 +122,7 @@ describe('Heroic Resolve', function() {
                     }
                 });
 
+                const { context } = contextRef;
                 context.p1HeroicResolve = context.player1.findCardByName('heroic-resolve');
                 context.p2HeroicResolve = context.player2.findCardByName('heroic-resolve');
             });

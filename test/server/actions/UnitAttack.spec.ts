@@ -88,7 +88,7 @@ describe('Basic attack', function() {
             it('base with lethal damage, game should end immediately', function () {
                 const { context } = contextRef;
 
-                context.p2Base.damage = 28;
+                context.setDamage(context.p2Base, 28);
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.p2Base);
 

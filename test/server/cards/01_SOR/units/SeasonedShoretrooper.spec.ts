@@ -1,8 +1,6 @@
 describe('Seasoned Shoretrooper', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Seasoned Shoretrooper\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

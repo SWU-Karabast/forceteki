@@ -1,8 +1,6 @@
 describe('Partisan Insurgent', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Partisan Insurgent\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

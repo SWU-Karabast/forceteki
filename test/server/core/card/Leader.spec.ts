@@ -113,6 +113,7 @@ describe('Leader cards', function() {
                     }
                 });
 
+                const { context } = contextRef;
                 context.p1Base = context.player1.base;
                 context.p2Base = context.player2.base;
             });

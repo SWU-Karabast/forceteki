@@ -1,8 +1,6 @@
 describe('Bail Organa', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Bail Organa\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

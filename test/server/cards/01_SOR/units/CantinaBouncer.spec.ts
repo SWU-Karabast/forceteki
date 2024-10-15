@@ -17,6 +17,8 @@ describe('Cantina Bouncer', function() {
             });
 
             it('should allow player to return an non-leader unit to its owner\'s hand', function() {
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.cantinaBouncer);
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.cantinaBouncer, context.wampa]);
                 expect(context.player1).toHavePassAbilityButton();

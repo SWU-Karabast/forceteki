@@ -1,8 +1,6 @@
 describe('Rugged Survivors', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Rugged Survivors\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

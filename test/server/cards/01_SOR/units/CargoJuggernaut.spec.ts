@@ -1,8 +1,6 @@
 describe('Cargo Juggernaut', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Cargo Juggernaut\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -30,8 +28,6 @@ describe('Cargo Juggernaut', function () {
         });
 
         describe('Cargo Juggernaut\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

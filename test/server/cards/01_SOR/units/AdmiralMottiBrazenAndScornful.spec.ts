@@ -1,8 +1,6 @@
 describe('Admiral Motti', function() {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Admiral Motti\'s ability -', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -17,6 +15,8 @@ describe('Admiral Motti', function() {
             });
 
             it('should allow player to ready an imperial unit', function() {
+                const { context } = contextRef;
+
                 // Attacks into cell block guard as the only valid attack
                 context.player1.clickCard(context.admiralMotti);
                 expect(context.player1).toHavePassAbilityButton();

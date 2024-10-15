@@ -32,6 +32,8 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
             });
 
             it('should be allowed to choose nothing and place all cards on the bottom of the deck', function() {
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.monMothma);
                 context.player1.clickPrompt('Take nothing');
 
@@ -40,6 +42,8 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
             });
 
             it('should allow selection when deck has less than five cards', function() {
+                const { context } = contextRef;
+
                 context.player1.setDeck([context.battlefieldMarine, context.cellBlockGuard, context.cartelSpacer]);
                 context.player1.clickCard(context.monMothma);
                 expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine.title, 'Take nothing']);
@@ -52,6 +56,8 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
             });
 
             it('when the deck is empty', function() {
+                const { context } = contextRef;
+
                 context.player1.setDeck([]);
                 expect(context.player1.deck.length).toBe(0);
 
@@ -77,6 +83,8 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
             });
 
             it('no cards matching criteria', function() {
+                const { context } = contextRef;
+
                 // No valid targets, all should be disabled
                 context.player1.clickCard(context.monMothma);
                 expect(context.player1).toHavePrompt('Select a card to reveal');

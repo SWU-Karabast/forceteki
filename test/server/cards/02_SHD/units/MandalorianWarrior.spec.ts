@@ -1,8 +1,6 @@
 describe('Mandalorian Warrior', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Mandalorian Warrior\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

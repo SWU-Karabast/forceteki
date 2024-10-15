@@ -1,8 +1,6 @@
 describe('Moment of Glory', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Moment of Glory\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

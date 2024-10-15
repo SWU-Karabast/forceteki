@@ -1,8 +1,6 @@
 describe('Red Three', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Red Three\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

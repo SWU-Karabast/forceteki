@@ -19,6 +19,8 @@ describe('Boba Fett, Collecting the Bounty', function() {
             });
 
             it('should ready a resource when an enemy unit leaves play', function() {
+                const { context } = contextRef;
+
                 const reset = () => {
                     context.player2.passAction();
                     context.player1.setResourceCount(6);
@@ -88,6 +90,8 @@ describe('Boba Fett, Collecting the Bounty', function() {
             });
 
             it('should ready 2 resources when Boba Fett completes an attack if an enemy unit left play this turn', function() {
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.wampa);
                 context.player2.passAction();
                 context.player1.clickCard(context.bobaFett);
@@ -96,6 +100,8 @@ describe('Boba Fett, Collecting the Bounty', function() {
             });
 
             it('should not ready resources if Boba Fett dies while attacking, even if an enemy unit left play this turn', function() {
+                const { context } = contextRef;
+
                 context.bobaFett.damage = 4;
                 context.player1.clickCard(context.wampa);
                 context.player2.passAction();

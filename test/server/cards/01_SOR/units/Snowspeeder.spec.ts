@@ -1,5 +1,5 @@
 describe('Snowspeeder', function() {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Snowspeeder\'s ability -', function() {
             beforeEach(function() {
                 contextRef.setupTest({
@@ -16,6 +16,8 @@ describe('Snowspeeder', function() {
             });
 
             it('should exhaust chosen enemy Vehicle ground unit', function() {
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.snowspeeder);
                 context.player1.clickPrompt('Ambush');
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.occupierSiegeTank]);

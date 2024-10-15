@@ -1,8 +1,6 @@
 describe('Bounty Hunter Crew', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Bounty Hunter Crew\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

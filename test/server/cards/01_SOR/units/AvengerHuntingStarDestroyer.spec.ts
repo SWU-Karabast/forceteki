@@ -17,6 +17,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                     }
                 });
 
+                const { context } = contextRef;
                 context.p1Avenger = context.player1.findCardByName('avenger#hunting-star-destroyer');
                 context.p2Avenger = context.player2.findCardByName('avenger#hunting-star-destroyer');
             });

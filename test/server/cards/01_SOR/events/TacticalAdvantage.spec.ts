@@ -1,8 +1,6 @@
 describe('Tactical Advantage', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Tactical Advantage\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

@@ -1,8 +1,6 @@
 describe('Midnight Repairs', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Midnight Repairs\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

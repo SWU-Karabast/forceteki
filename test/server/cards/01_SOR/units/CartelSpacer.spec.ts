@@ -1,8 +1,6 @@
 describe('Cartel Spacer', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Cartel Spacer\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -29,8 +27,6 @@ describe('Cartel Spacer', function () {
         });
 
         describe('Cartel Spacer\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

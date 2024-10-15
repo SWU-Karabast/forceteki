@@ -21,7 +21,7 @@ describe('Imperial Interceptor', function() {
 
                 // Play Imperial Interceptor
                 context.player1.clickCard(context.imperialInterceptor);
-                expect(context.player1).toHaveEnabledPromptButtons('Pass ability');
+                expect(context.player1).toHaveEnabledPromptButtons(['Pass ability']);
                 expect(context.player1).toBeAbleToSelectExactly([context.systemPatrolCraft, context.gladiatorStarDestroyer, context.imperialInterceptor]);
 
                 // Select another target and apply damage

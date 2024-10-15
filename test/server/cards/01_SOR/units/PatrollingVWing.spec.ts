@@ -1,8 +1,6 @@
 describe('Patrolling V-Wing', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Patrolling V-Wing\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

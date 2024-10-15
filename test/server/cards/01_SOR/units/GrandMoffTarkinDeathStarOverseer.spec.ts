@@ -14,6 +14,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                     }
                 });
 
+                const { context } = contextRef;
                 context.p1Tarkin = context.player1.findCardByName('grand-moff-tarkin#death-star-overseer');
                 context.p2tarkin = context.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
             });
@@ -41,6 +42,8 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             });
 
             it('should be allowed to pick just one card', function() {
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.p1Tarkin);
                 expect(context.player1).toHaveEnabledPromptButtons([context.academyDefenseWalker.title, context.cellBlockGuard.title, context.scoutBikePursuer.title]);
                 expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.wampa.title]);
@@ -66,6 +69,8 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             });
 
             it('should be able to choose no cards', function() {
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.p1Tarkin);
                 context.player1.clickPrompt('Take nothing');
 
@@ -74,6 +79,8 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
             });
 
             it('no cards matching criteria', function() {
+                const { context } = contextRef;
+
                 context.player2.setActivePlayer();
                 context.player2.clickCard(context.p2tarkin);
                 expect(context.player2).toHaveDisabledPromptButtons([context.clanWrenRescuer.title, context.concordDawnInterceptors.title, context.gentleGiant.title, context.systemPatrolCraft.title, context.villageProtectors.title]);

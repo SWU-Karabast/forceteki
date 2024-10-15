@@ -1,10 +1,6 @@
 describe('Homestead Militia', function () {
-    const { context } = contextRef;
-
-    integration(function () {
+    integration(function (contextRef) {
         describe('Homestead Militia\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

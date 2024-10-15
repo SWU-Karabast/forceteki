@@ -56,6 +56,7 @@ describe('Shield', function() {
                     }
                 });
 
+                const { context } = contextRef;
                 context.shields = context.player2.findCardsByName('shield');
             });
 

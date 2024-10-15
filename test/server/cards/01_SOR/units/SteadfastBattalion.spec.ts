@@ -1,8 +1,6 @@
 describe('Steadfast Battalion', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Steadfast Battalion\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -29,8 +27,6 @@ describe('Steadfast Battalion', function () {
         });
 
         describe('Steadfast Battalion\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

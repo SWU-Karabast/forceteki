@@ -2,8 +2,6 @@ describe('Baze Malbus, Temple Guardian', function() {
     integration(function (contextRef) {
         describe('Baze Malbus\'s ability', function() {
             describe('when the player does not have initiative', function () {
-                const { context } = contextRef;
-
                 beforeEach(function () {
                     contextRef.setupTest({
                         phase: 'action',
@@ -19,8 +17,6 @@ describe('Baze Malbus, Temple Guardian', function() {
 
                 // Checks both that sentinel is not active initially, and then activates after player claims initiative.
                 it('should not have sentinel until the player claims initiative', function () {
-                    const { context } = contextRef;
-
                     const { context } = contextRef;
 
                     // CASE 1: Sentinel is inactive when starting the phase without initiative
@@ -43,8 +39,6 @@ describe('Baze Malbus, Temple Guardian', function() {
             });
 
             describe('when the player has initiative', function () {
-                const { context } = contextRef;
-
                 beforeEach(function () {
                     contextRef.setupTest({
                         phase: 'action',
@@ -60,8 +54,6 @@ describe('Baze Malbus, Temple Guardian', function() {
 
                 // Checks that sentinel works initially, and then after it is claimed sentinel is no longer active.
                 it('has sentinel until initiative is claimed by opposing player', function () {
-                    const { context } = contextRef;
-
                     const { context } = contextRef;
 
                     expect(context.player1).toBeActivePlayer();

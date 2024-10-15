@@ -1,8 +1,6 @@
 describe('Make an Opening', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Make an Opening\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

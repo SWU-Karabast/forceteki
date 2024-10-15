@@ -1,8 +1,6 @@
 describe('Distant Patroller', function () {
-    integration(function () {
+    integration(function (contextRef) {
         describe('Distant Patroller\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
