@@ -7,6 +7,7 @@ import * as Contract from '../core/utils/Contract';
 import { Attack } from '../core/attack/Attack';
 import { DamageOrDefeatSourceType, IDamageOrDefeatSource } from '../IDamageOrDefeatSource';
 import CardAbility from '../core/ability/CardAbility';
+import { UnitCard } from '../core/card/CardTypes';
 
 export interface IDamageProperties extends ICardTargetSystemProperties {
     amount: number;
@@ -66,29 +67,39 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         event.isCombatDamage = !!properties.sourceAttack;
         event.isOverwhelmDamage = properties.isOverwhelmDamage;
 
+        let damageSource: IDamageOrDefeatSource;
         if (event.isCombatDamage) {
-            const damageSource: IDamageOrDefeatSource = {
-                player: properties.sourceAttack.attacker.controller,
-                details: {
-                    type: DamageOrDefeatSourceType.Attack,
-                    attack: properties.sourceAttack,
-                    attacker: properties.sourceAttack.attacker
-                }
+            Contract.assertTrue(context.source.isUnit());
+
+            let damageDealtBy: UnitCard;
+            switch (card) {
+                case properties.sourceAttack.attacker:
+                    Contract.assertTrue(properties.sourceAttack.target.isUnit());
+                    damageDealtBy = properties.sourceAttack.target;
+                    break;
+                case properties.sourceAttack.target:
+                    damageDealtBy = properties.sourceAttack.attacker;
+                    break;
+                default:
+                    Contract.fail(`Combat damage being dealt to card ${card.internalName} but it is not involved in the attack`);
+            }
+
+            damageSource = {
+                type: DamageOrDefeatSourceType.Attack,
+                attack: properties.sourceAttack,
+                player: context.source.controller,
+                damageDealtBy
             };
-
-            event.damageSource = damageSource;
-            return;
-        }
-
-        // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
-        const damageSource: IDamageOrDefeatSource = {
-            player: context.player,
-            details: {
+        } else {
+            // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
+            damageSource = {
                 type: DamageOrDefeatSourceType.Ability,
+                player: context.player,
                 ability: (context.ability as CardAbility),
                 card: context.source
-            }
-        };
+            };
+        }
+
         event.damageSource = damageSource;
     }
 }
