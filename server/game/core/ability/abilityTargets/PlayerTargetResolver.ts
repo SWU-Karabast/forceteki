@@ -35,15 +35,11 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
     }
 
     protected override resolve(context: AbilityContext, targetResults, passPrompt = null) {
-        if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
-            return;
+        if (!super.resolve(context, targetResults, passPrompt)) {
+            return false;
         }
 
         const player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
-        if (player === context.player.opponent && context.stage === Stage.PreTarget) {
-            targetResults.delayTargeting = this;
-            return;
-        }
         const promptTitle = this.properties.activePromptTitle || 'Choose a player';
         const choices = ['You', 'Opponent'];
         const handlers = [player, player.opponent].map(
@@ -82,5 +78,6 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 handlers: handlers
             });
         }
+        return true;
     }
 }

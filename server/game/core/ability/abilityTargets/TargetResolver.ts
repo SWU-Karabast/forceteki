@@ -3,7 +3,7 @@ import { AbilityContext } from '../AbilityContext';
 import * as Contract from '../../utils/Contract';
 import { GameSystem } from '../../gameSystem/GameSystem';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
-import { RelativePlayer } from '../../Constants';
+import { RelativePlayer, Stage } from '../../Constants';
 
 /**
  * Base class for all target resolvers.
@@ -31,8 +31,6 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected abstract getAllLegalTargets(context: AbilityContext): any[];
 
-    protected abstract resolve(context: AbilityContext, targetResults, passPrompt);
-
     protected abstract checkTarget(context: AbilityContext): boolean;
 
     protected abstract hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean;
@@ -40,6 +38,24 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
     protected canResolve(context) {
         // if this depends on another target, that will check hasLegalTarget already
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
+    }
+
+    protected resolve(context: AbilityContext, targetResults, passPrompt = null) {
+        if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
+            return false;
+        }
+
+        if ('condition' in this.properties && typeof this.properties.condition === 'function' && !this.properties.condition(context)) {
+            return false;
+        }
+
+        const player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
+        if (player === context.player.opponent && context.stage === Stage.PreTarget) {
+            targetResults.delayTargeting = this;
+            return false;
+        }
+
+        return true;
     }
 
     protected getChoosingPlayer(context) {

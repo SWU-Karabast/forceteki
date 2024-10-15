@@ -60,19 +60,11 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
 
     // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
     protected override resolve(context: AbilityContext, targetResults, passPrompt = null) {
-        if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
-            return;
-        }
-
-        if (this.properties.condition && !this.properties.condition(context)) {
-            return;
+        if (!super.resolve(context, targetResults, passPrompt)) {
+            return false;
         }
 
         const player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
-        if (player === context.player.opponent && context.stage === Stage.PreTarget) {
-            targetResults.delayTargeting = this;
-            return;
-        }
         const promptTitle = this.properties.activePromptTitle || 'Select one';
         const choices = Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
         const handlers = choices.map((choice) => {
@@ -111,6 +103,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
                 handlers: handlers
             });
         }
+        return true;
     }
 
     protected override checkTarget(context: AbilityContext): boolean {
