@@ -4,6 +4,7 @@ import * as Contract from '../../utils/Contract';
 import { GameSystem } from '../../gameSystem/GameSystem';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { RelativePlayer, Stage } from '../../Constants';
+import type Player from '../../Player';
 
 /**
  * Base class for all target resolvers.
@@ -20,7 +21,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             Contract.assertNotNullLike(dependsOnTarget);
             // TODO: Change the dependsOn system to allow multiple dependent targets.
             if (dependsOnTarget.dependentTarget != null) {
-                throw new Error('Attempting to set a dependent target for source target <insert target name here> but it already has one. Having multiple dependent targets for the same source target has not yet been implemented');
+                throw new Error(`Attempting to set dependent target ${this.name} for source target ${dependsOnTarget.name} but it already has one. Having multiple dependent targets for the same source target has not yet been implemented`);
             }
 
             dependsOnTarget.dependentTarget = this;
@@ -35,6 +36,8 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected abstract hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean;
 
+    protected abstract resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player);
+
     protected canResolve(context) {
         // if this depends on another target, that will check hasLegalTarget already
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
@@ -42,20 +45,20 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected resolve(context: AbilityContext, targetResults, passPrompt = null) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
-            return false;
+            return;
         }
 
         if ('condition' in this.properties && typeof this.properties.condition === 'function' && !this.properties.condition(context)) {
-            return false;
+            return;
         }
 
         const player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
         if (player === context.player.opponent && context.stage === Stage.PreTarget) {
             targetResults.delayTargeting = this;
-            return false;
+            return;
         }
 
-        return true;
+        this.resolveInner(context, targetResults, passPrompt, player);
     }
 
     protected getChoosingPlayer(context) {

@@ -108,8 +108,18 @@ class PlayerOrCardAbility {
                 return new SelectTargetResolver(name, properties, this);
             case TargetMode.Player:
                 return new PlayerTargetResolver(name, properties, this);
-            default:
+            case TargetMode.AutoSingle:
+            case TargetMode.Exactly:
+            case TargetMode.ExactlyVariable:
+            case TargetMode.MaxStat:
+            case TargetMode.Single:
+            case TargetMode.Unlimited:
+            case TargetMode.UpTo:
+            case TargetMode.UpToVariable:
+            case undefined: // CardTargetResolver contains behavior that defaults the mode to TargetMode.Single if it is not defined yet.
                 return new CardTargetResolver(name, properties, this);
+            default:
+                Contract.fail(`Attempted to create a TargetResolver with unsupported mode ${properties.mode}`);
         }
     }
 

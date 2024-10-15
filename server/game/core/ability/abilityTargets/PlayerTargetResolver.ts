@@ -34,12 +34,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return context.game.getPlayers();
     }
 
-    protected override resolve(context: AbilityContext, targetResults, passPrompt = null) {
-        if (!super.resolve(context, targetResults, passPrompt)) {
-            return false;
-        }
-
-        const player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
+    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const promptTitle = this.properties.activePromptTitle || 'Choose a player';
         const choices = ['You', 'Opponent'];
         const handlers = [player, player.opponent].map(
@@ -78,6 +73,5 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 handlers: handlers
             });
         }
-        return true;
     }
 }

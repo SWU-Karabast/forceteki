@@ -11,11 +11,12 @@ import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 // ********************************************** EXPORTED TYPES **********************************************
 export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
   | ICardTargetResolver<TContext>
-  | ISelectTargetResolver<TContext>;
+  | ISelectTargetResolver<TContext>
+  | IPlayerTargetResolver<TContext>;
 
 export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> = Record<string, ITriggeredAbilityTargetResolver<TContext> & ITriggeredAbilityTargetResolver<TContext>>;
 
-export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> = (ICardTargetResolver<TContext>) | ISelectTargetResolver<TContext> | IPlayerTargetResolver<TContext>;
+export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> = ICardTargetResolver<TContext> | ISelectTargetResolver<TContext> | IPlayerTargetResolver<TContext>;
 
 export type IActionTargetsResolver<TContext extends AbilityContext = AbilityContext> = Record<string, IActionTargetResolver<TContext>>;
 
@@ -81,12 +82,4 @@ interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends IC
 
 interface CardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode?: TargetMode.Single | TargetMode.Unlimited;
-}
-
-interface IActionCardTargetResolver<TContext extends AbilityContext> {
-    cardCondition?: (card: Card, context?: TContext) => boolean;
-}
-
-interface ITriggeredAbilityCardTargetResolver<TContext extends AbilityContext> {
-    cardCondition?: (card: Card, context?: TContext) => boolean;
 }

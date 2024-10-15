@@ -57,21 +57,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 
-    protected override resolve(context: AbilityContext, targetResults, passPrompt = null) {
-        if (!super.resolve(context, targetResults, passPrompt)) {
-            return false;
-        }
-
-        const player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
-
+    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const legalTargets = this.selector.getAllLegalTargets(context, player);
         if (legalTargets.length === 0) {
             if (context.stage === Stage.PreTarget) {
                 // if there are no targets at the pretarget stage, delay targeting until after costs are paid
                 targetResults.delayTargeting = this;
-                return false;
+                return;
             }
-            return false;
+            return;
         }
 
         if (context.player.autoSingleTarget && legalTargets.length === 1) {
@@ -79,7 +73,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             if (this.name === 'target') {
                 context.target = legalTargets[0];
             }
-            return true;
+            return;
         }
 
         // create a copy of properties without cardCondition
@@ -150,7 +144,6 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             }
         };
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
-        return true;
     }
 
     private cancel(targetResults) {

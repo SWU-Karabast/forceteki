@@ -5,6 +5,7 @@ import { TargetResolver } from './TargetResolver';
 import { GameSystem } from '../../gameSystem/GameSystem';
 import { SelectChoice } from './SelectChoice';
 import { Stage } from '../../Constants';
+import type Player from '../../Player';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext>> {
@@ -59,12 +60,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
-    protected override resolve(context: AbilityContext, targetResults, passPrompt = null) {
-        if (!super.resolve(context, targetResults, passPrompt)) {
-            return false;
-        }
-
-        const player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
+    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const promptTitle = this.properties.activePromptTitle || 'Select one';
         const choices = Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
         const handlers = choices.map((choice) => {
@@ -103,7 +99,6 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
                 handlers: handlers
             });
         }
-        return true;
     }
 
     protected override checkTarget(context: AbilityContext): boolean {

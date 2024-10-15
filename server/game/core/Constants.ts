@@ -99,7 +99,6 @@ export enum RelativePlayer {
 }
 
 export enum TargetMode {
-    Ability = 'ability',
     AutoSingle = 'autoSingle',
     Exactly = 'exactly',
     ExactlyVariable = 'exactlyVariable',

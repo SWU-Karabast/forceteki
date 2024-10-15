@@ -17,7 +17,6 @@ const defaultProperties = {
 };
 
 const ModeToSelector = {
-    ability: (p) => new SingleCardSelector(p),
     autoSingle: (p) => new SingleCardSelector(p),
     exactly: (p) => new ExactlyXCardSelector(p.numCards, p),
     exactlyVariable: (p) => new ExactlyVariableXCardSelector(p.numCardsFunc, p),
