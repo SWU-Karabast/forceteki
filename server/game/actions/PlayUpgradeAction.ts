@@ -2,18 +2,15 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction';
 import { Card } from '../core/card/Card';
 import { UpgradeCard } from '../core/card/UpgradeCard';
-import { AbilityRestriction, EventName, Location, PhaseName, PlayType, RelativePlayer } from '../core/Constants';
+import { AbilityRestriction, EventName, PlayType } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
-import { payPlayCardResourceCost } from '../costs/CostLibrary';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
-    public constructor(card: Card) {
-        super(card, 'Play this upgrade', [], { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({
-            upgrade: context.source
-        })) });
+    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand) {
+        super(card, 'Play this upgrade', playType, [], { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source })) });
     }
 
     public override executeHandler(context: PlayCardContext) {
@@ -29,12 +26,16 @@ export class PlayUpgradeAction extends PlayCardAction {
             onPlayCardSource: context.onPlayCardSource,
             playType: context.playType
         });
-        context.game.openEventWindow([
-            context.game.actions
-                .attachUpgrade({ upgrade: context.source, takeControl: context.source.controller !== context.player })
-                .generateEvent(context.target, context),
-            cardPlayedEvent
-        ], this.resolveTriggersAfter);
+        const events = [context.game.actions
+            .attachUpgrade({ upgrade: context.source, takeControl: context.source.controller !== context.player })
+            .generateEvent(context.target, context),
+        cardPlayedEvent];
+
+        if (context.playType === PlayType.Smuggle) {
+            events.push(this.generateSmuggleEvent(context));
+        }
+
+        context.game.openEventWindow(events, this.resolveTriggersAfter);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

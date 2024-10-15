@@ -1,8 +1,7 @@
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { CardType, EventName, Location } from '../../Constants';
+import { CardType } from '../../Constants';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
-import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
 
 // required for mixins to be based on this class
@@ -57,7 +56,6 @@ export class PlayableOrDeployableCard extends Card {
     public override canBeExhausted(): this is PlayableOrDeployableCard {
         return true;
     }
-
 
     protected setExhaustEnabled(enabledStatus: boolean) {
         this._exhausted = enabledStatus ? true : null;

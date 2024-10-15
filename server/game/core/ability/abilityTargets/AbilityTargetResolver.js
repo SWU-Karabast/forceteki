@@ -33,8 +33,8 @@ class AbilityTargetResolver {
                     return false;
                 }
                 return (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
-                       (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-                       properties.immediateEffect.hasLegalTarget(contextCopy);
+                  (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
+                  properties.immediateEffect.hasLegalTarget(contextCopy);
             });
         };
         return CardSelector.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: false }));
@@ -122,8 +122,8 @@ class AbilityTargetResolver {
             return false;
         }
         return EnumHelpers.cardTypeMatches(context.targetAbility.card, this.properties.cardTypeFilter) &&
-               (!this.properties.cardCondition || this.properties.cardCondition(context.targetAbility.card, context)) &&
-               this.abilityCondition(context.targetAbility);
+          (!this.properties.cardCondition || this.properties.cardCondition(context.targetAbility.card, context)) &&
+          this.abilityCondition(context.targetAbility);
     }
 
     getChoosingPlayer(context) {

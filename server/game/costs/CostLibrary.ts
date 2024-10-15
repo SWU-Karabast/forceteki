@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, Location, RelativePlayer, TargetMode } from '../core/Constants';
+import { EventName, Location, PlayType, RelativePlayer, TargetMode } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
@@ -228,12 +228,12 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
 // }
 
 /**
- * Cost that will pay the printed fate cost on the card minus any active
+ * Cost that will pay the printed cost on the card minus any active
  * adjuster effects the play has activated. Upon playing the card, all
  * matching adjuster effects will expire, if applicable.
  */
-export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(ignoreType = false): ICost<TContext> {
-    return new PlayCardResourceCost<TContext>(ignoreType);
+export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(playType: PlayType, ignoreType = false): ICost<TContext> {
+    return new PlayCardResourceCost<TContext>(playType, ignoreType);
 }
 
 // /**

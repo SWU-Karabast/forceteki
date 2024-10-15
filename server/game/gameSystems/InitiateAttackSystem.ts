@@ -64,7 +64,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         const newContext = attackAbility.createContext(context.player);
 
         return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements) &&
-            attackAbility.hasSomeLegalTarget(newContext);
+          attackAbility.hasSomeLegalTarget(newContext);
     }
 
     // TODO THIS PR: set this as "printedAbility: false"

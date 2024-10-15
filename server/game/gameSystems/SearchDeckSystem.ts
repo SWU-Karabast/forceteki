@@ -1,5 +1,5 @@
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
-/* eslint @stylistic/js/lines-around-comment: off */
+/* eslint @stylistic/lines-around-comment: off */
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { Card } from '../core/card/Card.js';
@@ -17,13 +17,16 @@ type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((cont
 export interface ISearchDeckProperties<TContext extends AbilityContext = AbilityContext> extends IPlayerTargetSystemProperties {
     targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited | TargetMode.Exactly | TargetMode.ExactlyVariable;
     activePromptTitle?: string;
+
     /** The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck. */
     searchCount?: number | ((context: TContext) => number);
+
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
     selectCount?: number | ((context: TContext) => number);
     revealSelected?: boolean;
     shuffleWhenDone?: boolean | ((context: TContext) => boolean);
     title?: string;
+
     /** This determines what to do with the selected cards (if a custom selectedCardsHandler is not provided). */
     selectedCardsImmediateEffect?: GameSystem<TContext>;
     message?: string;
@@ -31,10 +34,13 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     player?: Player;
     choosingPlayer?: Player;
     messageArgs?: (context: TContext, cards: Card[]) => any | any[];
+
     /** Used to override default logic for handling the selected cards. The default utilizes the selectedCardsImmediateEffect */
     selectedCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
+
     /** Used to override default logic for handling the remaining cards. The default places them on the bottom of the deck. */
     remainingCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
+
     /** Used for filtering selection based on things like trait, type, etc. */
     cardCondition?: (card: Card, context: TContext) => boolean;
     chooseNothingImmediateEffect?: GameSystem<TContext>;
@@ -84,12 +90,6 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
             ? `look at the top ${searchCountAmount === 1 ? 'card' : `${searchCountAmount} cards`} of their deck`
             : 'search their deck';
         return [message, []];
-    }
-
-    public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
-        return searchCountAmount !== 0 && this.getDeck(player).length > 0 && super.canAffect(player, context);
     }
 
     public override defaultTargets(context: TContext): Player[] {

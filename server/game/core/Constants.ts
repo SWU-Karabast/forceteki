@@ -1,5 +1,5 @@
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
-/* eslint @stylistic/js/lines-around-comment: off */
+/* eslint @stylistic/lines-around-comment: off */
 
 export enum Location {
     Base = 'base',
@@ -51,6 +51,7 @@ export enum EffectName {
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
+    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
     EntersPlayForOpponent = 'entersPlayForOpponent',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
@@ -105,7 +106,6 @@ export enum TargetMode {
     MaxStat = 'maxStat',
     Select = 'select',
     Single = 'single',
-    Token = 'token',
     Unlimited = 'unlimited',
     UpTo = 'upTo',
     UpToVariable = 'upToVariable'
@@ -118,8 +118,10 @@ export enum PhaseName {
 
 export enum CardType {
     Base = 'base',
+
     /** non-leader, non-token unit */
     BasicUnit = 'basicUnit',
+
     /** non-token upgrade */
     BasicUpgrade = 'basicUpgrade',
     Event = 'event',
@@ -133,8 +135,10 @@ export enum WildcardCardType {
     Any = 'any',
     NonLeaderUnit = 'nonLeaderUnit',
     Token = 'token',
+
     /** Any unit type, including leader and token units */
     Unit = 'unit',
+
     /** Any upgrade type, including token upgrades */
     Upgrade = 'upgrade',
 }
@@ -152,12 +156,14 @@ export enum EventName {
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
     OnAddTokenToCard = 'onAddTokenToCard',
     OnAttackCompleted = 'onAttackCompleted',
+    OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
     OnBeginRound = 'onBeginRound',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardDefeated = 'onCardDefeated',
     OnCardExhausted = 'onCardExhausted',
+    OnCardLeavesPlay = 'onCardLeavesPlay',
     OnCardMoved = 'onCardMoved',
     OnCardPlayed = 'onCardPlayed',
     OnCardReadied = 'onCardReadied',
@@ -171,6 +177,7 @@ export enum EventName {
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
     OnEffectApplied = 'onEffectApplied',
+    onExhaustResources = 'onExhaustResources',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
@@ -179,14 +186,14 @@ export enum EventName {
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
+    OnReadyResources = 'onReadyResources',
     OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
     OnRoundEnded = 'onRoundEnded',
     OnRoundEndedCleanup = 'onRoundEndedCleanup',
-    OnSpendResources = 'onSpendResources',
     OnStatusTokenDiscarded = 'onStatusTokenDiscarded',
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
-    OnTakeInitiative = 'onTakeInitiative',
+    OnClaimInitiative = 'onClaimInitiative',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
     Unnamed = 'unnamedEvent',
@@ -211,6 +218,7 @@ export enum Aspect {
 
 export enum KeywordName {
     Ambush = 'ambush',
+
     /** @deprecated Not implemented yet */
     Bounty = 'bounty',
     Grit = 'grit',
@@ -220,18 +228,17 @@ export enum KeywordName {
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
     Shielded = 'shielded',
-    /** @deprecated Not implemented yet */
     Smuggle = 'smuggle',
 }
 
 /** List of keywords that don't have any additional parameters */
 export type NonParameterKeywordName =
-    | KeywordName.Ambush
-    | KeywordName.Grit
-    | KeywordName.Overwhelm
-    | KeywordName.Saboteur
-    | KeywordName.Sentinel
-    | KeywordName.Shielded;
+  | KeywordName.Ambush
+  | KeywordName.Grit
+  | KeywordName.Overwhelm
+  | KeywordName.Saboteur
+  | KeywordName.Sentinel
+  | KeywordName.Shielded;
 
 export enum Trait {
     Armor = 'armor',
@@ -286,21 +293,28 @@ export enum Trait {
 
 // TODO: these could stand to be reorganized and cleaned up a bit
 export enum AbilityRestriction {
+
     /** Restricts a card from being declared as an attacker */
     Attack = 'attack',
+
     /** Restricts a card from being declared as an attack target */
     BeAttacked = 'beAttacked',
 
     /** Restricts a player's ability to play units */
     PlayUnit = 'playUnit',
+
     /** Restricts a player's ability to play upgrades */
     PlayUpgrade = 'playUpgrade',
+
     /** Restricts a player's ability to play events */
     PlayEvent = 'playEvent',
+
     /** Restricts a player's ability to put a certain card or type of card into play */
     PutIntoPlay = 'putIntoPlay',
+
     /** Restricts a card from being played. Typically used for event cards, see {@link AbilityRestriction.PutIntoPlay} for other card types */
     Play = 'play',
+
     /** Restricts a card or card type from being able to enter play. Typically used for non-events. See {@link AbilityRestriction.Play} for event cards */
     EnterPlay = 'enterPlay',
 
@@ -317,8 +331,10 @@ export enum AbilityRestriction {
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
+    CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado

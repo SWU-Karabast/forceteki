@@ -4,18 +4,18 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
-import { AbilityType, CardType, KeywordName, Location, RelativePlayer } from '../Constants';
+import { AbilityType, CardType, KeywordName, Location, PlayType, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
-import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { AbilityContext } from '../ability/AbilityContext';
+import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 
 interface IGainCondition<TSource extends UpgradeCard> {
-    gainCondition?: (context: AbilityContext<TSource>) => boolean
+    gainCondition?: (context: AbilityContext<TSource>) => boolean;
 }
 
 type ITriggeredAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
@@ -40,6 +40,15 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public override isUpgrade(): this is UpgradeCard {
         return true;
+    }
+
+    public override getActions(): PlayerOrCardAbility[] {
+        const actions = super.getActions();
+
+        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+            actions.push(new PlayUpgradeAction(this, PlayType.Smuggle));
+        }
+        return actions;
     }
 
     // TODO CAPTURE: we may need to use the "parent" concept for captured cards as well

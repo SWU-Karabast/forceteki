@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { CardType, CardTypeFilter, EffectName, Location, WildcardCardType } from '../Constants';
+import { CardType, CardTypeFilter, EffectName, EventName, Location, WildcardCardType } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -124,6 +124,16 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return this.canAffect(event.card, event.context, additionalProperties);
     }
 
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+        // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
+        // we're the system that is enacting the defeat
+        if (card.isUnit() && card.isInPlay() && card.pendingDefeat && !this.isPendingDefeatFor(card, context)) {
+            return false;
+        }
+
+        return super.canAffect(card, context, additionalProperties);
+    }
+
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
@@ -143,7 +153,12 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         event.destination = properties.destination || Location.Discard;
 
         event.setContingentEventsGenerator((event) => {
-            const contingentEvents = [];
+            const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, {
+                player: context.player,
+                card,
+                context,
+            });
+            const contingentEvents = [onCardLeavesPlayEvent];
 
             // add events to defeat any upgrades attached to this card. the events will be added as "contingent events"
             // in the event window, so they'll resolve in the same window but after the primary event
@@ -178,6 +193,11 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         // };
     }
 
+    /** Returns true if this system is enacting the pending defeat (i.e., delayed defeat from damage) for the specified card */
+    protected isPendingDefeatFor(card: Card, context: TContext) {
+        return false;
+    }
+
     /**
      * Manages special rules for cards leaving play. Should be called as the handler for systems
      * that move a card out of the play areas (arenas).
@@ -188,6 +208,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             (event.card.isToken() || event.card.isLeader()) &&
             !EnumHelpers.isArena(event.destination)
         ) {
+            // TODO: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
             event.context.game.actions.defeat({ target: event.card }).resolve();
         }
 

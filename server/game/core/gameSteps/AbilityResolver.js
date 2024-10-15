@@ -4,6 +4,7 @@ const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js')
 const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
 const { Location, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
+const Contract = require('../utils/Contract.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
     constructor(game, context, optional = false) {
@@ -30,7 +31,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         // appears at the appropriate times during the prompt flow for that ability
         // TODO: add interface for this in Interfaces.ts when we convert to TS
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
-            buttonText: 'Pass ability',
+            buttonText: this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass ability',
             arg: 'passAbility',
             hasBeenShown: false,
             handler: () => {
@@ -249,14 +250,15 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         // Increment limits (limits aren't used up on cards in hand)
         if (this.context.ability.limit && this.context.source.location !== Location.Hand &&
-           (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.location === this.context.source.location)) {
+          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.location === this.context.source.location)) {
             this.context.ability.limit.increment(this.context.player);
         }
         this.context.ability.displayMessage(this.context);
 
         // If this is an event, move it to discard before resolving the ability
         if (this.context.ability.isCardPlayed() && this.context.ability.card.isEvent()) {
-            this.game.actions.moveCard({ destination: Location.Discard }).resolve(this.context.source, this.context);
+            Contract.assertHasProperty(this.context.ability, 'moveEventToDiscard');
+            this.context.ability.moveEventToDiscard(this.context);
         }
 
         if (this.context.ability.isActivatedAbility()) {

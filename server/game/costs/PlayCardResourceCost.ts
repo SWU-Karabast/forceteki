@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, Location, RelativePlayer } from '../core/Constants';
+import { EventName, PlayType } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 
@@ -8,13 +8,14 @@ import { GameEvent } from '../core/event/GameEvent';
  * any cost adjusters in play that increase or decrease the play cost for the relevant card.
  */
 export class PlayCardResourceCost<TContext extends AbilityContext = AbilityContext> implements ICost<TContext> {
-    public isPlayCost = true;
-    public isPrintedResourceCost = true;
+    public readonly isPlayCost = true;
+    public readonly isPrintedResourceCost = PlayType.PlayFromHand === this.playType;
+    public readonly isSmuggleCost = PlayType.Smuggle === this.playType;
 
     // used for extending this class if any cards have unique after pay hooks
     protected afterPayHook?: ((event: any) => void) = null;
 
-    public constructor(public ignoreType: boolean) {}
+    public constructor(public playType: PlayType, public ignoreType: boolean) {}
 
     public canPay(context: TContext): boolean {
         if (!('printedCost' in context.source)) {
@@ -47,9 +48,13 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     public payEvent(context: TContext): GameEvent {
         const amount = this.getAdjustedCost(context);
         context.costs.resources = amount;
-        return new GameEvent(EventName.OnSpendResources, { amount, context }, (event) => {
+        return new GameEvent(EventName.onExhaustResources, { amount, context }, (event) => {
             event.context.player.markUsedAdjusters(context.playType, event.context.source);
-            event.context.player.exhaustResources(amount);
+            if (this.isSmuggleCost) {
+                event.context.player.exhaustResources(amount, [event.context.source]);
+            } else {
+                event.context.player.exhaustResources(amount);
+            }
 
             if (this.afterPayHook) {
                 this.afterPayHook(event);

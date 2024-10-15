@@ -4,22 +4,31 @@
         "moduleResolution": "node",
         "target": "ES2020",
         "sourceMap": true,
-        "outDir": "build",
+        "outDir": "build/server",
         "allowJs": true,
         "checkJs": true,
-        "lib": ["ES2020", "ES2021.Intl"],
+        "lib": [
+            "ES2020",
+            "ES2021.Intl"
+        ],
         "esModuleInterop": true,
         "strictBindCallApply": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "types": ["node"],
+        "types": [
+            "node"
+        ],
         "noImplicitOverride": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noImplicitThis": true
     },
     // "include": ["server/jigoku/**/*"],
-    "include": ["server/**/*"],
+    "include": [
+        "server/**/*"
+    ],
     // "include": ["server/**/*"],
-    "exclude": ["test/**/*"]
+    "exclude": [
+        "test/**/*"
+    ]
 }

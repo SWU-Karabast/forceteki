@@ -48,13 +48,4 @@ export class BaseCard extends BaseCardParent {
 
         this._epicActionAbility = new ActionAbility(this.game, this, propertiesWithLimit);
     }
-
-    public override addDamage(amount: number) {
-        super.addDamage(amount);
-
-        // TODO EFFECTS: the win effect should almost certainly be handled elsewhere, probably in a game state check
-        if (this.damage >= this.getHp()) {
-            this.game.recordWinner(this.owner.opponent, 'base destroyed');
-        }
-    }
 }

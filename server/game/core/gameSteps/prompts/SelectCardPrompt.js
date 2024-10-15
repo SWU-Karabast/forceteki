@@ -1,6 +1,7 @@
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const CardSelector = require('../../cardSelector/CardSelector.js');
 const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
+const Contract = require('../../utils/Contract.js');
 const { UiPrompt } = require('./UiPrompt.js');
 
 /**
@@ -102,7 +103,7 @@ class SelectCardPrompt extends UiPrompt {
 
     getDefaultControls() {
         let targets = this.properties.availableCards ??
-            this.context.targets ? Object.values(this.context.targets) : [];
+          this.context.targets ? Object.values(this.context.targets) : [];
         targets = targets.reduce((array, target) => array.concat(target), []);
         if (targets.length === 0 && this.context.event && this.context.event.card) {
             this.targets = [this.context.event.card];
@@ -246,7 +247,7 @@ class SelectCardPrompt extends UiPrompt {
             this.complete();
             return true;
         }
-        return false;
+        Contract.fail(`Unexpected menu command: '${arg}'`);
     }
 
     /** @override */

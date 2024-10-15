@@ -14,7 +14,7 @@ const { SimpleStep } = require('./gameSteps/SimpleStep.js');
 const MenuPrompt = require('./gameSteps/prompts/MenuPrompt.js');
 const HandlerMenuPrompt = require('./gameSteps/prompts/HandlerMenuPrompt.js');
 const SelectCardPrompt = require('./gameSteps/prompts/SelectCardPrompt.js');
-const GameWonPrompt = require('./gameSteps/prompts/GameWonPrompt.js');
+const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
 const InitiateCardAbilityEvent = require('./event/InitiateCardAbilityEvent.js');
@@ -33,6 +33,7 @@ const { EffectName, EventName, Location, TokenName } = require('./Constants.js')
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
+const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -64,6 +65,7 @@ class Game extends EventEmitter {
         this.roundNumber = 0;
         this.initialFirstPlayer = null;
         this.initiativePlayer = null;
+        this.isInitiativeClaimed = false;
         this.actionPhaseActivePlayer = null;
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
@@ -362,23 +364,6 @@ class Game extends EventEmitter {
         this.pipeline.handleCardClicked(player, card);
     }
 
-    // TODO SMUGGLE: implementation of this
-    // facedownCardClicked(playerName, location, controllerName, isProvince = false) {
-    //     let player = this.getPlayerByName(playerName);
-    //     let controller = this.getPlayerByName(controllerName);
-    //     if (!player || !controller) {
-    //         return;
-    //     }
-    //     let list = controller.getCardPile(location);
-    //     if (!list) {
-    //         return;
-    //     }
-    //     let card = list.find((card) => !isProvince === !card.isProvince);
-    //     if (card) {
-    //         return this.pipeline.handleCardClicked(player, card);
-    //     }
-    // }
-
     // /**
     //  * This function is called by the client when a card menu item is clicked
     //  * @param {String} sourcePlayer - name of clicking player
@@ -443,40 +428,43 @@ class Game extends EventEmitter {
     // }
 
     // /**
-    //  * Check to see if either player has won/lost the game due to honor (NB: this
-    //  * function doesn't check to see if a conquest victory has been achieved)
+    //  * Check to see if a base(or both bases) has been destroyed
     //  */
-    // checkWinCondition() {
-    //     let honorRequiredToWin = this.gameMode === GameMode.Skirmish ? 12 : 25;
-    //     for (const player of this.getPlayersInFirstPlayerOrder()) {
-    //         if (player.honor >= honorRequiredToWin) {
-    //             this.recordWinner(player, 'honor');
-    //         } else if (player.opponent && player.opponent.honor <= 0) {
-    //             this.recordWinner(player, 'dishonor');
-    //         }
-    //     }
-    // }
+    checkWinCondition() {
+        const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp());
+        if (losingPlayers.length === 1) {
+            this.endGame(losingPlayers[0].opponent, 'base destroyed');
+        } else if (losingPlayers.length === 2) { // draw game
+            this.endGame(losingPlayers, 'both bases destroyed');
+        }
+    }
 
     /**
      * Display message declaring victory for one player, and record stats for
      * the game
-     * @param {Player} winner
+     * @param {Player | Player[]} winner
      * @param {String} reason
      */
-    recordWinner(winner, reason) {
+    endGame(winner, reason) {
         if (this.winner) {
+            // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
 
-        this.addMessage('{0} has won the game', winner);
-
+        if (Array.isArray(winner)) {
+            this.addMessage('The game ends in a draw');
+        } else {
+            this.addMessage('{0} has won the game', winner);
+        }
         this.winner = winner;
+
+
         this.finishedAt = new Date();
-        this.winReason = reason;
+        this.gameEndReason = reason;
 
         this.router.gameWon(this, reason, winner);
 
-        this.queueStep(new GameWonPrompt(this, winner));
+        this.queueStep(new GameOverPrompt(this, winner));
     }
 
     /**
@@ -553,7 +541,7 @@ class Game extends EventEmitter {
         var otherPlayer = this.getOtherPlayer(player);
 
         if (otherPlayer) {
-            this.recordWinner(otherPlayer, 'concede');
+            this.endGame(otherPlayer, 'concede');
         }
     }
 
@@ -611,6 +599,16 @@ class Game extends EventEmitter {
     }
 
     /**
+     * Prompt for distributing healing or damage among target cards.
+     * Response data must be returned via {@link Game.statefulPromptResults}.
+     */
+    promptDistributeAmongTargets(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DistributeAmongTargetsPrompt(this, player, properties));
+    }
+
+    /**
      * This function is called by the client whenever a player clicks a button
      * in a prompt
      * @param {String} playerName
@@ -621,12 +619,22 @@ class Game extends EventEmitter {
      */
     menuButton(playerName, arg, uuid, method) {
         var player = this.getPlayerByName(playerName);
-        if (!player) {
-            return false;
-        }
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
+    }
+
+    /**
+     * Gets the results of a "stateful" prompt from the frontend. This is for more
+     * involved prompts such as distributing damage / healing that require the frontend
+     * to gather some state and send back, instead of just individual clicks.
+     * @param {import('./gameSteps/StatefulPromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     */
+    statefulPromptResults(playerName, result) {
+        var player = this.getPlayerByName(playerName);
+
+        // check to see if the current step in the pipeline is waiting for input
+        return this.pipeline.handleStatefulPromptResults(player, result);
     }
 
     /**
@@ -769,12 +777,9 @@ class Game extends EventEmitter {
     }
 
     claimInitiative(player) {
-        this.addMessage('{0} claims initiative', player);
-
         this.initiativePlayer = player;
-        player.passedActionPhase = true;
-
-        // TODO: eventually we'll probably need an event window here
+        this.isInitiativeClaimed = true;
+        this.createEventAndOpenWindow(EventName.OnClaimInitiative, { player }, true);
 
         // update game state for the sake of constant abilities that check initiative
         this.resolveGameState();
@@ -838,7 +843,7 @@ class Game extends EventEmitter {
      * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
      * tell whether or not the handler resolved successfully
      */
-    createEventAndOpenWindow(eventName, params = {}, ownsTriggerWindow = false, handler = () => true) {
+    createEventAndOpenWindow(eventName, params = {}, ownsTriggerWindow = false, handler = () => undefined) {
         let event = new GameEvent(eventName, params, handler);
         this.openEventWindow([event], ownsTriggerWindow);
         return event;
@@ -1081,7 +1086,7 @@ class Game extends EventEmitter {
             // (!this.currentAttack && this.ongoingEffectEngine.resolveEffects(hasChanged)) ||
             this.ongoingEffectEngine.resolveEffects(hasChanged) || hasChanged
         ) {
-            // this.checkWinCondition();
+            this.checkWinCondition();
             // if the state has changed, check for:
 
             // - any defeated units
@@ -1220,7 +1225,7 @@ class Game extends EventEmitter {
     //         startedAt: this.startedAt,
     //         players: players,
     //         winner: this.winner ? this.winner.name : undefined,
-    //         winReason: this.winReason,
+    //         gameEndReason: this.gameEndReason,
     //         gameMode: this.gameMode,
     //         finishedAt: this.finishedAt,
     //         roundNumber: this.roundNumber,

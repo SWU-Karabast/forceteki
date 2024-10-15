@@ -1,10 +1,22 @@
 import type { Card } from './card/Card';
+import { IDistributeAmongTargetsPromptData } from './gameSteps/StatefulPromptInterfaces';
 import type Player from './Player';
+
+export interface IPlayerPromptStateProperties {
+    buttons?: { text: string; arg?: string; command?: string; card?: Card }[];
+    menuTitle: string;
+    promptTitle?: string;
+
+    controls?: { type: string; source: any; targets: any }[];
+    selectCard?: boolean;
+    selectOrder?: boolean;
+    distributeAmongTargets?: IDistributeAmongTargetsPromptData;
+}
 
 export class PlayerPromptState {
     public selectCard = false;
     public selectOrder = false;
-    public selectRing = false;
+    public distributeAmongTargets?: IDistributeAmongTargetsPromptData = null;
     public menuTitle = '';
     public promptTitle = '';
     public buttons = [];
@@ -31,19 +43,10 @@ export class PlayerPromptState {
         this.selectableCards = [];
     }
 
-    public setPrompt(prompt: {
-        selectCard?: boolean;
-        selectOrder?: boolean;
-        selectRing?: boolean;
-        menuTitle?: string;
-        promptTitle: string;
-        buttons?: any[];
-        controls?: any[];
-    }) {
+    public setPrompt(prompt: IPlayerPromptStateProperties) {
         this.promptTitle = prompt.promptTitle;
         this.selectCard = prompt.selectCard ?? false;
         this.selectOrder = prompt.selectOrder ?? false;
-        this.selectRing = prompt.selectRing ?? false;
         this.menuTitle = prompt.menuTitle ?? '';
         this.controls = prompt.controls ?? [];
         this.buttons = !prompt.buttons
@@ -63,7 +66,6 @@ export class PlayerPromptState {
 
     public cancelPrompt() {
         this.selectCard = false;
-        this.selectRing = false;
         this.menuTitle = '';
         this.buttons = [];
         this.controls = [];
@@ -89,7 +91,6 @@ export class PlayerPromptState {
         return {
             selectCard: this.selectCard,
             selectOrder: this.selectOrder,
-            selectRing: this.selectRing,
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,
             buttons: this.buttons,
