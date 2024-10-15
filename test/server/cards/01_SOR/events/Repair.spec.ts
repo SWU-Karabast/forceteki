@@ -19,7 +19,7 @@ describe('Repair', function() {
             it('can heal a unit', function () {
                 const { context } = contextRef;
 
-                context.wampa.damage = 3;
+                context.setDamage(context.wampa, 3);
                 context.player1.clickCard(context.repair);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);
 
@@ -30,7 +30,7 @@ describe('Repair', function() {
             it('can heal a base', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 3;
+                context.setDamage(context.p1Base, 3);
 
                 context.player1.clickCard(context.repair);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);
@@ -52,7 +52,7 @@ describe('Repair', function() {
             it('will heal a target with 1 or 2 damage to full', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 2;
+                context.setDamage(context.p1Base, 2);
 
                 context.player1.clickCard(context.repair);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base]);

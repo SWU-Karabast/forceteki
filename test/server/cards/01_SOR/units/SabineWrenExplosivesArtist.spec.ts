@@ -65,9 +65,9 @@ describe('Sabine Wren, Explosives Artist', function() {
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(0);
 
-                context.sabineWren.damage = 0;
+                context.setDamage(context.sabineWren, 0);
                 context.sabineWren.exhausted = false;
-                context.moddedCohort.damage = 0;
+                context.setDamage(context.moddedCohort, 0);
                 context.player2.passAction();
 
                 // case 2: deal damage to base when attacking unit
@@ -80,7 +80,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 expect(context.p2Base.damage).toBe(1);
 
                 context.sabineWren.exhausted = false;
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
                 context.player2.passAction();
 
                 // case 3: deal damage to base when attacking base

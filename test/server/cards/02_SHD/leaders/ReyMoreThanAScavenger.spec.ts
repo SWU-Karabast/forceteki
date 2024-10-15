@@ -60,7 +60,7 @@ describe('Rey, More Than a Scavenger', function () {
 
                 // rey can give experience to herself
                 context.rey.exhausted = false;
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
                 context.player2.passAction();
                 context.player1.clickCard(context.rey);
                 // need to order triggers between restore & on attack

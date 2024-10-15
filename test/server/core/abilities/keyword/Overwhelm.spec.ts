@@ -28,9 +28,9 @@ describe('Overwhelm keyword', function() {
                 expect(context.wampa.exhausted).toBe(true);
 
                 context.player2.passAction();
-                context.wampa.damage = 0;
+                context.setDamage(context.wampa, 0);
                 context.wampa.exhausted = false;
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
 
                 // CASE 2: shield prevents overwhelm
                 context.player1.clickCard(context.wampa);
@@ -41,7 +41,7 @@ describe('Overwhelm keyword', function() {
                 expect(context.wampa.damage).toBe(3);
                 expect(context.wampa.exhausted).toBe(true);
 
-                context.wampa.damage = 0;
+                context.setDamage(context.wampa, 0);
 
                 // CASE 3: overwhelm doesn't work when the unit is defending
                 context.player2.clickCard(context.battlefieldMarine);
@@ -51,7 +51,7 @@ describe('Overwhelm keyword', function() {
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.p1Base.damage).toBe(0);
 
-                context.wampa.damage = 0;
+                context.setDamage(context.wampa, 0);
                 context.wampa.exhausted = false;
 
                 // CASE 4: no overwhelm damage if attacking base
@@ -61,7 +61,7 @@ describe('Overwhelm keyword', function() {
 
                 context.player2.passAction();
                 context.wampa.exhausted = false;
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
 
                 // CASE 5: no overwhelm damage if unit's hp is not exceeded
                 context.player1.clickCard(context.wampa);

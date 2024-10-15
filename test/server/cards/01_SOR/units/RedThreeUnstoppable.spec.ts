@@ -24,7 +24,7 @@ describe('Red Three', function () {
 
                 // should not give Raid 1 to non-heroism unit
                 context.player2.passAction();
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
                 context.player1.clickCard(context.deathTrooper);
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.ruggedSurvivors, context.cargoJuggernaut]);
                 context.player1.clickCard(context.p2Base);
@@ -32,7 +32,7 @@ describe('Red Three', function () {
 
                 // should give Raid 1 cumulative with other Raid values
                 context.player2.passAction();
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
                 context.player1.clickCard(context.greenSquadronAwing);
                 expect(context.p2Base.damage).toBe(4);
             });

@@ -47,7 +47,7 @@ describe('Sabine Wren, Galvanized Revolutionary', function() {
             it('should deal 1 damage to the opponent\'s base on attack before combat damage', function () {
                 const { context } = contextRef;
 
-                context.p2Base.damage = 29;
+                context.setDamage(context.p2Base, 29);
                 context.player1.clickCard(context.sabineWren);
                 context.player1.clickCard(context.rebelPathfinder);
                 expect(context.player1).toHavePrompt('player1 has won the game!');

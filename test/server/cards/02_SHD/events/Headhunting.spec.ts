@@ -33,7 +33,7 @@ describe('Headhunting', function() {
                 expect(context.reputableHunter.damage).toBe(3);
 
                 // second attack, non-bounty-hunter
-                context.consularSecurityForce.damage = 0;
+                context.setDamage(context.consularSecurityForce, 0);
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.theMandalorian, context.wampa]);
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.atst);
@@ -45,7 +45,7 @@ describe('Headhunting', function() {
                 expect(context.atst.damage).toBe(3);
 
                 // third attack, leader bounty hunter
-                context.consularSecurityForce.damage = 0;
+                context.setDamage(context.consularSecurityForce, 0);
                 expect(context.player1).toBeAbleToSelectExactly([context.theMandalorian, context.wampa]);
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.theMandalorian);
@@ -124,7 +124,7 @@ describe('Headhunting', function() {
                 expect(context.reputableHunter.damage).toBe(3);
 
                 // second attack, non-bounty-hunter - goes straight to target resolution since only one legal attacker
-                context.consularSecurityForce.damage = 0;
+                context.setDamage(context.consularSecurityForce, 0);
                 expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
                 expect(context.player1).toHavePassAttackButton();
                 context.player1.clickCard(context.consularSecurityForce);

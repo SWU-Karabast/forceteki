@@ -15,7 +15,7 @@ describe('Devotion', function() {
             it('should cause the attached card to heal 2 damage from base on attack', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
 
                 // attack resolves automatically since there's only one target (p2Base)
                 context.player1.clickCard(context.wampa);

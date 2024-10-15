@@ -13,7 +13,7 @@ describe('Smuggler\'s Aid', function() {
             it('heals base from hand', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
 
                 context.player1.clickCard(context.smugglersAid);
                 expect(context.p1Base.damage).toBe(2);
@@ -34,7 +34,7 @@ describe('Smuggler\'s Aid', function() {
             it('heals base from Smuggle', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
 
                 context.player1.clickCard(context.smugglersAid);
                 expect(context.p1Base.damage).toBe(2);

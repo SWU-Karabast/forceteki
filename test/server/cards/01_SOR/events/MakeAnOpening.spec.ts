@@ -19,7 +19,7 @@ describe('Make an Opening', function () {
             it('should reduce hp to a enemy unit and heal your base', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
                 context.player1.clickCard(context.makeAnOpening);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.sabineWren]);
 
@@ -33,7 +33,7 @@ describe('Make an Opening', function () {
             it('should reduce hp to an ally unit and heal your base', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
                 context.player1.clickCard(context.makeAnOpening);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.sabineWren]);
 

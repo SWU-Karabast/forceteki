@@ -92,7 +92,7 @@ describe('Heroic Resolve', function() {
                 // activate second Heroic Resolve
                 context.player2.passAction();
                 context.frontierAtrt.exhausted = false;
-                context.frontierAtrt.damage = 0;
+                context.setDamage(context.frontierAtrt, 0);
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHaveEnabledPromptButton('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
 
@@ -161,7 +161,7 @@ describe('Heroic Resolve', function() {
                 // activate second Heroic Resolve
                 context.player2.passAction();
                 context.frontierAtrt.exhausted = false;
-                context.frontierAtrt.damage = 0;
+                context.setDamage(context.frontierAtrt, 0);
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHaveEnabledPromptButton('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
 

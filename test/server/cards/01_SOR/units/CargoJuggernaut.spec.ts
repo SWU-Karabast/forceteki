@@ -17,7 +17,7 @@ describe('Cargo Juggernaut', function () {
             it('should heal base when there is a Vigilance ally', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 10;
+                context.setDamage(context.p1Base, 10);
                 context.player1.clickCard(context.cargoJuggernaut);
                 // cargo juggernaut need to order its triggers between shield & when played
                 context.player1.clickPrompt('If you control another Vigilance unit, heal 4 damage from your base');
@@ -43,7 +43,7 @@ describe('Cargo Juggernaut', function () {
             it('should not heal base when there is not any Vigilance ally', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 10;
+                context.setDamage(context.p1Base, 10);
                 context.player1.clickCard(context.cargoJuggernaut);
                 context.player1.clickPrompt('If you control another Vigilance unit, heal 4 damage from your base');
 

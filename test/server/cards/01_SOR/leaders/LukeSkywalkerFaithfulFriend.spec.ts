@@ -87,9 +87,9 @@ describe('Luke Skywalker, Faithful Friend', function() {
                 expect(context.wampa.damage).toBe(4);
 
                 // reset for a second attack to confirm that shield gets applied to wampa before the attack damage happens
-                context.lukeSkywalker.damage = 0;
+                context.setDamage(context.lukeSkywalker, 0);
                 context.lukeSkywalker.exhausted = false;
-                context.wampa.damage = 0;
+                context.setDamage(context.wampa, 0);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.lukeSkywalker);

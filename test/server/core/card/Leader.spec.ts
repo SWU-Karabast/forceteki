@@ -121,7 +121,7 @@ describe('Leader cards', function() {
             it('should have functioning keywords and be exhausted on attack', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
                 context.player1.clickCard(context.directorKrennic);
                 context.player1.clickCard(context.player2.base);
 

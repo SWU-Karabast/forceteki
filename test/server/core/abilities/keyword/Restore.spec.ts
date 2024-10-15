@@ -15,7 +15,7 @@ describe('Restore keyword', function() {
             it('attacks, base should be healed by the restore amount', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
 
                 // attack resolves automatically since there's only one target (p2Base)
                 context.player1.clickCard(context.regionalSympathizers);
@@ -41,7 +41,7 @@ describe('Restore keyword', function() {
             it('attacks, base should be healed by the cumulative restore amount', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
 
                 // attack resolves automatically since there's only one target (p2Base)
                 context.player1.clickCard(context.regionalSympathizers);

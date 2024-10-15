@@ -13,7 +13,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
             it('should heal 1 from friendly base', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 5;
+                context.setDamage(context.p1Base, 5);
                 context.player1.clickCard(context.salaciousCrumb);
                 expect(context.salaciousCrumb).toBeInLocation('ground arena');
 
@@ -23,7 +23,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
             it('should heal 0 from base if base has no damage', function () {
                 const { context } = contextRef;
 
-                context.p1Base.damage = 0;
+                context.setDamage(context.p1Base, 0);
                 context.player1.clickCard(context.salaciousCrumb);
                 expect(context.salaciousCrumb).toBeInLocation('ground arena');
 

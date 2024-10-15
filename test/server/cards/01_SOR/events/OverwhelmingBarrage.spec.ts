@@ -40,7 +40,7 @@ describe('Overwhelming Barrage', function() {
                 expect(context.hanSolo.damage).toBe(1);
 
                 // attack into wampa to confirm stats buff
-                context.atst.damage = 0;
+                context.setDamage(context.atst, 0);
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa).toBeInLocation('ground arena');
@@ -84,7 +84,7 @@ describe('Overwhelming Barrage', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 // attack into wampa to confirm stats buff
-                context.atst.damage = 0;
+                context.setDamage(context.atst, 0);
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa).toBeInLocation('ground arena');

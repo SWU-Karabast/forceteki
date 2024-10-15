@@ -58,8 +58,6 @@ describe('Maximum Firepower', function() {
         });
 
         describe('Maximum Firepower\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -74,6 +72,8 @@ describe('Maximum Firepower', function() {
             });
 
             it('should not trigger if there are no friendly Imperial units', function() {
+                const { context } = contextRef;
+
                 // action play Maximum Firepower without target
                 context.player1.clickCard(context.maximumFirepower);
                 expect(context.maximumFirepower).toBeInLocation('discard');

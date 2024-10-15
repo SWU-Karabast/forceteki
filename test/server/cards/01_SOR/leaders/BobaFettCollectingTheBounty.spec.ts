@@ -102,7 +102,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
             it('should not ready resources if Boba Fett dies while attacking, even if an enemy unit left play this turn', function() {
                 const { context } = contextRef;
 
-                context.bobaFett.damage = 4;
+                context.setDamage(context.bobaFett, 4);
                 context.player1.clickCard(context.wampa);
                 context.player2.passAction();
                 context.player1.clickCard(context.bobaFett);

@@ -34,14 +34,14 @@ describe('Seasoned Shoretrooper', function () {
                 expect(context.seasonedShoretrooper.getHp()).toBe(3);
 
                 // reset and check damage
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
                 context.seasonedShoretrooper.exhausted = false;
                 context.player1.clickCard(context.seasonedShoretrooper);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(4);
 
                 // with 6 or more resources, power should be buff
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
                 context.seasonedShoretrooper.exhausted = false;
                 context.player1.moveCard(context.battlefieldMarine, 'resource');
                 context.player2.passAction();
@@ -50,7 +50,7 @@ describe('Seasoned Shoretrooper', function () {
                 expect(context.seasonedShoretrooper.getHp()).toBe(3);
 
                 // reset and check damage
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
                 context.seasonedShoretrooper.exhausted = false;
                 context.player1.clickCard(context.seasonedShoretrooper);
                 context.player1.clickCard(context.p2Base);
@@ -65,7 +65,7 @@ describe('Seasoned Shoretrooper', function () {
                 expect(context.seasonedShoretrooper.getHp()).toBe(3);
 
                 // reset and check damage
-                context.p2Base.damage = 0;
+                context.setDamage(context.p2Base, 0);
                 context.seasonedShoretrooper.exhausted = false;
                 context.player1.clickCard(context.seasonedShoretrooper);
                 context.player1.clickCard(context.p2Base);

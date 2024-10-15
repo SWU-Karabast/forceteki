@@ -30,7 +30,7 @@ describe('Jedi Lightsaber', function() {
                 expect(context.atst.remainingHp).toBe(2);
 
                 // CASE 1.1: unit with -2/-2 does an attack to confirm its stats
-                context.grogu.damage = 0;
+                context.setDamage(context.grogu, 0);
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.grogu);
                 expect(context.grogu.damage).toBe(4);
@@ -38,7 +38,7 @@ describe('Jedi Lightsaber', function() {
 
                 // CASE 2: defender dies from combined attack damage and hp effect
                 context.grogu.exhausted = false;
-                context.grogu.damage = 0;
+                context.setDamage(context.grogu, 0);
                 context.player1.clickCard(context.grogu);
                 context.player1.clickPrompt('Attack');
                 context.player1.clickCard(context.wampa);
@@ -50,7 +50,7 @@ describe('Jedi Lightsaber', function() {
                 // CASE 3: defender dies from hp effect before attack resolves
                 context.player2.passAction();
                 context.grogu.exhausted = false;
-                context.grogu.damage = 0;
+                context.setDamage(context.grogu, 0);
                 context.player1.clickCard(context.grogu);
                 context.player1.clickPrompt('Attack');
                 context.player1.clickCard(context.specforceSoldier);

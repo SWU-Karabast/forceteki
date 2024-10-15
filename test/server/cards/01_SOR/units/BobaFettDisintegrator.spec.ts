@@ -21,9 +21,9 @@ describe('Boba Fett, Disintegrator', function() {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.bobaFett.damage = 0;
+                    context.setDamage(context.bobaFett, 0);
                     context.bobaFett.exhausted = false;
-                    context.consularSecurityForce.damage = 0;
+                    context.setDamage(context.consularSecurityForce, 0);
                     context.consularSecurityForce.exhausted = false;
                 };
                 // Case 1 attacking a ready card

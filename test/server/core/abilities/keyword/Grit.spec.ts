@@ -28,7 +28,7 @@ describe('Grit keyword', function() {
             it('has no damage, it should not have increased power', function () {
                 const { context } = contextRef;
 
-                context.scoutBikePursuer.damage = 0;
+                context.setDamage(context.scoutBikePursuer, 0);
                 expect(context.scoutBikePursuer.getPower()).toBe(1);
             });
         });

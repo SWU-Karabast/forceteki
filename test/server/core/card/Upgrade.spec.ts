@@ -42,7 +42,7 @@ describe('Upgrade cards', function() {
             it('and the owner is defeated, the upgrade should also be defeated', function () {
                 const { context } = contextRef;
 
-                context.tielnFighter.damage = 3;
+                context.setDamage(context.tielnFighter, 3);
 
                 context.player1.clickCard(context.tielnFighter);
 
@@ -54,7 +54,7 @@ describe('Upgrade cards', function() {
             it('and is giving an hp boost keeping the attached unit alive, the attached unit should be defeated when the upgrade is defeated', function () {
                 const { context } = contextRef;
 
-                context.tielnFighter.damage = 2;
+                context.setDamage(context.tielnFighter, 2);
                 context.player1.passAction();
 
                 context.player2.clickCard(context.confiscate);

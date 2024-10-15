@@ -30,7 +30,7 @@ describe('Waylay', function() {
             it('should allow the player to select a friendly unit to return to hand and should remove damage and be playable', function () {
                 const { context } = contextRef;
 
-                context.pykeSentinel.damage = 2;
+                context.setDamage(context.pykeSentinel, 2);
 
                 context.player1.passAction();
                 context.player2.clickCard('entrenched'); // Providing ownership
