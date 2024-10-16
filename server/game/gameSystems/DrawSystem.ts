@@ -5,7 +5,7 @@ import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameS
 import Player from '../core/Player';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
-    amount?: number
+    amount?: number;
 }
 
 export class DrawSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDrawProperties> {

@@ -93,11 +93,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const { changePlayer, destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         return (
             (!changePlayer ||
-                (!card.hasRestriction(EffectName.TakeControl, context) &&
-                    !card.anotherUniqueInPlay(context.player))) &&
-            (!destination || context.player.isLegalLocationForCardType(card.type, destination)) &&
-            !EnumHelpers.isArena(card.location) &&
-            super.canAffect(card, context)
+              (!card.hasRestriction(EffectName.TakeControl, context) &&
+                !card.anotherUniqueInPlay(context.player))) &&
+                (!destination || context.player.isLegalLocationForCardType(card.type, destination)) &&
+                !EnumHelpers.isArena(card.location) &&
+                super.canAffect(card, context)
         );
     }
 }

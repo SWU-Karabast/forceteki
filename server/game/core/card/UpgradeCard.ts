@@ -15,7 +15,7 @@ import { AbilityContext } from '../ability/AbilityContext';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 
 interface IGainCondition<TSource extends UpgradeCard> {
-    gainCondition?: (context: AbilityContext<TSource>) => boolean
+    gainCondition?: (context: AbilityContext<TSource>) => boolean;
 }
 
 type ITriggeredAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;

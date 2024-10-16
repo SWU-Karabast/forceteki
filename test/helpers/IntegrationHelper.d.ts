@@ -1,3 +1,4 @@
+type CardWithDamageProperty = import('../../server/game/core/card/CardTypes').CardWithDamageProperty;
 type BaseCard = import('../../server/game/core/card/BaseCard').BaseCard;
 type LeaderCard = import('../../server/game/core/card/LeaderCard').LeaderCard;
 type Game = import('../../server/game/core/Game');
@@ -35,6 +36,7 @@ interface SwuTestContext {
     nextPhase();
     getChatLogs(numbBack = 1, inOrder = false);
     getChatLog(numbBack = 0);
+    setDamage(card: CardWithDamageProperty, amount: number);
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;
@@ -68,6 +70,7 @@ declare namespace jasmine {
         toHaveDisabledPromptButton<T extends PlayerInteractionWrapper>(this: Matchers<T>, expected: string): boolean;
         toHaveDisabledPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expecteds: string[]): boolean;
         toHavePassAbilityButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
+        toHavePassAttackButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveChooseNoTargetButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveClaimInitiativeAbilityButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toBeAbleToSelect<T extends PlayerInteractionWrapper>(this: Matchers<T>, card: any): boolean;

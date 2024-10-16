@@ -185,8 +185,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 // normal event abilities have their own category so this is the only 'triggered ability' for event cards
                 if (
                     to === Location.Deck ||
-                        this.controller.isCardInPlayableLocation(this) ||
-                        (this.controller.opponent && this.controller.opponent.isCardInPlayableLocation(this))
+                    this.controller.isCardInPlayableLocation(this) ||
+                    (this.controller.opponent && this.controller.opponent.isCardInPlayableLocation(this))
                 ) {
                     triggeredAbility.registerEvents();
                 } else {
@@ -214,12 +214,12 @@ export class InPlayCard extends PlayableOrDeployableCard {
             }
             if (
                 !EnumHelpers.cardLocationMatches(from, constantAbility.sourceLocationFilter) &&
-                    EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
+                EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
             ) {
                 constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
             } else if (
                 EnumHelpers.cardLocationMatches(from, constantAbility.sourceLocationFilter) &&
-                    !EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
+                !EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
             ) {
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];

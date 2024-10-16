@@ -79,11 +79,11 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
         return (
             (targetPlayer === RelativePlayer.Self ||
-                (!card.hasRestriction(EffectName.TakeControl, context) &&
-                    !card.anotherUniqueInPlay(context.player))) &&
-            context.player.isLegalLocationForCardType(card.type, Location.Resource) &&
-            !EnumHelpers.isArena(card.location) &&
-            super.canAffect(card, context)
+              (!card.hasRestriction(EffectName.TakeControl, context) &&
+                !card.anotherUniqueInPlay(context.player))) &&
+                context.player.isLegalLocationForCardType(card.type, Location.Resource) &&
+                !EnumHelpers.isArena(card.location) &&
+                super.canAffect(card, context)
         );
     }
 }

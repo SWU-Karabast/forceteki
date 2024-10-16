@@ -2,7 +2,7 @@ import jasmine from "eslint-plugin-jasmine";
 import globals from "globals";
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import stylisticJs from '@stylistic/eslint-plugin-js';
+import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
 
 export default tseslint.config(
@@ -15,11 +15,11 @@ export default tseslint.config(
         ...eslint.configs.recommended,
         ...importPlugin.flatConfigs.recommended,
         extends: [
-            stylisticJs.configs['all-flat']
+            stylistic.configs['all-flat']
         ],
         plugins: {
             jasmine,
-            '@stylistic/js': stylisticJs,
+            '@stylistic': stylistic,
             'import': importPlugin,
         },
 
@@ -43,31 +43,31 @@ export default tseslint.config(
 
             "import/newline-after-import": ["error"],
 
-            "@stylistic/js/spaced-comment": ["error", "always"],
-            "@stylistic/js/function-call-spacing": ["error", "never"],
-            "@stylistic/js/padded-blocks": ["error", "never"],
-            "@stylistic/js/object-curly-spacing": ["error", "always"],
-            "@stylistic/js/function-paren-newline": ["off"],
-            "@stylistic/js/function-call-argument-newline": ["off"],
-            "@stylistic/js/object-property-newline": ["off"],
-            "@stylistic/js/space-before-function-paren": ["off"],
-            "@stylistic/js/lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
-            "@stylistic/js/quote-props": ["error", "as-needed"],
-            "@stylistic/js/array-element-newline": ["off"],
-            "@stylistic/js/multiline-ternary": ["off"],
-            "@stylistic/js/array-bracket-newline": ["off"],
-            "@stylistic/js/implicit-arrow-linebreak": ["off"],
-            "@stylistic/js/no-multi-spaces": ["error", { "ignoreEOLComments": true }],
-            "@stylistic/js/multiline-comment-style": ["off"],
-            "@stylistic/js/dot-location": ["error", "property"],
-            "@stylistic/js/no-extra-parens": ["off"],
-            "@stylistic/js/comma-dangle": ["error", "only-multiline"],
-            "@stylistic/js/eol-last": ["off"],
-            "@stylistic/js/quotes": ["error", "single"],
-            "@stylistic/js/indent": ["error", 4, {
+            "@stylistic/spaced-comment": ["error", "always"],
+            "@stylistic/function-call-spacing": ["error", "never"],
+            "@stylistic/padded-blocks": ["error", "never"],
+            "@stylistic/object-curly-spacing": ["error", "always"],
+            "@stylistic/function-paren-newline": ["off"],
+            "@stylistic/function-call-argument-newline": ["off"],
+            "@stylistic/object-property-newline": ["off"],
+            "@stylistic/space-before-function-paren": ["off"],
+            "@stylistic/lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+            "@stylistic/quote-props": ["error", "as-needed"],
+            "@stylistic/array-element-newline": ["off"],
+            "@stylistic/multiline-ternary": ["off"],
+            "@stylistic/array-bracket-newline": ["off"],
+            "@stylistic/implicit-arrow-linebreak": ["off"],
+            "@stylistic/no-multi-spaces": ["error", { "ignoreEOLComments": true }],
+            "@stylistic/multiline-comment-style": ["off"],
+            "@stylistic/dot-location": ["error", "property"],
+            "@stylistic/no-extra-parens": ["off"],
+            "@stylistic/comma-dangle": ["error", "only-multiline"],
+            "@stylistic/eol-last": ["off"],
+            "@stylistic/quotes": ["error", "single"],
+            "@stylistic/indent": ["error", 4, {
                 "SwitchCase": 1,
             }],
-            "@stylistic/js/lines-around-comment": ["error", {
+            "@stylistic/lines-around-comment": ["error", {
                 "beforeBlockComment": true,
                 "afterBlockComment": false,
                 "beforeLineComment": false,
@@ -119,7 +119,8 @@ export default tseslint.config(
             "@typescript-eslint/no-unused-vars": ["warn"],
             "@typescript-eslint/prefer-namespace-keyword": "off",
             "@typescript-eslint/explicit-member-accessibility": "error",
-            "@typescript-eslint/no-namespace": "off"
+            "@typescript-eslint/no-namespace": "off",
+            "@stylistic/type-annotation-spacing": ["error"]
         }
     },
     {
@@ -138,31 +139,31 @@ export default tseslint.config(
 
             "import/newline-after-import": ["error"],
 
-            "@stylistic/js/spaced-comment": ["error", "always"],
-            "@stylistic/js/function-call-spacing": ["error", "never"],
-            "@stylistic/js/padded-blocks": ["error", "never"],
-            "@stylistic/js/object-curly-spacing": ["error", "always"],
-            "@stylistic/js/function-paren-newline": ["off"],
-            "@stylistic/js/function-call-argument-newline": ["off"],
-            "@stylistic/js/object-property-newline": ["off"],
-            "@stylistic/js/space-before-function-paren": ["off"],
-            "@stylistic/js/lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
-            "@stylistic/js/quote-props": ["error", "as-needed"],
-            "@stylistic/js/array-element-newline": ["off"],
-            "@stylistic/js/multiline-ternary": ["off"],
-            "@stylistic/js/array-bracket-newline": ["off"],
-            "@stylistic/js/implicit-arrow-linebreak": ["off"],
-            "@stylistic/js/no-multi-spaces": ["error", { "ignoreEOLComments": true }],
-            "@stylistic/js/multiline-comment-style": ["off"],
-            "@stylistic/js/dot-location": ["error", "property"],
-            "@stylistic/js/no-extra-parens": ["off"],
-            "@stylistic/js/comma-dangle": ["error", "only-multiline"],
-            "@stylistic/js/eol-last": ["off"],
-            "@stylistic/js/quotes": ["error", "single"],
-            "@stylistic/js/indent": ["error", 4, {
+            "@stylistic/spaced-comment": ["error", "always"],
+            "@stylistic/function-call-spacing": ["error", "never"],
+            "@stylistic/padded-blocks": ["error", "never"],
+            "@stylistic/object-curly-spacing": ["error", "always"],
+            "@stylistic/function-paren-newline": ["off"],
+            "@stylistic/function-call-argument-newline": ["off"],
+            "@stylistic/object-property-newline": ["off"],
+            "@stylistic/space-before-function-paren": ["off"],
+            "@stylistic/lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+            "@stylistic/quote-props": ["error", "as-needed"],
+            "@stylistic/array-element-newline": ["off"],
+            "@stylistic/multiline-ternary": ["off"],
+            "@stylistic/array-bracket-newline": ["off"],
+            "@stylistic/implicit-arrow-linebreak": ["off"],
+            "@stylistic/no-multi-spaces": ["error", { "ignoreEOLComments": true }],
+            "@stylistic/multiline-comment-style": ["off"],
+            "@stylistic/dot-location": ["error", "property"],
+            "@stylistic/no-extra-parens": ["off"],
+            "@stylistic/comma-dangle": ["error", "only-multiline"],
+            "@stylistic/eol-last": ["off"],
+            "@stylistic/quotes": ["error", "single"],
+            "@stylistic/indent": ["error", 4, {
                 "SwitchCase": 1,
             }],
-            "@stylistic/js/lines-around-comment": ["error", {
+            "@stylistic/lines-around-comment": ["error", {
                 "beforeBlockComment": true,
                 "afterBlockComment": false,
                 "beforeLineComment": false,

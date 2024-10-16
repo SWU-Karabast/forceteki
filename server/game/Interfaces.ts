@@ -11,7 +11,7 @@ import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 import { ICost } from './core/cost/ICost';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
-/* eslint @stylistic/js/lines-around-comment: off */
+/* eslint @stylistic/lines-around-comment: off */
 
 // ********************************************** EXPORTED TYPES **********************************************
 
@@ -28,14 +28,16 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
      */
     anyPlayer?: boolean;
     phase?: PhaseName | 'any';
-}
+};
 
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
     sourceLocationFilter?: LocationFilter | LocationFilter[];
+
     /** A handler to enable or disable the ability's effects depending on game context */
     condition?: (context: AbilityContext<TSource>) => boolean;
+
     /** A handler to determine if a specific card is impacted by the ability effect */
     matchTarget?: (card: Card, context?: AbilityContext<TSource>) => boolean;
     targetController?: RelativePlayer;
@@ -53,20 +55,20 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
 
 export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
     type: AbilityType.Triggered;
-}
+};
 
 export type IActionAbilityPropsWithType<TSource extends Card = Card> = IActionAbilityProps<TSource> & {
     type: AbilityType.Action;
-}
+};
 
 export type IConstantAbilityPropsWithType<TSource extends Card = Card> = IConstantAbilityProps<TSource> & {
     type: AbilityType.Constant;
-}
+};
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
-    ITriggeredAbilityPropsWithType<TSource> |
-    IActionAbilityPropsWithType<TSource> |
-    IConstantAbilityPropsWithType<TSource>;
+  ITriggeredAbilityPropsWithType<TSource> |
+  IActionAbilityPropsWithType<TSource> |
+  IConstantAbilityPropsWithType<TSource>;
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
@@ -76,7 +78,7 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
-}
+};
 
 /** Interface definition for setEventAbility */
 export type IEventAbilityProps<TSource extends Card = Card> = IAbilityPropsWithSystems<AbilityContext<TSource>>;
@@ -88,19 +90,19 @@ export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityProp
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
 > {
-    replaceWith: IReplacementEffectSystemProperties
+    replaceWith: IReplacementEffectSystemProperties;
 }
 
 // TODO KEYWORDS: add remaining keywords to this type
 export type IKeywordProperties =
-    | IAmbushKeywordProperties
-    | IGritKeywordProperties
-    | IOverwhelmKeywordProperties
-    | IRaidKeywordProperties
-    | IRestoreKeywordProperties
-    | ISaboteurKeywordProperties
-    | ISentinelKeywordProperties
-    | IShieldedKeywordProperties;
+  | IAmbushKeywordProperties
+  | IGritKeywordProperties
+  | IOverwhelmKeywordProperties
+  | IRaidKeywordProperties
+  | IRestoreKeywordProperties
+  | ISaboteurKeywordProperties
+  | ISentinelKeywordProperties
+  | IShieldedKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
 
@@ -116,16 +118,16 @@ export interface IStateListenerResetProperties {
 export type traitLimit = Record<string, number>;
 
 export type EffectArg =
-    | number
-    | string
-    | RelativePlayer
-    | Card
-    | { id: string; label: string; name: string; facedown: boolean; type: CardType }
-    | EffectArg[];
+  | number
+  | string
+  | RelativePlayer
+  | Card
+  | { id: string; label: string; name: string; facedown: boolean; type: CardType }
+  | EffectArg[];
 
 export type WhenType<TSource extends Card = Card> = {
-        [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
-    };
+    [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
+};
 
 export interface GainAbilitySource {
     card: Card;
@@ -135,11 +137,11 @@ export interface GainAbilitySource {
 // ********************************************** INTERNAL TYPES **********************************************
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
     when: WhenType<TSource>;
-}
+};
 
 type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
-}
+};
 
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
 // for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
@@ -182,6 +184,7 @@ interface IAbilityPropsWithHandler<TContext extends AbilityContext> extends IAbi
 }
 
 interface IAbilityPropsWithInitiateAttack<TContext extends AbilityContext> extends IAbilityProps<TContext> {
+
     /**
      * Indicates that an attack should be triggered from a friendly unit.
      * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
@@ -192,11 +195,11 @@ interface IAbilityPropsWithInitiateAttack<TContext extends AbilityContext> exten
 }
 
 type IAbilityPropsWithSystems<TContext extends AbilityContext> =
-    IAbilityPropsWithImmediateEffect<TContext> |
-    IAbilityPropsWithInitiateAttack<TContext> |
-    IAbilityPropsWithTargetResolver<TContext> |
-    IAbilityPropsWithTargetResolvers<TContext> |
-    IAbilityPropsWithHandler<TContext>;
+  IAbilityPropsWithImmediateEffect<TContext> |
+  IAbilityPropsWithInitiateAttack<TContext> |
+  IAbilityPropsWithTargetResolver<TContext> |
+  IAbilityPropsWithTargetResolvers<TContext> |
+  IAbilityPropsWithHandler<TContext>;
 
 interface IReplacementEffectAbilityWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
     when: WhenType<TSource>;
@@ -247,9 +250,9 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
 }
 
 type NonParameterKeywordName =
-    | KeywordName.Ambush
-    | KeywordName.Grit
-    | KeywordName.Overwhelm
-    | KeywordName.Saboteur
-    | KeywordName.Sentinel
-    | KeywordName.Shielded;
+  | KeywordName.Ambush
+  | KeywordName.Grit
+  | KeywordName.Overwhelm
+  | KeywordName.Saboteur
+  | KeywordName.Sentinel
+  | KeywordName.Shielded;

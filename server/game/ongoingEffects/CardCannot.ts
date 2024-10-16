@@ -6,13 +6,13 @@ import { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 
 type CardCannotProperties =
-    | string
-    | {
-          cannot: string;
-          applyingPlayer?: Player;
-          restrictedActionCondition?: (context: AbilityContext) => boolean;
-          source?: Card;
-      };
+  | string
+  | {
+      cannot: string;
+      applyingPlayer?: Player;
+      restrictedActionCondition?: (context: AbilityContext) => boolean;
+      source?: Card;
+  };
 
 export function cardCannot(properties: CardCannotProperties) {
     return OngoingEffectBuilder.card.static(
