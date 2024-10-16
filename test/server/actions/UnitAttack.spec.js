@@ -84,6 +84,7 @@ describe('Basic attack', function() {
                 expect(this.p2Base.damage).toBe(32);
                 expect(this.player1).toHavePrompt('player1 has won the game!');
                 expect(this.player2).toHavePrompt('player1 has won the game!');
+                expect(this.player1).toBeActivePlayer();
             });
         });
     });

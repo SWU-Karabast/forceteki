@@ -91,7 +91,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
             const effectSystem = this.generateEffectSystem();
             const cardCondition = (card, context) =>
                 effectSystem.canAffect(card, context) && properties.cardCondition(card, context);
-            properties.selector = CardSelectorFactory.for(Object.assign({}, properties, { cardCondition, mode: TargetMode.Unlimited }));
+            properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition, mode: TargetMode.Unlimited }));
         }
         return properties;
     }

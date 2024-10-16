@@ -70,14 +70,17 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
                 }
             };
         });
-        if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
+
+        // TODO: figure out if we need these buttons
+        /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
             if (!targetResults.noCostsFirstButton) {
                 choices.push('Pay costs first');
                 handlers.push(() => (targetResults.payCostsFirst = true));
             }
             choices.push('Cancel');
             handlers.push(() => (targetResults.cancelled = true));
-        }
+        }*/
+
         if (handlers.length === 1) {
             handlers[0]();
         } else if (handlers.length > 1) {

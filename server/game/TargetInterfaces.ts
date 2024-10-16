@@ -47,6 +47,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     dependsOn?: string;
 }
 
+// TODO: add functionality to PlayerTargetResolver to autodetect any invalid target players.
 export interface IPlayerTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     mode: TargetMode.Player | TargetMode.MultiplePlayers;
     immediateEffect?: PlayerTargetSystem<TContext>;

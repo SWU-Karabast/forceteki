@@ -73,7 +73,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                     context,
                     Object.assign({}, additionalProperties, properties.innerSystemProperties(card))
                 ) && properties.cardCondition(card, context);
-            properties.selector = CardSelectorFactory.for(Object.assign({}, properties, { cardCondition }));
+            properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
         }
         return properties;
     }

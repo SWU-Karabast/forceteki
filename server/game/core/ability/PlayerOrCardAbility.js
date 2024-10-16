@@ -117,6 +117,7 @@ class PlayerOrCardAbility {
             case TargetMode.Unlimited:
             case TargetMode.UpTo:
             case TargetMode.UpToVariable:
+            case null:
             case undefined: // CardTargetResolver contains behavior that defaults the mode to TargetMode.Single if it is not defined yet.
                 return new CardTargetResolver(name, properties, this);
             default:

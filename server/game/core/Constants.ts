@@ -293,6 +293,7 @@ export enum Trait {
 }
 
 // TODO: these could stand to be reorganized and cleaned up a bit
+// TODO: fix restrictions on players not being recognized by PlayerTargetResolver
 export enum AbilityRestriction {
 
     /** Restricts a card from being declared as an attacker */

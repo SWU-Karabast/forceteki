@@ -77,15 +77,15 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                     };
                 }
             );
-
-        /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
-            if (!targetResults.noCostsFirstButton) {
-                choices.push('Pay costs first');
-                handlers.push(() => (targetResults.payCostsFirst = true));
-            }
-            choices.push('Cancel');
-            handlers.push(() => (targetResults.cancelled = true));
-        }*/
+            // TODO: figure out if we need these buttons
+            /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
+                if (!targetResults.noCostsFirstButton) {
+                    choices.push('Pay costs first');
+                    handlers.push(() => (targetResults.payCostsFirst = true));
+                }
+                choices.push('Cancel');
+                handlers.push(() => (targetResults.cancelled = true));
+            }*/
         }
         context.game.promptWithHandlerMenu(player, promptProperties);
     }

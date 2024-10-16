@@ -37,7 +37,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy) &&
                 (!properties.cardCondition || properties.cardCondition(card, contextCopy)));
         };
-        return CardSelectorFactory.for(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
+        return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
 
     private getContextCopy(card: Card, context: AbilityContext) {
@@ -85,10 +85,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
 
         const buttons = [];
         if (context.stage === Stage.PreTarget) {
-            if (!targetResults.noCostsFirstButton) {
+            // TODO: figure out if we need these buttons
+            /* if (!targetResults.noCostsFirstButton) {
                 buttons.push({ text: 'Pay costs first', arg: 'costsFirst' });
             }
-            buttons.push({ text: 'Cancel', arg: 'cancel' });
+            buttons.push({ text: 'Cancel', arg: 'cancel' });*/
             if (passPrompt) {
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;

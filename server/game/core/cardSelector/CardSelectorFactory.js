@@ -28,7 +28,7 @@ const ModeToSelector = {
 };
 
 class CardSelectorFactory {
-    static for(properties) {
+    static create(properties) {
         properties = CardSelectorFactory.getDefaultedProperties(properties);
 
         let factory = ModeToSelector[properties.mode];
