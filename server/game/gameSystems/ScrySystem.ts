@@ -17,9 +17,10 @@ export class ScrySystem<TContext extends AbilityContext = AbilityContext> extend
         amount: 1,
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext): void {
         const player = context.player;
         const { amount } = this.generatePropertiesFromContext(context) as IScryProperties;
         const deckLength = player.drawDeck.length;
