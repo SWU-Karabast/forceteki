@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 
-const ChatCommands = require('./chat/ChatCommands.js');
-const { GameChat } = require('./chat/GameChat.js');
+// const ChatCommands = require('./chat/ChatCommands.js');
+// const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
 const Player = require('./Player.js');
 const { Spectator } = require('../../Spectator.js');
@@ -23,10 +23,10 @@ const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAb
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { SimultaneousEffectWindow } = require('./gameSteps/SimultaneousEffectWindow.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
-const Contract = require('./utils/Contract');
+const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
-// const { Conflict } = require('./conflict.js');
-// const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
+// const { Conflict } = require('./conflict');
+// const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
 const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
@@ -41,8 +41,8 @@ class Game extends EventEmitter {
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.playersAndSpectators = {};
-        this.gameChat = new GameChat();
-        this.chatCommands = new ChatCommands(this);
+        // this.gameChat = new GameChat();
+        // this.chatCommands = new ChatCommands(this);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.name = details.name;
@@ -52,8 +52,8 @@ class Game extends EventEmitter {
         this.started = false;
         this.playStarted = false;
         this.createdAt = new Date();
-        this.savedGameId = details.savedGameId;
-        this.gameType = details.gameType;
+        // this.savedGameId = details.savedGameId;
+        // this.gameType = details.gameType;
         this.currentAbilityWindow = null;
         this.currentActionWindow = null;
         this.currentEventWindow = null;
@@ -123,7 +123,8 @@ class Game extends EventEmitter {
     }
 
     get messages() {
-        return this.gameChat.messages;
+        // return this.gameChat.messages;
+        return [];
     }
 
     /**
@@ -668,7 +669,7 @@ class Game extends EventEmitter {
             return;
         }
 
-        player.timerSettings[settingName] = toggle;
+        // player.timerSettings[settingName] = toggle;
     }
 
     /*
@@ -685,11 +686,11 @@ class Game extends EventEmitter {
             return;
         }
 
-        player.optionSettings[settingName] = toggle;
+        // player.optionSettings[settingName] = toggle;
     }
 
     toggleManualMode(playerName) {
-        this.chatCommands.manual(playerName);
+        // this.chatCommands.manual(playerName);
     }
 
     /*
@@ -1236,45 +1237,41 @@ class Game extends EventEmitter {
     // /*
     //  * This information is sent to the client
     //  */
-    // getState(notInactivePlayerName) {
-    //     let activePlayer = this.playersAndSpectators[notInactivePlayerName] || new AnonymousSpectator();
-    //     let playerState = {};
-    //     let ringState = {};
-    //     let conflictState = {};
+    getState(notInactivePlayerName) {
+        let activePlayer = this.playersAndSpectators[notInactivePlayerName] || new AnonymousSpectator();
+        let playerState = {};
+        let ringState = {};
+        let conflictState = {};
+        let {blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner} = this.owner;
+        // if (this.started) {
+            // for (const player of this.getPlayers()) {
+            //     playerState[player.name] = player.getState(activePlayer);
+            // }
 
-    //     if (this.started) {
-    //         for (const player of this.getPlayers()) {
-    //             playerState[player.name] = player.getState(activePlayer);
-    //         }
+            // return {
+            //     id: this.id,
+            //     manualMode: this.manualMode,
+            //     name: this.name,
+            //     owner: simplifiedOwner,
+            //     players: playerState,
+            //     rings: ringState,
+            //     conflict: conflictState,
+            //     phase: this.currentPhase,
+            //     // messages: this.gameChat.messages,
+            //     spectators: this.getSpectators().map((spectator) => {
+            //         return {
+            //             id: spectator.id,
+            //             name: spectator.name
+            //         };
+            //     }),
+            //     started: this.started,
+            //     gameMode: this.gameMode,
+            //     winner: this.winner ? this.winner.name : undefined
+            // };
+        // }
 
-    //         if (this.currentPhase === 'conflict' && this.currentConflict) {
-    //             conflictState = this.currentConflict.getSummary();
-    //         }
-
-    //         return {
-    //             id: this.id,
-    //             manualMode: this.manualMode,
-    //             name: this.name,
-    //             owner: _.omit(this.owner, ['blocklist', 'email', 'emailHash', 'promptedActionWindows', 'settings']),
-    //             players: playerState,
-    //             rings: ringState,
-    //             conflict: conflictState,
-    //             phase: this.currentPhase,
-    //             messages: this.gameChat.messages,
-    //             spectators: this.getSpectators().map((spectator) => {
-    //                 return {
-    //                     id: spectator.id,
-    //                     name: spectator.name
-    //                 };
-    //             }),
-    //             started: this.started,
-    //             gameMode: this.gameMode,
-    //             winner: this.winner ? this.winner.name : undefined
-    //         };
-    //     }
-
-    //     return this.getSummary(notInactivePlayerName);
-    // }
+        // return this.getSummary(notInactivePlayerName);
+    }
 
     // /*
     //  * This is used for debugging?
