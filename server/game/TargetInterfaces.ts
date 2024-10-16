@@ -48,7 +48,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
 }
 
 export interface IPlayerTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
-    mode: TargetMode.Player;
+    mode: TargetMode.Player | TargetMode.MultiplePlayers;
     immediateEffect?: PlayerTargetSystem<TContext>;
 }
 

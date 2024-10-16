@@ -60,8 +60,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const promptTitle = this.properties.activePromptTitle || 'Select one';
+    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player, promptProperties) {
         const choices = Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
         const handlers = choices.map((choice) => {
             return () => {
@@ -82,22 +81,12 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         if (handlers.length === 1) {
             handlers[0]();
         } else if (handlers.length > 1) {
-            let waitingPromptTitle = '';
-            if (context.stage === Stage.PreTarget) {
-                if (context.ability.type === 'action') {
-                    waitingPromptTitle = 'Waiting for opponent to take an action or pass';
-                } else {
-                    waitingPromptTitle = 'Waiting for opponent';
-                }
-            }
-            context.game.promptWithHandlerMenu(player, {
-                waitingPromptTitle: waitingPromptTitle,
-                activePromptTitle: promptTitle,
-                context: context,
-                source: context.source,
-                choices: choices,
-                handlers: handlers
+            Object.assign(promptProperties, {
+                activePromptTitle: promptProperties.activePromptTitle || 'Select one',
+                choices,
+                handlers
             });
+            context.game.promptWithHandlerMenu(player, promptProperties);
         }
     }
 

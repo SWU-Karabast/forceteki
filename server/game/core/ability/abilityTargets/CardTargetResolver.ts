@@ -57,7 +57,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player, promptProperties) {
         const legalTargets = this.selector.getAllLegalTargets(context, player);
         if (legalTargets.length === 0) {
             if (context.stage === Stage.PreTarget) {
@@ -84,7 +84,6 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         }
 
         const buttons = [];
-        let waitingPromptTitle = '';
         if (context.stage === Stage.PreTarget) {
             if (!targetResults.noCostsFirstButton) {
                 buttons.push({ text: 'Pay costs first', arg: 'costsFirst' });
@@ -97,18 +96,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             if (this.selector.optional) {
                 buttons.push({ text: 'Choose no target', arg: 'noTarget' });
             }
-            if (context.ability.type === 'action') {
-                waitingPromptTitle = 'Waiting for opponent to take an action or pass';
-            } else {
-                waitingPromptTitle = 'Waiting for opponent';
-            }
         }
         const mustSelect = legalTargets.filter((card) =>
             card.getOngoingEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
-        const promptProperties = {
-            waitingPromptTitle: waitingPromptTitle,
-            context: context,
+        Object.assign(promptProperties, {
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
@@ -142,7 +134,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
                         Contract.fail(`Unknown menu option '${arg}'`);
                 }
             }
-        };
+        });
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 

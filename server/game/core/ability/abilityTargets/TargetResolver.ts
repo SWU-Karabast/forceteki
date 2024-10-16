@@ -36,7 +36,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected abstract hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean;
 
-    protected abstract resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player);
+    protected abstract resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player, promptProperties);
 
     protected canResolve(context) {
         // if this depends on another target, that will check hasLegalTarget already
@@ -58,7 +58,14 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             return;
         }
 
-        this.resolveInner(context, targetResults, passPrompt, player);
+        const promptProperties = {
+            activePromptTitle: this.properties.activePromptTitle,
+            waitingPromptTitle: 'waitingPromptTitle' in this.properties ? this.properties.waitingPromptTitle : (context.ability.type === 'action' ? 'Waiting for opponent to take an action or pass' : 'Waiting for opponent'),
+            context: context,
+            source: context.source
+        };
+
+        this.resolveInner(context, targetResults, passPrompt, player, promptProperties);
     }
 
     protected getChoosingPlayer(context) {

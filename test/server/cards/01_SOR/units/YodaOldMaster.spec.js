@@ -20,9 +20,11 @@ describe('Yoda, Old Master', function() {
                 this.player1.clickCard(this.yoda);
                 this.player1.clickCard(this.rogueSquadronSkirmisher);
                 expect(this.yoda).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 this.player1.clickPrompt('You');
+                this.player1.clickPrompt('Done');
+
                 expect(this.player1.hand.length).toBe(2);
                 expect(this.player2.hand.length).toBe(0);
                 expect(this.player2).toBeActivePlayer();
@@ -31,10 +33,10 @@ describe('Yoda, Old Master', function() {
             it('should draw a card for each selected player', function () {
                 this.player1.clickCard(this.yoda);
                 this.player1.clickCard(this.rogueSquadronSkirmisher);
-                expect(this.yoda).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
 
                 this.player1.clickPrompt('Opponent');
+                this.player1.clickPrompt('Done');
+
                 expect(this.player1.hand.length).toBe(1);
                 expect(this.player2.hand.length).toBe(1);
                 expect(this.player2).toBeActivePlayer();
@@ -43,10 +45,11 @@ describe('Yoda, Old Master', function() {
             it('should draw a card for each selected player', function () {
                 this.player1.clickCard(this.yoda);
                 this.player1.clickCard(this.rogueSquadronSkirmisher);
-                expect(this.yoda).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
 
-                this.player1.clickPrompt('You and Opponent');
+                this.player1.clickPrompt('You');
+                this.player1.clickPrompt('Opponent');
+                this.player1.clickPrompt('Done');
+
                 expect(this.player1.hand.length).toBe(2);
                 expect(this.player2.hand.length).toBe(1);
                 expect(this.player2).toBeActivePlayer();
@@ -55,10 +58,8 @@ describe('Yoda, Old Master', function() {
             it('should draw a card for each selected player', function () {
                 this.player1.clickCard(this.yoda);
                 this.player1.clickCard(this.rogueSquadronSkirmisher);
-                expect(this.yoda).toBeInLocation('discard');
-                expect(this.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
 
-                this.player1.clickPrompt('No one');
+                this.player1.clickPrompt('Done');
                 expect(this.player1.hand.length).toBe(1);
                 expect(this.player2.hand.length).toBe(0);
                 expect(this.player2).toBeActivePlayer();

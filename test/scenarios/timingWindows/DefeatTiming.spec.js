@@ -112,6 +112,7 @@ describe('Defeat timing', function() {
                 expect(this.player2).toHaveExactPromptButtons['Put Superlaser Technician into play as a resource and ready it', 'Choose any number of players to draw 1 card'];
                 this.player2.clickPrompt('Choose any number of players to draw 1 card');
                 this.player2.clickPrompt('You');
+                this.player2.clickPrompt('Done');
                 expect(this.player2).toHavePassAbilityPrompt('Put Superlaser Technician into play as a resource and ready it');
                 this.player2.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
 

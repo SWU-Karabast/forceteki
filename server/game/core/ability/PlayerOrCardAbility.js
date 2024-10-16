@@ -107,6 +107,7 @@ class PlayerOrCardAbility {
             case TargetMode.Select:
                 return new SelectTargetResolver(name, properties, this);
             case TargetMode.Player:
+            case TargetMode.MultiplePlayers:
                 return new PlayerTargetResolver(name, properties, this);
             case TargetMode.AutoSingle:
             case TargetMode.Exactly:
