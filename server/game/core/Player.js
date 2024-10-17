@@ -287,6 +287,7 @@ class Player extends GameObject {
         return cardsToReturn;
     }
 
+    // TODO: add support for checking upgrades
     /**
      * Returns if a card is in play (unots, upgrades, provinces, holdings) that has the passed trait
      * @param {string} trait
