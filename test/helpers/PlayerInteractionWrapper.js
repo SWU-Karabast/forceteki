@@ -220,6 +220,11 @@ class PlayerInteractionWrapper {
                 throw new TestSetupError('You must provide a card name');
             }
             var card = this.findCardByName(options.card, prevLocations);
+
+            if (card.isUnit() && card.defaultArena !== arenaName) {
+                throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
+            }
+
             // Move card to play
             this.moveCard(card, arenaName);
             // Set exhausted state (false by default)

@@ -104,9 +104,9 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        const window = new TriggeredAbilityWindow(this.game, this, AbilityType.ReplacementEffect);
-        window.emitEvents();
-        this.queueStep(window);
+        const replacementEffectWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.ReplacementEffect);
+        replacementEffectWindow.emitEvents();
+        this.queueStep(replacementEffectWindow);
     }
 
     /**
@@ -130,7 +130,8 @@ class EventWindow extends BaseStepWithPipeline {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggeredAbilityWindow.emitEvents(this.events);
+        this.triggeredAbilityWindow.addTriggeringEvents(this.events);
+        this.triggeredAbilityWindow.emitEvents();
 
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
@@ -138,21 +139,22 @@ class EventWindow extends BaseStepWithPipeline {
             if (!event.cancelled) {
                 event.executeHandler();
 
-                this.game.emit(event.name, event);
                 this.emittedEvents.push(event);
             }
+        }
+    }
+
+    resolveGameState() {
+        // TODO: understand if resolveGameState really needs the emittedEvents array or not
+        this.game.resolveGameState(this.emittedEvents.some((event) => event.handler), this.emittedEvents);
+
+        for (const event of this.emittedEvents) {
+            this.game.emit(event.name, event);
         }
 
         // TODO: make it so we don't need to trigger twice
         // trigger again here to catch any events for cards that entered play during event resolution
         this.triggeredAbilityWindow.emitEvents();
-    }
-
-    resolveGameState() {
-        this.eventsToExecute = this.eventsToExecute.filter((event) => !event.cancelled);
-
-        // TODO: understand if this needs to be called with the eventsToExecute array
-        this.game.resolveGameState(this.eventsToExecute.some((event) => event.handler), this.eventsToExecute);
     }
 
     // if the effect has an additional "then" step, resolve it
