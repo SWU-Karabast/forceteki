@@ -51,9 +51,11 @@ describe('Sabine Wren, Galvanized Revolutionary', function() {
                 context.player1.clickCard(context.sabineWren);
                 context.player1.clickCard(context.rebelPathfinder);
                 expect(context.player1).toHavePrompt('player1 has won the game!');
+                expect(context.player2).toHavePrompt('player1 has won the game!');
                 expect(context.p2Base.damage).toBe(30);
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.rebelPathfinder.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });
