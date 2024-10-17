@@ -186,6 +186,28 @@ class GameFlowWrapper {
         }
     }
 
+    setDamage(card, damage) {
+        if (card == null) {
+            throw new TestSetupError('Null unit passed to helper');
+        }
+
+        if (typeof card === 'string') {
+            throw new TestSetupError('Must pass card object, not string name');
+        }
+
+        if (card.damage === damage) {
+            return;
+        }
+
+        const damageDiff = damage - card.damage;
+
+        if (damageDiff > 0) {
+            card.addDamage(damageDiff);
+        } else {
+            card.removeDamage(-damageDiff);
+        }
+    }
+
     /**
      * Get an array of the latest chat messages
      * @param {Number} numBack - number of messages back from the latest to retrieve

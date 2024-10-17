@@ -26,6 +26,7 @@ const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
     'getPromptedPlayer',
     'nextPhase',
+    'setDamage',
     'getChatLogs',
     'getChatLog'
 ];
