@@ -27,5 +27,5 @@ if (!buildAll) {
     // Backup if concurrently breaks anything.
     runCommand('tsc -p tsconfig.testserver.json && tsc -p tsconfig.test.json && cpy ./test/json/ ./build/');
     */
-    runCommand('concurrently \"tsc\" \"tsc -p ./test/tsconfig.json\" \"cpy ./test/json/ ./build/\"');
+    runCommand('concurrently "tsc -p ./test/tsconfig.json" "cpy ./test/json/ ./build/"');
 }

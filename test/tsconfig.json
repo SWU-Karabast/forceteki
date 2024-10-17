@@ -23,6 +23,10 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noImplicitThis": false,
-        "resolveJsonModule": true
-    }
+        "resolveJsonModule": true,
+    },
+    "include": [
+        "../server/**/*",
+        "test/**/*"
+    ],
 }
