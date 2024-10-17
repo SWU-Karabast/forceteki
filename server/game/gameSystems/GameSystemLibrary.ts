@@ -269,7 +269,7 @@ export function deckSearch<TContext extends AbilityContext = AbilityContext>(pro
 /**
  * default amount = 1
  */
-export function draw<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDrawProperties, TContext> = {}): GameSystem<TContext> {
+export function draw<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDrawProperties, TContext> = {}): DrawSystem<TContext> {
     return new DrawSystem<TContext>(propertyFactory);
 }
 

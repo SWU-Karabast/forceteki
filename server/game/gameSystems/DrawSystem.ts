@@ -1,8 +1,11 @@
+import AbilityHelper from '../AbilityHelper';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import { EventName, Location } from '../core/Constants';
+import { EventName } from '../core/Constants';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import Player from '../core/Player';
+import { GameEvent } from '../core/event/GameEvent';
+import { DamageSystem } from './DamageSystem';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -38,5 +41,21 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;
+    }
+
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+        event.setContingentEventsGenerator((event) => {
+            // Add a contingent event to deal damage for any cards the player fails to draw due to not having enough left in their deck.
+            const contingentEvents = [];
+            if (event.amount > event.player.drawDeck.length) {
+                const damageAmount = 3 * (event.amount - event.player.drawDeck.length);
+                contingentEvents.push(new DamageSystem({
+                    target: event.player.base,
+                    amount: damageAmount
+                }).generateEvent(event.player.base, context));
+            }
+            return contingentEvents;
+        });
     }
 }

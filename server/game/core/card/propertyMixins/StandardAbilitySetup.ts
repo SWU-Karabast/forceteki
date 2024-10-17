@@ -1,6 +1,3 @@
-import AbilityHelper from '../../../AbilityHelper';
-import { AbilityType } from '../../Constants';
-import * as Helpers from '../../utils/Helpers';
 import { CardConstructor } from '../Card';
 
 /** Mixin function that creates a version of the base class that is a Token. */

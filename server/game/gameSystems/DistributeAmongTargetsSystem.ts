@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, CardTypeFilter, LocationFilter, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import CardSelector from '../core/cardSelector/CardSelector';
+import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import { GameEvent } from '../core/event/GameEvent';
 import { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, StatefulPromptType } from '../core/gameSteps/StatefulPromptInterfaces';
@@ -91,7 +91,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
             const effectSystem = this.generateEffectSystem();
             const cardCondition = (card, context) =>
                 effectSystem.canAffect(card, context) && properties.cardCondition(card, context);
-            properties.selector = CardSelector.for(Object.assign({}, properties, { cardCondition, mode: TargetMode.Unlimited }));
+            properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition, mode: TargetMode.Unlimited }));
         }
         return properties;
     }

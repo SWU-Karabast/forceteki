@@ -147,7 +147,7 @@ class PlayerInteractionWrapper {
             return;
         }
 
-        // leader as a string card name is a no-op unless it doesn't match the existing leader, then throw an error
+        // base as a string card name is a no-op unless it doesn't match the existing base, then throw an error
         if (typeof baseOptions === 'string') {
             if (baseOptions !== this.player.base.internalName) {
                 throw new TestSetupError(`Provided base name ${baseOptions} does not match player's base ${this.player.base.internalName}. Do not try to change base after test has initialized.`);

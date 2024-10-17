@@ -18,8 +18,8 @@ describe('Han Solo Reluctant Hero', function() {
                 const { context } = contextRef;
                 const reset = () => {
                     context.hanSolo.exhausted = false;
-                    context.hanSolo.damage = 0;
-                    context.consularSecurityForce.damage = 0;
+                    context.setDamage(context.hanSolo, 0);
+                    context.setDamage(context.consularSecurityForce, 0);
                     context.consularSecurityForce.exhausted = false;
                 };
                 // Case 1 attack action shouldn't deal damage to the shielded wampa and should deal 4 damage to Han Solo
@@ -68,7 +68,7 @@ describe('Han Solo Reluctant Hero', function() {
                 reset();
 
                 // Case 5 han solo dies
-                context.hanSolo.damage = 3;
+                context.setDamage(context.hanSolo, 3);
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.consularSecurityForce);
 
