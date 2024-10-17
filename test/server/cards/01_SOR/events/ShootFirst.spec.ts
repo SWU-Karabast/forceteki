@@ -1,8 +1,6 @@
 describe('Shoot First', function () {
     integration(function (contextRef) {
         describe('Shoot First Ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
