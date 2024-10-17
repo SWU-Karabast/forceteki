@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, RelativePlayer, WildcardLocation } from '../../../core/Constants';
+import { Aspect, RelativePlayer } from '../../../core/Constants';
 
 export default class CartelSpacer extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -17,7 +17,7 @@ export default class CartelSpacer extends NonLeaderUnitCard {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.getOtherUnitsInPlayWithAspect(context.source, Aspect.Cunning).length > 0,
+                    condition: (context) => context.source.controller.isAspectInPlay(Aspect.Cunning, context.source),
                     onTrue: AbilityHelper.immediateEffects.exhaust(),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })

@@ -289,16 +289,31 @@ class Player extends GameObject {
 
     // TODO: add support for checking upgrades
     /**
-     * Returns if a card is in play (unots, upgrades, provinces, holdings) that has the passed trait
+     * Returns if a unit is in play that has the passed trait
      * @param {string} trait
-     * @returns {boolean} true/false if the trait is in pay
+     * @param {any} ignoreUnit
+     * @returns {boolean} true/false if the trait is in play
      */
-    isTraitInPlay(trait) {
-        return this.getUnitsInPlay().some((card) => card.hasSomeTrait(trait));
+    isTraitInPlay(trait, ignoreUnit = null) {
+        return ignoreUnit != null
+            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeTrait(trait))
+            : this.getUnitsInPlay().some((card) => card.hasSomeTrait(trait));
     }
 
     /**
-     * Returns true if any unots or upgrades controlled by this playe match the passed predicate
+     * Returns if a unit is in play that has the passed aspect
+     * @param {Aspect} aspect
+     * @param {any} ignoreUnit
+     * @returns {boolean} true/false if the trait is in play
+     */
+    isAspectInPlay(aspect, ignoreUnit = null) {
+        return ignoreUnit != null
+            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeAspect(aspect))
+            : this.getUnitsInPlay().some((card) => card.hasSomeTrait(aspect));
+    }
+
+    /**
+     * Returns true if any units or upgrades controlled by this player match the passed predicate
      * @param {Function} predicate - DrawCard => Boolean
      */
     anyCardsInPlay(predicate) {
