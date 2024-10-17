@@ -35,6 +35,8 @@ const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
+const { AmbushAbility } = require('../abilities/keyword/AmbushAbility.js');
+const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -70,6 +72,8 @@ class Game extends EventEmitter {
         this.actionPhaseActivePlayer = null;
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
+
+        this.registerGlobalRulesListeners();
 
         this.shortCardData = options.shortCardData || [];
 
@@ -202,6 +206,10 @@ class Game extends EventEmitter {
         });
 
         return otherPlayer;
+    }
+
+    registerGlobalRulesListeners() {
+        UnitPropertiesCard.registerRuleListener(this);
     }
 
     /**

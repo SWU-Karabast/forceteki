@@ -17,6 +17,7 @@ class EventWindow extends BaseStepWithPipeline {
         super(game);
 
         this.events = [];
+        this.emittedEvents = [];
         this.thenAbilityComponents = null;
         events.forEach((event) => {
             if (!event.cancelled) {
@@ -49,7 +50,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'checkSubwindowEvents'),
             new SimpleStep(this.game, () => this.resolveThenAbilityStep(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
-            new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
+            new SimpleStep(this.game, () => this.cleanup(), 'cleanup')
         ]);
     }
 
@@ -136,7 +137,9 @@ class EventWindow extends BaseStepWithPipeline {
             event.checkCondition();
             if (!event.cancelled) {
                 event.executeHandler();
+
                 this.game.emit(event.name, event);
+                this.emittedEvents.push(event);
             }
         }
 
@@ -180,7 +183,11 @@ class EventWindow extends BaseStepWithPipeline {
         }
     }
 
-    resetCurrentEventWindow() {
+    cleanup() {
+        for (const event of this.emittedEvents) {
+            this.game.emit(event.name + ':cleanup', event);
+        }
+
         if (this.previousEventWindow) {
             this.previousEventWindow.checkEventCondition();
             this.game.currentEventWindow = this.previousEventWindow;
