@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, KeywordName, WildcardLocation } from '../../../core/Constants';
+import { Aspect, KeywordName } from '../../../core/Constants';
 
 export default class GamorreanGuards extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,7 +13,7 @@ export default class GamorreanGuards extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addConstantAbility({
             title: 'While you control another Cunning unit, this unit gains Sentinel',
-            condition: (context) => context.source.controller.getOtherUnitsInPlayWithAspect(context.source, Aspect.Cunning).length > 0,
+            condition: (context) => context.source.controller.isAspectInPlay(Aspect.Cunning, context.source),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });

@@ -2,11 +2,11 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName } from '../../../core/Constants';
 
-export default class PartisanInsurgent extends NonLeaderUnitCard {
+export default class HuntingNexu extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: '4642322279',
-            internalName: 'partisan-insurgent'
+            id: '8991513192',
+            internalName: 'hunting-nexu'
         };
     }
 
@@ -19,4 +19,4 @@ export default class PartisanInsurgent extends NonLeaderUnitCard {
     }
 }
 
-PartisanInsurgent.implemented = true;
+HuntingNexu.implemented = true;
