@@ -19,6 +19,7 @@ import type { UnitCard } from '../CardTypes';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import type Game from '../../Game';
+import { GameEvent } from '../../event/GameEvent';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -40,7 +41,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             game.on(EventName.OnUnitEntersPlay, (event) => {
                 const card = event.card as Card;
                 if (card.isUnit()) {
-                    card.checkRegisterWhenPlayedKeywordAbilities();
+                    card.checkRegisterWhenPlayedKeywordAbilities(event);
                 }
             });
 
@@ -48,7 +49,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             game.on(EventName.OnAttackDeclared, (event) => {
                 const card = event.attack.attacker as Card;
                 if (card.isUnit()) {
-                    card.checkRegisterOnAttackKeywordAbilities();
+                    card.checkRegisterOnAttackKeywordAbilities(event);
                 }
             });
         }
@@ -59,8 +60,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected _upgrades?: UpgradeCard[] = null;
 
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
-        private _unregisterAttackKeywordsListener?: (event) => void = null;
-        private _unregisterWhenPlayedKeywordsListener?: (event) => void = null;
         private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
 
         /** If true, then this unit has taken sufficient damage to be defeated but not yet been removed from the field */
@@ -185,7 +184,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Checks if the unit currently has any keywords with a "when played" effect and registers them if so.
          * Also adds a listener to remove the registered abilities after the effect resolves.
          */
-        public checkRegisterWhenPlayedKeywordAbilities() {
+        public checkRegisterWhenPlayedKeywordAbilities(event: GameEvent) {
             const hasAmbush = this.hasSomeKeyword(KeywordName.Ambush);
             const hasShielded = this.hasSomeKeyword(KeywordName.Shielded);
 
@@ -212,14 +211,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
             }
 
-            Contract.assertIsNullLike(this._unregisterWhenPlayedKeywordsListener, 'Listener for unregistering when played keyword abilities is already created');
-            this._unregisterWhenPlayedKeywordsListener = (event) => {
-                if (event.card === this) {
-                    this.unregisterWhenPlayedKeywords();
-                }
-            };
-
-            this.game.once(EventName.OnUnitEntersPlay + ':cleanup', this._unregisterWhenPlayedKeywordsListener);
+            event.addCleanupHandler(() => this.unregisterWhenPlayedKeywords());
         }
 
         /**
@@ -230,7 +222,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          *      "On Attack" keywords should go here. As of Set 2 (SHD) this is only Restore
          *      and the defeat all shields portion of Saboteur.
          */
-        public checkRegisterOnAttackKeywordAbilities() {
+        public checkRegisterOnAttackKeywordAbilities(event: GameEvent) {
             const hasRestore = this.hasSomeKeyword(KeywordName.Restore);
             const hasSaboteur = this.hasSomeKeyword(KeywordName.Saboteur);
 
@@ -258,14 +250,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._attackKeywordAbilities.push(saboteurAbility);
             }
 
-            Contract.assertIsNullLike(this._unregisterAttackKeywordsListener, 'Listener for unregistering on attack keyword abilities is already created');
-            this._unregisterAttackKeywordsListener = (event) => {
-                if (event.attack.attacker === this) {
-                    this.unregisterAttackKeywords();
-                }
-            };
-
-            this.game.once(EventName.OnAttackDeclared + ':cleanup', this._unregisterAttackKeywordsListener);
+            event.addCleanupHandler(() => this.unregisterAttackKeywords());
         }
 
         /**
@@ -285,7 +270,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public unregisterWhenPlayedKeywords() {
             Contract.assertTrue(Array.isArray(this._whenPlayedKeywordAbilities), 'Ability when played registration was skipped');
-            Contract.assertNotNullLike(this._unregisterWhenPlayedKeywordsListener, 'Listener for unregistering when played keyword abilities is already removed');
 
             for (const ability of this._whenPlayedKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
@@ -293,10 +277,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 }
             }
 
-            // this.game.removeListener(EventName.OnUnitEntersPlay, this._unregisterWhenPlayedKeywordsListener);
-
             this._whenPlayedKeywordAbilities = null;
-            this._unregisterWhenPlayedKeywordsListener = null;
         }
 
         /**
@@ -305,7 +286,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          */
         public unregisterAttackKeywords() {
             Contract.assertTrue(Array.isArray(this._attackKeywordAbilities), 'Ability attack registration was skipped');
-            Contract.assertNotNullLike(this._unregisterAttackKeywordsListener, 'Listener for unregistering on attack keyword abilities is already removed');
 
             for (const ability of this._attackKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
@@ -315,10 +295,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 }
             }
 
-            // this.game.removeListener(EventName.OnAttackDeclared, this._unregisterAttackKeywordsListener);
-
             this._attackKeywordAbilities = null;
-            this._unregisterAttackKeywordsListener = null;
         }
 
         // ***************************************** STAT HELPERS *****************************************

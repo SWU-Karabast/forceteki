@@ -190,7 +190,7 @@ class EventWindow extends BaseStepWithPipeline {
 
     cleanup() {
         for (const event of this.emittedEvents) {
-            this.game.emit(event.name + ':cleanup', event);
+            event.cleanup();
         }
 
         if (this.previousEventWindow) {
