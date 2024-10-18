@@ -209,7 +209,7 @@ class Game extends EventEmitter {
     }
 
     registerGlobalRulesListeners() {
-        UnitPropertiesCard.registerRuleListener(this);
+        UnitPropertiesCard.registerRulesListeners(this);
     }
 
     /**

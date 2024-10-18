@@ -61,7 +61,7 @@ class InitiateAbilityEventWindow extends EventWindow {
     // }
 
     /** @override */
-    executeHandler() {
+    executeHandlersEmitEvents() {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
