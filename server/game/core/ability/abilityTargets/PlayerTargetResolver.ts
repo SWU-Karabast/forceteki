@@ -37,11 +37,6 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return context.game.getPlayers().includes(context.targets[this.name]);
     }
 
-    protected override getAllLegalTargets(context: AbilityContext): Player[] {
-        // Placeholder.
-        return context.game.getPlayers();
-    }
-
     protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const promptProperties = this.getDefaultProperties(context);
 

@@ -21,23 +21,18 @@ export class SelectStringTargetResolver extends TargetResolver<ISelectStringTarg
         return gameSystems.length === 0 || gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
-    protected override getAllLegalTargets() {
-        return [];
-    }
-
     protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const options = this.properties.options;
         if (options.length === 0) {
             return;
         }
 
-        const choiceHandler = (choice: string) => this.setTargetResult(context, choice);
-
-        const promptProperties = Object.assign(this.getDefaultProperties(context), { choiceHandler, options });
-
         if (options.length === 1) {
             this.setTargetResult(context, options[0]);
         } else {
+            const choiceHandler = (choice: string) => this.setTargetResult(context, choice);
+            const promptProperties = Object.assign(this.getDefaultProperties(context), { choiceHandler, options });
+
             context.game.promptWithSelectFromListMenu(player, promptProperties);
         }
     }

@@ -30,8 +30,6 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected abstract hasLegalTarget(context): boolean;
 
-    protected abstract getAllLegalTargets(context: AbilityContext): any[];
-
     protected abstract checkTarget(context: AbilityContext): boolean;
 
     protected abstract hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean;

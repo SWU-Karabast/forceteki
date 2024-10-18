@@ -59,10 +59,6 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return [];
     }
 
-    protected override getAllLegalTargets(context): string[] {
-        return Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
-    }
-
     // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
     protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const choices = Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
