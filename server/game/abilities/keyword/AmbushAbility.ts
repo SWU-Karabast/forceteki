@@ -4,7 +4,7 @@ import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
 import { Card } from '../../core/card/Card';
 import { UnitCard } from '../../core/card/CardTypes';
-import { EventName, KeywordName } from '../../core/Constants';
+import { KeywordName } from '../../core/Constants';
 import Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';

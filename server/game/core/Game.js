@@ -35,7 +35,6 @@ const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
-const { AmbushAbility } = require('../abilities/keyword/AmbushAbility.js');
 const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
 
 class Game extends EventEmitter {

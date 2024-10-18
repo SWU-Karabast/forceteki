@@ -13,7 +13,7 @@ export default class PrivateerScyk extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addConstantAbility({
             title: 'While you control another Cunning unit, this unit gains Shielded',
-            condition: (context) => context.source.controller.getOtherUnitsInPlayWithAspect(context.source, Aspect.Cunning).length > 0,
+            condition: (context) => context.source.controller.isAspectInPlay(Aspect.Cunning, context.source),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Shielded)
         });
