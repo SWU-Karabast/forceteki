@@ -23,7 +23,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     private resolvePlayerOrder?: Player[] = null;
 
     /** The events that were triggered as part of this window */
-    private triggeringEvents: GameEvent[];
+    private triggeringEvents: GameEvent[] = [];
 
     private choosePlayerResolutionOrderComplete = false;
     private readonly toStringName: string;
@@ -47,12 +47,21 @@ export class TriggeredAbilityWindow extends BaseStep {
         this.triggeringEvents = [...this.eventWindow.events];
     }
 
-    public emitEvents(newEvents: GameEvent[] = []) {
-        this.triggeringEvents.push(...newEvents);
+    public addTriggeringEvents(newEvents: GameEvent[] = []) {
+        for (const event of newEvents) {
+            if (!this.triggeringEvents.includes(event)) {
+                this.triggeringEvents.push(event);
+            }
+        }
+    }
+
+    public emitEvents() {
         const events = this.triggeringEvents.filter((event) => !this.eventsToExclude.includes(event) && !event.cancelled);
-        events.forEach((event) => {
+
+        for (const event of events) {
             this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
-        });
+        }
+
         this.game.emit('aggregateEvent:' + this.triggerAbilityType, events, this);
     }
 

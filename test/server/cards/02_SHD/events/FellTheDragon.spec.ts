@@ -6,7 +6,8 @@ describe('Fell the Dragon', function() {
                     phase: 'action',
                     player1: {
                         hand: ['fell-the-dragon'],
-                        groundArena: ['pyke-sentinel', { card: 'scout-bike-pursuer', upgrades: ['academy-training'], damage: 4 }, 'avenger#hunting-star-destroyer'],
+                        groundArena: ['pyke-sentinel', { card: 'scout-bike-pursuer', upgrades: ['academy-training'], damage: 4 }],
+                        spaceArena: ['avenger#hunting-star-destroyer']
                     },
                     player2: {
                         groundArena: ['atst', 'isb-agent'],

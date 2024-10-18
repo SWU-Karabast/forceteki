@@ -6,7 +6,8 @@ describe('Tie Avanced', function() {
                     phase: 'action',
                     player1: {
                         hand: ['tie-advanced'],
-                        groundArena: ['wampa', 'atst', { card: 'tieln-fighter', upgrades: ['experience'] }],
+                        groundArena: ['wampa', 'atst'],
+                        spaceArena: [{ card: 'tieln-fighter', upgrades: ['experience'] }]
                     },
                     player2: {
                         spaceArena: ['cartel-spacer']
