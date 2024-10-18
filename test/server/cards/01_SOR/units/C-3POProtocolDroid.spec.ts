@@ -22,10 +22,10 @@ describe('C-3PO, Protocol Droid', function() {
 
                 // TODO: we need a 'look at' prompt for secretly revealing, chat logs go to all players
                 expect(context.getChatLogs(1)).toContain('C-3PO sees Wampa');
-                expect(context.player1).toHavePassAbilityPrompt('Reveal and draw the top card of your deck');
+                expect(context.player1).toHavePassAbilityPrompt('Reveal and draw Wampa from the top of your deck');
 
-                context.player1.clickPrompt('Reveal and draw the top card of your deck');
-                expect(context.getChatLogs(1)).toContain('C-3PO sees Wampa');
+                context.player1.clickPrompt('Reveal and draw Wampa from the top of your deck');
+                expect(context.getChatLogs(1)).toContain('player1 reveals Wampa due to C-3PO');
                 expect(context.wampa).toBeInLocation('hand');
             });
         });
