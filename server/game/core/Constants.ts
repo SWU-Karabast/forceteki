@@ -100,6 +100,7 @@ export enum RelativePlayer {
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',
+    SelectStringFromList = 'chooseStringFromList',
     Exactly = 'exactly',
     ExactlyVariable = 'exactlyVariable',
     MaxStat = 'maxStat',

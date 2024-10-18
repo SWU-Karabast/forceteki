@@ -57,7 +57,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player, promptProperties) {
+    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const legalTargets = this.selector.getAllLegalTargets(context, player);
         if (legalTargets.length === 0) {
             if (context.stage === Stage.PreTarget) {
@@ -69,10 +69,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         }
 
         if (context.player.autoSingleTarget && legalTargets.length === 1) {
-            context.targets[this.name] = legalTargets[0];
-            if (this.name === 'target') {
-                context.target = legalTargets[0];
-            }
+            this.setTargetResult(context, legalTargets[0]);
             return;
         }
 
@@ -101,15 +98,13 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         const mustSelect = legalTargets.filter((card) =>
             card.getOngoingEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
-        Object.assign(promptProperties, {
+
+        const promptProperties = Object.assign(this.getDefaultProperties(context), {
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
             onSelect: (player, card) => {
-                context.targets[this.name] = card;
-                if (this.name === 'target') {
-                    context.target = card;
-                }
+                this.setTargetResult(context, card);
                 return true;
             },
             onCancel: () => {

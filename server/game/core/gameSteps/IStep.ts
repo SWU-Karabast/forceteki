@@ -1,12 +1,12 @@
 import type { GamePipeline } from '../GamePipeline';
 import type { Card } from '../card/Card';
 import type Player from '../Player';
-import { IStatefulPromptResults } from './StatefulPromptInterfaces';
+import { IStatefulPromptResults } from './PromptInterfaces';
 
 export interface IStep {
     onCardClicked(player: Player, card: Card): boolean;
     onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean;
-    onStatefulPromptResults(player: Player, results: IStatefulPromptResults): boolean;
+    onStatefulPromptResults(player: Player, results: IStatefulPromptResults, uuid: string): boolean;
     getDebugInfo(): string;
     pipeline?: GamePipeline;
     queueStep?(step: IStep): void;

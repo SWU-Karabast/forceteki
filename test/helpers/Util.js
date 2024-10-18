@@ -107,6 +107,8 @@ function getPlayerPromptState(player) {
     return {
         selectableCards: copySelectionArray(player.promptState.selectableCards),
         selectedCards: copySelectionArray(player.promptState.selectedCards),
+        distributeAmongTargets: player.currentPrompt().distributeAmongTargets,
+        listOptions: player.currentPrompt().listOptions,
         menuTitle: player.currentPrompt().menuTitle,
         promptTitle: player.currentPrompt().promptTitle
     };
@@ -120,6 +122,8 @@ function promptStatesEqual(promptState1, promptState2) {
     if (
         promptState1.menuTitle !== promptState2.menuTitle ||
         promptState1.promptTitle !== promptState2.promptTitle ||
+        promptState1.distributeAmongTargets !== promptState2.distributeAmongTargets ||
+        promptState1.listOptions.length !== promptState2.listOptions.length ||
         promptState1.selectableCards.length !== promptState2.selectableCards.length ||
         promptState1.selectedCards.length !== promptState2.selectedCards.length
     ) {
@@ -127,7 +131,8 @@ function promptStatesEqual(promptState1, promptState2) {
     }
 
     return stringArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
-      stringArraysEqual(promptState1.selectableCards, promptState2.selectableCards);
+      stringArraysEqual(promptState1.selectableCards, promptState2.selectableCards) &&
+      stringArraysEqual(promptState1.listOptions, promptState2.listOptions);
 }
 
 function stringArraysEqual(ara1, ara2) {

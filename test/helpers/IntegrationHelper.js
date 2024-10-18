@@ -721,6 +721,31 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toHaveExactListOptions: function () {
+        return {
+            compare: function (player, expectedOptions) {
+                let result = {};
+
+                if (!Array.isArray(expectedOptions)) {
+                    throw new TestSetupError(`Parameter 'options' is not an array: ${expectedOptions}`);
+                }
+
+                const actualOptions = player.currentPrompt().options;
+
+                result.pass = stringArraysEqual(actualOptions, expectedOptions);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact set of buttons but it does: ${expectedOptions.join(', ')}`;
+                } else {
+                    result.message = `Expected ${player.name} to have this exact set of buttons: '${expectedOptions.join(', ')}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+
+                return result;
+            }
+        };
     }
 };
 

@@ -400,7 +400,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {Card | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/CardTypes').PlayableCard | null} the Card,© or null if the deck is empty
      */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {

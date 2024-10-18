@@ -2,7 +2,7 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import type Player from '../Player';
 import type { IStep } from './IStep';
-import { IStatefulPromptResults } from './StatefulPromptInterfaces';
+import { IStatefulPromptResults } from './PromptInterfaces';
 
 export abstract class BaseStep implements IStep {
     public constructor(public game: Game) {}
@@ -21,7 +21,7 @@ export abstract class BaseStep implements IStep {
         return false;
     }
 
-    public onStatefulPromptResults(player: Player, results: IStatefulPromptResults): boolean {
+    public onStatefulPromptResults(player: Player, results: IStatefulPromptResults, uuid: string): boolean {
         return false;
     }
 

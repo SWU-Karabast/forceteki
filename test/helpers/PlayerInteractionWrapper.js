@@ -493,12 +493,14 @@ class PlayerInteractionWrapper {
     }
 
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
+        var currentPrompt = this.player.currentPrompt();
+
         const promptResults = {
             valueDistribution: cardDistributionMap,
             type
         };
 
-        this.game.statefulPromptResults(this.player.name, promptResults);
+        this.game.statefulPromptResults(this.player.name, promptResults, currentPrompt.promptUuid);
         this.game.continue();
         // this.checkUnserializableGameState();
     }

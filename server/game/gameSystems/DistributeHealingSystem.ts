@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { StatefulPromptType } from '../core/gameSteps/StatefulPromptInterfaces';
+import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { HealSystem } from './HealSystem';
 
