@@ -45,8 +45,8 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.openReplacementEffectWindow(), 'openReplacementEffectWindow'),
             new SimpleStep(this.game, () => this.generateContingentEvents(), 'generateContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
-            new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
-            new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
+            new SimpleStep(this.game, () => this.executeHandlersEmitEvents(), 'executeHandlersEmitEvents'),
+            new SimpleStep(this.game, () => this.resolveGameStateEmitEvents(), 'resolveGameStateEmitEvents'),
             new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'checkSubwindowEvents'),
             new SimpleStep(this.game, () => this.resolveThenAbilityStep(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
@@ -126,7 +126,7 @@ class EventWindow extends BaseStepWithPipeline {
         this.events.forEach((event) => event.preResolutionEffect());
     }
 
-    executeHandler() {
+    executeHandlersEmitEvents() {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
@@ -144,7 +144,9 @@ class EventWindow extends BaseStepWithPipeline {
         }
     }
 
-    resolveGameState() {
+    // resolve game state and emit triggers again
+    // this is to catch triggers on cards that entered play or gained abilities during event resolution
+    resolveGameStateEmitEvents() {
         // TODO: understand if resolveGameState really needs the emittedEvents array or not
         this.game.resolveGameState(this.emittedEvents.some((event) => event.handler), this.emittedEvents);
 
@@ -156,6 +158,14 @@ class EventWindow extends BaseStepWithPipeline {
         // trigger again here to catch any events for cards that entered play during event resolution
         this.triggeredAbilityWindow.emitEvents();
     }
+
+    // resolve any events queued for a subwindow (typically defeat events)
+    resolveSubwindowEvents() {
+        if (this.subwindowEvents.length > 0) {
+            this.queueStep(new EventWindow(this.game, this.subwindowEvents));
+        }
+    }
+
 
     // if the effect has an additional "then" step, resolve it
     resolveThenAbilityStep() {
@@ -169,13 +179,6 @@ class EventWindow extends BaseStepWithPipeline {
         const condition = thenAbility.condition || (() => true);
         if (context.events.every((event) => condition(event))) {
             this.game.resolveAbility(thenAbility.createContext(context.player));
-        }
-    }
-
-    // resolve any events queued for a subwindow (typically defeat events)
-    resolveSubwindowEvents() {
-        if (this.subwindowEvents.length > 0) {
-            this.queueStep(new EventWindow(this.game, this.subwindowEvents));
         }
     }
 
