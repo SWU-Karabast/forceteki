@@ -161,7 +161,8 @@ class SelectCardPrompt extends UiPrompt {
             menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
             buttons: buttons,
             promptTitle: this.properties.source ? this.properties.source.name : undefined,
-            controls: this.properties.controls
+            controls: this.properties.controls,
+            promptUuid: this.uuid
         };
     }
 

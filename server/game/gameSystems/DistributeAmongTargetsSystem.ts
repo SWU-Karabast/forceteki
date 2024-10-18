@@ -5,7 +5,7 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import { GameEvent } from '../core/event/GameEvent';
-import { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, StatefulPromptType } from '../core/gameSteps/StatefulPromptInterfaces';
+import { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import { DamageSystem } from './DamageSystem';
 import { HealSystem } from './HealSystem';
 import * as Contract from '../core/utils/Contract';

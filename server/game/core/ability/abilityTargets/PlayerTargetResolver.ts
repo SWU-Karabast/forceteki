@@ -37,18 +37,15 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return context.game.getPlayers().includes(context.targets[this.name]);
     }
 
-    protected override getAllLegalTargets(context: AbilityContext): Player[] {
-        // Placeholder.
-        return context.game.getPlayers();
-    }
+    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
+        const promptProperties = this.getDefaultProperties(context);
 
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player, promptProperties) {
-        promptProperties.choices = ['You', 'Opponent'];
+        const choices = ['You', 'Opponent'];
 
         if (this.properties.mode === TargetMode.MultiplePlayers) { // Uses a HandlerMenuMultipleSelectionPrompt: handler takes an array of chosen items
-            promptProperties.activePromptTitle = promptProperties.activePromptTitle || 'Choose any number of players';
-            promptProperties.multiSelect = true;
-            promptProperties.handler = (chosen) => {
+            const activePromptTitle = promptProperties.activePromptTitle || 'Choose any number of players';
+            const multiSelect = true;
+            const handler = (chosen) => {
                 chosen = chosen.map((choiceTitle) => {
                     switch (choiceTitle) {
                         case 'You':
@@ -59,24 +56,22 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                             Contract.fail('Player other than "You" or "Opponent" chosen');
                     }
                 });
-                context.targets[this.name] = chosen;
-                if (this.name === 'target') {
-                    context.target = chosen;
-                }
+                this.setTargetResult(context, chosen);
                 return true;
             };
+
+            Object.assign(promptProperties, { activePromptTitle, choices, multiSelect, handler });
         } else { // Uses a HandlerMenuPrompt: each choice gets its own handler, called right away when that choice is clicked
-            promptProperties.activePromptTitle = this.properties.activePromptTitle || 'Choose a player';
-            promptProperties.handlers = [player, player.opponent].map(
+            const activePromptTitle = this.properties.activePromptTitle || 'Choose a player';
+            const handlers = [player, player.opponent].map(
                 (chosenPlayer) => {
                     return () => {
-                        context.targets[this.name] = chosenPlayer;
-                        if (this.name === 'target') {
-                            context.target = chosenPlayer;
-                        }
+                        this.setTargetResult(context, chosenPlayer);
                     };
                 }
             );
+
+            Object.assign(promptProperties, { activePromptTitle, choices, handlers });
             // TODO: figure out if we need these buttons
             /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
                 if (!targetResults.noCostsFirstButton) {

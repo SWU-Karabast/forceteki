@@ -82,6 +82,13 @@ export function assertArraySize<T>(ara: T[], expectedSize: number, message?: str
     }
 }
 
+export function assertArrayIncludes<T>(ara: T[], element: T, message?: string): asserts ara is NonNullable<T[]> {
+    assertNotNullLike(ara);
+    if (!ara.includes(element)) {
+        contractCheckImpl.fail(message ?? `Array does not contain element ${element}`);
+    }
+}
+
 export function assertNonEmpty<T>(ara: T[], message?: string): asserts ara is NonNullable<T[]> {
     assertNotNullLike(ara);
     if (ara.length === 0) {

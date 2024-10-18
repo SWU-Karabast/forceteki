@@ -94,7 +94,7 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;
     immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
-    then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
+    then?: ((context?: TriggeredAbilityContext) => IThenAbilityPropsWithSystems<TriggeredAbilityContext>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext>;
 };
 
 /** Interface definition for setEventAbility */
@@ -180,7 +180,7 @@ interface IAbilityProps<TContext extends AbilityContext> {
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
-    then?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
 }
 
 type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
@@ -218,6 +218,10 @@ type IAbilityPropsWithSystems<TContext extends AbilityContext> =
   IAbilityPropsWithTargetResolver<TContext> |
   IAbilityPropsWithTargetResolvers<TContext> |
   IAbilityPropsWithHandler<TContext>;
+
+type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
+    thenCondition?: (context?: TContext) => boolean;
+};
 
 interface IReplacementEffectAbilityWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
     when: WhenType<TSource>;

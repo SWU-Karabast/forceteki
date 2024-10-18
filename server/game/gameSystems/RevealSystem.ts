@@ -1,8 +1,11 @@
 
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { BaseCard } from '../core/card/BaseCard';
+import { Card } from '../core/card/Card';
 import { EventName, Location } from '../core/Constants';
+import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem } from '../core/gameSystem/GameSystem';
+import * as Helpers from '../core/utils/Helpers';
 import { IViewCardProperties, ViewCardMode, ViewCardSystem } from './ViewCardSystem';
 
 export type IRevealProperties = Omit<IViewCardProperties, 'viewType'>;
@@ -25,7 +28,17 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         super(propsWithViewType);
     }
 
-    public override canAffect(card: BaseCard, context: TContext): boolean {
+    public override checkEventCondition(event): boolean {
+        for (const card of event.cards) {
+            if (!this.canAffect(card, event.context)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public override canAffect(card: Card, context: TContext): boolean {
         if (card.location === Location.Deck || card.location === Location.Hand || card.location === Location.Resource) {
             return super.canAffect(card, context);
         }
@@ -36,7 +49,7 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
             properties.player || event.context.player,
-            event.card,
+            event.cards.map((card) => card.title).join(', '),
             event.context.source
         ];
         return messageArgs;

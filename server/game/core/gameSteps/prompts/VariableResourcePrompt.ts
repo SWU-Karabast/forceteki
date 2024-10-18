@@ -30,7 +30,8 @@ export class VariableResourcePrompt extends ResourcePrompt {
             selectCard: true,
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
-            promptTitle: 'Resource Step'
+            promptTitle: 'Resource Step',
+            promptUuid: this.uuid
         };
     }
 
