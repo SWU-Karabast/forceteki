@@ -10,9 +10,6 @@ describe('Cost adjusters', function() {
                         leader: 'director-krennic#aspiring-to-authority'
                     },
                     player2: {
-                        groundArena: ['wampa'],
-                        spaceArena: ['grogu#irresistible'],
-                        hand: ['daring-raid', 'repair'],
                         leader: 'luke-skywalker#faithful-friend',
                         base: { card: 'kestro-city', damage: 5 },
                         resources: ['smugglers-aid', 'atst', 'atst', 'atst']

@@ -16,6 +16,7 @@ export class GameEvent {
     public preResolutionEffect = () => true;
 
     private contingentEventsGenerator?: () => any[] = null;
+    private cleanupHandlers: (() => void)[] = [];
 
     public constructor(
         public name: string,
@@ -83,5 +84,15 @@ export class GameEvent {
 
     public generateContingentEvents(): any[] {
         return this.contingentEventsGenerator ? this.contingentEventsGenerator() : [];
+    }
+
+    public addCleanupHandler(handler) {
+        this.cleanupHandlers.push(handler);
+    }
+
+    public cleanup() {
+        for (const handler of this.cleanupHandlers) {
+            handler();
+        }
     }
 }

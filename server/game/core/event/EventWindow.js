@@ -17,6 +17,7 @@ class EventWindow extends BaseStepWithPipeline {
         super(game);
 
         this.events = [];
+        this.emittedEvents = [];
         this.thenAbilityComponents = null;
         events.forEach((event) => {
             if (!event.cancelled) {
@@ -44,12 +45,12 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.openReplacementEffectWindow(), 'openReplacementEffectWindow'),
             new SimpleStep(this.game, () => this.generateContingentEvents(), 'generateContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
-            new SimpleStep(this.game, () => this.executeHandler(), 'executeHandler'),
-            new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
+            new SimpleStep(this.game, () => this.executeHandlersEmitEvents(), 'executeHandlersEmitEvents'),
+            new SimpleStep(this.game, () => this.resolveGameStateEmitEvents(), 'resolveGameStateEmitEvents'),
             new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'checkSubwindowEvents'),
             new SimpleStep(this.game, () => this.resolveThenAbilityStep(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
-            new SimpleStep(this.game, () => this.resetCurrentEventWindow(), 'resetCurrentEventWindow')
+            new SimpleStep(this.game, () => this.cleanup(), 'cleanup')
         ]);
     }
 
@@ -103,9 +104,9 @@ class EventWindow extends BaseStepWithPipeline {
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        const window = new TriggeredAbilityWindow(this.game, this, AbilityType.ReplacementEffect);
-        window.emitEvents();
-        this.queueStep(window);
+        const replacementEffectWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.ReplacementEffect);
+        replacementEffectWindow.emitEvents();
+        this.queueStep(replacementEffectWindow);
     }
 
     /**
@@ -125,19 +126,32 @@ class EventWindow extends BaseStepWithPipeline {
         this.events.forEach((event) => event.preResolutionEffect());
     }
 
-    executeHandler() {
+    executeHandlersEmitEvents() {
         this.eventsToExecute = this.events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggeredAbilityWindow.emitEvents(this.events);
+        this.triggeredAbilityWindow.addTriggeringEvents(this.events);
+        this.triggeredAbilityWindow.emitEvents();
 
         for (const event of this.eventsToExecute) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
             event.checkCondition();
             if (!event.cancelled) {
                 event.executeHandler();
-                this.game.emit(event.name, event);
+
+                this.emittedEvents.push(event);
             }
+        }
+    }
+
+    // resolve game state and emit triggers again
+    // this is to catch triggers on cards that entered play or gained abilities during event resolution
+    resolveGameStateEmitEvents() {
+        // TODO: understand if resolveGameState really needs the emittedEvents array or not
+        this.game.resolveGameState(this.emittedEvents.some((event) => event.handler), this.emittedEvents);
+
+        for (const event of this.emittedEvents) {
+            this.game.emit(event.name, event);
         }
 
         // TODO: make it so we don't need to trigger twice
@@ -145,12 +159,13 @@ class EventWindow extends BaseStepWithPipeline {
         this.triggeredAbilityWindow.emitEvents();
     }
 
-    resolveGameState() {
-        this.eventsToExecute = this.eventsToExecute.filter((event) => !event.cancelled);
-
-        // TODO: understand if this needs to be called with the eventsToExecute array
-        this.game.resolveGameState(this.eventsToExecute.some((event) => event.handler), this.eventsToExecute);
+    // resolve any events queued for a subwindow (typically defeat events)
+    resolveSubwindowEvents() {
+        if (this.subwindowEvents.length > 0) {
+            this.queueStep(new EventWindow(this.game, this.subwindowEvents));
+        }
     }
+
 
     // if the effect has an additional "then" step, resolve it
     resolveThenAbilityStep() {
@@ -167,20 +182,17 @@ class EventWindow extends BaseStepWithPipeline {
         }
     }
 
-    // resolve any events queued for a subwindow (typically defeat events)
-    resolveSubwindowEvents() {
-        if (this.subwindowEvents.length > 0) {
-            this.queueStep(new EventWindow(this.game, this.subwindowEvents));
-        }
-    }
-
     resolveTriggersIfNecessary() {
         if (this.ownsTriggerWindow) {
             this.queueStep(this.triggeredAbilityWindow);
         }
     }
 
-    resetCurrentEventWindow() {
+    cleanup() {
+        for (const event of this.emittedEvents) {
+            event.cleanup();
+        }
+
         if (this.previousEventWindow) {
             this.previousEventWindow.checkEventCondition();
             this.game.currentEventWindow = this.previousEventWindow;
