@@ -23,13 +23,13 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
                 options: Array.from({ length: 21 }, (x, i) => `${i}`),  // array of strings from 0 to 20
                 condition: (context) => context.source.controller.drawDeck.length > 0   // skip ability if deck is empty
             },
-            then: {
+            then: (thenContext) => ({
                 title: 'Look at the top card of your deck',
                 thenCondition: (context) => context.source.controller.drawDeck.length > 0,   // skip ability if deck is empty
                 immediateEffect: AbilityHelper.immediateEffects.lookAt(
                     (context) => ({ target: context.source.controller.getTopCardOfDeck() })
                 ),
-                then: (thenContext) => ({
+                then: {
                     title: 'Reveal and draw the top card of your deck',
                     optional: true,
                     immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -40,8 +40,8 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
                         ]),
                         onFalse: AbilityHelper.immediateEffects.noAction()
                     })
-                })
-            }
+                }
+            })
         });
     }
 }

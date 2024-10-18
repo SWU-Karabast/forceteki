@@ -17,7 +17,8 @@ export class SelectStringTargetResolver extends TargetResolver<ISelectStringTarg
     }
 
     protected override hasLegalTarget(context: AbilityContext): boolean {
-        return Helpers.asArray(this.getGameSystems(context)).some((gameSystem) => gameSystem.hasLegalTarget(context));
+        const gameSystems = Helpers.asArray(this.getGameSystems(context));
+        return gameSystems.length === 0 || gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
     protected override getAllLegalTargets() {

@@ -99,7 +99,9 @@ function formatPrompt(prompt, currentActionTargets) {
             '\n'
         ) +
         '\n' +
-        currentActionTargets.map((obj) => obj['name']).join('\n')
+        currentActionTargets.map((obj) => obj['name']).join('\n') +
+        '\n' +
+        createStringForOptions(prompt.listOptions)
     );
 }
 
@@ -136,6 +138,14 @@ function promptStatesEqual(promptState1, promptState2) {
 }
 
 function stringArraysEqual(ara1, ara2) {
+    if (ara1 == null || ara2 == null) {
+        throw new TestSetupError('Null array passed to stringArraysEqual');
+    }
+
+    if (ara1.length !== ara2.length) {
+        return false;
+    }
+
     ara1.sort();
     ara2.sort();
 
@@ -148,11 +158,17 @@ function stringArraysEqual(ara1, ara2) {
     return true;
 }
 
+function createStringForOptions(options) {
+    return options.length > 10 ? options.slice(0, 10).join(', ') + ', ...' : options.join(', ');
+}
+
+
 module.exports = {
     convertNonDuplicateCardNamesToProperties,
     checkNullCard,
     formatPrompt,
     getPlayerPromptState,
     promptStatesEqual,
-    stringArraysEqual
+    stringArraysEqual,
+    createStringForOptions
 };

@@ -731,14 +731,14 @@ var customMatchers = {
                     throw new TestSetupError(`Parameter 'options' is not an array: ${expectedOptions}`);
                 }
 
-                const actualOptions = player.currentPrompt().options;
+                const actualOptions = player.currentPrompt().listOptions;
 
                 result.pass = stringArraysEqual(actualOptions, expectedOptions);
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have this exact set of buttons but it does: ${expectedOptions.join(', ')}`;
+                    result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.createStringForOptions(expectedOptions)}'`;
                 } else {
-                    result.message = `Expected ${player.name} to have this exact set of buttons: '${expectedOptions.join(', ')}'`;
+                    result.message = `Expected ${player.name} to have this exact list of options: '${Util.createStringForOptions(expectedOptions)}'`;
                 }
 
                 result.message += `\n\n${generatePromptHelpMessage(player)}`;

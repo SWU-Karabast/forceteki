@@ -64,6 +64,7 @@ export class ChooseFromListPrompt extends UiPrompt {
         Contract.assertArrayIncludes(this.properties.options, arg);
 
         this.properties.choiceHandler(arg);
+        this.complete();
 
         return true;
     }
