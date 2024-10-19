@@ -9,7 +9,7 @@ describe('Mace Windu, Party Crasher', function() {
                         groundArena: ['battlefield-marine']
                     },
                     player2: {
-                        groundArena: ['wampa', 'mandalorian-warrior']
+                        groundArena: ['wampa', 'mandalorian-warrior', 'atst', 'atat-suppressor']
                     }
                 });
             });
@@ -18,7 +18,6 @@ describe('Mace Windu, Party Crasher', function() {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
-                    context.maceWindu.exhausted = false;
                     context.maceWindu.damage = 0;
                     if (passAction) {
                         context.player2.passAction();
@@ -33,48 +32,69 @@ describe('Mace Windu, Party Crasher', function() {
                 expect(context.maceWindu.damage).toBe(4);
                 expect(context.maceWindu.exhausted).toBeFalse();
 
-                // reset(false);
+                reset();
 
-                // // CASE 2: Rukh is attacked, ability doesn't trigger
-                // context.player2.clickCard(context.escortSkiff);
-                // context.player2.clickCard(context.rukh);
-                // expect(context.escortSkiff).toBeInLocation('ground arena');
-                // expect(context.escortSkiff.damage).toBe(3);
-                // expect(context.rukh.damage).toBe(4);
+                // CASE 2: Mace attacks and does not defeat, ability does not trigger
+                context.maceWindu.exhausted = false;
+                context.player1.clickCard(context.maceWindu);
+                context.player1.clickCard(context.atst);
+                expect(context.atst.damage).toBe(5);
+                expect(context.maceWindu.damage).toBe(6);
+                expect(context.maceWindu.exhausted).toBeTrue();
 
-                // reset(false);
+                reset(false);
 
-                // // CASE 3: Rukh attacks into shield, ability doesn't trigger
-                // context.player1.clickCard(context.rukh);
-                // context.player1.clickCard(context.battlefieldMarine);
-                // expect(context.battlefieldMarine).toBeInLocation('ground arena');
-                // expect(context.battlefieldMarine.damage).toBe(0);
-                // expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
-                // expect(context.rukh.damage).toBe(3);
+                // CASE 3: Enemy attacks into Mace and dies, ability doesn't trigger
+                context.maceWindu.exhausted = true;
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.maceWindu);
+                expect(context.atst).toBeInLocation('discard');
+                expect(context.maceWindu.damage).toBe(6);
+                expect(context.maceWindu.exhausted).toBeTrue();
 
-                // reset();
+                reset(false);
 
-                // // CASE 4: Rukh attacks and target is killed by regular combat damage, ability naturally fizzles
-                // context.player1.clickCard(context.rukh);
-                // context.player1.clickCard(context.battlefieldMarine);
-                // expect(context.battlefieldMarine).toBeInLocation('discard');
-                // expect(context.rukh.damage).toBe(3);
+                // CASE 4: friendly unit trades with enemy unit, Mace ability does not trigger
+                context.maceWindu.exhausted = true;
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.mandalorianWarrior);
+                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.mandalorianWarrior).toBeInLocation('discard');
+                expect(context.maceWindu.exhausted).toBeTrue();
 
-                // reset();
+                reset();
 
-                // // CASE 5: Rukh attacks base
-                // context.player1.clickCard(context.rukh);
-                // context.player1.clickCard(context.p2Base);
-                // expect(context.p2Base).toBeInLocation('base');
-                // expect(context.p2Base.damage).toBe(3);
+                // CASE 5: Mace dies while attacking, ability fizzles
+                context.maceWindu.exhausted = false;
+                context.player1.clickCard(context.maceWindu);
+                context.player1.clickCard(context.atatSuppressor);
+                expect(context.maceWindu).toBeInLocation('discard');
+                expect(context.atatSuppressor.damage).toBe(5);
+            });
+        });
 
-                // reset();
+        describe('Mace\'s triggered ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'mace-windu#party-crasher', upgrades: ['fallen-lightsaber'] }]
+                    },
+                    player2: {
+                        groundArena: ['jawa-scavenger']
+                    }
+                });
+            });
 
-                // // CASE 6: Rukh dies while attacking, ability still triggers
-                // context.player1.clickCard(context.rukh);
-                // context.player1.clickCard(context.atst);
-                // expect(context.atst).toBeInLocation('discard');
-                // expect(context.rukh).toBeInLocation('discard');
+            it('will not ready him if the unit is defeated by an on-attack ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.maceWindu);
+                context.player1.clickCard(context.jawaScavenger);
+
+                expect(context.jawaScavenger).toBeInLocation('discard');
+                expect(context.maceWindu.damage).toBe(0);
+                expect(context.maceWindu.exhausted).toBeTrue();
             });
         });
     });
