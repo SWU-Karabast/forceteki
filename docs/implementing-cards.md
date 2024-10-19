@@ -39,13 +39,13 @@ Card class names should be PascalCase and match the file name exactly.
 
 There is a specific base class that each card type should inherit from:
 
-| Card Type | Base Class Name |
-| --- | --- |
+| Card Type                    | Base Class Name   |
+|------------------------------|-------------------|
 | Unit (non-leader, non-token) | NonLeaderUnitCard |
-| Event | EventCard |
-| Upgrade | UpgradeCard |
-| Base | BaseCard |
-| Leader | LeaderUnitCard |
+| Event                        | EventCard         |
+| Upgrade                      | UpgradeCard       |
+| Base                         | BaseCard          |
+| Leader                       | LeaderUnitCard    |
 
 Tokens require extra steps for implementation that will not be covered here.
 
@@ -103,15 +103,15 @@ There are several ability types in SWU, each with its own initialization method.
 
 The ability types and methods are:
 
-| Ability Type | Method | Definition | Example Cards |
-| --- | --- | --- | --- |
-| Constant ability | addConstantAbility | Abilities with no bold text that have an ongoing effect | [Entrenched](../server/game/cards/01_SOR/Entrenched.ts), [Sabine](../server/game/cards/01_SOR/SabineWrenExplosivesArtist.ts) |
-| Action ability | addActionAbility | Abilities with bold text and a cost that provide an action the player can take | [Grogu](../server/game/cards/02_SHD/GroguIrresistible.ts), [Salacious Crumb](../server/game/cards/02_SHD/SalaciousCrumbObnoxiousPet.ts) |
-| Triggered ability | addTriggeredAbility | Abilities with bold text that trigger off of a game event to provide some effect | [Avenger](../server/game/cards/01_SOR/AvengerHuntingStarDestroyer.ts), [Fleet Lieutenant](../server/game/cards/01_SOR/FleetLieutenant.ts) |
-| Event ability | setEventAbility | Any ability printed on an Event card | [Daring Raid](../server/game/cards/02_SHD/DaringRaid.ts), [Vanquish](../server/game/cards/01_SOR/Vanquish.ts) |
-| Epic action ability | setEpicActionAbility | The Epic Action ability on a Base or Leader card | [Tarkintown](../server/game/cards/01_SOR/Tarkintown.ts) |
-| Replacement ability | addReplacementAbility | Any ability using the term "would" or "instead" which modifies another effect | [Shield](../server/game/cards/01_SOR/Shield.ts) |
-| Keyword ability | N/A, handled automatically | Abilities provided by keywords | See [keyword unit tests](../test/server/core/abilities/keyword/) |
+| Ability Type        | Method                     | Definition                                                                       | Example Cards                                                                                                                                         |
+|---------------------|----------------------------|----------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Constant ability    | addConstantAbility         | Abilities with no bold text that have an ongoing effect                          | [Entrenched](../server/game/cards/01_SOR/upgrades/Entrenched.ts), [Sabine](../server/game/cards/01_SOR/leaders/SabineWrenExplosivesArtist.ts)         |
+| Action ability      | addActionAbility           | Abilities with bold text and a cost that provide an action the player can take   | [Grogu](../server/game/cards/02_SHD/units/GroguIrresistible.ts), [Salacious Crumb](../server/game/cards/02_SHD/units/SalaciousCrumbObnoxiousPet.ts)   |
+| Triggered ability   | addTriggeredAbility        | Abilities with bold text that trigger off of a game event to provide some effect | [Avenger](../server/game/cards/01_SOR/units/AvengerHuntingStarDestroyer.ts), [Fleet Lieutenant](../server/game/cards/01_SOR/units/FleetLieutenant.ts) |
+| Event ability       | setEventAbility            | Any ability printed on an Event card                                             | [Daring Raid](../server/game/cards/02_SHD/events/DaringRaid.ts), [Vanquish](../server/game/cards/01_SOR/events/Vanquish.ts)                           |
+| Epic action ability | setEpicActionAbility       | The Epic Action ability on a Base or Leader card                                 | [Tarkintown](../server/game/cards/01_SOR/bases/Tarkintown.ts)                                                                                         |
+| Replacement ability | addReplacementAbility      | Any ability using the term "would" or "instead" which modifies another effect    | [Shield](../server/game/cards/01_SOR/tokens/Shield.ts)                                                                                                |
+| Keyword ability     | N/A, handled automatically | Abilities provided by keywords                                                   | See [keyword unit tests](../test/server/core/abilities/keyword/)                                                                                      |
 
 Additionally, there are specific helper methods that extend the above to make common cases simpler, such as "onAttack" triggers or upgrades that cause the attached card to gain an ability or keyword. See the relevant section below for specific details.
 
@@ -289,7 +289,7 @@ Triggered abilities are abilities with bold text indicating a game event to be t
 
 #### Defining the triggering condition
 
-Each triggered ability has an associated triggering condition. This is done using the `when` property. This should be an object with one property which named for the name of the event - see `EventName` in [Constants.ts](server\game\core\Constants.ts) for a current list of available events to trigger on. The value of the `when` property should be a function which takes the event and the context object. When the function returns `true`, the ability will be executed.
+Each triggered ability has an associated triggering condition. This is done using the `when` property. This should be an object with one property which named for the name of the event - see `EventName` in [Constants.ts](../server/game/core/Constants.ts) for a current list of available events to trigger on. The value of the `when` property should be a function which takes the event and the context object. When the function returns `true`, the ability will be executed.
 
 Here is an example with the deployed Cassian leader ability:
 ```typescript
@@ -320,10 +320,10 @@ this.addWhenPlayedAbility({
 
 The following triggers have helper methods:
 
-| Trigger | Helper method |
-| --- | --- |
-| When played | addWhenPlayedAbility |
-| On attack | addOnAttackAbility |
+| Trigger       | Helper method          |
+|---------------|------------------------|
+| When played   | addWhenPlayedAbility   |
+| On attack     | addOnAttackAbility     |
 | When defeated | addWhenDefeatedAbility |
 
 #### Optionally triggered abilities / "you may"
@@ -768,7 +768,7 @@ See additional details in the [GameSystems](#game-systems) section below. If an 
 #### Target filtering
 As mentioned above, targets can be filtered using one of multiple properties. The `cardCondition` property is the most flexible but the most cumbersome to write and to read, as it requires passing a handler function. Since most ability targets are restricted by a simple category such as "non-leader unit" or "friendly ground unit", properties are available for filtering on these attributes (see example below).
 
-**'Wildcard' enum types:** for location and card type, we have a concept of "wildcard" enum types which represent more than one concrete value. For example, `Location.SpaceArena` and `Location.GroundArena` are concrete locations, but `WildcardLocation.AnyArena` is a value that represents both (or either) for matching and filtering purposes. Similarly for card types, we have values such as `WildcardCardType.Unit` which represents leader and non-leader units as well as token units. For a detailed list, see [Constants.ts](server\game\core\Constants.ts).
+**'Wildcard' enum types:** for location and card type, we have a concept of "wildcard" enum types which represent more than one concrete value. For example, `Location.SpaceArena` and `Location.GroundArena` are concrete locations, but `WildcardLocation.AnyArena` is a value that represents both (or either) for matching and filtering purposes. Similarly for card types, we have values such as `WildcardCardType.Unit` which represents leader and non-leader units as well as token units. For a detailed list, see [Constants.ts](../server/game/core/Constants.ts).
 
 ```typescript
 // Death Trooper
@@ -912,7 +912,7 @@ In general, the effects of an ability should be implemented using game systems r
 
 #### Game Systems
 
-All ability types rely on GameSystems for making changes to game state.  Available game systems can be found in [GameSystemLibrary.ts](server\game\gameSystems\GameSystemLibrary.ts), along with any parameters and their defaults. The `cost` and `immediateEffect` fields of `AbilityHelper` provide access to the GameSystem classes for use in changing the game state as either the cost or the immediate effect of an ability, respectively. For example, the Grogu action ability uses the exhaust both as a cost (via `AbilityHelper.costs.exhaustSelf()`) and as an effect (via `AbilityHelper.immediateEffects.exhaust()`).
+All ability types rely on GameSystems for making changes to game state.  Available game systems can be found in [GameSystemLibrary.ts](../server/game/gameSystems/GameSystemLibrary.ts), along with any parameters and their defaults. The `cost` and `immediateEffect` fields of `AbilityHelper` provide access to the GameSystem classes for use in changing the game state as either the cost or the immediate effect of an ability, respectively. For example, the Grogu action ability uses the exhaust both as a cost (via `AbilityHelper.costs.exhaustSelf()`) and as an effect (via `AbilityHelper.immediateEffects.exhaust()`).
 
 ```typescript
 this.addActionAbility({
