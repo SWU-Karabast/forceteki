@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
 
 
 export default class RukhThrawnsAssassin extends NonLeaderUnitCard {
