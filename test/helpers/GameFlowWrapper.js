@@ -202,9 +202,9 @@ class GameFlowWrapper {
         const damageDiff = damage - card.damage;
 
         if (damageDiff > 0) {
-            card.addDamage(damageDiff);
+            card.addDamage(damageDiff, {});
         } else {
-            card.removeDamage(-damageDiff);
+            card.removeDamage(-damageDiff, {});
         }
     }
 

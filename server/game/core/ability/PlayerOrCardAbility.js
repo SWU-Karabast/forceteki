@@ -4,7 +4,6 @@ const { Stage, TargetMode, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
-const { has } = require('underscore');
 const { v4: uuidv4 } = require('uuid');
 const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
 

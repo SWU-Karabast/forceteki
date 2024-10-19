@@ -7,8 +7,8 @@ import { DamageOrDefeatSourceType, IDamageOrDefeatSource } from '../IDamageOrDef
 
 export interface IDefeatCardProperties extends ICardTargetSystemProperties {
 
-    /** If this defeat is caused by damage, attach the damage event here */
-    sourceDamageEvent?: any;
+    /** If this defeat is caused by damage, attach the damage source metadata here */
+    damageSource?: IDamageOrDefeatSource;
 }
 
 export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDefeatCardProperties> {
@@ -17,11 +17,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
     public override readonly costDescription = 'defeating {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
-    public constructor(propertyFactory) {
-        super(propertyFactory);
-    }
-
-    public eventHandler(event, additionalProperties = {}): void {
+    public eventHandler(event): void {
         if (event.card.isUpgrade()) {
             event.card.unattach();
         }
@@ -61,10 +57,14 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
     /** Generates metadata indicating what the source of the defeat is for relevant effects such as "when [X] attacks and defeats..." */
     private addDefeatSourceToEvent(event: any, card: Card, context: TContext) {
         // if this defeat is caused by damage, just use the same source as the damage event
-        const { sourceDamageEvent } = this.generatePropertiesFromContext(context);
-        if (sourceDamageEvent != null) {
-            Contract.assertHasProperty(sourceDamageEvent, 'damageSource', `Source damage for defeat event targeting ${card.internalName} is missing damage source data`);
-            event.defeatSource = sourceDamageEvent.damageSource;
+        const { damageSource } = this.generatePropertiesFromContext(context);
+        if (damageSource != null) {
+            event.defeatSource = damageSource;
+
+            event.isDefeatedByAttackerDamage =
+                damageSource.type === DamageOrDefeatSourceType.Attack &&
+                damageSource.damageDealtBy === damageSource.attack.attacker;
+
             return;
         }
 
@@ -75,6 +75,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
             ability: context.ability,
             card: context.source
         };
+        event.isDefeatedByAttackerDamage = false;
     }
 
     /** Returns true if this system is enacting the pending defeat (i.e., delayed defeat from damage) for the specified card */

@@ -20,6 +20,8 @@ import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/Saboteu
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import type Game from '../../Game';
 import { GameEvent } from '../../event/GameEvent';
+import { IDamageOrDefeatSource, INonFrameworkDamageOrDefeatSource } from '../../../IDamageOrDefeatSource';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -299,15 +301,24 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number): void {
-            super.addDamage(amount);
+        public override addDamage(amount: number, source: INonFrameworkDamageOrDefeatSource): void {
+            super.addDamage(amount, source);
 
-            this.checkDefeated();
+            this.checkDefeated(source);
         }
 
-        public checkDefeated() {
+        /** Checks if the unit has been defeated due to a framework effect such as hp reduced below damage */
+        public checkDefeatedByFrameworkEffect() {
+            this.checkDefeated(null);
+        }
+
+        // TODO THIS PR: make this param non-nullable
+        private checkDefeated(source?: IDamageOrDefeatSource) {
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
-                this.owner.defeatCard(this);
+                // add defeat event to window
+                this.game.addSubwindowEvents(new DefeatCardSystem({ target: this, damageSource: source }).generateEvent(this, this.game.getFrameworkContext()));
+
+                // mark that this unit has a defeat pending so that other effects targeting it will not resolve
                 this._pendingDefeat = true;
             }
         }

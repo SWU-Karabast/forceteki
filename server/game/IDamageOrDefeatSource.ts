@@ -1,8 +1,8 @@
-import CardAbilityStep from './core/ability/CardAbilityStep';
-import { Attack } from './core/attack/Attack';
-import { Card } from './core/card/Card';
-import { UnitCard } from './core/card/CardTypes';
-import Player from './core/Player';
+import type { Attack } from './core/attack/Attack';
+import type { Card } from './core/card/Card';
+import type { UnitCard } from './core/card/CardTypes';
+import type Player from './core/Player';
+import type CardAbilityStep from './core/ability/CardAbilityStep';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -10,9 +10,26 @@ import Player from './core/Player';
 // ********************************************** EXPORTED TYPES **********************************************
 export type IDamageOrDefeatSource = IDamagedOrDefeatedByAttack | IDamagedOrDefeatedByAbility;
 
+/** Damage or defeat source that is not caused by a framework effect - e.g., Snoke hp effect */
+export type INonFrameworkDamageOrDefeatSource = IDamagedOrDefeatedByAttack | IDamagedOrDefeatedByAbility;
+
 export enum DamageOrDefeatSourceType {
     Ability = 'ability',
-    Attack = 'attack'
+    Attack = 'attack',
+    // Framework = 'framework' // TODO THIS PR: remove this workaround!!
+}
+
+export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
+    type: DamageOrDefeatSourceType.Attack;
+    attack: Attack;
+    damageDealtBy: UnitCard;
+    isOverwhelmDamage: boolean;
+}
+
+export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
+    type: DamageOrDefeatSourceType.Ability;
+    ability: CardAbilityStep;
+    card: Card;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************
@@ -22,15 +39,7 @@ interface IDamageOrDefeatSourceBase {
     type: DamageOrDefeatSourceType;
 }
 
-interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
-    type: DamageOrDefeatSourceType.Attack;
-    attack: Attack;
-    damageDealtBy: UnitCard;
-    isOverwhelmDamage: boolean;
-}
-
-interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
-    type: DamageOrDefeatSourceType.Ability;
-    ability: CardAbilityStep;
-    card: Card;
-}
+// // TODO THIS PR: remove this workaround!!
+// interface IDamagedOrDefeatedByFrameworkEffect extends IDamageOrDefeatSourceBase {
+//     type: DamageOrDefeatSourceType.Framework;
+// }

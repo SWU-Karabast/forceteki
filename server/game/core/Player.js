@@ -900,17 +900,6 @@ class Player extends GameObject {
     }
 
     /**
-     * Defeat the specified card
-     */
-    defeatCard(card) {
-        if (!card) {
-            return;
-        }
-
-        this.game.addSubwindowEvents(GameSystems.defeat({ target: card }).generateEvent(card, this.game.getFrameworkContext()));
-    }
-
-    /**
      * Moves a card from one location to another. This involves removing in from the list it's currently in, calling BaseCard.move (which changes
      * its location property), and then adding it to the list it should now be in
      * @param card BaseCard

@@ -1101,7 +1101,7 @@ class Game extends EventEmitter {
             // if the state has changed, check for:
 
             // - any defeated units
-            this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeated());
+            this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeatedByFrameworkEffect());
         }
         if (events.length > 0) {
             // check for any delayed effects which need to fire

@@ -29,7 +29,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
-        event.card.addDamage(event.damage);
+        event.card.addDamage(event.damage, event.damageSource);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
