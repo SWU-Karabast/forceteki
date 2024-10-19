@@ -9,21 +9,13 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import { AbilityType, EffectName, KeywordName, NonParameterKeywordName, PlayType } from '../core/Constants';
+import { AbilityType, EffectName, PlayType } from '../core/Constants';
 import { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import { IAbilityPropsWithType, IActionAbilityProps, IActionAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, ITriggeredAbilityPropsWithType, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Attack } from '../core/attack/Attack';
-import { UnitCard } from '../core/card/CardTypes';
-import { IAttackLastingEffectProperties } from '../gameSystems/AttackStepsSystem';
-
-interface ConditionalAttackStatBonusProps {
-    bonusCondition: (attacker: UnitCard) => boolean;
-    statBonus: StatsModifier;
-}
+import { CostAdjustDirection, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -217,12 +209,13 @@ export = {
     //     }),
     // changePlayerSkillModifier: (value) => OngoingEffectBuilder.player.flexible(EffectName.ChangePlayerSkillModifier, value),
     // customDetachedPlayer: (properties) => OngoingEffectBuilder.player.detached(EffectName.CustomEffect, properties),
+    decreaseCost: (properties: Omit<ICostAdjusterProperties, 'direction'>) => modifyCost(Object.assign(properties, { direction: CostAdjustDirection.Decrease })),
     // gainActionPhasePriority: () =>
     //     OngoingEffectBuilder.player.detached(EffectName.GainActionPhasePriority, {
     //         apply: (player) => (player.actionPhasePriority = true),
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
-    increaseCost: (properties) => modifyCost(Object.assign({}, properties, { amount: -properties.amount })),
+    increaseCost: (properties: Omit<ICostAdjusterProperties, 'direction'>) => modifyCost(Object.assign(properties, { direction: CostAdjustDirection.Increase })),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>
@@ -236,7 +229,6 @@ export = {
     //         EffectName.PlayerFateCostToTargetCard,
     //         properties
     //     ) /* amount: number; match: (card) => boolean */,
-    modifyCost,
     // reduceNextPlayedCardCost: (amount, match) =>
     //     OngoingEffectBuilder.player.detached(EffectName.CostReducer, {
     //         apply: (player, context) =>

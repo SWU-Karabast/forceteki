@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, KeywordName, WildcardLocation } from '../../../core/Constants';
+import { Aspect, KeywordName } from '../../../core/Constants';
 
 export default class PartisanInsurgent extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -12,8 +12,8 @@ export default class PartisanInsurgent extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addConstantAbility({
-            title: 'While you control another [Aggression] unit, this unit gains Raid 2',
-            condition: (context) => context.source.controller.getOtherUnitsInPlayWithAspect(context.source, Aspect.Aggression).length > 0,
+            title: 'While you control another Aggression unit, this unit gains Raid 2',
+            condition: (context) => context.source.controller.isAspectInPlay(Aspect.Aggression, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });
     }

@@ -61,7 +61,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.playType = this.player && this.player.findPlayType(this.source); // location && location.playingType;
     }
 
-    public copy(newProps: Partial<IAbilityContextProperties>): AbilityContext<TSource> {
+    public copy(newProps: Partial<IAbilityContextProperties> = {}): AbilityContext<TSource> {
         const copy = this.createCopy(newProps);
         copy.target = this.target;
         copy.costAspects = this.costAspects;

@@ -8,7 +8,6 @@ import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
-import { v4 as uuidv4 } from 'uuid';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -22,7 +21,6 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. The ability to be defeated as an overridable method
  */
 export class InPlayCard extends PlayableOrDeployableCard {
-    protected constantAbilities: IConstantAbility[] = [];
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     public constructor(owner: Player, cardData: any) {
@@ -41,14 +39,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     // ********************************************** ABILITY GETTERS **********************************************
-    /**
-     * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
-     * don’t have any special styling
-     */
-    public getConstantAbilities(): IConstantAbility[] {
-        return this.constantAbilities;
-    }
-
     /**
      * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
      * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
@@ -93,18 +83,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): void {
         const triggeredProperties = Object.assign(properties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
         this.addTriggeredAbility(triggeredProperties);
-    }
-
-    public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
-        const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
-
-        return {
-            duration: Duration.Persistent,
-            sourceLocationFilter,
-            ...properties,
-            ...this.buildGeneralAbilityProps('constant'),
-            uuid: uuidv4()
-        };
     }
 
     public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {

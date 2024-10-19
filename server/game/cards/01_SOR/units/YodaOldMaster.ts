@@ -14,14 +14,8 @@ export default class YodaOldMaster extends NonLeaderUnitCard {
         this.addWhenDefeatedAbility({
             title: 'Choose any number of players to draw 1 card',
             targetResolver: {
-                mode: TargetMode.Select,
-                choices: (context) => ({
-                    // TODO: Make this selection prompt less awkward: create a way to select any number of options from an arbitrary list.
-                    ['You']: AbilityHelper.immediateEffects.draw({ target: context.source.owner }),
-                    ['Opponent']: AbilityHelper.immediateEffects.draw({ target: context.source.owner.opponent }),
-                    ['You and Opponent']: AbilityHelper.immediateEffects.draw({ target: [context.source.owner, context.source.owner.opponent] }),
-                    ['No one']: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
-                })
+                mode: TargetMode.MultiplePlayers,
+                immediateEffect: AbilityHelper.immediateEffects.draw()
             }
         });
     }

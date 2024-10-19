@@ -139,7 +139,7 @@ class PlayerInteractionWrapper {
             leaderCard.exhausted = leaderOptions.exhausted || false;
         }
 
-        this.game.resolveGameState();
+        this.game.resolveGameState(true);
     }
 
     setBaseStatus(baseOptions) {
@@ -147,7 +147,7 @@ class PlayerInteractionWrapper {
             return;
         }
 
-        // leader as a string card name is a no-op unless it doesn't match the existing leader, then throw an error
+        // base as a string card name is a no-op unless it doesn't match the existing base, then throw an error
         if (typeof baseOptions === 'string') {
             if (baseOptions !== this.player.base.internalName) {
                 throw new TestSetupError(`Provided base name ${baseOptions} does not match player's base ${this.player.base.internalName}. Do not try to change base after test has initialized.`);
@@ -162,7 +162,7 @@ class PlayerInteractionWrapper {
         var baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
 
-        this.game.resolveGameState();
+        this.game.resolveGameState(true);
     }
 
     /**
@@ -220,6 +220,11 @@ class PlayerInteractionWrapper {
                 throw new TestSetupError('You must provide a card name');
             }
             var card = this.findCardByName(options.card, prevLocations);
+
+            if (card.isUnit() && card.defaultArena !== arenaName) {
+                throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
+            }
+
             // Move card to play
             this.moveCard(card, arenaName);
             // Set exhausted state (false by default)
@@ -671,6 +676,10 @@ class PlayerInteractionWrapper {
         }
         this.clickCard(target, 'play area');
         return card;
+    }
+
+    readyResources(number) {
+        this.player.readyResources(number);
     }
 
     playCharacterFromHand(card, fate = 0) {

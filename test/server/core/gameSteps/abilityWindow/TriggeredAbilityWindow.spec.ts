@@ -78,9 +78,10 @@ describe('Simultaneous triggers', function() {
 
                 context.player1.clickPrompt('You');
 
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
                 expect(context.player1.hand.length).toBe(0);
                 context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Done');
                 expect(context.player1.hand.length).toBe(1);
 
                 expect(context.player2).toBeAbleToSelectExactly([context.allianceXwing, context.battlefieldMarine]);
@@ -105,9 +106,10 @@ describe('Simultaneous triggers', function() {
                 context.player2.clickCard(context.allianceXwing);
                 expect(context.allianceXwing).toHaveExactUpgradeNames(['experience']);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
                 expect(context.player1.hand.length).toBe(0);
                 context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Done');
                 expect(context.player1.hand.length).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();

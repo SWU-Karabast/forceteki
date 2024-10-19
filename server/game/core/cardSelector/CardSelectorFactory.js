@@ -17,7 +17,6 @@ const defaultProperties = {
 };
 
 const ModeToSelector = {
-    ability: (p) => new SingleCardSelector(p),
     autoSingle: (p) => new SingleCardSelector(p),
     exactly: (p) => new ExactlyXCardSelector(p.numCards, p),
     exactlyVariable: (p) => new ExactlyVariableXCardSelector(p.numCardsFunc, p),
@@ -28,9 +27,9 @@ const ModeToSelector = {
     upToVariable: (p) => new UpToVariableXCardSelector(p.numCardsFunc, p)
 };
 
-class CardSelector {
-    static for(properties) {
-        properties = CardSelector.getDefaultedProperties(properties);
+class CardSelectorFactory {
+    static create(properties) {
+        properties = CardSelectorFactory.getDefaultedProperties(properties);
 
         let factory = ModeToSelector[properties.mode];
 
@@ -61,4 +60,4 @@ class CardSelector {
     }
 }
 
-module.exports = CardSelector;
+module.exports = CardSelectorFactory;

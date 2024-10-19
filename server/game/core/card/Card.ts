@@ -1,10 +1,10 @@
-import { IActionAbilityProps } from '../../Interfaces';
+import { IActionAbilityProps, IConstantAbilityProps } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, EffectName, EventName, KeywordName, Location, Trait } from '../Constants';
+import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, Trait, WildcardLocation } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
@@ -23,6 +23,8 @@ import type { LeaderUnitCard } from './LeaderUnitCard';
 import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { InPlayCard } from './baseClasses/InPlayCard';
+import { v4 as uuidv4 } from 'uuid';
+import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -51,6 +53,7 @@ export class Card extends OngoingEffectSource {
     protected readonly printedType: CardType;
 
     protected actionAbilities: ActionAbility[] = [];
+    protected constantAbilities: IConstantAbility[] = [];
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
@@ -141,6 +144,14 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
+     * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
+     * don’t have any special styling
+     */
+    public getConstantAbilities(): IConstantAbility[] {
+        return this.constantAbilities;
+    }
+
+    /**
      * Any actions that a player could legally invoke with this card as the source. This includes "default"
      * actions such as playing a card or attacking, as well as any action abilities from card text.
      */
@@ -226,8 +237,21 @@ export class Card extends OngoingEffectSource {
     protected setupStateWatchers(registrar: StateWatcherRegistrar) {
     }
 
+    // ******************************************* ABILITY HELPERS *******************************************
     public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
         return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
+    }
+
+    public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
+        const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
+
+        return {
+            duration: Duration.Persistent,
+            sourceLocationFilter,
+            ...properties,
+            ...this.buildGeneralAbilityProps('constant'),
+            uuid: uuidv4()
+        };
     }
 
     protected buildGeneralAbilityProps(abilityTypeDescriptor: string) {
