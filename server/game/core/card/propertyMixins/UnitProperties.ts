@@ -307,12 +307,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.checkDefeated(source);
         }
 
-        /** Checks if the unit has been defeated due to a framework effect such as hp reduced below damage */
-        public checkDefeatedByFrameworkEffect() {
+        // TODO: FFG has yet to release detailed rules about how effects like Snoke are used to determine which player defeated a unit.
+        // need to come through and implement that in the methods below once rules 3.0 comes out.
+
+        /** Checks if the unit has been defeated due to an ongoing effect such as hp reduction */
+        public checkDefeatedByOngoingEffect() {
             this.checkDefeated(null);
         }
 
-        // TODO THIS PR: make this param non-nullable
         private checkDefeated(source?: IDamageOrDefeatSource) {
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 // add defeat event to window

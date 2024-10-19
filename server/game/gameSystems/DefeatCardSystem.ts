@@ -68,6 +68,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
             return;
         }
 
+        // TODO: this currently populates incorrectly in the case of a unit being defeated by an ongoing effect such as Snoke, needs comp rules 3.0
         // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
         event.defeatSource = {
             type: DamageOrDefeatSourceType.Ability,

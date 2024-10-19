@@ -15,8 +15,7 @@ export type INonFrameworkDamageOrDefeatSource = IDamagedOrDefeatedByAttack | IDa
 
 export enum DamageOrDefeatSourceType {
     Ability = 'ability',
-    Attack = 'attack',
-    // Framework = 'framework' // TODO THIS PR: remove this workaround!!
+    Attack = 'attack'
 }
 
 export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
@@ -38,8 +37,3 @@ interface IDamageOrDefeatSourceBase {
     player: Player;
     type: DamageOrDefeatSourceType;
 }
-
-// // TODO THIS PR: remove this workaround!!
-// interface IDamagedOrDefeatedByFrameworkEffect extends IDamageOrDefeatSourceBase {
-//     type: DamageOrDefeatSourceType.Framework;
-// }
