@@ -6,7 +6,6 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import * as Contract from '../core/utils/Contract';
 import { Attack } from '../core/attack/Attack';
 import { DamageOrDefeatSourceType, IDamageOrDefeatSource } from '../IDamageOrDefeatSource';
-import CardAbility from '../core/ability/CardAbility';
 import { UnitCard } from '../core/card/CardTypes';
 import CardAbilityStep from '../core/ability/CardAbilityStep';
 
