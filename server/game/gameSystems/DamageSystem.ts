@@ -8,13 +8,14 @@ import { Attack } from '../core/attack/Attack';
 import { DamageOrDefeatSourceType, IDamageOrDefeatSource } from '../IDamageOrDefeatSource';
 import CardAbility from '../core/ability/CardAbility';
 import { UnitCard } from '../core/card/CardTypes';
+import CardAbilityStep from '../core/ability/CardAbilityStep';
 
 export interface IDamageProperties extends ICardTargetSystemProperties {
     amount: number;
     isOverwhelmDamage?: boolean;
     isCombatDamage?: boolean;
 
-    /** must be provided if-and-only-if isCombatDamamge = true */
+    /** must be provided if-and-only-if isCombatDamage = true */
     sourceAttack?: Attack;
 }
 
@@ -54,7 +55,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertFalse(properties.isCombatDamage && properties.isOverwhelmDamage, 'Overwhelm damage must not be combat damage');
-        Contract.assertTrue(!!properties.isCombatDamage === !!properties.sourceAttack, 'Source attack must be provided if and only if isCombatDamage is true');
+        if (properties.isCombatDamage || properties.isOverwhelmDamage) {
+            Contract.assertTrue(properties.sourceAttack != null, 'Source attack must be provided if isCombatDamage or isOverwhelmDamage is true');
+        }
 
         return properties;
     }
@@ -67,11 +70,20 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         event.isCombatDamage = !!properties.sourceAttack;
         event.isOverwhelmDamage = properties.isOverwhelmDamage;
 
-        let damageSource: IDamageOrDefeatSource;
-        if (event.isCombatDamage) {
-            Contract.assertTrue(context.source.isUnit());
+        event.damageSource = event.isCombatDamage || event.isOverwhelmDamage
+            ? this.generateAttackSourceMetadata(event, card, context, properties)
+            : this.generateAbilitySourceMetadata(card, context);
+    }
 
-            let damageDealtBy: UnitCard;
+    /** Generates metadata indicating the source of the damage is an attack for relevant effects such as Rukh's ability */
+    private generateAttackSourceMetadata(event: any, card: Card, context: TContext, properties: IDamageProperties): IDamageOrDefeatSource {
+        Contract.assertTrue(context.source.isUnit());
+
+        let damageDealtBy: UnitCard;
+
+        if (event.isOverwhelmDamage) {
+            damageDealtBy = properties.sourceAttack.attacker;
+        } else {
             switch (card) {
                 case properties.sourceAttack.attacker:
                     Contract.assertTrue(properties.sourceAttack.target.isUnit());
@@ -83,23 +95,27 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
                 default:
                     Contract.fail(`Combat damage being dealt to card ${card.internalName} but it is not involved in the attack`);
             }
-
-            damageSource = {
-                type: DamageOrDefeatSourceType.Attack,
-                attack: properties.sourceAttack,
-                player: context.source.controller,
-                damageDealtBy
-            };
-        } else {
-            // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
-            damageSource = {
-                type: DamageOrDefeatSourceType.Ability,
-                player: context.player,
-                ability: (context.ability as CardAbility),
-                card: context.source
-            };
         }
 
-        event.damageSource = damageSource;
+        return {
+            type: DamageOrDefeatSourceType.Attack,
+            attack: properties.sourceAttack,
+            player: context.source.controller,
+            damageDealtBy,
+            isOverwhelmDamage: !!properties.isOverwhelmDamage
+        };
+    }
+
+    // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
+    /** Generates metadata indicating the source of the damage is an ability */
+    private generateAbilitySourceMetadata(card: Card, context: TContext): IDamageOrDefeatSource {
+        Contract.assertTrue(context.ability instanceof CardAbilityStep, `Damage was created by non-card ability ${context.ability.title} targeting ${card.internalName}`);
+
+        return {
+            type: DamageOrDefeatSourceType.Ability,
+            player: context.player,
+            ability: context.ability,
+            card: context.source
+        };
     }
 }

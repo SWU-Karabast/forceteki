@@ -1,11 +1,15 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EventName, Location, WildcardCardType } from '../core/Constants';
+import { EventName, Location, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Contract from '../core/utils/Contract';
+import { DamageOrDefeatSourceType, IDamageOrDefeatSource } from '../IDamageOrDefeatSource';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IDefeatCardProperties extends ICardTargetSystemProperties {}
+export interface IDefeatCardProperties extends ICardTargetSystemProperties {
+
+    /** If this defeat is caused by damage, attach the damage event here */
+    sourceDamageEvent?: any;
+}
 
 export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDefeatCardProperties> {
     public override readonly name = 'defeat';
@@ -46,6 +50,31 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
             return false;
         }
         return super.canAffect(card, context);
+    }
+
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+
+        this.addDefeatSourceToEvent(event, card, context);
+    }
+
+    /** Generates metadata indicating what the source of the defeat is for relevant effects such as "when [X] attacks and defeats..." */
+    private addDefeatSourceToEvent(event: any, card: Card, context: TContext) {
+        // if this defeat is caused by damage, just use the same source as the damage event
+        const { sourceDamageEvent } = this.generatePropertiesFromContext(context);
+        if (sourceDamageEvent != null) {
+            Contract.assertHasProperty(sourceDamageEvent, 'damageSource', `Source damage for defeat event targeting ${card.internalName} is missing damage source data`);
+            event.defeatSource = sourceDamageEvent.damageSource;
+            return;
+        }
+
+        // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
+        event.defeatSource = {
+            type: DamageOrDefeatSourceType.Ability,
+            player: context.player,
+            ability: context.ability,
+            card: context.source
+        };
     }
 
     /** Returns true if this system is enacting the pending defeat (i.e., delayed defeat from damage) for the specified card */

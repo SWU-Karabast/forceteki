@@ -66,7 +66,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
         if (overwhelmDamageOnly) {
-            AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).resolve(this.attack.target.controller.base, this.context);
+            this.buildOverwhelmDamageSystem(this.attack.getAttackerTotalPower()).resolve(this.attack.target.controller.base, this.context);
         } else if (attackerDealsDamageBeforeDefender) {
             this.context.game.openEventWindow(this.createAttackerDamageEvent());
             this.context.game.queueSimpleStep(() => {
@@ -100,15 +100,20 @@ export class AttackFlow extends BaseStepWithPipeline {
                     return [];
                 }
 
-                const overwhelmEvent = AbilityHelper.immediateEffects.damage({
-                    amount: event.damage - event.card.remainingHp,
-                }).generateEvent(event.card.controller.base, this.context);
-
-                return [overwhelmEvent];
+                const overwhelmSystem = this.buildOverwhelmDamageSystem(event.damage - event.card.remainingHp);
+                return [overwhelmSystem.generateEvent(event.card.controller.base, this.context)];
             });
         }
 
         return attackerDamageEvent;
+    }
+
+    private buildOverwhelmDamageSystem(amount: number) {
+        return AbilityHelper.immediateEffects.damage({
+            amount,
+            isOverwhelmDamage: true,
+            sourceAttack: this.attack
+        });
     }
 
     private createDefenderDamageEvent(): GameEvent {

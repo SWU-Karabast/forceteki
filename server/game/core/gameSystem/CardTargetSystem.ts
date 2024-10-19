@@ -134,7 +134,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return super.canAffect(card, context, additionalProperties);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }

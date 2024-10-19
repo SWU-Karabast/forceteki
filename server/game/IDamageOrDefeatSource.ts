@@ -1,7 +1,7 @@
-import CardAbility from './core/ability/CardAbility';
+import CardAbilityStep from './core/ability/CardAbilityStep';
 import { Attack } from './core/attack/Attack';
 import { Card } from './core/card/Card';
-import { CardWithDamageProperty, UnitCard } from './core/card/CardTypes';
+import { UnitCard } from './core/card/CardTypes';
 import Player from './core/Player';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -26,10 +26,11 @@ interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
     type: DamageOrDefeatSourceType.Attack;
     attack: Attack;
     damageDealtBy: UnitCard;
+    isOverwhelmDamage: boolean;
 }
 
 interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
     type: DamageOrDefeatSourceType.Ability;
-    ability: CardAbility;
+    ability: CardAbilityStep;
     card: Card;
 }
