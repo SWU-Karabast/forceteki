@@ -1,4 +1,4 @@
-describe('Grand Inquisitor Hunting the Jedi', function() {
+describe('Grand Inquisitor, Hunting the Jedi', function() {
     integration(function(contextRef) {
         describe('Grand Inquisitor\'s leader undeployed ability', function() {
             beforeEach(function() {
