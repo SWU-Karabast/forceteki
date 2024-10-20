@@ -72,9 +72,11 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
                 context.scoutBikePursuer.exhausted = true;
                 context.player1.clickCard(context.grandInquisitor);
                 context.player1.clickCard(context.p2Base);
+
                 expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.deathStarStormtrooper]);
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.scoutBikePursuer);
+
                 expect(context.scoutBikePursuer.damage).toBe(1);
                 expect(context.scoutBikePursuer.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();

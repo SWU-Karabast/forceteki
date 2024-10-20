@@ -15,7 +15,7 @@ describe('IG-88, Ruthless Bounty Hunter', function () {
                 });
             });
 
-            it('should attack with a friendly unit (without buff)', function () {
+            it('should attack with a friendly unit and does not buff because there are fewer friendly unit than enemy units', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.ig88);
                 expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.battlefieldMarine]);
@@ -41,7 +41,7 @@ describe('IG-88, Ruthless Bounty Hunter', function () {
                 });
             });
 
-            it('should attack with a friendly unit (with buff)', function () {
+            it('should attack with a friendly unit with buff because there are more friendly units than enemy units)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.ig88);
                 expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.battlefieldMarine]);
