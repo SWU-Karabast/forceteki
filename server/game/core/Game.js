@@ -35,6 +35,7 @@ const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
+const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.js');
 const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
 
 class Game extends EventEmitter {
@@ -591,11 +592,23 @@ class Game extends EventEmitter {
      */
     promptWithHandlerMenu(player, properties) {
         Contract.assertNotNullLike(player);
+
         if (properties.multiSelect) {
             this.queueStep(new HandlerMenuMultipleSelectionPrompt(this, player, properties));
         } else {
             this.queueStep(new HandlerMenuPrompt(this, player, properties));
         }
+    }
+
+    /**
+     * Prompts a player with a menu for selecting a string from a list of options
+     * @param {Player} player
+     * @param {import('./gameSteps/prompts/DropdownListPrompt.js').IDropdownListPromptProperties} properties
+     */
+    promptWithDropdownListMenu(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DropdownListPrompt(this, player, properties));
     }
 
     /**
@@ -612,6 +625,8 @@ class Game extends EventEmitter {
     /**
      * Prompt for distributing healing or damage among target cards.
      * Response data must be returned via {@link Game.statefulPromptResults}.
+     *
+     * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptProperties} properties
      */
     promptDistributeAmongTargets(player, properties) {
         Contract.assertNotNullLike(player);
@@ -639,13 +654,14 @@ class Game extends EventEmitter {
      * Gets the results of a "stateful" prompt from the frontend. This is for more
      * involved prompts such as distributing damage / healing that require the frontend
      * to gather some state and send back, instead of just individual clicks.
-     * @param {import('./gameSteps/StatefulPromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     * @param {String} uuid - unique identifier of the prompt clicked
      */
-    statefulPromptResults(playerName, result) {
+    statefulPromptResults(playerName, result, uuid) {
         var player = this.getPlayerByName(playerName);
 
         // check to see if the current step in the pipeline is waiting for input
-        return this.pipeline.handleStatefulPromptResults(player, result);
+        return this.pipeline.handleStatefulPromptResults(player, result, uuid);
     }
 
     /**
