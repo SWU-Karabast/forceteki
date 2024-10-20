@@ -84,6 +84,7 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
                 const { context } = contextRef;
                 context.scoutBikePursuer.exhausted = true;
                 context.wampa.exhausted = true;
+                context.battlefieldMarine.exhausted = true;
                 context.player1.clickCard(context.grandInquisitor);
                 context.player1.clickCard(context.p2Base);
 
