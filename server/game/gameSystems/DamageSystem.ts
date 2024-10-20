@@ -32,12 +32,13 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
-        const { amount, target, sourceAttack } = this.generatePropertiesFromContext(context);
+        const { amount, target, isCombatDamage, isOverwhelmDamage } = this.generatePropertiesFromContext(context);
 
-        if (sourceAttack) {
-            return ['deal {1} combat damage to {0}', [amount, target]];
-        }
-        return ['deal {1} damage to {0}', [amount, target]];
+        const damageTypeStr = isCombatDamage
+            ? 'combat'
+            : isOverwhelmDamage ? 'overwhelm' : '';
+
+        return ['deal {0} {1} damage to {2}', [amount, damageTypeStr, target]];
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
@@ -66,7 +67,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
         event.damage = properties.amount;
-        event.isCombatDamage = !!properties.sourceAttack;
+        event.isCombatDamage = properties.isCombatDamage;
         event.isOverwhelmDamage = properties.isOverwhelmDamage;
 
         event.damageSource = event.isCombatDamage || event.isOverwhelmDamage

@@ -58,10 +58,11 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             return true;
         }
 
+        /** @param source Metadata about the source of the damage (attack or ability) */
         public addDamage(amount: number, source: INonFrameworkDamageOrDefeatSource) {
             Contract.assertNonNegative(amount);
 
-            // damage source is only needed for tracking defeat cause on units but we should enforce that it's provided consistently
+            // damage source is only needed for tracking cause of defeat on units but we should enforce that it's provided consistently
             Contract.assertNotNullLike(source);
 
             this.assertPropertyEnabled(this._damage, 'damage');

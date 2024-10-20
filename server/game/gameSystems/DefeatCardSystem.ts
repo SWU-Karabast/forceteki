@@ -50,7 +50,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
 
     protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-
         this.addDefeatSourceToEvent(event, card, context);
     }
 
