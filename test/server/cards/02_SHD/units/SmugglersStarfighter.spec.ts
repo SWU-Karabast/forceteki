@@ -53,6 +53,7 @@ describe('Smuggler\'s Starfighter', function() {
 
                 // attack with wampa to check power
                 context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(4);
             });
         });
