@@ -3,30 +3,30 @@ import Game from '../../Game';
 import Player from '../../Player';
 import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
-import { IDistributeAmongTargetsPromptData, IStatefulPromptResults, IPromptPropertiesBase } from '../PromptInterfaces';
+import { IPromptPropertiesBase } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
-export interface IChooseFromListPromptProperties extends IPromptPropertiesBase {
+export interface IDropdownListPromptProperties extends IPromptPropertiesBase {
     options: string[];
     source: Card;
     choiceHandler: (choice: string) => void;
 }
 
 /**
- * Prompt for distributing healing or damage among target cards.
- * Response data must be returned via {@link Game.statefulPromptResults}.
+ * Prompt for distributing presenting the player with a dropdown list of string options.
+ * Response data must be returned via {@link Game.menuButton}.
  *
- * Result will be passed to `properties.resultsHandler`.
+ * Result will be passed to `properties.choiceHandler`.
  */
-export class ChooseFromListPrompt extends UiPrompt {
+export class DropdownListPrompt extends UiPrompt {
     private readonly _activePrompt: IPlayerPromptStateProperties;
 
     public constructor(
         game: Game,
         private readonly player: Player,
-        private readonly properties: IChooseFromListPromptProperties
+        private readonly properties: IDropdownListPromptProperties
     ) {
-        Contract.assertTrue(properties.options?.length > 1, `ChooseFromListPrompt requires at least two options, instead received ${properties.options?.length}`);
+        Contract.assertTrue(properties.options?.length > 1, `DropdownListPrompt requires at least two options, instead received ${properties.options?.length}`);
 
         super(game);
 
@@ -41,7 +41,7 @@ export class ChooseFromListPrompt extends UiPrompt {
         this._activePrompt = {
             menuTitle,
             promptTitle: this.properties.promptTitle || (this.properties.source ? this.properties.source.name : undefined),
-            listOptions: this.properties.options,
+            dropdownListOptions: this.properties.options,
             promptUuid: this.uuid
         };
     }

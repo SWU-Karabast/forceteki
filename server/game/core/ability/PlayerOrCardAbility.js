@@ -7,7 +7,7 @@ const { GameSystem } = require('../gameSystem/GameSystem.js');
 const { has } = require('underscore');
 const { v4: uuidv4 } = require('uuid');
 const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
-const { SelectStringTargetResolver } = require('./abilityTargets/SelectStringTargetResolver.js');
+const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -107,8 +107,8 @@ class PlayerOrCardAbility {
         switch (properties.mode) {
             case TargetMode.Select:
                 return new SelectTargetResolver(name, properties, this);
-            case TargetMode.SelectStringFromList:
-                return new SelectStringTargetResolver(name, properties, this);
+            case TargetMode.DropdownList:
+                return new DropdownListTargetResolver(name, properties, this);
             case TargetMode.Player:
             case TargetMode.MultiplePlayers:
                 return new PlayerTargetResolver(name, properties, this);

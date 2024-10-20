@@ -1,4 +1,4 @@
-import { ISelectStringTargetResolver } from '../../../TargetInterfaces';
+import { IDropdownListTargetResolver } from '../../../TargetInterfaces';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { AbilityContext } from '../AbilityContext';
 import { TargetResolver } from './TargetResolver';
@@ -7,8 +7,8 @@ import type Player from '../../Player';
 import * as Helpers from '../../utils/Helpers';
 
 /** Target resolver for selecting from a list of strings and passing the choice to a GameSystem */
-export class SelectStringTargetResolver extends TargetResolver<ISelectStringTargetResolver<AbilityContext>> {
-    public constructor(name: string, properties: ISelectStringTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
+export class DropdownListTargetResolver extends TargetResolver<IDropdownListTargetResolver<AbilityContext>> {
+    public constructor(name: string, properties: IDropdownListTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
     }
 
@@ -33,7 +33,7 @@ export class SelectStringTargetResolver extends TargetResolver<ISelectStringTarg
             const choiceHandler = (choice: string) => this.setTargetResult(context, choice);
             const promptProperties = Object.assign(this.getDefaultProperties(context), { choiceHandler, options });
 
-            context.game.promptWithSelectFromListMenu(player, promptProperties);
+            context.game.promptWithDropdownListMenu(player, promptProperties);
         }
     }
 

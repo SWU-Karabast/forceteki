@@ -35,7 +35,7 @@ const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
-const { ChooseFromListPrompt } = require('./gameSteps/prompts/ChooseFromListPrompt.js');
+const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -596,12 +596,12 @@ class Game extends EventEmitter {
     /**
      * Prompts a player with a menu for selecting a string from a list of options
      * @param {Player} player
-     * @param {import('./gameSteps/prompts/ChooseFromListPrompt.js').IChooseFromListPromptProperties} properties
+     * @param {import('./gameSteps/prompts/DropdownListPrompt.js').IDropdownListPromptProperties} properties
      */
-    promptWithSelectFromListMenu(player, properties) {
+    promptWithDropdownListMenu(player, properties) {
         Contract.assertNotNullLike(player);
 
-        this.queueStep(new ChooseFromListPrompt(this, player, properties));
+        this.queueStep(new DropdownListPrompt(this, player, properties));
     }
 
     /**

@@ -722,7 +722,7 @@ var customMatchers = {
             }
         };
     },
-    toHaveExactListOptions: function () {
+    toHaveExactDropdownListOptions: function () {
         return {
             compare: function (player, expectedOptions) {
                 let result = {};
@@ -731,7 +731,7 @@ var customMatchers = {
                     throw new TestSetupError(`Parameter 'options' is not an array: ${expectedOptions}`);
                 }
 
-                const actualOptions = player.currentPrompt().listOptions;
+                const actualOptions = player.currentPrompt().dropdownListOptions;
 
                 result.pass = stringArraysEqual(actualOptions, expectedOptions);
 

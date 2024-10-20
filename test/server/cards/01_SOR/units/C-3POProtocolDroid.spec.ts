@@ -18,7 +18,7 @@ describe('C-3PO, Protocol Droid', function() {
                 context.player1.clickCard(context.c3po);
 
                 // should have prompt options from 0 to 20
-                expect(context.player1).toHaveExactListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
                 context.player1.chooseListOption('4');
 
                 // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
@@ -34,7 +34,7 @@ describe('C-3PO, Protocol Droid', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.c3po);
 
-                expect(context.player1).toHaveExactListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
                 context.player1.chooseListOption('0');
 
                 expect(context.getChatLogs(1)).toContain('C-3PO sees Battlefield Marine');

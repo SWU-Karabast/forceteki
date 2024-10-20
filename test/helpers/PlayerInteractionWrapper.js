@@ -486,7 +486,7 @@ class PlayerInteractionWrapper {
 
     chooseListOption(text) {
         var currentPrompt = this.player.currentPrompt();
-        if (!currentPrompt.listOptions.includes(text)) {
+        if (!currentPrompt.dropdownListOptions.includes(text)) {
             throw new TestSetupError(
                 `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
             );

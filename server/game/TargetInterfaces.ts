@@ -12,7 +12,7 @@ import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
   | ICardTargetResolver<TContext>
   | ISelectTargetResolver<TContext>
-  | ISelectStringTargetResolver<TContext>
+  | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
 export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> = Record<string, ITriggeredAbilityTargetResolver<TContext> & ITriggeredAbilityTargetResolver<TContext>>;
@@ -20,7 +20,7 @@ export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityCo
 export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> =
   | ICardTargetResolver<TContext>
   | ISelectTargetResolver<TContext>
-  | ISelectStringTargetResolver<TContext>
+  | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
 export type IActionTargetsResolver<TContext extends AbilityContext = AbilityContext> = Record<string, IActionTargetResolver<TContext>>;
@@ -38,8 +38,8 @@ export interface ISelectTargetResolver<TContext extends AbilityContext> extends 
     checkTarget?: boolean;
 }
 
-export interface ISelectStringTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
-    mode: TargetMode.SelectStringFromList;
+export interface IDropdownListTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
+    mode: TargetMode.DropdownList;
     options: string[];
     condition?: (context: AbilityContext) => boolean;
 }

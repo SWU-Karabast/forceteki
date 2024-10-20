@@ -12,7 +12,7 @@ export interface IPlayerPromptStateProperties {
     selectCard?: boolean;
     selectOrder?: boolean;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
-    listOptions?: string[];
+    dropdownListOptions?: string[];
 }
 
 export class PlayerPromptState {
@@ -24,7 +24,7 @@ export class PlayerPromptState {
     public promptUuid = '';
     public buttons = [];
     public controls = [];
-    public listOptions = [];
+    public dropdownListOptions = [];
 
     private selectableCards: Card[] = [];
     private selectedCards?: Card[] = [];
@@ -54,7 +54,7 @@ export class PlayerPromptState {
         this.menuTitle = prompt.menuTitle ?? '';
         this.controls = prompt.controls ?? [];
         this.distributeAmongTargets = prompt.distributeAmongTargets;
-        this.listOptions = prompt.listOptions ?? [];
+        this.dropdownListOptions = prompt.dropdownListOptions ?? [];
         this.promptUuid = prompt.promptUuid;
         this.buttons = !prompt.buttons
             ? []
@@ -99,7 +99,7 @@ export class PlayerPromptState {
             selectCard: this.selectCard,
             selectOrder: this.selectOrder,
             distributeAmongTargets: this.distributeAmongTargets,
-            listOptions: this.listOptions,
+            dropdownListOptions: this.dropdownListOptions,
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,
             buttons: this.buttons,
