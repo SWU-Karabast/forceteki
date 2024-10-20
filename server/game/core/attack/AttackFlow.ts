@@ -32,7 +32,6 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private declareAttack() {
-        this.attack.attacker.registerAttackKeywords();
         this.attack.attacker.setActiveAttack(this.attack);
         this.attack.target.setActiveAttack(this.attack);
 
@@ -121,12 +120,6 @@ export class AttackFlow extends BaseStepWithPipeline {
     private completeAttack() {
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, {
             attack: this.attack,
-            handler: () => {
-                // only unregister if the attacker hasn't been moved out of the play area (e.g. defeated)
-                if (this.attack.isAttackerInPlay()) {
-                    this.attack.attacker.unregisterAttackKeywords();
-                }
-            }
         }, true);
     }
 

@@ -4,8 +4,6 @@ import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
 import type { IOngoingCardEffect } from './ongoingEffect/IOngoingCardEffect';
 import type Game from './Game';
-import type { GameSystem } from './gameSystem/GameSystem';
-import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import type Player from './Player';
 
 export abstract class GameObject {
@@ -41,15 +39,6 @@ export abstract class GameObject {
 
     public hasOngoingEffect(type: EffectName) {
         return this.getOngoingEffectValues(type).length > 0;
-    }
-
-    public allowGameAction(actionType: string, context = this.game.getFrameworkContext()) {
-        const gameActionFactory = GameSystems[actionType];
-        if (gameActionFactory) {
-            const gameSystem: GameSystem = gameActionFactory();
-            return gameSystem.canAffect(this, context);
-        }
-        return !this.hasRestriction(actionType, context);
     }
 
     /**

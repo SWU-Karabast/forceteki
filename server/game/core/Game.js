@@ -23,10 +23,10 @@ const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAb
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { SimultaneousEffectWindow } = require('./gameSteps/SimultaneousEffectWindow.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
-const Contract = require('./utils/Contract');
+const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
-// const { Conflict } = require('./conflict.js');
-// const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
+// const { Conflict } = require('./conflict');
+// const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
 const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
@@ -36,6 +36,7 @@ const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
 const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.js');
+const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -54,8 +55,8 @@ class Game extends EventEmitter {
         this.started = false;
         this.playStarted = false;
         this.createdAt = new Date();
-        this.savedGameId = details.savedGameId;
-        this.gameType = details.gameType;
+        // this.savedGameId = details.savedGameId;
+        // this.gameType = details.gameType;
         this.currentAbilityWindow = null;
         this.currentActionWindow = null;
         this.currentEventWindow = null;
@@ -71,6 +72,8 @@ class Game extends EventEmitter {
         this.actionPhaseActivePlayer = null;
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
+
+        this.registerGlobalRulesListeners();
 
         this.shortCardData = options.shortCardData || [];
 
@@ -203,6 +206,10 @@ class Game extends EventEmitter {
         });
 
         return otherPlayer;
+    }
+
+    registerGlobalRulesListeners() {
+        UnitPropertiesCard.registerRulesListeners(this);
     }
 
     /**
@@ -688,7 +695,7 @@ class Game extends EventEmitter {
             return;
         }
 
-        player.timerSettings[settingName] = toggle;
+        // player.timerSettings[settingName] = toggle;
     }
 
     /*
@@ -709,7 +716,7 @@ class Game extends EventEmitter {
     }
 
     toggleManualMode(playerName) {
-        this.chatCommands.manual(playerName);
+        // this.chatCommands.manual(playerName);
     }
 
     /*
@@ -1261,39 +1268,35 @@ class Game extends EventEmitter {
     //     let playerState = {};
     //     let ringState = {};
     //     let conflictState = {};
+    //     let { blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner } = this.owner;
+    // if (this.started) {
+    // for (const player of this.getPlayers()) {
+    //     playerState[player.name] = player.getState(activePlayer);
+    // }
 
-    //     if (this.started) {
-    //         for (const player of this.getPlayers()) {
-    //             playerState[player.name] = player.getState(activePlayer);
-    //         }
-
-    //         if (this.currentPhase === 'conflict' && this.currentConflict) {
-    //             conflictState = this.currentConflict.getSummary();
-    //         }
-
+    // return {
+    //     id: this.id,
+    //     manualMode: this.manualMode,
+    //     name: this.name,
+    //     owner: simplifiedOwner,
+    //     players: playerState,
+    //     rings: ringState,
+    //     conflict: conflictState,
+    //     phase: this.currentPhase,
+    //     // messages: this.gameChat.messages,
+    //     spectators: this.getSpectators().map((spectator) => {
     //         return {
-    //             id: this.id,
-    //             manualMode: this.manualMode,
-    //             name: this.name,
-    //             owner: _.omit(this.owner, ['blocklist', 'email', 'emailHash', 'promptedActionWindows', 'settings']),
-    //             players: playerState,
-    //             rings: ringState,
-    //             conflict: conflictState,
-    //             phase: this.currentPhase,
-    //             messages: this.gameChat.messages,
-    //             spectators: this.getSpectators().map((spectator) => {
-    //                 return {
-    //                     id: spectator.id,
-    //                     name: spectator.name
-    //                 };
-    //             }),
-    //             started: this.started,
-    //             gameMode: this.gameMode,
-    //             winner: this.winner ? this.winner.name : undefined
+    //             id: spectator.id,
+    //             name: spectator.name
     //         };
-    //     }
+    //     }),
+    //     started: this.started,
+    //     gameMode: this.gameMode,
+    //     winner: this.winner ? this.winner.name : undefined
+    // };
+    // }
 
-    //     return this.getSummary(notInactivePlayerName);
+    // return this.getSummary(notInactivePlayerName);
     // }
 
     // /*

@@ -11,7 +11,6 @@ describe('Del Meeko, Providing Overwatch', function() {
                     },
                     player2: {
                         groundArena: ['wampa'],
-                        spaceArena: ['grogu#irresistible'],
                         hand: ['daring-raid', 'repair'],
                         leader: 'director-krennic#aspiring-to-authority',
                         base: 'kestro-city'
