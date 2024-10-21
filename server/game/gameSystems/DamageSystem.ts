@@ -35,10 +35,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         const { amount, target, isCombatDamage, isOverwhelmDamage } = this.generatePropertiesFromContext(context);
 
         const damageTypeStr = isCombatDamage
-            ? 'combat'
-            : isOverwhelmDamage ? 'overwhelm' : '';
+            ? ' combat'
+            : isOverwhelmDamage ? ' overwhelm' : '';
 
-        return ['deal {0} {1} damage to {2}', [amount, damageTypeStr, target]];
+        return ['deal {0}{1} damage to {2}', [amount, damageTypeStr, target]];
     }
 
     public override canAffect(card: Card, context: TContext): boolean {

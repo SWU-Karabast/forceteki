@@ -204,7 +204,7 @@ class GameFlowWrapper {
         // pass in an empty object as the "damage source"
         if (damageDiff > 0) {
             card.addDamage(damageDiff, {});
-        } else {
+        } else if (damageDiff < 0) {
             card.removeDamage(-damageDiff, {});
         }
     }

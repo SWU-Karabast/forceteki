@@ -307,8 +307,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.checkDefeated(source);
         }
 
-        // TODO: FFG has yet to release detailed rules about how effects like Snoke are used to determine which player defeated a unit.
-        // need to come through and implement that in the methods below once rules 3.0 comes out.
+        // TODO: FFG has yet to release detailed rules about how effects are used to determine which player defeated a unit,
+        // specifically for complex cases like "what if Dodonna effect is keeping a Rebel unit alive and Dodonna is defeated."
+        // Need to come through and implement that in the methods below once rules 3.0 comes out.
 
         /** Checks if the unit has been defeated due to an ongoing effect such as hp reduction */
         public checkDefeatedByOngoingEffect() {
