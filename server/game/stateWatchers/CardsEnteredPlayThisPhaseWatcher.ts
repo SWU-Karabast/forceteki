@@ -2,8 +2,8 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import Player from '../core/Player';
-import { InPlayCard } from '../core/card/CardTypes';
 import { Card } from '../core/card/Card';
+import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 
 export interface EnteredCardEntry {
     card: InPlayCard;

@@ -20,7 +20,7 @@ import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/Saboteu
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import type Game from '../../Game';
 import { GameEvent } from '../../event/GameEvent';
-import { IDamageOrDefeatSource, INonFrameworkDamageOrDefeatSource } from '../../../IDamageOrDefeatSource';
+import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
@@ -301,7 +301,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number, source: INonFrameworkDamageOrDefeatSource): void {
+        public override addDamage(amount: number, source: IDamageSource): void {
             super.addDamage(amount, source);
 
             this.checkDefeated(source);
@@ -313,13 +313,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         /** Checks if the unit has been defeated due to an ongoing effect such as hp reduction */
         public checkDefeatedByOngoingEffect() {
-            this.checkDefeated(null);
+            this.checkDefeated(DefeatSourceType.FrameworkEffect);
         }
 
-        private checkDefeated(source?: IDamageOrDefeatSource) {
+        private checkDefeated(source: IDamageSource | DefeatSourceType.FrameworkEffect) {
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 // add defeat event to window
-                this.game.addSubwindowEvents(new DefeatCardSystem({ target: this, damageSource: source }).generateEvent(this, this.game.getFrameworkContext()));
+                this.game.addSubwindowEvents(new DefeatCardSystem({ target: this, defeatSource: source }).generateEvent(this, this.game.getFrameworkContext()));
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
                 this._pendingDefeat = true;

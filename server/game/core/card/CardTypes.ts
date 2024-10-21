@@ -1,4 +1,5 @@
 import { BaseCard } from './BaseCard';
+import { InPlayCard } from './baseClasses/InPlayCard';
 import { EventCard } from './EventCard';
 import { LeaderCard } from './LeaderCard';
 import { LeaderUnitCard } from './LeaderUnitCard';

@@ -1,13 +1,14 @@
 import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { AbilityType, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
-import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import { CardType, Location, WildcardLocation } from '../../Constants';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
+import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -151,7 +152,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.updateTriggeredAbilityEvents(prevLocation, this.location);
         this.updateConstantAbilityEffects(prevLocation, this.location);
 
-        if (this.unique) {
+        if (this.unique && EnumHelpers.isArena(this.location)) {
             this.checkUnique();
         }
     }
@@ -173,6 +174,13 @@ export class InPlayCard extends PlayableOrDeployableCard {
         );
 
         const duplicateToRemove = uniqueDuplicatesInPlay[0];
+
+        const duplicateDefeatSystem = new DefeatCardSystem({
+            target: this,
+            defeatSource: DefeatSourceType.UniqueRule
+        });
+
+        this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(duplicateToRemove, this.game.getFrameworkContext()));
     }
 
     /** Register / un-register the event triggers for any triggered abilities */
