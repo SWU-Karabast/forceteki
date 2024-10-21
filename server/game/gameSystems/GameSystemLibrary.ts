@@ -66,7 +66,7 @@ import { SequentialSystem } from './SequentialSystem';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { IScryProperties, ScrySystem } from './ScrySystem';
+import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoverDeckCardsTopOrBottomSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -136,6 +136,11 @@ export function heal<TContext extends AbilityContext = AbilityContext>(propertyF
 export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookAtProperties, TContext> = {}): GameSystem<TContext> {
     return new LookAtSystem<TContext>(propertyFactory);
 }
+
+export function LookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>): CardTargetSystem<TContext> {
+    return new LookMoveDeckCardsTopOrBottomSystem<TContext>(propertyFactory);
+}
+
 
 /**
  * default switch = false
@@ -330,10 +335,6 @@ export function conditional<TContext extends AbilityContext = AbilityContext>(pr
 // export function menuPrompt(propertyFactory: PropsFactory<MenuPromptProperties>): GameSystem {
 //     return new MenuPromptAction(propertyFactory);
 // }
-
-export function scry<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IScryProperties, TContext>): CardTargetSystem<TContext> {
-    return new ScrySystem<TContext>(propertyFactory);
-}
 
 export function selectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectCardProperties<TContext>, TContext>): GameSystem<TContext> {
     return new SelectCardSystem<TContext>(propertyFactory);

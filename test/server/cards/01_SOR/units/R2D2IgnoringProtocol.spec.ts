@@ -14,20 +14,20 @@ describe('R2D2 - Ignoring Protocol', function() {
                 });
             });
 
-            it('While playing/attacking lets you look at the top card of the deck and decide whether to put it on the bottom or top of deck.', function () {
+            it('while playing/attacking lets you look at the top card of the deck and decide whether to put it on the bottom or top of deck.', function () {
                 const { context } = contextRef;
                 let preSwapDeck = context.player1.deck;
 
                 // Case 1 on play move top card to bottom
                 context.player1.clickCard(context.r2d2);
-                context.player1.clickPrompt('foundling-bottom');
+                expect(context.player1).toHaveExactPromptButtons(['Put foundling to bottom', 'Put foundling on top']);
+                context.player1.clickPrompt('Put foundling to bottom');
 
                 // check board state
                 expect(context.player1.deck.length).toBe(5);
                 expect(context.player1.deck[0]).toEqual(preSwapDeck[1]);
                 expect(context.player1.deck[4]).toEqual(preSwapDeck[0]);
                 expect(context.player2).toBeActivePlayer();
-
 
                 // restart state
                 context.player2.passAction();
@@ -37,10 +37,35 @@ describe('R2D2 - Ignoring Protocol', function() {
                 // Case 2 on attack move to top
                 context.player1.clickCard(context.r2d2);
                 context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('pyke-sentinel-top');
+                expect(context.player1).toHaveExactPromptButtons(['Put pyke-sentinel on top', 'Put pyke-sentinel to bottom']);
+                context.player1.clickPrompt('Put pyke-sentinel on top');
+
                 // Check board state
                 expect(context.player1.deck.length).toBe(5);
                 expect(context.player1.deck).toEqual(preSwapDeck);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+        describe('R2D2 - Ignoring Protocol\'s ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['r2d2#ignoring-protocol'],
+                        deck: [],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                    }
+                });
+            });
+
+            it('while playing shouldn\'t trigger because the deck is empty.', function () {
+                const { context } = contextRef;
+                context.player1.clickCard(context.r2d2);
+
+                // check board state
+                expect(context.player1.deck.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
         });

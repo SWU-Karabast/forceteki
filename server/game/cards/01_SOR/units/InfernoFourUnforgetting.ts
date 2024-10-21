@@ -11,17 +11,13 @@ export default class InfernoFourUnforgetting extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+        this.addTriggeredAbility({
             title: 'Look at the top 2 cards of your deck. Put any number of them on the bottom of your deck and the rest on top in any order.',
-            immediateEffect: AbilityHelper.immediateEffects.scry({
-                amount: 2,
-            })
-        });
-        this.addWhenDefeatedAbility({
-            title: 'Look at the top 2 cards of your deck. Put any number of them on the bottom of your deck and the rest on top in any order.',
-            immediateEffect: AbilityHelper.immediateEffects.scry({
-                amount: 2,
-            })
+            when: {
+                onCardPlayed: (event, context) => event.card === context.source,
+                onCardDefeated: (event, context) => event.card === context.source,
+            },
+            immediateEffect: AbilityHelper.immediateEffects.LookMoveDeckCardsTopOrBottom({ amount: 2 })
         });
     }
 }

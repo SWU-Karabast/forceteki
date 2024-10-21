@@ -11,18 +11,13 @@ export default class R2D2IgnoringProtocol extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
-            title: 'Look at the top card of your deck. You may put it on the bottom of your deck.',
-            immediateEffect: AbilityHelper.immediateEffects.scry({
-                amount: 1,
-            })
-        });
-
-        this.addOnAttackAbility({
-            title: 'Look at the top card of your deck. You may put it on the bottom of your deck.',
-            immediateEffect: AbilityHelper.immediateEffects.scry({
-                amount: 1,
-            })
+        this.addTriggeredAbility({
+            title: 'Look at the top 2 cards of your deck. Put any number of them on the bottom of your deck and the rest on top in any order.',
+            when: {
+                onCardPlayed: (event, context) => event.card === context.source,
+                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+            },
+            immediateEffect: AbilityHelper.immediateEffects.LookMoveDeckCardsTopOrBottom({ amount: 1 })
         });
     }
 }
