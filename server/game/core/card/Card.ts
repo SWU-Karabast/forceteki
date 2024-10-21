@@ -40,6 +40,7 @@ export class Card extends OngoingEffectSource {
     public static implemented = false;
 
     public readonly aspects: Aspect[] = [];
+    public override readonly id: string;
     public readonly internalName: string;
     public readonly subtitle?: string;
     public readonly title: string;
@@ -47,7 +48,6 @@ export class Card extends OngoingEffectSource {
 
     public controller: Player;
 
-    protected override readonly id: string;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;

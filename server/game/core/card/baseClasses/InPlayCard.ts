@@ -150,6 +150,29 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(prevLocation, this.location);
         this.updateConstantAbilityEffects(prevLocation, this.location);
+
+        if (this.unique) {
+            this.checkUnique();
+        }
+    }
+
+    private checkUnique() {
+        Contract.assertTrue(this.unique);
+
+        // need to filter for other cards that have unique = true since Clone will create non-unique duplicates
+        const uniqueDuplicatesInPlay = this.controller.getDuplicatesInPlay(this)
+            .filter((duplicateCard) => duplicateCard.unique);
+
+        if (uniqueDuplicatesInPlay.length === 0) {
+            return;
+        }
+
+        Contract.assertTrue(
+            uniqueDuplicatesInPlay.length < 2,
+            `Found that ${this.controller.name} has ${uniqueDuplicatesInPlay.length} duplicates of ${this.internalName} in play`
+        );
+
+        const duplicateToRemove = uniqueDuplicatesInPlay[0];
     }
 
     /** Register / un-register the event triggers for any triggered abilities */
