@@ -20,6 +20,8 @@ import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/Saboteu
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import type Game from '../../Game';
 import { GameEvent } from '../../event/GameEvent';
+import { IDamageOrDefeatSource, INonFrameworkDamageOrDefeatSource } from '../../../IDamageOrDefeatSource';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -299,15 +301,27 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number): void {
-            super.addDamage(amount);
+        public override addDamage(amount: number, source: INonFrameworkDamageOrDefeatSource): void {
+            super.addDamage(amount, source);
 
-            this.checkDefeated();
+            this.checkDefeated(source);
         }
 
-        public checkDefeated() {
+        // TODO: FFG has yet to release detailed rules about how effects are used to determine which player defeated a unit,
+        // specifically for complex cases like "what if Dodonna effect is keeping a Rebel unit alive and Dodonna is defeated."
+        // Need to come through and implement that in the methods below once rules 3.0 comes out.
+
+        /** Checks if the unit has been defeated due to an ongoing effect such as hp reduction */
+        public checkDefeatedByOngoingEffect() {
+            this.checkDefeated(null);
+        }
+
+        private checkDefeated(source?: IDamageOrDefeatSource) {
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
-                this.owner.defeatCard(this);
+                // add defeat event to window
+                this.game.addSubwindowEvents(new DefeatCardSystem({ target: this, damageSource: source }).generateEvent(this, this.game.getFrameworkContext()));
+
+                // mark that this unit has a defeat pending so that other effects targeting it will not resolve
                 this._pendingDefeat = true;
             }
         }
