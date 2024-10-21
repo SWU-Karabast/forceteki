@@ -32,7 +32,6 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private declareAttack() {
-        this.attack.attacker.registerAttackKeywords();
         this.attack.attacker.setActiveAttack(this.attack);
         this.attack.target.setActiveAttack(this.attack);
 
@@ -67,7 +66,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
         if (overwhelmDamageOnly) {
-            AbilityHelper.immediateEffects.damage({ amount: this.attack.getAttackerTotalPower() }).resolve(this.attack.target.controller.base, this.context);
+            this.buildOverwhelmDamageSystem(this.attack.getAttackerTotalPower()).resolve(this.attack.target.controller.base, this.context);
         } else if (attackerDealsDamageBeforeDefender) {
             this.context.game.openEventWindow(this.createAttackerDamageEvent());
             this.context.game.queueSimpleStep(() => {
@@ -90,6 +89,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         const attackerDamageEvent = AbilityHelper.immediateEffects.damage({
             amount: this.attack.getAttackerTotalPower(),
             isCombatDamage: true,
+            sourceAttack: this.attack,
         }).generateEvent(this.attack.target, this.context);
 
         if (this.attack.hasOverwhelm()) {
@@ -100,33 +100,33 @@ export class AttackFlow extends BaseStepWithPipeline {
                     return [];
                 }
 
-                const overwhelmEvent = AbilityHelper.immediateEffects.damage({
-                    amount: event.damage - event.card.remainingHp,
-                }).generateEvent(event.card.controller.base, this.context);
-
-                return [overwhelmEvent];
+                const overwhelmSystem = this.buildOverwhelmDamageSystem(event.damage - event.card.remainingHp);
+                return [overwhelmSystem.generateEvent(event.card.controller.base, this.context)];
             });
         }
 
         return attackerDamageEvent;
     }
 
+    private buildOverwhelmDamageSystem(amount: number) {
+        return AbilityHelper.immediateEffects.damage({
+            amount,
+            isOverwhelmDamage: true,
+            sourceAttack: this.attack
+        });
+    }
+
     private createDefenderDamageEvent(): GameEvent {
         return AbilityHelper.immediateEffects.damage({
             amount: this.attack.getTargetTotalPower(),
-            isCombatDamage: true
+            isCombatDamage: true,
+            sourceAttack: this.attack
         }).generateEvent(this.attack.attacker, this.context);
     }
 
     private completeAttack() {
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, {
             attack: this.attack,
-            handler: () => {
-                // only unregister if the attacker hasn't been moved out of the play area (e.g. defeated)
-                if (this.attack.isAttackerInPlay()) {
-                    this.attack.attacker.unregisterAttackKeywords();
-                }
-            }
         }, true);
     }
 

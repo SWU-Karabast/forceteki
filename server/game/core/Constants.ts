@@ -99,11 +99,13 @@ export enum RelativePlayer {
 }
 
 export enum TargetMode {
-    Ability = 'ability',
     AutoSingle = 'autoSingle',
+    DropdownList = 'dropdownList',
     Exactly = 'exactly',
     ExactlyVariable = 'exactlyVariable',
     MaxStat = 'maxStat',
+    MultiplePlayers = 'multiplePlayers',
+    Player = 'player',
     Select = 'select',
     Single = 'single',
     Unlimited = 'unlimited',
@@ -134,6 +136,8 @@ export enum CardType {
 export enum WildcardCardType {
     Any = 'any',
     NonLeaderUnit = 'nonLeaderUnit',
+    /** Any card type that can be played from hand */
+    Playable = 'playable',
     Token = 'token',
 
     /** Any unit type, including leader and token units */
@@ -293,6 +297,7 @@ export enum Trait {
 }
 
 // TODO: these could stand to be reorganized and cleaned up a bit
+// TODO: fix restrictions on players not being recognized by PlayerTargetResolver
 export enum AbilityRestriction {
 
     /** Restricts a card from being declared as an attacker */

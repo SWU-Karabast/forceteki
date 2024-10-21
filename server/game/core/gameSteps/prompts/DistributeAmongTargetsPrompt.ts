@@ -3,7 +3,7 @@ import Game from '../../Game';
 import Player from '../../Player';
 import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
-import { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptData, StatefulPromptType, IStatefulPromptResults } from '../StatefulPromptInterfaces';
+import { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptData, StatefulPromptType, IStatefulPromptResults } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 /**
@@ -22,11 +22,11 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         private readonly properties: IDistributeAmongTargetsPromptProperties
     ) {
         super(game);
-        this.player = player;
+
         if (!properties.waitingPromptTitle) {
             properties.waitingPromptTitle = 'Waiting for opponent to choose targets for ' + properties.source.name;
         }
-        this.properties = properties;
+
         game.getPlayers().forEach((player) => player.clearSelectableCards());
 
         switch (this.properties.type) {
@@ -51,7 +51,8 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             menuTitle,
             promptTitle: this.properties.promptTitle || (this.properties.source ? this.properties.source.name : undefined),
             distributeAmongTargets: promptData,
-            buttons: this.properties.canChooseNoTargets ? [{ text: 'Choose no targets', arg: 'noTargets' }] : null
+            buttons: this.properties.canChooseNoTargets ? [{ text: 'Choose no targets', arg: 'noTargets' }] : null,
+            promptUuid: this.uuid
         };
     }
 
@@ -74,10 +75,12 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
     }
 
     public override waitingPrompt(): IPlayerPromptStateProperties {
-        return { menuTitle: this.properties.waitingPromptTitle };
+        return { menuTitle: this.properties.waitingPromptTitle, promptUuid: this.uuid };
     }
 
-    public override menuCommand(player: Player, arg: string, method: string): boolean {
+    public override menuCommand(player: Player, arg: string, uuid: string): boolean {
+        this.checkPlayerAndUuid(player, uuid);
+
         if (arg === 'noTargets') {
             this.complete();
             return true;
@@ -86,7 +89,8 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         Contract.fail(`Unexpected menu command: '${arg}'`);
     }
 
-    public override onStatefulPromptResults(player: Player, results: IStatefulPromptResults): boolean {
+    public override onStatefulPromptResults(player: Player, results: IStatefulPromptResults, uuid: string): boolean {
+        this.checkPlayerAndUuid(player, uuid);
         this.assertPromptResultsValid(player, results);
         this.properties.resultsHandler(results);
         this.complete();
@@ -95,8 +99,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
     }
 
     private assertPromptResultsValid(player: Player, results: IStatefulPromptResults) {
-        Contract.assertEqual(player, this.player, `Received prompt results from unexpected player, expected '${this.player.name}' but received results for player '${player.name}'`);
-
         Contract.assertEqual(results.type, this.properties.type, `Unexpected prompt results type, expected '${this.properties.type}' but received result of type '${results.type}'`);
 
         const distributedValues = Array.from(results.valueDistribution.values());

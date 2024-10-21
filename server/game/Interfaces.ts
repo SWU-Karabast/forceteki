@@ -2,13 +2,17 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { IAttackProperties } from './gameSystems/AttackStepsSystem';
-import { type RelativePlayer, type TargetMode, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Aspect } from './core/Constants';
+import { type RelativePlayer, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 import { ICost } from './core/cost/ICost';
+import Game from './core/Game';
+import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
+import Player from './core/Player';
+import OngoingCardEffect from './core/ongoingEffect/OngoingCardEffect';
+import OngoingPlayerEffect from './core/ongoingEffect/OngoingPlayerEffect';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -30,6 +34,19 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
     phase?: PhaseName | 'any';
 };
 
+export interface IOngoingEffectProps {
+    targetLocationFilter?: Location | Location[];
+    canChangeZoneOnce?: boolean;
+    canChangeZoneNTimes?: number;
+    duration?: Duration;
+    condition?: (context: AbilityContext) => boolean;
+    until?: WhenType;
+    ability?: PlayerOrCardAbility;
+    target?: (Player | Card) | (Player | Card)[];
+    cannotBeCancelled?: boolean;
+    optional?: boolean;
+}
+
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
@@ -47,8 +64,8 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     uuid?: string;
 
     // TODO: can we get a real signature here
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    ongoingEffect: Function | Function[];
+
+    ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
 
     createCopies?: boolean;
 }
@@ -77,7 +94,7 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;
     immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
-    then?: ((context?: TriggeredAbilityContext) => IAbilityProps<TriggeredAbilityContext>) | IAbilityProps<TriggeredAbilityContext>;
+    then?: ((context?: TriggeredAbilityContext) => IThenAbilityPropsWithSystems<TriggeredAbilityContext>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext>;
 };
 
 /** Interface definition for setEventAbility */
@@ -85,13 +102,6 @@ export type IEventAbilityProps<TSource extends Card = Card> = IAbilityPropsWithS
 
 /** Interface definition for setEpicActionAbility */
 export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'cost' | 'limit' | 'handler'>;
-
-
-interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
-        'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
-> {
-    replaceWith: IReplacementEffectSystemProperties;
-}
 
 // TODO KEYWORDS: add remaining keywords to this type
 export type IKeywordProperties =
@@ -135,6 +145,12 @@ export interface GainAbilitySource {
 }
 
 // ********************************************** INTERNAL TYPES **********************************************
+interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
+        'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
+> {
+    replaceWith: IReplacementEffectSystemProperties;
+}
+
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
     when: WhenType<TSource>;
 };
@@ -164,8 +180,10 @@ interface IAbilityProps<TContext extends AbilityContext> {
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
-    then?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
 }
+
+type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
 
 interface IAbilityPropsWithTargetResolver<TContext extends AbilityContext> extends IAbilityProps<TContext> {
     targetResolver: IActionTargetResolver<TContext>;
@@ -200,6 +218,10 @@ type IAbilityPropsWithSystems<TContext extends AbilityContext> =
   IAbilityPropsWithTargetResolver<TContext> |
   IAbilityPropsWithTargetResolvers<TContext> |
   IAbilityPropsWithHandler<TContext>;
+
+type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
+    thenCondition?: (context?: TContext) => boolean;
+};
 
 interface IReplacementEffectAbilityWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
     when: WhenType<TSource>;

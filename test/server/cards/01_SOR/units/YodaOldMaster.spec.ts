@@ -6,12 +6,10 @@ describe('Yoda, Old Master', function() {
                     phase: 'action',
                     player1: {
                         groundArena: ['yoda#old-master'],
-                        hand: ['vanquish'],
-                        deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine']
+                        hand: ['vanquish']
                     },
                     player2: {
-                        groundArena: ['rogue-squadron-skirmisher'],
-                        deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine']
+                        groundArena: ['rogue-squadron-skirmisher']
                     }
                 });
             });
@@ -22,9 +20,10 @@ describe('Yoda, Old Master', function() {
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.rogueSquadronSkirmisher);
                 expect(context.yoda).toBeInLocation('discard');
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Done');
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.player2.hand.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();
@@ -36,9 +35,10 @@ describe('Yoda, Old Master', function() {
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.rogueSquadronSkirmisher);
                 expect(context.yoda).toBeInLocation('discard');
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Done');
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player2).toBeActivePlayer();
@@ -50,9 +50,11 @@ describe('Yoda, Old Master', function() {
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.rogueSquadronSkirmisher);
                 expect(context.yoda).toBeInLocation('discard');
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
-                context.player1.clickPrompt('You and Opponent');
+                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Done');
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player2).toBeActivePlayer();
@@ -64,9 +66,9 @@ describe('Yoda, Old Master', function() {
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.rogueSquadronSkirmisher);
                 expect(context.yoda).toBeInLocation('discard');
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'You and Opponent', 'No one']);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
-                context.player1.clickPrompt('No one');
+                context.player1.clickPrompt('Done');
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();

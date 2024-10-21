@@ -56,7 +56,8 @@ export class ResourcePrompt extends AllPlayerPrompt {
             selectCard: true,
             menuTitle: promptText,
             buttons: [],
-            promptTitle: 'Resource Step'
+            promptTitle: 'Resource Step',
+            promptUuid: this.uuid
         };
     }
 

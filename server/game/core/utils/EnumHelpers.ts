@@ -104,6 +104,18 @@ export const isToken = (cardType: CardTypeFilter) => {
     }
 };
 
+export const isPlayable = (cardType: CardTypeFilter) => {
+    switch (cardType) {
+        case WildcardCardType.Playable:
+        case CardType.Event:
+        case CardType.BasicUnit:
+        case CardType.BasicUpgrade:
+            return true;
+        default:
+            return false;
+    }
+};
+
 // return true if the card location matches one of the allowed location filters
 export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilter | CardTypeFilter[]) => {
     if (!Array.isArray(cardTypeFilter)) {
@@ -122,6 +134,8 @@ export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilt
                 return isUpgrade(cardType);
             case WildcardCardType.Token:
                 return isToken(cardType);
+            case WildcardCardType.Playable:
+                return isPlayable(cardType);
             default:
                 return cardType === allowedCardType;
         }
@@ -140,6 +154,8 @@ export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[
             return [CardType.BasicUpgrade, CardType.TokenUpgrade];
         case WildcardCardType.Token:
             return [CardType.TokenUnit, CardType.TokenUpgrade];
+        case WildcardCardType.Playable:
+            return [CardType.Event, CardType.BasicUnit, CardType.BasicUpgrade];
         default:
             return [cardTypeFilter];
     }

@@ -23,10 +23,10 @@ const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAb
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { SimultaneousEffectWindow } = require('./gameSteps/SimultaneousEffectWindow.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
-const Contract = require('./utils/Contract');
+const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
-// const { Conflict } = require('./conflict.js');
-// const ConflictFlow = require('./gamesteps/conflict/conflictflow.js');
+// const { Conflict } = require('./conflict');
+// const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
 const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
@@ -34,6 +34,9 @@ const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
+const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
+const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.js');
+const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -52,8 +55,8 @@ class Game extends EventEmitter {
         this.started = false;
         this.playStarted = false;
         this.createdAt = new Date();
-        this.savedGameId = details.savedGameId;
-        this.gameType = details.gameType;
+        // this.savedGameId = details.savedGameId;
+        // this.gameType = details.gameType;
         this.currentAbilityWindow = null;
         this.currentActionWindow = null;
         this.currentEventWindow = null;
@@ -69,6 +72,8 @@ class Game extends EventEmitter {
         this.actionPhaseActivePlayer = null;
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
+
+        this.registerGlobalRulesListeners();
 
         this.shortCardData = options.shortCardData || [];
 
@@ -201,6 +206,10 @@ class Game extends EventEmitter {
         });
 
         return otherPlayer;
+    }
+
+    registerGlobalRulesListeners() {
+        UnitPropertiesCard.registerRulesListeners(this);
     }
 
     /**
@@ -584,7 +593,22 @@ class Game extends EventEmitter {
     promptWithHandlerMenu(player, properties) {
         Contract.assertNotNullLike(player);
 
-        this.queueStep(new HandlerMenuPrompt(this, player, properties));
+        if (properties.multiSelect) {
+            this.queueStep(new HandlerMenuMultipleSelectionPrompt(this, player, properties));
+        } else {
+            this.queueStep(new HandlerMenuPrompt(this, player, properties));
+        }
+    }
+
+    /**
+     * Prompts a player with a menu for selecting a string from a list of options
+     * @param {Player} player
+     * @param {import('./gameSteps/prompts/DropdownListPrompt.js').IDropdownListPromptProperties} properties
+     */
+    promptWithDropdownListMenu(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DropdownListPrompt(this, player, properties));
     }
 
     /**
@@ -601,6 +625,8 @@ class Game extends EventEmitter {
     /**
      * Prompt for distributing healing or damage among target cards.
      * Response data must be returned via {@link Game.statefulPromptResults}.
+     *
+     * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptProperties} properties
      */
     promptDistributeAmongTargets(player, properties) {
         Contract.assertNotNullLike(player);
@@ -628,13 +654,14 @@ class Game extends EventEmitter {
      * Gets the results of a "stateful" prompt from the frontend. This is for more
      * involved prompts such as distributing damage / healing that require the frontend
      * to gather some state and send back, instead of just individual clicks.
-     * @param {import('./gameSteps/StatefulPromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     * @param {String} uuid - unique identifier of the prompt clicked
      */
-    statefulPromptResults(playerName, result) {
+    statefulPromptResults(playerName, result, uuid) {
         var player = this.getPlayerByName(playerName);
 
         // check to see if the current step in the pipeline is waiting for input
-        return this.pipeline.handleStatefulPromptResults(player, result);
+        return this.pipeline.handleStatefulPromptResults(player, result, uuid);
     }
 
     /**
@@ -668,7 +695,7 @@ class Game extends EventEmitter {
             return;
         }
 
-        player.timerSettings[settingName] = toggle;
+        // player.timerSettings[settingName] = toggle;
     }
 
     /*
@@ -689,7 +716,7 @@ class Game extends EventEmitter {
     }
 
     toggleManualMode(playerName) {
-        this.chatCommands.manual(playerName);
+        // this.chatCommands.manual(playerName);
     }
 
     /*
@@ -1090,7 +1117,7 @@ class Game extends EventEmitter {
             // if the state has changed, check for:
 
             // - any defeated units
-            this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeated());
+            this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeatedByOngoingEffect());
         }
         if (events.length > 0) {
             // check for any delayed effects which need to fire
@@ -1241,39 +1268,35 @@ class Game extends EventEmitter {
     //     let playerState = {};
     //     let ringState = {};
     //     let conflictState = {};
+    //     let { blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner } = this.owner;
+    // if (this.started) {
+    // for (const player of this.getPlayers()) {
+    //     playerState[player.name] = player.getState(activePlayer);
+    // }
 
-    //     if (this.started) {
-    //         for (const player of this.getPlayers()) {
-    //             playerState[player.name] = player.getState(activePlayer);
-    //         }
-
-    //         if (this.currentPhase === 'conflict' && this.currentConflict) {
-    //             conflictState = this.currentConflict.getSummary();
-    //         }
-
+    // return {
+    //     id: this.id,
+    //     manualMode: this.manualMode,
+    //     name: this.name,
+    //     owner: simplifiedOwner,
+    //     players: playerState,
+    //     rings: ringState,
+    //     conflict: conflictState,
+    //     phase: this.currentPhase,
+    //     // messages: this.gameChat.messages,
+    //     spectators: this.getSpectators().map((spectator) => {
     //         return {
-    //             id: this.id,
-    //             manualMode: this.manualMode,
-    //             name: this.name,
-    //             owner: _.omit(this.owner, ['blocklist', 'email', 'emailHash', 'promptedActionWindows', 'settings']),
-    //             players: playerState,
-    //             rings: ringState,
-    //             conflict: conflictState,
-    //             phase: this.currentPhase,
-    //             messages: this.gameChat.messages,
-    //             spectators: this.getSpectators().map((spectator) => {
-    //                 return {
-    //                     id: spectator.id,
-    //                     name: spectator.name
-    //                 };
-    //             }),
-    //             started: this.started,
-    //             gameMode: this.gameMode,
-    //             winner: this.winner ? this.winner.name : undefined
+    //             id: spectator.id,
+    //             name: spectator.name
     //         };
-    //     }
+    //     }),
+    //     started: this.started,
+    //     gameMode: this.gameMode,
+    //     winner: this.winner ? this.winner.name : undefined
+    // };
+    // }
 
-    //     return this.getSummary(notInactivePlayerName);
+    // return this.getSummary(notInactivePlayerName);
     // }
 
     // /*
