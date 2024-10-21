@@ -26,11 +26,8 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     private isChoiceLegal(key: string, context: AbilityContext) {
-        const contextCopy = context.copy({});
-        contextCopy.selects[this.name] = new SelectChoice(key);
-        if (this.name === 'target') {
-            contextCopy.select = key;
-        }
+        const contextCopy = context.copy();
+        this.setTargetResult(contextCopy, key);
         if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
             return false;
         }
@@ -44,6 +41,13 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return choice.hasLegalTarget(contextCopy);
     }
 
+    protected override setTargetResult(context, choice) {
+        context.selects[this.name] = new SelectChoice(choice);
+        if (this.name === 'target') {
+            context.select = choice;
+        }
+    }
+
     protected override getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
         if (!context.selects[this.name]) {
             return [];
@@ -55,19 +59,12 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return [];
     }
 
-    protected override getAllLegalTargets(context): string[] {
-        return Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
-    }
-
     // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player, promptProperties) {
+    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const choices = Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
         const handlers = choices.map((choice) => {
             return () => {
-                context.selects[this.name] = new SelectChoice(choice);
-                if (this.name === 'target') {
-                    context.select = choice;
-                }
+                this.setTargetResult(context, choice);
             };
         });
 
@@ -84,8 +81,9 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         if (handlers.length === 1) {
             handlers[0]();
         } else if (handlers.length > 1) {
-            Object.assign(promptProperties, {
-                activePromptTitle: promptProperties.activePromptTitle || 'Select one',
+            const baseProperties = this.getDefaultProperties(context);
+            const promptProperties = Object.assign(baseProperties, {
+                activePromptTitle: baseProperties.activePromptTitle || 'Select one',
                 choices,
                 handlers
             });

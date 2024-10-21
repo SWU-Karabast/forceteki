@@ -6,7 +6,7 @@ describe('Steadfast Battalion', function () {
                     phase: 'action',
                     player1: {
                         groundArena: ['steadfast-battalion', 'battlefield-marine'],
-                        leader: { card: 'ig88#ruthless-bounty-hunter', deployed: true }
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     },
                     player2: {}
                 });

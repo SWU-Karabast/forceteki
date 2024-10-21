@@ -176,7 +176,7 @@ class EventWindow extends BaseStepWithPipeline {
         const context = this.thenAbilityComponents.context;
         const thenAbility = this.thenAbilityComponents.generator(context);
 
-        const condition = thenAbility.condition || (() => true);
+        const condition = thenAbility.thenCondition || (() => true);
         if (context.events.every((event) => condition(event))) {
             this.game.resolveAbility(thenAbility.createContext(context.player));
         }

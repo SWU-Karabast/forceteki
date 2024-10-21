@@ -3,7 +3,7 @@ import type Player from '../../Player';
 import { BaseStep } from '../BaseStep';
 import * as Contract from '../../utils/Contract';
 import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import { IStatefulPromptResults } from '../StatefulPromptInterfaces';
+import { IStatefulPromptResults } from '../PromptInterfaces';
 
 export abstract class UiPrompt extends BaseStep {
     public completed = false;
@@ -11,7 +11,7 @@ export abstract class UiPrompt extends BaseStep {
 
     public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
 
-    public abstract menuCommand(player: Player, arg: string, method: string): boolean;
+    public abstract menuCommand(player: Player, arg: string, uuid: string): boolean;
 
     public override continue(): boolean {
         const completed = this.isComplete();
@@ -34,11 +34,8 @@ export abstract class UiPrompt extends BaseStep {
     }
 
     public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
-        if (!this.activeCondition(player) || uuid !== this.uuid) {
-            return false;
-        }
-
-        return this.menuCommand(player, arg, method);
+        this.checkPlayerAndUuid(player, uuid);
+        return this.menuCommand(player, arg, uuid);
     }
 
     public waitingPrompt() {
@@ -59,6 +56,12 @@ export abstract class UiPrompt extends BaseStep {
 
     protected activeCondition(player: Player): boolean {
         return true;
+    }
+
+    /** Not used for card clicks since either player can always click on cards */
+    protected checkPlayerAndUuid(player: Player, uuid: string) {
+        Contract.assertTrue(this.activeCondition(player), `Player ${player.name} is not active for this prompt`);
+        Contract.assertEqual(uuid, this.uuid);
     }
 
     private addDefaultCommandToButtons(original?: IPlayerPromptStateProperties) {

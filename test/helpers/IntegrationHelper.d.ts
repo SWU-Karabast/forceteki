@@ -86,5 +86,6 @@ declare namespace jasmine {
         toBeInLocation(location, player?: PlayerInteractionWrapper): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
+        toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
     }
 }

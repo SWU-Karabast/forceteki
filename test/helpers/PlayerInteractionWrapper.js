@@ -489,6 +489,19 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
+    chooseListOption(text) {
+        var currentPrompt = this.player.currentPrompt();
+        if (!currentPrompt.dropdownListOptions.includes(text)) {
+            throw new TestSetupError(
+                `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+            );
+        }
+
+        this.game.menuButton(this.player.name, text, currentPrompt.promptUuid);
+        this.game.continue();
+        // this.checkUnserializableGameState();
+    }
+
     setDistributeDamagePromptState(cardDistributionMap) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
     }
@@ -498,12 +511,14 @@ class PlayerInteractionWrapper {
     }
 
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
+        var currentPrompt = this.player.currentPrompt();
+
         const promptResults = {
             valueDistribution: cardDistributionMap,
             type
         };
 
-        this.game.statefulPromptResults(this.player.name, promptResults);
+        this.game.statefulPromptResults(this.player.name, promptResults, currentPrompt.promptUuid);
         this.game.continue();
         // this.checkUnserializableGameState();
     }

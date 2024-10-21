@@ -6,7 +6,7 @@ describe('Rugged Survivors', function () {
                     phase: 'action',
                     player1: {
                         groundArena: ['rugged-survivors'],
-                        leader: { card: 'ig88#ruthless-bounty-hunter', deployed: true }
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     },
                     player2: {}
                 });

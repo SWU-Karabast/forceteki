@@ -83,8 +83,8 @@ class Player extends GameObject {
             action: true,
             regroup: true
         };
-        this.timerSettings = user.settings.timerSettings || {};
-        this.timerSettings.windowTimer = user.settings.windowTimer;
+        // this.timerSettings = user.settings.timerSettings || {};
+        // this.timerSettings.windowTimer = user.settings.windowTimer;
         this.optionSettings = user.settings.optionSettings;
         this.resetTimerAtEndOfRound = false;
 
@@ -400,7 +400,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {Card | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/CardTypes').PlayableCard | null} the Card,© or null if the deck is empty
      */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {
@@ -1054,9 +1054,9 @@ class Player extends GameObject {
     }
 
     getSummaryForHand(list, activePlayer, hideWhenFaceup) {
-        if (this.optionSettings.sortHandByName) {
-            return this.getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup);
-        }
+        // if (this.optionSettings.sortHandByName) {
+        //     return this.getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup);
+        // }
         return this.getSummaryForCardList(list, activePlayer, hideWhenFaceup);
     }
 
@@ -1148,77 +1148,54 @@ class Player extends GameObject {
     //  * This information is passed to the UI
     //  * @param {Player} activePlayer
     //  */
-    // getState(activePlayer) {
-    //     let isActivePlayer = activePlayer === this;
-    //     let promptState = isActivePlayer ? this.promptState.getState() : {};
-    //     let state = {
-    //         cardPiles: {
-    //             cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
-    //             conflictDiscardPile: this.getSummaryForCardList(this.conflictDiscardPile, activePlayer),
-    //             dynastyDiscardPile: this.getSummaryForCardList(this.dynastyDiscardPile, activePlayer),
-    //             hand: this.getSummaryForHand(this.hand, activePlayer, true),
-    //             removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer),
-    //             provinceDeck: this.getSummaryForCardList(this.provinceDeck, activePlayer, true)
-    //         },
-    //         cardsPlayedThisConflict: this.game.currentConflict
-    //             ? this.game.currentConflict.getNumberOfCardsPlayed(this)
-    //             : NaN,
-    //         disconnected: this.disconnected,
-    //         faction: this.faction,
-    //         hasInitiative: this.hasInitiative(),
-    //         hideProvinceDeck: this.hideProvinceDeck,
-    //         id: this.id,
-    //         imperialFavor: this.imperialFavor,
-    //         left: this.left,
-    //         name: this.name,
-    //         numConflictCards: this.conflictDeck.size(),
-    //         numDynastyCards: this.dynastyDeck.size(),
-    //         numProvinceCards: this.provinceDeck.size(),
-    //         optionSettings: this.optionSettings,
-    //         phase: this.game.currentPhase,
-    //         promptedActionWindows: this.promptedActionWindows,
-    //         showBid: this.showBid,
-    //         stats: this.getStats(),
-    //         timerSettings: this.timerSettings,
-    //         strongholdProvince: this.getSummaryForCardList(this.strongholdProvince, activePlayer),
-    //         user: _.omit(this.user, ['password', 'email'])
-    //     };
+    getState(activePlayer) {
+        let isActivePlayer = activePlayer === this;
+        let promptState = isActivePlayer ? this.promptState.getState() : {};
+        let { email, password, ...safeUser } = this.user;
+        let state = {
+            cardPiles: {
+                // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
+                hand: this.getSummaryForHand(this.hand, activePlayer, true),
+                removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer)
+            },
+            disconnected: this.disconnected,
+            // faction: this.faction,
+            hasInitiative: this.hasInitiative(),
+            id: this.id,
+            left: this.left,
+            name: this.name,
+            // optionSettings: this.optionSettings,
+            phase: this.game.currentPhase,
+            promptedActionWindows: this.promptedActionWindows,
+            showBid: this.showBid,
+            // stats: this.getStats(),
+            // timerSettings: this.timerSettings,
+            user: safeUser
+        };
 
-    //     if (this.additionalPiles && Object.keys(this.additionalPiles)) {
-    //         Object.keys(this.additionalPiles).forEach((key) => {
-    //             if (this.additionalPiles[key].cards.size() > 0) {
-    //                 state.cardPiles[key] = this.getSummaryForCardList(this.additionalPiles[key].cards, activePlayer);
-    //             }
-    //         });
-    //     }
+        if (this.additionalPiles && Object.keys(this.additionalPiles)) {
+            Object.keys(this.additionalPiles).forEach((key) => {
+                if (this.additionalPiles[key].cards.size() > 0) {
+                    state.cardPiles[key] = this.getSummaryForCardList(this.additionalPiles[key].cards, activePlayer);
+                }
+            });
+        }
 
-    //     if (this.showDeck) {
-    //         state.showDeck = true;
-    //         state.cardPiles.deck = this.getSummaryForCardList(this.deck, activePlayer);
-    //     }
+        // if (this.showDeck) {
+        //     state.showDeck = true;
+        //     state.cardPiles.deck = this.getSummaryForCardList(this.deck, activePlayer);
+        // }
 
-    //     if (this.role) {
-    //         state.role = this.role.getSummary(activePlayer);
-    //     }
+        // if (this.role) {
+        //     state.role = this.role.getSummary(activePlayer);
+        // }
 
-    //     if (this.stronghold) {
-    //         state.stronghold = this.stronghold.getSummary(activePlayer);
-    //     }
+        if (this.clock) {
+            state.clock = this.clock.getState();
+        }
 
-    //     if (this.isTopConflictCardShown(activePlayer) && this.conflictDeck.first()) {
-    //         state.conflictDeckTopCard = this.conflictDeck.first().getSummary(activePlayer);
-    //     }
-
-    //     if (this.isTopDynastyCardShown(activePlayer) && this.dynastyDeck.first()) {
-    //         state.dynastyDeckTopCard = this.dynastyDeck.first().getSummary(activePlayer);
-    //     }
-
-    //     if (this.clock) {
-    //         state.clock = this.clock.getState();
-    //     }
-
-    //     return _.extend(state, promptState);
-    // }
+        return { ...state, ...promptState };
+    }
 }
 
 module.exports = Player;

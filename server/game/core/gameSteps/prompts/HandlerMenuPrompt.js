@@ -74,7 +74,8 @@ class HandlerMenuPrompt extends UiPrompt {
             menuTitle: this.properties.activePromptTitle || 'Select one',
             buttons: buttons,
             controls: this.getAdditionalPromptControls(),
-            promptTitle: this.properties.source.name
+            promptTitle: this.properties.source.name,
+            promptUuid: this.uuid
         };
     }
 

@@ -6,6 +6,7 @@ const Contract = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
 const { v4: uuidv4 } = require('uuid');
 const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
+const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -105,6 +106,8 @@ class PlayerOrCardAbility {
         switch (properties.mode) {
             case TargetMode.Select:
                 return new SelectTargetResolver(name, properties, this);
+            case TargetMode.DropdownList:
+                return new DropdownListTargetResolver(name, properties, this);
             case TargetMode.Player:
             case TargetMode.MultiplePlayers:
                 return new PlayerTargetResolver(name, properties, this);

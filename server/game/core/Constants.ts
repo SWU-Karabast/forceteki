@@ -100,6 +100,7 @@ export enum RelativePlayer {
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',
+    DropdownList = 'dropdownList',
     Exactly = 'exactly',
     ExactlyVariable = 'exactlyVariable',
     MaxStat = 'maxStat',
