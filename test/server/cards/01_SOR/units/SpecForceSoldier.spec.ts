@@ -14,7 +14,7 @@ describe('SpecForce Soldier', function () {
                 });
             });
 
-            it('should give an Experience to all damaged friendly unit', function () {
+            it('should remove Sentinel to a unit for this phase', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.specforceSoldier);
