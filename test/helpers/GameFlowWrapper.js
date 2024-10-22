@@ -201,10 +201,11 @@ class GameFlowWrapper {
 
         const damageDiff = damage - card.damage;
 
+        // pass in an empty object as the "damage source"
         if (damageDiff > 0) {
-            card.addDamage(damageDiff);
-        } else {
-            card.removeDamage(-damageDiff);
+            card.addDamage(damageDiff, {});
+        } else if (damageDiff < 0) {
+            card.removeDamage(-damageDiff, {});
         }
     }
 

@@ -22,6 +22,8 @@ type ITriggeredAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarge
 
 type ITriggeredAbilityBasePropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 
+type IActionAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
+
 type IKeywordPropertiesWithGainCondition<TSource extends UpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAbilitySetup(InPlayCard))));
@@ -135,7 +137,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: gainCondition,
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...properties })
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
         });
     }
 
@@ -143,11 +145,13 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is an action ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainActionAbilityTargetingAttached(properties: IActionAbilityProps<UnitCard>, gainCondition: (context: AbilityContext<this>) => boolean = null) {
+    protected addGainActionAbilityTargetingAttached(properties: IActionAbilityPropsWithGainCondition<this, UnitCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: gainCondition,
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Action, ...properties })
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
         });
     }
 
