@@ -83,7 +83,7 @@ describe('Uniqueness rule', function() {
             });
         });
 
-        describe('When a duplicate of a unique card is played that triggers for itself on play,', function() {
+        describe('When a duplicate of a unique card is played that triggers its own ability on play,', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -112,6 +112,37 @@ describe('Uniqueness rule', function() {
                 expect(context.p1Base.damage).toBe(1);
                 expect(context.yularenInHand).toBeInLocation('ground arena');
                 expect(context.yularenInPlay).toBeInLocation('discard');
+            });
+        });
+
+        describe('When a duplicate of a unique card with an ongoing effect is played,', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['supreme-leader-snoke#shadow-ruler'],
+                        groundArena: ['supreme-leader-snoke#shadow-ruler']
+                    },
+                    player2: {
+                        groundArena: ['cell-block-guard']
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1Snokes = context.player1.findCardsByName('supreme-leader-snoke#shadow-ruler');
+                context.snokeInHand = p1Snokes.find((snoke) => snoke.location === 'hand');
+                context.snokeInPlay = p1Snokes.find((snoke) => snoke.location === 'ground arena');
+            });
+
+            it('the ongoing effects should never be active at the same time', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.snokeInHand);
+
+                // Cell block guard should still be alive since the -2/-2 effects never stacked
+                expect(context.cellBlockGuard).toBeInLocation('ground arena');
+                expect(context.snokeInHand).toBeInLocation('ground arena');
+                expect(context.snokeInPlay).toBeInLocation('discard');
             });
         });
     });

@@ -93,8 +93,17 @@ class OngoingEffect {
         if (this.duration !== Duration.Persistent) {
             return true;
         }
-        let effectOnSource = this.source.getConstantAbilities().some((effect) => effect.registeredEffects && effect.registeredEffects.includes(this));
-        return !this.source.facedown && effectOnSource;
+
+        // disable ongoing effects if the card is queued up to be defeated (e.g. due to combat or unique rule)
+        if (this.source.isUnit() && this.source.pendingDefeat) {
+            return false;
+        }
+
+        if (!this.source.getConstantAbilities().some((effect) => effect.registeredEffects && effect.registeredEffects.includes(this))) {
+            return false;
+        }
+
+        return !this.source.facedown;
     }
 
     resolveEffectTargets(stateChanged) {

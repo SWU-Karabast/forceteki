@@ -24,6 +24,16 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 export class InPlayCard extends PlayableOrDeployableCard {
     protected triggeredAbilities: TriggeredAbility[] = [];
 
+    protected _pendingDefeat? = null;
+
+    /**
+     * If true, then this card is queued to be defeated due to an indirect effect (damage, unique rule) but has not yet been removed from the field
+     */
+    public get pendingDefeat() {
+        this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
+        return this._pendingDefeat;
+    }
+
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -37,6 +47,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     public override canBeInPlay(): this is InPlayCard {
         return true;
+    }
+
+    protected setPendingDefeatEnabled(enabledStatus: boolean) {
+        this._pendingDefeat = enabledStatus ? false : null;
     }
 
     // ********************************************** ABILITY GETTERS **********************************************
@@ -152,35 +166,15 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.updateTriggeredAbilityEvents(prevLocation, this.location);
         this.updateConstantAbilityEffects(prevLocation, this.location);
 
-        if (this.unique && EnumHelpers.isArena(this.location)) {
-            this.checkUnique();
+        if (EnumHelpers.isArena(this.location)) {
+            this.setPendingDefeatEnabled(true);
+
+            if (this.unique) {
+                this.checkUnique();
+            }
+        } else {
+            this.setPendingDefeatEnabled(false);
         }
-    }
-
-    private checkUnique() {
-        Contract.assertTrue(this.unique);
-
-        // need to filter for other cards that have unique = true since Clone will create non-unique duplicates
-        const uniqueDuplicatesInPlay = this.controller.getDuplicatesInPlay(this)
-            .filter((duplicateCard) => duplicateCard.unique);
-
-        if (uniqueDuplicatesInPlay.length === 0) {
-            return;
-        }
-
-        Contract.assertTrue(
-            uniqueDuplicatesInPlay.length < 2,
-            `Found that ${this.controller.name} has ${uniqueDuplicatesInPlay.length} duplicates of ${this.internalName} in play`
-        );
-
-        const duplicateToRemove = uniqueDuplicatesInPlay[0];
-
-        const duplicateDefeatSystem = new DefeatCardSystem({
-            target: this,
-            defeatSource: DefeatSourceType.UniqueRule
-        });
-
-        this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(duplicateToRemove, this.game.getFrameworkContext()));
     }
 
     /** Register / un-register the event triggers for any triggered abilities */
@@ -244,5 +238,39 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 triggeredAbility.limit.reset();
             }
         }
+    }
+
+    // ******************************************** UNIQUENESS MANAGEMENT ********************************************
+    public registerPendingUniqueDefeat() {
+        Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
+
+        this._pendingDefeat = true;
+    }
+
+    private checkUnique() {
+        Contract.assertTrue(this.unique);
+
+        // need to filter for other cards that have unique = true since Clone will create non-unique duplicates
+        const uniqueDuplicatesInPlay = this.getDuplicatesInPlayForController();
+        if (uniqueDuplicatesInPlay.length === 0) {
+            return;
+        }
+
+        Contract.assertTrue(
+            uniqueDuplicatesInPlay.length < 2,
+            `Found that ${this.controller.name} has ${uniqueDuplicatesInPlay.length} duplicates of ${this.internalName} in play`
+        );
+
+        const duplicateToRemove = uniqueDuplicatesInPlay[0];
+
+        // TODO THIS PR: shouldn't need to specify target here for this to work
+        const duplicateDefeatSystem = new DefeatCardSystem({ defeatSource: DefeatSourceType.UniqueRule, target: duplicateToRemove });
+        this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(duplicateToRemove, this.game.getFrameworkContext()));
+
+        duplicateToRemove.registerPendingUniqueDefeat();
+    }
+
+    private getDuplicatesInPlayForController() {
+        return this.controller.getDuplicatesInPlay(this).filter((duplicateCard) => duplicateCard.unique);
     }
 }
