@@ -39,6 +39,8 @@ describe('Supreme Leader Snoke, Shadow Ruler', function() {
                 context.player2.clickCard(context.deathStarStormtrooper);
                 expect(context.deathStarStormtrooper).toBeInLocation('discard');
             });
+
+            // double Snoke case is covered in UniqueRule.spec.ts
         });
     });
 });

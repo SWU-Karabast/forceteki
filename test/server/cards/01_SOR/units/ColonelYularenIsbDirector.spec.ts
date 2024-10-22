@@ -28,6 +28,8 @@ describe('Colonel Yularen, ISB Director', function() {
                 // CASE 3: heal happens when another friendly Command unit is played
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.p1Base.damage).toBe(1);
+
+                // double Yularen case is covered in UniqueRule.spec.ts
             });
         });
     });
