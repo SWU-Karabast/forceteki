@@ -82,5 +82,37 @@ describe('Uniqueness rule', function() {
                 expect(context.lukeSkywalkerFaithfulFriend).toBeInLocation('ground arena');
             });
         });
+
+        describe('When a duplicate of a unique card is played that triggers for itself on play,', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['colonel-yularen#isb-director'],
+                        groundArena: ['colonel-yularen#isb-director'],
+                        base: { card: 'nevarro-city', damage: 3 }
+                    },
+                    player2: {
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1Yularens = context.player1.findCardsByName('colonel-yularen#isb-director');
+                context.yularenInHand = p1Yularens.find((yularen) => yularen.location === 'hand');
+                context.yularenInPlay = p1Yularens.find((yularen) => yularen.location === 'ground arena');
+            });
+
+            it('the trigger should happen twice', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.yularenInHand);
+                expect(context.player1).toHaveExactPromptButtons(['Heal 1 damage from your base', 'Heal 1 damage from your base']);
+                context.player1.clickPrompt('Heal 1 damage from your base');
+
+                expect(context.p1Base.damage).toBe(1);
+                expect(context.yularenInHand).toBeInLocation('ground arena');
+                expect(context.yularenInPlay).toBeInLocation('discard');
+            });
+        });
     });
 });
