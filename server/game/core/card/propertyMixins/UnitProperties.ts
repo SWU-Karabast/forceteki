@@ -22,6 +22,7 @@ import type Game from '../../Game';
 import { GameEvent } from '../../event/GameEvent';
 import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
+import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -310,7 +311,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private checkDefeated(source: IDamageSource | DefeatSourceType.FrameworkEffect) {
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 // add defeat event to window
-                this.game.addSubwindowEvents(new DefeatCardSystem({ target: this, defeatSource: source }).generateEvent(this, this.game.getFrameworkContext()));
+                this.game.addSubwindowEvents(
+                    new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
+                        .generateEvent(this, this.game.getFrameworkContext())
+                );
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
                 this._pendingDefeat = true;

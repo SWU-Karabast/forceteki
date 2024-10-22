@@ -9,6 +9,7 @@ import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
+import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -27,7 +28,11 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected _pendingDefeat? = null;
 
     /**
-     * If true, then this card is queued to be defeated due to an indirect effect (damage, unique rule) but has not yet been removed from the field
+     * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
+     * and will be removed from the field after the current event window has finished the resolution step.
+     *
+     * When this is true, most systems cannot target the card and any ongoing effects are disabled.
+     * Triggered abilities are not disabled until it leaves the field.
      */
     public get pendingDefeat() {
         this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
@@ -263,8 +268,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         const duplicateToRemove = uniqueDuplicatesInPlay[0];
 
-        // TODO THIS PR: shouldn't need to specify target here for this to work
-        const duplicateDefeatSystem = new DefeatCardSystem({ defeatSource: DefeatSourceType.UniqueRule, target: duplicateToRemove });
+        const duplicateDefeatSystem = new FrameworkDefeatCardSystem({ defeatSource: DefeatSourceType.UniqueRule, target: duplicateToRemove });
         this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(duplicateToRemove, this.game.getFrameworkContext()));
 
         duplicateToRemove.registerPendingUniqueDefeat();
