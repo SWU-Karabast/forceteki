@@ -168,7 +168,7 @@ describe('Uniqueness rule', function() {
             });
         });
 
-        describe('When a duplicate of a unique card is played which triggers it\'s copy\'s ability on defeat,', function() {
+        describe('When a duplicate of a unique card is played which triggers its copy\'s ability on defeat,', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -204,7 +204,34 @@ describe('Uniqueness rule', function() {
                 expect(context.kallusInHand).toBeInLocation('ground arena');
                 expect(context.kallusInPlay).toBeInLocation('discard');
 
-                // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to no target)
+                // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to no attack target)
+                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
+                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Draw a card');     // this click is for the 'Pass' prompt
+                expect(context.player1.handSize).toBe(handSize + 1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('and the copy from hand is chosen for defeat, the ability should trigger', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kallusInHand);
+
+                const handSize = context.player1.handSize;
+
+                // prompt for defeat step
+                expect(context.player1).toHavePrompt('Choose which copy of Agent Kallus, Seeking the Rebels to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([context.kallusInHand, context.kallusInPlay]);
+                expect(context.kallusInHand).toBeInLocation('ground arena');
+                expect(context.kallusInPlay).toBeInLocation('ground arena');
+
+                // defeat resolves
+                context.player1.clickCard(context.kallusInHand);
+                expect(context.kallusInPlay).toBeInLocation('ground arena');
+                expect(context.kallusInHand).toBeInLocation('discard');
+
+                // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to attacker being defeated)
                 expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
                 context.player1.clickPrompt('Draw a card');
                 context.player1.clickPrompt('Draw a card');     // this click is for the 'Pass' prompt
