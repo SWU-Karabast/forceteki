@@ -75,7 +75,9 @@ class SelectCardPrompt extends UiPrompt {
                 cardCondition(card, context) && this.properties.immediateEffect.canAffect(card, context);
         }
         this.hideIfNoLegalTargets = properties.hideIfNoLegalTargets;
+
         this.selector = properties.selector || CardSelectorFactory.create(this.properties);
+
         this.selectedCards = [];
         if (properties.mustSelect) {
             if (this.selector.hasEnoughSelected(properties.mustSelect, properties.context) && this.selector.numCards > 0 && properties.mustSelect.length >= this.selector.numCards) {

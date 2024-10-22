@@ -8,7 +8,7 @@ import { DefeatCardSystem } from './DefeatCardSystem';
 
 export interface IFrameworkDefeatCardProperties extends ICardTargetSystemProperties {
     defeatSource: IDamageSource | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;
-    target: Card | Card[];
+    target?: Card | Card[];
 }
 
 /**
@@ -39,18 +39,8 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
     }
 
     // fully override the base canAffect method since nothing can interrupt defeat due to framework effect
-    public override canAffect(card: Card, context: TContext): boolean {
-        const { target } = this.generatePropertiesFromContext(context);
-
-        let nonArrayTarget: Card;
-        if (Array.isArray(target)) {
-            Contract.assertArraySize(target, 1);
-            nonArrayTarget = target[0];
-        } else {
-            nonArrayTarget = card;
-        }
-
-        return nonArrayTarget === card;
+    public override canAffect(card: Card): boolean {
+        return card.canBeInPlay() && card.isInPlay();
     }
 
     protected override buildDefeatSourceForType(defeatSourceType: DefeatSourceType, card: Card, context: TContext): IDefeatSource | null {

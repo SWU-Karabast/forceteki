@@ -1,6 +1,6 @@
 import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { CardType, Location, WildcardLocation } from '../../Constants';
+import { CardType, Location, RelativePlayer, WildcardLocation } from '../../Constants';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
@@ -10,6 +10,7 @@ import { Card } from '../Card';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
+import { CardTargetResolver } from '../../ability/abilityTargets/CardTargetResolver';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -266,15 +267,30 @@ export class InPlayCard extends PlayableOrDeployableCard {
             `Found that ${this.controller.name} has ${uniqueDuplicatesInPlay.length} duplicates of ${this.internalName} in play`
         );
 
-        const duplicateToRemove = uniqueDuplicatesInPlay[0];
-
-        const duplicateDefeatSystem = new FrameworkDefeatCardSystem({ defeatSource: DefeatSourceType.UniqueRule, target: duplicateToRemove });
-        this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(duplicateToRemove, this.game.getFrameworkContext()));
-
-        duplicateToRemove.registerPendingUniqueDefeat();
+        const chooseDuplicateToDefeatPromptProperties = {
+            activePromptTitle: `Choose which copy of ${this.title}, ${this.subtitle} to defeat`,
+            waitingPromptTitle: `Waiting for opponent to choose which copy of ${this.title}, ${this.subtitle} to defeat`,
+            locationFilter: WildcardLocation.AnyArena,
+            controller: RelativePlayer.Self,
+            cardCondition: (card: InPlayCard) =>
+                card.unique && card.title === this.title && card.subtitle === this.subtitle && !card.pendingDefeat,
+            onSelect: (player, card) => this.resolveUniqueDefeat(card)
+        };
+        this.game.promptForSelect(this.controller, chooseDuplicateToDefeatPromptProperties);
     }
 
     private getDuplicatesInPlayForController() {
-        return this.controller.getDuplicatesInPlay(this).filter((duplicateCard) => duplicateCard.unique);
+        return this.controller.getDuplicatesInPlay(this).filter(
+            (duplicateCard) => duplicateCard.unique && !duplicateCard.pendingDefeat
+        );
+    }
+
+    private resolveUniqueDefeat(duplicateToDefeat: InPlayCard) {
+        const duplicateDefeatSystem = new FrameworkDefeatCardSystem({ defeatSource: DefeatSourceType.UniqueRule, target: duplicateToDefeat });
+        this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(duplicateToDefeat, this.game.getFrameworkContext()));
+
+        duplicateToDefeat.registerPendingUniqueDefeat();
+
+        return true;
     }
 }
