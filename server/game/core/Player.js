@@ -391,7 +391,11 @@ class Player extends GameObject {
      * @returns {InPlayCard[]} Duplicates of passed card (does not check unique status)
      */
     getDuplicatesInPlay(card) {
-        return this.getArenaCards().filter((otherCard) => otherCard.id === card.id && otherCard !== card);
+        return this.getArenaCards().filter((otherCard) =>
+            otherCard.title === card.title &&
+            otherCard.subtitle === card.subtitle &&
+            otherCard !== card
+        );
     }
 
     /**
