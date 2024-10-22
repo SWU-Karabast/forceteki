@@ -168,6 +168,52 @@ describe('Uniqueness rule', function() {
             });
         });
 
+        describe('When a duplicate of a unique card is played which triggers it\'s copy\'s ability on defeat,', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['agent-kallus#seeking-the-rebels'],
+                        groundArena: ['agent-kallus#seeking-the-rebels'],
+                    },
+                    player2: {
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1Kalluss = context.player1.findCardsByName('agent-kallus#seeking-the-rebels');
+                context.kallusInHand = p1Kalluss.find((kallus) => kallus.location === 'hand');
+                context.kallusInPlay = p1Kalluss.find((kallus) => kallus.location === 'ground arena');
+            });
+
+            it('and the copy in play is chosen for defeat, the ability should trigger', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kallusInHand);
+
+                const handSize = context.player1.handSize;
+
+                // prompt for defeat step
+                expect(context.player1).toHavePrompt('Choose which copy of Agent Kallus, Seeking the Rebels to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([context.kallusInHand, context.kallusInPlay]);
+                expect(context.kallusInHand).toBeInLocation('ground arena');
+                expect(context.kallusInPlay).toBeInLocation('ground arena');
+
+                // defeat resolves
+                context.player1.clickCard(context.kallusInPlay);
+                expect(context.kallusInHand).toBeInLocation('ground arena');
+                expect(context.kallusInPlay).toBeInLocation('discard');
+
+                // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to no target)
+                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
+                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Draw a card');     // this click is for the 'Pass' prompt
+                expect(context.player1.handSize).toBe(handSize + 1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('When a duplicate of a unique card is played,', function() {
             beforeEach(function () {
                 contextRef.setupTest({
