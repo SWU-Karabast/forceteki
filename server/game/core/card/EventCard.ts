@@ -9,12 +9,12 @@ import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import AbilityHelper from '../../AbilityHelper';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { CostAdjustDirection, ICostAdjusterProperties } from '../cost/CostAdjuster';
+import { CostAdjustType, ICostAdjusterProperties } from '../cost/CostAdjuster';
 import { AbilityContext } from '../ability/AbilityContext';
 import { match } from 'assert';
 import { Card } from './Card';
 
-export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<ICostAdjusterProperties, 'cardTypeFilter' | 'match' | 'direction'> {
+export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<ICostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
@@ -85,7 +85,7 @@ export class EventCard extends EventCardParent {
         const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
             cardTypeFilter: CardType.Event,
             match: (card, adjusterSource) => card === adjusterSource,
-            direction: CostAdjustDirection.Decrease
+            costAdjustType: CostAdjustType.Decrease
         });
 
         const costAdjustAbilityProps: IConstantAbilityProps = {

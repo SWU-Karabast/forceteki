@@ -6,31 +6,35 @@ import type Game from '../Game';
 import type Player from '../Player';
 import * as EnumHelpers from '../utils/EnumHelpers';
 
-export enum CostAdjustDirection {
+export enum CostAdjustType {
     Increase = 'increase',
-    Decrease = 'decrease'
+    Decrease = 'decrease',
+
+    /** @deprecated Not yet implemented: TODO with Hera */
+    IgnoreAllAspects = 'ignoreAllAspects',
+
+    /** @deprecated Not yet implemented: TODO with Kylo/Rey */
+    IgnoreSpecificAspects = 'ignoreSpecificAspect'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
 export interface ICostAdjusterProperties {
     cardTypeFilter: CardTypeFilter;
     amount: number | ((card: Card, player: Player) => number);
-    direction: CostAdjustDirection;
+    costAdjustType: CostAdjustType;
     costFloor?: number;
     limit?: IAbilityLimit;
     playingTypes?: PlayType;
     match?: (card: Card, adjusterSource: Card) => boolean;
+    ignoredAspects?: AspectFilter;
 
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
     attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
-
-    /** Aspects to be ignored when paying costs */
-    ignoredAspects?: AspectFilter;
 }
 
 export class CostAdjuster {
     public readonly costFloor: number;
-    public readonly direction: CostAdjustDirection;
+    public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspects: AspectFilter;
     private amount: number | ((card: Card, player: Player) => number);
     private match?: (card: Card, adjusterSource: Card) => boolean;
@@ -46,8 +50,8 @@ export class CostAdjuster {
     ) {
         this.amount = properties.amount || 1;
         this.costFloor = properties.costFloor || 0;
-        this.direction = properties.direction;
-        this.ignoredAspects = properties.ignoredAspects;
+        this.costAdjustType = properties.costAdjustType;
+        this.ignoredAspects = properties.ignoredAspects || null;
         this.match = properties.match;
         this.cardTypeFilter = properties.cardTypeFilter;
         this.attachTargetCondition = properties.attachTargetCondition;

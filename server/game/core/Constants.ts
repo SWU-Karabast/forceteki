@@ -220,13 +220,7 @@ export enum Aspect {
     Villainy = 'villainy',
 }
 
-export enum WildcardAspect {
-    All = 'all'
-    // TODO: Add other wildcards such as non-hero, non-villain, etc.
-
-}
-
-export type AspectFilter = Aspect | WildcardAspect;
+export type AspectFilter = Aspect | Aspect[];
 
 export enum KeywordName {
     Ambush = 'ambush',

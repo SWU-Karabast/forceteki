@@ -2,7 +2,7 @@ const { GameObject } = require('./GameObject');
 const { Deck } = require('../Deck.js');
 const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
-const { CostAdjuster, CostAdjustDirection } = require('./cost/CostAdjuster');
+const { CostAdjuster, CostAdjustType } = require('./cost/CostAdjuster');
 const GameSystems = require('../gameSystems/GameSystemLibrary');
 const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
@@ -663,17 +663,18 @@ class Player extends GameObject {
             adjuster.canAdjust(playingType, card, target, ignoreType, penaltyAspect)
         );
         var costIncreases = matchingAdjusters
-            .filter((adjuster) => adjuster.direction === CostAdjustDirection.Increase)
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
         var costDecreases = matchingAdjusters
-            .filter((adjuster) => adjuster.direction === CostAdjustDirection.Decrease)
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Decrease)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
-        var ignoreAspectPenalty = matchingAdjusters
-            .filter((adjuster) => adjuster.ignoredAspects === penaltyAspect)
-            .reduce((cost, adjuster) => cost + 2, 0);
+        // TODO: Implement Aspect Penalty ignore
+        // var ignoreAspectPenalty = matchingAdjusters
+        //     .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects)
+        //     .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 2);
 
         baseCost += costIncreases;
-        var reducedCost = baseCost - costDecreases - ignoreAspectPenalty;
+        var reducedCost = baseCost - costDecreases;
 
         // TODO: not 100% sure what the use case for this line is
         var costFloor = Math.min(baseCost, Math.max(...matchingAdjusters.map((adjuster) => adjuster.costFloor)));

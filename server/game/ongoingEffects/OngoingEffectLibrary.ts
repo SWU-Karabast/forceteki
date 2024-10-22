@@ -15,7 +15,7 @@ import { IAbilityPropsWithType, IActionAbilityProps, IActionAbilityPropsWithType
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
-import { CostAdjustDirection, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { CostAdjustType, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -209,13 +209,14 @@ export = {
     //     }),
     // changePlayerSkillModifier: (value) => OngoingEffectBuilder.player.flexible(EffectName.ChangePlayerSkillModifier, value),
     // customDetachedPlayer: (properties) => OngoingEffectBuilder.player.detached(EffectName.CustomEffect, properties),
-    decreaseCost: (properties: Omit<ICostAdjusterProperties, 'direction'>) => modifyCost(Object.assign(properties, { direction: CostAdjustDirection.Decrease })),
+    decreaseCost: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.Decrease })),
     // gainActionPhasePriority: () =>
     //     OngoingEffectBuilder.player.detached(EffectName.GainActionPhasePriority, {
     //         apply: (player) => (player.actionPhasePriority = true),
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
-    increaseCost: (properties: Omit<ICostAdjusterProperties, 'direction'>) => modifyCost(Object.assign(properties, { direction: CostAdjustDirection.Increase })),
+    increaseCost: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.Increase })),
+    ignoreAspects: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.Decrease })),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>
