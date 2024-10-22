@@ -61,7 +61,7 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
                 // TODO: this is a workaround until we get comp rules 3.0
                 return null;
             default:
-                Contract.fail(`Unexpected value for defeat source: ${defeatSourceType}`);
+                Contract.fail(`Unexpected value for framework defeat source: ${defeatSourceType}`);
         }
     }
 }
