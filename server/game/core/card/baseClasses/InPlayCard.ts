@@ -267,9 +267,11 @@ export class InPlayCard extends PlayableOrDeployableCard {
             `Found that ${this.controller.name} has ${uniqueDuplicatesInPlay.length} duplicates of ${this.internalName} in play`
         );
 
+        const unitDisplayName = this.title + (this.subtitle ? ', ' + this.subtitle : '');
+
         const chooseDuplicateToDefeatPromptProperties = {
-            activePromptTitle: `Choose which copy of ${this.title}, ${this.subtitle} to defeat`,
-            waitingPromptTitle: `Waiting for opponent to choose which copy of ${this.title}, ${this.subtitle} to defeat`,
+            activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
+            waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
             locationFilter: WildcardLocation.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>
