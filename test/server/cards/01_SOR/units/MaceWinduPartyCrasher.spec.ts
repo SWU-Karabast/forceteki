@@ -18,7 +18,7 @@ describe('Mace Windu, Party Crasher', function() {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
-                    context.maceWindu.damage = 0;
+                    context.setDamage(context.maceWindu, 0);
                     if (passAction) {
                         context.player2.passAction();
                     }
