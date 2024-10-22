@@ -668,9 +668,12 @@ class Player extends GameObject {
         var costDecreases = matchingAdjusters
             .filter((adjuster) => adjuster.direction === CostAdjustDirection.Decrease)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
+        var ignoreAspectPenalty = matchingAdjusters
+            .filter((adjuster) => adjuster.ignoredAspects === penaltyAspect)
+            .reduce((cost, adjuster) => cost + 2, 0);
 
         baseCost += costIncreases;
-        var reducedCost = baseCost - costDecreases;
+        var reducedCost = baseCost - costDecreases - ignoreAspectPenalty;
 
         // TODO: not 100% sure what the use case for this line is
         var costFloor = Math.min(baseCost, Math.max(...matchingAdjusters.map((adjuster) => adjuster.costFloor)));

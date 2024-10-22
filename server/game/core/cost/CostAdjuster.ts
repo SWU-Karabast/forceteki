@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import { CardType, PlayType, Aspect, CardTypeFilter } from '../Constants';
+import { CardType, PlayType, Aspect, CardTypeFilter, AspectFilter } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -24,13 +24,14 @@ export interface ICostAdjusterProperties {
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
     attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
 
-    /** @deprecated not implemented yet */
-    penaltyAspect?: Aspect;
+    /** Aspects to be ignored when paying costs */
+    ignoredAspects?: AspectFilter;
 }
 
 export class CostAdjuster {
     public readonly costFloor: number;
     public readonly direction: CostAdjustDirection;
+    public readonly ignoredAspects: AspectFilter;
     private amount: number | ((card: Card, player: Player) => number);
     private match?: (card: Card, adjusterSource: Card) => boolean;
     private cardTypeFilter?: CardTypeFilter;
@@ -41,14 +42,12 @@ export class CostAdjuster {
     public constructor(
         private game: Game,
         private source: Card,
-        properties: ICostAdjusterProperties,
-
-        /** @deprecated not implemented yet */
-        private penaltyAspect?: Aspect
+        properties: ICostAdjusterProperties
     ) {
         this.amount = properties.amount || 1;
         this.costFloor = properties.costFloor || 0;
         this.direction = properties.direction;
+        this.ignoredAspects = properties.ignoredAspects;
         this.match = properties.match;
         this.cardTypeFilter = properties.cardTypeFilter;
         this.attachTargetCondition = properties.attachTargetCondition;
@@ -61,14 +60,14 @@ export class CostAdjuster {
         }
     }
 
-    public canAdjust(playingType: PlayType, card: Card, attachTarget?: Card, ignoreType = false, penaltyAspect?: Aspect): boolean {
+    public canAdjust(playingType: PlayType, card: Card, attachTarget?: Card, ignoreType = false, ignoredAspects?: Aspect): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (!ignoreType && this.cardTypeFilter && !EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter)) {
             return false;
         } else if (this.playingTypes && !this.playingTypes.includes(playingType)) {
             return false;
-        } else if (this.penaltyAspect && this.penaltyAspect !== penaltyAspect) {
+        } else if (this.ignoredAspects && this.ignoredAspects !== ignoredAspects) {
             return false;
         }
         const context = this.game.getFrameworkContext(card.controller);
