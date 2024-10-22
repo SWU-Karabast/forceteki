@@ -1,6 +1,6 @@
-describe('Bossk, Deadly Stalker', function() {
-    integration(function(contextRef) {
-        describe('Bossk\'s ability', function() {
+describe('Bossk, Deadly Stalker', function () {
+    integration(function (contextRef) {
+        describe('Bossk\'s ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -21,6 +21,7 @@ describe('Bossk, Deadly Stalker', function() {
                 context.player1.clickCard(context.smugglersAid);
                 // bossk triggers
                 expect(context.player1).toBeAbleToSelectExactly([context.bossk, context.greenSquadronAwing]);
+                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.greenSquadronAwing);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.greenSquadronAwing.damage).toBe(2);
@@ -33,6 +34,7 @@ describe('Bossk, Deadly Stalker', function() {
                 context.player1.clickCard(context.tacticalAdvantage);
                 context.player1.clickCard(context.bossk);
                 expect(context.player1).toBeAbleToSelectExactly([context.bossk, context.greenSquadronAwing]);
+                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.greenSquadronAwing);
 
                 // shield was destroyed
