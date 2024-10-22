@@ -168,6 +168,74 @@ describe('Uniqueness rule', function() {
             });
         });
 
+        describe('When a duplicate of a unique card is played,', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['admiral-motti#brazen-and-scornful'],
+                        groundArena: [{ card: 'admiral-motti#brazen-and-scornful', exhausted: true }],
+                        base: { card: 'nevarro-city', damage: 3 }
+                    },
+                    player2: {
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1Mottis = context.player1.findCardsByName('admiral-motti#brazen-and-scornful');
+                context.mottiInHand = p1Mottis.find((motti) => motti.location === 'hand');
+                context.mottiInPlay = p1Mottis.find((motti) => motti.location === 'ground arena');
+            });
+
+            it('and the in play copy is chosen for defeat, it should be able to target the copy from hand with a when defeated ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.mottiInHand);
+
+                // prompt for defeat step
+                expect(context.player1).toHavePrompt('Choose which copy of Admiral Motti, Brazen and Scornful to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([context.mottiInHand, context.mottiInPlay]);
+                expect(context.mottiInHand).toBeInLocation('ground arena');
+                expect(context.mottiInPlay).toBeInLocation('ground arena');
+
+                // defeat resolves
+                context.player1.clickCard(context.mottiInPlay);
+                expect(context.mottiInHand).toBeInLocation('ground arena');
+                expect(context.mottiInPlay).toBeInLocation('discard');
+
+                // triggered ability from defeated Motti
+                expect(context.player1).toHavePassAbilityPrompt('Ready a Villainy unit');
+                context.player1.clickPrompt('Ready a Villainy unit');
+                expect(context.mottiInHand.exhausted).toBe(false);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('and the copy from hand is chosen for defeat, it should be able to target the copy in play with a when defeated ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.mottiInHand);
+
+                // prompt for defeat step
+                expect(context.player1).toHavePrompt('Choose which copy of Admiral Motti, Brazen and Scornful to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([context.mottiInHand, context.mottiInPlay]);
+                expect(context.mottiInHand).toBeInLocation('ground arena');
+                expect(context.mottiInPlay).toBeInLocation('ground arena');
+
+                // defeat resolves
+                context.player1.clickCard(context.mottiInHand);
+                expect(context.mottiInPlay).toBeInLocation('ground arena');
+                expect(context.mottiInHand).toBeInLocation('discard');
+
+                // triggered ability from defeated Motti
+                expect(context.player1).toHavePassAbilityPrompt('Ready a Villainy unit');
+                context.player1.clickPrompt('Ready a Villainy unit');
+                expect(context.mottiInPlay.exhausted).toBe(false);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('When a duplicate of a unique card with an ongoing effect is played,', function() {
             beforeEach(function () {
                 contextRef.setupTest({
