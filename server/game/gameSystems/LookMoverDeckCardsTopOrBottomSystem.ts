@@ -3,18 +3,15 @@ import type { Card } from '../core/card/Card';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { GameEvent } from '../core/event/GameEvent';
 import { Location } from '../core/Constants';
-import { lookAt, moveCard } from './GameSystemLibrary';
+import { LookAtSystem } from './LookAtSystem';
+import { MoveCardSystem } from './MoveCardSystem';
 
 export interface ILookMoveDeckCardsTopOrBottomProperties extends ICardTargetSystemProperties {
     amount: number;
 }
 
 export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ILookMoveDeckCardsTopOrBottomProperties> {
-    public override readonly name = 'LookMoveDeckCardsTopOrBottomSystem';
-
-    protected override defaultProperties: ILookMoveDeckCardsTopOrBottomProperties = {
-        amount: 1,
-    };
+    public override readonly name = 'lookMoveDeckCardsTopOrBottomSystem';
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }
@@ -23,59 +20,67 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         const player = context.player;
         const { amount } = this.generatePropertiesFromContext(context);
         const deckLength = player.drawDeck.length;
+
         if (deckLength === 1) {
-            events.push(lookAt({
+            const lookAtEvent = new LookAtSystem({
                 target: player.drawDeck[0],
-                sendChatMessage: true,
-            }).generateEvent(context.target, context));
+                sendChatMessage: true
+            }).generateEvent(context.target, context);
+            events.push(lookAtEvent);
         } else {
-            const actual_amount = amount > deckLength ? deckLength : amount;
-            let cards = player.drawDeck.slice(0, actual_amount);
+            const actual_amount = Math.min(amount, deckLength);
+            const cards = player.drawDeck.slice(0, actual_amount);
 
             // @ts-ignore
-            const choiceHandler = (player) => {
-                if (cards.length > 0) {
-                    context.game.promptWithHandlerMenu(player, {
-                        activePromptTitle: 'Select card to move to the top or bottom of the deck',
-                        choices: cards.map((card: Card) => [
-                            'Put ' + card.internalName + ' on top',
-                            'Put ' + card.internalName + ' to bottom',
-                        ]).flat(),
-                        handlers: cards.map((card: Card) => [(() => {
-                            events.push(moveCard({
-                                target: card,
-                                bottom: false,
-                                destination: Location.Deck
-                            }).generateEvent(context.target, context));
-                            // get rid of the card from cards
-                            cards = cards.filter((a) => a !== card);
-                            choiceHandler(context.player);
-                        }),
-                        (() => {
-                            events.push(moveCard({
-                                target: card,
-                                bottom: true,
-                                destination: Location.Deck
-                            }).generateEvent(context.target, context));
-                            // get rid of the card from cards
-                            cards = cards.filter((a) => a !== card);
-                            choiceHandler(context.player);
-                        })]).flat()
-                    });
-                } else {
+            // Each card has two options to be put on top or on bottom for each option we have a handler whcih
+            // recursively calls the function and removes handlers from the list until the card pool reaches 0.
+            const choiceHandler = (player, cards: any[]) => {
+                if (cards.length === 0) {
                     return true;
                 }
-            };
+                // setup the choices for each card top and bottom
+                const handlerChoices = cards.map((card: Card) => [
+                    'Put ' + card.title + ' on top',
+                    'Put ' + card.title + ' on bottom',
+                ]).flat();
 
-            choiceHandler(context.player);
+                context.game.promptWithHandlerMenu(player, {
+                    activePromptTitle: 'Select card to move to the top or bottom of the deck',
+                    choices: handlerChoices,
+                    handlers: cards.map((card: Card) => [(() => {
+                        this.pushMoveEvent(false, card, cards, events, context, choiceHandler);
+                    }),
+                    (() => {
+                        this.pushMoveEvent(true, card, cards, events, context, choiceHandler);
+                    })]).flat()
+                });
+            };
+            choiceHandler(context.player, cards);
         }
+    }
+
+    // Helper method for pushing the move card event into the events array.
+    private pushMoveEvent(bottom: boolean, card: Card, cards: any[], events: GameEvent[], context: TContext,
+        choiceHandler: (player: any, cards: any[]) => boolean) {
+        // create a new card event
+        const moveCardEvent = new MoveCardSystem({
+            target: card,
+            bottom: bottom,
+            destination: Location.Deck
+        }).generateEvent(context.target, context);
+        events.push(moveCardEvent);
+        // get rid of the card from cards
+        cards = cards.filter((a) => a !== card);
+        choiceHandler(context.player, cards);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         const message =
             properties.amount > 0
-                ? `look at the top ${properties.amount === 1 ? 'card' : `${properties.amount} cards`} of your deck. ${properties.amount === 1 ? 'You may put it on the bottom of your deck' : 'Put any number of them on the bottom of your deck and the rest on top in any order'}` : '';
+                ? `look at the top ${properties.amount === 1 ? 'card' : `${properties.amount} cards`} of your deck. 
+                ${properties.amount === 1 ? 'You may put it on the bottom of your deck'
+                    : 'Put any number of them on the bottom of your deck and the rest on top in any order'}` : '';
         return [message, []];
     }
 }

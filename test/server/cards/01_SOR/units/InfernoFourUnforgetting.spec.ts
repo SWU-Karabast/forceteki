@@ -14,16 +14,16 @@ describe('Inferno Four - Unforgetting', function() {
                 });
             });
 
-            it('While playing/defeating lets you look at the top 2 cards of the deck and decide whether to put either them on the bottom or top of deck in any order.', function () {
+            it('while playing/defeating lets you look at the top 2 cards of the deck and decide whether to put either them on the bottom or top of deck in any order.', function () {
                 const { context } = contextRef;
                 let preSwapDeck = context.player1.deck;
 
-                // Case 1 on play move top card to bottom
+                // Case 1 on play move the first top card to top and second card to bottom.
                 context.player1.clickCard(context.infernoFour);
-                expect(context.player1).toHaveExactPromptButtons(['Put pyke-sentinel on top', 'Put pyke-sentinel to bottom', 'Put foundling to bottom', 'Put foundling on top']);
-                context.player1.clickPrompt('Put pyke-sentinel on top');
+                expect(context.player1).toHaveExactPromptButtons(['Put Pyke Sentinel on top', 'Put Pyke Sentinel on bottom', 'Put Foundling on bottom', 'Put Foundling on top']);
+                context.player1.clickPrompt('Put Pyke Sentinel on top');
                 expect(context.player1.deck).toEqual(preSwapDeck);
-                context.player1.clickPrompt('Put foundling to bottom');
+                context.player1.clickPrompt('Put Foundling on bottom');
 
                 // check board state
                 expect(context.player1.deck.length).toBe(5);
@@ -35,16 +35,16 @@ describe('Inferno Four - Unforgetting', function() {
                 expect(context.player1.deck[4]).toEqual(preSwapDeck[0]);
                 expect(context.player2).toBeActivePlayer();
 
-                // restart state
+                // record new state.
                 preSwapDeck = context.player1.deck;
 
-                // Case 2 on defeat move to top
+                // Case 2 on defeat move both cards to the top of the deck
                 context.player2.clickCard(context.tieAdvanced);
                 context.player2.clickCard(context.infernoFour);
-                expect(context.player1).toHaveExactPromptButtons(['Put pyke-sentinel on top', 'Put pyke-sentinel to bottom', 'Put atst to bottom', 'Put atst on top']);
-                context.player1.clickPrompt('Put pyke-sentinel on top');
+                expect(context.player1).toHaveExactPromptButtons(['Put Pyke Sentinel on top', 'Put Pyke Sentinel on bottom', 'Put AT-ST on bottom', 'Put AT-ST on top']);
+                context.player1.clickPrompt('Put Pyke Sentinel on top');
                 expect(context.player1.deck).toEqual(preSwapDeck);
-                context.player1.clickPrompt('Put atst on top');
+                context.player1.clickPrompt('Put AT-ST on top');
 
                 // Check board state
                 // preswap deck deck: ['pyke-sentinel', 'atst', 'cartel-spacer', 'wampa', 'foundling']
@@ -67,11 +67,13 @@ describe('Inferno Four - Unforgetting', function() {
                 });
             });
 
-            it('While playing should only show card and put it back on top of deck since the deck size is 1', function () {
+            it('while playing should only show card and put it back on top of deck since the deck size is 1', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.infernoFour);
                 expect(context.getChatLogs(1)).toContain('Inferno Four sees Foundling');
                 expect(context.player2).toBeActivePlayer();
+                expect(context.p1Base.damage).toEqual(0);
+                expect(context.p2Base.damage).toEqual(0);
             });
         });
     });

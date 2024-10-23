@@ -142,8 +142,6 @@ export function lookAt<TContext extends AbilityContext = AbilityContext>(propert
 export function LookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>): CardTargetSystem<TContext> {
     return new LookMoveDeckCardsTopOrBottomSystem<TContext>(propertyFactory);
 }
-
-
 /**
  * default switch = false
  * default shuffle = false

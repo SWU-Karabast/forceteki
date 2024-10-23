@@ -20,8 +20,8 @@ describe('R2D2 - Ignoring Protocol', function() {
 
                 // Case 1 on play move top card to bottom
                 context.player1.clickCard(context.r2d2);
-                expect(context.player1).toHaveExactPromptButtons(['Put foundling to bottom', 'Put foundling on top']);
-                context.player1.clickPrompt('Put foundling to bottom');
+                expect(context.player1).toHaveExactPromptButtons(['Put Foundling on bottom', 'Put Foundling on top']);
+                context.player1.clickPrompt('Put Foundling on bottom');
 
                 // check board state
                 expect(context.player1.deck.length).toBe(5);
@@ -29,7 +29,7 @@ describe('R2D2 - Ignoring Protocol', function() {
                 expect(context.player1.deck[4]).toEqual(preSwapDeck[0]);
                 expect(context.player2).toBeActivePlayer();
 
-                // restart state
+                // record new state.
                 context.player2.passAction();
                 context.r2d2.exhausted = false;
                 preSwapDeck = context.player1.deck;
@@ -37,8 +37,8 @@ describe('R2D2 - Ignoring Protocol', function() {
                 // Case 2 on attack move to top
                 context.player1.clickCard(context.r2d2);
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player1).toHaveExactPromptButtons(['Put pyke-sentinel on top', 'Put pyke-sentinel to bottom']);
-                context.player1.clickPrompt('Put pyke-sentinel on top');
+                expect(context.player1).toHaveExactPromptButtons(['Put Pyke Sentinel on top', 'Put Pyke Sentinel on bottom']);
+                context.player1.clickPrompt('Put Pyke Sentinel on top');
 
                 // Check board state
                 expect(context.player1.deck.length).toBe(5);
@@ -67,6 +67,8 @@ describe('R2D2 - Ignoring Protocol', function() {
                 // check board state
                 expect(context.player1.deck.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.p1Base.damage).toEqual(0);
+                expect(context.p2Base.damage).toEqual(0);
             });
         });
     });

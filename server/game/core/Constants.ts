@@ -194,7 +194,7 @@ export enum EventName {
     OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
     OnRoundEnded = 'onRoundEnded',
     OnRoundEndedCleanup = 'onRoundEndedCleanup',
-    OnScry = 'onScry',
+    OnLookMoveDeckCardsTopOrBottomSystem = 'onLookMoveDeckCardsTopOrBottomSystem',
     OnStatusTokenDiscarded = 'onStatusTokenDiscarded',
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
