@@ -44,7 +44,7 @@ import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
 import { NoActionSystem, INoActionSystemProperties } from './NoActionSystem';
 // import { OpponentPutIntoPlayAction, OpponentPutIntoPlayProperties } from './OpponentPutIntoPlayAction';
 // import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
-// import { PlayCardAction, PlayCardProperties } from './PlayCardAction';
+import { PlayCardSystem, IPlayCardProperties } from '../gameSystems/PlayCardSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { ReadySystem, IReadySystemProperties } from './ReadySystem';
@@ -146,12 +146,12 @@ export function lookAt<TContext extends AbilityContext = AbilityContext>(propert
 export function moveCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IMoveCardProperties, TContext>): CardTargetSystem<TContext> {
     return new MoveCardSystem<TContext>(propertyFactory);
 }
-// /**
-//  * default resetOnCancel = false
-//  */
-// export function playCard(propertyFactory: PropsFactory<PlayCardProperties> = {}): GameSystem {
-//     return new PlayCardAction(propertyFactory);
-// }
+/**
+ * default resetOnCancel = false
+ */
+export function playCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayCardProperties, TContext> = {}): PlayCardSystem<TContext> {
+    return new PlayCardSystem(propertyFactory);
+}
 export function payResourceCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPayResourceCostProperties, TContext>): GameSystem<TContext> {
     return new PayResourceCostSystem<TContext>(propertyFactory);
 }
@@ -168,7 +168,7 @@ export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(pr
 // export function opponentPutIntoPlay(propertyFactory: PropsFactory<OpponentPutIntoPlayProperties> = {}): GameSystem {
 //     return new OpponentPutIntoPlayAction(propertyFactory, false);
 // }
-export function ready<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadySystemProperties, TContext> = {}): GameSystem<TContext> {
+export function ready<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadySystemProperties, TContext> = {}): ReadySystem<TContext> {
     return new ReadySystem<TContext>(propertyFactory);
 }
 

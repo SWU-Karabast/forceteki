@@ -7,6 +7,7 @@ import { Card } from '../core/card/Card';
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: RelativePlayer;
     overrideLocation?: Location;
+    entersReady?: boolean;
 }
 
 export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPutIntoPlayProperties> {
@@ -17,7 +18,8 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
     protected override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
-        overrideLocation: null
+        overrideLocation: null,
+        entersReady: false
     };
 
 
@@ -71,13 +73,14 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        const { controller, overrideLocation } = this.generatePropertiesFromContext(
+        const { controller, overrideLocation, entersReady } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IPutIntoPlayProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
         event.originalLocation = overrideLocation || card.location;
+        event.status = entersReady ? 'ready' : event.status;
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext) {
