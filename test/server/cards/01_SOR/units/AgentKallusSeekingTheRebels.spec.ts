@@ -14,7 +14,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                         ]
                     },
                     player2: {
-                        groundArena: ['wampa', 'admiral-ozzel#overconfident']
+                        groundArena: ['wampa', 'general-veers#blizzard-force-commander']
                     }
                 });
             });
@@ -50,9 +50,9 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 reset(false);
 
                 // CASE 3: option to draw card when enemy unique unit is defeated (do take)
-                context.player2.clickCard(context.admiralOzzel);
+                context.player2.clickCard(context.generalVeers);
                 context.player2.clickCard(context.agentKallus);
-                expect(context.admiralOzzel).toBeInLocation('discard');
+                expect(context.generalVeers).toBeInLocation('discard');
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1.handSize).toBe(round1HandSize + 1);
