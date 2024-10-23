@@ -31,12 +31,11 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             const actualAmount = Math.min(amount, deckLength);
             const cards = player.drawDeck.slice(0, actualAmount);
 
-            // @ts-ignore
             // Each card has two options to be put on top or on bottom for each option we have a handler whcih
             // recursively calls the function and removes handlers from the list until the card pool reaches 0.
             const choiceHandler = (player, cards: any[]) => {
                 if (cards.length === 0) {
-                    return true;
+                    return;
                 }
                 // setup the choices for each card top and bottom
                 const choices = cards.map((card: Card) => [
@@ -65,7 +64,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         cards: any[],
         events: GameEvent[],
         context: TContext,
-        choiceHandler: (player: any, cards: any[]) => boolean
+        choiceHandler: (player: any, cards: any[]) => void
     ) {
         // create a new card event
         const moveCardEvent = new MoveCardSystem({
