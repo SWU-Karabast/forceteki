@@ -17,13 +17,16 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     private selector;
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
+
+        this.selector = this.getSelector(properties);
+
         // a player can always choose not to pick a card from a zone that is hidden from their opponents (SWU Comp Rules 2.0 1.17.4)
         if (this.allZonesAreHidden(this.properties.locationFilter)) {
             this.properties.optional = true;
-            // properties.activePromptTitle?.concat(' (because you are choosing from a hidden zone you may choose to choose nothing');
+            this.selector.optional = true;
+            this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle;
+            this.selector.defaultActivePromptTitle = () => this.selector.oldDefaultActivePromptTitle().concat(' (because you are choosing from a hidden zone you may choose nothing)');
         }
-        this.selector = this.getSelector(properties);
-
 
         if (this.properties.immediateEffect) {
             this.properties.immediateEffect.setDefaultTargetFn((context) => context.targets[name]);
