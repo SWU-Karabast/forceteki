@@ -10,7 +10,7 @@ describe('Admiral Ozzel, Overconfident', function() {
                         leader: 'grand-moff-tarkin#oversector-governor' // Making sure player1 has villainy aspect to be sure of cost later
                     },
                     player2: {
-                        groundArena: [{card: 'wampa', exhausted: true}],
+                        groundArena: [{ card: 'wampa', exhausted: true }],
                         spaceArena: ['ruthless-raider']
                     }
                 });
@@ -19,7 +19,7 @@ describe('Admiral Ozzel, Overconfident', function() {
             it('should allow the controller to play an imperial unit from hand, which enters play ready, and allow each opponent to ready a unit', function () {
                 this.player1.clickCard(this.admiralOzzel);
                 expect(this.player1).toHaveEnabledPromptButtons(['Play an Imperial unit from your hand. It enters play ready', 'Attack']);
-                
+
                 this.player1.clickPrompt('Play an Imperial unit from your hand. It enters play ready');
                 expect(this.admiralOzzel.exhausted).toBe(true);
                 expect(this.player1).toBeAbleToSelectExactly([this.atst, this.deathStarStormtrooper]);
@@ -48,7 +48,7 @@ describe('Admiral Ozzel, Overconfident', function() {
                         groundArena: ['admiral-ozzel#overconfident']
                     },
                     player2: {
-                        groundArena: [{card: 'wampa', exhausted: true}],
+                        groundArena: [{ card: 'wampa', exhausted: true }],
                         spaceArena: ['ruthless-raider']
                     }
                 });
@@ -57,7 +57,7 @@ describe('Admiral Ozzel, Overconfident', function() {
             it('should be activatable even if the controller can\'t play an imperial unit, and still allow each opponent to ready a unit', function () {
                 this.player1.clickCard(this.admiralOzzel);
                 expect(this.player1).toHaveEnabledPromptButtons(['Play an Imperial unit from your hand. It enters play ready', 'Attack']);
-                
+
                 this.player1.clickPrompt('Play an Imperial unit from your hand. It enters play ready');
                 expect(this.admiralOzzel.exhausted).toBe(true);
                 expect(this.player1.countExhaustedResources()).toBe(0);

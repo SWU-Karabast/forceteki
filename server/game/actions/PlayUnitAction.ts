@@ -6,7 +6,7 @@ import { PlayCardAction, PlayCardContext } from '../core/ability/PlayCardAction.
 import * as Contract from '../core/utils/Contract.js';
 
 export class PlayUnitAction extends PlayCardAction {
-    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand, private entersReady:boolean = false) {
+    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand, private entersReady: boolean = false) {
         super(card, 'Play this unit', playType);
     }
 

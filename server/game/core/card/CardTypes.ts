@@ -1,5 +1,5 @@
 import { BaseCard } from './BaseCard';
-import {Card} from './Card';
+import { Card } from './Card';
 import { EventCard } from './EventCard';
 import { LeaderCard } from './LeaderCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
@@ -58,7 +58,7 @@ export type PlayableCard =
   UpgradeCard |
   NonLeaderUnitCard;
 
-export function isPlayable(card:Card): card is PlayableCard {
+export function isPlayable(card: Card): card is PlayableCard {
     return card.isEvent() || card.isNonLeaderUnit() || card.isUpgrade();
 }
 
