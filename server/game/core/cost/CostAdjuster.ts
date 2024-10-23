@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import { PlayType, Aspect, CardTypeFilter, AspectFilter } from '../Constants';
+import { PlayType, Aspect, CardTypeFilter } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -28,29 +28,25 @@ export interface ICostAdjusterProperties {
     /** The type of cost adjustment */
     costAdjustType: CostAdjustType;
 
-    /** The cost floor (for minimum costs) */
-    costFloor?: number;
-
-    /** The number of cost reductions permitted */
+    /** @deprecated (not yet tested) The number of cost reductions permitted */
     limit?: IAbilityLimit;
 
-    /** Which playType this reduction is active for */
+    /** @deprecated (not yet tested) Which playType this reduction is active for */
     playingTypes?: PlayType;
 
     /** Conditional card matching for things like aspects, traits, etc. */
     match?: (card: Card, adjusterSource: Card) => boolean;
 
     /** @deprecated (not yet fully implemented) For IgnoreSpecificAspects only: the aspects to ignore the cost of */
-    ignoredAspects?: AspectFilter;
+    ignoredAspects?: Aspect | Aspect[];
 
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
     attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
 }
 
 export class CostAdjuster {
-    public readonly costFloor: number;
     public readonly costAdjustType: CostAdjustType;
-    public readonly ignoredAspects: AspectFilter;
+    public readonly ignoredAspects: Aspect | Aspect[];
     private amount?: number | ((card: Card, player: Player) => number);
     private match?: (card: Card, adjusterSource: Card) => boolean;
     private cardTypeFilter?: CardTypeFilter;
@@ -67,19 +63,27 @@ export class CostAdjuster {
         if (this.costAdjustType === CostAdjustType.Increase || this.costAdjustType === CostAdjustType.Decrease) {
             Contract.assertNotNullLike(properties.amount, 'Amount is required for Increase and Decrease.');
         }
+
         this.amount = properties.amount || 1;
-        this.costFloor = properties.costFloor || 0;
         // TODO: Implement this further for Rey/Kylo
         if (this.costAdjustType === CostAdjustType.IgnoreSpecificAspects) {
             Contract.assertNotNullLike(this.ignoredAspects, 'Ignored Aspect list is required for IgnoreSpecificAspects');
+            if (Array.isArray(this.ignoredAspects)) {
+                Contract.assertTrue(this.ignoredAspects.length > 0, 'Ignored Aspect array is empty');
+            }
             this.ignoredAspects = properties.ignoredAspects;
+        } else {
+            Contract.assertIsNullLike(this.ignoredAspects, `ignoredAspects not allowed for CostAdjustType ${this.costAdjustType}`);
         }
+
         this.match = properties.match;
         this.cardTypeFilter = properties.cardTypeFilter;
         this.attachTargetCondition = properties.attachTargetCondition;
+
         this.playingTypes =
             properties.playingTypes &&
             (Array.isArray(properties.playingTypes) ? properties.playingTypes : [properties.playingTypes]);
+
         this.limit = properties.limit;
         if (this.limit) {
             this.limit.registerEvents(game);

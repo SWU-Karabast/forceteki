@@ -678,9 +678,7 @@ class Player extends GameObject {
             reducedCost -= 2;
         }
 
-        // TODO: not 100% sure what the use case for this line is
-        var costFloor = Math.min(baseCost, Math.max(...matchingAdjusters.map((adjuster) => adjuster.costFloor)));
-        return Math.max(reducedCost, costFloor);
+        return Math.max(reducedCost, 0);
     }
 
     /**

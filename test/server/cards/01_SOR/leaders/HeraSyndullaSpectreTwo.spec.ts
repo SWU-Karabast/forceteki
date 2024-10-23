@@ -29,12 +29,11 @@ describe('Hera Syndulla, Spectre Two', function() {
 
                 expect(context.pykeSentinel).toBeInLocation('discard');
                 expect(context.player1.countExhaustedResources()).toBe(4);
-            });
 
-            it('does not ignore aspect penalties for non-Spectre card', function () {
-                const { context } = contextRef;
+                context.player2.passAction();
+
                 context.player1.clickCard(context.wampa);
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.countExhaustedResources()).toBe(10);
             });
 
             // TODO: Add an upgrade test if a Spectre upgrade is ever printed
@@ -70,12 +69,11 @@ describe('Hera Syndulla, Spectre Two', function() {
 
                 expect(context.pykeSentinel.damage).toBe(1);
                 expect(context.player1.countExhaustedResources()).toBe(4);
-            });
 
-            it('does not ignore aspect penalties for non-Spectre card', function () {
-                const { context } = contextRef;
+                context.player2.passAction();
+
                 context.player1.clickCard(context.wampa);
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.countExhaustedResources()).toBe(10);
             });
 
             it('gives an experience token to a unique unit on attack', function () {

@@ -220,8 +220,6 @@ export enum Aspect {
     Villainy = 'villainy',
 }
 
-export type AspectFilter = Aspect | Aspect[];
-
 export enum KeywordName {
     Ambush = 'ambush',
 
