@@ -127,7 +127,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
         // we're the system that is enacting the defeat
-        if (card.isUnit() && card.isInPlay() && card.pendingDefeat && !this.isPendingDefeatFor(card, context)) {
+        if (card.isUnit() && card.isInPlay() && card.pendingDefeat) {
             return false;
         }
 

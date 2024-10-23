@@ -79,8 +79,8 @@ export class UpgradeCard extends UpgradeCardParent {
             this.controller.removeCardFromPile(this);
         }
 
-        this.moveTo(newParentCard.location);
         newParentCard.controller.putUpgradeInArena(this, newParentCard.location);
+        this.moveTo(newParentCard.location);
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
     }

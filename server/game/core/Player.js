@@ -28,6 +28,7 @@ const { LeaderCard } = require('./card/LeaderCard');
 const { LeaderUnitCard } = require('./card/LeaderUnitCard');
 const { Card } = require('./card/Card');
 const { PlayableOrDeployableCard } = require('./card/baseClasses/PlayableOrDeployableCard');
+const { InPlayCard } = require('./card/baseClasses/InPlayCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -384,19 +385,18 @@ class Player extends GameObject {
         return undefined;
     }
 
-    // /**
-    //  * Returns a character in play under this player's control which matches (for uniqueness) the passed card.
-    //  * @param card DrawCard
-    //  */
-    // getDuplicateInPlay(card) {
-    //     if (!card.isUnique()) {
-    //         return undefined;
-    //     }
-
-    //     return this.findCard(this.cardsInPlay, (playCard) => {
-    //         return playCard !== card && (playCard.id === card.id || playCard.name === card.name);
-    //     });
-    // }
+    /**
+     * Returns a card in play under this player's control which matches (for uniqueness) the passed card
+     * @param {InPlayCard} card
+     * @returns {InPlayCard[]} Duplicates of passed card (does not check unique status)
+     */
+    getDuplicatesInPlay(card) {
+        return this.getArenaCards().filter((otherCard) =>
+            otherCard.title === card.title &&
+            otherCard.subtitle === card.subtitle &&
+            otherCard !== card
+        );
+    }
 
     /**
      * Returns ths top card of the player's deck

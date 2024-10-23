@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, Trait, WildcardLocation } from '../Constants';
+import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, LocationFilter, Trait, WildcardLocation } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
