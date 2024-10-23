@@ -37,7 +37,7 @@ export class PayResourceCostSystem<TContext extends AbilityContext = AbilityCont
 
     public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.amount > 0 && player.countSpendableResources() > 0 && super.canAffect(player, context, additionalProperties);
+        return properties.amount > 0 && player.countSpendableResources() > 0 && super.canAffect(player, context, additionalProperties) && player.countSpendableResources() >= properties.amount;
     }
 
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {

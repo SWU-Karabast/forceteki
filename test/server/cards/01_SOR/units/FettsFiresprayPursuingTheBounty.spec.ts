@@ -144,7 +144,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                 });
             });
 
-            it('should be exhaust a non-unique unit', function () {
+            it('should exhaust a non-unique unit', function () {
                 const { context } = contextRef;
 
                 // exhaust battlefield marine
@@ -170,6 +170,38 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.scoutBikePursuer, context.echoBaseDefender]);
                 context.player1.clickCard(context.scoutBikePursuer);
                 expect(context.player1.countExhaustedResources()).toBe(4);
+            });
+        });
+
+        describe('Fett\'s Firespray\'s action ability', function () {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: [{ card: 'fetts-firespray#pursuing-the-bounty', exhausted: true }],
+                        resources: 3
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'battlefield-marine', exhausted: true },
+                            { card: 'echo-base-defender', exhausted: true }
+                        ]
+                    }
+                });
+            });
+
+            it('should exhaust an unit even if all unit are exhausted and should not exhaust anyone if all resources are paid', function () {
+                const { context } = contextRef;
+
+                // exhaust battlefield marine
+                expect(context.fettsFirespray).toHaveAvailableActionWhenClickedBy(context.player1);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.countExhaustedResources()).toBe(2);
+
+                context.player2.passAction();
+                expect(context.player1.countSpendableResources()).toBe(1);
+                expect(context.fettsFirespray).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
     });
