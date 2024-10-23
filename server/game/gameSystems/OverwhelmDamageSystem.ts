@@ -87,7 +87,8 @@ export class OverwhelmDamageSystem<TContext extends AbilityContext = AbilityCont
             attack: properties.sourceAttack,
             player: context.source.controller,
             damageDealtBy: properties.sourceAttack.attacker,
-            isOverwhelmDamage: true
+            isOverwhelmDamage: true,
+            event
         };
 
         event.damageSource = overwhelmDamageSource;

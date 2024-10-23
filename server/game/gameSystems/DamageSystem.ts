@@ -78,7 +78,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
 
         event.damageSource = event.isCombatDamage
             ? this.generateAttackSourceMetadata(event, card, context, properties)
-            : this.generateAbilitySourceMetadata(card, context);
+            : this.generateAbilitySourceMetadata(event, card, context);
     }
 
     /** Generates metadata indicating the source of the damage is an attack for relevant effects such as Rukh's ability */
@@ -108,20 +108,22 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
             attack: properties.sourceAttack,
             player: context.source.controller,
             damageDealtBy,
-            isOverwhelmDamage: false
+            isOverwhelmDamage: false,
+            event
         };
     }
 
     // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
     /** Generates metadata indicating the source of the damage is an ability */
-    private generateAbilitySourceMetadata(card: Card, context: TContext): IDamageSource {
+    private generateAbilitySourceMetadata(event: any, card: Card, context: TContext): IDamageSource {
         Contract.assertTrue(context.ability instanceof CardAbilityStep, `Damage was created by non-card ability ${context.ability.title} targeting ${card.internalName}`);
 
         return {
             type: DamageSourceType.Ability,
             player: context.player,
             ability: context.ability,
-            card: context.source
+            card: context.source,
+            event
         };
     }
 }
