@@ -28,8 +28,8 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             }).generateEvent(context.target, context);
             events.push(lookAtEvent);
         } else {
-            const actual_amount = Math.min(amount, deckLength);
-            const cards = player.drawDeck.slice(0, actual_amount);
+            const actualAmount = Math.min(amount, deckLength);
+            const cards = player.drawDeck.slice(0, actualAmount);
 
             // @ts-ignore
             // Each card has two options to be put on top or on bottom for each option we have a handler whcih
@@ -39,29 +39,34 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
                     return true;
                 }
                 // setup the choices for each card top and bottom
-                const handlerChoices = cards.map((card: Card) => [
+                const choices = cards.map((card: Card) => [
                     'Put ' + card.title + ' on top',
                     'Put ' + card.title + ' on bottom',
                 ]).flat();
 
                 context.game.promptWithHandlerMenu(player, {
                     activePromptTitle: 'Select card to move to the top or bottom of the deck',
-                    choices: handlerChoices,
-                    handlers: cards.map((card: Card) => [(() => {
-                        this.pushMoveEvent(false, card, cards, events, context, choiceHandler);
-                    }),
-                    (() => {
-                        this.pushMoveEvent(true, card, cards, events, context, choiceHandler);
-                    })]).flat()
+                    choices,
+                    handlers: cards.map((card: Card) => [
+                        () => this.pushMoveEvent(false, card, cards, events, context, choiceHandler),
+                        () => this.pushMoveEvent(true, card, cards, events, context, choiceHandler),
+                    ]).flat()
                 });
             };
+
             choiceHandler(context.player, cards);
         }
     }
 
     // Helper method for pushing the move card event into the events array.
-    private pushMoveEvent(bottom: boolean, card: Card, cards: any[], events: GameEvent[], context: TContext,
-        choiceHandler: (player: any, cards: any[]) => boolean) {
+    private pushMoveEvent(
+        bottom: boolean,
+        card: Card,
+        cards: any[],
+        events: GameEvent[],
+        context: TContext,
+        choiceHandler: (player: any, cards: any[]) => boolean
+    ) {
         // create a new card event
         const moveCardEvent = new MoveCardSystem({
             target: card,
@@ -69,6 +74,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             destination: Location.Deck
         }).generateEvent(context.target, context);
         events.push(moveCardEvent);
+
         // get rid of the card from cards
         cards = cards.filter((a) => a !== card);
         choiceHandler(context.player, cards);
