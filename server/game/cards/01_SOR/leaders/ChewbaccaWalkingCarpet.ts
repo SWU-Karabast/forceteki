@@ -17,7 +17,7 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 3,
                 locationFilter: Location.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel) })
                 ])
