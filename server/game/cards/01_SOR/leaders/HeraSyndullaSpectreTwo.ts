@@ -27,7 +27,16 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addConstantAbility(this.buildHeraAbilityProperties());
-        // TODO: add exp on attack
+
+        this.addOnAttackAbility({
+            title: 'Give an experience token to another unique unit',
+            optional: true,
+            targetResolver: {
+                controller: RelativePlayer.Any,
+                cardCondition: (card, context) => card.unique === true && card !== context.source,
+                immediateEffect: AbilityHelper.immediateEffects.giveExperience()
+            }
+        });
     }
 }
 
