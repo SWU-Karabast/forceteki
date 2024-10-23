@@ -5,49 +5,107 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { Attack } from '../core/attack/Attack';
-import { DamageSourceType, IDamageSource } from '../IDamageOrDefeatSource';
+import { DamageSourceType, IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack, IDamageSource } from '../IDamageOrDefeatSource';
 import { UnitCard } from '../core/card/CardTypes';
 import CardAbilityStep from '../core/ability/CardAbilityStep';
-import { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 
-export interface IDamageProperties extends ICardTargetSystemProperties {
-    amount: number;
-    isCombatDamage?: boolean;
-
-    /** must be provided if-and-only-if isCombatDamage = true */
-    sourceAttack?: Attack;
+export enum DamageType {
+    Combat = 'combat',
+    Ability = 'ability',
+    Excess = 'excess',
+    Overwhelm = 'overwhelm'
 }
+
+export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
+    damageType?: DamageType;
+}
+
+export interface ICombatDamageProperties extends IDamagePropertiesBase {
+    damageType: DamageType.Combat;
+    amount: number;
+
+    /** The attack that is the source of the damage */
+    sourceAttack: Attack;
+}
+
+/** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
+export interface IAbilityDamageProperties extends IDamagePropertiesBase {
+    damageType?: DamageType.Ability;    // this is optional so it can be the default property type
+    amount: number;
+}
+
+/** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
+export interface IExcessDamageProperties extends IDamagePropertiesBase {
+    damageType: DamageType.Excess;
+    sourceEventForExcessDamage: any;
+}
+
+/** Used for "standard" Overwhelm when the event will be using the excess damage from a resolved attack damage event */
+export interface IExcessDamageOverwhelmProperties extends IDamagePropertiesBase {
+    damageType: DamageType.Overwhelm;
+    sourceAttack: Attack;
+
+    /**
+     * Combat damage event that this Overwhelm damage is contingent on
+     */
+    contingentSourceEvent: any;
+}
+
+/** Used for the situation when the defender is defeated before the attack damage step so all damage becomes Overwhelm damage */
+export interface IFullOverwhelmDamageProperties extends IDamagePropertiesBase {
+    damageType: DamageType.Overwhelm;
+    sourceAttack: Attack;
+    amount: number;
+}
+
+type IOverwhelmDamageProperties = IExcessDamageOverwhelmProperties | IFullOverwhelmDamageProperties;
+
+export type IDamageProperties =
+  | ICombatDamageProperties
+  | IAbilityDamageProperties
+  | IExcessDamageProperties
+  | IOverwhelmDamageProperties;
 
 // TODO: for this and the heal system, need to figure out how to handle the situation where 0 damage
 // is dealt / healed. Since the card is technically still a legal target but no damage was technically
 // dealt / healed per the rules (SWU 8.31.3)
-export class DamageSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDamageProperties> {
-    public override readonly name = 'damage';
+export class DamageSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IDamageProperties = IAbilityDamageProperties> extends CardTargetSystem<TContext, TProperties> {
+    public override readonly name: string = 'damage';
     public override readonly eventName = EventName.OnDamageDealt;
 
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
-    protected override defaultProperties: IDamageProperties = {
+    protected override defaultProperties: IAbilityDamageProperties = {
         amount: null,
-        isCombatDamage: false
+        damageType: DamageType.Ability
     };
 
     public eventHandler(event): void {
-        const damageAdded = event.card.addDamage(event.damage, event.damageSource);
+        const eventDamageAmount = this.getDamageAmountFromEvent(event);
 
-        event.damageAdded = damageAdded;
+        event.damageDealt = event.card.addDamage(eventDamageAmount, event.damageSource);
+
+        event.availableExcessDamage = eventDamageAmount - event.damageDealt;
+    }
+
+    private getDamageAmountFromEvent(event: any): number {
+        if (event.amount != null) {
+            return event.amount;
+        }
+
+        Contract.assertHasProperty(event, 'sourceEventForExcessDamage', 'Damage event does not have damage amount or source event to get excess damage amount from');
+        Contract.assertHasProperty(event.sourceEventForExcessDamage, 'availableExcessDamage', 'Damage event is missing excess damage amount');
+
+        const availableExcessDamage = event.sourceEventForExcessDamage.availableExcessDamage;
+
+        if (availableExcessDamage === 0) {
+            return 0;
+        }
 
         // excess damage can be "used up" by effects such as Overwhelm, making it unavailable for other effects such Blizzard Assault AT-AT
         // see unofficial dev ruling at https://nexus.cascadegames.com/resources/Rules_Clarifications/
-        event.availableExcessDamage = event.damage - damageAdded;
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { amount, target, isCombatDamage } = this.generatePropertiesFromContext(context);
-
-        const damageTypeStr = isCombatDamage ? ' combat' : '';
-
-        return ['deal {0}{1} damage to {2}', [amount, damageTypeStr, target]];
+        event.sourceEventForExcessDamage.availableExcessDamage = 0;
+        return availableExcessDamage;
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
@@ -60,29 +118,31 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         return super.canAffect(card, context);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties?: any) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
-
-        Contract.assertTrue(!!properties.sourceAttack === properties.isCombatDamage, 'Source attack must be provided if and only if isCombatDamage is true');
-
-        return properties;
-    }
-
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
-        event.damage = properties.amount;
-        event.isCombatDamage = properties.isCombatDamage;
-        event.isOverwhelmDamage = false;
+        event.damageType = properties.damageType;
 
-        event.damageSource = event.isCombatDamage
-            ? this.generateAttackSourceMetadata(event, card, context, properties)
-            : this.generateAbilitySourceMetadata(event, card, context);
+        switch (properties.damageType) {
+            case DamageType.Combat:
+                this.addAttackDamagePropertiesToEvent(event, card, context, properties);
+                break;
+            case DamageType.Ability:
+                this.addAbilityDamagePropertiesToEvent(event, card, context, properties);
+                break;
+            case DamageType.Excess:
+                this.addExcessDamagePropertiesToEvent(event, card, context, properties);
+                break;
+            case DamageType.Overwhelm:
+                this.addOverwhelmDamagePropertiesToEvent(event, card, context, properties);
+                break;
+            default:
+                Contract.fail(`Unexpected damage type: ${properties['damageType']}`);
+        }
     }
 
-    /** Generates metadata indicating the source of the damage is an attack for relevant effects such as Rukh's ability */
-    private generateAttackSourceMetadata(event: any, card: Card, context: TContext, properties: IDamageProperties): IDamageSource {
+    private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
         Contract.assertTrue(context.source.isUnit());
 
         let damageDealtBy: UnitCard;
@@ -103,7 +163,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
             }
         }
 
-        return {
+        const attackDamageSource: IDamagedOrDefeatedByAttack = {
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
             player: context.source.controller,
@@ -111,19 +171,69 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
             isOverwhelmDamage: false,
             event
         };
+
+        event.damageSource = attackDamageSource;
+        event.amount = properties.amount;
     }
 
-    // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
-    /** Generates metadata indicating the source of the damage is an ability */
-    private generateAbilitySourceMetadata(event: any, card: Card, context: TContext): IDamageSource {
-        Contract.assertTrue(context.ability instanceof CardAbilityStep, `Damage was created by non-card ability ${context.ability.title} targeting ${card.internalName}`);
+    private addOverwhelmDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IOverwhelmDamageProperties): void {
+        Contract.assertTrue(card.isBase(), `Attempting to target non-base card ${card.internalName} with Overwhelm damage`);
 
-        return {
+        if ('amount' in properties && properties.amount != null) {
+            event.amount = properties.amount;
+        } else if ('contingentSourceEvent' in properties && properties.contingentSourceEvent != null) {
+            event.sourceEventForExcessDamage = properties.contingentSourceEvent;
+        } else {
+            Contract.fail('Unexpected Overwhelm damage properties');
+        }
+
+        const overwhelmDamageSource: IDamagedOrDefeatedByAttack = {
+            type: DamageSourceType.Attack,
+            attack: properties.sourceAttack,
+            player: context.source.controller,
+            damageDealtBy: properties.sourceAttack.attacker,
+            isOverwhelmDamage: true,
+            event
+        };
+
+        event.damageSource = overwhelmDamageSource;
+    }
+
+    private addExcessDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IExcessDamageProperties): void {
+        const excessDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
             player: context.player,
             ability: context.ability,
             card: context.source,
             event
         };
+
+        event.damageSource = excessDamageSource;
+        event.sourceEventForExcessDamage = properties.contingentSourceEvent;
     }
+
+    // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
+    private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
+        Contract.assertTrue(context.ability instanceof CardAbilityStep, `Damage was created by non-card ability ${context.ability.title} targeting ${card.internalName}`);
+
+        const abilityDamageSource: IDamagedOrDefeatedByAbility = {
+            type: DamageSourceType.Ability,
+            player: context.player,
+            ability: context.ability,
+            card: context.source,
+            event
+        };
+
+        event.damageSource = abilityDamageSource;
+        event.amount = properties.amount;
+    }
+
+    // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently
+    // public override getEffectMessage(context: TContext): [string, any[]] {
+    //     const properties = this.generatePropertiesFromContext(context);
+
+    //     const damageTypeStr = isCombatDamage ? ' combat' : '';
+
+    //     return ['deal {0}{1} damage to {2}', [amount, damageTypeStr, target]];
+    // }
 }

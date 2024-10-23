@@ -8,7 +8,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import { GameEvent } from '../event/GameEvent';
 import { Card } from '../card/Card';
-import { OverwhelmDamageSystem } from '../../gameSystems/OverwhelmDamageSystem';
+import { DamageSystem, DamageType } from '../../gameSystems/DamageSystem';
 
 export class AttackFlow extends BaseStepWithPipeline {
     public constructor(
@@ -67,7 +67,8 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
         if (overwhelmDamageOnly) {
-            new OverwhelmDamageSystem({
+            new DamageSystem({
+                damageType: DamageType.Overwhelm,
                 amount: this.attack.getAttackerTotalPower(),
                 sourceAttack: this.attack
             }).resolve(this.attack.target.controller.base, this.context);
@@ -91,8 +92,8 @@ export class AttackFlow extends BaseStepWithPipeline {
     private createAttackerDamageEvent(): GameEvent {
         // event for damage dealt to target by attacker
         const attackerDamageEvent = AbilityHelper.immediateEffects.damage({
+            damageType: DamageType.Combat,
             amount: this.attack.getAttackerTotalPower(),
-            isCombatDamage: true,
             sourceAttack: this.attack,
         }).generateEvent(this.attack.target, this.context);
 
@@ -104,7 +105,8 @@ export class AttackFlow extends BaseStepWithPipeline {
                     return [];
                 }
 
-                const overwhelmSystem = new OverwhelmDamageSystem({
+                const overwhelmSystem = new DamageSystem({
+                    damageType: DamageType.Overwhelm,
                     contingentSourceEvent: attackerDamageEvent,
                     sourceAttack: this.attack
                 });
@@ -116,14 +118,10 @@ export class AttackFlow extends BaseStepWithPipeline {
         return attackerDamageEvent;
     }
 
-    private buildOverwhelmDamageSystem(damageEvent: GameEvent) {
-        return;
-    }
-
     private createDefenderDamageEvent(): GameEvent {
         return AbilityHelper.immediateEffects.damage({
+            damageType: DamageType.Combat,
             amount: this.attack.getTargetTotalPower(),
-            isCombatDamage: true,
             sourceAttack: this.attack
         }).generateEvent(this.attack.attacker, this.context);
     }

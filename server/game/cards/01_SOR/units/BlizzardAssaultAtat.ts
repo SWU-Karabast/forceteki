@@ -26,9 +26,9 @@ export default class BlizzardAssaultAtat extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
                 locationFilter: Location.GroundArena,
-                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: this.getAvailableExcessDamage(context),
-                }))
+                // immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                //     amount: this.getAvailableExcessDamage(context),
+                // }))
             }
         });
     }
