@@ -25,6 +25,7 @@ describe('The Armorer, Survival Is Strength', function () {
                 context.player1.clickCard(context.houseKastSoldier);
                 context.player1.clickCard(context.mandalorianWarrior);
                 context.player1.clickCard(context.concordDawnInterceptors);
+                context.player1.clickCardNonChecking(context.theArmorer);
 
                 context.player1.clickPrompt('Done');
 

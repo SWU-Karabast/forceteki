@@ -24,6 +24,7 @@ describe('General Tagge, Concerned Commander', function () {
                 context.player1.clickCard(context.vanguardInfantry);
                 context.player1.clickCard(context.mercenaryCompany);
                 context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCardNonChecking(context.volunteerSoldier);
 
                 context.player1.clickPrompt('Done');
 

@@ -12,7 +12,7 @@ export default class GeneralTaggeConcernedCommander extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Gain an experience token to each of up to 3 Trooper units',
+            title: 'Give an experience token to each of up to 3 Trooper units',
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 3,

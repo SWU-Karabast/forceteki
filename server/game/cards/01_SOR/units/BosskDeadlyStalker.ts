@@ -12,7 +12,7 @@ export default class BosskDeadlyStalker extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Deal 2 damage on a unit',
+            title: 'Deal 2 damage to a unit',
             when: {
                 onCardPlayed: (event, context) => event.card.isEvent() && event.card.controller === context.source.controller
             },

@@ -30,7 +30,9 @@ describe('The Ghost, Spectre Home Base', function () {
                 expect(context.kananJarrus.isUpgraded()).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
-        }); describe('The Ghost\'s ability', function () {
+        });
+
+        describe('The Ghost\'s ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

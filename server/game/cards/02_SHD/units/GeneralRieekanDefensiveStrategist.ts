@@ -22,11 +22,10 @@ export default class GeneralRieekanDefensiveStrategist extends NonLeaderUnitCard
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.target.isUnit() && context.target.hasSomeKeyword(KeywordName.Sentinel),
-                    onTrue: AbilityHelper.immediateEffects.giveExperience((context) => ({ target: context.target })),
-                    onFalse: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
-                        target: context.target,
+                    onTrue: AbilityHelper.immediateEffects.giveExperience(),
+                    onFalse: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
-                    }))
+                    })
                 })
             }
         });

@@ -19,7 +19,7 @@ describe('Count Dooku, Darth Tyranus', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.countDooku);
 
-                // also shield
+                // choose between defeat prompt and shield prompt
                 context.player1.clickPrompt('Defeat a unit with 4 or less remaining HP');
                 expect(context.player1).toBeAbleToSelectExactly([context._21bSurgicalDroid, context.greenSquadronAwing, context.battlefieldMarine, context.countDooku, context.atst]);
                 expect(context.player1).toHaveChooseNoTargetButton();

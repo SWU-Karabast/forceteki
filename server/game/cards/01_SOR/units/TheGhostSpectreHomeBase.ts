@@ -19,7 +19,7 @@ export default class TheGhostSpectreHomeBase extends NonLeaderUnitCard {
             },
             targetResolver: {
                 optional: true,
-                cardCondition: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Spectre),
+                cardCondition: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Spectre),
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()
             }
         });
