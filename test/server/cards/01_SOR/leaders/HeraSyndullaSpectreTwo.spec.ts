@@ -16,21 +16,19 @@ describe('Hera Syndulla, Spectre Two', function() {
                 });
             });
 
-            it('ignores aspect penalties for Spectre unit', function () {
+            it('ignores aspect penalties for Spectre unit and event', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.sabineWren);
                 expect(context.player1.countExhaustedResources()).toBe(2);
-            });
 
-            it('ignores aspect penalties for Spectre event', function () {
-                const { context } = contextRef;
+                context.player2.passAction();
 
                 context.player1.clickCard(context.karabast);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.yoda]);
+                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.battlefieldMarine, context.yoda]);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.pykeSentinel).toBeInLocation('discard');
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.countExhaustedResources()).toBe(4);
             });
 
             it('does not ignore aspect penalties for non-Spectre card', function () {
@@ -58,22 +56,20 @@ describe('Hera Syndulla, Spectre Two', function() {
                 });
             });
 
-            it('ignores aspect penalties for Spectre unit', function () {
+            it('ignores aspect penalties for Spectre unit and event', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.sabineWren);
                 expect(context.player1.countExhaustedResources()).toBe(2);
-            });
 
-            it('ignores aspect penalties for Spectre event', function () {
-                const { context } = contextRef;
+                context.player2.passAction();
 
                 context.player1.clickCard(context.karabast);
                 expect(context.player1).toBeAbleToSelectExactly([
-                    context.battlefieldMarine, context.yoda, context.heraSyndulla, context.chopper]);
+                    context.battlefieldMarine, context.yoda, context.heraSyndulla, context.chopper, context.sabineWren]);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.pykeSentinel.damage).toBe(1);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.countExhaustedResources()).toBe(4);
             });
 
             it('does not ignore aspect penalties for non-Spectre card', function () {

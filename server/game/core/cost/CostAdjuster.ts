@@ -10,8 +10,6 @@ import * as Contract from '../../core/utils/Contract';
 export enum CostAdjustType {
     Increase = 'increase',
     Decrease = 'decrease',
-
-    /** @deprecated Not yet implemented: TODO with Hera */
     IgnoreAllAspects = 'ignoreAllAspects',
 
     /** @deprecated Not yet implemented: TODO with Kylo/Rey */
