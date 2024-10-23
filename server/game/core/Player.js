@@ -657,6 +657,7 @@ class Player extends GameObject {
      * @param {PlayType} playingType
      * @param card DrawCard
      * @param target BaseCard
+     * @param penaltyAspect Aspect that is not present on the current base or leader
      */
     runAdjustersForCostType(playingType, baseCost, card, target, ignoreType = false, penaltyAspect = null) {
         var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
@@ -668,13 +669,14 @@ class Player extends GameObject {
         var costDecreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Decrease)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
-        // TODO: Implement Aspect Penalty ignore
-        // var ignoreAspectPenalty = matchingAdjusters
-        //     .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects)
-        //     .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 2);
+        var aspectIgnore = matchingAdjusters
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
 
         baseCost += costIncreases;
         var reducedCost = baseCost - costDecreases;
+        if (aspectIgnore && penaltyAspect !== null) {
+            reducedCost -= 2;
+        }
 
         // TODO: not 100% sure what the use case for this line is
         var costFloor = Math.min(baseCost, Math.max(...matchingAdjusters.map((adjuster) => adjuster.costFloor)));
