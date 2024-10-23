@@ -11,7 +11,6 @@ import AbilityHelper from '../../AbilityHelper';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { CostAdjustType, ICostAdjusterProperties } from '../cost/CostAdjuster';
 import { AbilityContext } from '../ability/AbilityContext';
-import { match } from 'assert';
 import { Card } from './Card';
 
 export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<ICostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {

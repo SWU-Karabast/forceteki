@@ -1,7 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import {
     RelativePlayer,
-    Trait,
     WildcardCardType,
     WildcardLocation
 } from '../../../core/Constants';
