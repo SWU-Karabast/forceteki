@@ -17,6 +17,9 @@ export interface IGameSystemProperties {
     parentSystem?: GameSystem;
     // TODO: make sure that existing systems handle 'isCost' check correctly
     isCost?: boolean;
+
+    /** If this system is for a contingent event, provide the source event it is contingent on */
+    contingentSourceEvent?: any;
 }
 
 // TODO: see which base classes can be made abstract

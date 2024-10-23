@@ -8,6 +8,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import { GameEvent } from '../event/GameEvent';
 import { Card } from '../card/Card';
+import { OverwhelmDamageSystem } from '../../gameSystems/OverwhelmDamageSystem';
 
 export class AttackFlow extends BaseStepWithPipeline {
     public constructor(
@@ -66,7 +67,10 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
         if (overwhelmDamageOnly) {
-            this.buildOverwhelmDamageSystem(this.attack.getAttackerTotalPower()).resolve(this.attack.target.controller.base, this.context);
+            new OverwhelmDamageSystem({
+                amount: this.attack.getAttackerTotalPower(),
+                sourceAttack: this.attack
+            }).resolve(this.attack.target.controller.base, this.context);
         } else if (attackerDealsDamageBeforeDefender) {
             this.context.game.openEventWindow(this.createAttackerDamageEvent());
             this.context.game.queueSimpleStep(() => {
@@ -100,7 +104,11 @@ export class AttackFlow extends BaseStepWithPipeline {
                     return [];
                 }
 
-                const overwhelmSystem = this.buildOverwhelmDamageSystem(event.damage - event.card.remainingHp);
+                const overwhelmSystem = new OverwhelmDamageSystem({
+                    contingentSourceEvent: attackerDamageEvent,
+                    sourceAttack: this.attack
+                });
+
                 return [overwhelmSystem.generateEvent(event.card.controller.base, this.context)];
             });
         }
@@ -108,12 +116,8 @@ export class AttackFlow extends BaseStepWithPipeline {
         return attackerDamageEvent;
     }
 
-    private buildOverwhelmDamageSystem(amount: number) {
-        return AbilityHelper.immediateEffects.damage({
-            amount,
-            isOverwhelmDamage: true,
-            sourceAttack: this.attack
-        });
+    private buildOverwhelmDamageSystem(damageEvent: GameEvent) {
+        return;
     }
 
     private createDefenderDamageEvent(): GameEvent {

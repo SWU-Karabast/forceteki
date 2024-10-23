@@ -8,10 +8,10 @@ import { Attack } from '../core/attack/Attack';
 import { DamageSourceType, IDamageSource } from '../IDamageOrDefeatSource';
 import { UnitCard } from '../core/card/CardTypes';
 import CardAbilityStep from '../core/ability/CardAbilityStep';
+import { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 
 export interface IDamageProperties extends ICardTargetSystemProperties {
     amount: number;
-    isOverwhelmDamage?: boolean;
     isCombatDamage?: boolean;
 
     /** must be provided if-and-only-if isCombatDamage = true */
@@ -27,16 +27,25 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
 
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
+    protected override defaultProperties: IDamageProperties = {
+        amount: null,
+        isCombatDamage: false
+    };
+
     public eventHandler(event): void {
-        event.card.addDamage(event.damage, event.damageSource);
+        const damageAdded = event.card.addDamage(event.damage, event.damageSource);
+
+        event.damageAdded = damageAdded;
+
+        // excess damage can be "used up" by effects such as Overwhelm, making it unavailable for other effects such Blizzard Assault AT-AT
+        // see unofficial dev ruling at https://nexus.cascadegames.com/resources/Rules_Clarifications/
+        event.availableExcessDamage = event.damage - damageAdded;
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
-        const { amount, target, isCombatDamage, isOverwhelmDamage } = this.generatePropertiesFromContext(context);
+        const { amount, target, isCombatDamage } = this.generatePropertiesFromContext(context);
 
-        const damageTypeStr = isCombatDamage
-            ? ' combat'
-            : isOverwhelmDamage ? ' overwhelm' : '';
+        const damageTypeStr = isCombatDamage ? ' combat' : '';
 
         return ['deal {0}{1} damage to {2}', [amount, damageTypeStr, target]];
     }
@@ -54,10 +63,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
     public override generatePropertiesFromContext(context: TContext, additionalProperties?: any) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
-        Contract.assertFalse(properties.isCombatDamage && properties.isOverwhelmDamage, 'Overwhelm damage must not be combat damage');
-        if (properties.isCombatDamage || properties.isOverwhelmDamage) {
-            Contract.assertTrue(properties.sourceAttack != null, 'Source attack must be provided if isCombatDamage or isOverwhelmDamage is true');
-        }
+        Contract.assertTrue(!!properties.sourceAttack === properties.isCombatDamage, 'Source attack must be provided if and only if isCombatDamage is true');
 
         return properties;
     }
@@ -68,9 +74,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
 
         event.damage = properties.amount;
         event.isCombatDamage = properties.isCombatDamage;
-        event.isOverwhelmDamage = properties.isOverwhelmDamage;
+        event.isOverwhelmDamage = false;
 
-        event.damageSource = event.isCombatDamage || event.isOverwhelmDamage
+        event.damageSource = event.isCombatDamage
             ? this.generateAttackSourceMetadata(event, card, context, properties)
             : this.generateAbilitySourceMetadata(card, context);
     }
@@ -102,7 +108,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
             attack: properties.sourceAttack,
             player: context.source.controller,
             damageDealtBy,
-            isOverwhelmDamage: !!properties.isOverwhelmDamage
+            isOverwhelmDamage: false
         };
     }
 
