@@ -122,11 +122,7 @@ export = {
     // increaseLimitOnPrintedAbilities: (abilities) =>
     //     OngoingEffectBuilder.card.static(EffectName.IncreaseLimitOnPrintedAbilities, abilities),
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
-    loseKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties) =>
-        OngoingEffectBuilder.card.static(EffectName.LoseKeyword,
-            typeof keywordOrKeywordProperties === 'string'
-                ? KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties })
-                : KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties)),
+    // loseKeyword: (keyword) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // loseTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
