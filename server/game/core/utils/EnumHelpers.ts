@@ -38,6 +38,17 @@ export const isAttackableLocation = (location: LocationFilter) => {
     }
 };
 
+export const isHidden = (location: LocationFilter) => {
+    switch (location) {
+        case Location.Hand:
+        case Location.Deck:
+        case Location.Resource:
+            return true;
+        default:
+            return false;
+    }
+};
+
 // return true if the card location matches one of the allowed location filters
 export const cardLocationMatches = (cardLocation: Location, locationFilter: LocationFilter | LocationFilter[]) => {
     if (!Array.isArray(locationFilter)) {

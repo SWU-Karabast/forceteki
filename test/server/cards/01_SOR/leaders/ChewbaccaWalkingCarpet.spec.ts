@@ -6,6 +6,8 @@ describe('Chewbacca, Walking Carpet', function() {
                     phase: 'action',
                     player1: {
                         hand: ['alliance-xwing', 'liberated-slaves', 'seventh-fleet-defender', 'consular-security-force'],
+                        discard: ['yoda#old-master'],
+                        resources: ['wilderness-fighter', 'homestead-militia', 'rogue-operative', 'vanquish', 'village-protectors'],
                         leader: 'chewbacca#walking-carpet',
                         base: 'administrators-tower'
                     },
@@ -16,13 +18,10 @@ describe('Chewbacca, Walking Carpet', function() {
                 });
             });
 
-            it('should let the controller play a unit with printed cost 3 or less and give it sentinel for the phase', function () {
+            it('should let the controller play a unit from hand with printed cost 3 or less and give it sentinel for the phase', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chewbacca);
-                expect(context.player1).toHaveEnabledPromptButtons(['Play a unit that costs 3 or less. It gains sentinel for this phase', 'Deploy Chewbacca']);
-
-                context.player1.clickPrompt('Play a unit that costs 3 or less. It gains sentinel for this phase');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.liberatedSlaves, context.seventhFleetDefender]);
 
                 context.player1.clickCard(context.liberatedSlaves);
@@ -38,14 +37,13 @@ describe('Chewbacca, Walking Carpet', function() {
                 context.moveToNextActionPhase();
                 context.player1.passAction();
                 context.player2.clickCard(context.wampa);
-                expect(this.player2).toBeAbleToSelectExactly([context.p1Base, context.liberatedSlaves]);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.liberatedSlaves]);
             });
 
             it('should not affect the cost of playing a unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chewbacca);
-                context.player1.clickPrompt('Play a unit that costs 3 or less. It gains sentinel for this phase');
                 context.player1.clickCard(context.seventhFleetDefender);
                 expect(context.player1.countExhaustedResources()).toBe(5);
 
@@ -54,5 +52,5 @@ describe('Chewbacca, Walking Carpet', function() {
                 expect(context.tielnFighter).toBeInLocation('discard');
             });
         });
-    });
+    }); // No tests for the unit side because it's only text is keywords.
 });

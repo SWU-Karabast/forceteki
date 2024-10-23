@@ -73,6 +73,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
+        // TODO:rename this class and all related classes / methods as PutUnitIntoPlay
         const { controller, overrideLocation, entersReady } = this.generatePropertiesFromContext(
             context,
             additionalProperties

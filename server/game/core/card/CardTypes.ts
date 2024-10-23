@@ -58,10 +58,6 @@ export type PlayableCard =
   UpgradeCard |
   NonLeaderUnitCard;
 
-export function isPlayable(card: Card): card is PlayableCard {
-    return card.isEvent() || card.isNonLeaderUnit() || card.isUpgrade();
-}
-
 // Base is the only type of card that isn't in the PlayableOrDeployable subclass
 type PlayableOrDeployableCardTypes = Exclude<AnyCard, BaseCard>;
 
