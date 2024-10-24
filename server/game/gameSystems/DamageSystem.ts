@@ -2,14 +2,20 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
-import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import { Attack } from '../core/attack/Attack';
+import { DamageSourceType, IDamageSource } from '../IDamageOrDefeatSource';
 import { UnitCard } from '../core/card/CardTypes';
+import CardAbilityStep from '../core/ability/CardAbilityStep';
 
 export interface IDamageProperties extends ICardTargetSystemProperties {
-    amount: number | ((card: UnitCard) => number);
-    isCombatDamage?: boolean;
+    amount: number;
     isOverwhelmDamage?: boolean;
+    isCombatDamage?: boolean;
+
+    /** must be provided if-and-only-if isCombatDamage = true */
+    sourceAttack?: Attack;
 }
 
 // TODO: for this and the heal system, need to figure out how to handle the situation where 0 damage
@@ -22,25 +28,17 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
-        switch (typeof event.damage) {
-            case 'number':
-                event.card.addDamage(event.damage);
-                break;
-            case 'function':
-                event.card.addDamage(event.damage(event.card));
-                break;
-            default:
-                Contract.fail(`Unexpected type ${typeof event.damage}`);
-        }
+        event.card.addDamage(event.damage, event.damageSource);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
-        const { amount, target, isCombatDamage } = this.generatePropertiesFromContext(context);
+        const { amount, target, isCombatDamage, isOverwhelmDamage } = this.generatePropertiesFromContext(context);
 
-        if (isCombatDamage) {
-            return ['deal {1} combat damage to {0}', [amount, target]];
-        }
-        return ['deal {1} damage to {0}', [amount, target]];
+        const damageTypeStr = isCombatDamage
+            ? ' combat'
+            : isOverwhelmDamage ? ' overwhelm' : '';
+
+        return ['deal {0}{1} damage to {2}', [amount, damageTypeStr, target]];
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
@@ -57,6 +55,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertFalse(properties.isCombatDamage && properties.isOverwhelmDamage, 'Overwhelm damage must not be combat damage');
+        if (properties.isCombatDamage || properties.isOverwhelmDamage) {
+            Contract.assertTrue(properties.sourceAttack != null, 'Source attack must be provided if isCombatDamage or isOverwhelmDamage is true');
+        }
 
         return properties;
     }
@@ -68,5 +69,53 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         event.damage = properties.amount;
         event.isCombatDamage = properties.isCombatDamage;
         event.isOverwhelmDamage = properties.isOverwhelmDamage;
+
+        event.damageSource = event.isCombatDamage || event.isOverwhelmDamage
+            ? this.generateAttackSourceMetadata(event, card, context, properties)
+            : this.generateAbilitySourceMetadata(card, context);
+    }
+
+    /** Generates metadata indicating the source of the damage is an attack for relevant effects such as Rukh's ability */
+    private generateAttackSourceMetadata(event: any, card: Card, context: TContext, properties: IDamageProperties): IDamageSource {
+        Contract.assertTrue(context.source.isUnit());
+
+        let damageDealtBy: UnitCard;
+
+        if (event.isOverwhelmDamage) {
+            damageDealtBy = properties.sourceAttack.attacker;
+        } else {
+            switch (card) {
+                case properties.sourceAttack.attacker:
+                    Contract.assertTrue(properties.sourceAttack.target.isUnit());
+                    damageDealtBy = properties.sourceAttack.target;
+                    break;
+                case properties.sourceAttack.target:
+                    damageDealtBy = properties.sourceAttack.attacker;
+                    break;
+                default:
+                    Contract.fail(`Combat damage being dealt to card ${card.internalName} but it is not involved in the attack`);
+            }
+        }
+
+        return {
+            type: DamageSourceType.Attack,
+            attack: properties.sourceAttack,
+            player: context.source.controller,
+            damageDealtBy,
+            isOverwhelmDamage: !!properties.isOverwhelmDamage
+        };
+    }
+
+    // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
+    /** Generates metadata indicating the source of the damage is an ability */
+    private generateAbilitySourceMetadata(card: Card, context: TContext): IDamageSource {
+        Contract.assertTrue(context.ability instanceof CardAbilityStep, `Damage was created by non-card ability ${context.ability.title} targeting ${card.internalName}`);
+
+        return {
+            type: DamageSourceType.Ability,
+            player: context.player,
+            ability: context.ability,
+            card: context.source
+        };
     }
 }
