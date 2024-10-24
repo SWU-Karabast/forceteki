@@ -2,12 +2,13 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
-import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { UnitCard } from '../core/card/CardTypes';
+import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import * as CardHelpers from '../core/card/CardHelpers';
+import { CardWithDamageProperty } from '../core/card/CardTypes';
 
 export interface IHealProperties extends ICardTargetSystemProperties {
-    amount: number | ((card: UnitCard) => number);
+    amount: number;
 }
 
 export class HealSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IHealProperties> {
@@ -16,16 +17,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
-        switch (typeof event.healAmount) {
-            case 'number':
-                event.card.removeDamage(event.healAmount);
-                break;
-            case 'function':
-                event.card.removeDamage(event.healAmount(event.card));
-                break;
-            default:
-                Contract.fail(`Unexpected type ${typeof event.healAmount}`);
-        }
+        event.card.removeDamage(event.healAmount);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
