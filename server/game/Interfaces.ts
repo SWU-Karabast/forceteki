@@ -47,6 +47,7 @@ export interface IOngoingEffectProps {
     optional?: boolean;
 }
 
+// TODO: make it so that this gives the correct parameter types for constant abilities targeting players
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
