@@ -8,7 +8,7 @@ describe('Blizzard Assault AT-AT', function() {
                         groundArena: ['battlefield-marine', 'blizzard-assault-atat']
                     },
                     player2: {
-                        groundArena: ['wampa', 'mandalorian-warrior', 'atst', 'atat-suppressor'],
+                        groundArena: ['wampa', 'mandalorian-warrior', 'atst', 'chewbacca#pykesbane', 'krayt-dragon'],
                         spaceArena: ['cartel-spacer']
                     }
                 });
@@ -19,6 +19,7 @@ describe('Blizzard Assault AT-AT', function() {
 
                 const reset = (passAction = true) => {
                     context.setDamage(context.blizzardAssaultAtat, 0);
+                    context.blizzardAssaultAtat.exhausted = false;
                     if (passAction) {
                         context.player2.passAction();
                     }
@@ -31,49 +32,52 @@ describe('Blizzard Assault AT-AT', function() {
                 expect(context.blizzardAssaultAtat.damage).toBe(4);
 
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.atst, context.atatSuppressor]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.atst, context.chewbacca, context.kraytDragon]);
                 context.player1.clickCard(context.atst);
                 expect(context.atst.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
 
                 reset();
 
-                // // CASE 2: Mace attacks and does not defeat, ability does not trigger
-                // context.blizzardAssaultAtat.exhausted = false;
-                // context.player1.clickCard(context.blizzardAssaultAtat);
-                // context.player1.clickCard(context.atst);
-                // expect(context.atst.damage).toBe(5);
-                // expect(context.blizzardAssaultAtat.damage).toBe(6);
-                // expect(context.blizzardAssaultAtat.exhausted).toBeTrue();
+                // CASE 2: AT-AT attacks and does not defeat, ability does not trigger
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickCard(context.chewbacca);
+                expect(context.chewbacca.damage).toBe(9);
+                expect(context.blizzardAssaultAtat.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
 
-                // reset(false);
+                reset(false);
+                context.setDamage(context.chewbacca, 0);
 
-                // // CASE 3: Enemy attacks into Mace and dies, ability doesn't trigger
-                // context.blizzardAssaultAtat.exhausted = true;
-                // context.player2.clickCard(context.atst);
-                // context.player2.clickCard(context.blizzardAssaultAtat);
-                // expect(context.atst).toBeInLocation('discard');
-                // expect(context.blizzardAssaultAtat.damage).toBe(6);
-                // expect(context.blizzardAssaultAtat.exhausted).toBeTrue();
+                // CASE 3: Enemy attacks into AT-AT and dies, ability doesn't trigger
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.blizzardAssaultAtat);
+                expect(context.atst).toBeInLocation('discard');
+                expect(context.blizzardAssaultAtat.damage).toBe(6);
+                expect(context.player1).toBeActivePlayer();
 
-                // reset(false);
+                reset(false);
 
-                // // CASE 4: friendly unit trades with enemy unit, Mace ability does not trigger
-                // context.blizzardAssaultAtat.exhausted = true;
-                // context.player1.clickCard(context.battlefieldMarine);
-                // context.player1.clickCard(context.mandalorianWarrior);
-                // expect(context.battlefieldMarine).toBeInLocation('discard');
-                // expect(context.mandalorianWarrior).toBeInLocation('discard');
-                // expect(context.blizzardAssaultAtat.exhausted).toBeTrue();
+                // CASE 4: friendly unit trades with enemy unit, AT-AT ability does not trigger
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.mandalorianWarrior);
+                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.mandalorianWarrior).toBeInLocation('discard');
+                expect(context.player2).toBeActivePlayer();
 
-                // reset();
+                reset();
 
-                // // CASE 5: Mace dies while attacking, ability fizzles
-                // context.blizzardAssaultAtat.exhausted = false;
-                // context.player1.clickCard(context.blizzardAssaultAtat);
-                // context.player1.clickCard(context.atatSuppressor);
-                // expect(context.blizzardAssaultAtat).toBeInLocation('discard');
-                // expect(context.atatSuppressor.damage).toBe(5);
+                // CASE 5: AT-AT dies while attacking, ability activates
+                context.blizzardAssaultAtat.exhausted = false;
+                context.setDamage(context.kraytDragon, 2);
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickCard(context.kraytDragon);
+                expect(context.blizzardAssaultAtat).toBeInLocation('discard');
+
+                expect(context.player1).toHavePassAbilityPrompt('Deal the excess damage from the attack to an enemy ground unit');
+                context.player1.clickPrompt('Deal the excess damage from the attack to an enemy ground unit');
+                expect(context.chewbacca.damage).toBe(1);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 

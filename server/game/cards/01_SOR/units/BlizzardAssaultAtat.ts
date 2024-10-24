@@ -16,7 +16,7 @@ export default class BlizzardAssaultAtat extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Deal the excess damage from this attack to an enemy ground unit',
+            title: 'Deal the excess damage from the attack to an enemy ground unit',
             optional: true,
             when: {
                 onCardDefeated: (event, context) =>
