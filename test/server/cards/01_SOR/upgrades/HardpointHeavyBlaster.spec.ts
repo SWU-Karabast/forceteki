@@ -5,11 +5,12 @@ describe('Hardpoint Heavy Blaster', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'atst', upgrades: ['hardpoint-heavy-blaster'] }, 'battlefield-marine'],
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: [{ card: 'strafing-gunship', upgrades: ['hardpoint-heavy-blaster'] }, 'cartel-spacer']
                     },
                     player2: {
                         groundArena: ['reinforcement-walker', 'wampa'],
-                        spaceArena: ['cartel-spacer']
+                        spaceArena: ['ruthless-raider']
                     }
                 });
             });
@@ -17,14 +18,42 @@ describe('Hardpoint Heavy Blaster', function() {
             it('when attacking a non-base ground target, should deal 2 damage to a target in the ground arena', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.atst);
-                context.player1.clickCard(context.reinforcementWalker);
+                const reset = () => {
+                    context.strafingGunship.exhausted = false;
+                    context.strafingGunship.damage = 0;
+                    context.player2.passAction();
+                };
 
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.reinforcementWalker, context.battlefieldMarine, context.atst]);
+                // CASE 1: attack unit in ground arena, only ground arena targets available
+                context.player1.clickCard(context.strafingGunship);
+                context.player1.clickCard(context.reinforcementWalker);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.reinforcementWalker, context.battlefieldMarine]);
                 expect(context.player1).toHavePassAbilityButton();
+
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(2);
-                expect(context.reinforcementWalker.damage).toBe(8);
+                expect(context.reinforcementWalker.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+
+                reset();
+
+                // CASE 2: attack unit in space arena, only space arena targets available
+                context.player1.clickCard(context.strafingGunship);
+                context.player1.clickCard(context.ruthlessRaider);
+                expect(context.player1).toBeAbleToSelectExactly([context.strafingGunship, context.ruthlessRaider, context.cartelSpacer]);
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer.damage).toBe(2);
+                expect(context.ruthlessRaider.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+
+                reset();
+
+                // CASE 3: attack base, ability does not trigger
+                context.player1.clickCard(context.strafingGunship);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(5);
                 expect(context.player2).toBeActivePlayer();
             });
 
