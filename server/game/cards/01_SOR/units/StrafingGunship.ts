@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Duration, EffectName, Location } from '../../../core/Constants';
+import { EffectName, Location, RelativePlayer } from '../../../core/Constants';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
 
 export default class StrafingGunship extends NonLeaderUnitCard {
@@ -17,16 +17,12 @@ export default class StrafingGunship extends NonLeaderUnitCard {
             ongoingEffect: OngoingEffectBuilder.card.static(EffectName.CanAttackGroundArenaFromSpaceArena)
         });
 
-        this.addTriggeredAbility({
+        this.addConstantAbility({
             title: 'While this unit is attacking a ground unit, the defender gets –2/–0.',
-            when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source && event.attack.target.defaultArena === Location.GroundArena,
-            },
-            immediateEffect: AbilityHelper.immediateEffects.cardLastingEffect((context) => ({
-                target: context.event.attack.target,
-                duration: Duration.UntilEndOfAttack,
-                effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
-            }))
+            condition: (context) => context.source.isAttacking() && context.source.activeAttack?.target.isUnit() && context.source.activeAttack?.target.location === Location.GroundArena,
+            targetController: RelativePlayer.Opponent,
+            matchTarget: (card, context) => card === context.source.activeAttack?.target,
+            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
         });
     }
 }
