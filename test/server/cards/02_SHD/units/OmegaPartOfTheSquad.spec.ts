@@ -35,31 +35,31 @@ describe('Omega, Part of the Squad', function() {
             });
         });
 
-        // describe('Omega\'s Ability', function() {
-        //     beforeEach(function () {
-        //         contextRef.setupTest({
-        //             phase: 'action',
-        //             player1: {
-        //                 groundArena: ['omega#part-of-the-squad'],
-        //                 hand: ['crosshair#following-orders', 'wolffe#suspicious-veteran'],
-        //                 base: 'echo-base',
-        //                 leader: 'hera-syndulla#spectre-two'
-        //             },
-        //         });
-        //     });
+        describe('Omega\'s Ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['omega#part-of-the-squad'],
+                        hand: ['crosshair#following-orders', 'wolffe#suspicious-veteran'],
+                        base: 'echo-base',
+                        leader: 'hera-syndulla#spectre-two'
+                    },
+                });
+            });
 
-        //     it('negates aspect penalties on the first clone played', function () {
-        //         const { context } = contextRef;
+            it('negates aspect penalties on the first clone played', function () {
+                const { context } = contextRef;
 
-        //         context.player1.clickCard(context.crosshair);
-        //         expect(context.player1.countExhaustedResources()).toBe(4);
+                context.player1.clickCard(context.crosshair);
+                expect(context.player1.countExhaustedResources()).toBe(4);
 
-        //         context.player2.passAction();
+                context.player2.passAction();
 
-        //         // This should cost 4 due to aspect penalties
-        //         context.player1.clickCard(context.wolffe);
-        //         expect(context.player1.countExhaustedResources()).toBe(8);
-        //     });
-        // });
+                // This should cost 4 due to aspect penalties
+                context.player1.clickCard(context.wolffe);
+                expect(context.player1.countExhaustedResources()).toBe(8);
+            });
+        });
     });
 });
