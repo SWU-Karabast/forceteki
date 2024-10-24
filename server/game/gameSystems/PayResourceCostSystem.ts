@@ -7,9 +7,14 @@ export interface IPayResourceCostProperties extends IPlayerTargetSystemPropertie
     amount: number;
 }
 
+// TODO: replace this with ExhaustResourcesSystem when we have it
 export class PayResourceCostSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IPayResourceCostProperties> {
     public override readonly name = 'payResourceCost';
     public override readonly eventName = EventName.onExhaustResources;
+    protected override defaultProperties: IPayResourceCostProperties = {
+        amount: null,
+        isCost: true
+    };
 
     public override eventHandler(event): void {
         event.player.exhaustResources(event.amount);
