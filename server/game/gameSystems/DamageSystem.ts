@@ -109,6 +109,22 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
+        const properties = this.generatePropertiesFromContext(context);
+
+        // short-circuits to pass targeting if damage amount is set at 0 either directly or via a resolved source event
+        if (
+            'amount' in properties && properties.amount === 0 ||
+            'sourceEventForExcessDamage' in properties && properties.sourceEventForExcessDamage.availableExcessDamage === 0
+        ) {
+            return false;
+        }
+        if (
+            properties.type === DamageType.Overwhelm && 'contingentSourceEvent' in properties &&
+            properties.contingentSourceEvent.availableExcessDamage === 0
+        ) {
+            return false;
+        }
+
         if (!EnumHelpers.isAttackableLocation(card.location)) {
             return false;
         }
@@ -116,6 +132,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             return false;
         }
         return super.canAffect(card, context);
+    }
+
+    private propertyExistsAndIsZero(properties: TProperties, propertyName: string): boolean {
+        return propertyName in properties && properties[propertyName] === 0;
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties) {

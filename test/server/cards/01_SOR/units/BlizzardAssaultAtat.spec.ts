@@ -81,29 +81,61 @@ describe('Blizzard Assault AT-AT', function() {
             });
         });
 
-        // describe('Mace\'s triggered ability', function() {
-        //     beforeEach(function () {
-        //         contextRef.setupTest({
-        //             phase: 'action',
-        //             player1: {
-        //                 groundArena: [{ card: 'mace-windu#party-crasher', upgrades: ['fallen-lightsaber'] }]
-        //             },
-        //             player2: {
-        //                 groundArena: ['jawa-scavenger']
-        //             }
-        //         });
-        //     });
+        describe('Blizzard Assault AT-AT\'s triggered ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'blizzard-assault-atat', upgrades: ['hardpoint-heavy-blaster'] }]
+                    },
+                    player2: {
+                        groundArena: ['jawa-scavenger']
+                    }
+                });
+            });
 
-        //     it('will not ready him if the unit is defeated by an on-attack ability', function () {
-        //         const { context } = contextRef;
+            it('will not trigger if the unit is defeated by an on-attack ability', function () {
+                const { context } = contextRef;
 
-        //         context.player1.clickCard(context.blizzardAssaultAtat);
-        //         context.player1.clickCard(context.jawaScavenger);
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickCard(context.jawaScavenger);
 
-        //         expect(context.jawaScavenger).toBeInLocation('discard');
-        //         expect(context.blizzardAssaultAtat.damage).toBe(0);
-        //         expect(context.blizzardAssaultAtat.exhausted).toBeTrue();
-        //     });
-        // });
+                // hardpoint heavy blaster ability
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.jawaScavenger, context.blizzardAssaultAtat]);
+                context.player1.clickCard(context.jawaScavenger);
+
+                expect(context.jawaScavenger).toBeInLocation('discard');
+                expect(context.blizzardAssaultAtat.damage).toBe(0);
+                expect(context.blizzardAssaultAtat.exhausted).toBeTrue();
+            });
+        });
+
+        describe('Blizzard Assault AT-AT\'s triggered ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'blizzard-assault-atat', upgrades: ['heroic-resolve'] }]
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'krayt-dragon'],
+                        spaceArena: ['cartel-spacer']
+                    }
+                });
+            });
+
+            it('will not trigger if Overwhelm has used up the excess damage from the attack', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
+                context.player1.clickCard(context.kraytDragon);
+
+                expect(context.kraytDragon).toBeInLocation('discard');
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
