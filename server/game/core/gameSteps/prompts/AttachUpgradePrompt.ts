@@ -32,7 +32,6 @@ export class AttachUpgradePrompt extends UiPrompt {
         return true;
     }
 
-    // TODO: understand the UiPrompt flow better to figure out how to make these unnecessary
     public activePrompt(player: Player) {
         return undefined;
     }

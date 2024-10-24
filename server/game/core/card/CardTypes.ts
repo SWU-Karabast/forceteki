@@ -1,4 +1,5 @@
 import { BaseCard } from './BaseCard';
+import { InPlayCard } from './baseClasses/InPlayCard';
 import { EventCard } from './EventCard';
 import { LeaderCard } from './LeaderCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
@@ -59,5 +60,3 @@ export type PlayableCard =
 
 // Base is the only type of card that isn't in the PlayableOrDeployable subclass
 type PlayableOrDeployableCardTypes = Exclude<AnyCard, BaseCard>;
-
-export type InPlayCard = Exclude<AnyCard, BaseCard | EventCard>;

@@ -46,7 +46,7 @@ class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.generateContingentEvents(), 'generateContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.executeHandlersEmitEvents(), 'executeHandlersEmitEvents'),
-            new SimpleStep(this.game, () => this.resolveGameStateEmitEvents(), 'resolveGameStateEmitEvents'),
+            new SimpleStep(this.game, () => this.resolveGameStateAndEmitEvents(), 'resolveGameStateEmitEvents'),
             new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'checkSubwindowEvents'),
             new SimpleStep(this.game, () => this.resolveThenAbilityStep(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
@@ -146,7 +146,7 @@ class EventWindow extends BaseStepWithPipeline {
 
     // resolve game state and emit triggers again
     // this is to catch triggers on cards that entered play or gained abilities during event resolution
-    resolveGameStateEmitEvents() {
+    resolveGameStateAndEmitEvents() {
         // TODO: understand if resolveGameState really needs the emittedEvents array or not
         this.game.resolveGameState(this.emittedEvents.some((event) => event.handler), this.emittedEvents);
 
@@ -154,7 +154,6 @@ class EventWindow extends BaseStepWithPipeline {
             this.game.emit(event.name, event);
         }
 
-        // TODO: make it so we don't need to trigger twice
         // trigger again here to catch any events for cards that entered play during event resolution
         this.triggeredAbilityWindow.emitEvents();
     }

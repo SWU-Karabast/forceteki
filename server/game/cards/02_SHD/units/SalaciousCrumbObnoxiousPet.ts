@@ -12,12 +12,11 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Heal 1 damage from friendly base',
-            targetResolver: {
-                cardTypeFilter: CardType.Base,
-                controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 1 })
-            }
+            title: 'Heal 1 damage from your base',
+            immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
+                amount: 1,
+                target: context.source.controller.base
+            }))
         });
 
         this.addActionAbility({
