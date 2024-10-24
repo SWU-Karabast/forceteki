@@ -3,6 +3,7 @@ import * as Contract from '../../utils/Contract';
 import { Card, CardConstructor } from '../Card';
 import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';
+import { IDamageSource } from '../../../IDamageOrDefeatSource';
 
 /**
  * Mixin function that adds the `damage` property and corresponding methods to a base class.
@@ -57,8 +58,12 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             return true;
         }
 
-        public addDamage(amount: number) {
+        /** @param source Metadata about the source of the damage (attack or ability) */
+        public addDamage(amount: number, source: IDamageSource) {
             Contract.assertNonNegative(amount);
+
+            // damage source is only needed for tracking cause of defeat on units but we should enforce that it's provided consistently
+            Contract.assertNotNullLike(source);
 
             this.assertPropertyEnabled(this._damage, 'damage');
 

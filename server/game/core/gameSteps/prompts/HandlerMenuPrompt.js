@@ -4,13 +4,11 @@ const { UiPrompt } = require('./UiPrompt.js');
 
 /**
  * General purpose menu prompt. Takes a choices object with menu options and
- * a handler for each. Handlers should return true in order to complete the
- * prompt.
+ * a handler for each. Handlers should return nothing or true in order to complete the prompt.
  *
  * The properties option object may contain the following:
  * choices            - an array of titles for menu buttons
  * handlers           - an array of handlers corresponding to the menu buttons
- * choiceHandler      - handler which is called when a choice button is clicked
  * activePromptTitle  - the title that should be used in the prompt for the
  *                      choosing player.
  * waitingPromptTitle - the title to display for opponents.
@@ -76,7 +74,8 @@ class HandlerMenuPrompt extends UiPrompt {
             menuTitle: this.properties.activePromptTitle || 'Select one',
             buttons: buttons,
             controls: this.getAdditionalPromptControls(),
-            promptTitle: this.properties.source.name
+            promptTitle: this.properties.source.name,
+            promptUuid: this.uuid
         };
     }
 
@@ -144,19 +143,14 @@ class HandlerMenuPrompt extends UiPrompt {
             return false;
         }
 
-        if (this.properties.choiceHandler) {
-            this.properties.choiceHandler(this.properties.choices[arg]);
-            this.complete();
-            return true;
-        }
-
         if (!this.properties.handlers[arg]) {
             return false;
         }
 
-        this.properties.handlers[arg]();
+        if (this.properties.handlers[arg]() === false) {
+            return false;
+        }
         this.complete();
-
         return true;
     }
 }

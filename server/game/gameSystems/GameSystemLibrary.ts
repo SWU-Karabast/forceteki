@@ -66,6 +66,9 @@ import { SequentialSystem } from './SequentialSystem';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import { IPlayerLastingEffectProperties, PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
+import { IPlayerPhaseLastingEffectProperties, PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
+import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoverDeckCardsTopOrBottomSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -136,6 +139,9 @@ export function lookAt<TContext extends AbilityContext = AbilityContext>(propert
     return new LookAtSystem<TContext>(propertyFactory);
 }
 
+export function LookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>): CardTargetSystem<TContext> {
+    return new LookMoveDeckCardsTopOrBottomSystem<TContext>(propertyFactory);
+}
 /**
  * default switch = false
  * default shuffle = false
@@ -267,7 +273,7 @@ export function deckSearch<TContext extends AbilityContext = AbilityContext>(pro
 /**
  * default amount = 1
  */
-export function draw<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDrawProperties, TContext> = {}): GameSystem<TContext> {
+export function draw<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDrawProperties, TContext> = {}): DrawSystem<TContext> {
     return new DrawSystem<TContext>(propertyFactory);
 }
 
@@ -277,12 +283,14 @@ export function draw<TContext extends AbilityContext = AbilityContext>(propertyF
 export function drawSpecificCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDrawSpecificCardProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new DrawSpecificCardSystem<TContext>(propertyFactory);
 }
-// export function playerLastingEffect(propertyFactory: PropsFactory<LastingEffectProperties>): GameSystem {
-//     return new LastingEffectAction(propertyFactory);
-// } // duration = 'untilEndOfConflict', effect, targetController, condition, until
-
+export function forThisPhasePlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayerPhaseLastingEffectProperties, TContext>) {
+    return new PlayerPhaseLastingEffectSystem<TContext>(propertyFactory);
+}
 export function readyResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadyResourcesSystemProperties, TContext>): GameSystem<TContext> {
     return new ReadyResourcesSystem<TContext>(propertyFactory);
+}
+export function playerLastingEffect(propertyFactory: PropsFactory<IPlayerLastingEffectProperties>): GameSystem {
+    return new PlayerLastingEffectSystem(propertyFactory);
 }
 
 // //////////////

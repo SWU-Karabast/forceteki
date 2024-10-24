@@ -1,12 +1,12 @@
-const AbilityTargetResolver = require('./abilityTargets/AbilityTargetResolver.js');
-const CardTargetResolver = require('./abilityTargets/CardTargetResolver.js');
-const SelectTargetResolver = require('./abilityTargets/SelectTargetResolver.js');
+const { CardTargetResolver } = require('./abilityTargets/CardTargetResolver.js');
+const { SelectTargetResolver } = require('./abilityTargets/SelectTargetResolver.js');
 const { Stage, TargetMode, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
-const { has } = require('underscore');
 const { v4: uuidv4 } = require('uuid');
+const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
+const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -105,12 +105,28 @@ class PlayerOrCardAbility {
     }
 
     buildTargetResolver(name, properties) {
-        if (properties.mode === TargetMode.Select) {
-            return new SelectTargetResolver(name, properties, this);
-        } else if (properties.mode === TargetMode.Ability) {
-            return new AbilityTargetResolver(name, properties, this);
+        switch (properties.mode) {
+            case TargetMode.Select:
+                return new SelectTargetResolver(name, properties, this);
+            case TargetMode.DropdownList:
+                return new DropdownListTargetResolver(name, properties, this);
+            case TargetMode.Player:
+            case TargetMode.MultiplePlayers:
+                return new PlayerTargetResolver(name, properties, this);
+            case TargetMode.AutoSingle:
+            case TargetMode.Exactly:
+            case TargetMode.ExactlyVariable:
+            case TargetMode.MaxStat:
+            case TargetMode.Single:
+            case TargetMode.Unlimited:
+            case TargetMode.UpTo:
+            case TargetMode.UpToVariable:
+            case null:
+            case undefined: // CardTargetResolver contains behavior that defaults the mode to TargetMode.Single if it is not defined yet.
+                return new CardTargetResolver(name, properties, this);
+            default:
+                Contract.fail(`Attempted to create a TargetResolver with unsupported mode ${properties.mode}`);
         }
-        return new CardTargetResolver(name, properties, this);
     }
 
     /**

@@ -43,6 +43,7 @@ describe('Overall game mechanics', function() {
                 context.player1.clickCard(context.rebelPathfinder);
                 expect(context.player1).toHavePrompt('player1 has won the game!');
                 expect(context.player2).toHavePrompt('player1 has won the game!');
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

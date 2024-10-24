@@ -1,5 +1,5 @@
 const { AbilityContext } = require('../../ability/AbilityContext.js');
-const CardSelector = require('../../cardSelector/CardSelector.js');
+const CardSelectorFactory = require('../../cardSelector/CardSelectorFactory.js');
 const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
 const Contract = require('../../utils/Contract.js');
 const { UiPrompt } = require('./UiPrompt.js');
@@ -75,7 +75,9 @@ class SelectCardPrompt extends UiPrompt {
                 cardCondition(card, context) && this.properties.immediateEffect.canAffect(card, context);
         }
         this.hideIfNoLegalTargets = properties.hideIfNoLegalTargets;
-        this.selector = properties.selector || CardSelector.for(this.properties);
+
+        this.selector = properties.selector || CardSelectorFactory.create(this.properties);
+
         this.selectedCards = [];
         if (properties.mustSelect) {
             if (this.selector.hasEnoughSelected(properties.mustSelect, properties.context) && this.selector.numCards > 0 && properties.mustSelect.length >= this.selector.numCards) {
@@ -161,7 +163,8 @@ class SelectCardPrompt extends UiPrompt {
             menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
             buttons: buttons,
             promptTitle: this.properties.source ? this.properties.source.name : undefined,
-            controls: this.properties.controls
+            controls: this.properties.controls,
+            promptUuid: this.uuid
         };
     }
 

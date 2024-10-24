@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { Arena, CardType, EffectName, KeywordName, Location, StatType } from '../../Constants';
+import { Arena, CardType, EffectName, EventName, KeywordName, Location, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -18,6 +18,11 @@ import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import type { UnitCard } from '../CardTypes';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
+import type Game from '../../Game';
+import { GameEvent } from '../../event/GameEvent';
+import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
+import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -34,6 +39,24 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
     const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
     return class AsUnit extends StatsAndDamageClass {
+        public static registerRulesListeners(game: Game) {
+            // register listeners for when-played keyword abilities
+            game.on(EventName.OnUnitEntersPlay, (event) => {
+                const card = event.card as Card;
+                if (card.isUnit()) {
+                    card.checkRegisterWhenPlayedKeywordAbilities(event);
+                }
+            });
+
+            // register listeners for on-attack keyword abilities
+            game.on(EventName.OnAttackDeclared, (event) => {
+                const card = event.attack.attacker as Card;
+                if (card.isUnit()) {
+                    card.checkRegisterOnAttackKeywordAbilities(event);
+                }
+            });
+        }
+
         // ************************************* FIELDS AND PROPERTIES *************************************
         public readonly defaultArena: Arena;
 
@@ -41,14 +64,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
-
-        /** If true, then this unit has taken sufficient damage to be defeated but not yet been removed from the field */
-        private _pendingDefeat? = null;
-
-        public get pendingDefeat() {
-            this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
-            return this._pendingDefeat;
-        }
 
         public get upgrades(): UpgradeCard[] {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
@@ -109,7 +124,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         protected override setDamageEnabled(enabledStatus: boolean): void {
             super.setDamageEnabled(enabledStatus);
-            this._pendingDefeat = enabledStatus ? false : null;
         }
 
         // ***************************************** ATTACK HELPERS *****************************************
@@ -160,10 +174,77 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // *************************************** KEYWORD HELPERS ***************************************
-        protected override cleanupBeforeMove(nextLocation: Location) {
-            if (this.isInPlay() && this.isAttacking()) {
-                this.unregisterAttackKeywords();
+        /**
+         * Checks if the unit currently has any keywords with a "when played" effect and registers them if so.
+         * Also adds a listener to remove the registered abilities after the effect resolves.
+         */
+        public checkRegisterWhenPlayedKeywordAbilities(event: GameEvent) {
+            const hasAmbush = this.hasSomeKeyword(KeywordName.Ambush);
+            const hasShielded = this.hasSomeKeyword(KeywordName.Shielded);
+
+            if (!hasAmbush && !hasShielded) {
+                return;
             }
+
+            Contract.assertTrue(
+                this._whenPlayedKeywordAbilities === null,
+                `Failed to unregister when played abilities from previous play: ${this._whenPlayedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+            );
+
+            this._whenPlayedKeywordAbilities = [];
+
+            if (hasAmbush) {
+                const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
+                ambushAbility.registerEvents();
+                this._whenPlayedKeywordAbilities.push(ambushAbility);
+            }
+
+            if (hasShielded) {
+                const shieldedAbility = this.createTriggeredAbility(ShieldedAbility.buildShieldedAbilityProperties());
+                shieldedAbility.registerEvents();
+                this._whenPlayedKeywordAbilities.push(shieldedAbility);
+            }
+
+            event.addCleanupHandler(() => this.unregisterWhenPlayedKeywords());
+        }
+
+        /**
+         * Registers any keywords which need to be explicitly registered for the attack process.
+         * These should be unregistered after the end of the attack.
+         *
+         * Note: Check rule 7.5 to see if a keyword should be here. Only keywords that are
+         *      "On Attack" keywords should go here. As of Set 2 (SHD) this is only Restore
+         *      and the defeat all shields portion of Saboteur.
+         */
+        public checkRegisterOnAttackKeywordAbilities(event: GameEvent) {
+            const hasRestore = this.hasSomeKeyword(KeywordName.Restore);
+            const hasSaboteur = this.hasSomeKeyword(KeywordName.Saboteur);
+
+            if (!hasRestore && !hasSaboteur) {
+                return;
+            }
+
+            Contract.assertTrue(
+                this._attackKeywordAbilities === null,
+                `Failed to unregister on attack abilities from previous attack: ${this._attackKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+            );
+
+            this._attackKeywordAbilities = [];
+
+            if (hasRestore) {
+                const restoreAmount = this.getNumericKeywordSum(KeywordName.Restore);
+                const restoreAbility = this.createTriggeredAbility(RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
+                restoreAbility.registerEvents();
+                this._attackKeywordAbilities.push(restoreAbility);
+            }
+
+            if (hasSaboteur) {
+                const saboteurAbility = this.createTriggeredAbility(SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties());
+                saboteurAbility.registerEvents();
+                this._attackKeywordAbilities.push(saboteurAbility);
+            }
+
+            event.addCleanupHandler(() => this.unregisterAttackKeywords());
         }
 
         /**
@@ -181,42 +262,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return keywordValueTotal > 0 ? keywordValueTotal : null;
         }
 
-        /**
-         * Registers any keywords which need to be explicitly registered for the attack process.
-         * These should be unregistered after the end of the attack.
-         */
-        public registerWhenPlayedKeywords() {
-            Contract.assertTrue(
-                this._whenPlayedKeywordAbilities === null,
-                `Failed to unregister when played abilities from previous play: ${this._whenPlayedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
-            );
-
-            this._whenPlayedKeywordAbilities = [];
-
-            // shielded
-            if (this.hasSomeKeyword(KeywordName.Shielded)) {
-                const shieldedAbility = this.createTriggeredAbility(ShieldedAbility.buildShieldedAbilityProperties());
-                shieldedAbility.registerEvents();
-                this._whenPlayedKeywordAbilities.push(shieldedAbility);
-            }
-
-            // ambush
-            if (this.hasSomeKeyword(KeywordName.Ambush)) {
-                const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
-                ambushAbility.registerEvents();
-                this._whenPlayedKeywordAbilities.push(ambushAbility);
-            }
-        }
-
-        /**
-         * Unegisters any keywords which need to be explicitly registered for the attack process.
-         * These should be unregistered after the end of the attack.
-         */
         public unregisterWhenPlayedKeywords() {
-            Contract.assertTrue(
-                Array.isArray(this._whenPlayedKeywordAbilities),
-                'Ability when played registration was skipped'
-            );
+            Contract.assertTrue(Array.isArray(this._whenPlayedKeywordAbilities), 'Ability when played registration was skipped');
 
             for (const ability of this._whenPlayedKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
@@ -228,45 +275,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         /**
-         * Registers any keywords which need to be explicitly registered for the attack process.
-         * These should be unregistered after the end of the attack.
-         *
-         * Note: Check rule 7.5 to see if a keyword should be here. Only keywords that are
-         *      "On Attack" keywords should go here. As of Set 2 (SHD) this is only Restore
-         *      and the defeat all shields portion of Saboteur.
-         */
-        public registerAttackKeywords() {
-            Contract.assertTrue(
-                this._attackKeywordAbilities === null,
-                `Failed to unregister attack abilities from previous attack: ${this._attackKeywordAbilities?.map((ability) => ability.title).join(', ')}`
-            );
-
-            this._attackKeywordAbilities = [];
-
-            // restore
-            const restoreAmount = this.getNumericKeywordSum(KeywordName.Restore);
-            if (restoreAmount !== null) {
-                const restoreAbility = this.createTriggeredAbility(RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
-                restoreAbility.registerEvents();
-                this._attackKeywordAbilities.push(restoreAbility);
-            }
-
-            if (this.hasSomeKeyword(KeywordName.Saboteur)) {
-                const saboteurAbility = this.createTriggeredAbility(SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties());
-                saboteurAbility.registerEvents();
-                this._attackKeywordAbilities.push(saboteurAbility);
-            }
-        }
-
-        /**
-         * Unegisters any keywords which need to be explicitly registered for the attack process.
+         * Unregisters any keywords which need to be explicitly registered for the attack process.
          * These should be unregistered after the end of the attack.
          */
         public unregisterAttackKeywords() {
-            Contract.assertTrue(
-                Array.isArray(this._attackKeywordAbilities),
-                'Ability attack registration was skipped'
-            );
+            Contract.assertTrue(Array.isArray(this._attackKeywordAbilities), 'Ability attack registration was skipped');
 
             for (const ability of this._attackKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
@@ -280,15 +293,30 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number): void {
-            super.addDamage(amount);
+        public override addDamage(amount: number, source: IDamageSource): void {
+            super.addDamage(amount, source);
 
-            this.checkDefeated();
+            this.checkDefeated(source);
         }
 
-        public checkDefeated() {
+        // TODO: FFG has yet to release detailed rules about how effects are used to determine which player defeated a unit,
+        // specifically for complex cases like "what if Dodonna effect is keeping a Rebel unit alive and Dodonna is defeated."
+        // Need to come through and implement that in the methods below once rules 3.0 comes out.
+
+        /** Checks if the unit has been defeated due to an ongoing effect such as hp reduction */
+        public checkDefeatedByOngoingEffect() {
+            this.checkDefeated(DefeatSourceType.FrameworkEffect);
+        }
+
+        private checkDefeated(source: IDamageSource | DefeatSourceType.FrameworkEffect) {
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
-                this.owner.defeatCard(this);
+                // add defeat event to window
+                this.game.addSubwindowEvents(
+                    new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
+                        .generateEvent(this, this.game.getFrameworkContext())
+                );
+
+                // mark that this unit has a defeat pending so that other effects targeting it will not resolve
                 this._pendingDefeat = true;
             }
         }

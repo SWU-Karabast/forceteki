@@ -1,23 +1,34 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EventName, Location, WildcardCardType } from '../core/Constants';
+import { EventName, Location, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Contract from '../core/utils/Contract';
+import { DamageSourceType, DefeatSourceType, IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IDefeatCardProperties extends ICardTargetSystemProperties {}
+export interface IDefeatCardPropertiesBase extends ICardTargetSystemProperties {
+    defeatSource?: IDamageSource | DefeatSourceType.Ability | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;
+}
 
-export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDefeatCardProperties> {
+export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
+
+    /**
+     * Identifies the type of effect that triggered the defeat. If the defeat was caused by damage,
+     * just pass in the damage source metadata. Otherwise the defeat is due to an ability (default).
+     */
+    defeatSource?: IDamageSource | DefeatSourceType.Ability;
+}
+
+export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IDefeatCardPropertiesBase = IDefeatCardProperties> extends CardTargetSystem<TContext, TProperties> {
     public override readonly name = 'defeat';
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
-    public constructor(propertyFactory) {
-        super(propertyFactory);
-    }
+    protected override readonly defaultProperties: IDefeatCardProperties = {
+        defeatSource: DefeatSourceType.Ability
+    };
 
-    public eventHandler(event, additionalProperties = {}): void {
+    public eventHandler(event): void {
         if (event.card.isUpgrade()) {
             event.card.unattach();
         }
@@ -48,18 +59,42 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext> 
         return super.canAffect(card, context);
     }
 
-    /** Returns true if this system is enacting the pending defeat (i.e., delayed defeat from damage) for the specified card */
-    protected override isPendingDefeatFor(card: Card, context: TContext) {
-        const { target } = this.generatePropertiesFromContext(context);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+        this.addDefeatSourceToEvent(event, card, context);
+    }
 
-        if (Array.isArray(target)) {
-            if (target.length === 1) {
-                return target[0] === card;
-            }
-            return false;
+    /** Generates metadata indicating what the source of the defeat is for relevant effects such as "when [X] attacks and defeats..." */
+    private addDefeatSourceToEvent(event: any, card: Card, context: TContext) {
+        // if this defeat is caused by damage, just use the same source as the damage event
+        const { defeatSource } = this.generatePropertiesFromContext(context);
+
+        let eventDefeatSource: IDefeatSource;
+
+        event.isDefeatedByAttackerDamage = false;
+        if (typeof defeatSource === 'object') {
+            eventDefeatSource = defeatSource;
+
+            event.isDefeatedByAttackerDamage =
+                eventDefeatSource.type === DamageSourceType.Attack &&
+                eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
+        } else {
+            eventDefeatSource = this.buildDefeatSourceForType(defeatSource, card, context);
         }
 
-        return target === card;
+        event.defeatSource = defeatSource;
+    }
+
+    protected buildDefeatSourceForType(defeatSourceType: DefeatSourceType, card: Card, context: TContext): IDefeatSource | null {
+        Contract.assertEqual(defeatSourceType, DefeatSourceType.Ability);
+
+        // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
+        return {
+            type: DamageSourceType.Ability,
+            player: context.player,
+            ability: context.ability,
+            card: context.source
+        };
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {

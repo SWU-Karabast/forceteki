@@ -6,38 +6,52 @@ import type Game from '../Game';
 import type Player from '../Player';
 import * as EnumHelpers from '../utils/EnumHelpers';
 
-export interface CostAdjusterProperties {
-    penaltyAspect?: Aspect;
-    cardTypeFilter?: CardType;
+export enum CostAdjustDirection {
+    Increase = 'increase',
+    Decrease = 'decrease'
+}
+
+// TODO: refactor so we can add TContext for attachTargetCondition
+export interface ICostAdjusterProperties {
+    cardTypeFilter: CardTypeFilter;
+    amount: number | ((card: Card, player: Player) => number);
+    direction: CostAdjustDirection;
     costFloor?: number;
     limit?: IAbilityLimit;
     playingTypes?: PlayType;
-    amount?: number | ((card: Card, player: Player) => number);
-    match?: (card: Card, source: Card) => boolean;
-    targetCondition?: (target: Card, source: Card, context: AbilityContext) => boolean;
+    match?: (card: Card, adjusterSource: Card) => boolean;
+
+    /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
+    attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
+
+    /** @deprecated not implemented yet */
+    penaltyAspect?: Aspect;
 }
 
 export class CostAdjuster {
-    private uses = 0; // TODO: is this needed?
+    public readonly costFloor: number;
+    public readonly direction: CostAdjustDirection;
     private amount: number | ((card: Card, player: Player) => number);
-    private costFloor: number; // TODO: is this needed?
-    private match?: (card: Card, source: Card) => boolean;
+    private match?: (card: Card, adjusterSource: Card) => boolean;
     private cardTypeFilter?: CardTypeFilter;
-    private targetCondition?: (target: Card, source: Card, context: AbilityContext<any>) => boolean;
+    private attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
     private limit?: IAbilityLimit;
     private playingTypes?: PlayType[];
 
     public constructor(
         private game: Game,
         private source: Card,
-        properties: CostAdjusterProperties,
+        properties: ICostAdjusterProperties,
+
+        /** @deprecated not implemented yet */
         private penaltyAspect?: Aspect
     ) {
         this.amount = properties.amount || 1;
         this.costFloor = properties.costFloor || 0;
+        this.direction = properties.direction;
         this.match = properties.match;
         this.cardTypeFilter = properties.cardTypeFilter;
-        this.targetCondition = properties.targetCondition;
+        this.attachTargetCondition = properties.attachTargetCondition;
         this.playingTypes =
             properties.playingTypes &&
             (Array.isArray(properties.playingTypes) ? properties.playingTypes : [properties.playingTypes]);
@@ -47,10 +61,10 @@ export class CostAdjuster {
         }
     }
 
-    public canAdjust(playingType: PlayType, card: Card, target?: Card, ignoreType = false, penaltyAspect?: Aspect): boolean {
+    public canAdjust(playingType: PlayType, card: Card, attachTarget?: Card, ignoreType = false, penaltyAspect?: Aspect): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
-        } else if (!ignoreType && this.cardTypeFilter && EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter)) {
+        } else if (!ignoreType && this.cardTypeFilter && !EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter)) {
             return false;
         } else if (this.playingTypes && !this.playingTypes.includes(playingType)) {
             return false;
@@ -58,7 +72,7 @@ export class CostAdjuster {
             return false;
         }
         const context = this.game.getFrameworkContext(card.controller);
-        return this.checkMatch(card) && this.checkTargetCondition(context, target);
+        return this.checkMatch(card) && this.checkAttachTargetCondition(context, attachTarget);
     }
 
     public getAmount(card: Card, player: Player): number {
@@ -81,7 +95,7 @@ export class CostAdjuster {
         return !this.match || this.match(card, this.source);
     }
 
-    private checkTargetCondition(context: AbilityContext, target?: Card) {
-        return !this.targetCondition || (target && this.targetCondition(target, this.source, context));
+    private checkAttachTargetCondition(context: AbilityContext, target?: Card) {
+        return !this.attachTargetCondition || (target && this.attachTargetCondition(target, this.source, context));
     }
 }

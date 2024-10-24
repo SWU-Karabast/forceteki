@@ -106,7 +106,8 @@ class ActionWindow extends UiPrompt {
         return {
             menuTitle: 'Choose an action',
             buttons: buttons,
-            promptTitle: this.title
+            promptTitle: this.title,
+            promptUuid: this.uuid
         };
     }
 

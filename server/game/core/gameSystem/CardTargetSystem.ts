@@ -127,14 +127,14 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
         // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
         // we're the system that is enacting the defeat
-        if (card.isUnit() && card.isInPlay() && card.pendingDefeat && !this.isPendingDefeatFor(card, context)) {
+        if (card.isUnit() && card.isInPlay() && card.pendingDefeat) {
             return false;
         }
 
         return super.canAffect(card, context, additionalProperties);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }

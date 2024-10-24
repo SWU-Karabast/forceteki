@@ -1,6 +1,6 @@
 describe('Snowtrooper Lieutenant', function() {
     integration(function(contextRef) {
-        describe('Snowtrooper lieutenant\'s ability', function() {
+        describe('Snowtrooper Lieutenant\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

@@ -721,6 +721,31 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toHaveExactDropdownListOptions: function () {
+        return {
+            compare: function (player, expectedOptions) {
+                let result = {};
+
+                if (!Array.isArray(expectedOptions)) {
+                    throw new TestSetupError(`Parameter 'options' is not an array: ${expectedOptions}`);
+                }
+
+                const actualOptions = player.currentPrompt().dropdownListOptions;
+
+                result.pass = stringArraysEqual(actualOptions, expectedOptions);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.createStringForOptions(expectedOptions)}'`;
+                } else {
+                    result.message = `Expected ${player.name} to have this exact list of options: '${Util.createStringForOptions(expectedOptions)}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+
+                return result;
+            }
+        };
     }
 };
 

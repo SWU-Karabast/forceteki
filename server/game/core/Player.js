@@ -2,7 +2,7 @@ const { GameObject } = require('./GameObject');
 const { Deck } = require('../Deck.js');
 const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
-const { CostAdjuster } = require('./cost/CostAdjuster');
+const { CostAdjuster, CostAdjustDirection } = require('./cost/CostAdjuster');
 const GameSystems = require('../gameSystems/GameSystemLibrary');
 const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
@@ -28,6 +28,7 @@ const { LeaderCard } = require('./card/LeaderCard');
 const { LeaderUnitCard } = require('./card/LeaderUnitCard');
 const { Card } = require('./card/Card');
 const { PlayableOrDeployableCard } = require('./card/baseClasses/PlayableOrDeployableCard');
+const { InPlayCard } = require('./card/baseClasses/InPlayCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -83,8 +84,8 @@ class Player extends GameObject {
             action: true,
             regroup: true
         };
-        this.timerSettings = user.settings.timerSettings || {};
-        this.timerSettings.windowTimer = user.settings.windowTimer;
+        // this.timerSettings = user.settings.timerSettings || {};
+        // this.timerSettings.windowTimer = user.settings.windowTimer;
         this.optionSettings = user.settings.optionSettings;
         this.resetTimerAtEndOfRound = false;
 
@@ -287,6 +288,7 @@ class Player extends GameObject {
         return cardsToReturn;
     }
 
+    // TODO: add support for checking upgrades
     /**
      * Returns if a unit is in play that has the passed trait
      * @param {string} trait
@@ -383,23 +385,22 @@ class Player extends GameObject {
         return undefined;
     }
 
-    // /**
-    //  * Returns a character in play under this player's control which matches (for uniqueness) the passed card.
-    //  * @param card DrawCard
-    //  */
-    // getDuplicateInPlay(card) {
-    //     if (!card.isUnique()) {
-    //         return undefined;
-    //     }
-
-    //     return this.findCard(this.cardsInPlay, (playCard) => {
-    //         return playCard !== card && (playCard.id === card.id || playCard.name === card.name);
-    //     });
-    // }
+    /**
+     * Returns a card in play under this player's control which matches (for uniqueness) the passed card
+     * @param {InPlayCard} card
+     * @returns {InPlayCard[]} Duplicates of passed card (does not check unique status)
+     */
+    getDuplicatesInPlay(card) {
+        return this.getArenaCards().filter((otherCard) =>
+            otherCard.title === card.title &&
+            otherCard.subtitle === card.subtitle &&
+            otherCard !== card
+        );
+    }
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {Card | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/CardTypes').PlayableCard | null} the Card,© or null if the deck is empty
      */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {
@@ -413,25 +414,15 @@ class Player extends GameObject {
      * @param {number} numCards
      */
     drawCardsToHand(numCards) {
-        let remainingCards = 0;
-
         if (numCards > this.drawDeck.length) {
-            // remainingCards = numCards - this.deck.size();
-            // let cards = this.deck.toArray();
-            // this.deckRanOutOfCards('conflict');
-            // this.game.queueSimpleStep(() => {
-            //     for (let card of cards) {
-            //         this.moveCard(card, Location.Hand);
-            //     }
-            // });
-            // this.game.queueSimpleStep(() => this.drawCardsToHand(remainingCards));
-
-            // TODO OVERDRAW: fill out this implementation
-            throw new Error('Deck ran out of cards');
-        } else {
-            for (let card of this.drawDeck.slice(0, numCards)) {
-                this.moveCard(card, Location.Hand);
-            }
+            // Game log message about empty deck damage(the damage itself is handled in DrawSystem.updateEvent()).
+            this.game.addMessage('{0} attempts to draw {1} cards from their empty deck and takes {2} damage instead ',
+                this.name, numCards - this.drawDeck.length, 3 * (numCards - this.drawDeck.length)
+            );
+            numCards = this.drawDeck.length;
+        }
+        for (let card of this.drawDeck.slice(0, numCards)) {
+            this.moveCard(card, Location.Hand);
         }
     }
 
@@ -622,23 +613,6 @@ class Player extends GameObject {
         const card = context.source;
         const adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType);
 
-        // TODO: not sure yet if we need this code, I think it's checking to see if any potential interrupts would create additional cost
-        // let triggeredCostAdjusters = 0;
-        // let fakeWindow = { addToWindow: () => triggeredCostAdjusters++ };
-        // let fakeEvent = new GameEvent(EventName.OnCardPlayed, { card: card, player: this, context: context });
-        // this.game.emit(EventName.OnCardPlayed + ':' + AbilityType.Interrupt, fakeEvent, fakeWindow);
-        // let fakeResolverEvent = new GameEvent(EventName.OnAbilityResolverInitiated, {
-        //     card: card,
-        //     player: this,
-        //     context: context
-        // });
-        // this.game.emit(
-        //     EventName.OnAbilityResolverInitiated + ':' + AbilityType.Interrupt,
-        //     fakeResolverEvent,
-        //     fakeWindow
-        // );
-        // return Math.max(adjustedCost - triggeredCostAdjusters, 0);
-
         return Math.max(adjustedCost, 0);
     }
 
@@ -689,68 +663,19 @@ class Player extends GameObject {
             adjuster.canAdjust(playingType, card, target, ignoreType, penaltyAspect)
         );
         var costIncreases = matchingAdjusters
-            .filter((a) => a.getAmount(card, this) < 0)
-            .reduce((cost, adjuster) => cost - adjuster.getAmount(card, this), 0);
+            .filter((adjuster) => adjuster.direction === CostAdjustDirection.Increase)
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
         var costDecreases = matchingAdjusters
-            .filter((a) => a.getAmount(card, this) > 0)
+            .filter((adjuster) => adjuster.direction === CostAdjustDirection.Decrease)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
 
         baseCost += costIncreases;
         var reducedCost = baseCost - costDecreases;
 
-        var costFloor = Math.min(baseCost, Math.max(...matchingAdjusters.map((a) => a.costFloor)));
+        // TODO: not 100% sure what the use case for this line is
+        var costFloor = Math.min(baseCost, Math.max(...matchingAdjusters.map((adjuster) => adjuster.costFloor)));
         return Math.max(reducedCost, costFloor);
     }
-
-    getTotalCostModifiers(playingType, card, target, ignoreType = false) {
-        var baseCost = 0;
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
-            adjuster.canAdjust(playingType, card, target, ignoreType)
-        );
-        var reducedCost = matchingAdjusters.reduce((cost, adjuster) => cost - adjuster.getAmount(card, this), baseCost);
-        return reducedCost;
-    }
-
-    // getTargetingCost(abilitySource, targets) {
-    //     targets = Array.isArray(targets) ? targets : [targets];
-    //     targets = targets.filter(Boolean);
-    //     if (targets.length === 0) {
-    //         return 0;
-    //     }
-
-    //     const playerCostToTargetEffects = abilitySource.controller
-    //         ? abilitySource.controller.getOngoingEffectValues(EffectName.PlayerFateCostToTargetCard)
-    //         : [];
-
-    //     let targetCost = 0;
-    //     for (const target of targets) {
-    //         for (const cardCostToTarget of target.getOngoingEffectValues(EffectName.FateCostToTarget)) {
-    //             if (
-    //                 // no card type restriction
-    //                 (!cardCostToTarget.cardType ||
-    //                     // or match type restriction
-    //                     abilitySource.hasSomeType(cardCostToTarget.cardType)) &&
-    //                 // no player restriction
-    //                 (!cardCostToTarget.targetPlayer ||
-    //                     // or match player restriction
-    //                     abilitySource.controller ===
-    //                         (cardCostToTarget.targetPlayer === RelativePlayer.Self
-    //                             ? target.controller
-    //                             : target.controller.opponent))
-    //             ) {
-    //                 targetCost += cardCostToTarget.amount;
-    //             }
-    //         }
-
-    //         for (const playerCostToTarget of playerCostToTargetEffects) {
-    //             if (playerCostToTarget.matchTarget(target)) {
-    //                 targetCost += playerCostToTarget.amount;
-    //             }
-    //         }
-    //     }
-
-    //     return targetCost;
-    // }
 
     /**
      * Mark all cost adjusters which are valid for this card/target/playingType as used, and remove them if they have no uses remaining
@@ -975,17 +900,6 @@ class Player extends GameObject {
     }
 
     /**
-     * Defeat the specified card
-     */
-    defeatCard(card) {
-        if (!card) {
-            return;
-        }
-
-        this.game.addSubwindowEvents(GameSystems.defeat({ target: card }).generateEvent(card, this.game.getFrameworkContext()));
-    }
-
-    /**
      * Moves a card from one location to another. This involves removing in from the list it's currently in, calling BaseCard.move (which changes
      * its location property), and then adding it to the list it should now be in
      * @param card BaseCard
@@ -1140,9 +1054,9 @@ class Player extends GameObject {
     }
 
     getSummaryForHand(list, activePlayer, hideWhenFaceup) {
-        if (this.optionSettings.sortHandByName) {
-            return this.getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup);
-        }
+        // if (this.optionSettings.sortHandByName) {
+        //     return this.getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup);
+        // }
         return this.getSummaryForCardList(list, activePlayer, hideWhenFaceup);
     }
 
@@ -1234,77 +1148,54 @@ class Player extends GameObject {
     //  * This information is passed to the UI
     //  * @param {Player} activePlayer
     //  */
-    // getState(activePlayer) {
-    //     let isActivePlayer = activePlayer === this;
-    //     let promptState = isActivePlayer ? this.promptState.getState() : {};
-    //     let state = {
-    //         cardPiles: {
-    //             cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
-    //             conflictDiscardPile: this.getSummaryForCardList(this.conflictDiscardPile, activePlayer),
-    //             dynastyDiscardPile: this.getSummaryForCardList(this.dynastyDiscardPile, activePlayer),
-    //             hand: this.getSummaryForHand(this.hand, activePlayer, true),
-    //             removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer),
-    //             provinceDeck: this.getSummaryForCardList(this.provinceDeck, activePlayer, true)
-    //         },
-    //         cardsPlayedThisConflict: this.game.currentConflict
-    //             ? this.game.currentConflict.getNumberOfCardsPlayed(this)
-    //             : NaN,
-    //         disconnected: this.disconnected,
-    //         faction: this.faction,
-    //         hasInitiative: this.hasInitiative(),
-    //         hideProvinceDeck: this.hideProvinceDeck,
-    //         id: this.id,
-    //         imperialFavor: this.imperialFavor,
-    //         left: this.left,
-    //         name: this.name,
-    //         numConflictCards: this.conflictDeck.size(),
-    //         numDynastyCards: this.dynastyDeck.size(),
-    //         numProvinceCards: this.provinceDeck.size(),
-    //         optionSettings: this.optionSettings,
-    //         phase: this.game.currentPhase,
-    //         promptedActionWindows: this.promptedActionWindows,
-    //         showBid: this.showBid,
-    //         stats: this.getStats(),
-    //         timerSettings: this.timerSettings,
-    //         strongholdProvince: this.getSummaryForCardList(this.strongholdProvince, activePlayer),
-    //         user: _.omit(this.user, ['password', 'email'])
-    //     };
+    getState(activePlayer) {
+        let isActivePlayer = activePlayer === this;
+        let promptState = isActivePlayer ? this.promptState.getState() : {};
+        let { email, password, ...safeUser } = this.user;
+        let state = {
+            cardPiles: {
+                // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
+                hand: this.getSummaryForHand(this.hand, activePlayer, true),
+                removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer)
+            },
+            disconnected: this.disconnected,
+            // faction: this.faction,
+            hasInitiative: this.hasInitiative(),
+            id: this.id,
+            left: this.left,
+            name: this.name,
+            // optionSettings: this.optionSettings,
+            phase: this.game.currentPhase,
+            promptedActionWindows: this.promptedActionWindows,
+            showBid: this.showBid,
+            // stats: this.getStats(),
+            // timerSettings: this.timerSettings,
+            user: safeUser
+        };
 
-    //     if (this.additionalPiles && Object.keys(this.additionalPiles)) {
-    //         Object.keys(this.additionalPiles).forEach((key) => {
-    //             if (this.additionalPiles[key].cards.size() > 0) {
-    //                 state.cardPiles[key] = this.getSummaryForCardList(this.additionalPiles[key].cards, activePlayer);
-    //             }
-    //         });
-    //     }
+        if (this.additionalPiles && Object.keys(this.additionalPiles)) {
+            Object.keys(this.additionalPiles).forEach((key) => {
+                if (this.additionalPiles[key].cards.size() > 0) {
+                    state.cardPiles[key] = this.getSummaryForCardList(this.additionalPiles[key].cards, activePlayer);
+                }
+            });
+        }
 
-    //     if (this.showDeck) {
-    //         state.showDeck = true;
-    //         state.cardPiles.deck = this.getSummaryForCardList(this.deck, activePlayer);
-    //     }
+        // if (this.showDeck) {
+        //     state.showDeck = true;
+        //     state.cardPiles.deck = this.getSummaryForCardList(this.deck, activePlayer);
+        // }
 
-    //     if (this.role) {
-    //         state.role = this.role.getSummary(activePlayer);
-    //     }
+        // if (this.role) {
+        //     state.role = this.role.getSummary(activePlayer);
+        // }
 
-    //     if (this.stronghold) {
-    //         state.stronghold = this.stronghold.getSummary(activePlayer);
-    //     }
+        if (this.clock) {
+            state.clock = this.clock.getState();
+        }
 
-    //     if (this.isTopConflictCardShown(activePlayer) && this.conflictDeck.first()) {
-    //         state.conflictDeckTopCard = this.conflictDeck.first().getSummary(activePlayer);
-    //     }
-
-    //     if (this.isTopDynastyCardShown(activePlayer) && this.dynastyDeck.first()) {
-    //         state.dynastyDeckTopCard = this.dynastyDeck.first().getSummary(activePlayer);
-    //     }
-
-    //     if (this.clock) {
-    //         state.clock = this.clock.getState();
-    //     }
-
-    //     return _.extend(state, promptState);
-    // }
+        return { ...state, ...promptState };
+    }
 }
 
 module.exports = Player;

@@ -1,16 +1,18 @@
 import type { Card } from './card/Card';
-import { IDistributeAmongTargetsPromptData } from './gameSteps/StatefulPromptInterfaces';
+import { IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
 import type Player from './Player';
 
 export interface IPlayerPromptStateProperties {
     buttons?: { text: string; arg?: string; command?: string; card?: Card }[];
     menuTitle: string;
+    promptUuid: string;
     promptTitle?: string;
 
     controls?: { type: string; source: any; targets: any }[];
     selectCard?: boolean;
     selectOrder?: boolean;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
+    dropdownListOptions?: string[];
 }
 
 export class PlayerPromptState {
@@ -19,8 +21,10 @@ export class PlayerPromptState {
     public distributeAmongTargets?: IDistributeAmongTargetsPromptData = null;
     public menuTitle = '';
     public promptTitle = '';
+    public promptUuid = '';
     public buttons = [];
     public controls = [];
+    public dropdownListOptions = [];
 
     private selectableCards: Card[] = [];
     private selectedCards?: Card[] = [];
@@ -49,6 +53,9 @@ export class PlayerPromptState {
         this.selectOrder = prompt.selectOrder ?? false;
         this.menuTitle = prompt.menuTitle ?? '';
         this.controls = prompt.controls ?? [];
+        this.distributeAmongTargets = prompt.distributeAmongTargets;
+        this.dropdownListOptions = prompt.dropdownListOptions ?? [];
+        this.promptUuid = prompt.promptUuid;
         this.buttons = !prompt.buttons
             ? []
             : prompt.buttons.map((button) => {
@@ -91,10 +98,13 @@ export class PlayerPromptState {
         return {
             selectCard: this.selectCard,
             selectOrder: this.selectOrder,
+            distributeAmongTargets: this.distributeAmongTargets,
+            dropdownListOptions: this.dropdownListOptions,
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,
             buttons: this.buttons,
-            controls: this.controls
+            controls: this.controls,
+            promptUuid: this.promptUuid
         };
     }
 }

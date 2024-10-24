@@ -146,7 +146,7 @@ class DeckBuilder {
             return playerCards.leader.card;
         }
 
-        throw new TestSetupError(`Unknown test leader specifier format: '${playerObject}'`);
+        throw new TestSetupError(`Unknown test leader specifier format: '${playerCards}'`);
     }
 
     getBaseCard(playerCards, playerNumber) {
@@ -162,7 +162,7 @@ class DeckBuilder {
             return playerCards.base.card;
         }
 
-        throw new TestSetupError(`Unknown test leader specifier format: '${playerObject}'`);
+        throw new TestSetupError(`Unknown test leader specifier format: '${playerCards}'`);
     }
 
     getInPlayCardsForArena(arenaList) {

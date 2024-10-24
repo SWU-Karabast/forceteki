@@ -1,13 +1,12 @@
 import Player from '../Player';
 import { Card } from './Card';
-import { CardType, EffectName } from '../Constants';
+import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
 import AbilityHelper from '../../AbilityHelper';
 import { IActionAbilityProps, IEpicActionProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import { IOngoingCardEffect } from '../ongoingEffect/IOngoingCardEffect';
 
 const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
 
