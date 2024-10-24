@@ -67,7 +67,7 @@ describe('Blizzard Assault AT-AT', function() {
 
                 reset();
 
-                // CASE 5: AT-AT dies while attacking, ability activates
+                // CASE 5: AT-AT trades, ability activates
                 context.blizzardAssaultAtat.exhausted = false;
                 context.setDamage(context.kraytDragon, 2);
                 context.player1.clickCard(context.blizzardAssaultAtat);
