@@ -44,6 +44,8 @@ describe('Strafing Gunship', function () {
                 expect(context.strafingGunship.damage).toBe(1);
                 expect(context.consularSecurityForce.getPower()).toBe(3);
             });
+
+            // tests with sentinel is handled by Sentinel.spec.ts
         });
     });
 });
