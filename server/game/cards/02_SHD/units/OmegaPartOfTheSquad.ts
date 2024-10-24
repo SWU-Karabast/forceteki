@@ -1,7 +1,9 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
+import { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, Trait, WildcardCardType, WildcardLocation } from '../../../core/Constants';
+import Player from '../../../core/Player';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
@@ -47,8 +49,16 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
         const clonesPlayedByThisPlayerThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&
             playedCardEntry.card.hasSomeTrait(Trait.Clone) &&
-            playedCardEntry.card !== card);
-        return clonesPlayedByThisPlayerThisPhase.some((card) => card.hasSomeTrait(Trait.Clone));
+            playedCardEntry.card !== card
+        );
+        const cards = this.cardsPlayedThisPhaseWatcher.getCurrentValue();
+        if (cards.length > 0) {
+            console.log('Card is -> ', cards[0].card.title);
+            console.log('Condition 1-> ', cards[0].playedBy === card.controller);
+            console.log('Condition 2-> ', cards[0].card.hasSomeTrait(Trait.Clone));
+            console.log('Condition 3-> ', cards[0].card !== card);
+        }
+        return clonesPlayedByThisPlayerThisPhase.length === 0;
     }
 }
 
