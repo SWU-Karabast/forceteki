@@ -66,6 +66,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return;
         }
 
+        // TODO too late for saboteur
         this.registerAttackEffects(context, properties, event.attack);
 
         const attack = event.attack;
