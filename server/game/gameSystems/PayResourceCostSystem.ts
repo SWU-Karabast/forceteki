@@ -7,9 +7,14 @@ export interface IPayResourceCostProperties extends IPlayerTargetSystemPropertie
     amount: number;
 }
 
+// TODO: replace this with ExhaustResourcesSystem when we have it
 export class PayResourceCostSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IPayResourceCostProperties> {
     public override readonly name = 'payResourceCost';
     public override readonly eventName = EventName.onExhaustResources;
+    protected override defaultProperties: IPayResourceCostProperties = {
+        amount: null,
+        isCost: true
+    };
 
     public override eventHandler(event): void {
         event.player.exhaustResources(event.amount);
@@ -37,7 +42,7 @@ export class PayResourceCostSystem<TContext extends AbilityContext = AbilityCont
 
     public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.amount > 0 && player.countSpendableResources() > 0 && super.canAffect(player, context, additionalProperties);
+        return properties.amount > 0 && player.countSpendableResources() > 0 && super.canAffect(player, context, additionalProperties) && player.countSpendableResources() >= properties.amount;
     }
 
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {

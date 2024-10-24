@@ -65,6 +65,11 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
+    /** @deprecated use title instead**/
+    public override get name() {
+        return super.name;
+    }
+
     public get facedown(): boolean {
         return this._facedown;
     }
