@@ -2,12 +2,12 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { CardTypeFilter, EffectName, Location, LocationFilter, RelativePlayer, TargetMode } from '../core/Constants';
+import { CardTypeFilter, EffectName, LocationFilter, RelativePlayer, TargetMode } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { MetaSystem } from '../core/gameSystem/MetaSystem';
+import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     activePromptTitle?: string;
@@ -119,7 +119,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
         let buttons = [];
         buttons = properties.cancelHandler ? buttons.concat({ text: 'Cancel', arg: 'cancel' }) : buttons;
-        buttons = properties.innerSystem.isOptional(context) ? buttons.concat({ text: 'Choose no target', arg: 'noTarget' }) : buttons;
+        buttons = this.selectionIsOptional(properties, context) ? buttons.concat({ text: 'Choose no target', arg: 'noTarget' }) : buttons;
 
         const defaultProperties = {
             context: context,
@@ -163,5 +163,12 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     public override hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.checkTarget && properties.player !== RelativePlayer.Opponent;
+    }
+
+    private selectionIsOptional(properties, context): boolean {
+        if (properties.innerSystem.isOptional(context)) {
+            return true;
+        }
+        return CardTargetResolver.allZonesAreHidden(properties.locationFilter);
     }
 }

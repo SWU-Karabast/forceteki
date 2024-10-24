@@ -171,7 +171,7 @@ export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(pr
 // export function opponentPutIntoPlay(propertyFactory: PropsFactory<OpponentPutIntoPlayProperties> = {}): GameSystem {
 //     return new OpponentPutIntoPlayAction(propertyFactory, false);
 // }
-export function ready<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadySystemProperties, TContext> = {}): ReadySystem<TContext> {
+export function ready<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadySystemProperties, TContext> = {}) {
     return new ReadySystem<TContext>(propertyFactory);
 }
 

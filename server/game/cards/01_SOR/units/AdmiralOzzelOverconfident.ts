@@ -20,7 +20,6 @@ export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
                     cardTypeFilter: CardType.BasicUnit,
                     // TODO: figure out how to make this assume that the played card must be from hand, unless specified otherwise
                     locationFilter: Location.Hand,
-                    optional: true,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
                     innerSystem: AbilityHelper.immediateEffects.playCardFromHand({ entersReady: true })
                 }),

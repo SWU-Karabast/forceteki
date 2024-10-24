@@ -20,6 +20,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
 }
 
+// TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilties with another function(s)
 /**
  * This system is a helper for playing cards from abilities (see {@link GameSystemLibrary.playCard}).
  */
@@ -50,7 +51,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
         event.playCardAbility = this.generatePlayCardAbility(target, this.properties.playType);
-        event.optional = properties.optional == null ? context.ability.optional : properties.optional;
+        event.optional = properties.optional ?? context.ability.optional;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {

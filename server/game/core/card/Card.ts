@@ -467,41 +467,38 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentLocation(prevLocation: Location) {
+        this.hiddenForOpponent = EnumHelpers.isHidden(this.location);
+
         switch (this.location) {
             case Location.SpaceArena:
             case Location.GroundArena:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = false;
                 break;
 
             case Location.Base:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = false;
                 break;
 
             case Location.Resource:
                 this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = true;
                 break;
 
             case Location.Deck:
                 this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = true;
-                this.hiddenForOpponent = true;
                 break;
 
             case Location.Hand:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = true;
                 break;
 
             case Location.Discard:
@@ -510,7 +507,6 @@ export class Card extends OngoingEffectSource {
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = false;
                 break;
 
             default:
