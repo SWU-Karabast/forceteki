@@ -17,11 +17,11 @@ export enum DamageType {
 }
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
-    damageType?: DamageType;
+    type?: DamageType;
 }
 
 export interface ICombatDamageProperties extends IDamagePropertiesBase {
-    damageType: DamageType.Combat;
+    type: DamageType.Combat;
     amount: number;
 
     /** The attack that is the source of the damage */
@@ -30,19 +30,19 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 
 /** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
-    damageType?: DamageType.Ability;    // this is optional so it can be the default property type
+    type?: DamageType.Ability;    // this is optional so it can be the default property type
     amount: number;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
 export interface IExcessDamageProperties extends IDamagePropertiesBase {
-    damageType: DamageType.Excess;
+    type: DamageType.Excess;
     sourceEventForExcessDamage: any;
 }
 
 /** Used for "standard" Overwhelm when the event will be using the excess damage from a resolved attack damage event */
 export interface IExcessDamageOverwhelmProperties extends IDamagePropertiesBase {
-    damageType: DamageType.Overwhelm;
+    type: DamageType.Overwhelm;
     sourceAttack: Attack;
 
     /**
@@ -53,7 +53,7 @@ export interface IExcessDamageOverwhelmProperties extends IDamagePropertiesBase 
 
 /** Used for the situation when the defender is defeated before the attack damage step so all damage becomes Overwhelm damage */
 export interface IFullOverwhelmDamageProperties extends IDamagePropertiesBase {
-    damageType: DamageType.Overwhelm;
+    type: DamageType.Overwhelm;
     sourceAttack: Attack;
     amount: number;
 }
@@ -77,7 +77,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     protected override defaultProperties: IAbilityDamageProperties = {
         amount: null,
-        damageType: DamageType.Ability
+        type: DamageType.Ability
     };
 
     public eventHandler(event): void {
@@ -122,9 +122,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
-        event.damageType = properties.damageType;
+        event.type = properties.type;
 
-        switch (properties.damageType) {
+        switch (properties.type) {
             case DamageType.Combat:
                 this.addAttackDamagePropertiesToEvent(event, card, context, properties);
                 break;
@@ -138,7 +138,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
                 this.addOverwhelmDamagePropertiesToEvent(event, card, context, properties);
                 break;
             default:
-                Contract.fail(`Unexpected damage type: ${properties['damageType']}`);
+                Contract.fail(`Unexpected damage type: ${properties['type']}`);
         }
     }
 
@@ -209,7 +209,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         };
 
         event.damageSource = excessDamageSource;
-        event.sourceEventForExcessDamage = properties.contingentSourceEvent;
+        event.sourceEventForExcessDamage = properties.sourceEventForExcessDamage;
     }
 
     // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
