@@ -3,7 +3,6 @@ const { Deck } = require('../Deck.js');
 const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
 const { CostAdjuster, CostAdjustType } = require('./cost/CostAdjuster');
-const GameSystems = require('../gameSystems/GameSystemLibrary');
 const { PlayableLocation } = require('./PlayableLocation');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
 const Contract = require('./utils/Contract');
@@ -22,12 +21,8 @@ const {
 
 const EnumHelpers = require('./utils/EnumHelpers');
 const Helpers = require('./utils/Helpers');
-const AbilityHelper = require('../AbilityHelper');
 const { BaseCard } = require('./card/BaseCard');
-const { LeaderCard } = require('./card/LeaderCard');
 const { LeaderUnitCard } = require('./card/LeaderUnitCard');
-const { Card } = require('./card/Card');
-const { PlayableOrDeployableCard } = require('./card/baseClasses/PlayableOrDeployableCard');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -645,7 +640,7 @@ class Player extends GameObject {
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runAdjustersForCostType(playingType, 2, card, target, ignoreType, aspect);
+            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(playingType, 2, card, target, ignoreType, aspect);
         }
 
         let penalizedCost = cost + aspectPenaltiesTotal;
@@ -657,11 +652,10 @@ class Player extends GameObject {
      * @param {PlayType} playingType
      * @param card DrawCard
      * @param target BaseCard
-     * @param penaltyAspect Aspect that is not present on the current base or leader
      */
-    runAdjustersForCostType(playingType, baseCost, card, target, ignoreType = false, penaltyAspect = null) {
+    runAdjustersForCostType(playingType, baseCost, card, target, ignoreType = false) {
         var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
-            adjuster.canAdjust(playingType, card, target, ignoreType, penaltyAspect)
+            adjuster.canAdjust(playingType, card, target, ignoreType, null)
         );
         var costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
@@ -669,16 +663,34 @@ class Player extends GameObject {
         var costDecreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Decrease)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
-        var aspectIgnore = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
 
         baseCost += costIncreases;
         var reducedCost = baseCost - costDecreases;
-        if (aspectIgnore && penaltyAspect !== null) {
-            reducedCost -= 2;
-        }
 
         return Math.max(reducedCost, 0);
+    }
+
+
+    /**
+     * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
+     * @param {PlayType} playingType
+     * @param card DrawCard
+     * @param target BaseCard
+     * @param penaltyAspect Aspect that is not present on the current base or leader
+     */
+    runAdjustersForAspectPenalties(playingType, baseCost, card, target, ignoreType = false, penaltyAspect = null) {
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
+            adjuster.canAdjust(playingType, card, target, ignoreType, penaltyAspect)
+        );
+        var aspectIgnore = matchingAdjusters
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
+
+        var cost = baseCost;
+        if (aspectIgnore && penaltyAspect !== null) {
+            cost -= 2;
+        }
+
+        return Math.max(cost, 0);
     }
 
     /**

@@ -39,6 +39,38 @@ describe('Hera Syndulla, Spectre Two', function() {
             // TODO: Add an upgrade test if a Spectre upgrade is ever printed
         });
 
+        describe('Hera\'s undeployed ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['karabast'],
+                        groundArena: [{ card: 'battlefield-marine', damage: 2 }, 'yoda#old-master'],
+                        leader: 'hera-syndulla#spectre-two',
+                        base: 'echo-base'
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel', 'del-meeko#providing-overwatch']
+                    }
+                });
+            });
+
+            it('interacts properly with cost increase on events', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.karabast);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.yoda]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.delMeeko]);
+                context.player1.clickCard(context.pykeSentinel);
+
+                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.player1.countExhaustedResources()).toBe(3);
+            });
+
+            // TODO: Add an upgrade test if a Spectre upgrade is ever printed
+        });
+
         describe('Hera\'s deployed ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
