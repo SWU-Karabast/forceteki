@@ -6,7 +6,6 @@ import { CardTypeFilter, EffectName, EventName, Location, LocationFilter, MetaEv
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
-import { MetaSystem } from '../core/gameSystem/MetaSystem';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 
