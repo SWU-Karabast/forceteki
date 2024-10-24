@@ -25,7 +25,7 @@ describe('Blizzard Assault AT-AT', function() {
                     }
                 };
 
-                // CASE 1: AT-AT attack defeats a unit
+                // CASE 1: AT-AT attack defeats a unit, ability triggers
                 context.player1.clickCard(context.blizzardAssaultAtat);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInLocation('discard');
@@ -49,7 +49,7 @@ describe('Blizzard Assault AT-AT', function() {
                 reset(false);
                 context.setDamage(context.chewbacca, 0);
 
-                // CASE 3: Enemy attacks into AT-AT and dies, ability doesn't trigger
+                // CASE 3: Enemy attacks into AT-AT and dies, ability does not trigger
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.blizzardAssaultAtat);
                 expect(context.atst).toBeInLocation('discard');
@@ -67,7 +67,7 @@ describe('Blizzard Assault AT-AT', function() {
 
                 reset();
 
-                // CASE 5: AT-AT trades, ability activates
+                // CASE 5: AT-AT trades, ability triggers
                 context.blizzardAssaultAtat.exhausted = false;
                 context.setDamage(context.kraytDragon, 2);
                 context.player1.clickCard(context.blizzardAssaultAtat);

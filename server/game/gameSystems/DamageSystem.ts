@@ -134,10 +134,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         return super.canAffect(card, context);
     }
 
-    private propertyExistsAndIsZero(properties: TProperties, propertyName: string): boolean {
-        return propertyName in properties && properties[propertyName] === 0;
-    }
-
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);

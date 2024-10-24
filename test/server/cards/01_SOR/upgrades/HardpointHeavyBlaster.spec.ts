@@ -56,8 +56,6 @@ describe('Hardpoint Heavy Blaster', function() {
                 expect(context.p2Base.damage).toBe(5);
                 expect(context.player2).toBeActivePlayer();
             });
-
-            // TODO THIS PR: switch to strafing gunship for test once it's done
         });
 
         describe('Hardpoint Heavy Blaster', function() {
