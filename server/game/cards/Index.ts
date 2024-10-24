@@ -1,7 +1,6 @@
 import { lstatSync, readdirSync } from 'fs';
 import { join, sep } from 'path';
 
-// TODO: rename cards/ to cards/
 function allJsFiles(path: string): string[] {
     const files = [];
 

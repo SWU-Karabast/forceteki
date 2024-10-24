@@ -15,7 +15,6 @@ export interface ICardTargetSystemProperties extends IGameSystemProperties {
 /**
  * A {@link GameSystem} which targets a card or cards for its effect
  */
-// TODO: mixin for Action types (CardAction, PlayerAction)?
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
 export abstract class CardTargetSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TContext, TProperties> {
     /** The set of card types that can be legally targeted by the system. Defaults to {@link WildcardCardType.Any} unless overriden. */

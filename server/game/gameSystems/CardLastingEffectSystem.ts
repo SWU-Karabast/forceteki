@@ -8,7 +8,6 @@ export interface ICardLastingEffectProperties extends Omit<ILastingEffectPropert
     targetLocationFilter?: Location | Location[];
 }
 
-// TODO: how is this related to LastingEffectSystem?
 /**
  * For a definition, see SWU 7.7.3 'Lasting Effects': "A lasting effect is a part of an ability that affects the game for a specified duration of time.
  * Most lasting effects include the phrase 'for this phase' or 'for this attack.'"

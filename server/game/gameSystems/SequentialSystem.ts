@@ -9,7 +9,6 @@ export interface ISequentialSystemProperties<TContext extends AbilityContext = A
     gameSystems: GameSystem<TContext>[];
 }
 
-// TODO: fix windows and trigger timing in general
 // TODO: add a variant of this (or a configuration option) for repeating the same action a variable number of times
 /**
  * Meta-system used for executing a set of other systems in a sequence. Each sub-system will be executed in order,
@@ -34,7 +33,6 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
                     const eventsForThisAction = [];
                     gameSystem.queueGenerateEventGameSteps(eventsForThisAction, context, additionalProperties);
                     context.game.queueSimpleStep(() => {
-                        // TODO WINDOWS: this currently will not handle on defeat events correctly since all events are being emitted at the end of the sequential actions
                         for (const event of eventsForThisAction) {
                             events.push(event);
                         }
