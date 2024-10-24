@@ -293,10 +293,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number, source: IDamageSource): void {
-            super.addDamage(amount, source);
+        public override addDamage(amount: number, source: IDamageSource): number {
+            const damageAdded = super.addDamage(amount, source);
 
             this.checkDefeated(source);
+
+            return damageAdded;
         }
 
         // TODO: FFG has yet to release detailed rules about how effects are used to determine which player defeated a unit,

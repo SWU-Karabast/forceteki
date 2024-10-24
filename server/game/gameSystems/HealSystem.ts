@@ -17,7 +17,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
-        event.card.removeDamage(event.healAmount);
+        event.damageRemoved = event.card.removeDamage(event.healAmount);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
