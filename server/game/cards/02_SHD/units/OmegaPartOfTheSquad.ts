@@ -29,10 +29,9 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
             targetLocationFilter: WildcardLocation.AnyArena,
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                match: (card) => card.hasSomeTrait(Trait.Clone),
+                match: (card) => this.isFirstClonePlayedByControllerThisPhase(card),
                 limit: AbilityLimit.perRound(1)
             }),
-            matchTarget: (card) => this.isFirstClonePlayedByControllerThisPhase(card)
         });
 
         this.addWhenPlayedAbility({
@@ -51,13 +50,6 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
             playedCardEntry.card.hasSomeTrait(Trait.Clone) &&
             playedCardEntry.card !== card
         );
-        const cards = this.cardsPlayedThisPhaseWatcher.getCurrentValue();
-        if (cards.length > 0) {
-            console.log('Card is -> ', cards[0].card.title);
-            console.log('Condition 1-> ', cards[0].playedBy === card.controller);
-            console.log('Condition 2-> ', cards[0].card.hasSomeTrait(Trait.Clone));
-            console.log('Condition 3-> ', cards[0].card !== card);
-        }
         return clonesPlayedByThisPlayerThisPhase.length === 0;
     }
 }
