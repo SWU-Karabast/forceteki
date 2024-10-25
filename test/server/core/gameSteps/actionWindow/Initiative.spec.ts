@@ -21,10 +21,14 @@ describe('Claiming initiative', function() {
                 // Case 1 after player1 claims player 2 can play multiple actions before passing
                 context.player1.claimInitiative();
                 expect(context.ardentSympathizer.getPower()).toBe(5);
+                // TODO atm we do not list the set of cards with available actions in the action phase to bypass the error
+                // TODO Expected Player prompt to change.
                 context.player2.clickCardNonChecking(context.scoutBikePursuer);
 
                 expect(context.scoutBikePursuer).toBeInLocation('ground arena');
                 expect(context.player2).toBeActivePlayer();
+                // TODO atm we do not list the set of cards with available actions in the action phase to bypass the error
+                // TODO Expected Player prompt to change.
                 context.player2.clickCardNonChecking(context.wampa);
 
                 expect(context.bazeMalbus.damage).toBe(4);
