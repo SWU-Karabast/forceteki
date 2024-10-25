@@ -5,11 +5,10 @@ describe('Wedge Antilles, Star of the Rebellion', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['alliance-xwing', 'battlefield-marine', 'clan-saxon-gauntlet'],
+                        hand: ['alliance-xwing', 'battlefield-marine'],
                         groundArena: ['wedge-antilles#star-of-the-rebellion'],
                     },
                     player2: {
-                        groundArena: ['wampa'],
                         spaceArena: ['hwk290-freighter'],
                         hand: ['atst']
                     }
