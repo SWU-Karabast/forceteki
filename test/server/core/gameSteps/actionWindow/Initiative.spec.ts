@@ -5,16 +5,16 @@ describe('Claiming initiative', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        resources: ['wampa', 'wampa', 'wampa', 'wampa'],
+                        resources: ['atst', 'atst', 'atst', 'atst'],
                         hand: ['moment-of-peace'],
                         groundArena: ['del-meeko#providing-overwatch'],
                         base: { card: 'kestro-city', damage: 0 },
-                        deck: ['foundling', 'atst', 'cartel-spacer', 'wampa'],
+                        deck: ['foundling', 'atst', 'cartel-spacer', 'atst'],
                     },
                     player2: {
                         groundArena: ['wampa'],
                         hand: ['scout-bike-pursuer'],
-                        deck: ['pyke-sentinel', 'cartel-spacer', 'wampa'],
+                        deck: ['pyke-sentinel', 'cartel-spacer', 'atst'],
                         resources: ['smugglers-aid', 'atst', 'atst', 'atst']
                     }
                 });
@@ -24,7 +24,7 @@ describe('Claiming initiative', function() {
                 const { context } = contextRef;
                 // Case 1 after claiming player 2 can play multiple actions before passing
                 context.player1.claimInitiative();
-                context.player2.clickCard(context.scoutBikePursuer);
+                context.player2.clickCardNonChecking(context.scoutBikePursuer);
 
                 expect(context.scoutBikePursuer).toBeInLocation('ground arena');
                 expect(context.player2).toBeActivePlayer();
@@ -33,10 +33,8 @@ describe('Claiming initiative', function() {
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p1Base.damage).toBe(4);
-
                 context.player2.passAction();
-                context.player1.clickPrompt('hello world');
-
+                context.player2.passAction();
             });
         });
     });
