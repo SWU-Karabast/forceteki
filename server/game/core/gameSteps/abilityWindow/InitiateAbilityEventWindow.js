@@ -1,4 +1,4 @@
-const EventWindow = require('../../event/EventWindow.js');
+const { EventWindow } = require('../../event/EventWindow.js');
 const { TriggeredAbilityWindow } = require('../../gameSteps/abilityWindow/TriggeredAbilityWindow.js');
 const { EventName, AbilityType } = require('../../Constants.js');
 
@@ -62,7 +62,7 @@ class InitiateAbilityEventWindow extends EventWindow {
 
     /** @override */
     executeHandlersEmitEvents() {
-        this.eventsToExecute = this.events.sort((event) => event.order);
+        this.eventsToExecute = this._events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
         this.triggeredAbilityWindow.emitEvents();

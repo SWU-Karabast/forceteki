@@ -1,6 +1,6 @@
 import Player from '../../Player';
 import { GameEvent } from '../../event/GameEvent';
-import EventWindow from '../../event/EventWindow';
+import { EventWindow } from '../../event/EventWindow';
 import { AbilityType, WildcardLocation } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
@@ -26,7 +26,6 @@ export class TriggeredAbilityWindow extends BaseStep {
     private triggeringEvents: GameEvent[] = [];
 
     private choosePlayerResolutionOrderComplete = false;
-    private readonly toStringName: string;
 
     public get currentlyResolvingPlayer(): Player | null {
         return this.resolvePlayerOrder?.[0] ?? null;

@@ -1,11 +1,31 @@
-const { BaseStepWithPipeline } = require('../gameSteps/BaseStepWithPipeline.js');
-const { TriggeredAbilityWindow } = require('../gameSteps/abilityWindow/TriggeredAbilityWindow');
-const { SimpleStep } = require('../gameSteps/SimpleStep.js');
-const { AbilityType } = require('../Constants.js');
-const Contract = require('../utils/Contract.js');
-const { GameEvent } = require('./GameEvent.js');
+import { AbilityContext } from '../ability/AbilityContext';
+import CardAbilityStep from '../ability/CardAbilityStep';
+import { AbilityType } from '../Constants';
+import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
+import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
+import { SimpleStep } from '../gameSteps/SimpleStep';
+import * as Contract from '../utils/Contract';
 
-class EventWindow extends BaseStepWithPipeline {
+interface IThenAbilityComponents {
+    generator: (context: AbilityContext) => CardAbilityStep;
+    context: AbilityContext;
+    condition?: (context: AbilityContext) => boolean;
+}
+
+export class EventWindow extends BaseStepWithPipeline {
+    protected _events: any[] = [];
+    protected triggeredAbilityWindow: TriggeredAbilityWindow = null;
+
+    private previousGameEventWindow: EventWindow = null;
+    private resolvedEvents: any[] = [];
+    private subwindowEvents: any[] = [];
+    private thenAbilityComponents: IThenAbilityComponents = null;
+    private windowDepth?: number = null;
+
+    public get events() {
+        return this._events;
+    }
+
     /** Creates an object holding one or more GameEvents that occur at the same time.
      *  @param game - The game object.
      *  @param {GameEvent[]} events - Events belonging to this window.
@@ -13,32 +33,23 @@ class EventWindow extends BaseStepWithPipeline {
      * If false, this window will borrow its parent EventWindow's TriggeredAbilityWindow, which will receive any triggers that trigger during this EventWindow's events,
      * to be resolved after all nested events of its owner are done.
      */
-    constructor(game, events, ownsTriggerWindow = false) {
+    public constructor(
+        game,
+        events,
+        private readonly ownsTriggerWindow = false
+    ) {
         super(game);
 
-        this.events = [];
-        this.emittedEvents = [];
-        this.thenAbilityComponents = null;
         events.forEach((event) => {
             if (!event.cancelled) {
                 this.addEvent(event);
             }
         });
 
-        this.toStringName = `'EventWindow: ${this.events.map((event) => event.name).join(', ')}'`;
-
-        this.triggeredAbilityWindow = null;
-
-        this.ownsTriggerWindow = ownsTriggerWindow;
-
-        this.subwindowEvents = [];
-
-        this.windowDepth = -1;
-
         this.initialise();
     }
 
-    initialise() {
+    public initialise() {
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.setCurrentEventWindow(), 'setCurrentEventWindow'),
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
@@ -54,30 +65,34 @@ class EventWindow extends BaseStepWithPipeline {
         ]);
     }
 
-    addEvent(event) {
+    public addEvent(event) {
         event.setWindow(this);
-        this.events.push(event);
+        this._events.push(event);
         return event;
     }
 
-    removeEvent(event) {
-        this.events = this.events.filter((e) => e !== event);
+    public removeEvent(event) {
+        this._events = this._events.filter((e) => e !== event);
         return event;
     }
 
-    setThenAbilityStep(thenAbilityGenerator, context) {
+    public setThenAbilityStep(
+        thenAbilityGenerator: (context: AbilityContext) => CardAbilityStep,
+        context: AbilityContext,
+        condition: (context: AbilityContext) => boolean = null
+    ) {
         Contract.assertIsNullLike(this.thenAbilityComponents, 'Attempting to set event window\'s then ability but it is already set');
 
-        this.thenAbilityComponents = { generator: thenAbilityGenerator, context };
+        this.thenAbilityComponents = { generator: thenAbilityGenerator, context, condition };
     }
 
-    addSubwindowEvents(events) {
+    public addSubwindowEvents(events) {
         this.subwindowEvents = this.subwindowEvents.concat(events);
     }
 
-    setCurrentEventWindow() {
-        this.previousEventWindow = this.game.currentEventWindow;
-        this.windowDepth = this.previousEventWindow ? this.previousEventWindow.windowDepth + 1 : 0;
+    private setCurrentEventWindow() {
+        this.previousGameEventWindow = this.game.currentEventWindow;
+        this.windowDepth = this.previousGameEventWindow ? this.previousGameEventWindow.windowDepth + 1 : 0;
 
         if (this.windowDepth >= 50) {
             throw new Error('Event window depth has reached 50, likely caught in an infinite loop');
@@ -86,19 +101,19 @@ class EventWindow extends BaseStepWithPipeline {
         this.game.currentEventWindow = this;
         if (this.ownsTriggerWindow) {
             this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
-        } else if (this.previousEventWindow) {
-            this.triggeredAbilityWindow = this.previousEventWindow.triggeredAbilityWindow;
+        } else if (this.previousGameEventWindow) {
+            this.triggeredAbilityWindow = this.previousGameEventWindow.triggeredAbilityWindow;
         } else {
-            Contract.fail(`${this.toStringName} set without any TriggeredEventWindow`);
+            Contract.fail(`${this} set without any TriggeredEventWindow`);
         }
     }
 
-    checkEventCondition() {
-        this.events.forEach((event) => event.checkCondition());
+    private checkEventCondition() {
+        this._events.forEach((event) => event.checkCondition());
     }
 
-    openReplacementEffectWindow() {
-        if (this.events.length === 0) {
+    private openReplacementEffectWindow() {
+        if (this._events.length === 0) {
             return;
         }
 
@@ -114,43 +129,43 @@ class EventWindow extends BaseStepWithPipeline {
      * but will be resolved after it in order. The main use case for this is upgrades being
      * defeated at the same time as the parent card holding them.
      */
-    generateContingentEvents() {
+    private generateContingentEvents() {
         let contingentEvents = [];
-        this.events.forEach((event) => {
+        this._events.forEach((event) => {
             contingentEvents = contingentEvents.concat(event.generateContingentEvents());
         });
         contingentEvents.forEach((event) => this.addEvent(event));
     }
 
-    preResolutionEffects() {
-        this.events.forEach((event) => event.preResolutionEffect());
+    private preResolutionEffects() {
+        this._events.forEach((event) => event.preResolutionEffect());
     }
 
-    executeHandlersEmitEvents() {
-        this.eventsToExecute = this.events.sort((event) => event.order);
+    protected executeHandlersEmitEvents() {
+        const eventsToResolve = this._events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggeredAbilityWindow.addTriggeringEvents(this.events);
+        this.triggeredAbilityWindow.addTriggeringEvents(this._events);
         this.triggeredAbilityWindow.emitEvents();
 
-        for (const event of this.eventsToExecute) {
+        for (const event of eventsToResolve) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
             event.checkCondition();
             if (!event.cancelled) {
                 event.executeHandler();
 
-                this.emittedEvents.push(event);
+                this.resolvedEvents.push(event);
             }
         }
     }
 
     // resolve game state and emit triggers again
     // this is to catch triggers on cards that entered play or gained abilities during event resolution
-    resolveGameStateAndEmitEvents() {
-        // TODO: understand if resolveGameState really needs the emittedEvents array or not
-        this.game.resolveGameState(this.emittedEvents.some((event) => event.handler), this.emittedEvents);
+    private resolveGameStateAndEmitEvents() {
+        // TODO: understand if resolveGameState really needs the resolvedEvents array or not
+        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
 
-        for (const event of this.emittedEvents) {
+        for (const event of this.resolvedEvents) {
             this.game.emit(event.name, event);
         }
 
@@ -159,7 +174,7 @@ class EventWindow extends BaseStepWithPipeline {
     }
 
     // resolve any events queued for a subwindow (typically defeat events)
-    resolveSubwindowEvents() {
+    private resolveSubwindowEvents() {
         if (this.subwindowEvents.length > 0) {
             this.queueStep(new EventWindow(this.game, this.subwindowEvents));
         }
@@ -167,7 +182,7 @@ class EventWindow extends BaseStepWithPipeline {
 
 
     // if the effect has an additional "then" step, resolve it
-    resolveThenAbilityStep() {
+    private resolveThenAbilityStep() {
         if (this.thenAbilityComponents == null) {
             return;
         }
@@ -175,35 +190,32 @@ class EventWindow extends BaseStepWithPipeline {
         const context = this.thenAbilityComponents.context;
         const thenAbility = this.thenAbilityComponents.generator(context);
 
-        const condition = thenAbility.thenCondition || (() => true);
+        const condition = this.thenAbilityComponents.condition ?? (() => true);
         if (context.events.every((event) => condition(event))) {
             this.game.resolveAbility(thenAbility.createContext(context.player));
         }
     }
 
-    resolveTriggersIfNecessary() {
+    private resolveTriggersIfNecessary() {
         if (this.ownsTriggerWindow) {
             this.queueStep(this.triggeredAbilityWindow);
         }
     }
 
-    cleanup() {
-        for (const event of this.emittedEvents) {
+    private cleanup() {
+        for (const event of this.resolvedEvents) {
             event.cleanup();
         }
 
-        if (this.previousEventWindow) {
-            this.previousEventWindow.checkEventCondition();
-            this.game.currentEventWindow = this.previousEventWindow;
+        if (this.previousGameEventWindow) {
+            this.previousGameEventWindow.checkEventCondition();
+            this.game.currentEventWindow = this.previousGameEventWindow;
         } else {
             this.game.currentEventWindow = null;
         }
     }
 
-    /** @override */
-    toString() {
-        return this.toStringName;
+    public override toString() {
+        return `'EventWindow: ${this._events.map((event) => event.name).join(', ')}'`;
     }
 }
-
-module.exports = EventWindow;
