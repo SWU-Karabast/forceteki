@@ -1,6 +1,6 @@
 import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { AbilityType, CardType, Duration, EventName, Location, LocationFilter, WildcardLocation } from '../../Constants';
+import { AbilityType, CardType, Duration, EventName, Location, LocationFilter, RelativePlayer, WildcardLocation } from '../../Constants';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -8,6 +8,9 @@ import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
+import { IDecreaseEventCostAbilityProps } from '../EventCard';
+import { CostAdjustType, ICostAdjusterProperties } from '../../cost/CostAdjuster';
+import AbilityHelper from '../../../AbilityHelper';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -91,6 +94,11 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     public createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
+    }
+
+    /** Add a constant ability on the card that decreases its cost under the given condition */
+    protected addDecreaseCostAbility(properties: IDecreaseEventCostAbilityProps<this>): void {
+        this.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
     }
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************

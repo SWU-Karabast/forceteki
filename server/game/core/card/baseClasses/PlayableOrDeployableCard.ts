@@ -1,8 +1,13 @@
+import AbilityHelper from '../../../AbilityHelper';
+import { IConstantAbilityProps } from '../../../Interfaces';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { CardType } from '../../Constants';
+import { CardType, RelativePlayer, WildcardLocation } from '../../Constants';
+import { CostAdjustType, ICostAdjusterProperties } from '../../cost/CostAdjuster';
+import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import { Card } from '../Card';
+import { IDecreaseEventCostAbilityProps } from '../EventCard';
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
@@ -59,5 +64,26 @@ export class PlayableOrDeployableCard extends Card {
 
     protected setExhaustEnabled(enabledStatus: boolean) {
         this._exhausted = enabledStatus ? true : null;
+    }
+
+    /** Create constant ability props on the card that decreases its cost under the given condition */
+    protected generateDecreaseCostAbilityProps(properties: IDecreaseEventCostAbilityProps<this>): IConstantAbilityProps {
+        const { title, condition, ...otherProps } = properties;
+
+        const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
+            cardTypeFilter: CardType.Event,
+            match: (card, adjusterSource) => card === adjusterSource,
+            costAdjustType: CostAdjustType.Decrease
+        });
+
+        const costAdjustAbilityProps: IConstantAbilityProps = {
+            title,
+            sourceLocationFilter: WildcardLocation.Any,
+            targetController: RelativePlayer.Any,
+            condition: condition,
+            ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost(costAdjusterProps)
+        };
+
+        return costAdjustAbilityProps;
     }
 }

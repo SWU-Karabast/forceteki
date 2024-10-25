@@ -13,7 +13,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '1386874723',
-            internalName: 'omega#part-of-the-squad',
+            internalName: 'omega#part-of-the-squad'
         };
     }
 
