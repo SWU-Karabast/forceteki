@@ -37,7 +37,7 @@ describe('Wedge Antilles, Star of the Rebellion', function() {
                 expect(context.atst.getHp()).toBe(7);
                 expect(context.player1).toBeActivePlayer();
 
-                // Case 3: should not give Ambush and +1/+1 to a friendly non-Vehicle unit
+                // Case 3: It should not give Ambush and +1/+1 to a friendly non-Vehicle unit
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInLocation('ground arena');
                 expect(context.battlefieldMarine.getPower()).toBe(3);
