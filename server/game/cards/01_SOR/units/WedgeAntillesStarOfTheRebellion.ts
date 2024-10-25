@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, RelativePlayer, Trait } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class WedgeAntillesStarOfTheRebellion extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,8 +12,9 @@ export default class WedgeAntillesStarOfTheRebellion extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addConstantAbility({
-            title: 'Each friendly VEHICLE unit gets +1/+1 and gains Ambush.',
+            title: 'Each friendly Vehicle unit gets +1/+1 and gains Ambush.',
             targetController: RelativePlayer.Self,
+            targetCardTypeFilter: WildcardCardType.Unit,
             matchTarget: (card) => card.hasSomeTrait(Trait.Vehicle),
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
