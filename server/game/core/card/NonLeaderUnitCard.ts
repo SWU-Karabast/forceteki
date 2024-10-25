@@ -7,6 +7,7 @@ import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import { IIgnoreAspectPenaltiesProps } from './baseClasses/PlayableOrDeployableCard';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 

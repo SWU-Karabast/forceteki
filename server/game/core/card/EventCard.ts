@@ -1,22 +1,14 @@
 import Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
-import { CardType, KeywordName, Location, PlayType, RelativePlayer, WildcardLocation } from '../Constants';
+import { CardType, KeywordName, Location, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
-import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
-import { IConstantAbilityProps, IEventAbilityProps } from '../../Interfaces';
+import { IDecreaseEventCostAbilityProps, PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import AbilityHelper from '../../AbilityHelper';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { CostAdjustType, ICostAdjusterProperties } from '../cost/CostAdjuster';
-import { AbilityContext } from '../ability/AbilityContext';
-import { Card } from './Card';
-
-export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<ICostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
-    title: string;
-    condition?: (context: AbilityContext<TSource>) => boolean;
-}
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 

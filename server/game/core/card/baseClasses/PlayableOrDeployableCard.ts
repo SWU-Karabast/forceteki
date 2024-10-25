@@ -1,16 +1,25 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps } from '../../../Interfaces';
+import { AbilityContext } from '../../ability/AbilityContext';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import { CardType, RelativePlayer, WildcardLocation } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties } from '../../cost/CostAdjuster';
-import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import { Card } from '../Card';
-import { IDecreaseEventCostAbilityProps } from '../EventCard';
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
+
+export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<ICostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
+    title: string;
+    condition?: (context: AbilityContext<TSource>) => boolean;
+}
+
+export interface IIgnoreAspectPenaltiesProps<TSource extends Card = Card> extends Omit<ICostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
+    title: string;
+    condition?: (context: AbilityContext<TSource>) => boolean;
+}
 
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
@@ -82,6 +91,51 @@ export class PlayableOrDeployableCard extends Card {
             targetController: RelativePlayer.Any,
             condition: condition,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost(costAdjusterProps)
+        };
+
+        return costAdjustAbilityProps;
+    }
+
+
+    /** Create constant ability props on the card that decreases its cost under the given condition */
+    protected generateIgnoreAllAspectPenaltiesAbilityProps(properties: IIgnoreAspectPenaltiesProps<this>): IConstantAbilityProps {
+        const { title, condition, ...otherProps } = properties;
+
+        const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
+            cardTypeFilter: CardType.Event,
+            match: (card, adjusterSource) => card === adjusterSource,
+            costAdjustType: CostAdjustType.IgnoreAllAspects
+        });
+
+        const costAdjustAbilityProps: IConstantAbilityProps = {
+            title,
+            sourceLocationFilter: WildcardLocation.Any,
+            targetController: RelativePlayer.Any,
+            condition: condition,
+            ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties(costAdjusterProps)
+        };
+
+        return costAdjustAbilityProps;
+    }
+
+
+    /** Create constant ability props on the card that decreases its cost under the given condition */
+    protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreAspectPenaltiesProps<this>): IConstantAbilityProps {
+        const { title, ignoredAspects, condition, ...otherProps } = properties;
+
+        const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
+            cardTypeFilter: CardType.BasicUnit,
+            match: (card, adjusterSource) => card === adjusterSource,
+            costAdjustType: CostAdjustType.IgnoreSpecificAspects,
+            ignoredAspects: ignoredAspects
+        });
+
+        const costAdjustAbilityProps: IConstantAbilityProps = {
+            title,
+            sourceLocationFilter: WildcardLocation.Any,
+            targetController: RelativePlayer.Any,
+            condition: condition,
+            ongoingEffect: AbilityHelper.ongoingEffects.ignoreSpecificAspectPenalties(costAdjusterProps)
         };
 
         return costAdjustAbilityProps;

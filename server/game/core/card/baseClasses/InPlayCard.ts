@@ -1,16 +1,12 @@
 import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { AbilityType, CardType, Duration, EventName, Location, LocationFilter, RelativePlayer, WildcardLocation } from '../../Constants';
-import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import { CardType, Location, WildcardLocation } from '../../Constants';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import { IDecreaseEventCostAbilityProps, IIgnoreAspectPenaltiesProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
-import { IDecreaseEventCostAbilityProps } from '../EventCard';
-import { CostAdjustType, ICostAdjusterProperties } from '../../cost/CostAdjuster';
-import AbilityHelper from '../../../AbilityHelper';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -99,6 +95,16 @@ export class InPlayCard extends PlayableOrDeployableCard {
     /** Add a constant ability on the card that decreases its cost under the given condition */
     protected addDecreaseCostAbility(properties: IDecreaseEventCostAbilityProps<this>): void {
         this.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
+    }
+
+    /** Add a constant ability on the card that ignores all aspect penalties under the given condition */
+    protected addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAspectPenaltiesProps<this>): void {
+        this.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
+    }
+
+    /** Add a constant ability on the card that ignores specific aspect penalties under the given condition */
+    protected addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreAspectPenaltiesProps<this>): void {
+        this.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
     }
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************

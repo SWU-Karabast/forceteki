@@ -168,6 +168,14 @@ class Player extends GameObject {
         return this.getArenaCards(arena).filter((card) => card.isUnit() && card !== ignoreUnit && card.hasSomeAspect(aspect) && cardCondition(card));
     }
 
+    /**
+     * @param { String } name the name of the unit to check for control of
+     * @returns { boolean } true if this player controls a unit with the given name
+     */
+    controlsUnitWithName(name) {
+        return this.leader.name === name || this.getArenaCards(WildcardLocation.AnyArena).filter((card) => card.name === name).length > 0;
+    }
+
     getResourceCards() {
         return [...this.resources];
     }
@@ -682,11 +690,15 @@ class Player extends GameObject {
         var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
             adjuster.canAdjust(playingType, card, target, ignoreType, penaltyAspect)
         );
-        var aspectIgnore = matchingAdjusters
+
+        var ignoreAllAspectPenalties = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
 
+        var ignoreSpecificAspectPenalty = matchingAdjusters
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreSpecificAspects).length > 0;
+
         var cost = baseCost;
-        if (aspectIgnore && penaltyAspect !== null) {
+        if (ignoreAllAspectPenalties || ignoreSpecificAspectPenalty) {
             cost -= 2;
         }
 

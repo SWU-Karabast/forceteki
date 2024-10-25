@@ -217,6 +217,7 @@ export = {
     //     }),
     increaseCost: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.Increase })),
     ignoreAllAspectPenalties: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.IgnoreAllAspects })),
+    ignoreSpecificAspectPenalties: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.IgnoreSpecificAspects })),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>

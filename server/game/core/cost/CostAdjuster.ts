@@ -11,8 +11,6 @@ export enum CostAdjustType {
     Increase = 'increase',
     Decrease = 'decrease',
     IgnoreAllAspects = 'ignoreAllAspects',
-
-    /** @deprecated Not yet implemented: TODO with Kylo/Rey */
     IgnoreSpecificAspects = 'ignoreSpecificAspect'
 }
 
@@ -37,7 +35,7 @@ export interface ICostAdjusterProperties {
     /** Conditional card matching for things like aspects, traits, etc. */
     match?: (card: Card, adjusterSource: Card) => boolean;
 
-    /** @deprecated (not yet fully implemented) For IgnoreSpecificAspects only: the aspects to ignore the cost of */
+    /** For IgnoreSpecificAspects only: the aspects to ignore the cost of */
     ignoredAspects?: Aspect | Aspect[];
 
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
