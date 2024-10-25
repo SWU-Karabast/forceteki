@@ -12,7 +12,7 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'When you play a unit that has 1 or more keywords: You may exhaust this leader. If you do, give a friendly unit +1/+0 for this phase.',
+            title: 'Give a friendly unit +1/+0 for this phase.',
             cost: AbilityHelper.costs.exhaustSelf(),
             optional: true,
             when: {
@@ -20,7 +20,6 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
                     event.card.isUnit() && event.card.controller === context.source.controller && event.card.keywords.length > 0
             },
             targetResolver: {
-                activePromptTitle: 'Choose a friendly to give +1/+0 for this phase',
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
