@@ -63,11 +63,7 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardName?: string;
     uuid?: string;
-
-    // TODO: can we get a real signature here
-
     ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
-
     createCopies?: boolean;
 }
 

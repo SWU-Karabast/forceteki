@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, Trait, WildcardLocation } from '../Constants';
+import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, LocationFilter, Trait, WildcardLocation } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
@@ -688,17 +688,6 @@ export class Card extends OngoingEffectSource {
         //     );
         // }
     }
-
-    // TODO: is this actually helpful?
-    // isInPlay(): boolean {
-    //     if (this.isFacedown()) {
-    //         return false;
-    //     }
-    //     if ([CardType.Holding, CardType.Province, CardType.Stronghold].includes(this.type)) {
-    //         return this.isInProvince();
-    //     }
-    //     return this.location === Location.PlayArea;
-    // }
 
     // TODO CAPTURE: will probably need to leverage or modify the below "child card" methods (see basecard.ts in L5R for reference)
     // originally these were for managing province cards

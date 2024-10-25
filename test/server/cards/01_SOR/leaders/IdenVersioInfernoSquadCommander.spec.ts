@@ -90,7 +90,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
                 expect(context.p1Base.damage).toBe(4);
             });
 
-            // TODO: once leader shields and defeat timing is fixed, add a test for Iden's ability to heal base when she is defeated
+            // TODO QIRA: once leader shields and defeat timing is fixed, add a test for Iden's ability to heal base when she is defeated
             // TODO: once defeat timing is fixed, add a test checking that Iden's ability functions correctly with parallel defeats (e.g. superlaser)
         });
     });

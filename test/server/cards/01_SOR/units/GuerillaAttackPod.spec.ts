@@ -47,7 +47,7 @@ describe('Guerilla Attack Pod', function () {
                 expect(context.guerillaAttackPod.exhausted).toBeFalse();
             });
 
-            // TODO: when gain ambush is working, add test with  ECL to confirm that ambush > ready > attack sequence works right
+            // TODO ECL: when gain ambush is working, add test with  ECL to confirm that ambush > ready > attack sequence works right
         });
     });
 });

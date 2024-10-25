@@ -1,12 +1,14 @@
 import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { CardType, Location, WildcardLocation } from '../../Constants';
+import { CardType, Location, RelativePlayer, WildcardLocation } from '../../Constants';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { IDecreaseEventCostAbilityProps, IIgnoreAspectPenaltiesProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
+import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
+import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -22,6 +24,20 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 export class InPlayCard extends PlayableOrDeployableCard {
     protected triggeredAbilities: TriggeredAbility[] = [];
 
+    protected _pendingDefeat? = null;
+
+    /**
+     * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
+     * and will be removed from the field after the current event window has finished the resolution step.
+     *
+     * When this is true, most systems cannot target the card and any ongoing effects are disabled.
+     * Triggered abilities are not disabled until it leaves the field.
+     */
+    public get pendingDefeat() {
+        this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
+        return this._pendingDefeat;
+    }
+
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -35,6 +51,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     public override canBeInPlay(): this is InPlayCard {
         return true;
+    }
+
+    protected setPendingDefeatEnabled(enabledStatus: boolean) {
+        this._pendingDefeat = enabledStatus ? false : null;
     }
 
     // ********************************************** ABILITY GETTERS **********************************************
@@ -164,27 +184,24 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(prevLocation, this.location);
         this.updateConstantAbilityEffects(prevLocation, this.location);
+
+        if (EnumHelpers.isArena(this.location)) {
+            this.setPendingDefeatEnabled(true);
+
+            if (this.unique) {
+                this.checkUnique();
+            }
+        } else {
+            this.setPendingDefeatEnabled(false);
+        }
     }
 
     /** Register / un-register the event triggers for any triggered abilities */
     private updateTriggeredAbilityEvents(from: Location, to: Location, reset: boolean = true) {
-        // TODO CAPTURE: does being captured and then freed in the same turn reset any ability limits?
         this.resetLimits();
 
         for (const triggeredAbility of this.triggeredAbilities) {
-            if (this.isEvent()) {
-                // TODO EVENTS: this block is here because jigoku would would register a 'bluff' triggered ability window in the UI, do we still need that?
-                // normal event abilities have their own category so this is the only 'triggered ability' for event cards
-                if (
-                    to === Location.Deck ||
-                    this.controller.isCardInPlayableLocation(this) ||
-                    (this.controller.opponent && this.controller.opponent.isCardInPlayableLocation(this))
-                ) {
-                    triggeredAbility.registerEvents();
-                } else {
-                    triggeredAbility.unregisterEvents();
-                }
-            } else if (EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
+            if (EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
                 triggeredAbility.registerEvents();
             } else if (!EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
                 triggeredAbility.unregisterEvents();
@@ -227,5 +244,55 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 triggeredAbility.limit.reset();
             }
         }
+    }
+
+    // ******************************************** UNIQUENESS MANAGEMENT ********************************************
+    public registerPendingUniqueDefeat() {
+        Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
+
+        this._pendingDefeat = true;
+    }
+
+    private checkUnique() {
+        Contract.assertTrue(this.unique);
+
+        // need to filter for other cards that have unique = true since Clone will create non-unique duplicates
+        const uniqueDuplicatesInPlay = this.getDuplicatesInPlayForController();
+        if (uniqueDuplicatesInPlay.length === 0) {
+            return;
+        }
+
+        Contract.assertTrue(
+            uniqueDuplicatesInPlay.length < 2,
+            `Found that ${this.controller.name} has ${uniqueDuplicatesInPlay.length} duplicates of ${this.internalName} in play`
+        );
+
+        const unitDisplayName = this.title + (this.subtitle ? ', ' + this.subtitle : '');
+
+        const chooseDuplicateToDefeatPromptProperties = {
+            activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
+            waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
+            locationFilter: WildcardLocation.AnyArena,
+            controller: RelativePlayer.Self,
+            cardCondition: (card: InPlayCard) =>
+                card.unique && card.title === this.title && card.subtitle === this.subtitle && !card.pendingDefeat,
+            onSelect: (player, card) => this.resolveUniqueDefeat(card)
+        };
+        this.game.promptForSelect(this.controller, chooseDuplicateToDefeatPromptProperties);
+    }
+
+    private getDuplicatesInPlayForController() {
+        return this.controller.getDuplicatesInPlay(this).filter(
+            (duplicateCard) => duplicateCard.unique && !duplicateCard.pendingDefeat
+        );
+    }
+
+    private resolveUniqueDefeat(duplicateToDefeat: InPlayCard) {
+        const duplicateDefeatSystem = new FrameworkDefeatCardSystem({ defeatSource: DefeatSourceType.UniqueRule, target: duplicateToDefeat });
+        this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(duplicateToDefeat, this.game.getFrameworkContext()));
+
+        duplicateToDefeat.registerPendingUniqueDefeat();
+
+        return true;
     }
 }

@@ -5,7 +5,7 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { Attack } from '../core/attack/Attack';
-import { DamageOrDefeatSourceType, IDamageOrDefeatSource } from '../IDamageOrDefeatSource';
+import { DamageSourceType, IDamageSource } from '../IDamageOrDefeatSource';
 import { UnitCard } from '../core/card/CardTypes';
 import CardAbilityStep from '../core/ability/CardAbilityStep';
 
@@ -76,7 +76,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
     }
 
     /** Generates metadata indicating the source of the damage is an attack for relevant effects such as Rukh's ability */
-    private generateAttackSourceMetadata(event: any, card: Card, context: TContext, properties: IDamageProperties): IDamageOrDefeatSource {
+    private generateAttackSourceMetadata(event: any, card: Card, context: TContext, properties: IDamageProperties): IDamageSource {
         Contract.assertTrue(context.source.isUnit());
 
         let damageDealtBy: UnitCard;
@@ -98,7 +98,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
         }
 
         return {
-            type: DamageOrDefeatSourceType.Attack,
+            type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
             player: context.source.controller,
             damageDealtBy,
@@ -108,11 +108,11 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext> exte
 
     // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
     /** Generates metadata indicating the source of the damage is an ability */
-    private generateAbilitySourceMetadata(card: Card, context: TContext): IDamageOrDefeatSource {
+    private generateAbilitySourceMetadata(card: Card, context: TContext): IDamageSource {
         Contract.assertTrue(context.ability instanceof CardAbilityStep, `Damage was created by non-card ability ${context.ability.title} targeting ${card.internalName}`);
 
         return {
-            type: DamageOrDefeatSourceType.Ability,
+            type: DamageSourceType.Ability,
             player: context.player,
             ability: context.ability,
             card: context.source
