@@ -15,7 +15,6 @@ export interface IGameSystemProperties {
     // TODO: remove this
     optional?: boolean;
     parentSystem?: GameSystem;
-    // TODO: make sure that existing systems handle 'isCost' check correctly
     isCost?: boolean;
 }
 

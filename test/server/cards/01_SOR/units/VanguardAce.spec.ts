@@ -47,9 +47,6 @@ describe('Vanguard Ace', function() {
                 context.player1.clickCard(context.daringRaid);
                 context.player1.clickCard(context.p2Base);
 
-                context.player2.passAction();
-
-                // TODO: fix this
                 context.moveToNextActionPhase();
 
                 context.player1.clickCard(context.battlefieldMarine);

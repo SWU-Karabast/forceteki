@@ -689,17 +689,6 @@ export class Card extends OngoingEffectSource {
         // }
     }
 
-    // TODO: is this actually helpful?
-    // isInPlay(): boolean {
-    //     if (this.isFacedown()) {
-    //         return false;
-    //     }
-    //     if ([CardType.Holding, CardType.Province, CardType.Stronghold].includes(this.type)) {
-    //         return this.isInProvince();
-    //     }
-    //     return this.location === Location.PlayArea;
-    // }
-
     // TODO CAPTURE: will probably need to leverage or modify the below "child card" methods (see basecard.ts in L5R for reference)
     // originally these were for managing province cards
 

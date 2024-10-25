@@ -148,10 +148,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             let triggeredAbilities = super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
-            if (this._attackKeywordAbilities !== null || this.isBlank()) { // TODO: Why is this isBlank check even here?
+            if (this._attackKeywordAbilities !== null) {
                 triggeredAbilities = triggeredAbilities.concat(this._attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
             }
-            if (this._whenPlayedKeywordAbilities !== null || this.isBlank()) {
+            if (this._whenPlayedKeywordAbilities !== null) {
                 // TODO: does it even make sense for there to be non-triggered when played keyword abilities? I think not. Maybe Smuggle?
                 triggeredAbilities = triggeredAbilities.concat(this._whenPlayedKeywordAbilities as TriggeredAbility[]);
             }

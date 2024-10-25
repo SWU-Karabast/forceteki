@@ -1,7 +1,7 @@
 import OngoingEffect from '../ongoingEffect/OngoingEffect';
 import { TriggeredAbilityWindow } from './abilityWindow/TriggeredAbilityWindow';
 
-// TODO: this is temporarily offline while testing the new ability window type
+// TODO: do we even need this?
 export class SimultaneousEffectWindow extends TriggeredAbilityWindow {
     // constructor(game) {
     //     super(game, 'delayedeffects');

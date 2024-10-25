@@ -4,7 +4,6 @@ const EnumHelpers = require('../utils/EnumHelpers.js');
 const Contract = require('../utils/Contract.js');
 const Helpers = require('../utils/Helpers.js');
 
-// TODO: confusingly, this is not an implementation of IOngoingCardEffect. what's the relationship supposed to be?
 class OngoingCardEffect extends OngoingEffect {
     constructor(game, source, properties, effect) {
         super(game, source, properties, effect);

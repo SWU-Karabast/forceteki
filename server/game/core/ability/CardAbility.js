@@ -73,7 +73,6 @@ class CardAbility extends CardAbilityStep {
         }
 
         // TODO: enum for ignoredRequirements strings?
-        // TODO: is this phase ability check correct for SWU? not sure about constant abilities during regroup phase
         if (
             !ignoredRequirements.includes('phase') &&
             !this.isKeywordAbility() &&

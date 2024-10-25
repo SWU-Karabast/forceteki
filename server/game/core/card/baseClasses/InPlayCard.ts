@@ -185,23 +185,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     /** Register / un-register the event triggers for any triggered abilities */
     private updateTriggeredAbilityEvents(from: Location, to: Location, reset: boolean = true) {
-        // TODO CAPTURE: does being captured and then freed in the same turn reset any ability limits?
         this.resetLimits();
 
         for (const triggeredAbility of this.triggeredAbilities) {
-            if (this.isEvent()) {
-                // TODO EVENTS: this block is here because jigoku would would register a 'bluff' triggered ability window in the UI, do we still need that?
-                // normal event abilities have their own category so this is the only 'triggered ability' for event cards
-                if (
-                    to === Location.Deck ||
-                    this.controller.isCardInPlayableLocation(this) ||
-                    (this.controller.opponent && this.controller.opponent.isCardInPlayableLocation(this))
-                ) {
-                    triggeredAbility.registerEvents();
-                } else {
-                    triggeredAbility.unregisterEvents();
-                }
-            } else if (EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
+            if (EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
                 triggeredAbility.registerEvents();
             } else if (!EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
                 triggeredAbility.unregisterEvents();
