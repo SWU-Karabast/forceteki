@@ -99,6 +99,6 @@ describe('General Krell, Heartless Tactician', function() {
             });
         });
 
-        // TODO: once we have a card implemented that can return cards from discard to hand, add a test confirming that the ability is regained correctly
+        // TODO WAYLAY: once we have a card implemented that can return cards from discard to hand, add a test confirming that the ability is regained correctly
     });
 });

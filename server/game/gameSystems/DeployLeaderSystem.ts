@@ -1,8 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Card } from '../core/card/Card';
+import { Card } from '../core/card/Card';
 import { CardType, EventName } from '../core/Constants';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import { GameEvent } from '../core/event/GameEvent';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDeployLeaderProperties extends ICardTargetSystemProperties {}
@@ -16,8 +17,12 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
 
     public eventHandler(event): void {
         Contract.assertTrue(event.card.isLeader());
-
         event.card.deploy();
+    }
+
+    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context);
+        return ['deploy {0}', [properties.target]];
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
@@ -25,5 +30,18 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
             return false;
         }
         return super.canAffect(card, context);
+    }
+
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
+        super.updateEvent(event, card, context, additionalProperties);
+        event.setContingentEventsGenerator(() => {
+            const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, {
+                player: context.player,
+                card,
+                context,
+            });
+
+            return [entersPlayEvent];
+        });
     }
 }
