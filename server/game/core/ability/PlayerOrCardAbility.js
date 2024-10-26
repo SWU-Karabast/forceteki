@@ -35,7 +35,7 @@ class PlayerOrCardAbility {
      * @param {string} [properties.title] - Name to use for ability display and debugging
      * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
      * @param {boolean} [properties.optional] - Optional property that indicates if resolution of the ability is optional and may be passed through
-     * @param {import('../event/EventWindow.js').TriggerHandlingMode} [properties.resolveTriggersAfter] - Optional property that indicates whether triggers triggered during this
+     * @param {import('../event/EventWindow.js').TriggerHandlingMode} [properties.triggerHandlingMode] - Optional property that indicates whether triggers triggered during this
      * ability should be resolved right after it, or passed back to the parent game event window
      */
     constructor(properties, type = AbilityType.Action) {
@@ -60,12 +60,12 @@ class PlayerOrCardAbility {
         this.uuid = uuidv4();
 
         // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
-        this.resolveTriggersAfter = properties.resolveTriggersAfter;
+        this.triggerHandlingMode = properties.triggerHandlingMode;
 
-        if (properties.resolveTriggersAfter != null) {
-            this.resolveTriggersAfter = properties.resolveTriggersAfter;
+        if (properties.triggerHandlingMode != null) {
+            this.triggerHandlingMode = properties.triggerHandlingMode;
         } else {
-            this.resolveTriggersAfter = [AbilityType.Triggered, AbilityType.Action].includes(this.type)
+            this.triggerHandlingMode = [AbilityType.Triggered, AbilityType.Action].includes(this.type)
                 ? TriggerHandlingMode.ResolvesTriggers
                 : TriggerHandlingMode.PassesTriggersToParentWindow;
         }

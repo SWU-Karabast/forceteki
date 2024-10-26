@@ -49,9 +49,9 @@ export class EventWindow extends BaseStepWithPipeline {
     /** Creates an object holding one or more GameEvents that occur at the same time.
      *  @param game - The game object.
      *  @param {GameEvent[]} events - Events belonging to this window.
-     *  @param {boolean} ownsTriggerWindow - Whether this event window should create its own TriggeredAbilityWindow which will resolve after its events(and any nested events).
-     * If false, this window will borrow its parent EventWindow's TriggeredAbilityWindow, which will receive any triggers that trigger during this EventWindow's events,
-     * to be resolved after all nested events of its owner are done.
+     *  @param {TriggerHandlingMode} triggerHandlingMode - Whether this event window should create its own TriggeredAbilityWindow which will resolve after its events (and any nested events).
+     * If set to {@link TriggerHandlingMode.PassesTriggersToParentWindow}, this window will borrow its parent EventWindow's TriggeredAbilityWindow, which will receive any triggers that trigger
+     * during this EventWindow's events, to be resolved after all nested events of its owner are done.
      */
     public constructor(
         game,
