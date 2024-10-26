@@ -40,8 +40,16 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
+        const corsOrigin = process.env.NODE_ENV === 'production' 
+            ? 'https://tbd.com' 
+            : 'http://localhost:3000';
+
         this.io = new socketio.Server(server, {
-            perMessageDeflate: false
+            perMessageDeflate: false,
+            cors: {
+                origin: corsOrigin,
+                methods: ['GET', 'POST']
+            }
         });
 
         this.io.on('connection', (socket) => this.onConnection(socket));
@@ -131,7 +139,7 @@ export class GameServer {
     public sendGameState(game: Game): void {
         for (const player of Object.values<Player>(game.getPlayersAndSpectators())) {
             if (player.socket && !player.left && !player.disconnected) {
-                // player.socket.send('gamestate', game.getState(player.name));
+                player.socket.send('gamestate', game.getState(player.name));
             }
         }
     }
@@ -235,9 +243,9 @@ export class GameServer {
     }
 
     public onConnection(ioSocket) {
-        const user = ioSocket.handshake.query.user;
+        const user = JSON.parse(ioSocket.handshake.query.user);
         if (user) {
-            ioSocket.request.user = { username: user };
+            ioSocket.request.user = user;
         }
         if (!ioSocket.request.user) {
             logger.info('socket connected with no user, disconnecting');
@@ -339,7 +347,7 @@ export class GameServer {
 
     public onGameMessage(socket, command, ...args) {
         const game = this.findGameForUser(socket.user.username);
-
+        console.log("game message recieve");
         if (!game) {
             return;
         }
