@@ -736,48 +736,43 @@ export class Card extends OngoingEffectSource {
     //     return clone;
     // }
 
-    // getSummary(activePlayer, hideWhenFaceup) {
-    //     let isActivePlayer = activePlayer === this.controller;
-    //     let selectionState = activePlayer.getCardSelectionState(this);
+    getSummary(activePlayer, hideWhenFaceup) {
+        let isActivePlayer = activePlayer === this.controller;
+        let selectionState = activePlayer.getCardSelectionState(this);
 
-    //     // This is my facedown card, but I'm not allowed to look at it
-    //     // OR This is not my card, and it's either facedown or hidden from me
-    //     if (
-    //         isActivePlayer
-    //             ? this.isFacedown() && this.hideWhenFacedown()
-    //             : this.isFacedown() || hideWhenFaceup || this.hasOngoingEffect(EffectName.HideWhenFaceUp)
-    //     ) {
-    //         let state = {
-    //             controller: this.controller.getShortSummary(),
-    //             menu: isActivePlayer ? this.getMenu() : undefined,
-    //             facedown: true,
-    //             inConflict: this.inConflict,
-    //             location: this.location,
-    //             uuid: isActivePlayer ? this.uuid : undefined
-    //         };
-    //         return Object.assign(state, selectionState);
-    //     }
+        // This is my facedown card, but I'm not allowed to look at it
+        // OR This is not my card, and it's either facedown or hidden from me
+        if (
+            isActivePlayer
+                ? this.facedown
+                : this.facedown || hideWhenFaceup
+        ) {
+            let state = {
+                controller: this.controller.getShortSummary(),
+                // menu: isActivePlayer ? this.getMenu() : undefined,
+                facedown: true,
+                location: this.location,
+                uuid: isActivePlayer ? this.uuid : undefined
+            };
+            return Object.assign(state, selectionState);
+        }
 
-    //     let state = {
-    //         id: this.cardData.id,
-    //         controlled: this.owner !== this.controller,
-    //         inConflict: this.inConflict,
-    //         facedown: this.isFacedown(),
-    //         location: this.location,
-    //         menu: this.getMenu(),
-    //         name: this.cardData.name,
-    //         popupMenuText: this.popupMenuText,
-    //         showPopup: this.showPopup,
-    //         tokens: this.tokens,
-    //         types: this.types,
-    //         isDishonored: this.isDishonored,
-    //         isHonored: this.isHonored,
-    //         isTainted: !!this.isTainted,
-    //         uuid: this.uuid
-    //     };
+        let state = {
+            id: this.cardData.id,
+            controlled: this.owner !== this.controller,
+            // facedown: this.isFacedown(),
+            location: this.location,
+            // menu: this.getMenu(),
+            name: this.cardData.name,
+            // popupMenuText: this.popupMenuText,
+            // showPopup: this.showPopup,
+            // tokens: this.tokens,
+            // types: this.types,
+            uuid: this.uuid
+        };
 
-    //     return Object.assign(state, selectionState);
-    // }
+        return Object.assign(state, selectionState);
+    }
 
     public override getShortSummaryForControls(activePlayer: Player): any {
         if (!this.isHiddenForPlayer(activePlayer)) {

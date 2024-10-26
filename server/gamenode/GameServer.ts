@@ -88,30 +88,30 @@ export class GameServer {
     public handleError(game: Game, e: Error) {
         logger.error(e);
 
-        // const gameState = game.getState();
+        const gameState = game.getState();
         const debugData: any = {};
 
-        // if (e.message.includes('Maximum call stack')) {
-        //     debugData.badSerializaton = detectBinary(gameState);
-        // } else {
-        //     debugData.game = gameState;
-        //     debugData.game.players = undefined;
+        if (e.message.includes('Maximum call stack')) {
+            // debugData.badSerializaton = detectBinary(gameState);
+        } else {
+            debugData.game = gameState;
+            debugData.game.players = undefined;
 
-        //     debugData.messages = game.messages;
-        //     debugData.game.messages = undefined;
+            debugData.messages = game.messages;
+            debugData.game.messages = undefined;
 
-        //     debugData.pipeline = game.pipeline.getDebugInfo();
-        //     debugData.effectEngine = game.effectEngine.getDebugInfo();
+            debugData.pipeline = game.pipeline.getDebugInfo();
+            // debugData.effectEngine = game.effectEngine.getDebugInfo();
 
-        //     for (const player of game.getPlayers()) {
-        //         debugData[player.name] = player.getState(player);
-        //     }
-        // }
+            for (const player of game.getPlayers()) {
+                debugData[player.name] = player.getState(player);
+            }
+        }
 
         if (game) {
-            // game.addMessage(
-            //     'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
-            // );
+            game.addMessage(
+                'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
+            );
         }
     }
 
@@ -347,7 +347,6 @@ export class GameServer {
 
     public onGameMessage(socket, command, ...args) {
         const game = this.findGameForUser(socket.user.username);
-        console.log("game message recieve");
         if (!game) {
             return;
         }
