@@ -1,6 +1,6 @@
-describe('Wedge Antilles, Star of the Rebellion', function() {
+describe('Admiral Ackbar, Brilliant Strategist', function() {
     integration(function(contextRef) {
-        describe('Wedge Antilles\'s ability', function() {
+        describe('Admiral Ackbar\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
