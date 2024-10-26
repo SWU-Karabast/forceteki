@@ -691,9 +691,7 @@ class Player extends GameObject {
         if (this.resetTimerAtEndOfRound) {
             this.noTimer = false;
         }
-        if (!(this.game.initiativePlayer === this && this.game.isInitiativeClaimed)) {
-            this.passedActionPhase = false;
-        }
+        this.passedActionPhase = false;
     }
 
     /**
