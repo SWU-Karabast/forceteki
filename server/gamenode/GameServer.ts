@@ -40,8 +40,8 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
-        const corsOrigin = process.env.NODE_ENV === 'production' 
-            ? 'https://tbd.com' 
+        const corsOrigin = process.env.NODE_ENV === 'production'
+            ? 'https://tbd.com'
             : 'http://localhost:3000';
 
         this.io = new socketio.Server(server, {

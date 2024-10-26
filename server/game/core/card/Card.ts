@@ -736,9 +736,9 @@ export class Card extends OngoingEffectSource {
     //     return clone;
     // }
 
-    getSummary(activePlayer, hideWhenFaceup) {
-        let isActivePlayer = activePlayer === this.controller;
-        let selectionState = activePlayer.getCardSelectionState(this);
+    public getSummary(activePlayer, hideWhenFaceup) {
+        const isActivePlayer = activePlayer === this.controller;
+        const selectionState = activePlayer.getCardSelectionState(this);
 
         // This is my facedown card, but I'm not allowed to look at it
         // OR This is not my card, and it's either facedown or hidden from me
@@ -747,7 +747,7 @@ export class Card extends OngoingEffectSource {
                 ? this.facedown
                 : this.facedown || hideWhenFaceup
         ) {
-            let state = {
+            const state = {
                 controller: this.controller.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,
                 facedown: true,
@@ -757,7 +757,7 @@ export class Card extends OngoingEffectSource {
             return Object.assign(state, selectionState);
         }
 
-        let state = {
+        const state = {
             id: this.cardData.id,
             controlled: this.owner !== this.controller,
             // facedown: this.isFacedown(),
