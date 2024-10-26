@@ -36,10 +36,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     public static allZonesAreHidden(locationFilter): boolean {
-        if (Array.isArray(locationFilter)) {
-            return locationFilter.every((location) => EnumHelpers.isHidden(location));
-        }
-        return EnumHelpers.isHidden(locationFilter);
+        return locationFilter && Helpers.asArray(locationFilter).every((location) => EnumHelpers.isHidden(location));
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {

@@ -25,7 +25,7 @@ describe('Admiral Ozzel, Overconfident', function() {
                 context.player1.clickPrompt('Play an Imperial unit from your hand. It enters play ready');
                 expect(context.admiralOzzel.exhausted).toBe(true);
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.deathStarStormtrooper]);
-                expect(context.player1).toHaveEnabledPromptButton('Choose no target');
+                expect(context.player1).toHaveChooseNoTargetButton();
 
                 context.player1.clickCard(context.atst);
                 expect(context.atst).toBeInLocation('ground arena');
