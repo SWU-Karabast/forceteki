@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, Trait, WildcardLocation } from '../Constants';
+import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, RelativePlayer, Trait, WildcardLocation } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
@@ -467,7 +467,7 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentLocation(prevLocation: Location) {
-        this.hiddenForOpponent = EnumHelpers.isHidden(this.location);
+        this.hiddenForOpponent = EnumHelpers.isHidden(this.location, RelativePlayer.Self);
 
         switch (this.location) {
             case Location.SpaceArena:

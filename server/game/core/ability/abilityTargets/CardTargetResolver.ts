@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { Card } from '../../card/Card';
-import { Stage, EffectName } from '../../Constants';
+import { Stage, EffectName, LocationFilter, RelativePlayer } from '../../Constants';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
@@ -20,23 +20,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
 
         this.selector = this.getSelector(properties);
 
-        // a player can always choose not to pick a card from a zone that is hidden from their opponents (SWU Comp Rules 2.0 1.17.4)
-        if (CardTargetResolver.allZonesAreHidden(this.properties.locationFilter)) {
-            this.properties.optional = true;
-            this.selector.optional = true;
-            this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle;
-            this.selector.defaultActivePromptTitle = () => this.selector.oldDefaultActivePromptTitle().concat(' (because you are choosing from a hidden zone you may choose nothing)');
-        }
-
         if (this.properties.immediateEffect) {
             this.properties.immediateEffect.setDefaultTargetFn((context) => context.targets[name]);
         }
 
         this.validateLocationLegalForTarget(properties);
-    }
-
-    public static allZonesAreHidden(locationFilter): boolean {
-        return locationFilter && Helpers.asArray(locationFilter).every((location) => EnumHelpers.isHidden(location));
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
@@ -70,6 +58,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
+        // a player can always choose not to pick a card from a zone that is hidden from their opponents (SWU Comp Rules 2.0 1.17.4)
+        // TODO: test if picking a card from an opponent's usually hidden zone(e.g. opponent's hand) works as expected(the if block here should be skipped)
+        if (CardTargetResolver.allZonesAreHidden(this.properties.locationFilter, typeof this.properties.controller === 'function' ? this.properties.controller(context) : this.properties.controller)) {
+            this.properties.optional = true;
+            this.selector.optional = true;
+            this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle();
+            this.selector.defaultActivePromptTitle = () => this.selector.oldDefaultActivePromptTitle.concat(' (because you are choosing from a hidden zone you may choose nothing)');
+        }
+
         const legalTargets = this.selector.getAllLegalTargets(context, player);
         if (legalTargets.length === 0) {
             if (context.stage === Stage.PreTarget) {
@@ -144,6 +141,10 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             }
         });
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
+    }
+
+    public static allZonesAreHidden(locationFilter: LocationFilter | LocationFilter[], controller: RelativePlayer): boolean {
+        return locationFilter && Helpers.asArray(locationFilter).every((location) => EnumHelpers.isHidden(location, controller));
     }
 
     private cancel(targetResults) {
