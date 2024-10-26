@@ -39,14 +39,14 @@ describe('Admiral Ackbar, Brilliant Strategist', function() {
                 ]);
                 expect(context.player1).toHavePassAbilityButton();
 
-                // Case 1: It does damage to the selected ground arena unit equal to the conrolled units in that arena.
+                // Case 2: It does damage to the selected ground arena unit equal to the conrolled units in that arena.
                 player1.clickCard(context.atst);
 
                 expect(context.atst.damage).toEqual(3);
 
                 reset();
 
-                // Case 2: It does damage to the selected space arena unit equal to the conrolled units in that arena.
+                // Case 3: It does damage to the selected space arena unit equal to the conrolled units in that arena.
                 player1.clickCard(admiralAckbar);
                 player1.clickCard(context.redThree);
 
