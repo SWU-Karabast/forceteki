@@ -156,7 +156,7 @@ class ActionWindow extends UiPrompt {
             // in the (unusual) case that both players pass without claiming initiative, phase ends and initiative stays where it is
             this.activePlayer.passedActionPhase = true;
             this.activePlayer.opponent.passedActionPhase = true;
-        } else if (this.activePlayer.opponent === this.game.initiativePlayer && this.game.isInitiativeClaimed) {
+        } else if (this.activePlayer.opponent.passedActionPhase) {
             // if opponent already claimed initiative, we're done
             this.activePlayer.passedActionPhase = true;
         } else {

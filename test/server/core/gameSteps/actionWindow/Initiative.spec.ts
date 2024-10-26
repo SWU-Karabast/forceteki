@@ -16,16 +16,18 @@ describe('Claiming initiative', function() {
                 });
             });
 
-            it('Should make the one with initiative not be able to take any actions and go first in the next phase.', function () {
+            it('should make the one with initiative not be able to take any actions and go first in the next phase.', function () {
                 const { context } = contextRef;
                 // Case 1 after player1 claims player 2 can play multiple actions before passing
                 context.player1.claimInitiative();
+                expect(context.player2).toHaveExactPromptButtons(['Pass']);
                 expect(context.ardentSympathizer.getPower()).toBe(5);
                 // TODO atm we do not list the set of cards with available actions in the action phase to bypass the error
                 // TODO Expected Player prompt to change.
                 context.player2.clickCardNonChecking(context.scoutBikePursuer);
 
                 expect(context.scoutBikePursuer).toBeInLocation('ground arena');
+                expect(context.player2).toHaveExactPromptButtons(['Pass']);
                 expect(context.player2).toBeActivePlayer();
                 // TODO atm we do not list the set of cards with available actions in the action phase to bypass the error
                 // TODO Expected Player prompt to change.
@@ -33,6 +35,7 @@ describe('Claiming initiative', function() {
 
                 expect(context.bazeMalbus.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.player2).toHaveExactPromptButtons(['Pass']);
                 context.player2.passAction();
 
                 // Regroup phase
