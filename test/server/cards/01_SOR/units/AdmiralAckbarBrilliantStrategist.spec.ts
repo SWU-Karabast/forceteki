@@ -16,7 +16,7 @@ describe('Wedge Antilles, Star of the Rebellion', function() {
                 });
             });
 
-            it('should give Ambush and +1/+1 to a friendly Vehicle unit', function () {
+            it('should allow the player to deal damage to a unit equal to the number of units your control in its arena.', function () {
                 // Setup
                 const { context } = contextRef;
                 const { admiralAckbar, player1 } = context;

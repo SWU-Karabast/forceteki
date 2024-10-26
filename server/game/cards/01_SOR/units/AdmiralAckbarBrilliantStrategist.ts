@@ -19,7 +19,7 @@ export default class AdmiralAckbarBrilliantStrategist extends NonLeaderUnitCard 
     private getDamageFromContext(context: AbilityContext): number {
         const arenaName = context.target._location;
         const arena = context.source.controller.getUnitsInPlay(arenaName);
-        return arena.length
+        return arena.length;
     }
 
     public override setupCardAbilities() {
