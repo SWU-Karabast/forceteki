@@ -17,14 +17,14 @@ export default class AdmiralAckbarBrilliantStrategist extends NonLeaderUnitCard 
      * @returns The number of units in target units arena.
      */
     private getDamageFromContext(context: AbilityContext): number {
-        const arenaName = context.target._location;
+        const arenaName = context.target.location;
         const arena = context.source.controller.getUnitsInPlay(arenaName);
         return arena.length;
     }
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'You may deal damage to a unit equal to the number of units your control in its arena.',
+            title: 'Deal damage to a unit equal to the number of units your control in its arena.'
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
