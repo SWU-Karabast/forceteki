@@ -216,7 +216,7 @@ class Game extends EventEmitter {
      * Checks who the next legal active player for the action phase should be and updates @member {activePlayer}. If none available, sets it to null.
      */
     rotateActivePlayer() {
-        if (!this.actionPhaseActivePlayer.opponent.passedActionPhase && !(this.initiativePlayer === this.actionPhaseActivePlayer.opponent && this.isInitiativeClaimed)) {
+        if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {
             this.createEventAndOpenWindow(
                 EventName.OnPassActionPhasePriority,
                 { player: this.actionPhaseActivePlayer, actionWindow: this },
