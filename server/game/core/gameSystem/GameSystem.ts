@@ -219,6 +219,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         this.getDefaultTargets = func;
     }
 
+    // TODO THIS PR: add trigger mode parameter
     /**
      * Resolves the effects of the effects of the system on game state by generating the necessary events and
      * opening a window to resolve them with {@link Game.openEventWindow}.

@@ -56,7 +56,7 @@ export class EventWindow extends BaseStepWithPipeline {
     public constructor(
         game,
         events,
-        private readonly triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
+        public readonly triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
     ) {
         super(game);
 
@@ -123,6 +123,8 @@ export class EventWindow extends BaseStepWithPipeline {
         switch (this.triggerHandlingMode) {
             case TriggerHandlingMode.PassesTriggersToParentWindow:
                 Contract.assertNotNullLike(this.previousGameEventWindow, `Attempting to create event window ${this} as a child window but no parent window exists`);
+                Contract.assertFalse(this.previousGameEventWindow.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers, `${this} is attempting pass triggers to ${this.previousGameEventWindow} which cannot have ability triggers`);
+
                 this._triggeredAbilityWindow = this.previousGameEventWindow.triggeredAbilityWindow;
                 break;
             case TriggerHandlingMode.ResolvesTriggers:
