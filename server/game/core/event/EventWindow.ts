@@ -6,6 +6,18 @@ import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import * as Contract from '../utils/Contract';
 
+export enum TriggerHandlingMode {
+
+    /** Any abilities triggered during this event window will not be resolved immediately but passed to the parent window */
+    PassesTriggersToParentWindow = 'passesTriggersToParentWindow',
+
+    /** Any abilities triggered during this event window or passed up from child windows will be resolved immediately  */
+    ResolvesTriggers = 'resolvesTriggers',
+
+    /** This event window is not a type that should trigger abilities, so any triggers that happen are an error */
+    CannotHaveTriggers = 'cannotHaveTriggers'
+}
+
 interface IThenAbilityComponents {
     generator: (context: AbilityContext) => CardAbilityStep;
     context: AbilityContext;
@@ -14,16 +26,24 @@ interface IThenAbilityComponents {
 
 export class EventWindow extends BaseStepWithPipeline {
     protected _events: any[] = [];
-    protected triggeredAbilityWindow: TriggeredAbilityWindow = null;
+    protected _triggeredAbilityWindow?: TriggeredAbilityWindow = null;
 
-    private previousGameEventWindow: EventWindow = null;
+    private previousGameEventWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
     private subwindowEvents: any[] = [];
-    private thenAbilityComponents: IThenAbilityComponents = null;
+    private thenAbilityComponents?: IThenAbilityComponents = null;
     private windowDepth?: number = null;
 
     public get events() {
         return this._events;
+    }
+
+    public get triggeredAbilityWindow() {
+        if (this.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers) {
+            Contract.fail(`Attempting to access triggered ability window for type(s) ${this} which cannot trigger abilities`);
+        }
+
+        return this._triggeredAbilityWindow;
     }
 
     /** Creates an object holding one or more GameEvents that occur at the same time.
@@ -36,7 +56,7 @@ export class EventWindow extends BaseStepWithPipeline {
     public constructor(
         game,
         events,
-        private readonly ownsTriggerWindow = false
+        private readonly triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
     ) {
         super(game);
 
@@ -99,12 +119,20 @@ export class EventWindow extends BaseStepWithPipeline {
         }
 
         this.game.currentEventWindow = this;
-        if (this.ownsTriggerWindow) {
-            this.triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
-        } else if (this.previousGameEventWindow) {
-            this.triggeredAbilityWindow = this.previousGameEventWindow.triggeredAbilityWindow;
-        } else {
-            Contract.fail(`${this} set without any TriggeredEventWindow`);
+
+        switch (this.triggerHandlingMode) {
+            case TriggerHandlingMode.PassesTriggersToParentWindow:
+                Contract.assertNotNullLike(this.previousGameEventWindow, `Attempting to create event window ${this} as a child window but no parent window exists`);
+                this._triggeredAbilityWindow = this.previousGameEventWindow.triggeredAbilityWindow;
+                break;
+            case TriggerHandlingMode.ResolvesTriggers:
+                this._triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
+                break;
+            case TriggerHandlingMode.CannotHaveTriggers:
+                this._triggeredAbilityWindow = null;
+                break;
+            default:
+                Contract.fail(`Unknown value for triggerHandlingMode: ${this.triggerHandlingMode}`);
         }
     }
 
@@ -145,8 +173,10 @@ export class EventWindow extends BaseStepWithPipeline {
         const eventsToResolve = this._events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggeredAbilityWindow.addTriggeringEvents(this._events);
-        this.triggeredAbilityWindow.emitEvents();
+        if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
+            this._triggeredAbilityWindow.addTriggeringEvents(this._events);
+            this._triggeredAbilityWindow.emitEvents();
+        }
 
         for (const event of eventsToResolve) {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
@@ -170,7 +200,9 @@ export class EventWindow extends BaseStepWithPipeline {
         }
 
         // trigger again here to catch any events for cards that entered play during event resolution
-        this.triggeredAbilityWindow.emitEvents();
+        if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
+            this._triggeredAbilityWindow.emitEvents();
+        }
     }
 
     // resolve any events queued for a subwindow (typically defeat events)
@@ -197,8 +229,8 @@ export class EventWindow extends BaseStepWithPipeline {
     }
 
     private resolveTriggersIfNecessary() {
-        if (this.ownsTriggerWindow) {
-            this.queueStep(this.triggeredAbilityWindow);
+        if (this.triggerHandlingMode === TriggerHandlingMode.ResolvesTriggers) {
+            this.queueStep(this._triggeredAbilityWindow);
         }
     }
 

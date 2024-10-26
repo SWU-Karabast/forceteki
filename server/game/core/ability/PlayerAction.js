@@ -1,10 +1,11 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stage } = require('../Constants.js');
+const { TriggerHandlingMode } = require('../event/EventWindow.js');
 
 class PlayerAction extends PlayerOrCardAbility {
-    constructor(card, title, costs = [], targetResolver, resolveTriggersAfter = true) {
-        let properties = { cost: costs, title, resolveTriggersAfter: resolveTriggersAfter };
+    constructor(card, title, costs = [], targetResolver, resolveTriggersAfter = TriggerHandlingMode.ResolvesTriggers) {
+        let properties = { cost: costs, title, resolveTriggersAfter };
         if (targetResolver) {
             properties.targetResolver = targetResolver;
         }

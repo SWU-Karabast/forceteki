@@ -18,7 +18,7 @@ const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
 const InitiateCardAbilityEvent = require('./event/InitiateCardAbilityEvent.js');
-const { EventWindow } = require('./event/EventWindow');
+const { EventWindow, TriggerHandlingMode } = require('./event/EventWindow');
 const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAbilityEventWindow.js');
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
@@ -219,7 +219,7 @@ class Game extends EventEmitter {
             this.createEventAndOpenWindow(
                 EventName.OnPassActionPhasePriority,
                 { player: this.actionPhaseActivePlayer, actionWindow: this },
-                false,
+                TriggerHandlingMode.ResolvesTriggers,
                 () => {
                     this.actionPhaseActivePlayer = this.actionPhaseActivePlayer.opponent;
                 }
@@ -791,7 +791,7 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.createEventAndOpenWindow(EventName.OnBeginRound, {}, true);
+        this.createEventAndOpenWindow(EventName.OnBeginRound, {}, TriggerHandlingMode.ResolvesTriggers);
         this.queueStep(new ActionPhase(this));
         this.queueStep(new RegroupPhase(this));
         this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
@@ -799,13 +799,13 @@ class Game extends EventEmitter {
     }
 
     roundEnded() {
-        this.createEventAndOpenWindow(EventName.OnRoundEnded, {}, true);
+        this.createEventAndOpenWindow(EventName.OnRoundEnded, {}, TriggerHandlingMode.ResolvesTriggers);
     }
 
     claimInitiative(player) {
         this.initiativePlayer = player;
         this.isInitiativeClaimed = true;
-        this.createEventAndOpenWindow(EventName.OnClaimInitiative, { player }, true);
+        this.createEventAndOpenWindow(EventName.OnClaimInitiative, { player }, TriggerHandlingMode.ResolvesTriggers);
 
         // update game state for the sake of constant abilities that check initiative
         this.resolveGameState();
@@ -863,15 +863,15 @@ class Game extends EventEmitter {
      * Creates a game GameEvent, and opens a window for it.
      * @param {String} eventName
      * @param {Object} params - parameters for this event
-     * @param {boolean} ownsTriggerWindow - whether the EventWindow should make its own TriggeredAbilityWindow to resolve
+     * @param {TriggerHandlingMode} triggerHandlingMode - whether the EventWindow should make its own TriggeredAbilityWindow to resolve
      * after its events and any nested events
      * @param {(GameEvent) => void} handler - (GameEvent + params) => undefined
      * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
      * tell whether or not the handler resolved successfully
      */
-    createEventAndOpenWindow(eventName, params = {}, ownsTriggerWindow = false, handler = () => undefined) {
+    createEventAndOpenWindow(eventName, params = {}, triggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow, handler = () => undefined) {
         let event = new GameEvent(eventName, params, handler);
-        this.openEventWindow([event], ownsTriggerWindow);
+        this.openEventWindow([event], triggerHandlingMode);
         return event;
     }
 
@@ -889,14 +889,14 @@ class Game extends EventEmitter {
      * Creates an EventWindow which will open windows for each kind of triggered
      * ability which can respond any passed events, and execute their handlers.
      * @param events
-     * @param ownsTriggerWindow
+     * @param {TriggerHandlingMode} triggerHandlingMode
      * @returns {EventWindow}
      */
-    openEventWindow(events, ownsTriggerWindow = false) {
+    openEventWindow(events, triggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow) {
         if (!Array.isArray(events)) {
             events = [events];
         }
-        return this.queueStep(new EventWindow(this, events, ownsTriggerWindow));
+        return this.queueStep(new EventWindow(this, events, triggerHandlingMode));
     }
 
     /**
