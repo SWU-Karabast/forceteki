@@ -28,6 +28,4 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
     }
 }
 
-// sabine is only partially implemented, still need to handle:
-// - the effect override if she gains sentinel
-SabineWrenExplosivesArtist.implemented = false;
+SabineWrenExplosivesArtist.implemented = true;
