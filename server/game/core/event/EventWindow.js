@@ -154,7 +154,6 @@ class EventWindow extends BaseStepWithPipeline {
             this.game.emit(event.name, event);
         }
 
-        // TODO: make it so we don't need to trigger twice
         // trigger again here to catch any events for cards that entered play during event resolution
         this.triggeredAbilityWindow.emitEvents();
     }
