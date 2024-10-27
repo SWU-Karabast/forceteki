@@ -20,7 +20,7 @@ describe('Attack Pattern Delta', function() {
                 function () {
                     const { context } = contextRef;
 
-                    // Case 1: The player can select any unit card.
+                    // Case 1: The player can select any friendly unit card.
                     context.player1.clickCard(context.attackPatternDelta);
 
                     expect(context.player1).toBeAbleToSelectExactly([
@@ -36,7 +36,7 @@ describe('Attack Pattern Delta', function() {
                     expect(context.wampa.getPower()).toEqual(7);
                     expect(context.wampa.getHp()).toEqual(8);
 
-                    // Case 3: The player can select any unit card except Wampa.
+                    // Case 3: The player can select any friendly unit card except Wampa.
                     expect(context.player1).toBeAbleToSelectExactly([
                         context.battlefieldMarine,
                         context.redThree,
@@ -49,7 +49,7 @@ describe('Attack Pattern Delta', function() {
                     expect(context.battlefieldMarine.getPower()).toEqual(5);
                     expect(context.battlefieldMarine.getHp()).toEqual(5);
 
-                    // Case 5: The player can select any unit card except Wampa or Battlefield Marine.
+                    // Case 5: The player can select any unit friendly card except Wampa or Battlefield Marine.
                     expect(context.player1).toBeAbleToSelectExactly([
                         context.redThree,
                         context.allianceXwing,
