@@ -12,7 +12,7 @@ export default class _4LOMBountyHunterForHire extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addConstantAbility({
-            title: 'Deal 2 damage to each other ground unit',
+            title: 'Each friendly unit named Zuckuss gets +1/+1 and gains Ambush',
             targetController: RelativePlayer.Self,
             matchTarget: (card) => card.isUnit() && card.title === 'Zuckuss',
             ongoingEffect: [
