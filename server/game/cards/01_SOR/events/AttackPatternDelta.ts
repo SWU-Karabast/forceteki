@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class AttackPatternDelta extends EventCard {
     protected override getImplementationId () {
@@ -27,6 +27,7 @@ export default class AttackPatternDelta extends EventCard {
             title: 'Give a friendly unit +3/+3 for this phase.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Self,
                 immediateEffect: this.buildModifyStatsForPhaseImmediateEffect(3),
             },
             then: (firstThenContext) => ({
@@ -34,6 +35,7 @@ export default class AttackPatternDelta extends EventCard {
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => firstThenContext.target !== card,
+                    controller: RelativePlayer.Self,
                     immediateEffect: this.buildModifyStatsForPhaseImmediateEffect(2),
                 },
                 then: (secondThenContext) => ({
@@ -41,6 +43,7 @@ export default class AttackPatternDelta extends EventCard {
                     targetResolver: {
                         cardTypeFilter: WildcardCardType.Unit,
                         cardCondition: (card) => firstThenContext.target !== card && secondThenContext.target !== card,
+                        controller: RelativePlayer.Self,
                         immediateEffect: this.buildModifyStatsForPhaseImmediateEffect(1),
                     },
                 })

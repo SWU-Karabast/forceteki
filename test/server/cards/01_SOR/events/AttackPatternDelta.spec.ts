@@ -7,16 +7,16 @@ describe('Attack Pattern Delta', function() {
                     player1: {
                         hand: ['attack-pattern-delta'],
                         groundArena: ['battlefield-marine', 'wampa'],
-                        spaceArena: ['red-three#unstoppable']
+                        spaceArena: ['red-three#unstoppable', 'alliance-xwing']
                     },
                     player2: {
-                        leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
+                        groundArena: ['atst'],
                     }
                 });
             });
 
             it(
-                'Give a friendly unit +3/+3 for this phase. Give another friendly unit +2/+2 for this phase. Give a third friendly unit +1/+1 for this phase.',
+                'should give a friendly unit +3/+3 for this phase, then give another friendly unit +2/+2 for this phase, the give a third friendly unit +1/+1 for this phase.',
                 function () {
                     const { context } = contextRef;
 
@@ -27,7 +27,7 @@ describe('Attack Pattern Delta', function() {
                         context.battlefieldMarine,
                         context.wampa,
                         context.redThree,
-                        context.lukeSkywalker,
+                        context.allianceXwing,
                     ]);
 
                     // Case 2: The player selects Wampa. It gets +3/+3.
@@ -40,7 +40,7 @@ describe('Attack Pattern Delta', function() {
                     expect(context.player1).toBeAbleToSelectExactly([
                         context.battlefieldMarine,
                         context.redThree,
-                        context.lukeSkywalker,
+                        context.allianceXwing,
                     ]);
 
                     // Case 4: The player selects Battlefield Marine. It gets +2/+2.
@@ -52,7 +52,7 @@ describe('Attack Pattern Delta', function() {
                     // Case 5: The player can select any unit card except Wampa or Battlefield Marine.
                     expect(context.player1).toBeAbleToSelectExactly([
                         context.redThree,
-                        context.lukeSkywalker,
+                        context.allianceXwing,
                     ]);
 
                     // Case 6: The player selects Red Three. It gets +1/+1.
@@ -62,8 +62,7 @@ describe('Attack Pattern Delta', function() {
                     expect(context.redThree.getHp()).toEqual(4);
 
                     // Case 7: The buffs wear off at the end of the phase.
-                    context.player2.passAction();
-                    context.player1.passAction();
+                    context.moveToNextActionPhase()
 
                     expect(context.wampa.getPower()).toEqual(4);
                     expect(context.wampa.getHp()).toEqual(5);
