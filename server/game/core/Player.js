@@ -519,15 +519,6 @@ class Player extends GameObject {
 
         this.drawDeck = preparedDecklist.deckCards;
         this.decklist = preparedDecklist;
-        this.drawDeck.forEach((card) => {
-            // register event reactions in case event-in-deck bluff window is enabled
-            // TODO EVENTS: probably we need to do this differently since we have actual reactions on our events
-            // if (card.isEvent()) {
-            //     for (let reaction of card.abilities.getTriggeredAbilities()) {
-            //         reaction.registerEvents();
-            //     }
-            // }
-        });
     }
 
     /**
@@ -700,7 +691,6 @@ class Player extends GameObject {
         if (this.resetTimerAtEndOfRound) {
             this.noTimer = false;
         }
-
         this.passedActionPhase = false;
     }
 
@@ -865,7 +855,7 @@ class Player extends GameObject {
     /**
      * Exhaust the specified number of resources
      */
-    // TODO: Create an ExhaustOrReadyResourcesSystem
+    // TODO: Create an ExhaustResourcesSystem
     exhaustResources(count, priorityResources = []) {
         const readyPriorityResources = priorityResources.filter((resource) => !resource.exhausted);
         const regularResourcesToReady = count - this.readyResourcesInList(readyPriorityResources, count);

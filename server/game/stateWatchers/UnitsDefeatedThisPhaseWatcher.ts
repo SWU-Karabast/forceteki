@@ -5,8 +5,7 @@ import Player from '../core/Player';
 import { UnitCard } from '../core/card/CardTypes';
 import { Card } from '../core/card/Card';
 
-// TODO: add a "defeatedBy: Player" field here. will require changing the DefeatSystem
-// so that it records the ability that caused the unit defeat.
+// TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
     unit: UnitCard;
     controlledBy: Player;
