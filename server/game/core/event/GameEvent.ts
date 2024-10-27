@@ -3,6 +3,7 @@ import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 
 export class GameEvent {
+    public readonly isMetaEvent: boolean;
     public cancelled = false;
     public resolved = false;
     public context = null;
@@ -22,6 +23,14 @@ export class GameEvent {
         params: any,
         private handler?: (event: GameEvent) => void
     ) {
+        if (EnumHelpers.isEnumValue(name, EventName)) {
+            this.isMetaEvent = false;
+        } else if (EnumHelpers.isEnumValue(name, MetaEventName)) {
+            this.isMetaEvent = true;
+        } else {
+            Contract.fail(`Unknown event name: ${name}`);
+        }
+
         for (const key in params) {
             if (key in params) {
                 this[key] = params[key];
@@ -56,7 +65,7 @@ export class GameEvent {
     }
 
     public checkCondition() {
-        if (this.cancelled || this.resolved || this.name === MetaEventName.Unnamed) {
+        if (this.cancelled || this.resolved || this.isMetaEvent) {
             return;
         }
         if (!this.condition(this)) {

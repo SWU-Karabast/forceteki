@@ -15,7 +15,7 @@ export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][
     return result;
 }
 
-// return true if the passed value is a member of the given enum type
+// return true if the passed value is a member of the given enum type (case-sensitive)
 export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
