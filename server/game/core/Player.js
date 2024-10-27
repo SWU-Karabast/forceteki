@@ -1162,8 +1162,8 @@ class Player extends GameObject {
             // timerSettings: this.timerSettings,
             user: safeUser
         };
-        
-        //Should we consolidate card piles that use getSummaryForCardList?
+
+        // Should we consolidate card piles that use getSummaryForCardList?
         if (this.additionalPiles && Object.keys(this.additionalPiles)) {
             Object.keys(this.additionalPiles).forEach((key) => {
                 if (this.additionalPiles[key].cards.size() > 0) {
