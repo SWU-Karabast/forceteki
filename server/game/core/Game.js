@@ -1267,7 +1267,6 @@ class Game extends EventEmitter {
     getState(notInactivePlayerName) {
         let activePlayer = this.playersAndSpectators[notInactivePlayerName] || new AnonymousSpectator();
         let playerState = {};
-        let conflictState = {};
         let { blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner } = this.owner;
         if (this.started) {
             for (const player of this.getPlayers()) {
@@ -1280,7 +1279,6 @@ class Game extends EventEmitter {
                 name: this.name,
                 owner: simplifiedOwner,
                 players: playerState,
-                conflict: conflictState,
                 phase: this.currentPhase,
                 messages: this.gameChat.messages,
                 spectators: this.getSpectators().map((spectator) => {

@@ -730,6 +730,12 @@ export class Card extends OngoingEffectSource {
     //     return clone;
     // }
 
+
+    // TODO: Clean this up and review rules for visibility. We can probably reduce this down to arity 1
+    /*
+    * This is the infomation for each card that is sent to the client. 
+    */
+
     public getSummary(activePlayer, hideWhenFaceup) {
         const isActivePlayer = activePlayer === this.controller;
         const selectionState = activePlayer.getCardSelectionState(this);

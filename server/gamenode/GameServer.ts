@@ -54,6 +54,7 @@ export class GameServer {
 
         this.io.on('connection', (socket) => this.onConnection(socket));
 
+        //TODO: Once we have lobbies this will be called from there. 
         this.onStartGame();
     }
 
@@ -85,6 +86,7 @@ export class GameServer {
         };
     }
 
+    //TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {
         logger.error(e);
 
@@ -170,18 +172,19 @@ export class GameServer {
         //     .catch(() => {});
     }
 
+    //TODO: Once we have lobbies this will take in game details. Not sure if we end up doing that through L5R's PendingGame or not.
     public onStartGame(): void {
         const game = new Game(defaultGameSettings, { router: this, shortCardData: this.shortCardData });
         this.games.set(defaultGameSettings.id, game);
 
-        game.selectDeck('Order66', defaultGameSettings.players[0].deck);
-        game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
-
+        
         game.started = true;
         // for (const player of Object.values<Player>(pendingGame.players)) {
         //     game.selectDeck(player.name, player.deck);
         // }
-
+        game.selectDeck('Order66', defaultGameSettings.players[0].deck);
+        game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
+            
         game.initialise();
     }
 
