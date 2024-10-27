@@ -358,15 +358,16 @@ export class Card extends OngoingEffectSource {
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
     private getKeywords() {
-        let keywords = [...this.printedKeywords];
+        const keywords = [...this.printedKeywords];
 
-        // TODO: this is currently wrong, lost keywords should be able to be re-added by later effects
         for (const gainedKeyword of this.getOngoingEffectValues(EffectName.GainKeyword)) {
             keywords.push(gainedKeyword);
         }
-        for (const lostKeyword of this.getOngoingEffectValues(EffectName.LoseKeyword)) {
-            keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
-        }
+
+        // TODO: lost keywords should be able to be re-added by later effects
+        // for (const lostKeyword of this.getOngoingEffectValues(EffectName.LoseKeyword)) {
+        //     keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
+        // }
 
         return keywords;
     }
