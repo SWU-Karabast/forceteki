@@ -17,6 +17,9 @@ export interface IGameSystemProperties {
     optional?: boolean;
     parentSystem?: GameSystem;
     isCost?: boolean;
+
+    /** If this system is for a contingent event, provide the source event it is contingent on */
+    contingentSourceEvent?: any;
 }
 
 // TODO: see which base classes can be made abstract
@@ -255,7 +258,10 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     }
 
     protected addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties: any = {}): void {
+        const { contingentSourceEvent } = this.generatePropertiesFromContext(context, additionalProperties);
+
         event.context = context;
+        event.contingentSourceEvent = contingentSourceEvent;
     }
 
     /**
