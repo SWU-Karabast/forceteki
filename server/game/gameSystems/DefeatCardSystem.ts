@@ -79,13 +79,13 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
                 eventDefeatSource.type === DamageSourceType.Attack &&
                 eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
         } else {
-            eventDefeatSource = this.buildDefeatSourceForType(defeatSource, card, context);
+            eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
         }
 
         event.defeatSource = defeatSource;
     }
 
-    protected buildDefeatSourceForType(defeatSourceType: DefeatSourceType, card: Card, context: TContext): IDefeatSource | null {
+    protected buildDefeatSourceForType(defeatSourceType: DefeatSourceType, event: any, context: TContext): IDefeatSource | null {
         Contract.assertEqual(defeatSourceType, DefeatSourceType.Ability);
 
         // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
@@ -93,7 +93,8 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             type: DamageSourceType.Ability,
             player: context.player,
             ability: context.ability,
-            card: context.source
+            card: context.source,
+            event
         };
     }
 
