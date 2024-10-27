@@ -33,9 +33,6 @@ npm run get-cards
 # rm -r build/  # needed if files are added / deleted / renamed between builds
 npm run build
 
-# start Gamenode server
-node ./build/server/gamenode
-
 # run code linter (recommend configuring this automatically with Visual Studio Code)
 npm run lint
 npm run lint-verbose
