@@ -9,7 +9,7 @@ import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';
 import { CardWithExhaustProperty } from '../../card/CardTypes';
 import { GameEvent } from '../../event/GameEvent';
 import * as GameSystemLibrary from '../../../gameSystems/GameSystemLibrary';
-import {DrawSystem} from "../../../gameSystems/DrawSystem";
+import { DrawSystem } from '../../../gameSystems/DrawSystem';
 
 export class RegroupPhase extends Phase {
     public constructor(game: Game) {
@@ -25,7 +25,6 @@ export class RegroupPhase extends Phase {
     private drawTwo() {
         for (const player of this.game.getPlayers()) {
             // create a single event for drawing cards step
-            //player.drawCardsToHand(2);
             new DrawSystem({ amount: 2 }).resolve(player, this.game.getFrameworkContext());
         }
     }
