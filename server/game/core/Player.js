@@ -691,7 +691,6 @@ class Player extends GameObject {
         if (this.resetTimerAtEndOfRound) {
             this.noTimer = false;
         }
-
         this.passedActionPhase = false;
     }
 
