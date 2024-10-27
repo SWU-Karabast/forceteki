@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { GameEvent } from '../core/event/GameEvent';
-import { Location } from '../core/Constants';
+import { EventName, Location, MetaEventName } from '../core/Constants';
 import { LookAtSystem } from './LookAtSystem';
 import { MoveCardSystem } from './MoveCardSystem';
 
@@ -12,6 +12,7 @@ export interface ILookMoveDeckCardsTopOrBottomProperties extends ICardTargetSyst
 
 export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ILookMoveDeckCardsTopOrBottomProperties> {
     public override readonly name = 'lookMoveDeckCardsTopOrBottomSystem';
+    protected override readonly eventName = EventName.OnLookMoveDeckCardsTopOrBottom;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }

@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { CardTypeFilter, EffectName, Location, LocationFilter, RelativePlayer, TargetMode } from '../core/Constants';
+import { CardTypeFilter, EffectName, EventName, Location, LocationFilter, MetaEventName, RelativePlayer, TargetMode } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -36,6 +36,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
  * Functions the same as a targetResolver and used in situations where one can't be created (e.g., costs).
  */
 export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ISelectCardProperties<TContext>> {
+    protected override readonly eventName: MetaEventName.SelectCard;
     protected override readonly defaultProperties: ISelectCardProperties<TContext> = {
         cardCondition: () => true,
         innerSystem: null,

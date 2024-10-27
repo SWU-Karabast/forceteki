@@ -2,6 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent';
+import { MetaEventName } from '../core/Constants';
 
 export interface IExecuteHandlerSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     handler: (context: TContext) => void;
@@ -13,6 +14,7 @@ export interface IExecuteHandlerSystemProperties<TContext extends AbilityContext
  * @override This was copied from L5R but has not been tested yet
  */
 export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IExecuteHandlerSystemProperties<TContext>> {
+    protected override readonly eventName = MetaEventName.ExecuteHandler;
     protected override readonly defaultProperties: IExecuteHandlerSystemProperties = {
         handler: () => true,
         hasTargetsChosenByInitiatingPlayer: false

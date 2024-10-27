@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import { CardType, EventName, Stage } from '../Constants';
+import { CardType, EventName, MetaEventName, Stage } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type Player from '../Player';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
@@ -34,7 +34,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
     protected readonly propertyFactory?: (context?: TContext) => TProperties;
     protected readonly properties?: TProperties;
-    protected readonly eventName: EventName = EventName.Unnamed;
+    protected abstract readonly eventName: EventName | MetaEventName; // = MetaEventName.Unnamed;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
     protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
 
@@ -263,7 +263,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     protected createEvent(target: any, context: TContext, additionalProperties): GameEvent {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
-        const event = new GameEvent(EventName.Unnamed, { cannotBeCancelled });
+        const event = new GameEvent(this.eventName, { cannotBeCancelled });
         event.checkFullyResolved = (eventAtResolution) =>
             this.isEventFullyResolved(eventAtResolution, target, context, additionalProperties);
         return event;
@@ -274,7 +274,6 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * systems during event generation.
      */
     protected updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: any = {}): void {
-        event.name = this.eventName;
         this.addPropertiesToEvent(event, target, context, additionalProperties);
         event.replaceHandler((event) => this.eventHandler(event, additionalProperties));
         event.condition = () => this.checkEventCondition(event, additionalProperties);

@@ -1,7 +1,6 @@
-import type { AbilityContext } from '../ability/AbilityContext';
-import { EventName } from '../Constants';
-import Player from '../Player';
+import { EventName, MetaEventName } from '../Constants';
 import * as Contract from '../utils/Contract';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 export class GameEvent {
     public cancelled = false;
@@ -57,7 +56,7 @@ export class GameEvent {
     }
 
     public checkCondition() {
-        if (this.cancelled || this.resolved || this.name === EventName.Unnamed) {
+        if (this.cancelled || this.resolved || this.name === MetaEventName.Unnamed) {
             return;
         }
         if (!this.condition(this)) {

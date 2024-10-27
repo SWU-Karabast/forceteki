@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ready } from './GameSystemLibrary';
@@ -17,6 +17,7 @@ export interface IResourceCardProperties extends ICardTargetSystemProperties {
 export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IResourceCardProperties> {
     public override readonly name = 'resource';
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
+    protected override readonly eventName = EventName.OnCardResourced;
 
     protected override defaultProperties: IResourceCardProperties = {
         // TODO: remove completely if faceup logic is not needed
