@@ -37,7 +37,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
     protected readonly propertyFactory?: (context?: TContext) => TProperties;
     protected readonly properties?: TProperties;
-    protected abstract readonly eventName: EventName | MetaEventName; // = MetaEventName.Unnamed;
+    protected abstract readonly eventName: EventName | MetaEventName;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
     protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
 
