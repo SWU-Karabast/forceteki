@@ -6,6 +6,7 @@ import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
+import * as Contract from '../utils/Contract';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -117,6 +118,24 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 }
             }
         }
+    }
+
+    public override generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
+        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        let nonArrayTarget: any;
+        if (Array.isArray(target)) {
+            // need to use queueGenerateEventGameSteps for multiple-target scenarios
+            Contract.assertTrue(target.length === 1, `CardTargetSystem must have 'target' property with exactly 1 target, instead found ${target.length}`);
+            nonArrayTarget = target[0];
+        } else {
+            Contract.assertNotNullLike(target, 'CardTargetSystem must have non-null \'target\' propery');
+            nonArrayTarget = target;
+        }
+
+        const event = this.createEvent(nonArrayTarget, context, additionalProperties);
+        this.updateEvent(event, nonArrayTarget, context, additionalProperties);
+        return event;
     }
 
     public override checkEventCondition(event: any, additionalProperties = {}): boolean {
