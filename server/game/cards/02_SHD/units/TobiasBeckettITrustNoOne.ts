@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class TobiasBeckettITrustNoOne extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,8 +16,9 @@ export default class TobiasBeckettITrustNoOne extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) => event.card.controller === context.source.controller && !event.card.isUnit(),
             },
+            optional: true,
+            limit: AbilityLimit.fixed(1),
             targetResolver: {
-                optional: true,
                 cardCondition: (card, context) => card.isUnit() && card.cost <= context.event.card.cost,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
