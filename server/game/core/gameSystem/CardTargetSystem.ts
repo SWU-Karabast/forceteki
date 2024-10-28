@@ -123,6 +123,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     public override generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
+        Contract.assertNotNullLike(target, 'Attempting to generate card target event with no provided target');
+
         let nonArrayTarget: any;
         if (Array.isArray(target)) {
             // need to use queueGenerateEventGameSteps for multiple-target scenarios

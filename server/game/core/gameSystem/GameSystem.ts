@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../ability/AbilityContext';
+import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import { CardType, EventName, MetaEventName, Stage } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
@@ -7,6 +7,7 @@ import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type Game from '../Game';
 import * as Helpers from '../utils/Helpers';
 import { TriggerHandlingMode } from '../event/EventWindow';
+import * as Contract from '../utils/Contract';
 
 type PlayerOrCard = Player | Card;
 
@@ -107,6 +108,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @returns An object of the `GameSystemProperties` template type
      */
     public generatePropertiesFromContext(context: TContext, additionalProperties: any = {}): TProperties {
+        this.validateContext(context);
+
         const properties = Object.assign(
             { target: this.getDefaultTargets(context) },
             this.defaultProperties,
@@ -321,10 +324,16 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @returns The default target(s) of this {@link GameSystem}
      */
     private targets(context: TContext, additionalProperties: any = {}) {
+        this.validateContext(context);
+
         return Helpers.asArray(this.generatePropertiesFromContext(context, additionalProperties).target);
     }
 
     public toString() {
         return `'GameSystem: ${this.name}'`;
+    }
+
+    private validateContext(context: TContext) {
+        Contract.assertTrue(context instanceof AbilityContext, `context must be an AbilityContext, instead found ${context}`);
     }
 }

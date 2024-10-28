@@ -110,10 +110,11 @@ export class AttackFlow extends BaseStepWithPipeline {
                 const overwhelmSystem = new DamageSystem({
                     type: DamageType.Overwhelm,
                     contingentSourceEvent: attackerDamageEvent,
-                    sourceAttack: this.attack
+                    sourceAttack: this.attack,
+                    target: event.card.controller.base
                 });
 
-                return [overwhelmSystem.generateEvent(event.card.controller.base, this.context)];
+                return [overwhelmSystem.generateEvent(this.context)];
             });
         }
 
