@@ -1,6 +1,6 @@
 describe('Zuckuss, Bounty Hunter for Hire', function() {
     integration(function(contextRef) {
-        describe('Zuckuss\'s triggered ability', function() {
+        describe('Zuckuss\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -36,7 +36,7 @@ describe('Zuckuss, Bounty Hunter for Hire', function() {
             });
         });
 
-        describe('Zuckuss\'s triggered ability', function() {
+        describe('Zuckuss\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

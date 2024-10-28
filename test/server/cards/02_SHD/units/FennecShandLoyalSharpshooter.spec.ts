@@ -1,6 +1,6 @@
 describe('Fennec Shand, Loyal Sharpshooter', function () {
     integration(function (contextRef) {
-        describe('Fennec Shand\'s triggered ability', function () {
+        describe('Fennec Shand\'s ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

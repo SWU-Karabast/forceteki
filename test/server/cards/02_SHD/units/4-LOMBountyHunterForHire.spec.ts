@@ -1,6 +1,6 @@
 describe('4-LOM, Bounty Hunter for Hire', function () {
     integration(function (contextRef) {
-        describe('4-LOM\'s triggered ability', function () {
+        describe('4-LOM\'s ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -36,7 +36,7 @@ describe('4-LOM, Bounty Hunter for Hire', function () {
             });
         });
 
-        describe('4-LOM\'s triggered ability', function () {
+        describe('4-LOM\'s ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
