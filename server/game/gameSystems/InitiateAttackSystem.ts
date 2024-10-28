@@ -67,7 +67,6 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
           attackAbility.hasSomeLegalTarget(newContext);
     }
 
-    // TODO THIS PR: set this as "printedAbility: false"
     /**
      * Generate an attack ability for the specified card.
      * Uses the passed properties but strips out the `target` property to avoid overriding it in the attack.

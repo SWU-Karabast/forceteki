@@ -24,7 +24,6 @@ describe('Basic attack', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toHavePrompt('Choose a target for attack');
 
-                // TODO: test helper for managing attacks
                 // can target opponent's ground units and base but not space units
                 expect(context.player1).toBeAbleToSelectExactly([context.frontierAtrt, context.enfysNest, context.p2Base]);
             });
@@ -95,7 +94,7 @@ describe('Basic attack', function() {
                 // we still expect this since it should've been done before the attack
                 expect(context.wampa.exhausted).toBe(true);
 
-                expect(context.p2Base.damage).toBe(32);
+                expect(context.p2Base.damage).toBe(30);
                 expect(context.player1).toHavePrompt('player1 has won the game!');
                 expect(context.player2).toHavePrompt('player1 has won the game!');
                 expect(context.player1).toBeActivePlayer();

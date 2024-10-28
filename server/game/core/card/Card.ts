@@ -65,6 +65,11 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
+    /** @deprecated use title instead**/
+    public override get name() {
+        return super.name;
+    }
+
     public get facedown(): boolean {
         return this._facedown;
     }
@@ -353,15 +358,16 @@ export class Card extends OngoingEffectSource {
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
     private getKeywords() {
-        let keywords = [...this.printedKeywords];
+        const keywords = [...this.printedKeywords];
 
-        // TODO: this is currently wrong, lost keywords should be able to be re-added by later effects
         for (const gainedKeyword of this.getOngoingEffectValues(EffectName.GainKeyword)) {
             keywords.push(gainedKeyword);
         }
-        for (const lostKeyword of this.getOngoingEffectValues(EffectName.LoseKeyword)) {
-            keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
-        }
+
+        // TODO: lost keywords should be able to be re-added by later effects
+        // for (const lostKeyword of this.getOngoingEffectValues(EffectName.LoseKeyword)) {
+        //     keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
+        // }
 
         return keywords;
     }
@@ -684,17 +690,6 @@ export class Card extends OngoingEffectSource {
         //     );
         // }
     }
-
-    // TODO: is this actually helpful?
-    // isInPlay(): boolean {
-    //     if (this.isFacedown()) {
-    //         return false;
-    //     }
-    //     if ([CardType.Holding, CardType.Province, CardType.Stronghold].includes(this.type)) {
-    //         return this.isInProvince();
-    //     }
-    //     return this.location === Location.PlayArea;
-    // }
 
     // TODO CAPTURE: will probably need to leverage or modify the below "child card" methods (see basecard.ts in L5R for reference)
     // originally these were for managing province cards

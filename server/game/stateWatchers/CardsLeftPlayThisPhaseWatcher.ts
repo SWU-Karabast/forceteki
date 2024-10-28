@@ -1,5 +1,5 @@
+import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 import { Card } from '../core/card/Card';
-import { InPlayCard } from '../core/card/CardTypes';
 import { StateWatcherName } from '../core/Constants';
 import Player from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';

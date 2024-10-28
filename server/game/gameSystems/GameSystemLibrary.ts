@@ -7,7 +7,7 @@ import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLas
 import { CardPhaseLastingEffectSystem, ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
-import { DamageSystem, IDamageProperties } from './DamageSystem';
+import { DamageSystem, IDamageProperties, IDamagePropertiesBase } from './DamageSystem';
 import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
 import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 import { DistributeDamageSystem, IDistributeDamageSystemProperties } from './DistributeDamageSystem';
@@ -68,6 +68,7 @@ import { SimultaneousGameSystem } from './SimultaneousSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { IPlayerLastingEffectProperties, PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
 import { IPlayerPhaseLastingEffectProperties, PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
+import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoverDeckCardsTopOrBottomSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -96,7 +97,7 @@ export function cardLastingEffect<TContext extends AbilityContext = AbilityConte
 //     return new CreateTokenAction(propertyFactory);
 // }
 export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDamageProperties, TContext>) {
-    return new DamageSystem<TContext>(propertyFactory);
+    return new DamageSystem<TContext, IDamageProperties>(propertyFactory);
 }
 export function distributeDamageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeDamageSystemProperties, TContext>) {
     return new DistributeDamageSystem<TContext>(propertyFactory);
@@ -138,6 +139,9 @@ export function lookAt<TContext extends AbilityContext = AbilityContext>(propert
     return new LookAtSystem<TContext>(propertyFactory);
 }
 
+export function LookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>): CardTargetSystem<TContext> {
+    return new LookMoveDeckCardsTopOrBottomSystem<TContext>(propertyFactory);
+}
 /**
  * default switch = false
  * default shuffle = false

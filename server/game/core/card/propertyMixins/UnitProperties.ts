@@ -20,8 +20,9 @@ import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/Saboteu
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import type Game from '../../Game';
 import { GameEvent } from '../../event/GameEvent';
-import { IDamageOrDefeatSource, INonFrameworkDamageOrDefeatSource } from '../../../IDamageOrDefeatSource';
+import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
+import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -63,14 +64,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
-
-        /** If true, then this unit has taken sufficient damage to be defeated but not yet been removed from the field */
-        private _pendingDefeat? = null;
-
-        public get pendingDefeat() {
-            this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
-            return this._pendingDefeat;
-        }
 
         public get upgrades(): UpgradeCard[] {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
@@ -131,7 +124,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         protected override setDamageEnabled(enabledStatus: boolean): void {
             super.setDamageEnabled(enabledStatus);
-            this._pendingDefeat = enabledStatus ? false : null;
         }
 
         // ***************************************** ATTACK HELPERS *****************************************
@@ -156,10 +148,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             let triggeredAbilities = super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
-            if (this._attackKeywordAbilities !== null || this.isBlank()) { // TODO: Why is this isBlank check even here?
+            if (this._attackKeywordAbilities !== null) {
                 triggeredAbilities = triggeredAbilities.concat(this._attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
             }
-            if (this._whenPlayedKeywordAbilities !== null || this.isBlank()) {
+            if (this._whenPlayedKeywordAbilities !== null) {
                 // TODO: does it even make sense for there to be non-triggered when played keyword abilities? I think not. Maybe Smuggle?
                 triggeredAbilities = triggeredAbilities.concat(this._whenPlayedKeywordAbilities as TriggeredAbility[]);
             }
@@ -301,10 +293,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** STAT HELPERS *****************************************
-        public override addDamage(amount: number, source: INonFrameworkDamageOrDefeatSource): void {
-            super.addDamage(amount, source);
+        public override addDamage(amount: number, source: IDamageSource): number {
+            const damageAdded = super.addDamage(amount, source);
 
             this.checkDefeated(source);
+
+            return damageAdded;
         }
 
         // TODO: FFG has yet to release detailed rules about how effects are used to determine which player defeated a unit,
@@ -313,13 +307,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         /** Checks if the unit has been defeated due to an ongoing effect such as hp reduction */
         public checkDefeatedByOngoingEffect() {
-            this.checkDefeated(null);
+            this.checkDefeated(DefeatSourceType.FrameworkEffect);
         }
 
-        private checkDefeated(source?: IDamageOrDefeatSource) {
+        private checkDefeated(source: IDamageSource | DefeatSourceType.FrameworkEffect) {
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 // add defeat event to window
-                this.game.addSubwindowEvents(new DefeatCardSystem({ target: this, damageSource: source }).generateEvent(this, this.game.getFrameworkContext()));
+                this.game.addSubwindowEvents(
+                    new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
+                        .generateEvent(this, this.game.getFrameworkContext())
+                );
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
                 this._pendingDefeat = true;
