@@ -169,6 +169,10 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         if (properties.innerSystem.isOptional(context)) {
             return true;
         }
-        return CardTargetResolver.allZonesAreHidden(properties.locationFilter, typeof properties.controller === 'function' ? properties.controller(context) : properties.controller);
+        return CardTargetResolver.allZonesAreHidden(properties.locationFilter,
+            typeof properties.controller === 'function'
+                ? properties.controller(context)
+                : properties.controller) &&
+                properties.selector.hasAnyCardFilter;
     }
 }
