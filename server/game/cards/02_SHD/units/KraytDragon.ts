@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Location, RelativePlayer } from '../../../core/Constants';
+import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class KraytDragon extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,6 +17,7 @@ export default class KraytDragon extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) => event.card.controller === context.source.controller.opponent,
             },
+            limit: AbilityLimit.unlimited(),
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 locationFilter: [Location.GroundArena, Location.Base],
