@@ -80,7 +80,7 @@ export class PlayableOrDeployableCard extends Card {
         const { title, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
-            cardTypeFilter: CardType.Event,
+            cardTypeFilter: this.printedType,
             match: (card, adjusterSource) => card === adjusterSource,
             costAdjustType: CostAdjustType.Decrease
         });
@@ -102,7 +102,7 @@ export class PlayableOrDeployableCard extends Card {
         const { title, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
-            cardTypeFilter: CardType.Event,
+            cardTypeFilter: this.printedType,
             match: (card, adjusterSource) => card === adjusterSource,
             costAdjustType: CostAdjustType.IgnoreAllAspects
         });
@@ -124,7 +124,7 @@ export class PlayableOrDeployableCard extends Card {
         const { title, ignoredAspects, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
-            cardTypeFilter: CardType.BasicUnit,
+            cardTypeFilter: this.printedType,
             match: (card, adjusterSource) => card === adjusterSource,
             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
             ignoredAspects: ignoredAspects
