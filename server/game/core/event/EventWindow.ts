@@ -19,15 +19,6 @@ export enum TriggerHandlingMode {
 
     /** This event window is not a type that should trigger abilities, so any triggers that happen are an error */
     CannotHaveTriggers = 'cannotHaveTriggers',
-
-    /**
-     * Adjusts behavior depending on the selected events.
-     *
-     * - If all events are meta-events that can't be triggered on, sets the window mode to be `CannotHaveTriggers` if that is the parent window's mode
-     * and otherwise sets the mode to `PassesTriggersToParentWindow`.
-     * - If there are any triggerable events, sets the window mode to `ResolvesTriggers`.
-     */
-    Auto = 'auto'
 }
 
 interface IThenAbilityComponents {
@@ -40,7 +31,6 @@ export class EventWindow extends BaseStepWithPipeline {
     protected _events: any[] = [];
     protected _triggeredAbilityWindow?: TriggeredAbilityWindow = null;
 
-    private hasOnlyMetaEvents = true;
     private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
     private subwindowEvents: any[] = [];
@@ -79,7 +69,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
         events.forEach((event) => {
             if (!event.cancelled) {
-                this.addEventInternal(event, true);
+                this.addEvent(event);
             }
         });
 
@@ -102,25 +92,7 @@ export class EventWindow extends BaseStepWithPipeline {
         ]);
     }
 
-    /** Add a new event to the window after it has begun resolving */
     public addEvent(event) {
-        this.addEventInternal(event, false);
-    }
-
-    /**
-     * Adds a new event to the window and enforces the rules about mixing meta and regular events.
-     * Specifically, once a window has been created, if it has only meta events and is set to `Auto` trigger handling mode,
-     * we need to be careful not to add events into it that would change what `Auto` would have chosen.
-     */
-    private addEventInternal(event, canChangeMetaStatus: boolean) {
-        if (canChangeMetaStatus) {
-            this.hasOnlyMetaEvents = this.hasOnlyMetaEvents && event.isMetaEvent;
-        } else {
-            if (event.isMetaEvent && this.hasOnlyMetaEvents) {
-                Contract.fail(`Attempting to add a non-meta event ${event.name} to an event window that only contains meta events after window creation`);
-            }
-        }
-
         event.setWindow(this);
         this._events.push(event);
         return event;
@@ -159,20 +131,6 @@ export class EventWindow extends BaseStepWithPipeline {
         if (this._triggerHandlingMode === TriggerHandlingMode.PassesTriggersToParentWindow) {
             Contract.assertNotNullLike(this.parentWindow, `Attempting to create event window ${this} as a child window but no parent window exists`);
             Contract.assertFalse(this.parentWindow.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers, `${this} is attempting pass triggers to ${this.parentWindow} which cannot have ability triggers`);
-        }
-        Contract.assertFalse(
-            this.triggerHandlingMode === TriggerHandlingMode.Auto && this.parentWindow == null,
-            `Attempting to create event window ${this} with trigger handling mode Auto but no parent window exists`
-        );
-
-        if (this.triggerHandlingMode === TriggerHandlingMode.Auto) {
-            if (this.hasOnlyMetaEvents) {
-                this._triggerHandlingMode = this.parentWindow.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers
-                    ? TriggerHandlingMode.CannotHaveTriggers
-                    : TriggerHandlingMode.PassesTriggersToParentWindow;
-            } else {
-                this._triggerHandlingMode = TriggerHandlingMode.ResolvesTriggers;
-            }
         }
 
         switch (this.triggerHandlingMode) {
