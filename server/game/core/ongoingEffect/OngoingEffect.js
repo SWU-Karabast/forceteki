@@ -95,7 +95,7 @@ class OngoingEffect {
         }
 
         // disable ongoing effects if the card is queued up to be defeated (e.g. due to combat or unique rule)
-        if ((this.source.isUnit() || this.source.isUpgrade()) && this.source.pendingDefeat) {
+        if (this.sourceLocationFilter !== WildcardLocation.Any && (this.source.isUnit() || this.source.isUpgrade()) && this.source.pendingDefeat) {
             return false;
         }
 

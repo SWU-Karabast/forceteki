@@ -65,13 +65,13 @@ export class CostAdjuster {
         this.amount = properties.amount || 1;
         // TODO: Implement this further for Rey/Kylo
         if (this.costAdjustType === CostAdjustType.IgnoreSpecificAspects) {
-            Contract.assertNotNullLike(this.ignoredAspects, 'Ignored Aspect list is required for IgnoreSpecificAspects');
-            if (Array.isArray(this.ignoredAspects)) {
-                Contract.assertTrue(this.ignoredAspects.length > 0, 'Ignored Aspect array is empty');
+            Contract.assertNotNullLike(properties.ignoredAspects, 'Ignored Aspect list is required for IgnoreSpecificAspects');
+            if (Array.isArray(properties.ignoredAspects)) {
+                Contract.assertTrue(properties.ignoredAspects.length > 0, 'Ignored Aspect array is empty');
             }
             this.ignoredAspects = properties.ignoredAspects;
         } else {
-            Contract.assertIsNullLike(this.ignoredAspects, `ignoredAspects not allowed for CostAdjustType ${this.costAdjustType}`);
+            Contract.assertIsNullLike(properties.ignoredAspects, `ignoredAspects not allowed for CostAdjustType ${this.costAdjustType}`);
         }
 
         this.match = properties.match;

@@ -82,7 +82,11 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
-        this.constantAbilities.push(this.createConstantAbility(properties));
+        const ability = this.createConstantAbility(properties);
+        if (ability.sourceLocationFilter === WildcardLocation.Any) {
+            ability.registeredEffects = this.addEffectToEngine(ability);
+        }
+        this.constantAbilities.push(ability);
     }
 
     protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): void {
