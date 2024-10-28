@@ -14,7 +14,8 @@ export class Attack extends GameObject {
     public constructor(
         game: Game,
         public attacker: UnitCard,
-        public target: CardWithDamageProperty
+        public target: CardWithDamageProperty,
+        public isAmbush: boolean = false
     ) {
         super(game, 'Attack');
     }
