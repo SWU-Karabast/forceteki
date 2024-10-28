@@ -20,6 +20,10 @@ function getAttributeNames(attributeList) {
         return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
     }
 
+    if (attributeList.data === null) {
+        return '';
+    }
+
     return attributeList.data.attributes.name.toLowerCase();
 }
 
@@ -31,7 +35,7 @@ function filterValues(card) {
     }
 
     // filtering out TWI for now since the cards don't have complete data
-    if (card.attributes.expansion.data.attributes.code === 'TWI' || card.attributes.expansion.data.attributes.code === 'C24') {
+    if (card.attributes.expansion.data.attributes.code === 'C24') {
         return null;
     }
 
