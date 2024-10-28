@@ -96,7 +96,8 @@ export class AttackFlow extends BaseStepWithPipeline {
             type: DamageType.Combat,
             amount: this.attack.getAttackerTotalPower(),
             sourceAttack: this.attack,
-        }).generateEvent(this.attack.target, this.context);
+            target: this.attack.target
+        }).generateEvent(this.context);
 
         if (this.attack.hasOverwhelm()) {
             attackerDamageEvent.setContingentEventsGenerator((event) => {
@@ -123,8 +124,9 @@ export class AttackFlow extends BaseStepWithPipeline {
         return AbilityHelper.immediateEffects.damage({
             type: DamageType.Combat,
             amount: this.attack.getTargetTotalPower(),
-            sourceAttack: this.attack
-        }).generateEvent(this.attack.attacker, this.context);
+            sourceAttack: this.attack,
+            target: this.attack.attacker
+        }).generateEvent(this.context);
     }
 
     private completeAttack() {

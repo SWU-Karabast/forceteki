@@ -35,7 +35,11 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     public moveEventToDiscard(context: PlayCardContext) {
-        const moveCardEvent = new MoveCardSystem({ destination: Location.Discard }).generateEvent(context.source, context);
+        const moveCardEvent = new MoveCardSystem({
+            target: context.source,
+            destination: Location.Discard
+        }).generateEvent(context);
+
         const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, {
             player: context.player,
             card: context.source,

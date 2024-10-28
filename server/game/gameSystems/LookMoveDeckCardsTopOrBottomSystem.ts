@@ -70,8 +70,9 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         // create a new card event
         const moveCardEvent = new MoveCardSystem({
             bottom: bottom,
-            destination: Location.Deck
-        }).generateEvent(card, context);
+            destination: Location.Deck,
+            target: card
+        }).generateEvent(context);
         events.push(moveCardEvent);
 
         // get rid of the card from cards

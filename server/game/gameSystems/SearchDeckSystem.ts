@@ -106,7 +106,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player = properties.player || context.player;
-        const event = this.generateEvent(player, context, additionalProperties) as any;
+        const event = this.generateRetargetedEvent(player, context, additionalProperties) as any;
         const deckLength = this.getDeck(player).length;
         const amount = event.amount === -1 ? deckLength : (event.amount > deckLength ? deckLength : event.amount);
         let cards = this.getDeck(player).slice(0, amount);

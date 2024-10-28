@@ -33,7 +33,7 @@ export class PlayUnitAction extends PlayCardAction {
         const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 
         const events = [
-            putIntoPlay({ controller: player }).generateEvent(context.source, context),
+            putIntoPlay({ target: context.source, controller: player }).generateEvent(context),
             cardPlayedEvent
         ];
 

@@ -175,7 +175,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
                     damageDealtBy = properties.sourceAttack.attacker;
                     break;
                 default:
-                    Contract.fail(`Combat damage being dealt to card ${card.internalName} but it is not involved in the attack`);
+                    Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
             }
         }
 

@@ -108,12 +108,12 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 }
                 context.game.queueSimpleStep(() => {
                     if (allCostsPaid) {
-                        events.push(this.generateEvent(card, context, additionalProperties));
+                        events.push(this.generateRetargetedEvent(card, context, additionalProperties));
                     }
                 }, 'push card target event if targeting cost paid');
             } else {
                 if (allCostsPaid) {
-                    events.push(this.generateEvent(card, context, additionalProperties));
+                    events.push(this.generateRetargetedEvent(card, context, additionalProperties));
                 }
             }
         }
@@ -164,8 +164,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             for (const upgrade of (event.card.upgrades ?? []) as UpgradeCard[]) {
                 if (upgrade.isInPlay()) {
                     const attachmentEvent = context.game.actions
-                        .defeat()
-                        .generateEvent(upgrade, context.game.getFrameworkContext());
+                        .defeat({ target: upgrade })
+                        .generateEvent(context.game.getFrameworkContext());
                     attachmentEvent.order = event.order - 1;
                     const previousCondition = attachmentEvent.condition;
                     attachmentEvent.condition = (attachmentEvent) =>
