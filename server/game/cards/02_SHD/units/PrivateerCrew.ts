@@ -14,7 +14,7 @@ export default class PrivateerCrew extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Give 3 experience tokens to this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.playType === PlayType.Smuggle,
+                condition: (context) => context.event.playType === PlayType.Smuggle,
                 onTrue: AbilityHelper.immediateEffects.giveExperience((context) => ({
                     amount: 3,
                     target: context.source
