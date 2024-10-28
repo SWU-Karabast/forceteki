@@ -806,6 +806,7 @@ class Game extends EventEmitter {
     claimInitiative(player) {
         this.initiativePlayer = player;
         this.isInitiativeClaimed = true;
+        player.passedActionPhase = true;
         this.createEventAndOpenWindow(EventName.OnClaimInitiative, { player }, true);
 
         // update game state for the sake of constant abilities that check initiative
