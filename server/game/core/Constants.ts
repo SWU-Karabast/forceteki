@@ -73,7 +73,6 @@ export enum EffectName {
     // "cannot" effects
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotAttackBase = 'cannotAttackBase',
-    CannotBeAttacked = 'cannotBeAttacked',
 }
 
 export enum Duration {
