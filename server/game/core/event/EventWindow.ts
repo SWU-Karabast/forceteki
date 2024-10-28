@@ -21,8 +21,11 @@ export enum TriggerHandlingMode {
     CannotHaveTriggers = 'cannotHaveTriggers',
 
     /**
-     * Adjusts behavior depending on the selected events. If all events are meta-events that can't be responded to, sets
-     * the window mode to be `PassesTriggersToParentWindow`. Otherwise it is `ResolvesTriggers`.
+     * Adjusts behavior depending on the selected events.
+     *
+     * - If all events are meta-events that can't be triggered on, sets the window mode to be `CannotHaveTriggers` if that is the parent window's mode
+     * and otherwise sets the mode to `PassesTriggersToParentWindow`.
+     * - If there are any triggerable events, sets the window mode to `ResolvesTriggers`.
      */
     Auto = 'auto'
 }
@@ -157,6 +160,10 @@ export class EventWindow extends BaseStepWithPipeline {
             Contract.assertNotNullLike(this.parentWindow, `Attempting to create event window ${this} as a child window but no parent window exists`);
             Contract.assertFalse(this.parentWindow.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers, `${this} is attempting pass triggers to ${this.parentWindow} which cannot have ability triggers`);
         }
+        Contract.assertFalse(
+            this.triggerHandlingMode === TriggerHandlingMode.Auto && this.parentWindow == null,
+            `Attempting to create event window ${this} with trigger handling mode Auto but no parent window exists`
+        );
 
         if (this.triggerHandlingMode === TriggerHandlingMode.Auto) {
             if (this.hasOnlyMetaEvents) {
