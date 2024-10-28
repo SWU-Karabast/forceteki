@@ -219,8 +219,7 @@ export class EventWindow extends BaseStepWithPipeline {
     protected executeHandlers() {
         const eventsToResolve = this._events.sort((event) => event.order);
 
-        // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        // TODO THIS PR: can this be removed now?
+        // we emit triggered abilities here to ensure that they get triggered in case e.g. an ability is blanked during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
             this._triggeredAbilityWindow.addTriggeringEvents(this._events);
             this._triggeredAbilityWindow.emitEvents();
