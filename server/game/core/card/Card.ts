@@ -65,6 +65,11 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
+    /** @deprecated use title instead**/
+    public override get name() {
+        return super.name;
+    }
+
     public get facedown(): boolean {
         return this._facedown;
     }
@@ -353,15 +358,16 @@ export class Card extends OngoingEffectSource {
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
     private getKeywords() {
-        let keywords = [...this.printedKeywords];
+        const keywords = [...this.printedKeywords];
 
-        // TODO: this is currently wrong, lost keywords should be able to be re-added by later effects
         for (const gainedKeyword of this.getOngoingEffectValues(EffectName.GainKeyword)) {
             keywords.push(gainedKeyword);
         }
-        for (const lostKeyword of this.getOngoingEffectValues(EffectName.LoseKeyword)) {
-            keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
-        }
+
+        // TODO: lost keywords should be able to be re-added by later effects
+        // for (const lostKeyword of this.getOngoingEffectValues(EffectName.LoseKeyword)) {
+        //     keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
+        // }
 
         return keywords;
     }
@@ -725,48 +731,49 @@ export class Card extends OngoingEffectSource {
     //     return clone;
     // }
 
-    // getSummary(activePlayer, hideWhenFaceup) {
-    //     let isActivePlayer = activePlayer === this.controller;
-    //     let selectionState = activePlayer.getCardSelectionState(this);
 
-    //     // This is my facedown card, but I'm not allowed to look at it
-    //     // OR This is not my card, and it's either facedown or hidden from me
-    //     if (
-    //         isActivePlayer
-    //             ? this.isFacedown() && this.hideWhenFacedown()
-    //             : this.isFacedown() || hideWhenFaceup || this.hasOngoingEffect(EffectName.HideWhenFaceUp)
-    //     ) {
-    //         let state = {
-    //             controller: this.controller.getShortSummary(),
-    //             menu: isActivePlayer ? this.getMenu() : undefined,
-    //             facedown: true,
-    //             inConflict: this.inConflict,
-    //             location: this.location,
-    //             uuid: isActivePlayer ? this.uuid : undefined
-    //         };
-    //         return Object.assign(state, selectionState);
-    //     }
+    // TODO: Clean this up and review rules for visibility. We can probably reduce this down to arity 1
+    /*
+    * This is the infomation for each card that is sent to the client.
+    */
 
-    //     let state = {
-    //         id: this.cardData.id,
-    //         controlled: this.owner !== this.controller,
-    //         inConflict: this.inConflict,
-    //         facedown: this.isFacedown(),
-    //         location: this.location,
-    //         menu: this.getMenu(),
-    //         name: this.cardData.name,
-    //         popupMenuText: this.popupMenuText,
-    //         showPopup: this.showPopup,
-    //         tokens: this.tokens,
-    //         types: this.types,
-    //         isDishonored: this.isDishonored,
-    //         isHonored: this.isHonored,
-    //         isTainted: !!this.isTainted,
-    //         uuid: this.uuid
-    //     };
+    public getSummary(activePlayer, hideWhenFaceup) {
+        const isActivePlayer = activePlayer === this.controller;
+        const selectionState = activePlayer.getCardSelectionState(this);
 
-    //     return Object.assign(state, selectionState);
-    // }
+        // This is my facedown card, but I'm not allowed to look at it
+        // OR This is not my card, and it's either facedown or hidden from me
+        if (
+            isActivePlayer
+                ? this.facedown
+                : this.facedown || hideWhenFaceup
+        ) {
+            const state = {
+                controller: this.controller.getShortSummary(),
+                // menu: isActivePlayer ? this.getMenu() : undefined,
+                facedown: true,
+                location: this.location,
+                uuid: isActivePlayer ? this.uuid : undefined
+            };
+            return Object.assign(state, selectionState);
+        }
+
+        const state = {
+            id: this.cardData.id,
+            controlled: this.owner !== this.controller,
+            // facedown: this.isFacedown(),
+            location: this.location,
+            // menu: this.getMenu(),
+            name: this.cardData.name,
+            // popupMenuText: this.popupMenuText,
+            // showPopup: this.showPopup,
+            // tokens: this.tokens,
+            // types: this.types,
+            uuid: this.uuid
+        };
+
+        return Object.assign(state, selectionState);
+    }
 
     public override getShortSummaryForControls(activePlayer: Player): any {
         if (!this.isHiddenForPlayer(activePlayer)) {

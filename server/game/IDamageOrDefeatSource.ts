@@ -28,12 +28,14 @@ export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
     attack: Attack;
     damageDealtBy: UnitCard;
     isOverwhelmDamage: boolean;
+    event: any;
 }
 
 export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
     type: DamageSourceType.Ability | DefeatSourceType.Ability;
     ability: PlayerOrCardAbility;
     card: Card;
+    event: any;
 }
 
 export interface IDefeatedByUniqueRule extends IDamageOrDefeatSourceBase {

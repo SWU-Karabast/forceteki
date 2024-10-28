@@ -40,12 +40,21 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
+        const corsOrigin = process.env.NODE_ENV === 'production'
+            ? 'https://tbd.com'
+            : 'http://localhost:3000';
+
         this.io = new socketio.Server(server, {
-            perMessageDeflate: false
+            perMessageDeflate: false,
+            cors: {
+                origin: corsOrigin,
+                methods: ['GET', 'POST']
+            }
         });
 
         this.io.on('connection', (socket) => this.onConnection(socket));
 
+        // TODO: Once we have lobbies this will be called from there.
         this.onStartGame();
     }
 
@@ -77,33 +86,34 @@ export class GameServer {
         };
     }
 
+    // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {
         logger.error(e);
 
-        // const gameState = game.getState();
+        const gameState = game.getState();
         const debugData: any = {};
 
-        // if (e.message.includes('Maximum call stack')) {
-        //     debugData.badSerializaton = detectBinary(gameState);
-        // } else {
-        //     debugData.game = gameState;
-        //     debugData.game.players = undefined;
+        if (e.message.includes('Maximum call stack')) {
+            // debugData.badSerializaton = detectBinary(gameState);
+        } else {
+            debugData.game = gameState;
+            debugData.game.players = undefined;
 
-        //     debugData.messages = game.messages;
-        //     debugData.game.messages = undefined;
+            debugData.messages = game.messages;
+            debugData.game.messages = undefined;
 
-        //     debugData.pipeline = game.pipeline.getDebugInfo();
-        //     debugData.effectEngine = game.effectEngine.getDebugInfo();
+            debugData.pipeline = game.pipeline.getDebugInfo();
+            // debugData.effectEngine = game.effectEngine.getDebugInfo();
 
-        //     for (const player of game.getPlayers()) {
-        //         debugData[player.name] = player.getState(player);
-        //     }
-        // }
+            for (const player of game.getPlayers()) {
+                debugData[player.name] = player.getState(player);
+            }
+        }
 
         if (game) {
-            // game.addMessage(
-            //     'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
-            // );
+            game.addMessage(
+                'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
+            );
         }
     }
 
@@ -131,7 +141,7 @@ export class GameServer {
     public sendGameState(game: Game): void {
         for (const player of Object.values<Player>(game.getPlayersAndSpectators())) {
             if (player.socket && !player.left && !player.disconnected) {
-                // player.socket.send('gamestate', game.getState(player.name));
+                player.socket.send('gamestate', game.getState(player.name));
             }
         }
     }
@@ -162,17 +172,18 @@ export class GameServer {
         //     .catch(() => {});
     }
 
+    // TODO: Once we have lobbies this will take in game details. Not sure if we end up doing that through L5R's PendingGame or not.
     public onStartGame(): void {
         const game = new Game(defaultGameSettings, { router: this, shortCardData: this.shortCardData });
         this.games.set(defaultGameSettings.id, game);
 
-        game.selectDeck('Order66', defaultGameSettings.players[0].deck);
-        game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
 
         game.started = true;
         // for (const player of Object.values<Player>(pendingGame.players)) {
         //     game.selectDeck(player.name, player.deck);
         // }
+        game.selectDeck('Order66', defaultGameSettings.players[0].deck);
+        game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
 
         game.initialise();
     }
@@ -235,9 +246,9 @@ export class GameServer {
     }
 
     public onConnection(ioSocket) {
-        const user = ioSocket.handshake.query.user;
+        const user = JSON.parse(ioSocket.handshake.query.user);
         if (user) {
-            ioSocket.request.user = { username: user };
+            ioSocket.request.user = user;
         }
         if (!ioSocket.request.user) {
             logger.info('socket connected with no user, disconnecting');
@@ -339,7 +350,6 @@ export class GameServer {
 
     public onGameMessage(socket, command, ...args) {
         const game = this.findGameForUser(socket.user.username);
-
         if (!game) {
             return;
         }

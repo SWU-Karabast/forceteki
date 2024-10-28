@@ -718,7 +718,6 @@ class Player extends GameObject {
         if (this.resetTimerAtEndOfRound) {
             this.noTimer = false;
         }
-
         this.passedActionPhase = false;
     }
 
@@ -1173,7 +1172,7 @@ class Player extends GameObject {
         let state = {
             cardPiles: {
                 // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
-                hand: this.getSummaryForHand(this.hand, activePlayer, true),
+                hand: this.getSummaryForHand(this.hand, activePlayer, false),
                 removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer)
             },
             disconnected: this.disconnected,
@@ -1191,6 +1190,7 @@ class Player extends GameObject {
             user: safeUser
         };
 
+        // Should we consolidate card piles that use getSummaryForCardList?
         if (this.additionalPiles && Object.keys(this.additionalPiles)) {
             Object.keys(this.additionalPiles).forEach((key) => {
                 if (this.additionalPiles[key].cards.size() > 0) {

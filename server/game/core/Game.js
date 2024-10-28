@@ -806,6 +806,7 @@ class Game extends EventEmitter {
     claimInitiative(player) {
         this.initiativePlayer = player;
         this.isInitiativeClaimed = true;
+        player.passedActionPhase = true;
         this.createEventAndOpenWindow(EventName.OnClaimInitiative, { player }, true);
 
         // update game state for the sake of constant abilities that check initiative
@@ -1263,38 +1264,36 @@ class Game extends EventEmitter {
     // /*
     //  * This information is sent to the client
     //  */
-    // getState(notInactivePlayerName) {
-    //     let activePlayer = this.playersAndSpectators[notInactivePlayerName] || new AnonymousSpectator();
-    //     let playerState = {};
-    //     let ringState = {};
-    //     let conflictState = {};
-    //     let { blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner } = this.owner;
-    // if (this.started) {
-    // for (const player of this.getPlayers()) {
-    //     playerState[player.name] = player.getState(activePlayer);
-    // }
+    getState(notInactivePlayerName) {
+        let activePlayer = this.playersAndSpectators[notInactivePlayerName] || new AnonymousSpectator();
+        let playerState = {};
+        let { blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner } = this.owner;
+        if (this.started) {
+            for (const player of this.getPlayers()) {
+                playerState[player.name] = player.getState(activePlayer);
+            }
 
-    // return {
-    //     id: this.id,
-    //     manualMode: this.manualMode,
-    //     name: this.name,
-    //     owner: simplifiedOwner,
-    //     players: playerState,
-    //     rings: ringState,
-    //     conflict: conflictState,
-    //     phase: this.currentPhase,
-    //     // messages: this.gameChat.messages,
-    //     spectators: this.getSpectators().map((spectator) => {
-    //         return {
-    //             id: spectator.id,
-    //             name: spectator.name
-    //         };
-    //     }),
-    //     started: this.started,
-    //     gameMode: this.gameMode,
-    //     winner: this.winner ? this.winner.name : undefined
-    // };
-    // }
+            return {
+                id: this.id,
+                manualMode: this.manualMode,
+                name: this.name,
+                owner: simplifiedOwner,
+                players: playerState,
+                phase: this.currentPhase,
+                messages: this.gameChat.messages,
+                spectators: this.getSpectators().map((spectator) => {
+                    return {
+                        id: spectator.id,
+                        name: spectator.name
+                    };
+                }),
+                started: this.started,
+                gameMode: this.gameMode,
+                // winner: this.winner ? this.winner.user.name : undefined
+            };
+        }
+        return {};
+    }
 
     // return this.getSummary(notInactivePlayerName);
     // }

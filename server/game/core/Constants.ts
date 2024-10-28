@@ -73,7 +73,6 @@ export enum EffectName {
     // "cannot" effects
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotAttackBase = 'cannotAttackBase',
-    CannotBeAttacked = 'cannotBeAttacked',
 }
 
 export enum Duration {
@@ -260,6 +259,7 @@ export enum Trait {
     Force = 'force',
     Fringe = 'fringe',
     Gambit = 'gambit',
+    Gungan = 'gungan',
     Hutt = 'hutt',
     Imperial = 'imperial',
     Innate = 'innate',
@@ -267,12 +267,15 @@ export enum Trait {
     Item = 'item',
     Jawa = 'jawa',
     Jedi = 'jedi',
+    Kaminoan = 'kaminoan',
     Law = 'law',
     Learned = 'learned',
     Lightsaber = 'lightsaber',
     Mandalorian = 'mandalorian',
     Modification = 'modification',
+    Naboo = 'naboo',
     NewRepublic = 'new republic',
+    Night = 'night',
     Official = 'official',
     Plan = 'plan',
     Rebel = 'rebel',
