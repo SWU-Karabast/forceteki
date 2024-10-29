@@ -51,6 +51,11 @@ describe('Mystic Reflection', function() {
                 context.player1.clickCard(context.greenSquadronAwing);
                 expect(context.greenSquadronAwing.getPower()).toBe(0);
                 expect(context.greenSquadronAwing.getHp()).toBe(3);
+
+                // on next action phase, effect should be reset
+                context.moveToNextActionPhase();
+                expect(context.greenSquadronAwing.getPower()).toBe(1);
+                expect(context.greenSquadronAwing.getHp()).toBe(3);
             });
         });
     });

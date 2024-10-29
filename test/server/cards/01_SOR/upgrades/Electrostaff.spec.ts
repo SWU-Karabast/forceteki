@@ -5,7 +5,7 @@ describe('Electrostaff', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'battlefield-marine', upgrades: ['electrostaff'] }]
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['electrostaff'] }, 'consular-security-force']
                     },
                     player2: {
                         groundArena: ['resourceful-pursuers', 'cargo-juggernaut']
@@ -28,6 +28,16 @@ describe('Electrostaff', function() {
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.damage).toBe(4);
                 expect(context.resourcefulPursuers.damage).toBe(5);
+
+                context.setDamage(context.battlefieldMarine, 0);
+                context.setDamage(context.cargoJuggernaut, 0);
+                context.player1.passAction();
+
+                // attack another unit with cargo juggernaut, nothing special should happen
+                context.player2.clickCard(context.cargoJuggernaut);
+                context.player2.clickCard(context.consularSecurityForce);
+                expect(context.cargoJuggernaut.damage).toBe(3);
+                expect(context.consularSecurityForce.damage).toBe(4);
             });
         });
     });

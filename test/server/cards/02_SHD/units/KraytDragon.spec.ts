@@ -11,7 +11,7 @@ describe('Krayt Dragon', function () {
                     player2: {
                         hand: ['superlaser-blast', 'privateer-crew', 'green-squadron-awing'],
                         groundArena: ['wampa'],
-                        resources: ['vigilant-pursuit-craft', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst']
+                        resources: ['hotshot-dl44-blaster', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst']
                     }
                 });
             });
@@ -43,11 +43,16 @@ describe('Krayt Dragon', function () {
                 // for smuggle, should take the printed cost
                 context.setDamage(context.p2Base, 0);
                 context.player1.passAction();
-                context.player2.clickCard(context.vigilantPursuitCraft);
+                context.player2.clickCard(context.hotshotDl44Blaster);
+                // resolve hotshot blaster first
+                context.player2.clickCard(context.wampa);
+                context.player2.clickPrompt('You');
+                context.player2.clickCard(context.p1Base);
+
+                // 1 damage on base (3 paid from smuggle but 1 for printed cost)
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa, context.privateerCrew]);
-                // 5 damage on base (7 paid from smuggle but 5 for printed cost)
                 context.player1.clickCard(context.p2Base);
-                expect(context.p2Base.damage).toBe(5);
+                expect(context.p2Base.damage).toBe(1);
 
                 context.setDamage(context.p2Base, 0);
                 // enemy kill everyone, krayt ability still activates

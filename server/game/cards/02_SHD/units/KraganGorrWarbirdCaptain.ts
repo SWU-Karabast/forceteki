@@ -16,6 +16,7 @@ export default class KraganGorrWarbirdCaptain extends NonLeaderUnitCard {
                 onAttackDeclared: (event, context) => event.attack.target === context.source.controller.base,
             },
             targetResolver: {
+                // TODO: update this to use last known state (once implemented) to get attacker location in case it's defeated
                 cardCondition: (card, context) => card.controller === context.source.controller && card.location === context.event.attack.attacker.location,
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()
             }
