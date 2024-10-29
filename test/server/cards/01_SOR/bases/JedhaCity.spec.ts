@@ -24,7 +24,7 @@ describe('Jedha City', function() {
                 expect(context.atst.getPower()).toBe(2);
 
                 // move to next phase and confirm effect is ended
-                context.moveToNextActionPhase();
+                context.moveToRegroupPhase();
                 expect(context.atst.getPower()).toBe(6);
             });
         });
