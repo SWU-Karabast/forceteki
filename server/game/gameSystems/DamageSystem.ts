@@ -229,7 +229,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
     private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
-
         const abilityDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
             player: context.player,
