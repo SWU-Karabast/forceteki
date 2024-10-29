@@ -9,7 +9,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
-import CardAbility from '../ability/CardAbility';
+import { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
 import { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
@@ -134,14 +134,14 @@ export class Card extends OngoingEffectSource {
     public getActionAbilities(): ActionAbility[] {
         const deduplicatedActionAbilities: ActionAbility[] = [];
 
-        const seenSourceUuids = new Set<string>();
+        const seenCardNameSources = new Set<string>();
         for (const action of this.actionAbilities) {
             if (action.printedAbility) {
                 deduplicatedActionAbilities.push(action);
-            } else if (!seenSourceUuids.has(action.gainAbilitySource.uuid)) {
+            } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
                 // Deduplicate any identical gained action abilities from the same source card (e.g., two Heroic Resolve actions)
                 deduplicatedActionAbilities.push(action);
-                seenSourceUuids.add(action.gainAbilitySource.uuid);
+                seenCardNameSources.add(action.gainAbilitySource.internalName);
             }
         }
 
@@ -150,7 +150,7 @@ export class Card extends OngoingEffectSource {
 
     /**
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
-     * don’t have any special styling
+     * don’t have any special text styling
      */
     public getConstantAbilities(): IConstantAbility[] {
         return this.constantAbilities;

@@ -1,4 +1,4 @@
-import CardAbility from './CardAbility';
+import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { Stage, AbilityType } from '../Constants';
 import { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
