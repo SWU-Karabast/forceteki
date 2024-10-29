@@ -15,6 +15,12 @@ axiosRetry(axios, {
     retryDelay: () => (Math.random() * 2000) + 1000      // jitter retry delay by 1 - 3 seconds
 });
 
+function populateMissingData(filteredObj) {
+    if (filteredObj.id === '3941784506' || filteredObj.id === '3463348370') {
+        filteredObj.types = ['token', 'unit'];
+    }
+}
+
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
         return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
@@ -56,6 +62,8 @@ function filterValues(card) {
 
     filteredObj.setId = { set: card.attributes.expansion.data.attributes.code };
 
+    populateMissingData(filteredObj);
+
     // tokens use a different numbering scheme, can ignore for now
     if (!filteredObj.types.includes('token')) {
         filteredObj.setId.number = card.attributes.cardNumber;
@@ -96,7 +104,7 @@ function getUniqueCards(cards) {
     const seenNames = [];
     var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
-    const setNumber = new Map([['SOR', 1], ['SHD', 2]]);
+    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3]]);
 
     for (const card of cards) {
         if (seenNames.includes(card.internalName)) {
