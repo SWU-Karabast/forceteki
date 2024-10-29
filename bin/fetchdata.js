@@ -16,14 +16,17 @@ axiosRetry(axios, {
 });
 
 function populateMissingData(attributes, id) {
-    if (id === '3941784506' || id === '3463348370') {
-        attributes.type = {
-            data: {
-                attributes: {
-                    name: 'token unit'
+    switch (id) {
+        case '3941784506': // clone trooper
+        case '3463348370': // battle droid
+            attributes.type = {
+                data: {
+                    attributes: {
+                        name: 'token unit'
+                    }
                 }
-            }
-        };
+            };
+            break;
     }
 }
 
