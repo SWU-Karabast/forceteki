@@ -1,6 +1,6 @@
-describe('Kragan Goor, Warbird Captain', function () {
+describe('Kragan Gorr, Warbird Captain', function () {
     integration(function (contextRef) {
-        describe('Kragan Goor\'s ability', function () {
+        describe('Kragan Gorr\'s ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
