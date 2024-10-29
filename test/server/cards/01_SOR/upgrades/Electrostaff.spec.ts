@@ -13,10 +13,10 @@ describe('Electrostaff', function() {
                 });
             });
 
-            it('should cause the attached card to heal 2 damage from base on attack', function () {
+            it('should give -1/-0 to the attacker while the attached unit is defending', function () {
                 const { context } = contextRef;
 
-                // battlefield marine attack, damage should be apply as usual
+                // battlefield marine attack, damage should be applied as usual
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.cargoJuggernaut);
                 expect(context.battlefieldMarine.damage).toBe(4);

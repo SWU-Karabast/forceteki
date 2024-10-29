@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, WildcardCardType } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class EmboStoicAndResolute extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -19,7 +19,7 @@ export default class EmboStoicAndResolute extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.event.attack.target.location === Location.Discard,
+                    condition: (context) => context.event.attack.target.isUnit() && !context.event.attack.target.isInPlay(),
                     onTrue: AbilityHelper.immediateEffects.heal({ amount: 2 }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })

@@ -15,7 +15,7 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 });
             });
 
-            it('should increase the cost of events played by the opponent by 1', function () {
+            it('should search the top 8 of the deck for a trick event when played and reduced the cost of tricks events by 1', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbaTheHutt);

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, RelativePlayer } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class ZuckussBountyHunterForHire extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +14,8 @@ export default class ZuckussBountyHunterForHire extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'Each friendly unit named 4-LOM gets +1/+1 and gains Saboteur',
             targetController: RelativePlayer.Self,
-            matchTarget: (card, context) => card.controller === context.source.controller && card.isUnit() && card.title === '4-LOM',
+            targetCardTypeFilter: WildcardCardType.Unit,
+            matchTarget: (card, context) => card.controller === context.source.controller && card.title === '4-LOM',
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 }),
                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)

@@ -23,6 +23,9 @@ describe('Mystic Reflection', function() {
                 context.player1.clickCard(context.greenSquadronAwing);
                 expect(context.greenSquadronAwing.getPower()).toBe(0);
                 expect(context.greenSquadronAwing.getHp()).toBe(1);
+
+                context.player2.clickCard(context.greenSquadronAwing);
+                expect(context.p1Base.damage).toBe(1);
             });
         });
 

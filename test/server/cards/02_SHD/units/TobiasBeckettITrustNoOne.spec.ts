@@ -5,7 +5,7 @@ describe('Tobias Beckett, I Trust No One', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['daring-raid', 'battlefield-marine', 'entrenched', 'vanquish'],
+                        hand: ['daring-raid', 'battlefield-marine', 'entrenched', 'vanquish', 'rivals-fall'],
                         groundArena: ['tobias-beckett#i-trust-no-one'],
                         resources: 20
                     },
@@ -54,6 +54,19 @@ describe('Tobias Beckett, I Trust No One', function () {
                 context.player1.clickCard(context.vanquish);
                 context.player1.clickCard(context.jedhaAgitator);
                 expect(context.player2).toBeActivePlayer();
+
+                context.moveToNextActionPhase();
+
+                // ability limit should reset on next action phase
+                context.player1.clickCard(context.rivalsFall);
+                context.player1.clickCard(context.deathStarStormtrooper);
+                expect(context.player1).toBeAbleToSelectExactly([context.tobiasBeckett, context.wampa, context.battlefieldMarine, context.cantinaBraggart]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.exhausted).toBeTrue();
+                expect(context.tobiasBeckett.exhausted).toBeFalse();
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.cantinaBraggart.exhausted).toBeFalse();
             });
         });
     });
