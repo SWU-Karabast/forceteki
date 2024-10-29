@@ -10,6 +10,7 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                         leader: 'doctor-aphra#rapacious-archaeologist'
                     },
                     player2: {
+                        hand: ['shoot-first'],
                         spaceArena: ['green-squadron-awing']
                     }
                 });
@@ -18,12 +19,15 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
             it('should search the top 8 of the deck for a trick event when played and reduced the cost of tricks events by 1', function () {
                 const { context } = contextRef;
 
+                const p1ShootFirst = context.player1.findCardsByName('shoot-first');
+                const p2ShootFirst = context.player2.findCardsByName('shoot-first');
+
                 context.player1.clickCard(context.jabbaTheHutt);
 
                 // select a trick event on the top 8 cards
                 expect(context.player1).toHavePrompt('Select a card to reveal');
                 expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.echoBaseDefender.title, context.cantinaBraggart.title, context.ardentSympathizer.title, context.pykeSentinel.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.waylay.title, context.shootFirst.title, context.asteroidSanctuary.title, 'Take nothing']);
+                expect(context.player1).toHaveEnabledPromptButtons([context.waylay.title, p1ShootFirst[0].title, context.asteroidSanctuary.title, 'Take nothing']);
 
                 context.player1.clickPrompt(context.waylay.title);
                 expect(context.waylay).toBeInLocation('hand');
@@ -35,6 +39,9 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 context.player1.clickCard(context.waylay);
                 context.player1.clickCard(context.greenSquadronAwing);
                 expect(context.player1.countExhaustedResources()).toBe(lastExhaustedResources + 2);
+
+                context.player2.clickCard(p2ShootFirst[0]);
+                expect(context.player2.countExhaustedResources()).toBe(1);
             });
         });
     });
