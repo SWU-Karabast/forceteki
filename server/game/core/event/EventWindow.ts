@@ -11,10 +11,7 @@ export enum TriggerHandlingMode {
     /** Any abilities triggered during this event window will not be resolved immediately but passed to the parent window */
     PassesTriggersToParentWindow = 'passesTriggersToParentWindow',
 
-    /**
-     * Any abilities triggered during this event window or passed up from child windows will be resolved immediately.
-     * Typically `Auto` should be used instead.
-     */
+    /** Any abilities triggered during this event window or passed up from child windows will be resolved immediately. */
     ResolvesTriggers = 'resolvesTriggers',
 
     /** This event window is not a type that should trigger abilities, so any triggers that happen are an error */
