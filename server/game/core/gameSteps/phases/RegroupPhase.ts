@@ -1,7 +1,4 @@
 import { EventName, PhaseName } from '../../Constants';
-import { Location } from '../../Constants';
-import { randomItem } from '../../utils/Helpers';
-import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -26,7 +23,11 @@ export class RegroupPhase extends Phase {
     private drawTwo() {
         for (const player of this.game.getPlayers()) {
             // create a single event for drawing cards step
-            new DrawSystem({ amount: 2 }).resolve(player, this.game.getFrameworkContext());
+            new DrawSystem({ amount: 2 }).resolve(
+                player,
+                this.game.getFrameworkContext(),
+                TriggerHandlingMode.ResolvesTriggers
+            );
         }
     }
 
