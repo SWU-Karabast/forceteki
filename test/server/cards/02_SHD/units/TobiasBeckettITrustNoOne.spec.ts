@@ -102,5 +102,27 @@ describe('Tobias Beckett, I Trust No One', function () {
                 expect(context.tobiasBeckett.exhausted).toBeFalse();
             });
         });
+
+        describe('Tobias Beckett\'s smuggle cost', function () {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        base: 'jabbas-palace',
+                        leader: 'jabba-the-hutt#his-high-exaltedness',
+                        resources: ['tobias-beckett#i-trust-no-one', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                    },
+                    player2: {}
+                });
+            });
+
+            it('should cost 7 from smuggle when no Vigilance aspect', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tobiasBeckett);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.countExhaustedResources()).toBe(7);
+            });
+        });
     });
 });
