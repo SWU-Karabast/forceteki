@@ -32,13 +32,14 @@ class ActionWindow extends UiPrompt {
         }
 
         // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
+        if (!this.checkCardCondition(card, this.activePlayer)) {
+            return false;
+        }
+
         let actions = card.getActions();
 
         let legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
-
-        if (legalActions.length === 0) {
-            return false;
-        } else if (legalActions.length === 1) {
+        if (legalActions.length === 1) {
             let action = legalActions[0];
             let targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
             if (!this.activePlayer.optionSettings.confirmOneClick || action.cost.some((cost) => cost.promptsPlayer) || targetPrompts) {
@@ -85,6 +86,7 @@ class ActionWindow extends UiPrompt {
         let completed = super.continue();
 
         if (!completed) {
+            this.highlightSelectableCards();
             this.game.currentActionWindow = this;
         } else {
             this.game.currentActionWindow = null;
@@ -188,6 +190,20 @@ class ActionWindow extends UiPrompt {
     complete() {
         // this.teardownBonusActions();
         super.complete();
+    }
+
+    highlightSelectableCards() {
+        const allPossibleCards = this.game.findAnyCardsInPlay().concat(this.activePlayer.getCardPile(Location.Discard), this.activePlayer.getCardPile(Location.Resource));
+        this.activePlayer.setSelectableCards(allPossibleCards.filter((card) => this.checkCardCondition(card, this.activePlayer)));
+    }
+
+    checkCardCondition(card, player) {
+        let actions = card.getActions();
+        let legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
+        if (legalActions.length === 0) {
+            return false;
+        }
+        return true;
     }
 
     // markBonusActionsTaken() {
