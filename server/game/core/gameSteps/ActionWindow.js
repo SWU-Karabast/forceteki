@@ -1,5 +1,5 @@
 const { UiPrompt } = require('./prompts/UiPrompt.js');
-const { EventName, Location, RelativePlayer, EffectName, WildcardLocation } = require('../Constants.js');
+const { Location, RelativePlayer, WildcardLocation } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
 const Contract = require('../utils/Contract');
 
@@ -32,13 +32,11 @@ class ActionWindow extends UiPrompt {
         }
 
         // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
-        if (!this.checkCardCondition(card, this.activePlayer)) {
+        let legalActions = this.getCardLegalActions(card, this.activePlayer);
+        if (legalActions.length === 0) {
             return false;
         }
 
-        let actions = card.getActions();
-
-        let legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
         if (legalActions.length === 1) {
             let action = legalActions[0];
             let targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
@@ -194,16 +192,12 @@ class ActionWindow extends UiPrompt {
 
     highlightSelectableCards() {
         const allPossibleCards = this.game.findAnyCardsInPlay().concat(this.activePlayer.getCardPile(Location.Discard), this.activePlayer.getCardPile(Location.Resource));
-        this.activePlayer.setSelectableCards(allPossibleCards.filter((card) => this.checkCardCondition(card, this.activePlayer)));
+        this.activePlayer.setSelectableCards(allPossibleCards.filter((card) => this.getCardLegalActions(card, this.activePlayer).length > 0));
     }
 
-    checkCardCondition(card, player) {
+    getCardLegalActions(card, player) {
         let actions = card.getActions();
-        let legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
-        if (legalActions.length === 0) {
-            return false;
-        }
-        return true;
+        return actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
     }
 
     // markBonusActionsTaken() {
