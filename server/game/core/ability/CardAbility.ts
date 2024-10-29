@@ -1,12 +1,20 @@
-const AbilityLimit = require('./AbilityLimit.js');
-const CardAbilityStep = require('./CardAbilityStep.js');
-const Costs = require('../../costs/CostLibrary.js');
-const { Location, CardType, EffectName, WildcardLocation, AbilityType, PhaseName } = require('../Constants.js');
-const EnumHelpers = require('../utils/EnumHelpers.js');
-const Contract = require('../utils/Contract.js');
+import { AbilityType, EffectName, Location, LocationFilter, PhaseName, WildcardLocation } from '../Constants';
+import * as Contract from '../utils/Contract';
+import CardAbilityStep from './CardAbilityStep';
+import * as AbilityLimit from './AbilityLimit';
+import * as EnumHelpers from '../utils/EnumHelpers';
+import { ICost } from '../cost/ICost';
+import { Card } from '../card/Card';
 
-class CardAbility extends CardAbilityStep {
-    constructor(game, card, properties, type = AbilityType.Action) {
+export class CardAbility extends CardAbilityStep {
+    public readonly abilityCost: ICost[];
+    public readonly abilityIdentifier: string;
+    public readonly cannotBeCancelled: boolean;
+    public readonly gainAbilitySource: Card;
+    public readonly locationFilter: LocationFilter | LocationFilter[];
+    public readonly printedAbility: boolean;
+
+    public constructor(game, card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
         this.title = properties.title;
@@ -19,14 +27,13 @@ class CardAbility extends CardAbilityStep {
         this.locationFilter = this.locationOrDefault(card, properties.locationFilter);
         this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
-        this.cannotBeMirrored = !!properties.cannotBeMirrored;
         this.gainAbilitySource = properties.gainAbilitySource;
 
         // if an ability name wasn't provided, assume this ability was created for some one-off purpose and not attached to the card
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
     }
 
-    locationOrDefault(card, location) {
+    private locationOrDefault(card, location): LocationFilter {
         if (location != null) {
             return location;
         }
@@ -48,11 +55,9 @@ class CardAbility extends CardAbilityStep {
         }
 
         Contract.fail(`Unknown card type for card: ${card.internalName}`);
-        return null;
     }
 
-    /** @override */
-    meetsRequirements(context, ignoredRequirements = []) {
+    public override meetsRequirements(context, ignoredRequirements = []) {
         if (this.card.isBlank() && this.printedAbility) {
             return 'blank';
         }
@@ -84,8 +89,7 @@ class CardAbility extends CardAbilityStep {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    /** @override */
-    getCosts(context, playCosts = true, triggerCosts = true) {
+    public override getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = super.getCosts(context, playCosts);
         if (!context.subResolution && triggerCosts && context.player.hasOngoingEffect(EffectName.AdditionalTriggerCost)) {
             const additionalTriggerCosts = context.player
@@ -108,21 +112,21 @@ class CardAbility extends CardAbilityStep {
         return costs;
     }
 
-    getAdjustedCost(context) {
-        let resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
+    public getAdjustedCost(context) {
+        const resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
-    isInValidLocation(context) {
+    protected isInValidLocation(context) {
         return this.card.isEvent()
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
             : EnumHelpers.cardLocationMatches(this.card.location, this.locationFilter);
     }
 
-    getLocationMessage(location, context) {
+    private getLocationMessage(location, context) {
         if (location.matchTarget(/^\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b$/i)) {
             // it's a uuid
-            let source = context.game.findAnyCardInPlayByUuid(location);
+            const source = context.game.findAnyCardInPlayByUuid(location);
             if (source) {
                 return `cards set aside by ${source.name}`;
             }
@@ -131,8 +135,7 @@ class CardAbility extends CardAbilityStep {
         return location;
     }
 
-    /** @override */
-    displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
+    public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if (
             context.source.isEvent() &&
             context.source.location !== Location.Discard
@@ -158,11 +161,11 @@ class CardAbility extends CardAbilityStep {
             return;
         }
 
-        let gainAbilitySource = context.ability && context.ability.gainAbilitySource;
+        const gainAbilitySource = context.ability && context.ability.gainAbilitySource;
 
-        let gainedAbility = gainAbilitySource ? '\'s gained ability from ' : '';
+        const gainedAbility = gainAbilitySource ? '\'s gained ability from ' : '';
         let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, gainAbilitySource];
-        let costMessages = this.cost
+        const costMessages = this.cost
             .map((cost) => {
                 if (cost.getCostMessage && cost.getCostMessage(context)) {
                     let card = context.costs[cost.getActionName(context)];
@@ -190,7 +193,7 @@ class CardAbility extends CardAbilityStep {
         let effectArgs = [];
         let extraArgs = null;
         if (!effectMessage) {
-            let gameActions = this.getGameSystems(context).filter((gameSystem) => gameSystem.hasLegalTarget(context));
+            const gameActions = this.getGameSystems(context).filter((gameSystem) => gameSystem.hasLegalTarget(context));
             if (gameActions.length > 0) {
                 // effects with multiple game actions really need their own effect message
                 [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);
@@ -216,10 +219,7 @@ class CardAbility extends CardAbilityStep {
         this.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs);
     }
 
-    /** @override */
-    isActivatedAbility() {
+    public override isActivatedAbility() {
         return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.type);
     }
 }
-
-module.exports = CardAbility;

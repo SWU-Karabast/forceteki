@@ -6,15 +6,13 @@ describe('Sabine Wren, Explosives Artist', function() {
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist', 'battlefield-marine'],
-                        spaceArena: ['cartel-spacer']
+                        spaceArena: ['cartel-spacer'],
+                        hand: ['protector', 'cloud-city-wing-guard']
                     },
                     player2: {
                         groundArena: ['wampa'],
                     }
                 });
-
-                // sabine is only partially implemented, still need to handle:
-                // - the effect override if she gains sentinel
             });
 
             it('should not be targetable when 3 friendly aspects are in play', function () {
@@ -34,6 +32,24 @@ describe('Sabine Wren, Explosives Artist', function() {
                 context.player2.clickCard(context.wampa);
 
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base, context.sabineWren]);
+            });
+
+            it('should be targetable if she has sentinel, even with 3 friendly aspects in play', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.protector);
+                context.player1.clickCard(context.sabineWren);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.cloudCityWingGuard);
+
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toBeAbleToSelectExactly([context.sabineWren, context.cloudCityWingGuard]);
+
+                context.player2.clickCard(context.sabineWren);
+                expect(context.sabineWren).toBeInLocation('discard');
+                expect(context.wampa.damage).toBe(3);
             });
         });
 
