@@ -11,11 +11,11 @@ export enum TriggerHandlingMode {
     /** Any abilities triggered during this event window will not be resolved immediately but passed to the parent window */
     PassesTriggersToParentWindow = 'passesTriggersToParentWindow',
 
-    /** Any abilities triggered during this event window or passed up from child windows will be resolved immediately  */
+    /** Any abilities triggered during this event window or passed up from child windows will be resolved immediately. */
     ResolvesTriggers = 'resolvesTriggers',
 
     /** This event window is not a type that should trigger abilities, so any triggers that happen are an error */
-    CannotHaveTriggers = 'cannotHaveTriggers'
+    CannotHaveTriggers = 'cannotHaveTriggers',
 }
 
 interface IThenAbilityComponents {
@@ -28,7 +28,7 @@ export class EventWindow extends BaseStepWithPipeline {
     protected _events: any[] = [];
     protected _triggeredAbilityWindow?: TriggeredAbilityWindow = null;
 
-    private previousGameEventWindow?: EventWindow = null;
+    private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
     private subwindowEvents: any[] = [];
     private thenAbilityComponents?: IThenAbilityComponents = null;
@@ -36,6 +36,10 @@ export class EventWindow extends BaseStepWithPipeline {
 
     public get events() {
         return this._events;
+    }
+
+    public get triggerHandlingMode() {
+        return this._triggerHandlingMode;
     }
 
     public get triggeredAbilityWindow() {
@@ -56,7 +60,7 @@ export class EventWindow extends BaseStepWithPipeline {
     public constructor(
         game,
         events,
-        public readonly triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
+        private _triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
     ) {
         super(game);
 
@@ -71,13 +75,13 @@ export class EventWindow extends BaseStepWithPipeline {
 
     public initialise() {
         this.pipeline.initialise([
-            new SimpleStep(this.game, () => this.setCurrentEventWindow(), 'setCurrentEventWindow'),
+            new SimpleStep(this.game, () => this.setParentEventWindow(), 'setParentEventWindow'),
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
             new SimpleStep(this.game, () => this.openReplacementEffectWindow(), 'openReplacementEffectWindow'),
             new SimpleStep(this.game, () => this.generateContingentEvents(), 'generateContingentEvents'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
-            new SimpleStep(this.game, () => this.executeHandlersEmitEvents(), 'executeHandlersEmitEvents'),
-            new SimpleStep(this.game, () => this.resolveGameStateAndEmitEvents(), 'resolveGameStateEmitEvents'),
+            new SimpleStep(this.game, () => this.executeHandlers(), 'executeHandlers'),
+            new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
             new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'checkSubwindowEvents'),
             new SimpleStep(this.game, () => this.resolveThenAbilityStep(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
@@ -110,9 +114,10 @@ export class EventWindow extends BaseStepWithPipeline {
         this.subwindowEvents = this.subwindowEvents.concat(events);
     }
 
-    private setCurrentEventWindow() {
-        this.previousGameEventWindow = this.game.currentEventWindow;
-        this.windowDepth = this.previousGameEventWindow ? this.previousGameEventWindow.windowDepth + 1 : 0;
+    /** Set parent event window and initialize triggering window based on configured rules and parent window settings (if relevant) */
+    private setParentEventWindow() {
+        this.parentWindow = this.game.currentEventWindow;
+        this.windowDepth = this.parentWindow ? this.parentWindow.windowDepth + 1 : 0;
 
         if (this.windowDepth >= 50) {
             throw new Error('Event window depth has reached 50, likely caught in an infinite loop');
@@ -120,12 +125,14 @@ export class EventWindow extends BaseStepWithPipeline {
 
         this.game.currentEventWindow = this;
 
+        if (this._triggerHandlingMode === TriggerHandlingMode.PassesTriggersToParentWindow) {
+            Contract.assertNotNullLike(this.parentWindow, `Attempting to create event window ${this} as a child window but no parent window exists`);
+            Contract.assertFalse(this.parentWindow.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers, `${this} is attempting pass triggers to ${this.parentWindow} which cannot have ability triggers`);
+        }
+
         switch (this.triggerHandlingMode) {
             case TriggerHandlingMode.PassesTriggersToParentWindow:
-                Contract.assertNotNullLike(this.previousGameEventWindow, `Attempting to create event window ${this} as a child window but no parent window exists`);
-                Contract.assertFalse(this.previousGameEventWindow.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers, `${this} is attempting pass triggers to ${this.previousGameEventWindow} which cannot have ability triggers`);
-
-                this._triggeredAbilityWindow = this.previousGameEventWindow.triggeredAbilityWindow;
+                this._triggeredAbilityWindow = this.parentWindow.triggeredAbilityWindow;
                 break;
             case TriggerHandlingMode.ResolvesTriggers:
                 this._triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
@@ -171,10 +178,10 @@ export class EventWindow extends BaseStepWithPipeline {
         this._events.forEach((event) => event.preResolutionEffect());
     }
 
-    protected executeHandlersEmitEvents() {
+    protected executeHandlers() {
         const eventsToResolve = this._events.sort((event) => event.order);
 
-        // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
+        // we emit triggered abilities here to ensure that they get triggered in case e.g. an ability is blanked during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
             this._triggeredAbilityWindow.addTriggeringEvents(this._events);
             this._triggeredAbilityWindow.emitEvents();
@@ -193,7 +200,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
     // resolve game state and emit triggers again
     // this is to catch triggers on cards that entered play or gained abilities during event resolution
-    private resolveGameStateAndEmitEvents() {
+    private resolveGameState() {
         // TODO: understand if resolveGameState really needs the resolvedEvents array or not
         this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
 
@@ -241,9 +248,9 @@ export class EventWindow extends BaseStepWithPipeline {
             event.cleanup();
         }
 
-        if (this.previousGameEventWindow) {
-            this.previousGameEventWindow.checkEventCondition();
-            this.game.currentEventWindow = this.previousGameEventWindow;
+        if (this.parentWindow) {
+            this.parentWindow.checkEventCondition();
+            this.game.currentEventWindow = this.parentWindow;
         } else {
             this.game.currentEventWindow = null;
         }

@@ -60,7 +60,6 @@ class PlayerOrCardAbility {
         this.uuid = uuidv4();
 
         // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
-        this.triggerHandlingMode = properties.triggerHandlingMode;
 
         if (properties.triggerHandlingMode != null) {
             this.triggerHandlingMode = properties.triggerHandlingMode;

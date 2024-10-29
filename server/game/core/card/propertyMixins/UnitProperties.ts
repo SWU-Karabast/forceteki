@@ -139,8 +139,22 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return false;
         }
 
+        // ***************************************** ABILITY HELPERS *****************************************
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
             const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
+            this.addTriggeredAbility(triggeredProperties);
+        }
+
+        protected addBountyAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
+            const triggeredProperties = Object.assign(properties,
+                {
+                    when: {
+                        onCardDefeated: (event, context) => event.card === context.source
+                        // TODO CAPTURE: add capture trigger
+                    }
+                });
+
+
             this.addTriggeredAbility(triggeredProperties);
         }
 

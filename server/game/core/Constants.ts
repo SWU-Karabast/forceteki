@@ -73,7 +73,6 @@ export enum EffectName {
     // "cannot" effects
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotAttackBase = 'cannotAttackBase',
-    CannotBeAttacked = 'cannotBeAttacked',
 }
 
 export enum Duration {
@@ -205,7 +204,7 @@ export enum EventName {
 
 /**
  * Meta-events are infrastructure events that exist to facilitate game events.
- * They cannot be triggered on because they don't exist in the SWU rules, they're just
+ * Abilities cannot trigger on them because they don't exist in the SWU rules, they're just
  * to help us execute the game rules correctly.
  */
 export enum MetaEventName {
@@ -219,8 +218,7 @@ export enum MetaEventName {
     ReplacementEffect = 'replacementEffect',
     SelectCard = 'selectCard',
     Sequential = 'sequential',
-    Simultaneous = 'simultaneous',
-    Unnamed = 'unnamedEvent',
+    Simultaneous = 'simultaneous'
 }
 
 export enum AbilityType {
