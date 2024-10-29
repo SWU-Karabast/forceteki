@@ -219,7 +219,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const excessDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
             player: context.player,
-            ability: context.ability,
             card: context.source,
             event
         };
@@ -230,12 +229,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
     private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
-        Contract.assertTrue(context.ability instanceof CardAbilityStep, `Damage was created by non-card ability ${context.ability.title} targeting ${card.internalName}`);
 
         const abilityDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
             player: context.player,
-            ability: context.ability,
             card: context.source,
             event
         };
