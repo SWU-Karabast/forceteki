@@ -69,5 +69,38 @@ describe('Tobias Beckett, I Trust No One', function () {
                 expect(context.cantinaBraggart.exhausted).toBeFalse();
             });
         });
+
+        describe('Tobias Beckett\'s ability', function () {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['tobias-beckett#i-trust-no-one'],
+                        resources: ['collections-starhopper', 'smugglers-aid', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'alliance-dispatcher', 'cantina-braggart', 'echo-base-defender'],
+                    }
+                });
+            });
+
+            it('should exhaust a unit that costs the same as or less than the card you played when you play a non-unit card (with smuggle)', function () {
+                const { context } = contextRef;
+
+                // play a unit card, nothing happen
+                context.player1.clickCard(context.collectionsStarhopper);
+                expect(context.player2).toBeActivePlayer();
+                context.player2.passAction();
+
+                // play an event from smuggle, cost 3 with smuggle but only printed cost is used (so can only select 1-cost units)
+                context.player1.clickCard(context.smugglersAid);
+                expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.allianceDispatcher]);
+                context.player1.clickCard(context.allianceDispatcher);
+                expect(context.allianceDispatcher.exhausted).toBeTrue();
+                expect(context.wampa.exhausted).toBeFalse();
+                expect(context.cantinaBraggart.exhausted).toBeFalse();
+                expect(context.tobiasBeckett.exhausted).toBeFalse();
+            });
+        });
     });
 });
