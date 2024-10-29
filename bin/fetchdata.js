@@ -15,19 +15,21 @@ axiosRetry(axios, {
     retryDelay: () => (Math.random() * 2000) + 1000      // jitter retry delay by 1 - 3 seconds
 });
 
-function populateMissingData(filteredObj) {
-    if (filteredObj.id === '3941784506' || filteredObj.id === '3463348370') {
-        filteredObj.types = ['token', 'unit'];
+function populateMissingData(attributes, id) {
+    if (id === '3941784506' || id === '3463348370') {
+        attributes.type = {
+            data: {
+                attributes: {
+                    name: 'token unit'
+                }
+            }
+        };
     }
 }
 
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
         return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
-    }
-
-    if (attributeList.data === null) {
-        return '';
     }
 
     return attributeList.data.attributes.name.toLowerCase();
@@ -52,6 +54,9 @@ function filterValues(card) {
     let filteredObj = filterAttributes(card.attributes);
 
     filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
+
+    populateMissingData(card.attributes, filteredObj.id);
+
     filteredObj.aspects = getAttributeNames(card.attributes.aspects);
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
@@ -61,8 +66,6 @@ function filterValues(card) {
     filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
 
     filteredObj.setId = { set: card.attributes.expansion.data.attributes.code };
-
-    populateMissingData(filteredObj);
 
     // tokens use a different numbering scheme, can ignore for now
     if (!filteredObj.types.includes('token')) {
