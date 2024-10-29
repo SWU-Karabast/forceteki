@@ -160,6 +160,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
         Contract.assertTrue(context.source.isUnit());
+        Contract.assertNotNullLike(card);
 
         let damageDealtBy: UnitCard;
 

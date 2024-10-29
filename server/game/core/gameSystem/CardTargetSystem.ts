@@ -120,6 +120,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         }
     }
 
+    // override the base class behavior with a version that forces properties.target to be a scalar value
     public override generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 

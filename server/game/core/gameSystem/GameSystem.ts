@@ -211,7 +211,6 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    // TODO THIS PR: make a protected version of this that can override target and make it so this one can't
     public generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
@@ -228,7 +227,6 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    // TODO THIS PR: make a protected version of this that can override target and make it so this one can't
     public generateRetargetedEvent(target: any, context: TContext, additionalProperties: any = {}): GameEvent {
         const event = this.createEvent(target, context, additionalProperties);
         this.updateEvent(event, target, context, additionalProperties);

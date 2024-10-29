@@ -414,7 +414,6 @@ class Player extends GameObject {
      * @param {number} numCards
      */
     drawCardsToHand(numCards) {
-        // TODO THIS PR: is this logic still needed?
         if (numCards > this.drawDeck.length) {
             // TODO: move log message into the DrawSystem
             // Game log message about empty deck damage(the damage itself is handled in DrawSystem.updateEvent()).
