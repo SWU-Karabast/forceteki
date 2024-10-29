@@ -21,7 +21,6 @@ export default class TheChaosOfWar extends EventCard {
                     amount: context.source.controller.hand.length,
                     target: context.source.controller.base,
                 })),
-
             ]),
         });
     }

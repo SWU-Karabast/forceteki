@@ -5,7 +5,7 @@ describe('4-LOM, Bounty Hunter for Hire', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['zuckuss#bounty-hunter-for-hire'],
+                        hand: ['zuckuss#bounty-hunter-for-hire', 'battlefield-marine'],
                         groundArena: ['4lom#bounty-hunter-for-hire'],
                     },
                     player2: {
@@ -33,6 +33,10 @@ describe('4-LOM, Bounty Hunter for Hire', function () {
                 expect(context.consularSecurityForce.location).toBe('discard');
                 expect(context.zuckuss.getPower()).toBe(7);
                 expect(context.zuckuss.getHp()).toBe(7);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
@@ -41,7 +45,7 @@ describe('4-LOM, Bounty Hunter for Hire', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['4lom#bounty-hunter-for-hire', 'pyke-sentinel'],
+                        groundArena: ['4lom#bounty-hunter-for-hire'],
                     },
                     player2: {
                         hand: ['zuckuss#bounty-hunter-for-hire'],

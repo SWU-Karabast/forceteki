@@ -17,7 +17,6 @@ export default class KraytDragon extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) => event.card.controller === context.source.controller.opponent,
             },
-            limit: AbilityLimit.unlimited(),
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 locationFilter: [Location.GroundArena, Location.Base],

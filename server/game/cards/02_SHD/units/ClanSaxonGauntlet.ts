@@ -17,7 +17,6 @@ export default class ClanSaxonGauntlet extends NonLeaderUnitCard {
             when: {
                 onAttackDeclared: (event, context) => event.attack.target === context.source,
             },
-            limit: AbilityLimit.unlimited(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 optional: true,

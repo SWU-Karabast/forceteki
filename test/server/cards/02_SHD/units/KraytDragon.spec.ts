@@ -11,6 +11,7 @@ describe('Krayt Dragon', function () {
                     player2: {
                         hand: ['superlaser-blast', 'privateer-crew', 'green-squadron-awing'],
                         groundArena: ['wampa'],
+                        resources: ['vigilant-pursuit-craft', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst']
                     }
                 });
             });
@@ -39,10 +40,20 @@ describe('Krayt Dragon', function () {
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(2);
 
+                // for smuggle, should take the printed cost
+                context.setDamage(context.p2Base, 0);
+                context.player1.passAction();
+                context.player2.clickCard(context.vigilantPursuitCraft);
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa, context.privateerCrew]);
+                // 5 damage on base (7 paid from smuggle but 5 for printed cost)
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(5);
+
+                context.setDamage(context.p2Base, 0);
                 // enemy kill everyone, krayt ability still activates
                 context.player1.passAction();
                 context.player2.clickCard(context.superlaserBlast);
-                expect(context.p2Base.damage).toBe(10);
+                expect(context.p2Base.damage).toBe(8);
             });
             // TODO test u-wing, vader or endless legion when implemented
         });

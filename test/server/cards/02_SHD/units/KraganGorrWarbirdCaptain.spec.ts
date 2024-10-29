@@ -36,7 +36,7 @@ describe('Kragan Goor, Warbird Captain', function () {
                 context.player1.clickCard(context.vanguardInfantry);
                 expect(context.vanguardInfantry).toHaveExactUpgradeNames(['shield']);
 
-                // a space enemy attacks base, we should give shield to a friendly ground unit
+                // a space enemy attacks base, we should give shield to a friendly space unit
                 context.player1.passAction();
                 context.player2.clickCard(context.distantPatroller);
                 context.player2.clickCard(context.p1Base);

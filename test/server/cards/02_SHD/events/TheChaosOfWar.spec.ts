@@ -43,7 +43,7 @@ describe('The Chaos of War', function() {
                 });
             });
 
-            it('should deal damage to base equal to controllers\' hand', function () {
+            it('should deal damage to base equal to controllers\' hand (with an empty hand)', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theChaosOfWar);
