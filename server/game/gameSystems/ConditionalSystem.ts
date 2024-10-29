@@ -1,7 +1,8 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import { MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { MetaSystem } from '../core/gameSystem/MetaSystem';
+import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 
 export interface IConditionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     condition: ((context: TContext, properties: IConditionalSystemProperties) => boolean) | boolean;
@@ -9,7 +10,8 @@ export interface IConditionalSystemProperties<TContext extends AbilityContext = 
     onFalse: GameSystem<TContext>;
 }
 
-export class ConditionalSystem<TContext extends AbilityContext = AbilityContext> extends MetaSystem<TContext, IConditionalSystemProperties<TContext>> {
+export class ConditionalSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IConditionalSystemProperties<TContext>> {
+    protected override readonly eventName = MetaEventName.Conditional;
     public override getInnerSystems(properties: IConditionalSystemProperties<TContext>) {
         return [properties.onTrue, properties.onFalse];
     }

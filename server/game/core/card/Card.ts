@@ -9,7 +9,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
-import CardAbility from '../ability/CardAbility';
+import { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
 import { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
@@ -134,14 +134,14 @@ export class Card extends OngoingEffectSource {
     public getActionAbilities(): ActionAbility[] {
         const deduplicatedActionAbilities: ActionAbility[] = [];
 
-        const seenSourceUuids = new Set<string>();
+        const seenCardNameSources = new Set<string>();
         for (const action of this.actionAbilities) {
             if (action.printedAbility) {
                 deduplicatedActionAbilities.push(action);
-            } else if (!seenSourceUuids.has(action.gainAbilitySource.uuid)) {
+            } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
                 // Deduplicate any identical gained action abilities from the same source card (e.g., two Heroic Resolve actions)
                 deduplicatedActionAbilities.push(action);
-                seenSourceUuids.add(action.gainAbilitySource.uuid);
+                seenCardNameSources.add(action.gainAbilitySource.internalName);
             }
         }
 
@@ -150,7 +150,7 @@ export class Card extends OngoingEffectSource {
 
     /**
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
-     * don’t have any special styling
+     * don’t have any special text styling
      */
     public getConstantAbilities(): IConstantAbility[] {
         return this.constantAbilities;
@@ -727,48 +727,49 @@ export class Card extends OngoingEffectSource {
     //     return clone;
     // }
 
-    // getSummary(activePlayer, hideWhenFaceup) {
-    //     let isActivePlayer = activePlayer === this.controller;
-    //     let selectionState = activePlayer.getCardSelectionState(this);
 
-    //     // This is my facedown card, but I'm not allowed to look at it
-    //     // OR This is not my card, and it's either facedown or hidden from me
-    //     if (
-    //         isActivePlayer
-    //             ? this.isFacedown() && this.hideWhenFacedown()
-    //             : this.isFacedown() || hideWhenFaceup || this.hasOngoingEffect(EffectName.HideWhenFaceUp)
-    //     ) {
-    //         let state = {
-    //             controller: this.controller.getShortSummary(),
-    //             menu: isActivePlayer ? this.getMenu() : undefined,
-    //             facedown: true,
-    //             inConflict: this.inConflict,
-    //             location: this.location,
-    //             uuid: isActivePlayer ? this.uuid : undefined
-    //         };
-    //         return Object.assign(state, selectionState);
-    //     }
+    // TODO: Clean this up and review rules for visibility. We can probably reduce this down to arity 1
+    /*
+    * This is the infomation for each card that is sent to the client.
+    */
 
-    //     let state = {
-    //         id: this.cardData.id,
-    //         controlled: this.owner !== this.controller,
-    //         inConflict: this.inConflict,
-    //         facedown: this.isFacedown(),
-    //         location: this.location,
-    //         menu: this.getMenu(),
-    //         name: this.cardData.name,
-    //         popupMenuText: this.popupMenuText,
-    //         showPopup: this.showPopup,
-    //         tokens: this.tokens,
-    //         types: this.types,
-    //         isDishonored: this.isDishonored,
-    //         isHonored: this.isHonored,
-    //         isTainted: !!this.isTainted,
-    //         uuid: this.uuid
-    //     };
+    public getSummary(activePlayer, hideWhenFaceup) {
+        const isActivePlayer = activePlayer === this.controller;
+        const selectionState = activePlayer.getCardSelectionState(this);
 
-    //     return Object.assign(state, selectionState);
-    // }
+        // This is my facedown card, but I'm not allowed to look at it
+        // OR This is not my card, and it's either facedown or hidden from me
+        if (
+            isActivePlayer
+                ? this.facedown
+                : this.facedown || hideWhenFaceup
+        ) {
+            const state = {
+                controller: this.controller.getShortSummary(),
+                // menu: isActivePlayer ? this.getMenu() : undefined,
+                facedown: true,
+                location: this.location,
+                uuid: isActivePlayer ? this.uuid : undefined
+            };
+            return Object.assign(state, selectionState);
+        }
+
+        const state = {
+            id: this.cardData.id,
+            controlled: this.owner !== this.controller,
+            // facedown: this.isFacedown(),
+            location: this.location,
+            // menu: this.getMenu(),
+            name: this.cardData.name,
+            // popupMenuText: this.popupMenuText,
+            // showPopup: this.showPopup,
+            // tokens: this.tokens,
+            // types: this.types,
+            uuid: this.uuid
+        };
+
+        return Object.assign(state, selectionState);
+    }
 
     public override getShortSummaryForControls(activePlayer: Player): any {
         if (!this.isHiddenForPlayer(activePlayer)) {

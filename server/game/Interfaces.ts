@@ -135,11 +135,6 @@ export type WhenType<TSource extends Card = Card> = {
     [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
 };
 
-export interface GainAbilitySource {
-    card: Card;
-    abilityUuid: string;
-}
-
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
@@ -171,8 +166,13 @@ interface IAbilityProps<TContext extends AbilityContext> {
      */
     optional?: boolean;
 
+    /** Indicates which player controls this ability (e.g. for Bounty abilities, it is the opponent) */
+    abilityController?: RelativePlayer;
+
+    /** If this is a gained ability, gives the source card that is giving the ability */
+    gainAbilitySource?: Card;
+
     printedAbility?: boolean;
-    gainAbilitySource?: GainAbilitySource;
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);

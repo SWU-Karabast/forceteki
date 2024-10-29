@@ -1,4 +1,4 @@
-const EventWindow = require('../../event/EventWindow.js');
+const { EventWindow, TriggerHandlingMode } = require('../../event/EventWindow.js');
 const { TriggeredAbilityWindow } = require('../../gameSteps/abilityWindow/TriggeredAbilityWindow.js');
 const { EventName, AbilityType } = require('../../Constants.js');
 
@@ -49,6 +49,7 @@ class InitiateAbilityInterruptWindow extends TriggeredAbilityWindow {
     }
 }
 
+// TODO: remove this class if possible
 class InitiateAbilityEventWindow extends EventWindow {
     // TODO EFFECTS: see if the below code is useful for replacement effects
     // /** @override */
@@ -61,11 +62,13 @@ class InitiateAbilityEventWindow extends EventWindow {
     // }
 
     /** @override */
-    executeHandlersEmitEvents() {
-        this.eventsToExecute = this.events.sort((event) => event.order);
+    executeHandlers() {
+        this.eventsToExecute = this._events.sort((event) => event.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. a card is defeated during event resolution
-        this.triggeredAbilityWindow.emitEvents();
+        if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
+            this._triggeredAbilityWindow.emitEvents();
+        }
 
         this.eventsToExecute.forEach((event) => {
             event.checkCondition();

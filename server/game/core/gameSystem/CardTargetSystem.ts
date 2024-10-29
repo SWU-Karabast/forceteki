@@ -192,11 +192,6 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         // };
     }
 
-    /** Returns true if this system is enacting the pending defeat (i.e., delayed defeat from damage) for the specified card */
-    protected isPendingDefeatFor(card: Card, context: TContext) {
-        return false;
-    }
-
     /**
      * Manages special rules for cards leaving play. Should be called as the handler for systems
      * that move a card out of the play areas (arenas).

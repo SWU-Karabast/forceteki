@@ -68,7 +68,7 @@ import { SimultaneousGameSystem } from './SimultaneousSystem';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { IPlayerLastingEffectProperties, PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
 import { IPlayerPhaseLastingEffectProperties, PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
-import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoverDeckCardsTopOrBottomSystem';
+import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
