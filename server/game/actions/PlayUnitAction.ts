@@ -41,7 +41,7 @@ export class PlayUnitAction extends PlayCardAction {
             events.push(this.generateSmuggleEvent(context));
         }
 
-        context.game.openEventWindow(events, this.resolveTriggersAfter);
+        context.game.openEventWindow(events, this.triggerHandlingMode);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

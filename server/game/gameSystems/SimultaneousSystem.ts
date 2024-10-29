@@ -1,7 +1,8 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
+import { MetaEventName } from '../core/Constants';
 import { GameObject } from '../core/GameObject';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { MetaSystem } from '../core/gameSystem/MetaSystem';
+import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 
 export interface ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     gameSystems: GameSystem<TContext>[];
@@ -13,7 +14,8 @@ export interface ISimultaneousSystemProperties<TContext extends AbilityContext =
     ignoreTargetingRequirements?: boolean;
 }
 
-export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends MetaSystem<TContext, ISimultaneousSystemProperties<TContext>> {
+export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISimultaneousSystemProperties<TContext>> {
+    protected override readonly eventName: MetaEventName.Simultaneous;
     protected override readonly defaultProperties: ISimultaneousSystemProperties<TContext> = {
         gameSystems: null,
         ignoreTargetingRequirements: false
