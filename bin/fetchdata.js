@@ -40,7 +40,7 @@ function filterValues(card) {
         return null;
     }
 
-    // filtering out TWI for now since the cards don't have complete data
+    // filtering out C24 for now since we do not handle variants
     if (card.attributes.expansion.data.attributes.code === 'C24') {
         return null;
     }
