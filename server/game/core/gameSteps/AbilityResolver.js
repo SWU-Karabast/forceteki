@@ -97,7 +97,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             }
         }
         this.events.push(new GameEvent(eventName, eventProps, () => this.queueInitiateAbilitySteps()));
-        this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events, this.context.ability.resolveTriggersAfter));
+        this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events, this.context.ability.triggerHandlingMode));
     }
 
     queueInitiateAbilitySteps() {

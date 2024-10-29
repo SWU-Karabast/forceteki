@@ -154,7 +154,6 @@ export enum TokenName {
 }
 
 export enum EventName {
-    MetaAttackSteps = 'metaAttackSteps',
     OnAbilityResolved = 'onAbilityResolved',
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
     OnAddTokenToCard = 'onAddTokenToCard',
@@ -170,6 +169,7 @@ export enum EventName {
     OnCardMoved = 'onCardMoved',
     OnCardPlayed = 'onCardPlayed',
     OnCardReadied = 'onCardReadied',
+    OnCardResourced = 'onCardResourced',
     OnCardReturnedToHand = 'onCardReturnedToHand',
     OnCardRevealed = 'onCardRevealed',
     OnCardsDiscarded = 'onCardsDiscarded',
@@ -184,6 +184,7 @@ export enum EventName {
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
+    OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
     OnPhaseCreated = 'onPhaseCreated',
     OnPhaseEnded = 'onPhaseEnded',
@@ -193,14 +194,31 @@ export enum EventName {
     OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
     OnRoundEnded = 'onRoundEnded',
     OnRoundEndedCleanup = 'onRoundEndedCleanup',
-    OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
     OnStatusTokenDiscarded = 'onStatusTokenDiscarded',
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnClaimInitiative = 'onClaimInitiative',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
-    Unnamed = 'unnamedEvent',
+}
+
+/**
+ * Meta-events are infrastructure events that exist to facilitate game events.
+ * Abilities cannot trigger on them because they don't exist in the SWU rules, they're just
+ * to help us execute the game rules correctly.
+ */
+export enum MetaEventName {
+    AttackSteps = 'attackSteps',
+    Conditional = 'conditional',
+    DistributeDamage = 'distributeDamage',
+    DistributeHealing = 'distributeHealing',
+    ExecuteHandler = 'executeHandler',
+    InitiateAttack = 'initiateAttack',
+    NoAction = 'noAction',
+    ReplacementEffect = 'replacementEffect',
+    SelectCard = 'selectCard',
+    Sequential = 'sequential',
+    Simultaneous = 'simultaneous'
 }
 
 export enum AbilityType {
