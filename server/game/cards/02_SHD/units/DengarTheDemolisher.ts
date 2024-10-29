@@ -14,7 +14,7 @@ export default class DengarTheDemolisher extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 1 damage to the upgraded unit',
             when: {
-                onUpgradeAttached: (event, context) => event.card.controller === context.source.controller,
+                onCardPlayed: (event, context) => event.card.controller === context.source.controller && event.card.isUpgrade(),
             },
             limit: AbilityLimit.unlimited(),
             optional: true,
