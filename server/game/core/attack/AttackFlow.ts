@@ -8,6 +8,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import { GameEvent } from '../event/GameEvent';
 import { Card } from '../card/Card';
+import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem, DamageType } from '../../gameSystems/DamageSystem';
 
 export class AttackFlow extends BaseStepWithPipeline {
@@ -36,14 +37,14 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.attack.attacker.setActiveAttack(this.attack);
         this.attack.target.setActiveAttack(this.attack);
 
-        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack }, true);
+        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
     }
 
     private openDealDamageWindow(): void {
         this.context.game.createEventAndOpenWindow(
             EventName.OnAttackDamageResolved,
             { attack: this.attack },
-            true,
+            TriggerHandlingMode.ResolvesTriggers,
             () => this.dealDamage()
         );
     }
@@ -129,7 +130,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     private completeAttack() {
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, {
             attack: this.attack,
-        }, true);
+        }, TriggerHandlingMode.ResolvesTriggers);
     }
 
     private cleanUpAttack() {

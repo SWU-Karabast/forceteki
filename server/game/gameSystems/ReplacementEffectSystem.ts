@@ -1,5 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import { MetaEventName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
@@ -14,6 +15,7 @@ export interface IReplacementEffectSystemProperties extends IGameSystemPropertie
 // UP NEXT: convert this into a subclass of TriggeredAbilitySystem as TriggeredReplacementEffectSystem
 
 export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties> {
+    protected override readonly eventName = MetaEventName.ReplacementEffect;
     public override eventHandler(event, additionalProperties = {}): void {
         const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(event.context, additionalProperties);
 

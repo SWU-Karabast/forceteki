@@ -415,11 +415,11 @@ class Player extends GameObject {
      */
     drawCardsToHand(numCards) {
         if (numCards > this.drawDeck.length) {
+            // TODO: move log message into the DrawSystem
             // Game log message about empty deck damage(the damage itself is handled in DrawSystem.updateEvent()).
             this.game.addMessage('{0} attempts to draw {1} cards from their empty deck and takes {2} damage instead ',
                 this.name, numCards - this.drawDeck.length, 3 * (numCards - this.drawDeck.length)
             );
-            numCards = this.drawDeck.length;
         }
         for (let card of this.drawDeck.slice(0, numCards)) {
             this.moveCard(card, Location.Hand);
@@ -1145,7 +1145,7 @@ class Player extends GameObject {
         let state = {
             cardPiles: {
                 // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
-                hand: this.getSummaryForHand(this.hand, activePlayer, true),
+                hand: this.getSummaryForHand(this.hand, activePlayer, false),
                 removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer)
             },
             disconnected: this.disconnected,
@@ -1163,6 +1163,7 @@ class Player extends GameObject {
             user: safeUser
         };
 
+        // Should we consolidate card piles that use getSummaryForCardList?
         if (this.additionalPiles && Object.keys(this.additionalPiles)) {
             Object.keys(this.additionalPiles).forEach((key) => {
                 if (this.additionalPiles[key].cards.size() > 0) {

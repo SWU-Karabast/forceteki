@@ -1,6 +1,6 @@
 import type { AbilityContext } from './AbilityContext.js';
-import CardAbility from './CardAbility.js';
-import { AbilityType, CardType, EffectName, PhaseName } from '../Constants.js';
+import { CardAbility } from './CardAbility';
+import { AbilityType, EffectName, PhaseName } from '../Constants.js';
 import type { IActionAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
