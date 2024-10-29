@@ -1,5 +1,6 @@
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
-import { Aspect } from '../../../core/Constants';
+import AbilityHelper from '../../../AbilityHelper';
+import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class KyloRenKillingThePast extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +17,23 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
             condition: (context) => context.source.controller.controlsUnitWithName('Rey')
         });
 
-        // TODO: Attack Ability
+        this.addOnAttackAbility({
+            title: 'Give a unit +2/0 for this phase',
+            targetResolver: {
+                controller: RelativePlayer.Any,
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
+                    }),
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => context.target.aspects.includes(Aspect.Villainy),
+                        onTrue: AbilityHelper.immediateEffects.noAction(),
+                        onFalse: AbilityHelper.immediateEffects.giveExperience()
+                    })
+                ])
+            },
+        });
     }
 }
 
