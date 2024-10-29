@@ -86,12 +86,11 @@ describe('Regroup phase', function() {
                     expect(context.player2).toBeActivePlayer();
 
                     // Case 3 player 2 can only draw 1 card and receives 3 damage to base;
-                    // TODO this test involves dealing damage to base from an unknown source and needs to be reworked.
-                    /* context.player2.passAction();
+                    context.player2.passAction();
                     context.player1.claimInitiative();
 
                     // Draw cards
-                    expect(context.player1.hand.length).toBe(5);
+                    expect(context.player1.hand.length).toBe(6);
                     expect(context.player2.hand.length).toBe(4);
 
                     // Resources
@@ -99,8 +98,8 @@ describe('Regroup phase', function() {
                     context.player1.clickPrompt('Done');
 
                     // check board state
-                    expect(context.player2.deck.length).toBe(0);*/
-                    // expect(context.p2Base.damage).toBe(3);
+                    expect(context.player2.deck.length).toBe(0);
+                    expect(context.p2Base.damage).toBe(3);
                 }
             );
 
