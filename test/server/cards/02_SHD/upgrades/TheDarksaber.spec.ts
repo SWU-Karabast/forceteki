@@ -1,41 +1,41 @@
 describe('The Darksaber', function() {
     integration(function(contextRef) {
-        // describe('The Darksaber\'s ability', function() {
-        //     beforeEach(function () {
-        //         contextRef.setupTest({
-        //             phase: 'action',
-        //             player1: {
-        //                 groundArena: [{ card: 'battlefield-marine', upgrades: ['the-darksaber'] }, 'supercommando-squad', 'clan-wren-rescuer', 'pyke-sentinel'],
-        //                 spaceArena: ['concord-dawn-interceptors']
-        //             },
-        //             player2: {
-        //                 groundArena: ['follower-of-the-way']
-        //             }
-        //         });
-        //     });
+        describe('The Darksaber\'s ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['the-darksaber'] }, 'supercommando-squad', 'clan-wren-rescuer', 'pyke-sentinel'],
+                        spaceArena: ['concord-dawn-interceptors']
+                    },
+                    player2: {
+                        groundArena: ['follower-of-the-way']
+                    }
+                });
+            });
 
-        //     it('should give Experience to friendly Mandalorian units', function () {
-        //         const { context } = contextRef;
-        //         context.player1.clickCard(context.battlefieldMarine);
-        //         context.player1.clickCard(context.p2Base);
+            it('should give Experience to friendly Mandalorian units', function () {
+                const { context } = contextRef;
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
 
-        //         // Check that only friendly Mandalorians were buffed
-        //         expect(context.battlefieldMarine.getPower()).toBe(7);
-        //         expect(context.battlefieldMarine.getHp()).toBe(6);
+                // Check that only friendly Mandalorians were buffed
+                expect(context.battlefieldMarine.getPower()).toBe(7);
+                expect(context.battlefieldMarine.getHp()).toBe(6);
 
-        //         expect(context.supercommandoSquad.getPower()).toBe(5);
-        //         expect(context.supercommandoSquad.getHp()).toBe(5);
+                expect(context.supercommandoSquad.getPower()).toBe(5);
+                expect(context.supercommandoSquad.getHp()).toBe(5);
 
-        //         expect(context.clanWrenRescuer.getPower()).toBe(2);
-        //         expect(context.clanWrenRescuer.getHp()).toBe(3);
+                expect(context.clanWrenRescuer.getPower()).toBe(2);
+                expect(context.clanWrenRescuer.getHp()).toBe(3);
 
-        //         expect(context.concordDawnInterceptors.getPower()).toBe(2);
-        //         expect(context.concordDawnInterceptors.getHp()).toBe(5);
+                expect(context.concordDawnInterceptors.getPower()).toBe(2);
+                expect(context.concordDawnInterceptors.getHp()).toBe(5);
 
-        //         expect(context.followerOfTheWay.getPower()).toBe(1);
-        //         expect(context.followerOfTheWay.getHp()).toBe(3);
-        //     });
-        // });
+                expect(context.followerOfTheWay.getPower()).toBe(1);
+                expect(context.followerOfTheWay.getHp()).toBe(3);
+            });
+        });
 
         describe('The Darksaber\'s ability', function() {
             beforeEach(function () {

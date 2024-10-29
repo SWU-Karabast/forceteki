@@ -42,7 +42,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     }
 
     protected getAdjustedCost(context: TContext): number {
-        return context.player.getAdjustedCost(context.playType, context.source, null, this.ignoreType);
+        return context.player.getAdjustedCost(context.playType, context.source, context.target, this.ignoreType);
     }
 
     public payEvent(context: TContext): GameEvent {
