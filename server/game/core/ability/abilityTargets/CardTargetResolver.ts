@@ -61,11 +61,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         // A player can always choose not to pick a card from a zone that is hidden from their opponents
         // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
         // TODO: test if picking a card from an opponent's usually hidden zone(e.g. opponent's hand) works as expected(the if block here should be skipped)
-        if (CardTargetResolver.allZonesAreHidden(this.properties.locationFilter,
-            typeof this.properties.controller === 'function'
-                ? this.properties.controller(context)
-                : this.properties.controller) &&
-                this.selector.hasAnyCardFilter) {
+        const controller = typeof this.properties.controller === 'function' ? this.properties.controller(context) : this.properties.controller;
+        if (CardTargetResolver.allZonesAreHidden(this.properties.locationFilter, controller) && this.selector.hasAnyCardFilter) {
             this.properties.optional = true;
             this.selector.optional = true;
             this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle();
