@@ -13,6 +13,10 @@ describe('Card highlighting', function() {
                             'moment-of-peace',
                             'moment-of-peace',
                             'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
                         ],
                         hand: ['vanguard-infantry'],
                         groundArena: ['wampa'],
@@ -20,6 +24,7 @@ describe('Card highlighting', function() {
                     },
                     player2: {
                         groundArena: ['death-trooper'],
+                        spaceArena: ['mercenary-gunship']
                     }
                 });
             });
@@ -49,6 +54,13 @@ describe('Card highlighting', function() {
                 // play from hand action
                 context.player1.clickCard(context.vanguardInfantry);
                 expect(context.player1.currentPrompt()).not.toEqual(currentPossibleActions);
+
+                reset();
+
+                // steal mercenary gunship TODO wait till the gunship is implemented
+                /* expect(context.player1.countSpendableResources()).toBe(4);
+                context.player1.clickCard(context.mercenaryGunship);
+                expect(context.player1.currentPrompt()).not.toEqual(currentPossibleActions);*/
             });
         });
     });
