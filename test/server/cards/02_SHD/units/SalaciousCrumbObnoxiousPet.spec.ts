@@ -62,6 +62,9 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 const { context } = contextRef;
 
                 context.salaciousCrumb.exhausted = true;
+                context.player1.passAction();
+                context.player2.clickCard(context.frontierAtrt);
+                context.player2.clickCard(context.p1Base);
                 expect(context.salaciousCrumb).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
