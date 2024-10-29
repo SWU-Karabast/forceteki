@@ -20,7 +20,8 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
-        } else {
+        // bounty is not managed here since it has to be explicitly implemented
+        } else if (keywordName !== KeywordName.Bounty) {
             // default case is a keyword with no params
             if (isKeywordEnabled(keywordName, cardText, cardName)) {
                 keywords.push(new KeywordInstance(keywordName));
@@ -61,7 +62,6 @@ export const isNumericType: Record<KeywordName, boolean> = {
  * Should not be used for "numeric" keywords like raid and restore, see {@link parseNumericKeywordValueIfEnabled}.
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
- * @deprecated this is implemented but not yet tested on an actual keyword
  */
 function isKeywordEnabled(keyword: KeywordName, cardText: string, cardName: string): boolean {
     const regex = getRegexForKeyword(keyword);

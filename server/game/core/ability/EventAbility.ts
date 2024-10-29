@@ -1,5 +1,5 @@
 import type { AbilityContext } from './AbilityContext.js';
-import CardAbility from './CardAbility.js';
+import { CardAbility } from './CardAbility.js';
 import { AbilityType, Location, PhaseName } from '../Constants.js';
 import type { IEventAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
