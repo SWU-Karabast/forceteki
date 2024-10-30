@@ -18,7 +18,7 @@ export default class BenduTheOneInTheMiddle extends NonLeaderUnitCard {
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Playable,
                     match: (card) => !card.hasSomeAspect(Aspect.Heroism) && !card.hasSomeAspect(Aspect.Villainy),
-                    limit: AbilityLimit.fixed(1),
+                    limit: AbilityLimit.perGame(1),
                     amount: 2
                 })
             })
