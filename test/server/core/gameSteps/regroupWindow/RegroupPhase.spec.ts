@@ -25,20 +25,12 @@ describe('Regroup phase', function() {
                     const { context } = contextRef;
 
                     // old hand & deck setup
-                    const oldHandPlayer1 = [];
-                    const oldHandPlayer2 = [];
-                    const oldDeckPlayer1 = [];
-                    const oldDeckPlayer2 = [];
-                    const oldResourcesPlayer1 = [];
-                    const oldResourcesPlayer2 = [];
-
-                    // we need to create a deep copy since otherwise the original array receives changes
-                    context.player1.hand.forEach((val) => oldHandPlayer1.push(val));
-                    context.player2.hand.forEach((val) => oldHandPlayer2.push(val));
-                    context.player1.deck.forEach((val) => oldDeckPlayer1.push(val));
-                    context.player2.deck.forEach((val) => oldDeckPlayer2.push(val));
-                    context.player1.resources.forEach((val) => oldResourcesPlayer1.push(val));
-                    context.player2.resources.forEach((val) => oldResourcesPlayer2.push(val));
+                    const oldHandPlayer1 = [...context.player1.hand];
+                    const oldHandPlayer2 = [...context.player2.hand];
+                    const oldDeckPlayer1 = [...context.player1.deck];
+                    const oldDeckPlayer2 = [...context.player2.deck];
+                    const oldResourcesPlayer1 = [...context.player1.resources];
+                    const oldResourcesPlayer2 = [...context.player2.resources];
 
                     // Setup for Case 1
                     context.allianceXwing.exhausted = true;
@@ -69,7 +61,7 @@ describe('Regroup phase', function() {
                     // Player 1 Resources a card and Player 2 doesn't
                     context.player1.clickCard('wroshyr-tree-tender');
                     // this is the index of wroshyr-tree-tender
-                    oldResourcesPlayer1.push(oldHandPlayer1[1]);
+                    oldResourcesPlayer1.push(context.wroshyrTreeTender);
                     context.player1.clickPrompt('Done');
                     context.player2.clickPrompt('Done');
 
@@ -109,7 +101,7 @@ describe('Regroup phase', function() {
                         phase: 'action',
                         player1: {
                             hand: ['attack-pattern-delta'],
-                            groundArena: ['ardent-sympathizer', 'scout-bike-pursuer'],
+                            groundArena: ['ardent-sympathizer', 'scout-bike-pursuer', 'general-krell#heartless-tactician'],
                             spaceArena: ['alliance-xwing'],
                         },
                         player2: {
@@ -119,9 +111,16 @@ describe('Regroup phase', function() {
 
                     const { context } = contextRef;
 
+                    // Play card Attack pattern delta
                     context.player1.clickCard(context.attackPatternDelta);
+                    // Select Ardent Sympathizer to get +3/+3
                     context.player1.clickCard(context.ardentSympathizer);
+                    // Select Scout Bike Pursuer to get +2/+2
                     context.player1.clickCard(context.scoutBikePursuer);
+                    // Select General Krell to receive +1/+1
+                    context.player1.clickCard(context.generalKrell);
+
+                    // Select wampa to attack Ardent Sympathizer
                     context.player2.clickCard(context.wampa);
                     context.player2.clickCard(context.ardentSympathizer);
 
@@ -130,8 +129,13 @@ describe('Regroup phase', function() {
                     expect(context.wampa.location).toBe('discard');
 
                     // Move to regroup phase
+                    expect(context.ardentSympathizer.location).toBe('ground arena');
                     context.player1.passAction();
                     context.player2.claimInitiative();
+
+                    // We check the timing of General Krells "When Defeated"
+                    expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
+                    context.player1.clickPrompt('Draw a card');
 
                     // Check board state
                     expect(context.ardentSympathizer.location).toBe('discard');

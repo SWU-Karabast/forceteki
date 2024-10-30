@@ -47,6 +47,5 @@ export abstract class Phase extends BaseStepWithPipeline {
             // for post-phase state cleanup. emit directly, don't need a window.
             this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
         }
-        // this.game.currentPhase = null;
     }
 }
