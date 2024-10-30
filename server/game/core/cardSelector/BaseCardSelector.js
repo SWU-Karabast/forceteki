@@ -18,6 +18,10 @@ class BaseCardSelector {
         }
     }
 
+    get hasAnyCardFilter() {
+        return this.cardTypeFilter || this.cardCondition;
+    }
+
     buildLocationFilter(property) {
         let locationFilter = property || WildcardLocation.AnyAttackable || [];
         if (!Array.isArray(locationFilter)) {

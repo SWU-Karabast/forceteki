@@ -160,6 +160,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
         Contract.assertTrue(context.source.isUnit());
+        Contract.assertNotNullLike(card);
 
         let damageDealtBy: UnitCard;
 
@@ -175,7 +176,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
                     damageDealtBy = properties.sourceAttack.attacker;
                     break;
                 default:
-                    Contract.fail(`Combat damage being dealt to card ${card.internalName} but it is not involved in the attack`);
+                    Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
             }
         }
 

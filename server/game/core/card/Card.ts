@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, LocationFilter, Trait, WildcardLocation } from '../Constants';
+import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, RelativePlayer, Trait, WildcardLocation } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
@@ -473,41 +473,38 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentLocation(prevLocation: Location) {
+        this.hiddenForOpponent = EnumHelpers.isHidden(this.location, RelativePlayer.Self);
+
         switch (this.location) {
             case Location.SpaceArena:
             case Location.GroundArena:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = false;
                 break;
 
             case Location.Base:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = false;
                 break;
 
             case Location.Resource:
                 this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = true;
                 break;
 
             case Location.Deck:
                 this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = true;
-                this.hiddenForOpponent = true;
                 break;
 
             case Location.Hand:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = true;
                 break;
 
             case Location.Discard:
@@ -516,7 +513,6 @@ export class Card extends OngoingEffectSource {
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
-                this.hiddenForOpponent = false;
                 break;
 
             default:
