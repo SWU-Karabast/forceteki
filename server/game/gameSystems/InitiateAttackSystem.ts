@@ -49,7 +49,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         super.addPropertiesToEvent(event, attacker, context, additionalProperties);
 
         event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties);
-        event.optional = properties.optional == null ? context.ability.optional : properties.optional;
+        event.optional = properties.optional ?? context.ability.optional;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {

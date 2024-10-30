@@ -34,7 +34,7 @@ export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityConte
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
-        events.push(this.generateEvent(null, context, additionalProperties));
+        events.push(this.generateEvent(context, additionalProperties));
     }
 
     public override hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties = {}) {

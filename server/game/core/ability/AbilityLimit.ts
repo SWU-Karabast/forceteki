@@ -59,7 +59,7 @@ class UnlimitedAbilityLimit implements IAbilityLimit {
     }
 }
 
-class FixedAbilityLimit implements IAbilityLimit {
+class PerGameAbilityLimit implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
     private useCount = new Map<string, number>();
@@ -67,7 +67,7 @@ class FixedAbilityLimit implements IAbilityLimit {
     public constructor(public max: number) {}
 
     public clone() {
-        return new FixedAbilityLimit(this.max);
+        return new PerGameAbilityLimit(this.max);
     }
 
     public isRepeatable(): boolean {
@@ -109,7 +109,7 @@ class FixedAbilityLimit implements IAbilityLimit {
     }
 }
 
-class RepeatableAbilityLimit extends FixedAbilityLimit {
+class RepeatableAbilityLimit extends PerGameAbilityLimit {
     public constructor(
         max: number,
         private eventName: Set<EventName>
@@ -138,7 +138,7 @@ class RepeatableAbilityLimit extends FixedAbilityLimit {
     }
 }
 
-class EpicActionLimit extends FixedAbilityLimit {
+class EpicActionLimit extends PerGameAbilityLimit {
     public constructor() {
         super(1);
     }
@@ -150,10 +150,6 @@ class EpicActionLimit extends FixedAbilityLimit {
     // this prevents the limit from being reset when a leader is defeated
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override reset() {}
-}
-
-export function fixed(max: number) {
-    return new FixedAbilityLimit(max);
 }
 
 export function repeatable(max: number, eventName: EventName) {
@@ -169,7 +165,7 @@ export function perRound(max: number) {
 }
 
 export function perGame(max: number) {
-    return new RepeatableAbilityLimit(max, new Set());
+    return new PerGameAbilityLimit(max);
 }
 
 export function epicAction() {

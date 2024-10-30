@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Location, RelativePlayer } from '../../../core/Constants';
 
-export default class Crosshair extends NonLeaderUnitCard {
+export default class CrosshairFollowingOrders extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '1885628519',
@@ -31,4 +31,4 @@ export default class Crosshair extends NonLeaderUnitCard {
     }
 }
 
-Crosshair.implemented = true;
+CrosshairFollowingOrders.implemented = true;

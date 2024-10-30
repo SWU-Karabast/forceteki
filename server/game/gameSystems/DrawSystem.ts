@@ -53,7 +53,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
                 contingentEvents.push(new DamageSystem({
                     target: event.player.base,
                     amount: damageAmount
-                }).generateEvent(event.player.base, context));
+                }).generateEvent(context));
             }
             return contingentEvents;
         });

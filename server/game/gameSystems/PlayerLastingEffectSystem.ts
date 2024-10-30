@@ -45,7 +45,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: any): void {
         if (this.hasLegalTarget(context, additionalProperties)) {
-            events.push(this.generateEvent(null, context, additionalProperties));
+            events.push(this.generateEvent(context, additionalProperties));
         }
     }
 

@@ -26,7 +26,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             const lookAtEvent = new LookAtSystem({
                 target: player.drawDeck[0],
                 sendChatMessage: true
-            }).generateEvent(context.target, context);
+            }).generateEvent(context);
             events.push(lookAtEvent);
         } else {
             const actualAmount = Math.min(amount, deckLength);
@@ -70,8 +70,9 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         // create a new card event
         const moveCardEvent = new MoveCardSystem({
             bottom: bottom,
-            destination: Location.Deck
-        }).generateEvent(card, context);
+            destination: Location.Deck,
+            target: card
+        }).generateEvent(context);
         events.push(moveCardEvent);
 
         // get rid of the card from cards
