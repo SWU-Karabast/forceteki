@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage } = require('../Constants.js');
+const { Stage, PhaseName } = require('../Constants.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
 
 class PlayerAction extends PlayerOrCardAbility {
@@ -22,6 +22,18 @@ class PlayerAction extends PlayerOrCardAbility {
             source: this.card,
             stage: Stage.PreTarget
         });
+    }
+
+    /** @override */
+    meetsRequirements(context, ignoredRequirements = []) {
+        if (
+            !ignoredRequirements.includes('phase') &&
+            context.game.currentPhase !== PhaseName.Action
+        ) {
+            return 'phase';
+        }
+
+        return super.meetsRequirements(context, ignoredRequirements);
     }
 
     getAdjustedCost(context) {
