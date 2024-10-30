@@ -1,6 +1,6 @@
-describe('Card highlighting', function() {
+describe('Action Phase', function() {
     integration(function(contextRef) {
-        describe('Card highlighting', function() {
+        describe('Action Phase', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

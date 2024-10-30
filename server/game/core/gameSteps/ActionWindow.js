@@ -31,7 +31,6 @@ class ActionWindow extends UiPrompt {
             return false;
         }
 
-        // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
         let legalActions = this.getCardLegalActions(card, this.activePlayer);
         if (legalActions.length === 0) {
             return false;
@@ -199,9 +198,11 @@ class ActionWindow extends UiPrompt {
         this.activePlayer.setSelectableCards(allPossibleCards.filter((card) => this.getCardLegalActions(card, this.activePlayer).length > 0));
     }
 
+    // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
     getCardLegalActions(card, player) {
         let actions = card.getActions();
-        return actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
+        const legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
+        return legalActions;
     }
 
     // markBonusActionsTaken() {
