@@ -52,7 +52,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
         if (properties.readyResource) {
             event.setContingentEventsGenerator((event) => {
-                return [ready().generateEvent(card, context)];
+                return [ready({ target: card }).generateEvent(context)];
             });
         }
         super.updateEvent(event, target, context, additionalProperties);
