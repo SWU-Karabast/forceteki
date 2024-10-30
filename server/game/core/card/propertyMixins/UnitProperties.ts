@@ -329,7 +329,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 // add defeat event to window
                 this.game.addSubwindowEvents(
                     new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
-                        .generateEvent(this, this.game.getFrameworkContext())
+                        .generateEvent(this.game.getFrameworkContext())
                 );
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
