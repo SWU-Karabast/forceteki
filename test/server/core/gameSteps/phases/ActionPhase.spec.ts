@@ -49,7 +49,11 @@ describe('Action Phase', function() {
                 // steal mercenary gunship TODO wait till the gunship is implemented
                 /* expect(context.player1.countSpendableResources()).toBe(4);
                 context.player1.clickCard(context.mercenaryGunship);
-                expect(context.player1.currentPrompt()).not.toEqual(currentPossibleActions);*/
+                expect(context.player1.currentActionTargets).not.toContain(context.mercenaryGunship);*/
+
+                // Play from discard pile TODO wait till Kylos Tie Silencer is implemented
+                /* context.player1.clickCard(context.kylosTieSilencer);
+                expect(context.player1.currentActionTargets).not.toContain(context.kylosTieSilencer);*/
             });
         });
     });
