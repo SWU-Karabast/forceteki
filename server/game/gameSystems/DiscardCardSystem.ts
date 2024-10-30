@@ -12,6 +12,8 @@ export class DiscardCardSystem<TContext extends AbilityContext = AbilityContext>
     public override readonly eventName = EventName.OnCardsDiscarded;
 
     public override canAffect(card: Card | Card[], context: TContext, additionalProperties: Record<string, any> = {}): boolean {
+        /* TODO A bug currently leads to this sometimes being an array. Once the bug is fixed, we can expect this to
+        accept only 1 card, so we should change this to match */
         const cards = Array.isArray(card) ? card : [card];
 
         return cards.every((c) => c.location !== Location.Discard && super.canAffect(c, context, additionalProperties));

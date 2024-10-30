@@ -11,7 +11,7 @@ export interface IReturnToHandProperties extends ICardTargetSystemProperties {
     locationFilter?: ReturnableLocation | ReturnableLocation[];
 }
 
-// TODO: have a "ReturnToHandFromDiscardCardSystem" that inherits from this system
+// TODO: have a "ReturnToHandFromDiscardSystem" that inherits from this system
 /**
  * Configurable class for a return to hand from X zone effect. For return to hand from play area specifically,
  * see {@link ReturnToHandFromPlaySystem}
