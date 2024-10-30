@@ -1,4 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
+import { Card } from '../core/card/Card';
 import { MetaEventName } from '../core/Constants';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
@@ -16,8 +17,8 @@ export class DistributeHealingSystem<TContext extends AbilityContext = AbilityCo
 
     public override promptType = StatefulPromptType.DistributeHealing;
 
-    protected override generateEffectSystem(amount = 1): HealSystem {
-        return new HealSystem({ amount });
+    protected override generateEffectSystem(target: Card = null, amount = 1): HealSystem {
+        return new HealSystem({ target, amount });
     }
 
     // most "distribute healing" abilities do not require all healing to be dealt

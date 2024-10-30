@@ -6,6 +6,7 @@ import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
+import * as Contract from '../utils/Contract';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -108,15 +109,36 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 }
                 context.game.queueSimpleStep(() => {
                     if (allCostsPaid) {
-                        events.push(this.generateEvent(card, context, additionalProperties));
+                        events.push(this.generateRetargetedEvent(card, context, additionalProperties));
                     }
                 }, 'push card target event if targeting cost paid');
             } else {
                 if (allCostsPaid) {
-                    events.push(this.generateEvent(card, context, additionalProperties));
+                    events.push(this.generateRetargetedEvent(card, context, additionalProperties));
                 }
             }
         }
+    }
+
+    // override the base class behavior with a version that forces properties.target to be a scalar value
+    public override generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
+        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        Contract.assertNotNullLike(target, 'Attempting to generate card target event with no provided target');
+
+        let nonArrayTarget: any;
+        if (Array.isArray(target)) {
+            // need to use queueGenerateEventGameSteps for multiple-target scenarios
+            Contract.assertTrue(target.length === 1, `CardTargetSystem must have 'target' property with exactly 1 target, instead found ${target.length}`);
+            nonArrayTarget = target[0];
+        } else {
+            Contract.assertNotNullLike(target, 'CardTargetSystem must have non-null \'target\' propery');
+            nonArrayTarget = target;
+        }
+
+        const event = this.createEvent(nonArrayTarget, context, additionalProperties);
+        this.updateEvent(event, nonArrayTarget, context, additionalProperties);
+        return event;
     }
 
     public override checkEventCondition(event: any, additionalProperties = {}): boolean {
@@ -164,8 +186,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             for (const upgrade of (event.card.upgrades ?? []) as UpgradeCard[]) {
                 if (upgrade.isInPlay()) {
                     const attachmentEvent = context.game.actions
-                        .defeat()
-                        .generateEvent(upgrade, context.game.getFrameworkContext());
+                        .defeat({ target: upgrade })
+                        .generateEvent(context.game.getFrameworkContext());
                     attachmentEvent.order = event.order - 1;
                     const previousCondition = attachmentEvent.condition;
                     attachmentEvent.condition = (attachmentEvent) =>

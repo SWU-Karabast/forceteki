@@ -27,8 +27,12 @@ export class PlayUpgradeAction extends PlayCardAction {
             playType: context.playType
         });
         const events = [context.game.actions
-            .attachUpgrade({ upgrade: context.source, takeControl: context.source.controller !== context.player })
-            .generateEvent(context.target, context),
+            .attachUpgrade({
+                upgrade: context.source,
+                takeControl: context.source.controller !== context.player,
+                target: context.target
+            })
+            .generateEvent(context),
         cardPlayedEvent];
 
         if (context.playType === PlayType.Smuggle) {
