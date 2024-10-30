@@ -1,4 +1,4 @@
-import { CardType, CardTypeFilter, Location, LocationFilter, WildcardCardType, WildcardLocation } from '../Constants';
+import { CardType, CardTypeFilter, Location, LocationFilter, RelativePlayer, WildcardCardType, WildcardLocation } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -37,6 +37,18 @@ export const isAttackableLocation = (location: LocationFilter) => {
         case Location.SpaceArena:
         case WildcardLocation.AnyArena:
         case Location.Base:
+            return true;
+        default:
+            return false;
+    }
+};
+
+export const isHidden = (location: LocationFilter, controller: RelativePlayer) => {
+    switch (location) {
+        case Location.Hand:
+        case Location.Resource:
+            return controller !== RelativePlayer.Opponent;
+        case Location.Deck:
             return true;
         default:
             return false;

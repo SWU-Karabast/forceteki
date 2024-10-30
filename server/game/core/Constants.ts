@@ -215,6 +215,7 @@ export enum MetaEventName {
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     NoAction = 'noAction',
+    PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',
     SelectCard = 'selectCard',
     Sequential = 'sequential',
