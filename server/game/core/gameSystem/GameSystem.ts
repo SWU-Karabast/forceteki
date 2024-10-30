@@ -158,6 +158,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param additionalProperties Any additional properties to extend the default ones with
      * @returns True if any of the candidate targets are legal, false otherwise
      */
+    // TODO: update the type for additionalProperties everywhere to be Record<string, any> since it's always a flat object
     public hasLegalTarget(context: TContext, additionalProperties: any = {}): boolean {
         for (const candidateTarget of this.targets(context, additionalProperties)) {
             if (this.canAffect(candidateTarget, context, additionalProperties)) {
