@@ -7,8 +7,6 @@ describe('Resupply', function() {
                     player1: {
                         hand: ['resupply'],
                         leader: 'leia-organa#alliance-general'
-                    },
-                    player2: {
                     }
                 });
             });
