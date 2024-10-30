@@ -4,6 +4,7 @@ import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRe
 import { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 import { GameSystem } from '../../../core/gameSystem/GameSystem';
 import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
     private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
@@ -24,6 +25,7 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
             title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: this.getWatTamborEffect()
             }
         });
@@ -33,6 +35,8 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
         this.addOnAttackAbility({
             title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
             targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
+                optional: true,
                 cardCondition: (card, context) => card !== context.source,
                 immediateEffect: this.getWatTamborEffect(),
             }
