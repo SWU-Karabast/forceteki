@@ -59,12 +59,18 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
             });
 
             it('should not be available if Crumb is exhausted', function () {
-                const { context } = contextRef;
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'salacious-crumb#obnoxious-pet', exhausted: true }, 'wampa'],
+                    },
+                    player2: {
+                        groundArena: ['frontier-atrt'],
+                        spaceArena: ['cartel-spacer']
+                    }
+                });
 
-                context.salaciousCrumb.exhausted = true;
-                context.player1.passAction();
-                context.player2.clickCard(context.frontierAtrt);
-                context.player2.clickCard(context.p1Base);
+                const { context } = contextRef;
                 expect(context.salaciousCrumb).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });

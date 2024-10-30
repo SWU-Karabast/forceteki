@@ -31,31 +31,20 @@ describe('Action Phase', function() {
 
             it('the prompt before an action and after should be different.', function () {
                 const { context } = contextRef;
-                let currentPossibleActions = context.player1.currentPrompt();
-
-                const reset = () => {
-                    currentPossibleActions = context.player1.currentPrompt();
-                };
 
                 // attack action
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.deathTrooper);
                 context.player2.claimInitiative();
-                expect(context.player1.currentPrompt()).not.toEqual(currentPossibleActions);
-
-                reset();
+                expect(context.player1.currentActionTargets).not.toContain(context.wampa);
 
                 // smuggle action
                 context.player1.clickCard(context.collectionsStarhopper);
-                expect(context.player1.currentPrompt()).not.toEqual(currentPossibleActions);
-
-                reset();
+                expect(context.player1.currentActionTargets).not.toContain(context.collectionsStarhopper);
 
                 // play from hand action
                 context.player1.clickCard(context.vanguardInfantry);
-                expect(context.player1.currentPrompt()).not.toEqual(currentPossibleActions);
-
-                reset();
+                expect(context.player1.currentActionTargets).not.toContain(context.vanguardInfantry);
 
                 // steal mercenary gunship TODO wait till the gunship is implemented
                 /* expect(context.player1.countSpendableResources()).toBe(4);
