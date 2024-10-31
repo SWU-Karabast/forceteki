@@ -120,7 +120,8 @@ describe('Regroup phase', function() {
                     // Select General Krell to receive +1/+1
                     context.player1.clickCard(context.generalKrell);
 
-                    // Select wampa to attack Ardent Sympathizer
+                    // Select wampa to attack Ardent Sympathizer,
+                    // attack damage is enough to defeat Ardent Sympathizer when the effect expires
                     context.player2.clickCard(context.wampa);
                     context.player2.clickCard(context.ardentSympathizer);
 
