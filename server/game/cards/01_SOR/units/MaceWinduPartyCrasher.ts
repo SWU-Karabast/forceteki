@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
-
 export default class MaceWinduPartyCrasher extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
