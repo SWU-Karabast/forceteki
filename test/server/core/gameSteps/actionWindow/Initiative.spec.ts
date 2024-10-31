@@ -22,16 +22,12 @@ describe('Claiming initiative', function() {
                 context.player1.claimInitiative();
                 expect(context.player2).toHaveExactPromptButtons(['Pass']);
                 expect(context.ardentSympathizer.getPower()).toBe(5);
-                // TODO atm we do not list the set of cards with available actions in the action phase to bypass the error
-                // TODO Expected Player prompt to change.
-                context.player2.clickCardNonChecking(context.scoutBikePursuer);
+                context.player2.clickCard(context.scoutBikePursuer);
 
                 expect(context.scoutBikePursuer).toBeInLocation('ground arena');
                 expect(context.player2).toHaveExactPromptButtons(['Pass']);
                 expect(context.player2).toBeActivePlayer();
-                // TODO atm we do not list the set of cards with available actions in the action phase to bypass the error
-                // TODO Expected Player prompt to change.
-                context.player2.clickCardNonChecking(context.wampa);
+                context.player2.clickCard(context.wampa);
 
                 expect(context.bazeMalbus.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
