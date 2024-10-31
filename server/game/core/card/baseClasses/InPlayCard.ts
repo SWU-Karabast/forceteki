@@ -83,6 +83,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
         const ability = this.createConstantAbility(properties);
+        // This check is necessary to make sure on-play cost-reduction effects are registered
         if (ability.sourceLocationFilter === WildcardLocation.Any) {
             ability.registeredEffects = this.addEffectToEngine(ability);
         }

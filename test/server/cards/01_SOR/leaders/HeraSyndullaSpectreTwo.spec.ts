@@ -82,7 +82,8 @@ describe('Hera Syndulla, Spectre Two', function() {
                         base: 'echo-base'
                     },
                     player2: {
-                        groundArena: ['pyke-sentinel']
+                        groundArena: ['pyke-sentinel'],
+                        leader: { card: 'rey#more-than-a-scavenger', deployed: true }
                     }
                 });
             });
@@ -98,6 +99,8 @@ describe('Hera Syndulla, Spectre Two', function() {
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.battlefieldMarine, context.yoda, context.heraSyndulla, context.chopper, context.sabineWren]);
                 context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.rey]);
+                context.player1.clickCard(context.pykeSentinel);
 
                 expect(context.pykeSentinel.damage).toBe(1);
                 expect(context.player1.countExhaustedResources()).toBe(4);
@@ -115,7 +118,7 @@ describe('Hera Syndulla, Spectre Two', function() {
 
                 expect(context.player1).toHavePrompt('Choose a card');
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.chopper]);
+                expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.chopper, context.rey]);
                 context.player1.clickCard(context.chopper);
 
                 expect(context.chopper).toHaveExactUpgradeNames(['experience']);

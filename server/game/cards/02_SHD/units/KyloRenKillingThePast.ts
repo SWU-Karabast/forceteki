@@ -14,7 +14,7 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
         this.addIgnoreSpecificAspectPenaltyAbility({
             title: 'If you control Rey, ignore the Villainy aspect when playing this',
             ignoredAspects: Aspect.Villainy,
-            condition: (context) => context.source.controller.controlsUnitWithTitle('Rey')
+            condition: (context) => context.source.controller.controlsLeaderOrUnitWithTitle('Rey')
         });
 
         this.addOnAttackAbility({

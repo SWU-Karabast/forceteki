@@ -76,12 +76,10 @@ export class CostAdjuster {
     ) {
         this.costAdjustType = properties.costAdjustType;
         if (properties.costAdjustType === CostAdjustType.Increase || properties.costAdjustType === CostAdjustType.Decrease) {
-            Contract.assertNotNullLike(properties.amount, 'Amount is required for Increase and Decrease.');
             this.amount = properties.amount || 1;
         }
 
         if (properties.costAdjustType === CostAdjustType.IgnoreSpecificAspects) {
-            Contract.assertNotNullLike(properties.ignoredAspects, 'Ignored Aspect list is required for IgnoreSpecificAspects');
             if (Array.isArray(properties.ignoredAspects)) {
                 Contract.assertTrue(properties.ignoredAspects.length > 0, 'Ignored Aspect array is empty');
             }

@@ -1,9 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
-import { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, Trait, WildcardCardType, WildcardLocation } from '../../../core/Constants';
-import Player from '../../../core/Player';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
