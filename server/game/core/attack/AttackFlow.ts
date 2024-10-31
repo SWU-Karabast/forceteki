@@ -8,6 +8,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import { GameEvent } from '../event/GameEvent';
 import { Card } from '../card/Card';
+import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem, DamageType } from '../../gameSystems/DamageSystem';
 
 export class AttackFlow extends BaseStepWithPipeline {
@@ -36,14 +37,14 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.attack.attacker.setActiveAttack(this.attack);
         this.attack.target.setActiveAttack(this.attack);
 
-        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack }, true);
+        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
     }
 
     private openDealDamageWindow(): void {
         this.context.game.createEventAndOpenWindow(
             EventName.OnAttackDamageResolved,
             { attack: this.attack },
-            true,
+            TriggerHandlingMode.ResolvesTriggers,
             () => this.dealDamage()
         );
     }
@@ -95,7 +96,8 @@ export class AttackFlow extends BaseStepWithPipeline {
             type: DamageType.Combat,
             amount: this.attack.getAttackerTotalPower(),
             sourceAttack: this.attack,
-        }).generateEvent(this.attack.target, this.context);
+            target: this.attack.target
+        }).generateEvent(this.context);
 
         if (this.attack.hasOverwhelm()) {
             attackerDamageEvent.setContingentEventsGenerator((event) => {
@@ -108,10 +110,11 @@ export class AttackFlow extends BaseStepWithPipeline {
                 const overwhelmSystem = new DamageSystem({
                     type: DamageType.Overwhelm,
                     contingentSourceEvent: attackerDamageEvent,
-                    sourceAttack: this.attack
+                    sourceAttack: this.attack,
+                    target: event.card.controller.base
                 });
 
-                return [overwhelmSystem.generateEvent(event.card.controller.base, this.context)];
+                return [overwhelmSystem.generateEvent(this.context)];
             });
         }
 
@@ -122,14 +125,15 @@ export class AttackFlow extends BaseStepWithPipeline {
         return AbilityHelper.immediateEffects.damage({
             type: DamageType.Combat,
             amount: this.attack.getTargetTotalPower(),
-            sourceAttack: this.attack
-        }).generateEvent(this.attack.attacker, this.context);
+            sourceAttack: this.attack,
+            target: this.attack.attacker
+        }).generateEvent(this.context);
     }
 
     private completeAttack() {
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, {
             attack: this.attack,
-        }, true);
+        }, TriggerHandlingMode.ResolvesTriggers);
     }
 
     private cleanUpAttack() {

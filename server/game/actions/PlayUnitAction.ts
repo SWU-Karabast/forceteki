@@ -6,7 +6,7 @@ import { PlayCardAction, PlayCardContext } from '../core/ability/PlayCardAction.
 import * as Contract from '../core/utils/Contract.js';
 
 export class PlayUnitAction extends PlayCardAction {
-    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand) {
+    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand, private entersReady: boolean = false) {
         super(card, 'Play this unit', playType);
     }
 
@@ -33,7 +33,7 @@ export class PlayUnitAction extends PlayCardAction {
         const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 
         const events = [
-            putIntoPlay({ controller: player }).generateEvent(context.source, context),
+            putIntoPlay({ target: context.source, controller: player, entersReady: this.entersReady }).generateEvent(context),
             cardPlayedEvent
         ];
 
@@ -41,7 +41,7 @@ export class PlayUnitAction extends PlayCardAction {
             events.push(this.generateSmuggleEvent(context));
         }
 
-        context.game.openEventWindow(events, this.resolveTriggersAfter);
+        context.game.openEventWindow(events, this.triggerHandlingMode);
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
