@@ -31,6 +31,7 @@ interface SwuTestContext {
     skipSetupPhase();
     selectInitiativePlayer(player: PlayerInteractionWrapper);
     moveToNextActionPhase();
+    moveToRegroupPhase();
     advancePhases(endphase);
     getPromptedPlayer(title: string);
     nextPhase();

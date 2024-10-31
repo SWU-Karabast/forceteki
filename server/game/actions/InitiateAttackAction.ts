@@ -24,12 +24,6 @@ export class InitiateAttackAction extends PlayerAction {
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
-        if (
-            !ignoredRequirements.includes('phase') &&
-            context.game.currentPhase !== PhaseName.Action
-        ) {
-            return 'phase';
-        }
         if (context.player !== context.source.controller) {
             return 'player';
         }

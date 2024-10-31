@@ -160,6 +160,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
         Contract.assertTrue(context.source.isUnit());
+        Contract.assertNotNullLike(card);
 
         let damageDealtBy: UnitCard;
 
@@ -175,7 +176,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
                     damageDealtBy = properties.sourceAttack.attacker;
                     break;
                 default:
-                    Contract.fail(`Combat damage being dealt to card ${card.internalName} but it is not involved in the attack`);
+                    Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
             }
         }
 
@@ -219,7 +220,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const excessDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
             player: context.player,
-            ability: context.ability,
             card: context.source,
             event
         };
@@ -230,12 +230,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
     private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
-        Contract.assertTrue(context.ability instanceof CardAbilityStep, `Damage was created by non-card ability ${context.ability.title} targeting ${card.internalName}`);
-
         const abilityDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
             player: context.player,
-            ability: context.ability,
             card: context.source,
             event
         };

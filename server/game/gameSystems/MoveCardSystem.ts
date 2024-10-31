@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, Location, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
@@ -18,6 +18,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 
 export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveCardProperties> {
     public override readonly name = 'move';
+    protected override readonly eventName = EventName.OnCardMoved;
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
     protected override defaultProperties: IMoveCardProperties = {
@@ -25,44 +26,25 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         switch: false,
         switchTarget: null,
         shuffle: false,
-        // TODO: remove completely if faceup logic is not needed
-        // faceup: false,
         bottom: false,
         changePlayer: false,
     };
 
     public eventHandler(event: any, additionalProperties = {}): void {
-        const context = event.context;
         // TODO: remove this completely if determinmed we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
-        // TODO: Is there a better/cleaner way to handle one or multiple cards here?
-        const cards = [].concat(properties.target);
-        for (const card of cards) {
-            if (properties.switch && properties.switchTarget) {
-                const otherCard = properties.switchTarget;
-                card.owner.moveCard(otherCard, card.location);
-            }
-            const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
-            player.moveCard(card, properties.destination, { bottom: !!properties.bottom });
+        const card = event.card as Card;
 
-            const target = properties.target;
-            // if (Array.isArray(target)) {
-            //     // TODO: should we allow this to move multiple cards at once?
-            //     if (!Contract.assertArraySize(target, 1)) {
-            //         return;
-            //     }
+        if (event.switch && event.switchTarget) {
+            const otherCard = event.switchTarget;
+            card.owner.moveCard(otherCard, card.location);
+        }
 
-            //     target = target[0];
-            // }
+        const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
+        player.moveCard(card, event.destination, { bottom: !!event.bottom });
 
-            if (properties.destination === Location.Deck && properties.shuffle) {
-                card.owner.shuffleDeck();
-            }
-            // TODO: remove completely if faceup logic is not needed
-            // else if (properties.faceup) { // TODO: add overrides for other card properties (e.g., exhausted)
-            //     card.facedown = false;
-            // }
+        if (event.destination === Location.Deck && event.shuffle) {
+            card.owner.shuffleDeck();
         }
     }
 
@@ -87,6 +69,18 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + '{1}\'s {2}',
             [properties.target, destinationController, properties.destination]
         ];
+    }
+
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+
+        event.switch = properties.switch;
+        event.switchTarget = properties.switchTarget;
+        event.changePlayer = properties.changePlayer;
+        event.destination = properties.destination;
+        event.bottom = properties.bottom;
+        event.shuffle = properties.shuffle;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {

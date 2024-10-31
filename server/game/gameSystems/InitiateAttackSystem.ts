@@ -8,6 +8,7 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import { IAttackProperties } from './AttackStepsSystem';
 import * as GameSystemLibrary from './GameSystemLibrary';
+import { EventName, MetaEventName } from '../core/Constants';
 
 export interface IInitiateAttackProperties<TContext extends AbilityContext = AbilityContext> extends IAttackProperties {
     ignoredRequirements?: string[];
@@ -24,6 +25,7 @@ export interface IInitiateAttackProperties<TContext extends AbilityContext = Abi
  */
 export class InitiateAttackSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IInitiateAttackProperties<TContext>> {
     public override readonly name = 'initiateUnitAttack';
+    protected override readonly eventName = MetaEventName.InitiateAttack;
     protected override readonly defaultProperties: IInitiateAttackProperties = {
         ignoredRequirements: [],
         attackerCondition: () => true
@@ -47,7 +49,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         super.addPropertiesToEvent(event, attacker, context, additionalProperties);
 
         event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties);
-        event.optional = properties.optional == null ? context.ability.optional : properties.optional;
+        event.optional = properties.optional ?? context.ability.optional;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {

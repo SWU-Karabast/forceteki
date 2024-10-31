@@ -1,8 +1,9 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
+import { MetaEventName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameObject } from '../core/GameObject';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { MetaSystem } from '../core/gameSystem/MetaSystem';
+import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 
 
 export interface ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
@@ -17,7 +18,8 @@ export interface ISequentialSystemProperties<TContext extends AbilityContext = A
  *
  * In terms of game text, this is the exact behavior of "do [X], then do [Y], then do..." or "do [X] [N] times"
  */
-export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends MetaSystem<TContext, ISequentialSystemProperties<TContext>> {
+export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISequentialSystemProperties<TContext>> {
+    protected override readonly eventName: MetaEventName.Sequential;
     public constructor(gameSystems: (GameSystem<TContext>)[]) {
         super({ gameSystems });
     }

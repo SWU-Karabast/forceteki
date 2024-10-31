@@ -293,7 +293,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     private resolveUniqueDefeat(duplicateToDefeat: InPlayCard) {
         const duplicateDefeatSystem = new FrameworkDefeatCardSystem({ defeatSource: DefeatSourceType.UniqueRule, target: duplicateToDefeat });
-        this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(duplicateToDefeat, this.game.getFrameworkContext()));
+        this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(this.game.getFrameworkContext()));
 
         duplicateToDefeat.registerPendingUniqueDefeat();
 

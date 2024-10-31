@@ -41,7 +41,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
     };
 
     public abstract promptType: StatefulPromptType.DistributeDamage | StatefulPromptType.DistributeHealing;
-    protected abstract generateEffectSystem(amount?: number): DamageSystem | HealSystem;
+    protected abstract generateEffectSystem(target?: Card, amount?: number): DamageSystem | HealSystem;
     protected abstract canDistributeLessDefault(): boolean;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -113,8 +113,8 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
     }
 
     private generateEffectEvent(card: Card, context: TContext, amount: number) {
-        const effectSystem = this.generateEffectSystem(amount);
-        return effectSystem.generateEvent(card, context);
+        const effectSystem = this.generateEffectSystem(card, amount);
+        return effectSystem.generateEvent(context);
     }
 
     private getAmountToDistribute(amountToDistributeOrFn: number | ((context: TContext) => number), context: TContext): number {

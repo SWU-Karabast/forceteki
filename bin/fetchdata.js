@@ -15,6 +15,21 @@ axiosRetry(axios, {
     retryDelay: () => (Math.random() * 2000) + 1000      // jitter retry delay by 1 - 3 seconds
 });
 
+function populateMissingData(attributes, id) {
+    switch (id) {
+        case '3941784506': // clone trooper
+        case '3463348370': // battle droid
+            attributes.type = {
+                data: {
+                    attributes: {
+                        name: 'token unit'
+                    }
+                }
+            };
+            break;
+    }
+}
+
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
         return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
@@ -30,8 +45,8 @@ function filterValues(card) {
         return null;
     }
 
-    // filtering out TWI for now since the cards don't have complete data
-    if (card.attributes.expansion.data.attributes.code === 'TWI' || card.attributes.expansion.data.attributes.code === 'C24') {
+    // filtering out C24 for now since we do not handle variants
+    if (card.attributes.expansion.data.attributes.code === 'C24') {
         return null;
     }
 
@@ -42,6 +57,9 @@ function filterValues(card) {
     let filteredObj = filterAttributes(card.attributes);
 
     filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
+
+    populateMissingData(card.attributes, filteredObj.id);
+
     filteredObj.aspects = getAttributeNames(card.attributes.aspects);
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
@@ -92,7 +110,7 @@ function getUniqueCards(cards) {
     const seenNames = [];
     var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
-    const setNumber = new Map([['SOR', 1], ['SHD', 2]]);
+    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3]]);
 
     for (const card of cards) {
         if (seenNames.includes(card.internalName)) {

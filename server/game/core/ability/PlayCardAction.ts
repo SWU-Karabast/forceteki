@@ -73,6 +73,6 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     public generateSmuggleEvent(context: PlayCardContext) {
-        return resourceCard({ target: context.player.getTopCardOfDeck() }).generateEvent(context.source, context);
+        return resourceCard({ target: context.player.getTopCardOfDeck() }).generateEvent(context);
     }
 }

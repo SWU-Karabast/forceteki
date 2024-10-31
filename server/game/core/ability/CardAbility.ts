@@ -77,15 +77,6 @@ export class CardAbility extends CardAbilityStep {
             return 'limit';
         }
 
-        // TODO: enum for ignoredRequirements strings?
-        if (
-            !ignoredRequirements.includes('phase') &&
-            !this.isKeywordAbility() &&
-            context.game.currentPhase !== PhaseName.Action
-        ) {
-            return 'phase';
-        }
-
         return super.meetsRequirements(context, ignoredRequirements);
     }
 

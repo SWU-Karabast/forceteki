@@ -1,11 +1,13 @@
-import type { AbilityContext } from '../ability/AbilityContext';
+import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import { CardType, EventName, Stage } from '../Constants';
+import { CardType, EventName, MetaEventName, Stage } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type Player from '../Player';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type Game from '../Game';
 import * as Helpers from '../utils/Helpers';
+import { TriggerHandlingMode } from '../event/EventWindow';
+import * as Contract from '../utils/Contract';
 
 type PlayerOrCard = Player | Card;
 
@@ -36,7 +38,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
     protected readonly propertyFactory?: (context?: TContext) => TProperties;
     protected readonly properties?: TProperties;
-    protected readonly eventName: EventName = EventName.Unnamed;
+    protected abstract readonly eventName: EventName | MetaEventName;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
     protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
 
@@ -106,6 +108,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @returns An object of the `GameSystemProperties` template type
      */
     public generatePropertiesFromContext(context: TContext, additionalProperties: any = {}): TProperties {
+        this.validateContext(context);
+
         const properties = Object.assign(
             { target: this.getDefaultTargets(context) },
             this.defaultProperties,
@@ -154,6 +158,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param additionalProperties Any additional properties to extend the default ones with
      * @returns True if any of the candidate targets are legal, false otherwise
      */
+    // TODO: update the type for additionalProperties everywhere to be Record<string, any> since it's always a flat object
     public hasLegalTarget(context: TContext, additionalProperties: any = {}): boolean {
         for (const candidateTarget of this.targets(context, additionalProperties)) {
             if (this.canAffect(candidateTarget, context, additionalProperties)) {
@@ -195,9 +200,24 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: any = {}): void {
         for (const target of this.targets(context, additionalProperties)) {
             if (this.canAffect(target, context, additionalProperties)) {
-                events.push(this.generateEvent(target, context, additionalProperties));
+                events.push(this.generateRetargetedEvent(target, context, additionalProperties));
             }
         }
+    }
+
+    /**
+     * Generates one {@link GameEvent} object that will apply the effects of this system to the game state
+     * for the specified target.
+     * The event must be emitted using an {@link EventWindow}, typically via `Game.openEventWindow`.
+     * @param context Context of ability being executed
+     * @param additionalProperties Any additional properties to extend the default ones with
+     */
+    public generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
+        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        const event = this.createEvent(target, context, additionalProperties);
+        this.updateEvent(event, target, context, additionalProperties);
+        return event;
     }
 
     /**
@@ -208,7 +228,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    public generateEvent(target: any, context: TContext, additionalProperties: any = {}): GameEvent {
+    public generateRetargetedEvent(target: any, context: TContext, additionalProperties: any = {}): GameEvent {
         const event = this.createEvent(target, context, additionalProperties);
         this.updateEvent(event, target, context, additionalProperties);
         return event;
@@ -228,7 +248,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     public resolve(
         target: undefined | PlayerOrCard | PlayerOrCard[],
-        context: TContext
+        context: TContext,
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
     ): void {
         if (target) {
             this.setDefaultTargetFn(() => target);
@@ -236,7 +257,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
         const events = [];
         this.queueGenerateEventGameSteps(events, context);
-        context.game.queueSimpleStep(() => context.game.openEventWindow(events), `openEventWindow for '${this}'`);
+        context.game.queueSimpleStep(() => context.game.openEventWindow(events, triggerHandlingMode), `openEventWindow for '${this}'`);
     }
 
     public checkEventCondition(event: GameEvent, additionalProperties: any = {}): boolean {
@@ -267,7 +288,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     protected createEvent(target: any, context: TContext, additionalProperties): GameEvent {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
-        const event = new GameEvent(EventName.Unnamed, { cannotBeCancelled });
+        const event = new GameEvent(this.eventName, { cannotBeCancelled });
         event.checkFullyResolved = (eventAtResolution) =>
             this.isEventFullyResolved(eventAtResolution, target, context, additionalProperties);
         return event;
@@ -278,7 +299,6 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * systems during event generation.
      */
     protected updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: any = {}): void {
-        event.name = this.eventName;
         this.addPropertiesToEvent(event, target, context, additionalProperties);
         event.replaceHandler((event) => this.eventHandler(event, additionalProperties));
         event.condition = () => this.checkEventCondition(event, additionalProperties);
@@ -303,10 +323,16 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @returns The default target(s) of this {@link GameSystem}
      */
     private targets(context: TContext, additionalProperties: any = {}) {
+        this.validateContext(context);
+
         return Helpers.asArray(this.generatePropertiesFromContext(context, additionalProperties).target);
     }
 
     public toString() {
         return `'GameSystem: ${this.name}'`;
+    }
+
+    private validateContext(context: TContext) {
+        Contract.assertTrue(context instanceof AbilityContext, `context must be an AbilityContext, instead found ${context}`);
     }
 }

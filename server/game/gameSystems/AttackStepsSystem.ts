@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, CardTypeFilter, Duration, EventName, KeywordName, Location, WildcardCardType, WildcardLocation } from '../core/Constants';
+import { AbilityRestriction, CardType, CardTypeFilter, Duration, EventName, KeywordName, Location, MetaEventName, WildcardCardType, WildcardLocation } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
@@ -49,7 +49,7 @@ export interface IAttackProperties<TContext extends AbilityContext = AbilityCont
  */
 export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IAttackProperties<TContext>> {
     public override readonly name = 'attack';
-    public override readonly eventName = EventName.MetaAttackSteps;
+    public override readonly eventName = MetaEventName.AttackSteps;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
     protected override readonly defaultProperties: IAttackProperties<TContext> = {
         targetCondition: () => true
