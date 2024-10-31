@@ -42,11 +42,10 @@ export abstract class Phase extends BaseStepWithPipeline {
 
     protected endPhase(skipEventWindow = false): void {
         if (!skipEventWindow) {
-            this.game.createEventAndOpenWindow(EventName.OnPhaseEnded, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers);
+            this.game.createEventAndOpenWindow(EventName.OnPhaseEnded, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => this.game.currentPhase = null);
 
             // for post-phase state cleanup. emit directly, don't need a window.
             this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
         }
-        this.game.currentPhase = null;
     }
 }
