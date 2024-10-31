@@ -15,7 +15,7 @@ import { IAbilityPropsWithType, IActionAbilityProps, IActionAbilityPropsWithType
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
-import { CostAdjustType, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -209,15 +209,15 @@ export = {
     //     }),
     // changePlayerSkillModifier: (value) => OngoingEffectBuilder.player.flexible(EffectName.ChangePlayerSkillModifier, value),
     // customDetachedPlayer: (properties) => OngoingEffectBuilder.player.detached(EffectName.CustomEffect, properties),
-    decreaseCost: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.Decrease })),
+    decreaseCost: (properties: Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Decrease, ...properties }),
     // gainActionPhasePriority: () =>
     //     OngoingEffectBuilder.player.detached(EffectName.GainActionPhasePriority, {
     //         apply: (player) => (player.actionPhasePriority = true),
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
-    increaseCost: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.Increase })),
-    ignoreAllAspectPenalties: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.IgnoreAllAspects })),
-    ignoreSpecificAspectPenalties: (properties: Omit<ICostAdjusterProperties, 'costAdjustType'>) => modifyCost(Object.assign(properties, { costAdjustType: CostAdjustType.IgnoreSpecificAspects })),
+    increaseCost: (properties: Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Increase, ...properties }),
+    ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
+    ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>

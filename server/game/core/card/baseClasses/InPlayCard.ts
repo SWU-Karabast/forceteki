@@ -3,7 +3,7 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { CardType, Location, RelativePlayer, WildcardLocation } from '../../Constants';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import { IDecreaseEventCostAbilityProps, IIgnoreAspectPenaltiesProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import { IDecreaseEventCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
@@ -122,12 +122,12 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     /** Add a constant ability on the card that ignores all aspect penalties under the given condition */
-    protected addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAspectPenaltiesProps<this>): void {
+    protected addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>): void {
         this.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
     }
 
     /** Add a constant ability on the card that ignores specific aspect penalties under the given condition */
-    protected addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreAspectPenaltiesProps<this>): void {
+    protected addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>): void {
         this.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
     }
 

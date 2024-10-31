@@ -33,7 +33,7 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Any,
-                cardCondition: (card, context) => card.unique === true && card !== context.source,
+                cardCondition: (card, context) => card.unique && card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
         });

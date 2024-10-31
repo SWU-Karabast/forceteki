@@ -24,7 +24,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
 
         // get the minimum cost we could possibly pay for this card to see if we have the resources available
         // (aspect penalty is included in this calculation)
-        const minCost = context.player.getMinimumPossibleCost(context.playType, context, null, this.ignoreType);
+        const minCost = context.player.getMinimumPossibleCost(context.playType, context, null);
         if (minCost === 0) {
             return true;
         }
@@ -42,7 +42,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     }
 
     protected getAdjustedCost(context: TContext): number {
-        return context.player.getAdjustedCost(context.playType, context.source, context.target, this.ignoreType);
+        return context.player.getAdjustedCost(context.playType, context.source, context.target);
     }
 
     public payEvent(context: TContext): GameEvent {

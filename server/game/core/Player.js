@@ -169,11 +169,11 @@ class Player extends GameObject {
     }
 
     /**
-     * @param { String } name the name of the unit to check for control of
-     * @returns { boolean } true if this player controls a unit with the given name
+     * @param { String } title the title of the unit to check for control of
+     * @returns { boolean } true if this player controls a unit with the given title
      */
-    controlsUnitWithName(name) {
-        return this.leader.name === name || this.getArenaCards(WildcardLocation.AnyArena).filter((card) => card.name === name).length > 0;
+    controlsUnitWithTitle(title) {
+        return this.leader.title === title || this.getArenaCards(WildcardLocation.AnyArena).filter((card) => card.title === title).length > 0;
     }
 
     getResourceCards() {
@@ -602,9 +602,9 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    getMinimumPossibleCost(playingType, context, target, ignoreType = false) {
+    getMinimumPossibleCost(playingType, context, target) {
         const card = context.source;
-        const adjustedCost = this.getAdjustedCost(playingType, card, target, ignoreType);
+        const adjustedCost = this.getAdjustedCost(playingType, card, target);
 
         return Math.max(adjustedCost, 0);
     }
@@ -616,7 +616,7 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    getAdjustedCost(playingType, card, target, ignoreType = false) {
+    getAdjustedCost(playingType, card, target) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
         let aspects;
@@ -638,11 +638,11 @@ class Player extends GameObject {
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(playingType, 2, card, target, ignoreType, aspect);
+            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(playingType, 2, card, target, aspect);
         }
 
         let penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCostType(playingType, penalizedCost, card, target, ignoreType);
+        return this.runAdjustersForCostType(playingType, penalizedCost, card, target);
     }
 
     /**
@@ -651,9 +651,9 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    runAdjustersForCostType(playingType, baseCost, card, target, ignoreType = false) {
+    runAdjustersForCostType(playingType, baseCost, card, target) {
         var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
-            adjuster.canAdjust(playingType, card, target, ignoreType, null)
+            adjuster.canAdjust(playingType, card, target, null)
         );
         var costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
@@ -676,9 +676,9 @@ class Player extends GameObject {
      * @param target BaseCard
      * @param penaltyAspect Aspect that is not present on the current base or leader
      */
-    runAdjustersForAspectPenalties(playingType, baseCost, card, target, ignoreType = false, penaltyAspect = null) {
+    runAdjustersForAspectPenalties(playingType, baseCost, card, target, penaltyAspect) {
         var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
-            adjuster.canAdjust(playingType, card, target, ignoreType, penaltyAspect)
+            adjuster.canAdjust(playingType, card, target, penaltyAspect)
         );
 
         var ignoreAllAspectPenalties = matchingAdjusters

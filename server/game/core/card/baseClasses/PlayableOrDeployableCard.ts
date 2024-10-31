@@ -2,8 +2,8 @@ import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { CardType, RelativePlayer, WildcardLocation } from '../../Constants';
-import { CostAdjustType, ICostAdjusterProperties } from '../../cost/CostAdjuster';
+import { Aspect, CardType, RelativePlayer, WildcardLocation } from '../../Constants';
+import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import { Card } from '../Card';
@@ -11,13 +11,19 @@ import { Card } from '../Card';
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
 
-export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<ICostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
+export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
-export interface IIgnoreAspectPenaltiesProps<TSource extends Card = Card> extends Omit<ICostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
+export interface IIgnoreAllAspectPenaltiesProps<TSource extends Card = Card> extends Omit<IIgnoreAllAspectsCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
+    condition?: (context: AbilityContext<TSource>) => boolean;
+}
+
+export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> extends Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
+    title: string;
+    ignoredAspects: Aspect | Aspect[];
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
@@ -79,11 +85,12 @@ export class PlayableOrDeployableCard extends Card {
     protected generateDecreaseCostAbilityProps(properties: IDecreaseEventCostAbilityProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
 
-        const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
+        const costAdjusterProps: IIncreaseOrDecreaseCostAdjusterProperties = {
             cardTypeFilter: this.printedType,
             match: (card, adjusterSource) => card === adjusterSource,
-            costAdjustType: CostAdjustType.Decrease
-        });
+            costAdjustType: CostAdjustType.Decrease,
+            ...otherProps
+        };
 
         const costAdjustAbilityProps: IConstantAbilityProps = {
             title,
@@ -98,14 +105,15 @@ export class PlayableOrDeployableCard extends Card {
 
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
-    protected generateIgnoreAllAspectPenaltiesAbilityProps(properties: IIgnoreAspectPenaltiesProps<this>): IConstantAbilityProps {
+    protected generateIgnoreAllAspectPenaltiesAbilityProps(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
 
-        const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
+        const costAdjusterProps: ICostAdjusterProperties = {
             cardTypeFilter: this.printedType,
             match: (card, adjusterSource) => card === adjusterSource,
-            costAdjustType: CostAdjustType.IgnoreAllAspects
-        });
+            costAdjustType: CostAdjustType.IgnoreAllAspects,
+            ...otherProps
+        };
 
         const costAdjustAbilityProps: IConstantAbilityProps = {
             title,
@@ -120,15 +128,16 @@ export class PlayableOrDeployableCard extends Card {
 
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
-    protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreAspectPenaltiesProps<this>): IConstantAbilityProps {
+    protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps {
         const { title, ignoredAspects, condition, ...otherProps } = properties;
 
-        const costAdjusterProps: ICostAdjusterProperties = Object.assign(otherProps, {
+        const costAdjusterProps: ICostAdjusterProperties = {
             cardTypeFilter: this.printedType,
             match: (card, adjusterSource) => card === adjusterSource,
             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
-            ignoredAspects: ignoredAspects
-        });
+            ignoredAspects: ignoredAspects,
+            ...otherProps
+        };
 
         const costAdjustAbilityProps: IConstantAbilityProps = {
             title,
