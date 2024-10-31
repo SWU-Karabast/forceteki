@@ -255,12 +255,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
         this.context.ability.displayMessage(this.context);
 
-        // If this is an event, move it to discard before resolving the ability
-        if (this.context.ability.isCardPlayed() && this.context.ability.card.isEvent()) {
-            Contract.assertHasProperty(this.context.ability, 'moveEventToDiscard');
-            this.context.ability.moveEventToDiscard(this.context);
-        }
-
         if (this.context.ability.isActivatedAbility()) {
             this.game.openEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
         } else {
