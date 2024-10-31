@@ -13,7 +13,7 @@ describe('Ruthlessness', function() {
                 });
             });
 
-            it('should not deal 2 damage to base when not defeating a enenmy unit', function () {
+            it('should not deal 2 damage to base when not defeating a enemy unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -38,7 +38,7 @@ describe('Ruthlessness', function() {
                 });
             });
 
-            it('should deal 2 damage to base when defeating a enenmy unit (and survives)', function () {
+            it('should deal 2 damage to base when defeating a enemy unit (and survives)', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -64,7 +64,7 @@ describe('Ruthlessness', function() {
                 });
             });
 
-            it('should deal 2 damage to base when defeating a enenmy unit (and die)', function () {
+            it('should deal 2 damage to base when defeating a enemy unit (and die)', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
