@@ -60,7 +60,7 @@ describe('Attack Pattern Delta', function() {
                     expect(context.redThree.getHp()).toEqual(4);
 
                     // Case 7: The buffs wear off at the end of the phase.
-                    context.moveToNextActionPhase();
+                    context.moveToRegroupPhase();
 
                     expect(context.wampa.getPower()).toEqual(4);
                     expect(context.wampa.getHp()).toEqual(5);

@@ -92,7 +92,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         return {
             type: DamageSourceType.Ability,
             player: context.player,
-            ability: context.ability,
             card: context.source,
             event
         };

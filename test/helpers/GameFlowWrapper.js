@@ -96,14 +96,14 @@ class GameFlowWrapper {
     /**
      * Pass any remaining player actions
      */
-    finishActionPhase() {
+    moveToRegroupPhase() {
         this.guardCurrentPhase('action');
         this.noMoreActions();
         this.guardCurrentPhase('regroup');
     }
 
     moveToNextActionPhase() {
-        this.finishActionPhase();
+        this.moveToRegroupPhase();
         this.skipRegroupPhase();
     }
 
@@ -130,7 +130,7 @@ class GameFlowWrapper {
                 this.skipSetupPhase();
                 break;
             case 'action':
-                this.finishActionPhase();
+                this.moveToRegroupPhase();
                 phaseChange = -1;
                 break;
             case 'regroup':
