@@ -1,5 +1,5 @@
 const { UiPrompt } = require('./prompts/UiPrompt.js');
-const { EventName, Location, RelativePlayer, EffectName, WildcardLocation } = require('../Constants.js');
+const { Location, RelativePlayer, WildcardLocation } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
 const Contract = require('../utils/Contract');
 
@@ -31,14 +31,12 @@ class ActionWindow extends UiPrompt {
             return false;
         }
 
-        // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
-        let actions = card.getActions();
-
-        let legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
-
+        let legalActions = this.getCardLegalActions(card, this.activePlayer);
         if (legalActions.length === 0) {
             return false;
-        } else if (legalActions.length === 1) {
+        }
+
+        if (legalActions.length === 1) {
             let action = legalActions[0];
             let targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
             if (!this.activePlayer.optionSettings.confirmOneClick || action.cost.some((cost) => cost.promptsPlayer) || targetPrompts) {
@@ -85,6 +83,7 @@ class ActionWindow extends UiPrompt {
         let completed = super.continue();
 
         if (!completed) {
+            this.highlightSelectableCards();
             this.game.currentActionWindow = this;
         } else {
             this.game.currentActionWindow = null;
@@ -188,6 +187,22 @@ class ActionWindow extends UiPrompt {
     complete() {
         // this.teardownBonusActions();
         super.complete();
+    }
+
+    highlightSelectableCards() {
+        const allPossibleCards = this.game.findAnyCardsInPlay().concat(
+            this.activePlayer.getCardPile(Location.Discard),
+            this.activePlayer.getCardPile(Location.Resource),
+            this.activePlayer.getCardPile(Location.Hand)
+        );
+        this.activePlayer.setSelectableCards(allPossibleCards.filter((card) => this.getCardLegalActions(card, this.activePlayer).length > 0));
+    }
+
+    // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
+    getCardLegalActions(card, player) {
+        let actions = card.getActions();
+        const legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
+        return legalActions;
     }
 
     // markBonusActionsTaken() {
