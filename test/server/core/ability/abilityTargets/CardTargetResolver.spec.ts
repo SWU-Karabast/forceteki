@@ -6,7 +6,7 @@ describe('Target resolvers for cards', function() {
                     phase: 'action',
                     player1: {
                         base: 'energy-conversion-lab',
-                        hand: ['reinforcement-walker', 'rebel-pathfinder', 'alliance-xwing', 'atst']
+                        hand: ['battlefield-marine', 'rebel-pathfinder', 'alliance-xwing', 'atst']
                     }
                 });
             });
