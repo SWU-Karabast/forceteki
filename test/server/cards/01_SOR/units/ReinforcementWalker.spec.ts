@@ -65,48 +65,8 @@ describe('Reinforcement Walker', function() {
                     const { context } = contextRef;
                     context.setDamage(context.p1Base, 10);
 
-                    context.player1.clickCard(context.reinforcementWalker);
-                    expect(context.player1).toHaveExactPromptButtons([
-                        'Draw',
-                        'Discard',
-                    ]);
-
-                    context.player1.clickPrompt('Discard');
-                    expect(context.allianceXwing).toBeInLocation(Location.Discard);
-                    expect(context.p1Base.damage).toEqual(7);
-                    expect(context.player2).toBeActivePlayer();
-
-                    context.moveToNextActionPhase();
-
-                    context.player1.clickCard(context.reinforcementWalker);
-                    expect(context.player1).toHaveExactPromptButtons([
-                        'Draw',
-                        'Discard',
-                    ]);
-
-                    context.player1.clickPrompt('Discard');
-                    expect(context.battlefieldMarine).toBeInLocation(Location.Discard);
-                    expect(context.p1Base.damage).toEqual(4);
-                    expect(context.player2).toBeActivePlayer();
-                });
-
-
-            it('should let the play discard a card and heal 3 damage from their base on attack when played and on attack',
-                function () {
-                    contextRef.setupTest({
-                        phase: 'action',
-                        player1: {
-                            hand: ['reinforcement-walker'],
-                            deck: ['alliance-xwing', 'echo-base-defender', 'attack-pattern-delta', 'battlefield-marine']
-
-                        },
-                    });
-
-                    const { context } = contextRef;
-                    context.setDamage(context.p1Base, 10);
-
                     /* Case 1: The user is able to discard the card and heal 3 damage from their base when they click
-                 * 'Discard' */
+                    'Discard' */
                     context.player1.clickCard(context.reinforcementWalker);
                     context.player1.clickPrompt('Discard');
 
@@ -117,7 +77,7 @@ describe('Reinforcement Walker', function() {
                     context.moveToNextActionPhase();
 
                     /* Case 2: The user is able to discard the card and heal 3 damage from their base when they attack with
-                 * Reinforcement Walker */
+                    Reinforcement Walker */
                     context.player1.clickCard(context.reinforcementWalker);
                     expect(context.player1).toHaveExactPromptButtons([
                         'Draw',
