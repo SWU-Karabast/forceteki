@@ -18,6 +18,7 @@ export class ActionPhase extends Phase {
             new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'),
             new SimpleStep(this.game, () => this.queueNextAction(), 'queueNextAction'),
             new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
+            new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
         ]);
     }
 

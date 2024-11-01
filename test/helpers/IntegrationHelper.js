@@ -23,6 +23,7 @@ const ProxiedGameFlowWrapperMethods = [
     'skipSetupPhase',
     'selectInitiativePlayer',
     'moveToNextActionPhase',
+    'moveToRegroupPhase',
     'advancePhases',
     'getPromptedPlayer',
     'nextPhase',
