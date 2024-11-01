@@ -65,8 +65,8 @@ describe('Reinforcement Walker', function() {
                     const { context } = contextRef;
                     context.setDamage(context.p1Base, 10);
 
-                    /* Case 1: The user is able to discard the card and heal 3 damage from their base when they click
-                    'Discard' */
+                    /* Case 1: The user is able to discard the card and heal 3 damage from their base when they play
+                    Reinforcement Walker and click 'Discard' */
                     context.player1.clickCard(context.reinforcementWalker);
                     context.player1.clickPrompt('Discard');
 
@@ -76,8 +76,8 @@ describe('Reinforcement Walker', function() {
 
                     context.moveToNextActionPhase();
 
-                    /* Case 2: The user is able to discard the card and heal 3 damage from their base when they attack with
-                    Reinforcement Walker */
+                    /* Case 2: The user is able to discard the card and heal 3 damage from their base when they attack
+                    with Reinforcement Walker and click 'Discard' */
                     context.player1.clickCard(context.reinforcementWalker);
                     expect(context.player1).toHaveExactPromptButtons([
                         'Draw',
@@ -88,7 +88,8 @@ describe('Reinforcement Walker', function() {
                     expect(context.battlefieldMarine).toBeInLocation(Location.Discard);
                     expect(context.p1Base.damage).toEqual(4);
                     expect(context.player2).toBeActivePlayer();
-                });
+                }
+            );
 
             it('should skip abilities when the deck is empty', function () {
                 contextRef.setupTest({
@@ -101,13 +102,13 @@ describe('Reinforcement Walker', function() {
 
                 const { context } = contextRef;
 
-                // Case 1: It should skip abilities when Reinforcement Walker is played.
+                // Case 1: It should skip abilities when Reinforcement Walker is played
                 context.player1.clickCard(context.reinforcementWalker);
                 expect(context.player2).toBeActivePlayer();
 
                 context.moveToNextActionPhase();
 
-                // Case 3: It should skip abilities when Reinforcement Walker is attacks.
+                // Case 3: It should skip abilities when Reinforcement Walker is attacks
                 context.player1.clickCard(context.reinforcementWalker);
 
                 expect(context.player2).toBeActivePlayer();
