@@ -11,13 +11,17 @@ describe('Setup Phase', function() {
                             'covert-strength',
                             'chewbacca#pykesbane',
                             'battlefield-marine',
+                            'battlefield-marine',
+                            'battlefield-marine',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
                             'moment-of-peace',
                         ],
                     },
                     player2: {
                         resources: [],
                         deck: [
-                            'wampa',
                             'moisture-farmer',
                             'atst',
                             'atst',
@@ -26,6 +30,7 @@ describe('Setup Phase', function() {
                             'atst',
                             'atst',
                             'atst',
+                            'wampa',
                             'atst',
                             'atst',
                         ],
@@ -41,52 +46,52 @@ describe('Setup Phase', function() {
                 context.selectInitiativePlayer(context.player1);
 
                 // Draw cards step
-                const expectedCards = [
-                    context.armedToTheTeeth,
-                    context.collectionsStarhopper,
-                    context.covertStrength,
-                    context.chewbacca,
-                    context.battlefieldMarine,
-                    context.momentOfPeace
-                ];
                 expect(context.player1.handSize).toBe(6);
                 expect(context.player2.handSize).toBe(6);
-                let allCardsPresentInPlayer1Hand = expectedCards.every((card) => context.player1.hand.includes(card));
-                expect(allCardsPresentInPlayer1Hand).toBe(true);
+                const beforeMulliganHand = context.player1.hand;
 
                 // Mulligan step
                 context.player1.clickPrompt('yes');
                 context.player2.clickPrompt('no');
-                allCardsPresentInPlayer1Hand = expectedCards.every((card) => context.player1.hand.includes(card));
-                expect(allCardsPresentInPlayer1Hand).toBe(true);
+                const afterMulliganHand = context.player1.hand;
+                expect(beforeMulliganHand).not.toEqual(afterMulliganHand);
 
                 // Resource step
                 // check that no resource was automatically set
                 expect(context.player1.resources.length).toBe(0);
                 expect(context.player2.resources.length).toBe(0);
 
+                const player1FirstCard = context.player1.hand[0];
+                const player1SecondCard = context.player1.hand[1];
+
                 // select 2 cards to resource
-                context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickCard(context.armedToTheTeeth);
-                context.player2.clickCard(context.moistureFarmer);
-                context.player2.clickCard(context.wampa);
+                context.player1.clickCard(context.player1.hand[0]);
+                context.player1.clickCard(context.player1.hand[1]);
 
-                // Check that the hand doesn't contain the selected cards anymore
-                expect(context.player1.hand).not.toContain(context.battlefieldMarine);
-                expect(context.player1.hand).not.toContain(context.armedToTheTeeth);
-                expect(context.player2.hand).not.toContain(context.wampa);
-                expect(context.player2.hand).not.toContain(context.moistureFarmer);
+                // Check if selecting any unavailable cards triggers resourcing
+                context.player2.clickCardNonChecking(context.player2.deck[0]);
+                context.player2.clickCardNonChecking(context.player1.hand[0]);
+                context.player2.clickCardNonChecking(context.player1.deck[0]);
+                context.player2.clickCardNonChecking(context.p1Base);
+                context.player2.clickCardNonChecking(context.p2Base);
 
+                // Select 2 correct cards to resource
+                context.player2.clickCard(context.player2.hand[0]);
+                context.player2.clickCard(context.player2.hand[1]);
+
+                // Check if resource length is correct
                 expect(context.player1.resources.length).toBe(2);
                 expect(context.player2.resources.length).toBe(2);
 
                 // Check if resources are correctly set
-                expect(context.player1.resources).toContain(context.battlefieldMarine);
-                expect(context.player1.resources).toContain(context.armedToTheTeeth);
-                expect(context.player2.resources).toContain(context.wampa);
-                expect(context.player2.resources).toContain(context.moistureFarmer);
+                expect(context.player1.resources).toContain(player1FirstCard);
+                expect(context.player1.resources).toContain(player1SecondCard);
 
-                // check if player1 is the active player
+                // Check if hand is correctly set
+                expect(context.player1.handSize).toEqual(4);
+                expect(context.player2.handSize).toEqual(4);
+
+                // Check if player1 is the active player
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player2).toHavePrompt('Waiting for opponent to take an action or pass');
             });

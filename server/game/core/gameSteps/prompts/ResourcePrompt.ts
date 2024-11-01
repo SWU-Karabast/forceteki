@@ -65,7 +65,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(card);
 
-        if (!this.activeCondition(player)) {
+        if (!this.activeCondition(player) || !player.hand.includes(card)) {
             return false;
         }
 
