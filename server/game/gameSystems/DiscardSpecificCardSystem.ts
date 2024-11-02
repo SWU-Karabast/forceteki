@@ -23,7 +23,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
         ];
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Record<string, any> = {}): void {
         event.discardedFromLocation = card.location;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
     }
