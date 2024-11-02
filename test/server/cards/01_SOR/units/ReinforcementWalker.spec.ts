@@ -3,7 +3,7 @@ import { Location } from '../../../../../server/game/core/Constants';
 describe('Reinforcement Walker', function() {
     integration(function(contextRef) {
         describe('Reinforcement Walker\'s ability', function() {
-            it('should let the play draw a card on attack when played and on attack', function () {
+            it('should let the play draw a card when played and on attack', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -111,6 +111,62 @@ describe('Reinforcement Walker', function() {
                 // Case 3: It should skip abilities when Reinforcement Walker is attacks
                 context.player1.clickCard(context.reinforcementWalker);
 
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger abilities twice when played with Ambush', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['reinforcement-walker'],
+                        deck: ['alliance-xwing', 'echo-base-defender', 'attack-pattern-delta'],
+                        groundArena: ['admiral-piett#captain-of-the-executor']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Case 1: The player can choose to resolve the ability or Ambush first.
+                context.player1.clickCard(context.reinforcementWalker);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Ambush',
+                    'Look at the top card of your deck. Draw it or discard it and heal 3 damage from your base.',
+                ]);
+
+                // Case 2: The ability from on played resolves successfully.
+                context.player1.clickPrompt('Look at the top card of your deck. Draw it or discard it and heal 3 damage from your base.');
+
+                expect(context.getChatLogs(1)[0]).toEqual('Reinforcement Walker sees Alliance X-Wing');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Draw',
+                    'Discard',
+                ]);
+
+                context.player1.clickPrompt('Draw');
+
+                expect(context.allianceXwing).toBeInLocation(Location.Hand);
+
+                // Case 3: The on attack ability from Ambush resolved successfully.
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Ambush',
+                    'Pass',
+                ]);
+
+                context.player1.clickPrompt('Ambush');
+
+                expect(context.getChatLogs(1)[0]).toEqual('Reinforcement Walker sees Echo Base Defender');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Draw',
+                    'Discard',
+                ]);
+
+                context.player1.clickPrompt('Draw');
+
+                expect(context.echoBaseDefender).toBeInLocation(Location.Hand);
                 expect(context.player2).toBeActivePlayer();
             });
         });
