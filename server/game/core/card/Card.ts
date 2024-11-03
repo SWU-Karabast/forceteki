@@ -452,7 +452,7 @@ export class Card extends OngoingEffectSource {
         this._location = targetLocation;
         this.initializeForCurrentLocation(prevLocation);
 
-        this.game.emitEvent(EventName.OnCardMoved, {
+        this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
             originalLocation: originalLocation,
             newLocation: targetLocation

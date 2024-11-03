@@ -142,26 +142,22 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     public override checkEventCondition(event: any, additionalProperties = {}): boolean {
-        return this.canAffect(event.card, event.context, additionalProperties);
+        return this.canAffect(event.card, event.context, additionalProperties, true);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
         // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
         // we're the system that is enacting the defeat
         if (card.isUnit() && card.isInPlay() && card.pendingDefeat) {
             return false;
         }
 
-        return super.canAffect(card, context, additionalProperties);
+        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
-    }
-
-    public override isEventFullyResolved(event, card: Card, context: TContext, additionalProperties): boolean {
-        return event.card === card && super.isEventFullyResolved(event, card, context, additionalProperties);
     }
 
     protected override defaultTargets(context: TContext): Card[] {
@@ -174,10 +170,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         event.destination = properties.destination || Location.Discard;
 
         event.setContingentEventsGenerator((event) => {
-            const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, {
+            const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
                 player: context.player,
-                card,
-                context,
+                card
             });
             const contingentEvents = [onCardLeavesPlayEvent];
 

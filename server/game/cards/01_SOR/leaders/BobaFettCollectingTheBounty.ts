@@ -19,18 +19,26 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Ready a resource',
-            cost: AbilityHelper.costs.exhaustSelf(),
+            title: 'Exhaust Boba Fett',
             when: {
                 onCardLeavesPlay: (event, context) =>
                     event.card.isUnit() && event.card.controller !== context.source.controller
             },
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) =>
-                    context.source.controller.resources.some((resource) => resource.exhausted),
-                onTrue: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
-            })
+            // we shortcut and automatically activate Boba's ability if there are any exhausted resources
+            immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
+                condition: context.source.controller.countExhaustedResources() > 0,
+                onTrue: AbilityHelper.immediateEffects.exhaust(),
+                onFalse: AbilityHelper.immediateEffects.noAction()
+            })),
+            ifYouDo: {
+                title: 'Ready a resource',
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: (context) =>
+                        context.source.controller.resources.some((resource) => resource.exhausted),
+                    onTrue: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
+                    onFalse: AbilityHelper.immediateEffects.noAction(),
+                })
+            }
         });
     }
 

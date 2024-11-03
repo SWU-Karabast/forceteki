@@ -26,6 +26,7 @@ export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IRepla
 /** Interface definition for addActionAbility */
 export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'optional'> & {
     condition?: (context?: AbilityContext<TSource>) => boolean;
+    cost?: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[];
 
     /**
      * If true, any player can trigger the ability. If false, only the card's controller can trigger it.
@@ -156,7 +157,6 @@ type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbili
 interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
     locationFilter?: LocationFilter | LocationFilter[];
-    cost?: ICost<TContext> | ICost<TContext>[];
     limit?: any;
     cardName?: string;
 
@@ -177,6 +177,8 @@ interface IAbilityProps<TContext extends AbilityContext> {
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
     then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
+    ifYouDo?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    ifYouDoNot?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
 }
 
 type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);

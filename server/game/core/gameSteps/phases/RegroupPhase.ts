@@ -44,7 +44,7 @@ export class RegroupPhase extends Phase {
         }
 
         // create a single event for the ready cards step as well as individual events for readying each card
-        const events = [new GameEvent(EventName.OnRegroupPhaseReadyCards, {})];
+        const events = [new GameEvent(EventName.OnRegroupPhaseReadyCards, this.game.getFrameworkContext(), {})];
         GameSystemLibrary.ready({ isRegroupPhaseReadyStep: true, target: cardsToReady })
             .queueGenerateEventGameSteps(events, this.game.getFrameworkContext());
 

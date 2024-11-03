@@ -65,21 +65,17 @@ class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
         let eventName = EventName.OnAbilityResolverInitiated;
-        let eventProps = {
-            context: this.context
-        };
+        let eventProps = {};
         if (this.context.ability.isCardAbility()) {
             eventName = EventName.OnCardAbilityInitiated;
             eventProps = {
                 card: this.context.source,
-                ability: this.context.ability,
-                context: this.context
+                ability: this.context.ability
             };
             if (this.context.ability.isCardPlayed()) {
-                this.events.push(new GameEvent(EventName.OnCardPlayed, {
+                this.events.push(new GameEvent(EventName.OnCardPlayed, this.context, {
                     player: this.context.player,
                     card: this.context.source,
-                    context: this.context,
                     originalLocation: this.context.source.location,
                     originallyOnTopOfDeck:
                         this.context.player && this.context.player.drawDeck && this.context.player.drawDeck[0] === this.context.source,
@@ -89,14 +85,13 @@ class AbilityResolver extends BaseStepWithPipeline {
                 }));
             }
             if (this.context.ability.isActivatedAbility()) {
-                this.events.push(new GameEvent(EventName.OnCardAbilityTriggered, {
+                this.events.push(new GameEvent(EventName.OnCardAbilityTriggered, this.context, {
                     player: this.context.player,
-                    card: this.context.source,
-                    context: this.context
+                    card: this.context.source
                 }));
             }
         }
-        this.events.push(new GameEvent(eventName, eventProps, () => this.queueInitiateAbilitySteps()));
+        this.events.push(new GameEvent(eventName, this.context, eventProps, () => this.queueInitiateAbilitySteps()));
         this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events, this.context.ability.triggerHandlingMode));
     }
 
@@ -215,7 +210,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         if (this.cancelled) {
             return;
         }
-        this.cancelled = this.costResults.events.some((event) => event.getResolutionEvent().cancelled);
+        this.cancelled = this.costResults.events.some((event) => event.isCancelled);
         if (this.cancelled) {
             this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
         }
@@ -262,7 +257,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if (this.context.ability.isActivatedAbility()) {
-            this.game.openEventWindow(new InitiateCardAbilityEvent({ card: this.context.source, context: this.context }, () => this.initiateAbility = true));
+            this.game.openEventWindow(new InitiateCardAbilityEvent(this.context, { card: this.context.source }, () => this.initiateAbility = true));
         } else {
             this.initiateAbility = true;
         }

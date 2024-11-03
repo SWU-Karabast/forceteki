@@ -30,9 +30,9 @@ export class ReturnToHandSystem<TContext extends AbilityContext = AbilityContext
         this.leavesPlayEventHandler(event, additionalProperties);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
         const properties = super.generatePropertiesFromContext(context);
-        return EnumHelpers.cardLocationMatches(card.location, properties.locationFilter) && super.canAffect(card, context, additionalProperties);
+        return EnumHelpers.cardLocationMatches(card.location, properties.locationFilter) && super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {

@@ -6,11 +6,11 @@ import { Card } from '../core/card/Card.js';
 import { EventName, Location, TargetMode } from '../core/Constants.js';
 import { GameEvent } from '../core/event/GameEvent.js';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem.js';
-import { shuffleDeck } from './GameSystemLibrary.js';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import Player from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
+import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
@@ -214,7 +214,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
 
         if (this.shouldShuffle(this.properties.shuffleWhenDone, context)) {
             context.game.openEventWindow([
-                shuffleDeck().generateEvent(context)
+                new ShuffleDeckSystem({}).generateEvent(context)
             ]);
         }
     }

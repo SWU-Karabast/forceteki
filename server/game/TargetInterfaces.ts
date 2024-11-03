@@ -56,6 +56,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     hideIfNoLegalTargets?: boolean;
     immediateEffect?: GameSystem<TContext>;
     dependsOn?: string;
+    mustChangeGameState?: boolean;
 }
 
 // TODO: add functionality to PlayerTargetResolver to autodetect any invalid target players.

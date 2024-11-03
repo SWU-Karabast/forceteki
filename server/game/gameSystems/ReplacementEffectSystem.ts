@@ -8,8 +8,8 @@ import * as Contract from '../core/utils/Contract';
 export interface IReplacementEffectSystemProperties extends IGameSystemProperties {
     effect?: string;
 
-    /** Either: the immediate effect to replace the original effect with or `null` to indicate that the original effect should be cancelled with no replacement */
-    replacementImmediateEffect: GameSystem | null;
+    /** The immediate effect to replace the original effect with or `null` to indicate that the original effect should be cancelled with no replacement */
+    replacementImmediateEffect: GameSystem;
 }
 
 // UP NEXT: convert this into a subclass of TriggeredAbilitySystem as TriggeredReplacementEffectSystem
@@ -17,23 +17,28 @@ export interface IReplacementEffectSystemProperties extends IGameSystemPropertie
 export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties> {
     protected override readonly eventName = MetaEventName.ReplacementEffect;
     public override eventHandler(event, additionalProperties = {}): void {
-        const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(event.context, additionalProperties);
+        const { replacementImmediateEffect } = this.generatePropertiesFromContext(event.context, additionalProperties);
 
-        if (replacementGameAction) {
+        if (replacementImmediateEffect) {
             const eventWindow = event.context.event.window;
             const events = [];
-            replacementGameAction.queueGenerateEventGameSteps(
+            replacementImmediateEffect.queueGenerateEventGameSteps(
                 events,
                 event.context,
                 Object.assign({ replacementEffect: true }, additionalProperties)
             );
+
+            Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
+            if (events.length > 1) {
+                throw new Error(`Multiple replacement events is not yet supported (replacement effect ${replacementImmediateEffect} for ${event.name} generated ${events.length} events)`);
+            }
+
+            const replacementEvent = events[0];
+
+            // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor or damage on draw from empty deck
             event.context.game.queueSimpleStep(() => {
-                if (events.length === 1) {
-                    event.context.event.replacementEvent = events[0];
-                }
-                for (const newEvent of events) {
-                    eventWindow.addEvent(newEvent);
-                }
+                event.context.event.setReplacementEvent(replacementEvent);
+                eventWindow.addEvent(replacementEvent);
             }, 'replacementEffect: replace window event');
         }
 
@@ -44,7 +49,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         const event = this.createEvent(null, context, additionalProperties);
 
         super.addPropertiesToEvent(event, null, context, additionalProperties);
-        event.replaceHandler((event) => this.eventHandler(event, additionalProperties));
+        event.setHandler((event) => this.eventHandler(event, additionalProperties));
 
         events.push(event);
     }
@@ -71,7 +76,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
         Contract.assertNotNullLike(context.event);
 
-        if (context.event.cancelled) {
+        if (!context.event.canResolve) {
             return false;
         }
 
@@ -82,11 +87,11 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         );
     }
 
-    public override canAffect(target: any, context: TContext, additionalProperties = {}): boolean {
+    public override canAffect(target: any, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
         const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context, additionalProperties);
         return (
             (!context.event.cannotBeCancelled && !replacementGameAction) ||
-            replacementGameAction.canAffect(target, context, additionalProperties)
+            replacementGameAction.canAffect(target, context, additionalProperties, mustChangeGameState)
         );
     }
 
