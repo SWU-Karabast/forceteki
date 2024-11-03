@@ -18,6 +18,7 @@ export default class VambraceFlamethrower extends UpgradeCard {
             title: 'Deal 3 damage divided as you choose among enemy ground units',
             immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong({
                 amountToDistribute: 3,
+                optional: true,
                 canChooseNoTargets: false,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,

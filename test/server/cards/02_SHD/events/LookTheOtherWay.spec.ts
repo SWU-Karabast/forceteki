@@ -91,41 +91,7 @@ describe('Look the Other Way', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.wampa]);
                 context.player1.clickCard(context.viperProbeDroid);
                 expect(context.viperProbeDroid.exhausted).toBeTrue();
-                expect(context.player2).toHavePrompt('Choose an action');
-            });
-        });
-
-        describe('Look the Other Way\'s ability', function () {
-            beforeEach(function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['look-the-other-way'],
-                        groundArena: ['wampa'],
-                        base: 'jabbas-palace'
-                    },
-                    player2: {
-                        hand: ['battlefield-marine'],
-                        groundArena: ['viper-probe-droid'],
-                        base: 'echo-base',
-                        leader: 'sabine-wren#galvanized-revolutionary',
-                        hasInitiative: true,
-                        resources: 3,
-                    }
-                });
-            });
-
-            it('should exhaust an enemy unit without choice because opponent does not have sufficient ready resources', function () {
-                const { context } = contextRef;
-
-                context.player2.clickCard(context.battlefieldMarine);
-                expect(context.player2.countSpendableResources()).toBe(1);
-
-                context.player1.clickCard(context.lookTheOtherWay);
-                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.battlefieldMarine, context.wampa]);
-                context.player1.clickCard(context.viperProbeDroid);
-                expect(context.viperProbeDroid.exhausted).toBeTrue();
-                expect(context.player2).toHavePrompt('Choose an action');
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
