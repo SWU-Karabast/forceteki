@@ -8,6 +8,7 @@ import Game from '../Game';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
 import { CardWithTriggeredAbilities } from '../card/CardTypes';
+import { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 
 interface IEventRegistration {
     name: string;
@@ -121,8 +122,8 @@ export default class TriggeredAbility extends CardAbility {
         return this.immediateEffect.hasLegalTarget(context, {}, mustChangeGameState);
     }
 
-    public override buildTargetResolver(name: any, properties: any) {
-        const propsMustChangeGameState = Object.assign({ mustChangeGameState: this.mustChangeGameState }, properties);
+    public override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {
+        const propsMustChangeGameState = { mustChangeGameState: this.mustChangeGameState, ...properties };
 
         return super.buildTargetResolver(name, propsMustChangeGameState);
     }

@@ -1,7 +1,7 @@
 describe('Enforced Loyalty', function() {
     integration(function(contextRef) {
         describe('Enforced Loyalty\'s ability', function() {
-            beforeEach(function () {
+            it('should defeat a friendly unit and draw 2 cards', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -13,9 +13,7 @@ describe('Enforced Loyalty', function() {
                         groundArena: ['wampa']
                     }
                 });
-            });
 
-            it('should defeat a friendly unit and draw 2 cards', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.enforcedLoyalty);
@@ -28,26 +26,58 @@ describe('Enforced Loyalty', function() {
             });
         });
 
-        describe('Enforced Loyalty\'s ability', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['enforced-loyalty']
-                    },
-                    player2: {
-                        groundArena: ['wampa']
-                    }
-                });
+        it('should do nothing if there are no friendly units', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['enforced-loyalty']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
             });
 
-            it('should do nothing if there are no friendly units', function () {
-                const { context } = contextRef;
+            const { context } = contextRef;
 
-                context.player1.clickCard(context.enforcedLoyalty);
-                expect(context.player1.handSize).toBe(0);
-                expect(context.player2).toBeActivePlayer();
+            context.player1.clickCard(context.enforcedLoyalty);
+            expect(context.player1.handSize).toBe(0);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should draw 1 card and damage base for 3 if only 1 card in deck', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['enforced-loyalty'],
+                    groundArena: ['pyke-sentinel'],
+                    deck: ['atst']
+                }
             });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.enforcedLoyalty);
+            expect(context.player1.handSize).toBe(1);
+            expect(context.p1Base.damage).toBe(3);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should draw no cards and damage base for 6 if no cards in deck', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['enforced-loyalty'],
+                    groundArena: ['pyke-sentinel'],
+                    deck: []
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.enforcedLoyalty);
+            expect(context.player1.handSize).toBe(0);
+            expect(context.p1Base.damage).toBe(6);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
