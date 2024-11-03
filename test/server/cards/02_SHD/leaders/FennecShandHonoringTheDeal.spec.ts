@@ -7,7 +7,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                     player1: {
                         base: 'echo-base',
                         leader: 'fennec-shand#honoring-the-deal',
-                        hand: ['reinforcement-walker', 'rebel-pathfinder', 'alliance-xwing', 'modded-cohort'],
+                        hand: ['reinforcement-walker', 'rebel-pathfinder', 'alliance-xwing', 'wampa'],
                         resources: 4
                     },
                     player2: {
@@ -20,7 +20,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fennecShand);
-                expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.allianceXwing, context.moddedCohort]);
+                expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.allianceXwing, context.wampa]);
 
                 context.player1.clickCard(context.rebelPathfinder);
                 expect(context.fennecShand.exhausted).toBeTrue();
