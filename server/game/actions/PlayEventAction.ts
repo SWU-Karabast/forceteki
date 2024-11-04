@@ -20,7 +20,7 @@ export class PlayEventAction extends PlayCardAction {
             context.source,
         );
 
-        // TODO: move the logic for moving the event card to discard pile from AbilityResolver to here
+        this.moveEventToDiscard(context);
         context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 
