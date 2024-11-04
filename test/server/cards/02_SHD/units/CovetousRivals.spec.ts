@@ -35,6 +35,8 @@ describe('Covetous Rivals', function() {
                 context.player1.clickCard(context.fugitiveWookiee);
                 expect(context.fugitiveWookiee.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
+
+                // TODO: when "gain Bounty" is working, add a test here
             });
         });
     });
