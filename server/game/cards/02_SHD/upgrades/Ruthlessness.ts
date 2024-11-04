@@ -14,7 +14,7 @@ export default class Ruthlessness extends UpgradeCard {
             title: 'Deal 2 damage to the defending player’s base',
             when: {
                 onCardDefeated: (event, context) =>
-                    // TODO: update trigger condition so that defender being defeated by attacker at any point during the attack will work
+                    // TODO: update trigger condition so that defender being defeated by attacker at the 'on attack' stage will also work
                     event.isDefeatedByAttackerDamage &&
                     event.defeatSource.attack.attacker === context.source
             },

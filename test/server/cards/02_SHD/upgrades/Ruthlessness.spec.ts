@@ -13,7 +13,7 @@ describe('Ruthlessness', function () {
                 });
             });
 
-            it('should not deal 2 damage to base when not defeating a enemy unit', function () {
+            it('should deal 2 damage to base when defeating a enemy unit', function () {
                 const { context } = contextRef;
 
                 function reset(opponentPass = true) {
@@ -93,7 +93,7 @@ describe('Ruthlessness', function () {
             });
         });
 
-        // TODO: update trigger condition so that defender being defeated by attacker at any point during the attack will work
+        // TODO: update trigger condition so that defender being defeated by attacker at the 'on attack' stage will also work
 
         // describe('Ruthlessness\'s ability', function () {
         //     beforeEach(function () {

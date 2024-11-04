@@ -78,6 +78,8 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 context.player1.clickCard(context.zebOrrelios);
                 context.player1.clickCard(context.battlefieldMarine);
 
+                context.player1.clickPrompt('Deal 3 damage divided as you choose among enemy ground units');
+
                 // kill battlefield marine with flamethrower, zeb should deal 4 damage to another unit
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 3],

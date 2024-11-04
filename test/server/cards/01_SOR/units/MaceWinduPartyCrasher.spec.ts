@@ -73,7 +73,7 @@ describe('Mace Windu, Party Crasher', function() {
             });
         });
 
-        // TODO: update trigger condition so that defender being defeated by attacker at any point during the attack will work
+        // TODO: update trigger condition so that defender being defeated by attacker at the 'on attack' stage will also work
 
         // describe('Mace\'s triggered ability', function() {
         //     beforeEach(function () {

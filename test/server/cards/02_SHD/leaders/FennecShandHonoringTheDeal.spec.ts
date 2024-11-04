@@ -117,7 +117,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fennecShand);
-                expect(context.player1).not.toHavePrompt('Play a unit that costs 4 or less from your hand. Give it ambush for this phase');
+                expect(context.player1).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.fennecShand.exhausted).toBeTrue();
                 expect(context.p2Base.damage).toBe(4);
