@@ -59,10 +59,4 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
     public override checkEventCondition(event, additionalProperties): boolean {
         return this.canAffect(event.card, event.context, additionalProperties);
     }
-
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        event.name = this.eventName;
-        event.card = card;
-        event.context = context;
-    }
 }

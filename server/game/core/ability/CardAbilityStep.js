@@ -97,19 +97,15 @@ class CardAbilityStep extends PlayerOrCardAbility {
             `queue ${system.name} event generation steps for ${this}`);
         }
         this.game.queueSimpleStep(() => {
-            let eventsToResolve = context.events.filter((event) => !event.cancelled && !event.resolved);
+            let eventsToResolve = context.events.filter((event) => event.canResolve);
             if (eventsToResolve.length > 0) {
                 let window = this.openEventWindow(eventsToResolve);
-
-                if (this.properties.then) {
-                    window.setThenAbilityStep((context) => new CardAbilityStep(this.game, this.card, this.getConcreteThen(this.properties.then, context)), context);
-                }
-            } else if (this.properties.then) {
-                // if no events for the current step, skip directly to the "then" step (if any)
-                const then = this.getConcreteThen(this.properties.then, context);
-                if (then.thenCondition && then.thenCondition(context)) {
-                    let cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
-                    this.game.resolveAbility(cardAbilityStep.createContext(context.player));
+                window.setSubAbilityStep(() => this.getSubAbilityStep(context, eventsToResolve));
+            // if no events for the current step, skip directly to the "then" step (if any)
+            } else {
+                const subAbilityStep = this.getSubAbilityStep(context, []);
+                if (!!subAbilityStep) {
+                    this.game.resolveAbility(subAbilityStep);
                 }
             }
         }, `resolve events for ${this}`);
@@ -119,16 +115,46 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return this.game.openEventWindow(events);
     }
 
+    /** "Sub-ability-steps" are subsequent steps after the initial ability effect, such as "then" or "if you do" */
+    getSubAbilityStep(context, resolvedAbilityEvents) {
+        if (this.properties.then) {
+            const then = typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
+            if (!then.thenCondition || then.thenCondition(context)) {
+                return new CardAbilityStep(this.game, this.card, then).createContext(context.player);
+            }
+
+            return null;
+        }
+
+        // if there are no resolved events, we can skip past evaluating "if you do" conditions
+        if (resolvedAbilityEvents.length === 0) {
+            return null;
+        }
+
+        let ifAbility;
+        let effectShouldResolve;
+
+        if (this.properties.ifYouDo) {
+            ifAbility = this.properties.ifYouDo;
+            effectShouldResolve = true;
+        } else if (this.properties.ifYouDoNot) {
+            ifAbility = this.properties.ifYouDoNot;
+            effectShouldResolve = false;
+        } else {
+            return null;
+        }
+
+        // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
+        const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
+
+        return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
+            ? new CardAbilityStep(this.game, this.card, ifAbility).createContext(context.player)
+            : null;
+    }
+
     /** @override */
     isCardAbility() {
         return true;
-    }
-
-    getConcreteThen(then, context) {
-        if (then && typeof then === 'function') {
-            return then(context);
-        }
-        return then;
     }
 }
 

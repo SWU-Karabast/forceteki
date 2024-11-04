@@ -161,6 +161,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties): void {
+        super.addPropertiesToEvent(event, target, context, additionalProperties);
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`);
@@ -178,7 +179,6 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         Contract.assertTrue(event.target.isUnit() || event.target.isBase(), `Attack target card '${event.target.internalName}' is not a unit or base`);
 
-        event.context = context;
         event.attacker = properties.attacker;
 
         event.attack = new Attack(

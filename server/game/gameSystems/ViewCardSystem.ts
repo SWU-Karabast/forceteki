@@ -47,6 +47,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
     }
 
     public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties): void {
+        super.addPropertiesToEvent(event, cards, context, additionalProperties);
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (!cards) {
@@ -55,8 +56,8 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         if (!Array.isArray(cards)) {
             cards = [cards];
         }
+
         event.cards = cards;
-        event.context = context;
     }
 
     public getMessage(message, context: TContext): string {

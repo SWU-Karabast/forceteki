@@ -70,6 +70,7 @@ export class SetupPhase extends Phase {
                             player.moveCard(card, 'deck bottom');
                         }
 
+                        // TODO: convert these to use systems
                         player.shuffleDeck();
                         player.drawCardsToHand(6);
                         this.game.addMessage('{0} has mulliganed', player);
@@ -83,6 +84,7 @@ export class SetupPhase extends Phase {
     }
 
     private drawStartingHands() {
+        // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
             player.shuffleDeck();
             player.drawCardsToHand(6);

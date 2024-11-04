@@ -75,7 +75,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return properties;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = false): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
             (properties.checkTarget && context.choosingPlayerOverride) ||

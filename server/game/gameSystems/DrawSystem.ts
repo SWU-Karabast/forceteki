@@ -45,6 +45,8 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.updateEvent(event, card, context, additionalProperties);
+
+        // TODO: convert damage on draw to be a real replacement effect once we have partial replacement working
         event.setContingentEventsGenerator((event) => {
             // Add a contingent event to deal damage for any cards the player fails to draw due to not having enough left in their deck.
             const contingentEvents = [];

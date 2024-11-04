@@ -55,7 +55,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     }
 
     public emitEvents() {
-        const events = this.triggeringEvents.filter((event) => !this.eventsToExclude.includes(event) && !event.cancelled);
+        const events = this.triggeringEvents.filter((event) => !this.eventsToExclude.includes(event) && !event.isCancelledOrReplaced);
 
         for (const event of events) {
             this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
@@ -101,7 +101,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     public addToWindow(context: TriggeredAbilityContext) {
         this.assertWindowResolutionNotStarted('ability', context.source);
 
-        if (!context.event.cancelled && context.ability) {
+        if ((context.event.canResolve || context.event.isResolved) && context.ability) {
             if (!this.unresolved.has(context.player)) {
                 this.unresolved.set(context.player, [context]);
             } else {
@@ -259,7 +259,12 @@ export class TriggeredAbilityWindow extends BaseStep {
         this.unresolved = new Map<Player, TriggeredAbilityContext[]>();
 
         for (const [player, triggeredAbilities] of preCleanupTriggers) {
-            const cleanedAbilities = triggeredAbilities.filter((context) => !context.event.cancelled);
+            const cleanedAbilities = this.triggerAbilityType === AbilityType.Triggered
+                ? triggeredAbilities.filter((context) => context.event.isResolved)
+                : this.triggerAbilityType === AbilityType.ReplacementEffect
+                    ? triggeredAbilities.filter((context) => context.event.canResolve)
+                    : Contract.fail(`Unexpected trigger ability type ${this.triggerAbilityType}`);
+
             if (cleanedAbilities.length > 0) {
                 this.unresolved.set(player, cleanedAbilities);
             }
@@ -287,40 +292,57 @@ export class TriggeredAbilityWindow extends BaseStep {
         return triggeredAbilities.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext));
     }
 
+    // TODO: separate class and correct logic for replacement effect windows
+    // TODO: currently there is a bug with shields owned by the same player on different units. the player will be
+    // prompted to order resolution even though it doesn't matter (or they may not even technically control the effect).
+    // see Lom Pyke tests for an example.
     /**
-     * If there are multiple Shield triggers present, consolidate down to one of them to reduce prompt noise.
-     * Will randomly choose the Shield to trigger unless any have {@link Shield.highPriorityRemoval}` = true`,
-     * in which case one of those will be selected randomly.
+     * If there are multiple Shield triggers present, consolidate down to one per unit to reduce prompt noise.
+     * Will randomly choose the Shield to trigger, prioritizing any that have {@link Shield.highPriorityRemoval}` = true`.
      */
     private consolidateShieldTriggers() {
         Contract.assertEqual(this.triggerAbilityType, AbilityType.ReplacementEffect);
 
-        const postConsolidateUnresolved = new Map<Player, TriggeredAbilityContext[]>();
-
-        this.unresolved.forEach((triggeredAbilities: TriggeredAbilityContext[], player: Player) => {
-            let selectedShieldEffect: TriggeredAbilityContext<Shield> | null = null;
+        // pass 1: go through all triggers and select at most 1 shield effect per unit with shield(s)
+        const selectedShieldEffectPerUnit = new Map<Card, TriggeredAbilityContext<Shield>>();
+        for (const [player, triggeredAbilities] of this.unresolved) {
+            // let selectedShieldEffect: TriggeredAbilityContext<Shield> | null = null;
 
             for (const triggeredAbility of triggeredAbilities) {
                 const abilitySource = triggeredAbility.source;
 
                 if (abilitySource.isShield()) {
-                    if (selectedShieldEffect === null) {
-                        selectedShieldEffect = (triggeredAbility as TriggeredAbilityContext<Shield>);
-                    } else if (abilitySource.highPriorityRemoval && !selectedShieldEffect.source.highPriorityRemoval) {
-                        selectedShieldEffect = (triggeredAbility as TriggeredAbilityContext<Shield>);
+                    const shieldedUnit = abilitySource.parentCard;
+
+                    const currentlySelectedShieldEffect = selectedShieldEffectPerUnit.get(shieldedUnit);
+
+                    // if there's currently no selected shield effect, or the new one is higher priority, set it as the shield effect to resolve for this unit
+                    if (
+                        currentlySelectedShieldEffect == null ||
+                        (abilitySource.highPriorityRemoval && !currentlySelectedShieldEffect.source.highPriorityRemoval)
+                    ) {
+                        selectedShieldEffectPerUnit.set(shieldedUnit, (triggeredAbility as TriggeredAbilityContext<Shield>));
                     }
                 }
             }
+        }
 
-            let postConsolidateAbilities = triggeredAbilities;
-            if (selectedShieldEffect !== null) {
-                postConsolidateAbilities = postConsolidateAbilities.filter((ability) => !ability.source.isShield() || ability === selectedShieldEffect);
+        // pass 2: go through all triggers and filter out all shield effects other than those selected in pass 1
+        if (selectedShieldEffectPerUnit.size !== 0) {
+            const selectedShieldEffectsFlat = Array.from(selectedShieldEffectPerUnit.values()).flat();
+            const postConsolidateUnresolved = new Map<Player, TriggeredAbilityContext[]>();
+
+            for (const [player, triggeredAbilities] of this.unresolved) {
+                const postConsolidateAbilities = triggeredAbilities.filter((ability) =>
+                    !ability.source.isShield() ||
+                    selectedShieldEffectsFlat.includes(ability as TriggeredAbilityContext<Shield>)
+                );
+
+                postConsolidateUnresolved.set(player, postConsolidateAbilities);
             }
 
-            postConsolidateUnresolved.set(player, postConsolidateAbilities);
-        });
-
-        this.unresolved = postConsolidateUnresolved;
+            this.unresolved = postConsolidateUnresolved;
+        }
     }
 
     public override toString() {

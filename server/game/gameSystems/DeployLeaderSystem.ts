@@ -35,10 +35,9 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
         super.updateEvent(event, card, context, additionalProperties);
         event.setContingentEventsGenerator(() => {
-            const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, {
+            const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, context, {
                 player: context.player,
-                card,
-                context,
+                card
             });
 
             return [entersPlayEvent];
