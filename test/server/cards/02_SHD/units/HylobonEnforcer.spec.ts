@@ -1,7 +1,7 @@
 describe('Hylobon Enforcer', function() {
     integration(function(contextRef) {
         describe('Hylobon Enforcer\'s Bounty ability', function() {
-            it('should give an experience token to a unit', function () {
+            it('should draw a card', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {

@@ -12,7 +12,7 @@ export default class FugitiveWookiee extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addBountyAbility({
-            title: 'Draw a card',
+            title: 'Exhaust a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()

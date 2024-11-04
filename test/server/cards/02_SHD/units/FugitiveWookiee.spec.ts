@@ -1,7 +1,7 @@
 describe('Fugitive Wookiee', function() {
     integration(function(contextRef) {
         describe('Fugitive Wookiee\'s Bounty ability', function() {
-            it('should give an experience token to a unit', function () {
+            it('should exhaust a unit', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
