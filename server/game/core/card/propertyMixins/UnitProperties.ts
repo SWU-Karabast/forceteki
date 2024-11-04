@@ -303,7 +303,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Also adds a listener to remove the registered abilities after the effect resolves.
          */
         // TODO THIS PR: refactor this into a separate method so "checkRegisterWhenCaptured" will be simple
-        // TODO THIS PR: can this be easily extended for Bossk?
         public checkRegisterWhenDefeatedKeywordAbilities(event: GameEvent) {
             const bountyKeywords = this.getBountyAbilities();
             if (bountyKeywords.length === 0) {
@@ -316,8 +315,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             );
 
             this._whenDefeatedKeywordAbilities = [];
+            this.registerBountyAbilities(bountyKeywords, this._whenDefeatedKeywordAbilities);
 
-            for (const bountyKeyword of bountyKeywords) {
+            event.addCleanupHandler(() => this.unregisterWhenDefeatedKeywords());
+        }
+
+        private registerBountyAbilities(bountyKeywordInstances: KeywordWithAbilityDefinition[], registrationArray: TriggeredAbility[]) {
+            for (const bountyKeyword of bountyKeywordInstances) {
                 const abilityProps = bountyKeyword.abilityProps;
                 Contract.assertTrue(abilityProps.type === AbilityType.Triggered);
 
@@ -327,10 +331,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 });
 
                 bountyAbility.registerEvents();
-                this._whenDefeatedKeywordAbilities.push(bountyAbility);
+                registrationArray.push(bountyAbility);
             }
-
-            event.addCleanupHandler(() => this.unregisterWhenDefeatedKeywords());
         }
 
         private getBountyAbilities() {
