@@ -754,6 +754,42 @@ function generatePromptHelpMessage(player) {
     return `Current prompt for ${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}`;
 }
 
+function validatePlayerOptions(playerOptions, playerName, startPhase) {
+    // list of approved property names
+    const listOfApprovedPropertiesForAnyOtherPhase = [
+        'hasInitiative',
+        'resources',
+        'groundArena',
+        'spaceArena',
+        'hand',
+        'discard',
+        'leader',
+        'base',
+        'deck',
+        'resource',
+    ];
+    // list of approved property names for setup phase
+    const listOfApprovedPropertiesForSetupPhase = [
+        'leader',
+        'deck'
+    ];
+
+    // Check for unknown properties
+    if (startPhase !== 'setup') {
+        Object.keys(playerOptions).forEach((prop) => {
+            if (!listOfApprovedPropertiesForAnyOtherPhase.includes(prop)) {
+                throw new Error(`${playerName} has an unknown property '${prop}'`);
+            }
+        });
+    } else {
+        Object.keys(playerOptions).forEach((prop) => {
+            if (!listOfApprovedPropertiesForSetupPhase.includes(prop)) {
+                throw new Error(`${playerName} has an unknown property '${prop}'`);
+            }
+        });
+    }
+}
+
 beforeEach(function () {
     jasmine.addMatchers(customMatchers);
 });
@@ -799,6 +835,11 @@ global.integration = function (definitions) {
                 if (!options.player2) {
                     options.player2 = {};
                 }
+
+                // validate supplied parameters
+                validatePlayerOptions(options.player1, 'player1', options.phase);
+                validatePlayerOptions(options.player2, 'player2', options.phase);
+
                 this.game.gameMode = GameMode.Premier;
 
                 if (options.player1.hasInitiative) {
@@ -808,8 +849,8 @@ global.integration = function (definitions) {
                 }
 
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
-                const [deck1, namedCards1] = deckBuilder.customDeck(1, options.player1);
-                const [deck2, namedCards2] = deckBuilder.customDeck(2, options.player2);
+                const [deck1, namedCards1] = deckBuilder.customDeck(1, options.player1, options.phase);
+                const [deck2, namedCards2] = deckBuilder.customDeck(2, options.player2, options.phase);
 
                 this.player1.selectDeck(deck1);
                 this.player2.selectDeck(deck2);
@@ -826,15 +867,19 @@ global.integration = function (definitions) {
 
                     // Advance the phases to the specified
                     this.advancePhases(options.phase);
+
+                    // Player stats
+                    this.player1.damageToBase = options.player1.damageToBase ?? 0;
+                    this.player2.damageToBase = options.player2.damageToBase ?? 0;
                 } else {
                     // Set action window prompt
                     this.player1.player.promptedActionWindows['action'] = true;
                     this.player2.player.promptedActionWindows['action'] = true;
-                }
 
-                // Player stats
-                this.player1.damageToBase = options.player1.damageToBase ?? 0;
-                this.player2.damageToBase = options.player2.damageToBase ?? 0;
+                    // player stats to default
+                    this.player1.damageToBase = 0;
+                    this.player2.damageToBase = 0;
+                }
 
                 // return all zone cards to deck and then set them below
                 this.player1.moveAllNonBaseZonesToRemoved();
@@ -857,10 +902,11 @@ global.integration = function (definitions) {
                     this.player2.setHand(options.player2.hand, ['removed from game']);
                     this.player1.setDiscard(options.player1.discard, ['removed from game']);
                     this.player2.setDiscard(options.player2.discard, ['removed from game']);
+
+                    // Set Leader state (deployed, exhausted, etc.)
+                    this.player1.setLeaderStatus(options.player1.leader);
+                    this.player2.setLeaderStatus(options.player2.leader);
                 }
-                // Set Leader state (deployed, exhausted, etc.)
-                this.player1.setLeaderStatus(options.player1.leader);
-                this.player2.setLeaderStatus(options.player2.leader);
 
                 // Set Base damage
                 this.player1.setBaseStatus(options.player1.base);
