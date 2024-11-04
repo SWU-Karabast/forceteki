@@ -11,7 +11,7 @@ import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
-import { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
+import { KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
@@ -57,11 +57,12 @@ export class Card extends OngoingEffectSource {
     protected _controller: Player;
     protected defaultController: Player;
     protected _facedown = true;
+    protected hasImplementationFile: boolean;   // this will be set by the ability setup methods
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
-    private nextAbilityIdx = 0;
     private _location: Location;
+    private nextAbilityIdx = 0;
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
@@ -357,7 +358,7 @@ export class Card extends OngoingEffectSource {
 
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
-    private getKeywords() {
+    protected getKeywords() {
         const keywords = [...this.printedKeywords];
 
         for (const gainedKeyword of this.getOngoingEffectValues(EffectName.GainKeyword)) {

@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { Arena, CardType, EffectName, EventName, KeywordName, Location, StatType } from '../../Constants';
+import { AbilityType, Arena, CardType, EffectName, EventName, KeywordName, Location, RelativePlayer, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -9,8 +9,8 @@ import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { UpgradeCard } from '../UpgradeCard';
 import { Card } from '../Card';
-import { ITriggeredAbilityProps } from '../../../Interfaces';
-import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
+import { ITriggeredAbilityProps, ITriggeredAbilityPropsWithType } from '../../../Interfaces';
+import { KeywordWithAbilityDefinition, KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
@@ -55,6 +55,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     card.checkRegisterOnAttackKeywordAbilities(event);
                 }
             });
+
+            // register listeners for on-defeat keyword abilities
+            game.on(EventName.OnCardDefeated, (event) => {
+                const card = event.card as Card;
+                if (card.isUnit()) {
+                    card.checkRegisterWhenDefeatedKeywordAbilities(event);
+                }
+            });
+
+            // TODO CAPTURE: add listener here enabling bounty on capture
         }
 
         // ************************************* FIELDS AND PROPERTIES *************************************
@@ -63,7 +73,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected _upgrades?: UpgradeCard[] = null;
 
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
-        private _whenPlayedKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
+        private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
+        private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
 
         public get upgrades(): UpgradeCard[] {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
@@ -141,21 +152,41 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // ***************************************** ABILITY HELPERS *****************************************
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
-            const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
+            const triggeredProperties = { ...properties, when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } };
             this.addTriggeredAbility(triggeredProperties);
         }
 
-        protected addBountyAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
-            const triggeredProperties = Object.assign(properties,
-                {
-                    when: {
-                        onCardDefeated: (event, context) => event.card === context.source
-                        // TODO CAPTURE: add capture trigger
-                    }
-                });
+        protected addBountyAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen' | 'abilityController'>): void {
+            const { title, ...otherProps } = properties;
 
+            const triggeredProperties: ITriggeredAbilityPropsWithType<this> = {
+                ...otherProps,
+                title: 'Bounty: ' + title,
+                type: AbilityType.Triggered,
+                when: {
+                    onCardDefeated: (event, context) => event.card === context.source
+                    // TODO CAPTURE: add capture trigger
+                },
+                abilityController: RelativePlayer.Opponent
+            };
 
-            this.addTriggeredAbility(triggeredProperties);
+            const bountyKeywordsWithoutImpl = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty && !keyword.isFullyImplemented);
+
+            if (bountyKeywordsWithoutImpl.length === 0) {
+                const bountyKeywordsWithImpl = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty && keyword.isFullyImplemented);
+
+                if (bountyKeywordsWithImpl.length > 0) {
+                    Contract.fail(`Attempting to add a bounty ability '${properties.title}' to ${this.internalName} but all instances of the Bounty keyword already have a definition`);
+                }
+
+                Contract.fail(`Attempting to add a bounty ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Bounty keyword`);
+            }
+
+            const bountyAbilityToAssign = bountyKeywordsWithoutImpl[0];
+
+            // TODO: see if there's a better way using discriminating unions to avoid needing a cast when getting keyword instances
+            Contract.assertTrue(bountyAbilityToAssign instanceof KeywordWithAbilityDefinition);
+            bountyAbilityToAssign.setAbilityProps(triggeredProperties);
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
@@ -166,8 +197,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 triggeredAbilities = triggeredAbilities.concat(this._attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
             }
             if (this._whenPlayedKeywordAbilities !== null) {
-                // TODO: does it even make sense for there to be non-triggered when played keyword abilities? I think not. Maybe Smuggle?
-                triggeredAbilities = triggeredAbilities.concat(this._whenPlayedKeywordAbilities as TriggeredAbility[]);
+                triggeredAbilities = triggeredAbilities.concat(this._whenPlayedKeywordAbilities);
+            }
+            if (this._whenDefeatedKeywordAbilities !== null) {
+                triggeredAbilities = triggeredAbilities.concat(this._whenDefeatedKeywordAbilities);
             }
 
             return triggeredAbilities;
@@ -200,21 +233,23 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return;
             }
 
-            Contract.assertTrue(
-                this._whenPlayedKeywordAbilities === null,
+            Contract.assertIsNullLike(
+                this._whenPlayedKeywordAbilities,
                 `Failed to unregister when played abilities from previous play: ${this._whenPlayedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
             );
 
             this._whenPlayedKeywordAbilities = [];
 
             if (hasAmbush) {
-                const ambushAbility = this.createTriggeredAbility(AmbushAbility.buildAmbushAbilityProperties());
+                const ambushProps = { ...this.buildGeneralAbilityProps('keyword_ambush'), ...AmbushAbility.buildAmbushAbilityProperties() };
+                const ambushAbility = this.createTriggeredAbility(ambushProps);
                 ambushAbility.registerEvents();
                 this._whenPlayedKeywordAbilities.push(ambushAbility);
             }
 
             if (hasShielded) {
-                const shieldedAbility = this.createTriggeredAbility(ShieldedAbility.buildShieldedAbilityProperties());
+                const shieldedProps = { ...this.buildGeneralAbilityProps('keyword_shielded'), ...ShieldedAbility.buildShieldedAbilityProperties() };
+                const shieldedAbility = this.createTriggeredAbility(shieldedProps);
                 shieldedAbility.registerEvents();
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
             }
@@ -238,8 +273,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return;
             }
 
-            Contract.assertTrue(
-                this._attackKeywordAbilities === null,
+            Contract.assertIsNullLike(
+                this._attackKeywordAbilities,
                 `Failed to unregister on attack abilities from previous attack: ${this._attackKeywordAbilities?.map((ability) => ability.title).join(', ')}`
             );
 
@@ -247,18 +282,61 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             if (hasRestore) {
                 const restoreAmount = this.getNumericKeywordSum(KeywordName.Restore);
-                const restoreAbility = this.createTriggeredAbility(RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
+                const restoreProps = { ...this.buildGeneralAbilityProps('keyword_restore'), ...RestoreAbility.buildRestoreAbilityProperties(restoreAmount) };
+                const restoreAbility = this.createTriggeredAbility(restoreProps);
                 restoreAbility.registerEvents();
                 this._attackKeywordAbilities.push(restoreAbility);
             }
 
             if (hasSaboteur) {
-                const saboteurAbility = this.createTriggeredAbility(SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties());
+                const saboteurProps = { ...this.buildGeneralAbilityProps('keyword_saboteur'), ...SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties() };
+                const saboteurAbility = this.createTriggeredAbility(saboteurProps);
                 saboteurAbility.registerEvents();
                 this._attackKeywordAbilities.push(saboteurAbility);
             }
 
             event.addCleanupHandler(() => this.unregisterAttackKeywords());
+        }
+
+        /**
+         * Checks if the unit currently has any keywords with a "when defeated" effect and registers them if so.
+         * Also adds a listener to remove the registered abilities after the effect resolves.
+         */
+        public checkRegisterWhenDefeatedKeywordAbilities(event: GameEvent) {
+            const bountyKeywords = this.getBountyAbilities();
+            if (bountyKeywords.length === 0) {
+                return;
+            }
+
+            Contract.assertIsNullLike(
+                this._whenDefeatedKeywordAbilities,
+                `Failed to unregister when defeated abilities from previous defeat: ${this._whenDefeatedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+            );
+
+            this._whenDefeatedKeywordAbilities = [];
+            this.registerBountyAbilities(bountyKeywords, this._whenDefeatedKeywordAbilities);
+
+            event.addCleanupHandler(() => this.unregisterWhenDefeatedKeywords());
+        }
+
+        private registerBountyAbilities(bountyKeywordInstances: KeywordWithAbilityDefinition[], registrationArray: TriggeredAbility[]) {
+            for (const bountyKeyword of bountyKeywordInstances) {
+                const abilityProps = bountyKeyword.abilityProps;
+                Contract.assertTrue(abilityProps.type === AbilityType.Triggered);
+
+                const bountyAbility = this.createTriggeredAbility({
+                    ...this.buildGeneralAbilityProps('keyword_bounty'),
+                    ...abilityProps
+                });
+
+                bountyAbility.registerEvents();
+                registrationArray.push(bountyAbility);
+            }
+        }
+
+        private getBountyAbilities() {
+            return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Bounty)
+                .map((keyword) => keyword as KeywordWithAbilityDefinition);
         }
 
         /**
@@ -270,14 +348,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             let keywordValueTotal = 0;
 
             for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
-                keywordValueTotal += (keyword as KeywordWithNumericValue).value;
+                Contract.assertTrue(keyword instanceof KeywordWithNumericValue);
+                keywordValueTotal += keyword.value;
             }
 
             return keywordValueTotal > 0 ? keywordValueTotal : null;
         }
 
         public unregisterWhenPlayedKeywords() {
-            Contract.assertTrue(Array.isArray(this._whenPlayedKeywordAbilities), 'Ability when played registration was skipped');
+            Contract.assertTrue(Array.isArray(this._whenPlayedKeywordAbilities), 'Keyword ability when played registration was skipped');
 
             for (const ability of this._whenPlayedKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
@@ -293,7 +372,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * These should be unregistered after the end of the attack.
          */
         public unregisterAttackKeywords() {
-            Contract.assertTrue(Array.isArray(this._attackKeywordAbilities), 'Ability attack registration was skipped');
+            Contract.assertTrue(Array.isArray(this._attackKeywordAbilities), 'Keyword ability attack registration was skipped');
 
             for (const ability of this._attackKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
@@ -304,6 +383,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             this._attackKeywordAbilities = null;
+        }
+
+        public unregisterWhenDefeatedKeywords() {
+            Contract.assertTrue(Array.isArray(this._whenDefeatedKeywordAbilities), 'Keyword ability when defeated registration was skipped');
+
+            for (const ability of this._whenDefeatedKeywordAbilities) {
+                if (ability instanceof TriggeredAbility) {
+                    ability.unregisterEvents();
+                }
+            }
+
+            this._whenDefeatedKeywordAbilities = null;
         }
 
         // ***************************************** STAT HELPERS *****************************************

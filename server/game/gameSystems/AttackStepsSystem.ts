@@ -28,6 +28,7 @@ export interface IAttackProperties<TContext extends AbilityContext = AbilityCont
     message?: string;
     messageArgs?: (attack: Attack, context: TContext) => any | any[];
     costHandler?: (context: TContext, prompt: any) => void;
+    isAmbush?: boolean;
 
     /**
      * Effects to apply to the attacker for the duration of the attack. Can be one or more {@link IAttackLastingEffectProperties}
@@ -183,7 +184,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         event.attack = new Attack(
             context.game,
             properties.attacker as UnitCard,
-            event.target as CardWithDamageProperty
+            event.target as CardWithDamageProperty,
+            properties.isAmbush
         );
     }
 

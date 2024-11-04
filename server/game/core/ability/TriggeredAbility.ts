@@ -93,18 +93,6 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    public override meetsRequirements(context, ignoredRequirements = []) {
-        const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller;
-
-        if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
-            if (!context.player.isCardInPlayableLocation(this.card, context.playType)) {
-                return 'player';
-            }
-        }
-
-        return super.meetsRequirements(context, ignoredRequirements);
-    }
-
     public override createContext(player = this.card.controller, event: GameEvent) {
         return new TriggeredAbilityContext({
             event: event,

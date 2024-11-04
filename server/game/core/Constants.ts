@@ -241,8 +241,6 @@ export enum Aspect {
 
 export enum KeywordName {
     Ambush = 'ambush',
-
-    /** @deprecated Not implemented yet */
     Bounty = 'bounty',
     Grit = 'grit',
     Overwhelm = 'overwhelm',
@@ -347,7 +345,7 @@ export enum AbilityRestriction {
     EnterPlay = 'enterPlay',
 
     /** Restricts a game object from being targetable by abilities */
-    Target = 'target',  // TODO: rename to AbilityTarget
+    AbilityTarget = 'abilityTarget',
 
     BeHealed = 'beHealed',
     Exhaust = 'exhaust',
