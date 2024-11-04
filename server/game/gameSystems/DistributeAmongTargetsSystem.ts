@@ -61,7 +61,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
         const legalTargets = properties.selector.getAllLegalTargets(context);
 
         // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets
-        if (!properties.canChooseNoTargets && legalTargets.length === 1) {
+        if ((!properties.canChooseNoTargets && !properties.optional) && legalTargets.length === 1) {
             const amountToDistribute = this.getAmountToDistribute(properties.amountToDistribute, context);
             events.push(this.generateEffectEvent(legalTargets[0], context, amountToDistribute));
             return;
@@ -71,7 +71,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
         const promptProperties: IDistributeAmongTargetsPromptProperties = {
             type: this.promptType,
             legalTargets,
-            canChooseNoTargets: properties.canChooseNoTargets,
+            canChooseNoTargets: properties.canChooseNoTargets || properties.optional,
             canDistributeLess: properties.canDistributeLess,
             source: context.source,
             amount: this.getAmountToDistribute(properties.amountToDistribute, context),

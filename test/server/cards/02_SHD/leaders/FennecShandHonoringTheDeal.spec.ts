@@ -99,5 +99,29 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 expect(context.battlefieldMarine.location).toBe('discard');
             });
         });
+
+        describe('Fennec Shand\'s deployed ability', function () {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'fennec-shand#honoring-the-deal', deployed: true },
+                        hand: ['reinforcement-walker'],
+                        resources: 8
+                    },
+                    player2: { }
+                });
+            });
+
+            it('should not allow the player to play a unit with cost 4 or less when he does not have any targetable units in hand', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.fennecShand);
+                expect(context.player1).not.toHavePrompt('Play a unit that costs 4 or less from your hand. Give it ambush for this phase');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.fennecShand.exhausted).toBeTrue();
+                expect(context.p2Base.damage).toBe(4);
+            });
+        });
     });
 });

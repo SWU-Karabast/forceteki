@@ -94,7 +94,7 @@ describe('Mace Windu, Party Crasher', function() {
 
                 expect(context.jawaScavenger).toBeInLocation('discard');
                 expect(context.maceWindu.damage).toBe(0);
-                expect(context.maceWindu.exhausted).toBeTrue();
+                expect(context.maceWindu.exhausted).toBeFalse();
             });
         });
     });
