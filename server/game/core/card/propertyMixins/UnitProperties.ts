@@ -152,7 +152,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // ***************************************** ABILITY HELPERS *****************************************
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
-            const triggeredProperties = Object.assign(properties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
+            const triggeredProperties = { ...properties, when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } };
             this.addTriggeredAbility(triggeredProperties);
         }
 
@@ -241,14 +241,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._whenPlayedKeywordAbilities = [];
 
             if (hasAmbush) {
-                const ambushProps = Object.assign(this.buildGeneralAbilityProps('keyword_ambush'), AmbushAbility.buildAmbushAbilityProperties());
+                const ambushProps = { ...this.buildGeneralAbilityProps('keyword_ambush'), ...AmbushAbility.buildAmbushAbilityProperties() };
                 const ambushAbility = this.createTriggeredAbility(ambushProps);
                 ambushAbility.registerEvents();
                 this._whenPlayedKeywordAbilities.push(ambushAbility);
             }
 
             if (hasShielded) {
-                const shieldedProps = Object.assign(this.buildGeneralAbilityProps('keyword_shielded'), ShieldedAbility.buildShieldedAbilityProperties());
+                const shieldedProps = { ...this.buildGeneralAbilityProps('keyword_shielded'), ...ShieldedAbility.buildShieldedAbilityProperties() };
                 const shieldedAbility = this.createTriggeredAbility(shieldedProps);
                 shieldedAbility.registerEvents();
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
@@ -282,14 +282,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             if (hasRestore) {
                 const restoreAmount = this.getNumericKeywordSum(KeywordName.Restore);
-                const restoreProps = Object.assign(this.buildGeneralAbilityProps('keyword_restore'), RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
+                const restoreProps = { ...this.buildGeneralAbilityProps('keyword_restore'), ...RestoreAbility.buildRestoreAbilityProperties(restoreAmount) };
                 const restoreAbility = this.createTriggeredAbility(restoreProps);
                 restoreAbility.registerEvents();
                 this._attackKeywordAbilities.push(restoreAbility);
             }
 
             if (hasSaboteur) {
-                const saboteurProps = Object.assign(this.buildGeneralAbilityProps('keyword_saboteur'), SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties());
+                const saboteurProps = { ...this.buildGeneralAbilityProps('keyword_saboteur'), ...SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties() };
                 const saboteurAbility = this.createTriggeredAbility(saboteurProps);
                 saboteurAbility.registerEvents();
                 this._attackKeywordAbilities.push(saboteurAbility);
