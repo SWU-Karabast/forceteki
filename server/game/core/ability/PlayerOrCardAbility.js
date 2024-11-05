@@ -224,7 +224,7 @@ class PlayerOrCardAbility {
                             if (!results.cancelled) {
                                 let newEvents = cost.payEvent
                                     ? cost.payEvent(context)
-                                    : new GameEvent('payCost', {}, () => cost.pay(context));
+                                    : new GameEvent('payCost', context, {}, () => cost.pay(context));
                                 if (Array.isArray(newEvents)) {
                                     for (let event of newEvents) {
                                         results.events.push(event);

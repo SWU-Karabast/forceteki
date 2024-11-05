@@ -16,10 +16,9 @@ export class PlayUpgradeAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext) {
         Contract.assertTrue(context.source.isUpgrade());
 
-        const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, {
+        const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, context, {
             player: context.player,
             card: context.source,
-            context: context,
             originalLocation: context.source.location,
             originallyOnTopOfDeck:
                 context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,

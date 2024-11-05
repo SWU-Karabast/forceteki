@@ -138,10 +138,12 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param target Target under consideration
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
+     * @param mustChangeGameState If set to true, `canAffect` will only return true if the effect will alter game state.
+     * False by default as ability effects can still be triggered even if they will not change game state.
      * @returns True if the target is legal for the system, false otherwise
      */
     // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
-    public canAffect(target: any, context: TContext, additionalProperties: any = {}): boolean {
+    public canAffect(target: any, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
 
         return (
@@ -156,12 +158,14 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * given the current game state. See {@link GameSystem.generatePropertiesFromContext} for details on target generation.
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
+     * @param mustChangeGameState If set to true, will only consider targets legal if applying the effect on thmem will alter game state.
+     * False by default as ability effects can still be triggered even if they will not change game state.
      * @returns True if any of the candidate targets are legal, false otherwise
      */
     // TODO: update the type for additionalProperties everywhere to be Record<string, any> since it's always a flat object
-    public hasLegalTarget(context: TContext, additionalProperties: any = {}): boolean {
+    public hasLegalTarget(context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
         for (const candidateTarget of this.targets(context, additionalProperties)) {
-            if (this.canAffect(candidateTarget, context, additionalProperties)) {
+            if (this.canAffect(candidateTarget, context, additionalProperties, mustChangeGameState)) {
                 return true;
             }
         }
@@ -174,11 +178,13 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * given the current game state. See {@link GameSystem.generatePropertiesFromContext} for details on target generation.
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
+     * @param mustChangeGameState If set to true, will only consider targets legal if applying the effect on thmem will alter game state.
+     * False by default as ability effects can still be triggered even if they will not change game state.
      * @returns True if all of the candidate targets are legal, false otherwise
      */
-    public allTargetsLegal(context: TContext, additionalProperties: any = {}): boolean {
+    public allTargetsLegal(context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
         for (const candidateTarget of this.targets(context, additionalProperties)) {
-            if (!this.canAffect(candidateTarget, context, additionalProperties)) {
+            if (!this.canAffect(candidateTarget, context, additionalProperties, mustChangeGameState)) {
                 return false;
             }
         }
@@ -243,7 +249,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     }
 
     /**
-     * Resolves the effects of the effects of the system on game state by generating the necessary events and
+     * Resolves the effects of the system on game state by generating the necessary events and
      * opening a window to resolve them with {@link Game.openEventWindow}.
      */
     public resolve(
@@ -264,10 +270,6 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return true;
     }
 
-    public isEventFullyResolved(event: GameEvent, target: any, context: TContext, additionalProperties: any = {}): boolean {
-        return !event.cancelled && event.name === this.eventName;
-    }
-
     public isOptional(context: TContext, additionalProperties: any = {}): boolean {
         return this.generatePropertiesFromContext(context, additionalProperties).optional ?? false;
     }
@@ -279,7 +281,6 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     protected addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties: any = {}): void {
         const { contingentSourceEvent } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        event.context = context;
         event.contingentSourceEvent = contingentSourceEvent;
     }
 
@@ -288,9 +289,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     protected createEvent(target: any, context: TContext, additionalProperties): GameEvent {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
-        const event = new GameEvent(this.eventName, { cannotBeCancelled });
-        event.checkFullyResolved = (eventAtResolution) =>
-            this.isEventFullyResolved(eventAtResolution, target, context, additionalProperties);
+        const event = new GameEvent(this.eventName, context, { cannotBeCancelled });
         return event;
     }
 
@@ -300,7 +299,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     protected updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: any = {}): void {
         this.addPropertiesToEvent(event, target, context, additionalProperties);
-        event.replaceHandler((event) => this.eventHandler(event, additionalProperties));
+        event.setHandler((event) => this.eventHandler(event, additionalProperties));
         event.condition = () => this.checkEventCondition(event, additionalProperties);
     }
 

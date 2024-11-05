@@ -18,9 +18,10 @@ import { DistributeHealingSystem, IDistributeHealingSystemProperties } from './D
 // import { ChosenReturnToDeckAction, ChosenReturnToDeckProperties } from './ChosenReturnToDeckAction';
 // import { CreateTokenAction, CreateTokenProperties } from './CreateTokenAction';
 // import { DetachAction, DetachActionProperties } from './DetachAction';
-// import { DiscardCardAction, DiscardCardProperties } from './DiscardCardAction';
+// import { DiscardCardAction, DiscardCardProperties } from './DiscardSpecificCardAction';
 // import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
 // import { DiscardStatusAction, DiscardStatusProperties } from './DiscardStatusAction';
+import { DiscardSpecificCardSystem, IDiscardSpecificCardProperties } from './DiscardSpecificCardSystem';
 import { DrawSystem, IDrawProperties } from './DrawSystem';
 import { DrawSpecificCardSystem, IDrawSpecificCardProperties } from './DrawSpecificCardSystem';
 import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
@@ -114,9 +115,9 @@ export function deploy<TContext extends AbilityContext = AbilityContext>(propert
 export function defeat<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDefeatCardProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new DefeatCardSystem<TContext>(propertyFactory);
 }
-// export function discardCard(propertyFactory: PropsFactory<DiscardCardProperties> = {}): CardGameAction {
-//     return new DiscardCardAction(propertyFactory);
-// }
+export function discardSpecificCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardSpecificCardProperties, TContext> = {}): DiscardSpecificCardSystem<TContext> {
+    return new DiscardSpecificCardSystem<TContext>(propertyFactory);
+}
 // export function discardFromPlay(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}): GameSystem {
 //     return new DiscardFromPlayAction(propertyFactory);
 // }

@@ -23,6 +23,7 @@ const Helpers = require('./utils/Helpers');
 const { BaseCard } = require('./card/BaseCard');
 const { LeaderUnitCard } = require('./card/LeaderUnitCard');
 const { InPlayCard } = require('./card/baseClasses/InPlayCard');
+const { AbilityContext } = require('./ability/AbilityContext');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -498,12 +499,13 @@ class Player extends GameObject {
 
     /**
      * Shuffles the deck, emitting an event and displaying a message in chat
+     * @param {AbilityContext} context
      */
-    shuffleDeck() {
+    shuffleDeck(context = null) {
         if (this.name !== 'Dummy Player') {
             this.game.addMessage('{0} is shuffling their dynasty deck', this);
         }
-        this.game.emitEvent(EventName.OnDeckShuffled, { player: this });
+        this.game.emitEvent(EventName.OnDeckShuffled, context, { player: this });
         this.drawDeck = Helpers.shuffle(this.drawDeck);
     }
 

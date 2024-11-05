@@ -48,7 +48,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     public payEvent(context: TContext): GameEvent {
         const amount = this.getAdjustedCost(context);
         context.costs.resources = amount;
-        return new GameEvent(EventName.onExhaustResources, { amount, context }, (event) => {
+        return new GameEvent(EventName.onExhaustResources, context, { amount }, (event) => {
             event.context.player.markUsedAdjusters(context.playType, event.context.source);
             if (this.isSmuggleCost) {
                 event.context.player.exhaustResources(amount, [event.context.source]);

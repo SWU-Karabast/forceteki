@@ -20,7 +20,7 @@ export class PlayEventAction extends PlayCardAction {
             context.source,
         );
 
-        // TODO: move the logic for moving the event card to discard pile from AbilityResolver to here
+        this.moveEventToDiscard(context);
         context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 
@@ -40,10 +40,9 @@ export class PlayEventAction extends PlayCardAction {
             destination: Location.Discard
         }).generateEvent(context);
 
-        const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, {
+        const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, context, {
             player: context.player,
             card: context.source,
-            context: context,
             originalLocation: context.source.location,
             originallyOnTopOfDeck:
                 context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,

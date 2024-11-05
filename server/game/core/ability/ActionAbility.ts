@@ -24,8 +24,6 @@ import type Game from '../Game.js';
  *                to activate the action. Defaults to 'play area'.
  * limit        - optional AbilityLimit object that represents the max number of
  *                uses for the action as well as when it resets.
- * anyPlayer    - boolean indicating that the action may be executed by a player
- *                other than the card's controller. Defaults to false.
  * clickToActivate - boolean that indicates the action should be activated when
  *                   the card is clicked.
  */
@@ -41,7 +39,6 @@ export class ActionAbility extends CardAbility {
 
         this.phase = properties.phase ?? PhaseName.Action;
         this.condition = properties.condition;
-        this.anyPlayer = properties.anyPlayer ?? false;
         this.doesNotTarget = (properties as any).doesNotTarget;
     }
 
@@ -52,14 +49,6 @@ export class ActionAbility extends CardAbility {
 
         if (!ignoredRequirements.includes('phase') && this.phase !== 'any' && this.phase !== this.game.currentPhase) {
             return 'phase';
-        }
-
-        const canOpponentTrigger =
-            this.card.hasOngoingEffect(EffectName.CanBeTriggeredByOpponent) &&
-            this.type !== AbilityType.Triggered;
-        const canPlayerTrigger = this.anyPlayer || context.player === this.card.controller || canOpponentTrigger;
-        if (!ignoredRequirements.includes('player') && !this.card.isEvent() && !canPlayerTrigger) {
-            return 'player';
         }
 
         if (!ignoredRequirements.includes('condition') && this.condition && !this.condition(context)) {

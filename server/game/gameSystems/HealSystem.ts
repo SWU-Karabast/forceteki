@@ -47,7 +47,5 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.healAmount = amount;
-        event.context = context;
-        event.recipient = card;
     }
 }
