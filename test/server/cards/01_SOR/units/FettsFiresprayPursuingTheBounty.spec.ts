@@ -190,12 +190,11 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                 });
             });
 
-            it('should exhaust an unit even if all unit are exhausted and should not exhaust anyone if all resources are paid', function () {
+            it('should skip targeting if all targets are exhausted, and should not be available as an action if there aren\'t enough resources', function () {
                 const { context } = contextRef;
 
                 // exhaust battlefield marine
                 expect(context.fettsFirespray).toHaveAvailableActionWhenClickedBy(context.player1);
-                context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.countExhaustedResources()).toBe(2);
 

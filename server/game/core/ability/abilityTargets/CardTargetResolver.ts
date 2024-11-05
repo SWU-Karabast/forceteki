@@ -4,21 +4,25 @@ import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { Card } from '../../card/Card';
-import { Stage, EffectName, LocationFilter, RelativePlayer } from '../../Constants';
+import { Stage, EffectName, LocationFilter, RelativePlayer, GameStateChangeRequired } from '../../Constants';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
 import * as EnumHelpers from '../../utils/EnumHelpers.js';
+import { GameSystem } from '../../gameSystem/GameSystem';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
  */
 export class CardTargetResolver extends TargetResolver<ICardTargetResolver<AbilityContext>> {
-    private selector;
+    private immediateEffect: GameSystem;
+    private selector: any;
+
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
 
         this.selector = this.getSelector(properties);
+        this.immediateEffect = properties.immediateEffect;
 
         if (this.properties.immediateEffect) {
             this.properties.immediateEffect.setDefaultTargetFn((context) => context.targets[name]);
@@ -79,6 +83,16 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             return;
         }
 
+        // if there are legal targets but this wouldn't have a gamestate-changing effect on any of them, we can just shortcut and skip selection
+        // (unless there are dependent targets that might care about the targeting result)
+        if (
+            !this.dependentTarget &&
+            !legalTargets.some((target) => this.immediateEffect.canAffect(target, this.getContextCopy(target, context), {}, GameStateChangeRequired.MayPartiallyResolve))
+        ) {
+            return;
+        }
+
+        // if there's only one target available, automatically select it without prompting
         if (context.player.autoSingleTarget && legalTargets.length === 1) {
             this.setTargetResult(context, legalTargets[0]);
             return;
