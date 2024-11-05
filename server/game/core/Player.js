@@ -170,8 +170,8 @@ class Player extends GameObject {
     }
 
     /**
-     * @param { String } title the title of the unit to check for control of
-     * @returns { boolean } true if this player controls a unit with the given title
+     * @param { String } title the title of the unit or leader to check for control of
+     * @returns { boolean } true if this player controls a unit or leader with the given title
      */
     controlsLeaderOrUnitWithTitle(title) {
         return this.leader.title === title || this.getArenaCards(WildcardLocation.AnyArena).filter((card) => card.title === title).length > 0;

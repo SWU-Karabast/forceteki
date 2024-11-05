@@ -100,7 +100,7 @@ export class PlayableOrDeployableCard extends Card {
     protected generateIgnoreAllAspectPenaltiesAbilityProps(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
 
-        const costAdjusterProps: IIgnoreAllAspectsCostAdjusterProperties = {
+        const costAdjusterProps: ICostAdjusterProperties = {
             ...this.buildCostAdjusterGenericProperties(),
             costAdjustType: CostAdjustType.IgnoreAllAspects,
             ...otherProps
