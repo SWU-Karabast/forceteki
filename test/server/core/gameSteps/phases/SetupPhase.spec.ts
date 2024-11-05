@@ -65,6 +65,12 @@ describe('Setup Phase', function() {
                 const player1FirstCard = context.player1.hand[0];
                 const player1SecondCard = context.player1.hand[1];
 
+                // We check if player1's hand has the only selectable cards
+                expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
+
+                // we check if player2's hand has the only selectable cards
+                expect(context.player2).toBeAbleToSelectExactly(context.player2.hand);
+
                 // select 2 cards to resource player1 and check prompts
                 context.player1.clickCard(context.player1.hand[0]);
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
@@ -136,6 +142,12 @@ describe('Setup Phase', function() {
                 // Mulligan step
                 context.player2.clickPrompt('no');
                 context.player1.clickPrompt('no');
+
+                // We check if player1's hand has the only selectable cards
+                expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
+
+                // we check if player2's hand has the only selectable cards
+                expect(context.player2).toBeAbleToSelectExactly(context.player2.hand);
 
                 // select 2 cards to resource both players and confirm
                 context.player1.clickCard(context.player1.hand[0]);
