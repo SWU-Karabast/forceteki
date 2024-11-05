@@ -52,7 +52,6 @@ export function createBountyAbilityFromProps(properties: Omit<ITriggeredAbilityP
     const { title, ...otherProps } = properties;
 
     return {
-        ...otherProps,
         title: 'Bounty: ' + title,
         // 7.5.13.E : Resolving a Bounty ability is optional. If a player chooses not to resolve a Bounty ability, they are not considered to have collected that Bounty.
         optional: true,
@@ -60,7 +59,8 @@ export function createBountyAbilityFromProps(properties: Omit<ITriggeredAbilityP
             onCardDefeated: (event, context) => event.card === context.source
             // TODO CAPTURE: add capture trigger
         },
-        abilityController: RelativePlayer.Opponent
+        abilityController: RelativePlayer.Opponent,
+        ...otherProps
     };
 }
 
