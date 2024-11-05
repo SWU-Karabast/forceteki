@@ -167,6 +167,8 @@ export type WhenType<TSource extends Card = Card> = {
     [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
 };
 
+export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
+
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
@@ -181,8 +183,6 @@ type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBasePro
 type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 };
-
-type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
 
 interface IAbilityPropsWithTargetResolver<TContext extends AbilityContext> extends IAbilityProps<TContext> {
     targetResolver: IActionTargetResolver<TContext>;
