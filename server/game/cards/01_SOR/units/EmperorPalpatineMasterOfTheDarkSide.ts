@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Attack } from '../../../core/attack/Attack';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class EmperorPalpatineMasterOfTheDarkSide extends NonLeaderUnitCard {
     protected override getImplementationId() {

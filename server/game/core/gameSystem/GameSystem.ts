@@ -14,7 +14,8 @@ type PlayerOrCard = Player | Card;
 export interface IGameSystemProperties {
     target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
-    // TODO: remove this
+
+    /** @deprecated TODO: evaluate whether to remove this */
     optional?: boolean;
     parentSystem?: GameSystem;
     isCost?: boolean;
