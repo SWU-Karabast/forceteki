@@ -136,7 +136,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: gainCondition,
+            condition: this.addLocationCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
         });
     }
@@ -150,7 +150,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: gainCondition,
+            condition: this.addLocationCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
         });
     }
@@ -166,7 +166,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: gainCondition,
+            condition: this.addLocationCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
         });
     }
@@ -180,9 +180,15 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give keyword to the attached card',
-            condition: gainCondition,
+            condition: this.addLocationCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(keywordProperties)
         });
+    }
+
+    private addLocationCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
+        return gainCondition == null
+            ? null
+            : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
     }
 
     /** Adds a condition that must return true for the upgrade to be allowed to attach to the passed card. */
