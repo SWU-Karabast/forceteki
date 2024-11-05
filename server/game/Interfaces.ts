@@ -13,6 +13,7 @@ import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import Player from './core/Player';
 import OngoingCardEffect from './core/ongoingEffect/OngoingCardEffect';
 import OngoingPlayerEffect from './core/ongoingEffect/OngoingPlayerEffect';
+import { UnitCard } from './core/card/CardTypes';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -247,7 +248,7 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Ambush;
 }
 
-interface IBountyKeywordProperties<TSource extends Card = Card> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+interface IBountyKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
     ability: Omit<ITriggeredAbilityProps<TSource>, 'when' | 'aggregateWhen' | 'abilityController'>;
 }
