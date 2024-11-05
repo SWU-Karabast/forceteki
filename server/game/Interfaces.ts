@@ -182,7 +182,7 @@ type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbili
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 };
 
-type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
+export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
 
 interface IAbilityPropsWithTargetResolver<TContext extends AbilityContext> extends IAbilityProps<TContext> {
     targetResolver: IActionTargetResolver<TContext>;

@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { IConstantAbilityProps } from '../../../Interfaces';
+import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import { Aspect, CardType, RelativePlayer, WildcardLocation } from '../../Constants';
@@ -85,22 +85,14 @@ export class PlayableOrDeployableCard extends Card {
     protected generateDecreaseCostAbilityProps(properties: IDecreaseEventCostAbilityProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
 
-        const costAdjusterProps: IIncreaseOrDecreaseCostAdjusterProperties = {
-            cardTypeFilter: this.printedType,
-            match: (card, adjusterSource) => card === adjusterSource,
+        const costAdjusterProps: ICostAdjusterProperties = {
+            ...this.buildCostAdjusterGenericProperties(),
             costAdjustType: CostAdjustType.Decrease,
             ...otherProps
         };
 
-        const costAdjustAbilityProps: IConstantAbilityProps = {
-            title,
-            sourceLocationFilter: WildcardLocation.Any,
-            targetController: RelativePlayer.Any,
-            condition: condition,
-            ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost(costAdjusterProps)
-        };
-
-        return costAdjustAbilityProps;
+        const effect = AbilityHelper.ongoingEffects.decreaseCost(costAdjusterProps);
+        return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 
 
@@ -108,22 +100,14 @@ export class PlayableOrDeployableCard extends Card {
     protected generateIgnoreAllAspectPenaltiesAbilityProps(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
 
-        const costAdjusterProps: ICostAdjusterProperties = {
-            cardTypeFilter: this.printedType,
-            match: (card, adjusterSource) => card === adjusterSource,
+        const costAdjusterProps: IIgnoreAllAspectsCostAdjusterProperties = {
+            ...this.buildCostAdjusterGenericProperties(),
             costAdjustType: CostAdjustType.IgnoreAllAspects,
             ...otherProps
         };
 
-        const costAdjustAbilityProps: IConstantAbilityProps = {
-            title,
-            sourceLocationFilter: WildcardLocation.Any,
-            targetController: RelativePlayer.Any,
-            condition: condition,
-            ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties(costAdjusterProps)
-        };
-
-        return costAdjustAbilityProps;
+        const effect = AbilityHelper.ongoingEffects.ignoreAllAspectPenalties(costAdjusterProps);
+        return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 
 
@@ -132,19 +116,30 @@ export class PlayableOrDeployableCard extends Card {
         const { title, ignoredAspects, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = {
-            cardTypeFilter: this.printedType,
-            match: (card, adjusterSource) => card === adjusterSource,
+            ...this.buildCostAdjusterGenericProperties(),
             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
             ignoredAspects: ignoredAspects,
             ...otherProps
         };
 
+        const effect = AbilityHelper.ongoingEffects.ignoreSpecificAspectPenalties(costAdjusterProps);
+        return this.buildCostAdjusterAbilityProps(condition, title, effect);
+    }
+
+    private buildCostAdjusterGenericProperties() {
+        return {
+            cardTypeFilter: this.printedType,
+            match: (card, adjusterSource) => card === adjusterSource
+        };
+    }
+
+    private buildCostAdjusterAbilityProps(condition: (context: AbilityContext<this>) => boolean, title: string, ongoingEffect: IOngoingEffectGenerator): IConstantAbilityProps {
         const costAdjustAbilityProps: IConstantAbilityProps = {
             title,
             sourceLocationFilter: WildcardLocation.Any,
             targetController: RelativePlayer.Any,
-            condition: condition,
-            ongoingEffect: AbilityHelper.ongoingEffects.ignoreSpecificAspectPenalties(costAdjusterProps)
+            condition,
+            ongoingEffect
         };
 
         return costAdjustAbilityProps;
