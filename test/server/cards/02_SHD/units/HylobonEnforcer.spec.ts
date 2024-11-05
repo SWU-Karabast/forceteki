@@ -1,7 +1,7 @@
 describe('Hylobon Enforcer', function() {
     integration(function(contextRef) {
         describe('Hylobon Enforcer\'s Bounty ability', function() {
-            it('should give an experience token to a unit', function () {
+            it('should draw a card', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -16,6 +16,8 @@ describe('Hylobon Enforcer', function() {
 
                 context.player1.clickCard(context.hylobonEnforcer);
                 context.player1.clickCard(context.wampa);
+                expect(context.player2).toHavePassAbilityPrompt('Bounty: Draw a card');
+                context.player2.clickPrompt('Bounty: Draw a card');
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(1);
                 expect(context.player2).toBeActivePlayer();
@@ -37,6 +39,8 @@ describe('Hylobon Enforcer', function() {
 
                 context.player1.clickCard(context.hylobonEnforcer);
                 context.player1.clickCard(context.wampa);
+                expect(context.player2).toHavePassAbilityPrompt('Bounty: Draw a card');
+                context.player2.clickPrompt('Bounty: Draw a card');
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(0);
                 expect(context.p2Base.damage).toBe(3);

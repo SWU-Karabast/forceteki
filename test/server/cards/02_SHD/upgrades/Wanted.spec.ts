@@ -17,6 +17,8 @@ describe('Wanted', function() {
                 context.player2.exhaustResources(3);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.wampa);
+                expect(context.player2).toHavePassAbilityPrompt('Bounty: Ready two friendly resources');
+                context.player2.clickPrompt('Bounty: Ready two friendly resources');
                 expect(context.player2.countExhaustedResources()).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
