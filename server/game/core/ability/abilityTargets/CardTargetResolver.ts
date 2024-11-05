@@ -49,11 +49,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         return contextCopy;
     }
 
-    protected override hasLegalTarget(context: AbilityContext, mustChangeGameState = false) {
+    protected override hasLegalTarget(context: AbilityContext) {
         return this.selector.optional || this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
-    private getAllLegalTargets(context: AbilityContext, mustChangeGameState = false): Card[] {
+    private getAllLegalTargets(context: AbilityContext): Card[] {
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 

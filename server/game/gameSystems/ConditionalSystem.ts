@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { MetaEventName } from '../core/Constants';
+import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
@@ -21,7 +21,7 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         return this.getGameAction(context).getEffectMessage(context);
     }
 
-    public override canAffect(target: any, context: TContext, additionalProperties = {}, mustChangeGameState = false): boolean {
+    public override canAffect(target: any, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.getGameAction(context, additionalProperties).canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
