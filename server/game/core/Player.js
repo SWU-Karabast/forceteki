@@ -953,7 +953,6 @@ class Player extends GameObject {
         }
 
         card.moveTo(targetLocation);
-        this.game.registerMovedCard(card);
     }
 
     /**

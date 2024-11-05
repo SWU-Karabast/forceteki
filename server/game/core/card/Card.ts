@@ -458,6 +458,8 @@ export class Card extends OngoingEffectSource {
             originalLocation: originalLocation,
             newLocation: targetLocation
         });
+
+        this.game.registerMovedCard(this);
     }
 
     /**
