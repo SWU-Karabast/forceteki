@@ -206,9 +206,11 @@ export class EventWindow extends BaseStepWithPipeline {
         // TODO: understand if resolveGameState really needs the resolvedEvents array or not
         this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
 
-        // for (const event of this.resolvedEvents) {
-        //     this.game.emit(event.name, event);
-        // }
+        // emit the events a second time post-resolution for the sake of potential keywords gained during
+        // resolution (such as Ambush) which came online during resolveGameState() and need to register triggers
+        for (const event of this.resolvedEvents) {
+            this.game.emit(event.name + ':postResolve', event);
+        }
 
         // trigger again here to catch any events for cards that entered play during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {

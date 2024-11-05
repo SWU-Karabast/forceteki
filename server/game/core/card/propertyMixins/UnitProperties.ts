@@ -41,8 +41,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
     return class AsUnit extends StatsAndDamageClass {
         public static registerRulesListeners(game: Game) {
-            // register listeners for when-played keyword abilities
-            game.on(EventName.OnUnitEntersPlay, (event) => {
+            // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
+            game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {
                 const card = event.card as Card;
                 if (card.isUnit()) {
                     card.checkRegisterWhenPlayedKeywordAbilities(event);
