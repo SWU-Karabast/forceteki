@@ -22,7 +22,7 @@ describe('Vambrace Flamethrower', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactPromptButtons([flamethrowerPrompt, 'Pass']);
+                expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
                 context.player1.clickPrompt(flamethrowerPrompt);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.specforceSoldier]);
@@ -43,7 +43,7 @@ describe('Vambrace Flamethrower', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // pass vambrace flamethrower ability
-                expect(context.player1).toHaveExactPromptButtons([flamethrowerPrompt, 'Pass']);
+                expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
                 context.player1.clickPrompt('Pass');
 
                 // nothing should have changed
@@ -58,7 +58,7 @@ describe('Vambrace Flamethrower', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactPromptButtons([flamethrowerPrompt, 'Pass']);
+                expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
                 context.player1.clickPrompt(flamethrowerPrompt);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.specforceSoldier]);
