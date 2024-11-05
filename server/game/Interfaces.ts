@@ -134,6 +134,7 @@ export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityProp
 // TODO KEYWORDS: add remaining keywords to this type
 export type IKeywordProperties =
   | IAmbushKeywordProperties
+  | IBountyKeywordProperties
   | IGritKeywordProperties
   | IOverwhelmKeywordProperties
   | IRaidKeywordProperties
@@ -238,8 +239,17 @@ interface INumericKeywordProperties extends IKeywordPropertiesBase {
     amount: number;
 }
 
+interface IKeywordWithAbilityDefinitionProperties<TSource extends Card = Card> extends IKeywordPropertiesBase {
+    ability: IAbilityPropsWithSystems<AbilityContext<TSource>>;
+}
+
 interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Ambush;
+}
+
+interface IBountyKeywordProperties<TSource extends Card = Card> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+    keyword: KeywordName.Bounty;
+    ability: Omit<ITriggeredAbilityProps<TSource>, 'when' | 'aggregateWhen' | 'abilityController'>;
 }
 
 interface IGritKeywordProperties extends IKeywordPropertiesBase {

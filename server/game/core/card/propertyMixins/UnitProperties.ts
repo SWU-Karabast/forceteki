@@ -23,6 +23,7 @@ import { GameEvent } from '../../event/GameEvent';
 import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
+import * as KeywordHelpers from '../../ability/KeywordHelpers';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -157,18 +158,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected addBountyAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen' | 'abilityController'>): void {
-            const { title, ...otherProps } = properties;
-
-            const triggeredProperties: ITriggeredAbilityPropsWithType<this> = {
-                ...otherProps,
-                title: 'Bounty: ' + title,
-                type: AbilityType.Triggered,
-                when: {
-                    onCardDefeated: (event, context) => event.card === context.source
-                    // TODO CAPTURE: add capture trigger
-                },
-                abilityController: RelativePlayer.Opponent
-            };
+            const triggeredProperties = KeywordHelpers.createBountyAbilityFromProps(properties);
 
             const bountyKeywordsWithoutImpl = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty && !keyword.isFullyImplemented);
 
@@ -319,7 +309,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             for (const bountyKeyword of bountyKeywords) {
                 const abilityProps = bountyKeyword.abilityProps;
-                Contract.assertTrue(abilityProps.type === AbilityType.Triggered);
 
                 const bountyAbility = this.createTriggeredAbility({
                     ...this.buildGeneralAbilityProps('keyword_bounty'),

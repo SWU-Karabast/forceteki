@@ -192,6 +192,7 @@ export class EventWindow extends BaseStepWithPipeline {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
             event.checkCondition();
             if (event.canResolve) {
+                this.game.emit(event.name, event);
                 event.executeHandler();
 
                 this.resolvedEvents.push(event);
@@ -205,9 +206,9 @@ export class EventWindow extends BaseStepWithPipeline {
         // TODO: understand if resolveGameState really needs the resolvedEvents array or not
         this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
 
-        for (const event of this.resolvedEvents) {
-            this.game.emit(event.name, event);
-        }
+        // for (const event of this.resolvedEvents) {
+        //     this.game.emit(event.name, event);
+        // }
 
         // trigger again here to catch any events for cards that entered play during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {

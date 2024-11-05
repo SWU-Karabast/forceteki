@@ -24,9 +24,10 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. The ability to be defeated as an overridable method
  */
 export class InPlayCard extends PlayableOrDeployableCard {
+    protected _pendingDefeat? = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
-    protected _pendingDefeat? = null;
+    private movedFromLocation?: Location = null;
 
     /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
@@ -164,13 +165,21 @@ export class InPlayCard extends PlayableOrDeployableCard {
         }
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location) {
-        super.initializeForCurrentLocation(prevLocation);
+    public override resolveAbilitiesForNewLocation() {
+        // Contract.assertNotNullLike(this.movedFromLocation, `Attempting to resolve abilities for location ${this.location} for ${this.internalName} but no previous location is registered`);
 
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(prevLocation, this.location);
-        this.updateConstantAbilityEffects(prevLocation, this.location);
+        this.updateTriggeredAbilityEvents(this.movedFromLocation, this.location);
+        this.updateConstantAbilityEffects(this.movedFromLocation, this.location);
+
+        this.movedFromLocation = null;
+    }
+
+    protected override initializeForCurrentLocation(prevLocation: Location) {
+        super.initializeForCurrentLocation(prevLocation);
+
+        this.movedFromLocation = prevLocation;
 
         if (EnumHelpers.isArena(this.location)) {
             this.setPendingDefeatEnabled(true);

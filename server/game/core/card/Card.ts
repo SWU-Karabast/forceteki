@@ -467,6 +467,13 @@ export class Card extends OngoingEffectSource {
     protected cleanupBeforeMove(nextLocation: Location) {}
 
     /**
+     * Updates the card's abilities for its current location after being moved.
+     * Called from {@link Game.resolveGameState} after event resolution.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public resolveAbilitiesForNewLocation() {}
+
+    /**
      * Deals with the engine effects of entering a new location, making sure all statuses are set with legal values.
      * If a card should have a different status on entry (e.g., readied instead of exhausted), call this method first
      * and then update the card state(s) as needed.

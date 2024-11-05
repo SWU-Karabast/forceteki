@@ -1,5 +1,5 @@
-import { IKeywordProperties } from '../../Interfaces';
-import { Aspect, KeywordName } from '../Constants';
+import { IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import { AbilityType, Aspect, KeywordName, RelativePlayer } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
@@ -39,9 +39,27 @@ export function keywordFromProperties(properties: IKeywordProperties) {
         return new KeywordWithNumericValue(properties.keyword, properties.amount);
     }
 
+    if (properties.keyword === KeywordName.Bounty) {
+        return new KeywordWithAbilityDefinition(properties.keyword, createBountyAbilityFromProps(properties.ability));
+    }
+
     // TODO SMUGGLE: add smuggle here for "gain smuggle" abilities
 
     return new KeywordInstance(properties.keyword);
+}
+
+export function createBountyAbilityFromProps(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen' | 'abilityController'>): ITriggeredAbilityProps {
+    const { title, ...otherProps } = properties;
+
+    return {
+        ...otherProps,
+        title: 'Bounty: ' + title,
+        when: {
+            onCardDefeated: (event, context) => event.card === context.source
+            // TODO CAPTURE: add capture trigger
+        },
+        abilityController: RelativePlayer.Opponent
+    };
 }
 
 export const isNumericType: Record<KeywordName, boolean> = {

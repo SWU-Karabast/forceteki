@@ -5,7 +5,7 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Location;
+    destination?: Location.Discard | Location.Deck;
     switch?: boolean;
     switchTarget?: Card;
     shuffle?: boolean;
