@@ -8,6 +8,7 @@ import { AllPlayerPrompt } from './AllPlayerPrompt';
 export class ResourcePrompt extends AllPlayerPrompt {
     protected selectedCards = new Map<string, Card[]>();
     protected selectableCards = new Map<string, Card[]>();
+    protected playersDone = new Map<string, boolean>();
 
     public constructor(
         game: Game,
@@ -15,11 +16,11 @@ export class ResourcePrompt extends AllPlayerPrompt {
     ) {
         super(game);
         game.getPlayers().forEach((player) => this.selectedCards[player.name] = []);
+        game.getPlayers().forEach((player) => this.playersDone[player.name] = false);
     }
 
     public override completionCondition(player: Player) {
-        const nSelectedCards = this.selectedCards[player.name].length;
-        return nSelectedCards === this.nCardsToResource;
+        return this.playersDone[player.name];
     }
 
     public override continue() {
@@ -55,7 +56,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         return {
             selectCard: true,
             menuTitle: promptText,
-            buttons: [],
+            buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',
             promptUuid: this.uuid
         };
@@ -86,7 +87,20 @@ export class ResourcePrompt extends AllPlayerPrompt {
     }
 
     public override menuCommand(player, arg): boolean {
-        Contract.fail(`Unexpected menu command: '${arg}'`);
+        if (arg === 'done') {
+            if (this.completionCondition(player)) {
+                return false;
+            }
+            if (this.selectedCards[player.name].length < this.nCardsToResource) {
+                return false;
+            }
+
+            this.resourceSelectedCards(player);
+
+            this.playersDone[player.name] = true;
+            return true;
+        }
+        return false;
     }
 
     protected resourceSelectedCards(player: Player) {

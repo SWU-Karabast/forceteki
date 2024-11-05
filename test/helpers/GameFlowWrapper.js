@@ -56,6 +56,7 @@ class GameFlowWrapper {
     resourceAnyTwo() {
         this.guardCurrentPhase('setup');
         this.allPlayersInInitiativeOrder().forEach((player) => player.clickAnyOfSelectableCards(2));
+        this.allPlayersInInitiativeOrder().forEach((player) => player.clickPrompt('Done'));
         this.game.continue();
     }
 

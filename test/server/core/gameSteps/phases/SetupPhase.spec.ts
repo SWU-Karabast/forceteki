@@ -65,9 +65,18 @@ describe('Setup Phase', function() {
                 const player1FirstCard = context.player1.hand[0];
                 const player1SecondCard = context.player1.hand[1];
 
-                // select 2 cards to resource
+                // select 2 cards to resource player1 and check prompts
                 context.player1.clickCard(context.player1.hand[0]);
+                expect(context.player1).toHaveExactPromptButtons(['Done']);
+                expect(context.player2).toHaveExactPromptButtons(['Done']);
+
                 context.player1.clickCard(context.player1.hand[1]);
+                expect(context.player1).toHaveExactPromptButtons(['Done']);
+                expect(context.player2).toHaveExactPromptButtons(['Done']);
+
+                context.player1.clickPrompt('Done');
+                expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
+
 
                 // Check if selecting any unavailable cards triggers resourcing
                 context.player2.clickCardNonChecking(context.player2.deck[0]);
@@ -81,11 +90,18 @@ describe('Setup Phase', function() {
                 context.player2.clickCardNonChecking(context.p2Base);
                 expect(context.player2).toHavePrompt('Select 2 cards to resource');
 
-                // Select 2 correct cards to resource
+                // Select 2 correct cards to resource player2 and check if correct prompts
                 const player2FirstCard = context.player2.hand[0];
                 const player2SecondCard = context.player2.hand[0];
+
                 context.player2.clickCard(context.player2.hand[0]);
+                expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
+                expect(context.player2).toHaveExactPromptButtons(['Done']);
+
                 context.player2.clickCard(context.player2.hand[1]);
+                expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
+                expect(context.player2).toHaveExactPromptButtons(['Done']);
+                context.player2.clickPrompt('Done');
 
                 // Check if resource length is correct
                 expect(context.player1.resources.length).toBe(2);
@@ -121,11 +137,13 @@ describe('Setup Phase', function() {
                 context.player2.clickPrompt('no');
                 context.player1.clickPrompt('no');
 
-                // select 2 cards to resource
+                // select 2 cards to resource both players and confirm
                 context.player1.clickCard(context.player1.hand[0]);
                 context.player2.clickCard(context.player2.hand[0]);
                 context.player1.clickCard(context.player1.hand[1]);
                 context.player2.clickCard(context.player2.hand[1]);
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
 
                 // Check if resource length is correct
                 expect(context.player1.resources.length).toBe(2);
