@@ -18,13 +18,14 @@ describe('Pirated Starfighter', function () {
                 phase: 'action',
                 player1: {
                     hand: ['pirated-starfighter'],
-                    groundArena: ['pyke-sentinel'],
+                    groundArena: ['pyke-sentinel', 'seasoned-shoretrooper'],
+                    leader: { card: 'leia-organa#alliance-general', deployed: true }
                 }
             });
             const { context } = contextRef;
 
             context.player1.clickCard(context.piratedStarfighter);
-            expect(context.player1).toBeAbleToSelectExactly([context.piratedStarfighter, context.pykeSentinel]);
+            expect(context.player1).toBeAbleToSelectExactly([context.piratedStarfighter, context.pykeSentinel, context.seasonedShoretrooper]);
             context.player1.clickCard(context.pykeSentinel);
             expect(context.pykeSentinel).toBeInLocation('hand');
             expect(context.piratedStarfighter).toBeInLocation('space arena');
