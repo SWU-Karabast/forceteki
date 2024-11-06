@@ -35,8 +35,8 @@ describe('Pirated Starfighter', function () {
                 context.player1.clickCard(context.piratedStarfighter);
                 expect(context.player1).toBeAbleToSelectExactly([context.piratedStarfighter, context.pykeSentinel]);
                 context.player1.clickCard(context.pykeSentinel);
-                expect(context.pykeSentinel).toBeInLocation('hand', context.player1);
-                expect(context.piratedStarfighter).toBeInLocation('space arena', context.player1);
+                expect(context.pykeSentinel).toBeInLocation('hand');
+                expect(context.piratedStarfighter).toBeInLocation('space arena');
             });
         });
     });
