@@ -38,7 +38,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
             // cards are only selectable until we've selected as many as allowed
             if (!this.selectableCards[player.name] && !this.completionCondition(player)) {
                 this.selectableCards[player.name] = player.hand;
-            } else {
+            } else if (this.completionCondition(player)) {
                 this.selectableCards[player.name] = [];
             }
             player.setSelectableCards(this.selectableCards[player.name]);

@@ -73,6 +73,9 @@ describe('Setup Phase', function() {
 
                 // select 2 cards to resource player1 and check prompts
                 context.player1.clickCard(context.player1.hand[0]);
+
+                // We check if player1's hand has the only selectable cards
+                expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
                 expect(context.player2).toHaveExactPromptButtons(['Done']);
 
@@ -103,6 +106,9 @@ describe('Setup Phase', function() {
                 context.player2.clickCard(context.player2.hand[0]);
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
                 expect(context.player2).toHaveExactPromptButtons(['Done']);
+
+                // we check if player2's hand has the only selectable cards
+                expect(context.player2).toBeAbleToSelectExactly(context.player2.hand);
 
                 context.player2.clickCard(context.player2.hand[1]);
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
