@@ -14,7 +14,8 @@ type PlayerOrCard = Player | Card;
 export interface IGameSystemProperties {
     target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
-    // TODO: remove this
+
+    /** @deprecated TODO: evaluate whether to remove this */
     optional?: boolean;
     parentSystem?: GameSystem;
     isCost?: boolean;
@@ -249,7 +250,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     }
 
     /**
-     * Resolves the effects of the effects of the system on game state by generating the necessary events and
+     * Resolves the effects of the system on game state by generating the necessary events and
      * opening a window to resolve them with {@link Game.openEventWindow}.
      */
     public resolve(

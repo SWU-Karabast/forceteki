@@ -1,8 +1,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import { EventName, MetaEventName } from '../core/Constants';
+import { MetaEventName } from '../core/Constants';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
-import { GameSystem } from '../core/gameSystem/GameSystem';
 import { DamageSystem } from './DamageSystem';
 import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { HealSystem } from './HealSystem';

@@ -39,7 +39,6 @@ export class ActionAbility extends CardAbility {
 
         this.phase = properties.phase ?? PhaseName.Action;
         this.condition = properties.condition;
-        // this.anyPlayer = properties.anyPlayer ?? false;
         this.doesNotTarget = (properties as any).doesNotTarget;
     }
 

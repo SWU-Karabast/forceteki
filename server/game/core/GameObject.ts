@@ -61,7 +61,7 @@ export abstract class GameObject {
     }
 
     public canBeTargeted(context: AbilityContext, selectedCards: GameObject | GameObject[] = []) {
-        if (this.hasRestriction(AbilityRestriction.Target, context)) {
+        if (this.hasRestriction(AbilityRestriction.AbilityTarget, context)) {
             return false;
         }
         let targets = selectedCards;

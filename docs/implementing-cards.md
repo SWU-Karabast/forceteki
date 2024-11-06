@@ -799,45 +799,51 @@ Some card abilities require multiple targets. These may be specified using the `
 
 Once all targets are chosen, they will be set using their specified name under the `targetResolvers` property on the handler context object.
 
-<!-- TODO: update this section -->
-#### **IGNORE FOR NOW, WIP:** ~~Select options~~
 
-Some abilities require the player (or their opponent) to choose between multiple options.  This is done in the same way as targets above, but by using the `mode` property set to `'select'`.  In addition, a `choices` object should be included, which contains key:value pairs where the key is the option to display to the player, and the value is either a function which takes the `context` object and returns a boolean indicating whether this option is legal, or a game action which will be evaluated on the basis of the specified target (or default as detailed below) to determine whether the choice is legal.  The selected option is stored in `context.select.choice` (or `context.selects[targetName].choice` for an ability with multiple targets).
+#### Select options
+
+Some abilities require the player (or their opponent) to choose between multiple options.  This is done in the same way as targets above, but by using the `mode` property set to `TargetMode.Select`.  In addition, a `choices` object should be included, which contains key:value pairs where the key is the option to display to the player and the value is the game system that will be executed when that option is chosen.  The selected option is stored in `context.select` (or `context.selects[targetName].choice` for an ability with multiple targets).
 
 ```typescript
-// Action: During a conflict at this province, select one – switch the contested ring with an unclaimed 
-// ring, or switch the conflict type.
-this.action({
-    title: 'Switch the conflict type or ring',
-    condition: context => context.source.isConflictProvince(),
-    target: {
-        player: 'self',
-        mode: 'select',
-        choices: {
-            'Switch the contested ring': () => _.any(this.game.rings, ring => ring.isUnclaimed()),
-            'Switch the conflict type': () => true
-        }
-    },
-    // ...
-});
+// When Played: Either ready a resource or exhaust a unit.
+this.addWhenPlayedAbility({
+            title: 'Ready a resource or exhaust a unit',
+            targetResolver: {
+                mode: TargetMode.Select,
+                choices: {
+                    ['Ready a resource']: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
+                    ['Exhaust a unit']: AbilityHelper.immediateEffects.selectCard({
+                        cardTypeFilter: WildcardCardType.Unit,
+                        innerSystem: AbilityHelper.immediateEffects.exhaust()
+                    })
+                }
+            }
+        });
 ```
 
 ```typescript
-// Action: If an opponent has declared 2 or more conflicts against you this phase, select one – 
-// take 1 fate or 1 honor from that opponent.
-this.action({
-    title: 'Take 1 fate or 1 honor',
-    phase: 'conflict',
-    condition: context => this.game.getConflicts(context.player.opponent).filter(conflict => !conflict.passed).length > 1,
-    target: {
-        player: 'self',
-        mode: 'select',
-        choices: {
-            'Take 1 fate': AbilityHelper.actions.takeFate(),
-            'Take 1 honor': AbilityHelper.actions.takeHonor()
-        }
-    }
-});
+// Deal 7 damage to an enemy unit unless its controller says "no." If they do, draw 3 cards.
+this.setEventAbility({
+            title: 'Deal 7 damage to an enemy unit unless its controller says "no"',
+            targetResolvers: {
+                targetUnit: {
+                    controller: RelativePlayer.Opponent,
+                    cardTypeFilter: WildcardCardType.Unit
+                },
+                opponentsChoice: {
+                    mode: TargetMode.Select,
+                    dependsOn: 'targetUnit',
+                    choosingPlayer: RelativePlayer.Opponent,
+                    choices: (context) => ({
+                        [`${context.targets.targetUnit.title} takes 7 damage`]: AbilityHelper.immediateEffects.damage({
+                            target: context.targets.targetUnit,
+                            amount: 7
+                        }),
+                        ['Opponent draws 3 cards']: AbilityHelper.immediateEffects.draw({ amount: 3 })
+                    })
+                }
+            }
+        });
 ```
 
 ### Remembering past game events with state watchers

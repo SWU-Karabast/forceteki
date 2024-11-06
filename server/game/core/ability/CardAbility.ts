@@ -5,6 +5,9 @@ import * as AbilityLimit from './AbilityLimit';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { ICost } from '../cost/ICost';
 import { Card } from '../card/Card';
+import { IAbilityProps } from '../../Interfaces';
+import { AbilityContext } from './AbilityContext';
+import Game from '../Game';
 
 export class CardAbility extends CardAbilityStep {
     public readonly abilityController: RelativePlayer;
