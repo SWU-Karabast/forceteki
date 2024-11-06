@@ -1,5 +1,5 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 
 export default class GideonHaskRuthlessLoyalist extends NonLeaderUnitCard {
@@ -18,7 +18,6 @@ export default class GideonHaskRuthlessLoyalist extends NonLeaderUnitCard {
             },
             targetResolver: {
                 controller: RelativePlayer.Self,
-                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
         });
