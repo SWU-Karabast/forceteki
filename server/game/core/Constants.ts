@@ -381,7 +381,7 @@ export enum GameStateChangeRequired {
      * Game state change is required but the effect is not required to fully resolve. E.g., if exhausting resources,
      * would not need to exhaust the full number of requested resources.
      */
-    MayPartiallyResolve = 'mayPartiallyResolve',
+    MustFullyOrPartiallyResolve = 'mustFullyOrPartiallyResolve',
 
     /**
      * Game state change is required and the effect is required to fully resolve. E.g., if exhausting resources,

@@ -87,7 +87,12 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         // (unless there are dependent targets that might care about the targeting result)
         if (
             !this.dependentTarget &&
-            !legalTargets.some((target) => this.immediateEffect.canAffect(target, this.getContextCopy(target, context), {}, GameStateChangeRequired.MayPartiallyResolve))
+            !legalTargets.some((target) => this.immediateEffect.canAffect(
+                target,
+                this.getContextCopy(target, context),
+                {},
+                GameStateChangeRequired.MustFullyOrPartiallyResolve
+            ))
         ) {
             return;
         }

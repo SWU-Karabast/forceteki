@@ -36,31 +36,31 @@ describe('Zuckuss, Bounty Hunter for Hire', function() {
             });
         });
 
-        // describe('Zuckuss\'s ability', function() {
-        //     beforeEach(function () {
-        //         contextRef.setupTest({
-        //             phase: 'action',
-        //             player1: {
-        //                 groundArena: ['zuckuss#bounty-hunter-for-hire', 'pyke-sentinel'],
-        //             },
-        //             player2: {
-        //                 hand: ['4lom#bounty-hunter-for-hire'],
-        //             }
-        //         });
-        //     });
+        describe('Zuckuss\'s ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['zuckuss#bounty-hunter-for-hire', 'pyke-sentinel'],
+                    },
+                    player2: {
+                        hand: ['4lom#bounty-hunter-for-hire'],
+                    }
+                });
+            });
 
-        //     it('should not give +1/+1 and saboteur to enemy unit named 4-LOM', function () {
-        //         const { context } = contextRef;
+            it('should not give +1/+1 and saboteur to enemy unit named 4-LOM', function () {
+                const { context } = contextRef;
 
-        //         context.player1.passAction();
-        //         context.player2.clickCard(context._4lom);
-        //         context.player2.clickPrompt('Ambush');
-        //         // pyke sentinel is automatically choose
+                context.player1.passAction();
+                context.player2.clickCard(context._4lom);
+                context.player2.clickPrompt('Ambush');
+                // pyke sentinel is automatically choose
 
-        //         expect(context.player1).toBeActivePlayer();
-        //         expect(context._4lom.getPower()).toBe(4);
-        //         expect(context._4lom.getHp()).toBe(4);
-        //     });
-        // });
+                expect(context.player1).toBeActivePlayer();
+                expect(context._4lom.getPower()).toBe(4);
+                expect(context._4lom.getHp()).toBe(4);
+            });
+        });
     });
 });

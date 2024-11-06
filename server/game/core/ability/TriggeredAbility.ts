@@ -73,7 +73,7 @@ export default class TriggeredAbility extends CardAbility {
 
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
-            : GameStateChangeRequired.MayPartiallyResolve;
+            : GameStateChangeRequired.MustFullyOrPartiallyResolve;
     }
 
     public eventHandler(event, window) {

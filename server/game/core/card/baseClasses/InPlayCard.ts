@@ -184,8 +184,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     public override resolveAbilitiesForNewLocation() {
-        // Contract.assertNotNullLike(this.movedFromLocation, `Attempting to resolve abilities for location ${this.location} for ${this.internalName} but no previous location is registered`);
-
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(this.movedFromLocation, this.location);

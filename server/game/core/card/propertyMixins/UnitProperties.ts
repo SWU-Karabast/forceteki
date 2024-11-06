@@ -289,7 +289,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         /**
-         * Checks if the unit currently has any keywords with a "when played" effect and registers them if so.
+         * Checks if the unit currently has any keywords with a "when defeated" effect and registers them if so.
          * Also adds a listener to remove the registered abilities after the effect resolves.
          */
         // TODO THIS PR: refactor this into a separate method so "checkRegisterWhenCaptured" will be simple

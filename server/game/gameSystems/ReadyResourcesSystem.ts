@@ -30,7 +30,7 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
         }
 
         // if this is for the effect of an ability, just need to have some effect
-        if (mustChangeGameState === GameStateChangeRequired.MayPartiallyResolve && player.countExhaustedResources() === 0) {
+        if (mustChangeGameState === GameStateChangeRequired.MustFullyOrPartiallyResolve && player.countExhaustedResources() === 0) {
             return false;
         }
 

@@ -185,6 +185,10 @@ export class UpgradeCard extends UpgradeCardParent {
         });
     }
 
+    /**
+     * This is required because a gainCondition call can happen after an upgrade is discarded,
+     * so we need to short-circuit in that case to keep from trying to access illegal state such as parentCard
+     */
     private addLocationCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
         return gainCondition == null
             ? null
