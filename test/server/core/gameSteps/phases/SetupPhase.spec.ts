@@ -83,6 +83,10 @@ describe('Setup Phase', function() {
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
                 expect(context.player2).toHaveExactPromptButtons(['Done']);
 
+                // Check that player1 cannot select any additional cards
+                context.player1.clickCardNonChecking(context.player1.hand[2]);
+                expect(context.player1.selectedCards.length).toBe(2);
+
                 context.player1.clickPrompt('Done');
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
 
@@ -113,6 +117,11 @@ describe('Setup Phase', function() {
                 context.player2.clickCard(context.player2.hand[1]);
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
                 expect(context.player2).toHaveExactPromptButtons(['Done']);
+
+                // Check that player2 cannot select any additional cards
+                context.player2.clickCardNonChecking(context.player2.hand[2]);
+                expect(context.player2.selectedCards.length).toBe(2);
+
                 context.player2.clickPrompt('Done');
 
                 // Check if resource length is correct
