@@ -23,6 +23,7 @@ describe('Replacement effect', function() {
 
                 expect(context.doctorPershing.damage).toBe(0);
                 expect(context.doctorPershing).toHaveExactUpgradeNames(['shield']);
+                expect(context.player1.hand.length).toBe(1);
             });
         });
     });
