@@ -756,7 +756,7 @@ function generatePromptHelpMessage(player) {
 
 function validatePlayerOptions(playerOptions, playerName, startPhase) {
     // list of approved property names
-    const ForNoneSetupPhase = [
+    const noneSetupPhase = [
         'hasInitiative',
         'resources',
         'groundArena',
@@ -769,16 +769,16 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
         'resource',
     ];
     // list of approved property names for setup phase
-    const ForSetupPhase = [
+    const setupPhase = [
         'leader',
         'deck'
     ];
 
     // Check for unknown properties
     for (const prop of Object.keys(playerOptions)) {
-        if (!ForNoneSetupPhase.includes(prop) && startPhase !== 'setup') {
+        if (!noneSetupPhase.includes(prop) && startPhase !== 'setup') {
             throw new Error(`${playerName} has an unknown property '${prop}'`);
-        } else if (!ForSetupPhase.includes(prop) && startPhase === 'setup') {
+        } else if (!setupPhase.includes(prop) && startPhase === 'setup') {
             throw new Error(`${playerName} has an unknown property '${prop}'`);
         }
     }
@@ -865,10 +865,6 @@ global.integration = function (definitions) {
                     // Set action window prompt
                     this.player1.player.promptedActionWindows['action'] = true;
                     this.player2.player.promptedActionWindows['action'] = true;
-
-                    // player stats to default
-                    this.player1.damageToBase = 0;
-                    this.player2.damageToBase = 0;
                 }
 
                 // return all zone cards to deck and then set them below
@@ -896,10 +892,6 @@ global.integration = function (definitions) {
                     // Set Leader state (deployed, exhausted, etc.)
                     this.player1.setLeaderStatus(options.player1.leader);
                     this.player2.setLeaderStatus(options.player2.leader);
-
-                    // player stats for damageToBase
-                    this.player1.damageToBase = options.player1.damageToBase ?? 0;
-                    this.player2.damageToBase = options.player2.damageToBase ?? 0;
                 }
 
                 // Set Base damage
