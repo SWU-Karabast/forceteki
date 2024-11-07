@@ -5,7 +5,7 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Location.Discard | Location.Deck;
+    destination?: Location;
     switch?: boolean;
     switchTarget?: Card;
     shuffle?: boolean;
@@ -16,6 +16,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     discardDestinationCards?: boolean;
 }
 
+// TODO: since there are already some more specific for moving to arena, hand, etc., what's the remaining use case for this? and can we rename it to be more specific?
 export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveCardProperties> {
     public override readonly name = 'move';
     protected override readonly eventName = EventName.OnCardMoved;
