@@ -4,7 +4,6 @@ import type { Card } from '../card/Card';
 import { PlayType, Aspect, CardTypeFilter } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
-import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Contract from '../../core/utils/Contract';
 
 export enum CostAdjustType {
@@ -18,7 +17,7 @@ export enum CostAdjustType {
 interface ICostAdjusterPropertiesBase {
 
     /** The type of cards that can be reduced */
-    cardTypeFilter: CardTypeFilter;
+    cardTypeFilter?: CardTypeFilter;
 
     /** The type of cost adjustment */
     costAdjustType: CostAdjustType;

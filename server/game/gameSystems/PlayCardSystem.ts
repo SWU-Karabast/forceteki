@@ -10,6 +10,10 @@ import { PlayUnitAction } from '../actions/PlayUnitAction';
 import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
 import { PlayEventAction } from '../actions/PlayEventAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
+import { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
+import * as AbilityLimit from '../core/ability/AbilityLimit';
+import { modifyCost } from '../ongoingEffects/ModifyCost';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
@@ -19,6 +23,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     entersReady?: boolean;
     playType?: PlayType;
     nested?: boolean;
+    costAdjusterProperties?: ICostAdjusterProperties;
 }
 
 // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilties with another function(s)
@@ -40,7 +45,20 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public eventHandler(event, additionalProperties): void {
         const player = event.player;
         const newContext = (event.playCardAbility as PlayCardAction).createContext(player);
+        if (this.properties.costAdjusterProperties) {
+            this.queueApplyCostAdjusterGameSteps(this.properties.costAdjusterProperties, newContext);
+        }
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
+    }
+
+    private queueApplyCostAdjusterGameSteps(costAdjusterProperties: ICostAdjusterProperties, context: AbilityContext) {
+        // TODO THIS PR: look into making a custom duration for this action only
+        const applyCostAdjusterSystem = new PlayerPhaseLastingEffectSystem({
+            effect: modifyCost(Object.assign(costAdjusterProperties, { limit: AbilityLimit.perGame(1), playingTypes: context.playType }))
+        });
+        const effectEvents = [];
+        applyCostAdjusterSystem.queueGenerateEventGameSteps(effectEvents, context, {});
+        context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for application of cost adjuster');
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
