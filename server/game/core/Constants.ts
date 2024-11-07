@@ -35,6 +35,13 @@ export enum StatType {
     Power = 'power'
 }
 
+export enum DamageType {
+    Combat = 'combat',
+    Ability = 'ability',
+    Excess = 'excess',
+    Overwhelm = 'overwhelm'
+}
+
 export enum EffectName {
     AbilityRestrictions = 'abilityRestrictions',
     AdditionalAction = 'additionalActions',

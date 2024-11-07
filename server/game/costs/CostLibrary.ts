@@ -1,6 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, Location, PlayType, RelativePlayer, TargetMode } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
+import { DamageType, PlayType } from '../core/Constants';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
@@ -50,6 +49,14 @@ export function exhaustSelf<TContext extends AbilityContext = AbilityContext>():
  */
 export function defeat<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
     return getSelectCost(GameSystems.defeat<TContext>(), properties, 'Select card to defeat');
+}
+
+/**
+ * Cost that requires dealing the given amount of damage to a card that matches
+ * the passed condition predicate function.
+ */
+export function dealDamage<TContext extends AbilityContext = AbilityContext>(amount: number, properties: SelectCostProperties<TContext>): ICost<TContext> {
+    return getSelectCost(GameSystems.damage<TContext>({ type: DamageType.Ability, amount: amount }), properties, `Select card to deal ${amount} damage to`);
 }
 
 /**
