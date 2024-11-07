@@ -5,7 +5,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['doctor-pershing#experimenting-with-life', 'wampa'],
+                        groundArena: ['doctor-pershing#experimenting-with-life', { card: 'wampa', upgrades: ['shield'] }],
                         spaceArena: ['tieln-fighter']
                     },
                     player2: {
@@ -43,10 +43,11 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.doctorPershing, context.wampa]);
                 expect(context.player1).not.toHaveChooseNoTargetButton();
 
-                // Target a ground friendly unit
+                // Target a shilded friendly unit
                 context.player1.clickCard(context.wampa);
                 expect(context.doctorPershing.exhausted).toBeTrue();
-                expect(context.wampa.damage).toBe(1);
+                expect(context.wampa).toHaveExactUpgradeNames([]);
+                expect(context.wampa.damage).toBe(0);
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.player2.hand.length).toBe(0);
 
