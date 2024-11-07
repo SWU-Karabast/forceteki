@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { CardType, CardTypeFilter, EffectName, EventName, Location, WildcardCardType } from '../Constants';
+import { CardType, CardTypeFilter, EffectName, EventName, GameStateChangeRequired, Location, WildcardCardType } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -142,10 +142,10 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     public override checkEventCondition(event: any, additionalProperties = {}): boolean {
-        return this.canAffect(event.card, event.context, additionalProperties, true);
+        return this.canAffect(event.card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
         // we're the system that is enacting the defeat
         if (card.isUnit() && card.isInPlay() && card.pendingDefeat) {
