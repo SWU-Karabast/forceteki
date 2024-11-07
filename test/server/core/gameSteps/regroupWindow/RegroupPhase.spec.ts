@@ -59,10 +59,28 @@ describe('Regroup phase', function() {
 
                     // Resource a Card
                     // Player 1 Resources a card and Player 2 doesn't
+
+                    // we check that player1 and player2 hands are the only selectable
+                    expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
+                    expect(context.player2).toBeAbleToSelectExactly(context.player2.hand);
+
+                    // click card to resource
                     context.player1.clickCard('wroshyr-tree-tender');
+
+                    // We check that player1 cannot select another card
+                    context.player1.clickCardNonChecking(context.player1.hand[0]);
+                    expect(context.player1.selectedCards.length).toBe(1);
+
                     // this is the index of wroshyr-tree-tender
                     oldResourcesPlayer1.push(context.wroshyrTreeTender);
+
+                    // we check that both players have the correct prompt
+                    expect(context.player1).toHaveExactPromptButtons(['Done']);
+                    expect(context.player2).toHaveExactPromptButtons(['Done']);
+
                     context.player1.clickPrompt('Done');
+                    expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
+                    expect(context.player2).toHaveExactPromptButtons(['Done']);
                     context.player2.clickPrompt('Done');
 
                     // check resources
