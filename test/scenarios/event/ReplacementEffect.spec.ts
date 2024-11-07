@@ -1,4 +1,4 @@
-describe('Replecement effect', function() {
+describe('Replacement effect', function() {
     integration(function(contextRef) {
         describe('when a unit with one or more shields takes damage from a cost action', function() {
             beforeEach(function () {
