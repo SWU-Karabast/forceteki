@@ -63,22 +63,9 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 expect(context.doctorPershing.damage).toBe(1);
                 expect(context.player1.hand.length).toBe(3);
                 expect(context.player2.hand.length).toBe(0);
-            });
 
-            it('should not be available if Doctor Pershing is exhausted', function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        groundArena: [{ card: 'doctor-pershing#experimenting-with-life', exhausted: true }, 'wampa'],
-                        spaceArena: ['tieln-fighter']
-                    },
-                    player2: {
-                        groundArena: ['frontier-atrt'],
-                        spaceArena: ['cartel-spacer']
-                    }
-                });
-
-                const { context } = contextRef;
+                // The action is not available while Doctor Pershing is exhausted
+                context.player2.passAction();
                 expect(context.doctorPershing).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
