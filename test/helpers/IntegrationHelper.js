@@ -756,7 +756,7 @@ function generatePromptHelpMessage(player) {
 
 function validatePlayerOptions(playerOptions, playerName, startPhase) {
     // list of approved property names
-    const listOfApprovedPropertiesForAnyOtherPhase = [
+    const ForNoneSetupPhase = [
         'hasInitiative',
         'resources',
         'groundArena',
@@ -769,24 +769,18 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
         'resource',
     ];
     // list of approved property names for setup phase
-    const listOfApprovedPropertiesForSetupPhase = [
+    const ForSetupPhase = [
         'leader',
         'deck'
     ];
 
     // Check for unknown properties
-    if (startPhase !== 'setup') {
-        Object.keys(playerOptions).forEach((prop) => {
-            if (!listOfApprovedPropertiesForAnyOtherPhase.includes(prop)) {
-                throw new Error(`${playerName} has an unknown property '${prop}'`);
-            }
-        });
-    } else {
-        Object.keys(playerOptions).forEach((prop) => {
-            if (!listOfApprovedPropertiesForSetupPhase.includes(prop)) {
-                throw new Error(`${playerName} has an unknown property '${prop}'`);
-            }
-        });
+    for (const prop of Object.keys(playerOptions)) {
+        if (!ForNoneSetupPhase.includes(prop) && startPhase !== 'setup') {
+            throw new Error(`${playerName} has an unknown property '${prop}'`);
+        } else if (!ForSetupPhase.includes(prop) && startPhase === 'setup') {
+            throw new Error(`${playerName} has an unknown property '${prop}'`);
+        }
     }
 }
 
@@ -867,10 +861,6 @@ global.integration = function (definitions) {
 
                     // Advance the phases to the specified
                     this.advancePhases(options.phase);
-
-                    // Player stats
-                    this.player1.damageToBase = options.player1.damageToBase ?? 0;
-                    this.player2.damageToBase = options.player2.damageToBase ?? 0;
                 } else {
                     // Set action window prompt
                     this.player1.player.promptedActionWindows['action'] = true;
@@ -906,6 +896,10 @@ global.integration = function (definitions) {
                     // Set Leader state (deployed, exhausted, etc.)
                     this.player1.setLeaderStatus(options.player1.leader);
                     this.player2.setLeaderStatus(options.player2.leader);
+
+                    // player stats for damageToBase
+                    this.player1.damageToBase = options.player1.damageToBase ?? 0;
+                    this.player2.damageToBase = options.player2.damageToBase ?? 0;
                 }
 
                 // Set Base damage

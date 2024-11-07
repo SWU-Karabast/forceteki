@@ -15,8 +15,10 @@ export class ResourcePrompt extends AllPlayerPrompt {
         private readonly nCardsToResource: number
     ) {
         super(game);
-        game.getPlayers().forEach((player) => this.selectedCards[player.name] = []);
-        game.getPlayers().forEach((player) => this.playersDone[player.name] = false);
+        for (const player of game.getPlayers()) {
+            this.selectedCards[player.name] = [];
+            this.playersDone[player.name] = false;
+        }
     }
 
     public override completionCondition(player: Player) {
@@ -66,10 +68,13 @@ export class ResourcePrompt extends AllPlayerPrompt {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(card);
 
-        if (!this.activeCondition(player) || !player.hand.includes(card) ||
-          this.selectedCards[player.name].length === this.nCardsToResource) {
+        if (
+            !this.activeCondition(player) || !player.hand.includes(card) ||
+            this.selectedCards[player.name].length === this.nCardsToResource
+        ) {
             return false;
         }
+
         if (!this.selectedCards[player.name].includes(card)) {
             this.selectedCards[player.name].push(card);
         } else {
@@ -94,19 +99,17 @@ export class ResourcePrompt extends AllPlayerPrompt {
             if (this.selectedCards[player.name].length < this.nCardsToResource) {
                 return false;
             }
-
-            this.resourceSelectedCards(player);
-
             this.playersDone[player.name] = true;
             return true;
         }
-        return false;
+        // in the case the command comes as an invalid one
+        Contract.fail(`Unexpected menu command: '${arg}'`);
     }
 
     protected resourceSelectedCards(player: Player) {
         if (this.selectedCards[player.name].length > 0) {
             for (const card of this.selectedCards[player.name]) {
-                player.resourceCard(card);
+                player.resourceCard(card, false);
             }
             this.game.addMessage('{0} has resourced {1} cards from hand', player, this.selectedCards[player.name].length);
         } else {
