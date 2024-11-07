@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { MetaEventName } from '../core/Constants';
+import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
@@ -87,7 +87,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         );
     }
 
-    public override canAffect(target: any, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public override canAffect(target: any, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context, additionalProperties);
         return (
             (!context.event.cannotBeCancelled && !replacementGameAction) ||

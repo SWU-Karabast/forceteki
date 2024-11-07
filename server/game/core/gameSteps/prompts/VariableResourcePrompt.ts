@@ -7,7 +7,6 @@ import { ResourcePrompt } from './ResourcePrompt';
 export class VariableResourcePrompt extends ResourcePrompt {
     private readonly minCardsToResource: number;
     private readonly maxCardsToResource: number;
-    private playersDone = new Map<string, boolean>();
 
     public constructor(game: Game, minCardsToResource: number, maxCardsToResource: number) {
         Contract.assertTrue(maxCardsToResource > minCardsToResource, 'VariableResourcePrompt requires different min and max card counts. For fixed card count, use ResourcePrompt.');
@@ -16,11 +15,6 @@ export class VariableResourcePrompt extends ResourcePrompt {
 
         this.minCardsToResource = minCardsToResource;
         this.maxCardsToResource = maxCardsToResource;
-        game.getPlayers().forEach((player) => this.playersDone[player.name] = false);
-    }
-
-    public override completionCondition(player: Player) {
-        return this.playersDone[player.name];
     }
 
     public override activePrompt(): IPlayerPromptStateProperties {

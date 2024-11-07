@@ -1,5 +1,5 @@
-import { IKeywordProperties } from '../../Interfaces';
-import { Aspect, KeywordName } from '../Constants';
+import { IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import { AbilityType, Aspect, KeywordName, RelativePlayer } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
@@ -39,9 +39,29 @@ export function keywordFromProperties(properties: IKeywordProperties) {
         return new KeywordWithNumericValue(properties.keyword, properties.amount);
     }
 
+    if (properties.keyword === KeywordName.Bounty) {
+        return new KeywordWithAbilityDefinition(properties.keyword, createBountyAbilityFromProps(properties.ability));
+    }
+
     // TODO SMUGGLE: add smuggle here for "gain smuggle" abilities
 
     return new KeywordInstance(properties.keyword);
+}
+
+export function createBountyAbilityFromProps(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen' | 'abilityController'>): ITriggeredAbilityProps {
+    const { title, ...otherProps } = properties;
+
+    return {
+        title: 'Bounty: ' + title,
+        // 7.5.13.E : Resolving a Bounty ability is optional. If a player chooses not to resolve a Bounty ability, they are not considered to have collected that Bounty.
+        optional: true,
+        when: {
+            onCardDefeated: (event, context) => event.card === context.source
+            // TODO CAPTURE: add capture trigger
+        },
+        abilityController: RelativePlayer.Opponent,
+        ...otherProps
+    };
 }
 
 export const isNumericType: Record<KeywordName, boolean> = {

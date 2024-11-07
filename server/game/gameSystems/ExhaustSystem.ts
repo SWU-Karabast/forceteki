@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, CardTypeFilter, EventName, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, CardTypeFilter, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import { CardWithExhaustProperty } from '../core/card/CardTypes';
 import { ExhaustOrReadySystem, IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
 
@@ -18,7 +18,7 @@ export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> ext
         event.card.exhaust();
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!super.canAffect(card, context, additionalProperties, mustChangeGameState)) {
             return false;
         }
@@ -26,7 +26,7 @@ export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> ext
         const { isCost } = this.generatePropertiesFromContext(context);
 
         // can safely cast here b/c the type was checked in super.canAffect
-        if ((isCost || mustChangeGameState) && (card as CardWithExhaustProperty).exhausted) {
+        if ((isCost || mustChangeGameState !== GameStateChangeRequired.None) && (card as CardWithExhaustProperty).exhausted) {
             return false;
         }
 

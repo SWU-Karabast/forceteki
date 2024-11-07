@@ -35,7 +35,7 @@ class DeckBuilder {
         return cards;
     }
 
-    customDeck(playerNumber, playerCards = {}) {
+    customDeck(playerNumber, playerCards = {}, phase) {
         if (Array.isArray(playerCards.leader)) {
             throw new TestSetupError('Test leader must not be specified as an array');
         }
@@ -52,7 +52,12 @@ class DeckBuilder {
         allCards.push(this.getBaseCard(playerCards, playerNumber));
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
-        playerCards.resources = this.padCardListIfNeeded(playerCards.resources, defaultResourceCount);
+        // if the phase is setup the playerCards.resources becomes []
+        if (phase !== 'setup') {
+            playerCards.resources = this.padCardListIfNeeded(playerCards.resources, defaultResourceCount);
+        } else {
+            playerCards.resources = [];
+        }
         playerCards.deck = this.padCardListIfNeeded(playerCards.deck, defaultDeckSize);
 
         allCards.push(...playerCards.resources);
