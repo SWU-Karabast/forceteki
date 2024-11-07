@@ -1,6 +1,6 @@
 describe('Bombing Run', function() {
     integration(function(contextRef) {
-        describe('Bombing Run\' ability', function() {
+        describe('Bombing Run\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

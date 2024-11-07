@@ -1,6 +1,6 @@
 describe('Outmaneuver', function() {
     integration(function(contextRef) {
-        describe('Outmaneuver\' ability', function() {
+        describe('Outmaneuver\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
