@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName } from '../core/Constants';
+import { EventName, GameStateChangeRequired } from '../core/Constants';
 import Player from '../core/Player.js';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 
@@ -21,10 +21,16 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
         return amount === 1 ? ['ready a resource', []] : ['ready {0} resources', [amount]];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public override canAffect(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { isCost, amount } = this.generatePropertiesFromContext(context);
 
-        if ((isCost || mustChangeGameState) && player.countExhaustedResources() < amount) {
+        // if this is a cost or an "if you do" condition, must ready all required resources
+        if ((isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && player.countExhaustedResources() < amount) {
+            return false;
+        }
+
+        // if this is for the effect of an ability, just need to have some effect
+        if (mustChangeGameState === GameStateChangeRequired.MustFullyOrPartiallyResolve && player.countExhaustedResources() === 0) {
             return false;
         }
 

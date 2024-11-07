@@ -1,6 +1,6 @@
 import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import { CardType, EventName, MetaEventName, Stage } from '../Constants';
+import { CardType, EventName, GameStateChangeRequired, MetaEventName, Stage } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type Player from '../Player';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
@@ -144,7 +144,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @returns True if the target is legal for the system, false otherwise
      */
     // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
-    public canAffect(target: any, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public canAffect(target: any, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
 
         return (
@@ -164,7 +164,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @returns True if any of the candidate targets are legal, false otherwise
      */
     // TODO: update the type for additionalProperties everywhere to be Record<string, any> since it's always a flat object
-    public hasLegalTarget(context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public hasLegalTarget(context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         for (const candidateTarget of this.targets(context, additionalProperties)) {
             if (this.canAffect(candidateTarget, context, additionalProperties, mustChangeGameState)) {
                 return true;
@@ -183,7 +183,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * False by default as ability effects can still be triggered even if they will not change game state.
      * @returns True if all of the candidate targets are legal, false otherwise
      */
-    public allTargetsLegal(context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public allTargetsLegal(context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         for (const candidateTarget of this.targets(context, additionalProperties)) {
             if (!this.canAffect(candidateTarget, context, additionalProperties, mustChangeGameState)) {
                 return false;

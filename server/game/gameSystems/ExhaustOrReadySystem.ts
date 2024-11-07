@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, CardTypeFilter, EventName, Location, WildcardCardType } from '../core/Constants';
+import { CardType, CardTypeFilter, EventName, GameStateChangeRequired, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { CardWithExhaustProperty } from '../core/card/CardTypes';
@@ -11,7 +11,7 @@ export interface IExhaustOrReadyProperties extends ICardTargetSystemProperties {
 export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = AbilityContext, TProperties extends IExhaustOrReadyProperties = IExhaustOrReadyProperties> extends CardTargetSystem<TContext, TProperties> {
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Event, WildcardCardType.Upgrade, CardType.Leader];
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (
             !EnumHelpers.isArena(card.location) &&
             card.location !== Location.Resource &&

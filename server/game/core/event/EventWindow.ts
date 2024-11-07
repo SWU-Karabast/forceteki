@@ -192,6 +192,7 @@ export class EventWindow extends BaseStepWithPipeline {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
             event.checkCondition();
             if (event.canResolve) {
+                this.game.emit(event.name, event);
                 event.executeHandler();
 
                 this.resolvedEvents.push(event);
@@ -205,8 +206,10 @@ export class EventWindow extends BaseStepWithPipeline {
         // TODO: understand if resolveGameState really needs the resolvedEvents array or not
         this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
 
+        // emit the events a second time post-resolution for the sake of potential keywords gained during
+        // resolution (such as Ambush) which came online during resolveGameState() and need to register triggers
         for (const event of this.resolvedEvents) {
-            this.game.emit(event.name, event);
+            this.game.emit(event.name + ':postResolve', event);
         }
 
         // trigger again here to catch any events for cards that entered play during event resolution

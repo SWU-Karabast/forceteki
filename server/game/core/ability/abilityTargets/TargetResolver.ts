@@ -28,7 +28,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
         }
     }
 
-    protected abstract hasLegalTarget(context: AbilityContext, mustChangeGameState?: boolean): boolean;
+    protected abstract hasLegalTarget(context: AbilityContext): boolean;
 
     protected abstract checkTarget(context: AbilityContext): boolean;
 
@@ -36,9 +36,9 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected abstract resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player);
 
-    protected canResolve(context, mustChangeGameState = false) {
+    protected canResolve(context) {
         // if this depends on another target, that will check hasLegalTarget already
-        return !!this.properties.dependsOn || this.hasLegalTarget(context, mustChangeGameState);
+        return !!this.properties.dependsOn || this.hasLegalTarget(context);
     }
 
     protected resolve(context: AbilityContext, targetResults, passPrompt = null) {
