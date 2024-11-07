@@ -5,11 +5,12 @@ import * as Contract from '../../utils/Contract';
 
 export class MulliganPrompt extends AllPlayerPrompt {
     protected playersDone = new Map<string, boolean>();
-
+    protected playerMulligan = new Map<string, boolean>();
     public constructor(game: Game) {
         super(game);
         for (const player of game.getPlayers()) {
             this.playersDone[player.name] = false;
+            this.playerMulligan[player.name] = false;
         }
     }
 
@@ -32,19 +33,21 @@ export class MulliganPrompt extends AllPlayerPrompt {
         };
     }
 
+    public override continue() {
+        if (this.isComplete()) {
+            this.complete();
+        }
+        return super.continue();
+    }
+
     public override menuCommand(player, arg): boolean {
         if (arg === 'yes') {
             if (this.completionCondition(player)) {
                 return false;
             }
-            for (const card of player.hand) {
-                player.moveCard(card, 'deck bottom');
-            }
-
-            player.shuffleDeck();
-            player.drawCardsToHand(6);
             this.game.addMessage('{0} has mulliganed', player);
             this.playersDone[player.name] = true;
+            this.playerMulligan[player.name] = true;
             return true;
         } else if (arg === 'no') {
             this.game.addMessage('{0} has not mulliganed', player);
@@ -53,5 +56,18 @@ export class MulliganPrompt extends AllPlayerPrompt {
         }
         // in the case the command comes as an invalid one
         Contract.fail(`Unexpected menu command: '${arg}'`);
+    }
+
+    public override complete() {
+        for (const player of this.game.getPlayers()) {
+            if (this.playerMulligan[player.name]) {
+                for (const card of player.hand) {
+                    player.moveCard(card, 'deck bottom');
+                }
+                player.shuffleDeck();
+                player.drawCardsToHand(6);
+            }
+        }
+        return super.complete();
     }
 }
