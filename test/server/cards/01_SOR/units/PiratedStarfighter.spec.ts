@@ -5,11 +5,14 @@ describe('Pirated Starfighter', function () {
                 phase: 'action',
                 player1: {
                     hand: ['pirated-starfighter'],
-                }
+                    base: 'chopper-base',
+                },
             });
             const { context } = contextRef;
 
             context.player1.clickCard(context.piratedStarfighter);
+            expect(context.piratedStarfighter).toBeInLocation('hand');
+            expect(context.player1.countExhaustedResources()).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
 
