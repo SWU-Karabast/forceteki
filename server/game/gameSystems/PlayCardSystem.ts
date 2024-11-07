@@ -9,6 +9,7 @@ import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { PlayUnitAction } from '../actions/PlayUnitAction';
 import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
 import { PlayEventAction } from '../actions/PlayEventAction';
+import { TriggerHandlingMode } from '../core/event/EventWindow';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
@@ -17,7 +18,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     optional?: boolean;
     entersReady?: boolean;
     playType?: PlayType;
-    // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
+    nested?: boolean;
 }
 
 // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilties with another function(s)
@@ -32,7 +33,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         ignoredRequirements: [],
         optional: false,
         entersReady: false,
-        playType: PlayType.PlayFromHand
+        playType: PlayType.PlayFromHand,
+        nested: false
     };
 
     public eventHandler(event, additionalProperties): void {

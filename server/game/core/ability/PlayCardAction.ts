@@ -6,14 +6,22 @@ import { KeywordName, PhaseName, PlayType, Stage } from '../Constants';
 import { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
+import { TriggerHandlingMode } from '../event/EventWindow.js';
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
     protected playType: PlayType;
 
-    public constructor(card: Card, title: string, playType: PlayType, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
-        super(card, PlayCardAction.getTitle(title, playType), additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
+    public constructor(
+        card: Card,
+        title: string,
+        playType: PlayType,
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers,
+        targetResolver: IActionTargetResolver = null,
+        additionalCosts: ICost[] = []
+    ) {
+        super(card, PlayCardAction.getTitle(title, playType), additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver, triggerHandlingMode);
 
         this.playType = playType;
     }

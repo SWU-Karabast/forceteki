@@ -4,10 +4,15 @@ import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import { PlayCardAction, PlayCardContext } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
+import { TriggerHandlingMode } from '../core/event/EventWindow.js';
 
 export class PlayUnitAction extends PlayCardAction {
-    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand, private entersReady: boolean = false) {
-        super(card, 'Play this unit', playType);
+    public constructor(
+        card: Card, playType: PlayType = PlayType.PlayFromHand,
+        private entersReady: boolean = false,
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers
+    ) {
+        super(card, 'Play this unit', playType, triggerHandlingMode);
     }
 
     public override executeHandler(context: PlayCardContext): void {
