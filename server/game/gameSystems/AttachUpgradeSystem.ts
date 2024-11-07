@@ -24,7 +24,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
     };
 
     public override eventHandler(event, additionalProperties = {}): void {
-        const upgradeCard = (event.card as Card);
+        const upgradeCard = (event.upgradeCard as Card);
         const parentCard = (event.parentCard as Card);
 
         Contract.assertTrue(upgradeCard.isUpgrade());
@@ -97,17 +97,12 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         return this.canAffect(event.parentCard, event.context, additionalProperties);
     }
 
-    public override isEventFullyResolved(event, card: Card, context: TContext, additionalProperties): boolean {
-        const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
-        return event.parentCard === card && event.card === upgrade && event.name === this.eventName && !event.cancelled;
-    }
-
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
-        event.name = this.eventName;
         event.parentCard = card;
-        event.card = upgrade;
-        event.context = context;
+        event.upgradeCard = upgrade;
     }
 
     private getFinalController(properties, context) {

@@ -24,7 +24,7 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected createPhase(): void {
-        this.game.createEventAndOpenWindow(EventName.OnPhaseCreated, { phase: this.name }, TriggerHandlingMode.CannotHaveTriggers, () => {
+        this.game.createEventAndOpenWindow(EventName.OnPhaseCreated, null, { phase: this.name }, TriggerHandlingMode.CannotHaveTriggers, () => {
             for (const step of this.steps) {
                 this.game.queueStep(step);
             }
@@ -32,7 +32,7 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected startPhase(): void {
-        this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
+        this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
             this.game.currentPhase = this.name;
             if (this.name !== 'setup') {
                 this.game.addAlert('endofround', 'turn: {0} - {1} phase', this.game.roundNumber, this.name);
@@ -42,7 +42,7 @@ export abstract class Phase extends BaseStepWithPipeline {
 
     protected endPhase(skipEventWindow = false): void {
         if (!skipEventWindow) {
-            this.game.createEventAndOpenWindow(EventName.OnPhaseEnded, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => this.game.currentPhase = null);
+            this.game.createEventAndOpenWindow(EventName.OnPhaseEnded, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => this.game.currentPhase = null);
 
             // for post-phase state cleanup. emit directly, don't need a window.
             this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });

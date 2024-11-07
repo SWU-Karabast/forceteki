@@ -20,8 +20,8 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         return this.getGameAction(context).getEffectMessage(context);
     }
 
-    public override canAffect(target: any, context: TContext, additionalProperties = {}): boolean {
-        return this.getGameAction(context, additionalProperties).canAffect(target, context, additionalProperties);
+    public override canAffect(target: any, context: TContext, additionalProperties = {}, mustChangeGameState = false): boolean {
+        return this.getGameAction(context, additionalProperties).canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {

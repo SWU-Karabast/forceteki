@@ -1,15 +1,18 @@
-import { AbilityType, EffectName, Location, LocationFilter, PhaseName, WildcardLocation } from '../Constants';
+import { AbilityType, EffectName, Location, LocationFilter, PhaseName, RelativePlayer, WildcardLocation } from '../Constants';
 import * as Contract from '../utils/Contract';
 import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { ICost } from '../cost/ICost';
 import { Card } from '../card/Card';
+import { IAbilityProps } from '../../Interfaces';
+import { AbilityContext } from './AbilityContext';
+import Game from '../Game';
 
 export class CardAbility extends CardAbilityStep {
+    public readonly abilityController: RelativePlayer;
     public readonly abilityCost: ICost[];
     public readonly abilityIdentifier: string;
-    public readonly cannotBeCancelled: boolean;
     public readonly gainAbilitySource: Card;
     public readonly locationFilter: LocationFilter | LocationFilter[];
     public readonly printedAbility: boolean;
@@ -17,17 +20,17 @@ export class CardAbility extends CardAbilityStep {
     public constructor(game, card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
-        this.title = properties.title;
-
         this.limit = properties.limit || AbilityLimit.unlimited();
         this.limit.registerEvents(game);
         this.limit.ability = this;
+
+        this.title = properties.title;
         this.abilityCost = this.cost;
         this.printedAbility = properties.printedAbility === false ? false : true;
         this.locationFilter = this.locationOrDefault(card, properties.locationFilter);
-        this.cannotBeCancelled = properties.cannotBeCancelled;
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;
+        this.abilityController = properties.abilityController ?? RelativePlayer.Self;
 
         // if an ability name wasn't provided, assume this ability was created for some one-off purpose and not attached to the card
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
@@ -58,6 +61,22 @@ export class CardAbility extends CardAbilityStep {
     }
 
     public override meetsRequirements(context, ignoredRequirements = []) {
+        let canPlayerTrigger: boolean;
+        switch (this.abilityController) {
+            case RelativePlayer.Self:
+                canPlayerTrigger = context.player === context.source.controller;
+                break;
+            case RelativePlayer.Opponent:
+                canPlayerTrigger = context.player === context.source.controller.opponent;
+                break;
+            default:
+                Contract.fail(`Unexpected value for relative player: ${this.abilityController}`);
+        }
+
+        if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
+            return 'player';
+        }
+
         if (this.card.isBlank() && this.printedAbility) {
             return 'blank';
         }

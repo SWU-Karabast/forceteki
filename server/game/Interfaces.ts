@@ -26,6 +26,7 @@ export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IRepla
 /** Interface definition for addActionAbility */
 export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'optional'> & {
     condition?: (context?: AbilityContext<TSource>) => boolean;
+    cost?: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[];
 
     /**
      * If true, any player can trigger the ability. If false, only the card's controller can trigger it.
@@ -47,6 +48,36 @@ export interface IOngoingEffectProps {
     optional?: boolean;
 }
 
+// TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
+// for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
+/** Base interface for triggered and action ability definitions */
+export interface IAbilityProps<TContext extends AbilityContext> {
+    title: string;
+    locationFilter?: LocationFilter | LocationFilter[];
+    limit?: any;
+    cardName?: string;
+
+    /**
+     * Indicates if triggering the ability is optional (in which case the player will be offered the
+     * 'Pass' button on resolution) or if it is mandatory
+     */
+    optional?: boolean;
+
+    /** Indicates which player controls this ability (e.g. for Bounty abilities, it is the opponent) */
+    abilityController?: RelativePlayer;
+
+    /** If this is a gained ability, gives the source card that is giving the ability */
+    gainAbilitySource?: Card;
+
+    printedAbility?: boolean;
+    cannotTargetFirst?: boolean;
+    effect?: string;
+    effectArgs?: EffectArg | ((context: TContext) => EffectArg);
+    then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
+    ifYouDo?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    ifYouDoNot?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+}
+
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
@@ -64,6 +95,7 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     uuid?: string;
     ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     createCopies?: boolean;
+    abilityIdentifier?: string;
 }
 
 export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
@@ -135,6 +167,8 @@ export type WhenType<TSource extends Card = Card> = {
     [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
 };
 
+export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
+
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
@@ -149,37 +183,6 @@ type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBasePro
 type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
     aggregateWhen: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
 };
-
-// TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
-// for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
-/** Base interface for triggered and action ability definitions */
-interface IAbilityProps<TContext extends AbilityContext> {
-    title: string;
-    locationFilter?: LocationFilter | LocationFilter[];
-    cost?: ICost<TContext> | ICost<TContext>[];
-    limit?: any;
-    cardName?: string;
-
-    /**
-     * Indicates if triggering the ability is optional (in which case the player will be offered the
-     * 'Pass' button on resolution) or if it is mandatory
-     */
-    optional?: boolean;
-
-    /** Indicates which player controls this ability (e.g. for Bounty abilities, it is the opponent) */
-    abilityController?: RelativePlayer;
-
-    /** If this is a gained ability, gives the source card that is giving the ability */
-    gainAbilitySource?: Card;
-
-    printedAbility?: boolean;
-    cannotTargetFirst?: boolean;
-    effect?: string;
-    effectArgs?: EffectArg | ((context: TContext) => EffectArg);
-    then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
-}
-
-type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
 
 interface IAbilityPropsWithTargetResolver<TContext extends AbilityContext> extends IAbilityProps<TContext> {
     targetResolver: IActionTargetResolver<TContext>;

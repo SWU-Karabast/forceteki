@@ -1,7 +1,6 @@
 import type { Card } from '../core/card/Card';
 import AbilityResolver from '../core/gameSteps/AbilityResolver';
-import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { UnitCard } from '../core/card/CardTypes';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import { AbilityContext } from '../core/ability/AbilityContext';
@@ -13,6 +12,7 @@ import { EventName, MetaEventName } from '../core/Constants';
 export interface IInitiateAttackProperties<TContext extends AbilityContext = AbilityContext> extends IAttackProperties {
     ignoredRequirements?: string[];
     attackerCondition?: (card: Card, context: TContext) => boolean;
+    isAmbush?: boolean;
 
     /** By default, the system will inherit the `optional` property from the activating ability. Use this to override the behavior. */
     optional?: boolean;
@@ -28,7 +28,8 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
     protected override readonly eventName = MetaEventName.InitiateAttack;
     protected override readonly defaultProperties: IInitiateAttackProperties = {
         ignoredRequirements: [],
-        attackerCondition: () => true
+        attackerCondition: () => true,
+        isAmbush: false
     };
 
     public eventHandler(event, additionalProperties): void {

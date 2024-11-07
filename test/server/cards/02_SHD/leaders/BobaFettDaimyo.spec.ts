@@ -21,8 +21,9 @@ describe('Boba Fett, Daimyo', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.greenSquadronAwing);
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Exhaust this leader');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing]);
-                expect(context.player1).toHavePassAbilityButton();
 
                 // give +1/+0 to battlefield marine, boba should be exhausted
                 context.player1.clickCard(context.battlefieldMarine);
@@ -35,7 +36,7 @@ describe('Boba Fett, Daimyo', function () {
 
                 // boba exhausted, nothing should happen while playing a unit with keyword
                 context.player1.clickCard(context.cantinaBraggart);
-                expect(context.player1).not.toHavePrompt('Choose a unit');
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -44,9 +45,8 @@ describe('Boba Fett, Daimyo', function () {
 
                 context.player1.clickCard(context.greenSquadronAwing);
                 // play a unit with keyword, should be able to give +1/+0 to a friendly unit
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing]);
-                expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass ability');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Pass');
                 expect(context.bobaFett.exhausted).toBeFalse();
 
                 // enemy unit is played, nothing should happes
@@ -54,8 +54,10 @@ describe('Boba Fett, Daimyo', function () {
 
                 // play a unit with keyword, boba is not exhausted, should be able to give +1/+0 to a friendly unit
                 context.player1.clickCard(context.cantinaBraggart);
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Exhaust this leader');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing, context.cantinaBraggart]);
-                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).not.toHavePassAbilityButton();
 
                 // boost battlefield marine
                 context.player1.clickCard(context.battlefieldMarine);
@@ -85,8 +87,9 @@ describe('Boba Fett, Daimyo', function () {
 
                 context.player1.clickCard(context.allianceXwing);
                 // boba triggers as red three give raid 1 to alliance x-wing
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Exhaust this leader');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.redThree, context.allianceXwing]);
-                expect(context.player1).toHavePassAbilityButton();
 
                 // give +1/+0 to battlefield marine, boba should be exhausted
                 context.player1.clickCard(context.battlefieldMarine);

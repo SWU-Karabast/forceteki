@@ -2,6 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class BenduTheOneInTheMiddle extends NonLeaderUnitCard {
     protected override getImplementationId() {

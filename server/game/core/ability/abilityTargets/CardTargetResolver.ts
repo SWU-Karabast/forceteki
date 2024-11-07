@@ -34,7 +34,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
                 return false;
             }
             return (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy) &&
+              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState) &&
                 (!properties.cardCondition || properties.cardCondition(card, contextCopy)));
         };
         return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
@@ -49,11 +49,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         return contextCopy;
     }
 
-    protected override hasLegalTarget(context: AbilityContext) {
+    protected override hasLegalTarget(context: AbilityContext, mustChangeGameState = false) {
         return this.selector.optional || this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
-    private getAllLegalTargets(context: AbilityContext): Card[] {
+    private getAllLegalTargets(context: AbilityContext, mustChangeGameState = false): Card[] {
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 

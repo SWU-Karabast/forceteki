@@ -37,12 +37,13 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.attack.attacker.setActiveAttack(this.attack);
         this.attack.target.setActiveAttack(this.attack);
 
-        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
+        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
     }
 
     private openDealDamageWindow(): void {
         this.context.game.createEventAndOpenWindow(
             EventName.OnAttackDamageResolved,
+            this.context,
             { attack: this.attack },
             TriggerHandlingMode.ResolvesTriggers,
             () => this.dealDamage()
@@ -131,7 +132,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private completeAttack() {
-        this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, {
+        this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, this.context, {
             attack: this.attack,
         }, TriggerHandlingMode.ResolvesTriggers);
     }

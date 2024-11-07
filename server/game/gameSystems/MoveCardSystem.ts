@@ -43,6 +43,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
         player.moveCard(card, event.destination, { bottom: !!event.bottom });
 
+        // TODO: use ShuffleDeckSystem instead
         if (event.destination === Location.Deck && event.shuffle) {
             card.owner.shuffleDeck();
         }

@@ -21,16 +21,15 @@ export class ReadySystem<TContext extends AbilityContext = AbilityContext> exten
         event.card.ready();
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
         if (!super.canAffect(card, context)) {
             return false;
         }
 
         const { isCost } = this.generatePropertiesFromContext(context);
 
-        // if readying is a cost, then the card must not be currently readied
-        // otherwise readying is a legal effect, even if the target is currently readied
-        if (isCost && !(card as CardWithExhaustProperty).exhausted) {
+        // can safely cast here b/c the type was checked in super.canAffect
+        if ((isCost || mustChangeGameState) && !(card as CardWithExhaustProperty).exhausted) {
             return false;
         }
 

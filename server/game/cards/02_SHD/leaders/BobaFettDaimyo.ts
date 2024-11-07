@@ -12,19 +12,22 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Give a friendly unit +1/+0 for this phase.',
-            cost: AbilityHelper.costs.exhaustSelf(),
+            title: 'Exhaust this leader',
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.isUnit() && event.card.controller === context.source.controller && event.card.keywords.length > 0
             },
-            targetResolver: {
-                controller: RelativePlayer.Self,
-                cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
-                })
+            immediateEffect: AbilityHelper.immediateEffects.exhaust(),
+            ifYouDo: {
+                title: 'Give a friendly unit +1/+0 for this phase',
+                targetResolver: {
+                    controller: RelativePlayer.Self,
+                    cardTypeFilter: WildcardCardType.Unit,
+                    immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
+                    })
+                },
             }
         });
     }

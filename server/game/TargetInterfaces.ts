@@ -51,11 +51,13 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     /** Filter cards by their controller */
     controller?: ((context: TContext) => RelativePlayer) | RelativePlayer;
 
+    // TODO: allow this be a concrete player object as well as a RelativePlayer enum
     /** Selects which player is choosing the target (defaults to the player controlling the source card) */
     choosingPlayer?: ((context: TContext) => RelativePlayer) | RelativePlayer;
     hideIfNoLegalTargets?: boolean;
     immediateEffect?: GameSystem<TContext>;
     dependsOn?: string;
+    mustChangeGameState?: boolean;
 }
 
 // TODO: add functionality to PlayerTargetResolver to autodetect any invalid target players.

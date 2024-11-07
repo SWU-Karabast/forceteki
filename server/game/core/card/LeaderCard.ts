@@ -16,6 +16,7 @@ export class LeaderCard extends InPlayCard {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Leader);
 
+        this.hasImplementationFile = true;
         this.setupLeaderUnitSide = false;
         this.setupLeaderSideAbilities();
     }
@@ -31,6 +32,7 @@ export class LeaderCard extends InPlayCard {
     /**
      * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
      */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderSideAbilities() {}
+    protected setupLeaderSideAbilities() {
+        this.hasImplementationFile = false;
+    }
 }
