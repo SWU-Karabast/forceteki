@@ -98,6 +98,7 @@ export enum RelativePlayer {
 }
 
 export enum TargetMode {
+    Arena = 'arena',
     AutoSingle = 'autoSingle',
     DropdownList = 'dropdownList',
     Exactly = 'exactly',

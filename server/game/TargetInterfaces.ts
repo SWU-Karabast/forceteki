@@ -21,7 +21,8 @@ export type IActionTargetResolver<TContext extends AbilityContext = AbilityConte
   | ICardTargetResolver<TContext>
   | ISelectTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
-  | IPlayerTargetResolver<TContext>;
+  | IPlayerTargetResolver<TContext>
+  | IArenaTargetResolver<TContext>;
 
 export type IActionTargetsResolver<TContext extends AbilityContext = AbilityContext> = Record<string, IActionTargetResolver<TContext>>;
 
@@ -64,6 +65,10 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
 export interface IPlayerTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     mode: TargetMode.Player | TargetMode.MultiplePlayers;
     immediateEffect?: PlayerTargetSystem<TContext>;
+}
+
+export interface IArenaTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
+    mode: TargetMode.Arena;
 }
 
 export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, ((context: TContext) => boolean) | GameSystem<TContext>>;
