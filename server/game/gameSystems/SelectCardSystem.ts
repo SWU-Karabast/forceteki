@@ -36,6 +36,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
  * Functions the same as a targetResolver and used in situations where one can't be created (e.g., costs).
  */
 export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ISelectCardProperties<TContext>> {
+    public override readonly name: string = 'selectCard';
     protected override readonly eventName: MetaEventName.SelectCard;
     protected override readonly defaultProperties: ISelectCardProperties<TContext> = {
         cardCondition: () => true,

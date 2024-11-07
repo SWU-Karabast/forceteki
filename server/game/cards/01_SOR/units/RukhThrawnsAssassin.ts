@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { DamageType } from '../../../gameSystems/DamageSystem';
-
+import { DamageType } from '../../../core/Constants';
 
 export default class RukhThrawnsAssassin extends NonLeaderUnitCard {
     protected override getImplementationId() {
