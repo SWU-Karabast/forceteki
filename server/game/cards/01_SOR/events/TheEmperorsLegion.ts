@@ -1,9 +1,11 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import {StateWatcherRegistrar} from '../../../core/stateWatcher/StateWatcherRegistrar';
+import {UnitsDefeatedThisPhaseWatcher} from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import {EventCard} from '../../../core/card/EventCard';
+import {KeywordName, Location, WildcardCardType} from '../../../core/Constants';
+import {UnitCard} from '../../../core/card/CardTypes';
 
-export default class TheEmperorsLegion extends NonLeaderUnitCard {
+export default class TheEmperorsLegion extends EventCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId () {
@@ -18,11 +20,17 @@ export default class TheEmperorsLegion extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+        this.setEventAbility({
             title: 'Return each unit in your discard pile that was defeated this phase to your hand.',
-            immediateEffect: AbilityHelper.immediateEffects.returnToHand({
-                target: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(this.controller)
-            })
+            targetResolver: {
+                locationFilter: Location.Discard,
+                cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card) => this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(this.controller).includes(card as UnitCard),
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
+            },
+            // immediateEffect: AbilityHelper.immediateEffects.returnToHand({
+            //     target: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(this.controller)
+            // })
         });
     }
 }
