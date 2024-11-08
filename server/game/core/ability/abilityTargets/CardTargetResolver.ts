@@ -38,8 +38,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
                 return false;
             }
             return (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState) &&
-                (!properties.cardCondition || properties.cardCondition(card, contextCopy)));
+              (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
+              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState));
         };
         return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
@@ -122,7 +122,12 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
                 passPrompt.hasBeenShown = true;
             }
             if (this.selector.optional) {
-                buttons.push({ text: 'Choose no target', arg: 'noTarget' });
+                // If the selector is for a single card and it will automatically fire on selection,
+                // uses the 'done' arg so that the prompt doesn't show both 'Choose no target' and 'Done' buttons.
+                buttons.push({
+                    text: 'Choose no target',
+                    arg: this.selector.numCards === 1 && this.selector.automaticFireOnSelect(context) ? 'done' : 'noTarget'
+                });
             }
         }
         const mustSelect = legalTargets.filter((card) =>
