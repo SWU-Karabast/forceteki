@@ -1,5 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName } from '../core/Constants';
+import { EventName, GameStateChangeRequired } from '../core/Constants';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import Player from '../core/Player';
 
@@ -40,7 +40,7 @@ export class PayResourceCostSystem<TContext extends AbilityContext = AbilityCont
         return ['spending {1} resources', [properties.amount]];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public override canAffect(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.amount > 0 &&
           player.countSpendableResources() > 0 &&

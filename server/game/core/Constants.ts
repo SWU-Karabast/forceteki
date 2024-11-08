@@ -35,6 +35,13 @@ export enum StatType {
     Power = 'power'
 }
 
+export enum DamageType {
+    Combat = 'combat',
+    Ability = 'ability',
+    Excess = 'excess',
+    Overwhelm = 'overwhelm'
+}
+
 export enum EffectName {
     AbilityRestrictions = 'abilityRestrictions',
     AdditionalAction = 'additionalActions',
@@ -370,4 +377,22 @@ export enum StateWatcherName {
     // - attacked base: Ephant Mon, Rule with Respect
     // - attacked with unit type: Medal Ceremony, Bo-Katan leader, Asajj Ventress
     // - discarded: Kylo's TIE Silencer?
+}
+
+/** For "canAffect" and target eligibility checks, indicates whether game state must be changed by the effect in order for the check to pass */
+export enum GameStateChangeRequired {
+    /** Game state change is not required */
+    None = 'none',
+
+    /**
+     * Game state change is required but the effect is not required to fully resolve. E.g., if exhausting resources,
+     * would not need to exhaust the full number of requested resources.
+     */
+    MustFullyOrPartiallyResolve = 'mustFullyOrPartiallyResolve',
+
+    /**
+     * Game state change is required and the effect is required to fully resolve. E.g., if exhausting resources,
+     * would be required to exhaust the full number of requested resources.
+     */
+    MustFullyResolve = 'mustFullyResolve',
 }

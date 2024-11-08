@@ -12,7 +12,7 @@ export default class CovetousRivals extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'If the defender has a Bounty, it gets -4/-0 for this attack',
+            title: 'Deal 2 damage to a unit with a Bounty',
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source,
                 onCardPlayed: (event, context) => event.card === context.source
