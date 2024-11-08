@@ -5,7 +5,7 @@ import { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';
 import * as Contract from '../utils/Contract';
 
 export class KeywordInstance {
-    private blankingEffects = [];
+    private blankingEffects: LoseKeyword[] = [];
 
     public get isBlank() {
         return this.blankingEffects.length > 0;
