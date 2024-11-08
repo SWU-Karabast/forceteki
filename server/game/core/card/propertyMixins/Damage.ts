@@ -1,6 +1,8 @@
 import { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
 import { Card, CardConstructor } from '../Card';
+import { Location } from '../../Constants';
+import type Player from '../../Player';
 import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';
 import { IDamageSource } from '../../../IDamageOrDefeatSource';
@@ -97,6 +99,14 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
 
         protected setDamageEnabled(enabledStatus: boolean) {
             this._damage = enabledStatus ? 0 : null;
+        }
+
+        public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+            const summary = super.getSummary(activePlayer, hideWhenFaceup);
+            if (this.location === Location.GroundArena || this.location === Location.SpaceArena || this.isBase()) {
+                return { ...summary, damage: this.damage };
+            }
+            return summary;
         }
 
         protected setActiveAttackEnabled(enabledStatus: boolean) {

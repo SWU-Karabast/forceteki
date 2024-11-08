@@ -38,7 +38,6 @@ export type CardConstructor = new (...args: any[]) => Card;
  */
 export class Card extends OngoingEffectSource {
     public static implemented = false;
-
     public readonly aspects: Aspect[] = [];
     public readonly internalName: string;
     public readonly subtitle?: string;
