@@ -78,17 +78,8 @@ export class PlayableOrDeployableCard extends Card {
         return true;
     }
 
-    public override canBeInPlay(): this is InPlayCard {
-        return false;
-    }
-
     public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
-        const summary = super.getSummary(activePlayer, hideWhenFaceup);
-        if ((this.canBeInPlay() && this.isInPlay() && !this.isUpgrade()) || this.location === Location.Resource) {
-            const updatedSummary = { ...summary, exhausted: this.exhausted };
-            return updatedSummary;
-        }
-        return summary;
+        return { ...super.getSummary(activePlayer, hideWhenFaceup), exhausted: this._exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {

@@ -102,11 +102,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
-            const summary = super.getSummary(activePlayer, hideWhenFaceup);
-            if (this.location === Location.GroundArena || this.location === Location.SpaceArena || this.isBase()) {
-                return { ...summary, damage: this.damage };
-            }
-            return summary;
+            return { ...super.getSummary(activePlayer, hideWhenFaceup), damage: this._damage };
         }
 
         protected setActiveAttackEnabled(enabledStatus: boolean) {
