@@ -24,7 +24,8 @@ describe('ISB Agent', function() {
                     context.player1.clickCard(context.isbAgent);
 
                     expect(context.player1).toBeAbleToSelectExactly([context.confiscate, context.waylay]);
-                    expect(context.player1).toHaveExactPromptButtons(['Choose no target']);
+                    expect(context.player1).toHaveChooseNoTargetButton();
+                    expect(context.player1).not.toHavePassAbilityButton();
                     context.player1.clickCard(context.confiscate);
 
                     expect(context.getChatLogs(3)).toEqual([
@@ -46,7 +47,8 @@ describe('ISB Agent', function() {
                     context.player1.clickCard(context.isbAgent);
 
                     expect(context.player1).toBeAbleToSelectExactly([context.confiscate, context.waylay]);
-                    expect(context.player1).toHaveExactPromptButtons(['Choose no target']);
+                    expect(context.player1).toHaveChooseNoTargetButton();
+                    expect(context.player1).not.toHavePassAbilityButton();
                     context.player1.clickPrompt('Choose no target');
 
                     expect(context.getChatLogs(2)).toEqual([
