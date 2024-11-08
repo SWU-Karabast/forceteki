@@ -36,7 +36,6 @@ export type CardConstructor = new (...args: any[]) => Card;
  */
 export class Card extends OngoingEffectSource {
     public static implemented = false;
-
     public readonly aspects: Aspect[] = [];
     public readonly internalName: string;
     public readonly subtitle?: string;
@@ -755,8 +754,9 @@ export class Card extends OngoingEffectSource {
                 location: this.location,
                 uuid: isActivePlayer ? this.uuid : undefined
             };
-            return Object.assign(state, selectionState);
+            return { ...state, ...selectionState };
         }
+
 
         const state = {
             id: this.cardData.id,
@@ -772,10 +772,11 @@ export class Card extends OngoingEffectSource {
             // showPopup: this.showPopup,
             // tokens: this.tokens,
             // types: this.types,
-            uuid: this.uuid
+            uuid: this.uuid,
+            ...selectionState
         };
 
-        return Object.assign(state, selectionState);
+        return state;
     }
 
     public override getShortSummaryForControls(activePlayer: Player): any {

@@ -1173,13 +1173,20 @@ class Player extends GameObject {
         let { email, password, ...safeUser } = this.user;
         let state = {
             cardPiles: {
-                // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
                 hand: this.getSummaryForHand(this.hand, activePlayer, false),
-                removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer)
+                removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer),
+                resources: this.getSummaryForCardList(this.resources, activePlayer),
+                groundArena: this.getSummaryForCardList(this.groundArena, activePlayer),
+                spaceArena: this.getSummaryForCardList(this.spaceArena, activePlayer),
+                deck: this.getSummaryForCardList(this.drawDeck, activePlayer),
+                discard: this.getSummaryForCardList(this.discard, activePlayer)
             },
             disconnected: this.disconnected,
             // faction: this.faction,
             hasInitiative: this.hasInitiative(),
+            availableResources: this.countSpendableResources(),
+            leader: this.leader.getSummary(activePlayer),
+            base: this.base.getSummary(activePlayer),
             id: this.id,
             left: this.left,
             name: this.name,
