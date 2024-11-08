@@ -357,22 +357,14 @@ export class Card extends OngoingEffectSource {
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
     protected getKeywords() {
-        let keywords = [...this.printedKeywords];
-        let gainKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
-        const loseKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.LoseKeyword);
-        // cancel all gain keyword effects that are covered by a lose keyword effect(i.e. that were active when the lose effect was applied)
-        for (const loseKeywordEffect of loseKeywordEffects) {
-            gainKeywordEffects = gainKeywordEffects.filter((gainKeywordEffect) => !loseKeywordEffect.getValue(this).effectsToCancel.includes(gainKeywordEffect));
-            // also cancel any matching printed keywords
-            keywords = keywords.filter((keyword) => keyword.name !== loseKeywordEffect.getValue(this).name);
+        let keywordInstances = [...this.printedKeywords];
+        const gainKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
+        for (const effect of gainKeywordEffects) {
+            keywordInstances.push(effect.getValue(this));
         }
-        for (const gainKeywordEffect of gainKeywordEffects) {
-            if (!keywords.includes(gainKeywordEffect.getValue(this))) {
-                keywords.push(gainKeywordEffect.getValue(this));
-            }
-        }
+        keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
-        return keywords;
+        return keywordInstances;
     }
 
     public getKeywordWithCostValues(keywordName: KeywordName): KeywordWithCostValues {

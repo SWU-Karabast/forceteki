@@ -15,6 +15,7 @@ import { IActionAbilityPropsWithType, ITriggeredAbilityPropsWithType, KeywordNam
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 import { CostAdjustType, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -98,7 +99,7 @@ export = {
             typeof keywordOrKeywordProperties === 'string'
                 ? KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties })
                 : KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties)),
-    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, { name: keyword }),
+    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, new LoseKeyword(keyword)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
