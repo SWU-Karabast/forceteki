@@ -12,7 +12,7 @@ describe('Lieutenant Childsen', function() {
                                 'system-patrol-craft',
                                 'cargo-juggernaut',
                                 'resilient',
-                                'rivals-fall',
+                                'vanquish',
                                 'confiscate',
                                 'underworld-thug',
                             ],
@@ -20,7 +20,7 @@ describe('Lieutenant Childsen', function() {
                             spaceArena: ['cartel-spacer'],
                         },
                         player2: {
-                            hand: ['vanquish'],
+                            hand: ['rivals-fall'],
                             groundArena: ['wampa'],
                             spaceArena: ['alliance-xwing']
                         }
@@ -32,8 +32,8 @@ describe('Lieutenant Childsen', function() {
 
                     const reset = () => {
                         context.player2.resources.forEach((card) => card.exhausted = false);
-                        context.player2.moveCard(context.vanquish, 'hand');
-                        context.player2.clickCard(context.vanquish);
+                        context.player2.moveCard(context.rivalsFall, 'hand');
+                        context.player2.clickCard(context.rivalsFall);
                         context.player2.clickCard(context.lieutenantChildsen);
                         context.player1.moveCard(context.lieutenantChildsen, 'hand');
                         context.player1.resources.forEach((card) => card.exhausted = false);
@@ -41,7 +41,7 @@ describe('Lieutenant Childsen', function() {
 
                     // Reveal 1 Vigilance card
                     context.player1.clickCard(context.lieutenantChildsen);
-                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.rivalsFall]);
+                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
                     context.player1.clickCard(context.pykeSentinel);
                     context.player1.clickPrompt('Done');
 
@@ -57,14 +57,14 @@ describe('Lieutenant Childsen', function() {
 
                     // Reveal 2 Vigilance cards
                     context.player1.clickCard(context.lieutenantChildsen);
-                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.rivalsFall]);
+                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
                     context.player1.clickCard(context.systemPatrolCraft);
-                    context.player1.clickCard(context.rivalsFall);
+                    context.player1.clickCard(context.vanquish);
                     context.player1.clickPrompt('Done');
 
                     expect(context.getChatLogs(2)).toEqual([
                         'player1 uses Lieutenant Childsen to reveal 2 cards',
-                        'player1 reveals System Patrol Craft, Rival\'s Fall due to Lieutenant Childsen',
+                        'player1 reveals System Patrol Craft, Vanquish due to Lieutenant Childsen',
                     ]);
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience', 'experience']);
@@ -74,15 +74,15 @@ describe('Lieutenant Childsen', function() {
 
                     // Reveal 3 Vigilance cards
                     context.player1.clickCard(context.lieutenantChildsen);
-                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.rivalsFall]);
+                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
                     context.player1.clickCard(context.cargoJuggernaut);
-                    context.player1.clickCard(context.rivalsFall);
+                    context.player1.clickCard(context.vanquish);
                     context.player1.clickCard(context.resilient);
                     context.player1.clickPrompt('Done');
 
                     expect(context.getChatLogs(2)).toEqual([
                         'player1 uses Lieutenant Childsen to reveal 3 cards',
-                        'player1 reveals Cargo Juggernaut, Rival\'s Fall, Resilient due to Lieutenant Childsen',
+                        'player1 reveals Cargo Juggernaut, Vanquish, Resilient due to Lieutenant Childsen',
                     ]);
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
@@ -92,16 +92,16 @@ describe('Lieutenant Childsen', function() {
 
                     // Reveal 4 Vigilance cards
                     context.player1.clickCard(context.lieutenantChildsen);
-                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.rivalsFall]);
+                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
                     context.player1.clickCard(context.cargoJuggernaut);
-                    context.player1.clickCard(context.rivalsFall);
+                    context.player1.clickCard(context.vanquish);
                     context.player1.clickCard(context.resilient);
                     context.player1.clickCard(context.pykeSentinel);
                     context.player1.clickPrompt('Done');
 
                     expect(context.getChatLogs(2)).toEqual([
                         'player1 uses Lieutenant Childsen to reveal 4 cards',
-                        'player1 reveals Cargo Juggernaut, Rival\'s Fall, Resilient, Pyke Sentinel due to Lieutenant Childsen',
+                        'player1 reveals Cargo Juggernaut, Vanquish, Resilient, Pyke Sentinel due to Lieutenant Childsen',
                     ]);
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
@@ -111,7 +111,7 @@ describe('Lieutenant Childsen', function() {
 
                     // Reveal no Vigilance cards
                     context.player1.clickCard(context.lieutenantChildsen);
-                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.rivalsFall]);
+                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
                     context.player1.clickPrompt('Done');
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames([]);
