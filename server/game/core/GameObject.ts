@@ -25,12 +25,6 @@ export abstract class GameObject {
     }
 
     public addOngoingEffect(ongoingEffect: IOngoingCardEffect) {
-        // logic for "lose keyword" abilites: they need to register all effects that are giving the keyword at the time they are applied, so that they can nullify only those
-        if (ongoingEffect.type === EffectName.LoseKeyword) {
-            const currentKeywordGrantingEffects = this.ongoingEffects.filter((currentEffect) => currentEffect.type === EffectName.GainKeyword && currentEffect.getValue(this).name === ongoingEffect.getValue(this).name);
-            Object.assign(ongoingEffect.getValue(this), { effectsToCancel: currentKeywordGrantingEffects });
-        }
-
         this.ongoingEffects.push(ongoingEffect);
     }
 
