@@ -49,6 +49,21 @@ describe('Outmaneuver', function() {
                     expect(context.allianceXwing.exhausted).toBeTrue();
                     expect(context.bobaFett.exhausted).toBeFalse();
                     expect(context.lukeSkywalker.exhausted).toBeFalse();
+
+                    // Check that we can play the card again and target the space arena, which is empty now
+                    context.player1.moveCard(context.outmaneuver, 'hand');
+                    context.player1.moveCard(context.cartelSpacer, 'discard');
+                    context.player2.moveCard(context.allianceXwing, 'discard');
+                    context.player2.passAction();
+
+                    context.player1.clickCard(context.outmaneuver);
+                    expect(context.player1).toHaveEnabledPromptButtons(['Ground', 'Space']);
+                    context.player1.clickPrompt('Space');
+
+                    expect(context.atst.exhausted).toBeFalse();
+                    expect(context.wampa.exhausted).toBeFalse();
+                    expect(context.bobaFett.exhausted).toBeFalse();
+                    expect(context.lukeSkywalker.exhausted).toBeFalse();
                 });
             });
         });
