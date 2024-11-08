@@ -16,8 +16,6 @@ export default class BombingRun extends EventCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose an arena',
-                checkTarget: false,
-                mustChangeGameState: false,
                 choices: {
                     ['Ground']: this.eventEffect(Location.GroundArena),
                     ['Space']: this.eventEffect(Location.SpaceArena),
