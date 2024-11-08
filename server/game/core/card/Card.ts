@@ -452,6 +452,8 @@ export class Card extends OngoingEffectSource {
             originalLocation: originalLocation,
             newLocation: targetLocation
         });
+
+        this.game.registerMovedCard(this);
     }
 
     /**
@@ -459,6 +461,13 @@ export class Card extends OngoingEffectSource {
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected cleanupBeforeMove(nextLocation: Location) {}
+
+    /**
+     * Updates the card's abilities for its current location after being moved.
+     * Called from {@link Game.resolveGameState} after event resolution.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public resolveAbilitiesForNewLocation() {}
 
     /**
      * Deals with the engine effects of entering a new location, making sure all statuses are set with legal values.
@@ -755,7 +764,10 @@ export class Card extends OngoingEffectSource {
             // facedown: this.isFacedown(),
             location: this.location,
             // menu: this.getMenu(),
-            name: this.cardData.name,
+            name: this.cardData.title,
+            cost: this.cardData.cost,
+            power: this.cardData.power,
+            hp: this.cardData.hp,
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,

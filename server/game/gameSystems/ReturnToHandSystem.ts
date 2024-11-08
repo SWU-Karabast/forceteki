@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { CardType, EventName, Location, WildcardCardType, WildcardLocation } from '../core/Constants';
+import { CardType, EventName, GameStateChangeRequired, Location, WildcardCardType, WildcardLocation } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
@@ -30,7 +30,7 @@ export class ReturnToHandSystem<TContext extends AbilityContext = AbilityContext
         this.leavesPlayEventHandler(event, additionalProperties);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = false): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = super.generatePropertiesFromContext(context);
         return EnumHelpers.cardLocationMatches(card.location, properties.locationFilter) && super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }

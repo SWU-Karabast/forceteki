@@ -8,18 +8,21 @@ import { AllPlayerPrompt } from './AllPlayerPrompt';
 export class ResourcePrompt extends AllPlayerPrompt {
     protected selectedCards = new Map<string, Card[]>();
     protected selectableCards = new Map<string, Card[]>();
+    protected playersDone = new Map<string, boolean>();
 
     public constructor(
         game: Game,
         private readonly nCardsToResource: number
     ) {
         super(game);
-        game.getPlayers().forEach((player) => this.selectedCards[player.name] = []);
+        for (const player of game.getPlayers()) {
+            this.selectedCards[player.name] = [];
+            this.playersDone[player.name] = false;
+        }
     }
 
     public override completionCondition(player: Player) {
-        const nSelectedCards = this.selectedCards[player.name].length;
-        return nSelectedCards === this.nCardsToResource;
+        return this.playersDone[player.name];
     }
 
     public override continue() {
@@ -37,7 +40,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
             // cards are only selectable until we've selected as many as allowed
             if (!this.selectableCards[player.name] && !this.completionCondition(player)) {
                 this.selectableCards[player.name] = player.hand;
-            } else {
+            } else if (this.completionCondition(player)) {
                 this.selectableCards[player.name] = [];
             }
             player.setSelectableCards(this.selectableCards[player.name]);
@@ -55,7 +58,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         return {
             selectCard: true,
             menuTitle: promptText,
-            buttons: [],
+            buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',
             promptUuid: this.uuid
         };
@@ -65,7 +68,10 @@ export class ResourcePrompt extends AllPlayerPrompt {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(card);
 
-        if (!this.activeCondition(player)) {
+        if (
+            !this.activeCondition(player) || !player.hand.includes(card) ||
+            this.selectedCards[player.name].length === this.nCardsToResource
+        ) {
             return false;
         }
 
@@ -86,13 +92,24 @@ export class ResourcePrompt extends AllPlayerPrompt {
     }
 
     public override menuCommand(player, arg): boolean {
+        if (arg === 'done') {
+            if (this.completionCondition(player)) {
+                return false;
+            }
+            if (this.selectedCards[player.name].length < this.nCardsToResource) {
+                return false;
+            }
+            this.playersDone[player.name] = true;
+            return true;
+        }
+        // in the case the command comes as an invalid one
         Contract.fail(`Unexpected menu command: '${arg}'`);
     }
 
     protected resourceSelectedCards(player: Player) {
         if (this.selectedCards[player.name].length > 0) {
             for (const card of this.selectedCards[player.name]) {
-                player.resourceCard(card);
+                player.resourceCard(card, false);
             }
             this.game.addMessage('{0} has resourced {1} cards from hand', player, this.selectedCards[player.name].length);
         } else {

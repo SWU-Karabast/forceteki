@@ -146,7 +146,6 @@ class PlayerInteractionWrapper {
         if (!baseOptions) {
             return;
         }
-
         // base as a string card name is a no-op unless it doesn't match the existing base, then throw an error
         if (typeof baseOptions === 'string') {
             if (baseOptions !== this.player.base.internalName) {

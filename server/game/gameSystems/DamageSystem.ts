@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, DamageType, EventName, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
@@ -8,13 +8,6 @@ import { Attack } from '../core/attack/Attack';
 import { DamageSourceType, IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack, IDamageSource } from '../IDamageOrDefeatSource';
 import { UnitCard } from '../core/card/CardTypes';
 import CardAbilityStep from '../core/ability/CardAbilityStep';
-
-export enum DamageType {
-    Combat = 'combat',
-    Ability = 'ability',
-    Excess = 'excess',
-    Overwhelm = 'overwhelm'
-}
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type?: DamageType;

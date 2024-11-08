@@ -36,6 +36,7 @@ const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/Distribute
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
 const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.js');
 const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
+const { Card } = require('./card/Card.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -71,6 +72,7 @@ class Game extends EventEmitter {
         this.actionPhaseActivePlayer = null;
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
+        this.movedCards = [];
 
         this.registerGlobalRulesListeners();
 
@@ -1112,6 +1114,12 @@ class Game extends EventEmitter {
     }
 
     resolveGameState(hasChanged = false, events = []) {
+        // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
+        for (const movedCard of this.movedCards) {
+            movedCard.resolveAbilitiesForNewLocation();
+        }
+        this.movedCards = [];
+
         // check for a game state change (recalculating attack stats if necessary)
         if (
             // (!this.currentAttack && this.ongoingEffectEngine.resolveEffects(hasChanged)) ||
@@ -1185,6 +1193,15 @@ class Game extends EventEmitter {
         this.filterCardFromList(token, player.decklist.tokens);
         this.filterCardFromList(token, player.decklist.allCards);
         this.filterCardFromList(token, player.outsideTheGameCards);
+    }
+
+    /**
+     * Registers that a card has been moved to a different zone and therefore requires updating in the
+     * next call to resolveGameState
+     * @param {Card} card
+     */
+    registerMovedCard(card) {
+        this.movedCards.push(card);
     }
 
     filterCardFromList(removeCard, list) {
