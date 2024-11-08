@@ -14,7 +14,6 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
     public override readonly name = 'reveal';
     public override readonly eventName = EventName.OnCardRevealed;
     public override readonly costDescription = 'revealing {0}';
-    public override readonly effectDescription = 'reveal a card';
 
     protected override readonly defaultProperties: IViewCardProperties = {
         sendChatMessage: true,
@@ -53,5 +52,19 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
             event.context.source
         ];
         return messageArgs;
+    }
+
+    public override getEffectMessage(context: TContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context);
+        if (Array.isArray(properties.target) && properties.target.length > 1) {
+            return [
+                'reveal {0} cards',
+                [properties.target.length]
+            ];
+        }
+        return [
+            'reveal a card',
+            []
+        ];
     }
 }
