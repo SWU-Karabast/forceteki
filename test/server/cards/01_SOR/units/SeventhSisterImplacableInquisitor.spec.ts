@@ -4,10 +4,11 @@ describe('Seventh Sister', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    groundArena: ['battlefield-marine', 'seventh-sister#implacable-inquisitor']
+                    groundArena: ['battlefield-marine', 'seventh-sister#implacable-inquisitor'],
+                    hand: ['heroic-resolve'],
                 },
                 player2: {
-                    groundArena: ['wampa'],
+                    groundArena: ['wampa', 'pyke-sentinel'],
                     spaceArena: ['cartel-spacer'],
                     leader: { card: 'boba-fett#daimyo', deployed: true },
                     base: 'chopper-base'
@@ -26,33 +27,26 @@ describe('Seventh Sister', function () {
             };
 
             context.player1.clickCard(context.seventhSisterImplacableInquisitor);
-            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.bobaFettDaimyo, context.chopperBase]);
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.bobaFettDaimyo, context.chopperBase]);
             context.player1.clickCard(context.chopperBase);
-            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.bobaFettDaimyo]);
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.bobaFettDaimyo]);
             context.player1.clickCard(context.wampa);
             expect(context.wampa.damage).toBe(3);
 
             // CASE 2: may not deal 3 damage if attacked unit
             reset();
             context.player1.clickCard(context.seventhSisterImplacableInquisitor);
-            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.bobaFettDaimyo, context.chopperBase]);
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.bobaFettDaimyo, context.chopperBase]);
             context.player1.clickCard(context.wampa);
             expect(context.wampa.damage).toBe(3);
             expect(context.player2).toBeActivePlayer();
-        });
 
-        it('should not trigger damage if damage to base is dealt by overwhelm', () => {
-            contextRef.setupTest({
-                phase: 'action',
-                player1: {
-                    groundArena: ['battlefield-marine', { card: 'seventh-sister#implacable-inquisitor', upgrades: ['heroic-resolve'] }]
-                },
-                player2: {
-                    groundArena: ['pyke-sentinel'],
-                },
-            });
-            const { context } = contextRef;
+            // CASE 3: should not trigger damage if damage to base is dealt by overwhelm
+            reset();
 
+            context.player1.clickCard(context.heroicResolve);
+            context.player1.clickCard(context.seventhSisterImplacableInquisitor);
+            context.player2.passAction();
             context.player1.clickCard(context.seventhSisterImplacableInquisitor);
             context.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
             context.player1.clickCard(context.pykeSentinel);
