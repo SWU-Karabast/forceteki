@@ -8,7 +8,6 @@ const { v4: uuidv4 } = require('uuid');
 const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
 const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
-const { ArenaTargetResolver } = require('./abilityTargets/ArenaTargetResolver.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -113,8 +112,6 @@ class PlayerOrCardAbility {
 
     buildTargetResolver(name, properties) {
         switch (properties.mode) {
-            case TargetMode.Arena:
-                return new ArenaTargetResolver(name, properties, this);
             case TargetMode.Select:
                 return new SelectTargetResolver(name, properties, this);
             case TargetMode.DropdownList:

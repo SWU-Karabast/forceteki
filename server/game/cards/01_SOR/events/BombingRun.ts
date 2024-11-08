@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { TargetMode } from '../../../core/Constants';
+import { Arena, Location, TargetMode } from '../../../core/Constants';
 
 export default class BombingRun extends EventCard {
     protected override getImplementationId() {
@@ -14,14 +14,34 @@ export default class BombingRun extends EventCard {
         this.setEventAbility({
             title: 'Deal 3 damage to each unit in an arena',
             targetResolver: {
-                mode: TargetMode.Arena,
-                immediateEffect: AbilityHelper.immediateEffects.damage((context) => {
-                    const allUnitsInArena = context.player.getUnitsInPlay(context.target)
-                        .concat(context.player.opponent.getUnitsInPlay(context.target));
-                    return { amount: 3, target: allUnitsInArena };
-                })
+                mode: TargetMode.Select,
+                activePromptTitle: 'Choose an arena',
+                checkTarget: false,
+                mustChangeGameState: false,
+                choices: {
+                    ['Ground']: this.eventEffect(Location.GroundArena),
+                    ['Space']: this.eventEffect(Location.SpaceArena),
+                }
             }
         });
+    }
+
+    private eventEffect(arena: Arena) {
+        return AbilityHelper.immediateEffects.conditional((context) => ({
+            condition: context.game.getPlayers().some((player) => player.getUnitsInPlay(arena).length > 0),
+            onTrue: AbilityHelper.immediateEffects.damage((context) => {
+                return {
+                    amount: 3,
+                    target: context.game.getPlayers().reduce((units, player) => units.concat(player.getUnitsInPlay(arena)), [])
+                };
+            }),
+            onFalse: AbilityHelper.immediateEffects.noAction((context) => {
+                return {
+                    // If there are no units in play, return no legal target so the card is autoresolved.
+                    hasLegalTarget: context.game.getPlayers().some((player) => player.getUnitsInPlay().length > 0)
+                };
+            })
+        }));
     }
 }
 
