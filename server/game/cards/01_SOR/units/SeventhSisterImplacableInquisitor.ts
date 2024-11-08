@@ -1,7 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Location, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import { DamageType } from '../../../gameSystems/DamageSystem';
+import { DamageType } from '../../../core/Constants';
+
 
 export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,9 +16,10 @@ export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard
         this.addTriggeredAbility({
             title: 'When this unit deals combat damage to an opponent’s base: You may deal 3 damage to a ground unit that opponent controls',
             when: {
-                onDamageDealt: (event, context) =>
-                    event.type === DamageType.Combat &&
-                    event.damageSource.attack.target?.isBase()
+                onDamageDealt: (event, _context) =>
+                    (event.type === DamageType.Combat &&
+                      event.damageSource.attack.target?.isBase()) ||
+                      event.type === DamageType.Overwhelm
             },
             targetResolver: {
                 controller: RelativePlayer.Opponent,
