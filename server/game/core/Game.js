@@ -1293,8 +1293,6 @@ class Game extends EventEmitter {
                 playerState[player.name] = player.getState(activePlayer);
             }
 
-            this.currentActionWindow?.activePrompt();
-
             return {
                 playerUpdate: activePlayer.name,
                 id: this.id,

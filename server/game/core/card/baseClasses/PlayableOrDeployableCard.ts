@@ -84,7 +84,7 @@ export class PlayableOrDeployableCard extends Card {
 
     public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
         const summary = super.getSummary(activePlayer, hideWhenFaceup);
-        if ((this.canBeInPlay() && this.isInPlay()) || this.location === Location.Resource) {
+        if ((this.canBeInPlay() && this.isInPlay() && !this.isUpgrade()) || this.location === Location.Resource) {
             const updatedSummary = { ...summary, exhausted: this.exhausted };
             return updatedSummary;
         }
