@@ -100,7 +100,7 @@ export abstract class GameObject {
         return effects[effects.length - 1];
     }
 
-    public getOngoingEffects() {
+    protected getOngoingEffects() {
         const suppressEffects = this.ongoingEffects.filter((ongoingEffect) => ongoingEffect.type === EffectName.SuppressEffects);
         const suppressedEffects = suppressEffects.reduce((array, ongoingEffect) => array.concat(ongoingEffect.getValue(this)), []);
         return this.ongoingEffects.filter((ongoingEffect) => !suppressedEffects.includes(ongoingEffect));
