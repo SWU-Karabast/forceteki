@@ -16,7 +16,7 @@ export default class MaKlounkee extends EventCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                cardCondition: (card, context) => card.hasSomeTrait(Trait.Underworld),
+                cardCondition: (card, _context) => card.hasSomeTrait(Trait.Underworld),
                 immediateEffect: AbilityHelper.immediateEffects.returnToHandFromPlay()
             },
             ifYouDo: {

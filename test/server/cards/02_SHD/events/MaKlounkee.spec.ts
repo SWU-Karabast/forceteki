@@ -53,5 +53,19 @@ describe('MaKlounkee', function() {
             context.player1.clickCard('ma-klounkee');
             expect(context.player1.countExhaustedResources()).toBe(1);
         });
+
+        it('should bounce unit if only one available and nothing happens after that', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['ma-klounkee'],
+                    groundArena: ['pyke-sentinel'],
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard('ma-klounkee');
+            expect(context.pykeSentinel).toBeInLocation('hand');
+        });
     });
 });
