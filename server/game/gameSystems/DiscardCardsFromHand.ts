@@ -1,4 +1,4 @@
-import { CardTypeFilter, EventName, Location, RelativePlayer, TargetMode } from '../core/Constants';
+import { CardTypeFilter, EventName, GameStateChangeRequired, Location, RelativePlayer, TargetMode } from '../core/Constants';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import type Player from '../core/Player';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
@@ -34,16 +34,16 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
         return ['make {0} discard {1} cards', [properties.target, properties.amount]];
     }
 
-    public override canAffect(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = false): boolean {
+    public override canAffect(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         for (const player of asArray(playerOrPlayers)) {
             const properties = this.generatePropertiesFromContext(context, additionalProperties);
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && cardTypeMatches(card.type, properties.cardTypeFilter));
 
-            if (availableHand.length === 0 || properties.amount === 0) {
+            if (mustChangeGameState !== GameStateChangeRequired.None && (availableHand.length === 0 || properties.amount === 0)) {
                 return false;
             }
 
-            if ((properties.isCost || mustChangeGameState) && availableHand.length <= properties.amount) {
+            if ((properties.isCost || GameStateChangeRequired.MustFullyResolve) && availableHand.length < properties.amount) {
                 return false;
             }
 
@@ -59,16 +59,17 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
         for (const player of properties.target as Player[]) {
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
 
-            assertTrue(properties.amount > 0, 'Cards to discard must be greater than 0');
+            assertTrue(properties.amount >= 0, 'Cards to discard must be a non-negative integer');
 
             const amount = Math.min(availableHand.length, properties.amount);
 
             if (amount === 0) {
+                events.push(this.generateEvent(context, additionalProperties));
                 return;
             }
 
             if (amount >= availableHand.length) {
-                this.generateEventsForCards(availableHand, context, events);
+                this.generateEventsForCards(availableHand, context, events, additionalProperties);
                 return;
             }
 
@@ -81,17 +82,21 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
                 controller: player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent,
                 cardCondition: (card) => properties.cardCondition(card, context),
                 onSelect: (_player, cards) => {
-                    this.generateEventsForCards(cards, context, events);
+                    this.generateEventsForCards(cards, context, events, additionalProperties);
                     return true;
                 }
             });
         }
     }
 
-    private generateEventsForCards(cards: Card[], context: TContext, events: any[]): void {
+    private generateEventsForCards(cards: Card[], context: TContext, events: any[], additionalProperties: Record<string, any>): void {
         cards.forEach((card) => {
             const specificDiscardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
             events.push(specificDiscardEvent);
         });
+        // TODO: Update this to include partial resolution once added for discards that could not be done to fullest extent.
+
+        // Add a final event to convey overall event resolution status.
+        events.push(this.generateEvent(context, additionalProperties));
     }
 }
