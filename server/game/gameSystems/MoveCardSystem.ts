@@ -92,7 +92,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
               (!card.hasRestriction(EffectName.TakeControl, context) &&
                 !card.anotherUniqueInPlay(context.player))) &&
                 (!destination || context.player.isLegalLocationForCardType(card.type, destination)) &&
-                !EnumHelpers.isArena(card.location) &&
                 super.canAffect(card, context)
         );
     }
