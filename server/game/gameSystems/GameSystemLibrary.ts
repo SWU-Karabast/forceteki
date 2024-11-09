@@ -151,6 +151,16 @@ export function LookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = A
 export function moveCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IMoveCardProperties, TContext>): CardTargetSystem<TContext> {
     return new MoveCardSystem<TContext>(propertyFactory);
 }
+
+export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext>): CardTargetSystem<TContext> {
+    return new MoveCardSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'bottom'>(
+            propertyFactory,
+            { destination: Location.Deck, bottom: true }
+        )
+    );
+}
+
 /**
  * default resetOnCancel = false
  */
