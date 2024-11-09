@@ -97,6 +97,7 @@ describe('Lieutenant Childsen', function() {
                     context.player1.clickCard(context.vanquish);
                     context.player1.clickCard(context.resilient);
                     context.player1.clickCard(context.pykeSentinel);
+                    context.player1.clickCardNonChecking(context.systemPatrolCraft);
                     context.player1.clickPrompt('Done');
 
                     expect(context.getChatLogs(2)).toEqual([
