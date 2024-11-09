@@ -4,9 +4,9 @@ import type Player from '../core/Player';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { Card } from '../core/card/Card';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
-import { cardTypeMatches } from '../core/utils/EnumHelpers';
-import { asArray } from '../core/utils/Helpers';
-import { assertTrue } from '../core/utils/Contract';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Helpers from '../core/utils/Helpers';
+import * as Contract from '../core/utils/Contract';
 
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: number;
@@ -35,9 +35,9 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
     }
 
     public override canAffect(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        for (const player of asArray(playerOrPlayers)) {
+        for (const player of Helpers.asArray(playerOrPlayers)) {
             const properties = this.generatePropertiesFromContext(context, additionalProperties);
-            const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && cardTypeMatches(card.type, properties.cardTypeFilter));
+            const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && EnumHelpers.cardTypeMatches(card.type, properties.cardTypeFilter));
 
             if (mustChangeGameState !== GameStateChangeRequired.None && (availableHand.length === 0 || properties.amount === 0)) {
                 return false;
@@ -59,7 +59,7 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
         for (const player of properties.target as Player[]) {
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
 
-            assertTrue(properties.amount >= 0, 'Cards to discard must be a non-negative integer');
+            Contract.assertNonNegative(properties.amount);
 
             const amount = Math.min(availableHand.length, properties.amount);
 
