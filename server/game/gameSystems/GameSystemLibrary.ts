@@ -70,6 +70,7 @@ import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext
 import { IPlayerLastingEffectProperties, PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
 import { IPlayerPhaseLastingEffectProperties, PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
 import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
+import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -236,12 +237,10 @@ export function reveal<TContext extends AbilityContext = AbilityContext>(propert
 // //////////////
 // // PLAYER
 // //////////////
-// /**
-//  * default amount = 1
-//  */
-// export function chosenDiscard(propertyFactory: PropsFactory<ChosenDiscardProperties> = {}): GameSystem {
-//     return new ChosenDiscardAction(propertyFactory);
-// }
+export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHand<TContext> {
+    // TODO: Once we support discarding from opponents hand, add logic only allow the target to discard from their own hand here
+    return new DiscardCardsFromHand<TContext>(propertyFactory);
+}
 // /**
 //  * default amount = 1
 //  */

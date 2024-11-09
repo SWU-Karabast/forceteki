@@ -1294,6 +1294,7 @@ class Game extends EventEmitter {
             }
 
             return {
+                playerUpdate: activePlayer.name,
                 id: this.id,
                 manualMode: this.manualMode,
                 name: this.name,

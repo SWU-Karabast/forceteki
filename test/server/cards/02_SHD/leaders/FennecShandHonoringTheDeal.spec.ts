@@ -1,6 +1,6 @@
 describe('Fennec Shand, Honoring the Deal', function () {
     integration(function (contextRef) {
-        describe('Fennec Shand\'s ability', function () {
+        describe('Fennec Shand\'s undeployed ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

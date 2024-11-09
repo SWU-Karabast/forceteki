@@ -9,13 +9,13 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import { AbilityType, EffectName, PlayType } from '../core/Constants';
+import { EffectName, PlayType, KeywordName } from '../core/Constants';
 import { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import { IAbilityPropsWithType, IActionAbilityProps, IActionAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, ITriggeredAbilityPropsWithType, KeywordNameOrProperties } from '../Interfaces';
+import { IActionAbilityPropsWithType, ITriggeredAbilityPropsWithType, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
-import { IConstantAbility } from '../core/ongoingEffect/IConstantAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
-import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { CostAdjustType, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -99,6 +99,7 @@ export = {
             typeof keywordOrKeywordProperties === 'string'
                 ? KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties })
                 : KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties)),
+    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, new LoseKeyword(keyword)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
@@ -122,7 +123,6 @@ export = {
     // increaseLimitOnPrintedAbilities: (abilities) =>
     //     OngoingEffectBuilder.card.static(EffectName.IncreaseLimitOnPrintedAbilities, abilities),
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
-    // loseKeyword: (keyword) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // loseTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),

@@ -179,7 +179,7 @@ export enum EventName {
     OnCardResourced = 'onCardResourced',
     OnCardReturnedToHand = 'onCardReturnedToHand',
     OnCardRevealed = 'onCardRevealed',
-    OnCardsDiscarded = 'onCardsDiscarded',
+    OnCardDiscarded = 'onCardDiscarded',
     OnCardsDiscardedFromHand = 'onCardsDiscardedFromHand',
     OnCardsDrawn = 'onCardsDrawn',
     OnDamageDealt = 'onDamageDealt',

@@ -1,5 +1,5 @@
 import { AbilityContext } from '../ability/AbilityContext';
-import type { EffectName } from '../Constants';
+import { EffectName } from '../Constants';
 import type { GameObject } from '../GameObject';
 
 // TODO: this is being used to cheat around needing type information for 'value' from the OngoingEffect* classes.
