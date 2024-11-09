@@ -36,7 +36,7 @@ describe('I Had No Choice', function() {
                 });
             });
 
-            describe('when there is only one non-leader units in play', function() {
+            describe('when there is only non-leader units in play', function() {
                 beforeEach(function () {
                     contextRef.setupTest({
                         phase: 'action',
