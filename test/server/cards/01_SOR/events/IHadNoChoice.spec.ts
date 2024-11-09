@@ -8,7 +8,7 @@ describe('I Had No Choice', function() {
                         player1: {
                             hand: ['i-had-no-choice'],
                             deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
-                            groundArena: ['wampa', 'warzone-lieutenant'],
+                            groundArena: [{ card: 'wampa', upgrades: ['experience', 'resilient'] }, 'warzone-lieutenant'],
                         },
                         player2: {
                             groundArena: ['viper-probe-droid'],
@@ -30,8 +30,8 @@ describe('I Had No Choice', function() {
                     context.player2.clickCard(context.viperProbeDroid);
 
                     expect(context.viperProbeDroid).toBeInLocation('hand', context.player2);
-                    expect(context.wampa).toBeInLocation('deck', context.player1);
-                    expect(context.player1.deck[5]).toEqual(context.wampa);
+                    expect(context.wampa).toBeInBottomOfDeck(context.player1, 6);
+                    expect(context.resilient).toBeInLocation('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
             });
@@ -43,7 +43,7 @@ describe('I Had No Choice', function() {
                         player1: {
                             hand: ['i-had-no-choice'],
                             deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
-                            groundArena: ['wampa'],
+                            groundArena: [{ card: 'wampa', upgrades: ['experience', 'resilient'] }],
                         },
                         player2: {
                             groundArena: [],
@@ -58,6 +58,7 @@ describe('I Had No Choice', function() {
                     context.player1.clickCard(context.iHadNoChoice);
 
                     expect(context.wampa).toBeInLocation('hand', context.player1);
+                    expect(context.resilient).toBeInLocation('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
             });

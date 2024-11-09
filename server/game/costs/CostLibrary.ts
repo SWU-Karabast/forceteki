@@ -12,7 +12,6 @@ import { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
-import { ReturnToHandFromPlaySystem } from '../gameSystems/ReturnToHandFromPlaySystem';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 import Player from '../core/Player';
 

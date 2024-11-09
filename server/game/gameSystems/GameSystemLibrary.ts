@@ -1,11 +1,12 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
+import { Location, WildcardLocation } from '../core/Constants';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLastingEffectSystem';
 import { CardPhaseLastingEffectSystem, ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
-import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
 import { DamageSystem, IDamageProperties, IDamagePropertiesBase } from './DamageSystem';
 import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
@@ -55,8 +56,6 @@ import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './R
 import { ResourceCardSystem, IResourceCardProperties } from './ResourceCardSystem';
 // import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
 // import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
-import { ReturnToHandSystem, IReturnToHandProperties } from './ReturnToHandSystem';
-import { ReturnToHandFromPlaySystem, IReturnToHandFromPlayProperties } from './ReturnToHandFromPlaySystem';
 import { RevealSystem, IRevealProperties } from './RevealSystem';
 import { PayResourceCostSystem, IPayResourceCostProperties } from './PayResourceCostSystem';
 import { SearchDeckSystem, ISearchDeckProperties } from './SearchDeckSystem';
@@ -199,11 +198,19 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
 // export function returnToDeck(propertyFactory: PropsFactory<ReturnToDeckProperties> = {}): CardGameAction {
 //     return new ReturnToDeckAction(propertyFactory);
 // }
-export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReturnToHandProperties, TContext> = {}): CardTargetSystem<TContext> {
-    return new ReturnToHandSystem<TContext>(propertyFactory);
+export function returnToHandFromDiscard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new MoveCardSystem<TContext>({
+        ...propertyFactory,
+        destination: Location.Hand,
+        locationFilter: Location.Discard
+    });
 }
-export function returnToHandFromPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReturnToHandFromPlayProperties, TContext> = {}): CardTargetSystem<TContext> {
-    return new ReturnToHandFromPlaySystem<TContext>(propertyFactory);
+export function returnToHandFromPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
+    return new MoveCardSystem<TContext>({
+        ...propertyFactory,
+        destination: Location.Hand,
+        locationFilter: WildcardLocation.AnyArena
+    });
 }
 
 /**
