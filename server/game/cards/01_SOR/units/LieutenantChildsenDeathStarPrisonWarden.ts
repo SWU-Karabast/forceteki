@@ -21,12 +21,12 @@ export default class LieutenantChildsenDeathStarPrisonWarden extends NonLeaderUn
                 cardCondition: (card) => card.hasSomeAspect(Aspect.Vigilance),
                 immediateEffect: AbilityHelper.immediateEffects.reveal(),
             },
-            then: (context) => ({
+            then: (thenContext) => ({
                 title: 'For each card revealed this way, give an Experience token to this unit',
-                thenCondition: () => context.target.length > 0,
+                thenCondition: () => thenContext.target.length > 0,
                 effect: 'gain {1} experience',
-                effectArgs: [context.target.length],
-                immediateEffect: AbilityHelper.immediateEffects.giveExperience({ amount: context.target.length }),
+                effectArgs: [thenContext.target.length],
+                immediateEffect: AbilityHelper.immediateEffects.giveExperience({ amount: thenContext.target.length }),
             })
         });
     }
