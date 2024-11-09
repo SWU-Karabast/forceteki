@@ -8,7 +8,7 @@ import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLas
 import { CardPhaseLastingEffectSystem, ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
-import { DamageSystem, IDamageProperties, IDamagePropertiesBase } from './DamageSystem';
+import { DamageSystem, IDamageProperties } from './DamageSystem';
 import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
 import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 import { DistributeDamageSystem, IDistributeDamageSystemProperties } from './DistributeDamageSystem';
