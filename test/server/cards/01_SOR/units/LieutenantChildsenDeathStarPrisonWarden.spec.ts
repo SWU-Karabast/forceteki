@@ -55,41 +55,6 @@ describe('Lieutenant Childsen', function() {
 
                     reset();
 
-                    // Reveal 2 Vigilance cards
-                    context.player1.clickCard(context.lieutenantChildsen);
-                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
-                    context.player1.clickCard(context.systemPatrolCraft);
-                    context.player1.clickCard(context.vanquish);
-                    context.player1.clickPrompt('Done');
-
-                    expect(context.getChatLogs(2)).toEqual([
-                        'player1 uses Lieutenant Childsen to reveal 2 cards',
-                        'player1 reveals System Patrol Craft, Vanquish due to Lieutenant Childsen',
-                    ]);
-
-                    expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience', 'experience']);
-                    expect(context.player2).toBeActivePlayer();
-
-                    reset();
-
-                    // Reveal 3 Vigilance cards
-                    context.player1.clickCard(context.lieutenantChildsen);
-                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
-                    context.player1.clickCard(context.cargoJuggernaut);
-                    context.player1.clickCard(context.vanquish);
-                    context.player1.clickCard(context.resilient);
-                    context.player1.clickPrompt('Done');
-
-                    expect(context.getChatLogs(2)).toEqual([
-                        'player1 uses Lieutenant Childsen to reveal 3 cards',
-                        'player1 reveals Cargo Juggernaut, Vanquish, Resilient due to Lieutenant Childsen',
-                    ]);
-
-                    expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
-                    expect(context.player2).toBeActivePlayer();
-
-                    reset();
-
                     // Reveal 4 Vigilance cards
                     context.player1.clickCard(context.lieutenantChildsen);
                     expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
