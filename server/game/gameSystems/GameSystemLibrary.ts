@@ -199,18 +199,20 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
 //     return new ReturnToDeckAction(propertyFactory);
 // }
 export function returnToHandFromDiscard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
-    return new MoveCardSystem<TContext>({
-        ...propertyFactory,
-        destination: Location.Hand,
-        locationFilter: Location.Discard
-    });
+    return new MoveCardSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'locationFilter'>(
+            propertyFactory,
+            { destination: Location.Hand, locationFilter: Location.Discard }
+        )
+    );
 }
 export function returnToHandFromPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
-    return new MoveCardSystem<TContext>({
-        ...propertyFactory,
-        destination: Location.Hand,
-        locationFilter: WildcardLocation.AnyArena
-    });
+    return new MoveCardSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'locationFilter'>(
+            propertyFactory,
+            { destination: Location.Hand, locationFilter: WildcardLocation.AnyArena }
+        )
+    );
 }
 
 /**
