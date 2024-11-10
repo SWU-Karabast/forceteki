@@ -7,7 +7,7 @@ describe('I Had No Choice', function() {
                         phase: 'action',
                         player1: {
                             hand: ['i-had-no-choice'],
-                            deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
+                            deck: ['atst', 'atst', 'atst', 'atst', 'atst'],
                             groundArena: [{ card: 'wampa', upgrades: ['experience', 'resilient'] }, 'warzone-lieutenant'],
                         },
                         player2: {
@@ -42,7 +42,7 @@ describe('I Had No Choice', function() {
                         phase: 'action',
                         player1: {
                             hand: ['i-had-no-choice'],
-                            deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
+                            deck: ['atst', 'atst', 'atst', 'atst', 'atst'],
                             groundArena: [{ card: 'wampa', upgrades: ['experience', 'resilient'] }],
                         },
                         player2: {
@@ -69,7 +69,7 @@ describe('I Had No Choice', function() {
                         phase: 'action',
                         player1: {
                             hand: ['i-had-no-choice'],
-                            deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'battlefield-marine'],
+                            deck: ['atst', 'atst', 'atst', 'atst', 'atst'],
                             groundArena: [],
                         },
                         player2: {
