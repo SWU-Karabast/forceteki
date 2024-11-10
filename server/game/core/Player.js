@@ -744,6 +744,10 @@ class Player extends GameObject {
         baseCost += costIncreases;
         var reducedCost = baseCost - costDecreases;
 
+        if (matchingAdjusters.some((adjuster) => adjuster.costAdjustType === CostAdjustType.Free)) {
+            reducedCost = 0;
+        }
+
         return Math.max(reducedCost, 0);
     }
 

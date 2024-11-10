@@ -9,6 +9,7 @@ import * as Contract from '../../core/utils/Contract';
 export enum CostAdjustType {
     Increase = 'increase',
     Decrease = 'decrease',
+    Free = 'free',
     IgnoreAllAspects = 'ignoreAllAspects',
     IgnoreSpecificAspects = 'ignoreSpecificAspect'
 }
@@ -42,6 +43,10 @@ export interface IIncreaseOrDecreaseCostAdjusterProperties extends ICostAdjuster
     amount?: number | ((card: Card, player: Player) => number);
 }
 
+export interface IForFreeCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.Free;
+}
+
 export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.IgnoreAllAspects;
 }
@@ -56,6 +61,7 @@ export interface IIgnoreSpecificAspectsCostAdjusterProperties extends ICostAdjus
 export type ICostAdjusterProperties =
   | IIgnoreAllAspectsCostAdjusterProperties
   | IIncreaseOrDecreaseCostAdjusterProperties
+  | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties;
 
 export class CostAdjuster {
