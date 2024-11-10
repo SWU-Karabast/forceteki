@@ -7,8 +7,6 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
     destination?: Location;
     locationFilter?: LocationFilter | LocationFilter[];
-    switch?: boolean;
-    switchTarget?: Card;
     shuffle?: boolean;
     // TODO: remove completely if faceup logic is not needed
     // faceup?: boolean;
@@ -25,8 +23,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     protected override defaultProperties: IMoveCardProperties = {
         destination: null,
-        switch: false,
-        switchTarget: null,
         shuffle: false,
         bottom: false,
         changePlayer: false,
@@ -40,11 +36,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             // TODO: remove this completely if determinmed we don't need card snapshots
             // event.cardStateWhenMoved = card.createSnapshot();
             const card = event.card as Card;
-
-            if (event.switch && event.switchTarget) {
-                const otherCard = event.switchTarget;
-                card.owner.moveCard(otherCard, card.location);
-            }
 
             const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
             player.moveCard(card, event.destination, event.options);
@@ -104,8 +95,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
-        event.switch = properties.switch;
-        event.switchTarget = properties.switchTarget;
         event.changePlayer = properties.changePlayer;
         event.destination = properties.destination;
         event.shuffle = properties.shuffle;
