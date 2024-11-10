@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, GameStateChangeRequired, Location, LocationFilter, WildcardCardType } from '../core/Constants';
+import { CardType, EventName, GameStateChangeRequired, Location, LocationFilter, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
@@ -11,7 +11,6 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
     // faceup?: boolean;
     bottom?: boolean;
-    changePlayer?: boolean;
     discardDestinationCards?: boolean;
 }
 
@@ -25,7 +24,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         destination: null,
         shuffle: false,
         bottom: false,
-        changePlayer: false,
     };
 
     public eventHandler(event: any, additionalProperties = {}): void {
@@ -64,21 +62,14 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
-        const destinationController = Array.isArray(properties.target)
-            ? properties.changePlayer
-                ? properties.target[0].controller.opponent
-                : properties.target[0].controller
-            : properties.changePlayer
-                ? properties.target.controller.opponent
-                : properties.target.controller;
         if (properties.shuffle) {
-            return ['shuffle {0} into {1}\'s {2}', [properties.target, destinationController, properties.destination]];
+            return ['shuffle {0} into their {1}', [properties.target, properties.destination]];
         } else if (properties.destination === Location.Hand) {
-            return ['return {0} to {1}\'s hand', [properties.target, destinationController]];
+            return ['return {0} to their hand', [properties.target]];
         }
         return [
-            'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + '{1}\'s {2}',
-            [properties.target, destinationController, properties.destination]
+            'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + 'their {1}',
+            [properties.target, properties.destination]
         ];
     }
 
@@ -95,7 +86,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
-        event.changePlayer = properties.changePlayer;
         event.destination = properties.destination;
         event.shuffle = properties.shuffle;
         event.locationFilter = properties.locationFilter;
@@ -103,15 +93,10 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { changePlayer, destination, locationFilter } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+        const { destination, locationFilter } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
 
         // Ensure that we have a valid destination and that the card can be moved there
         if (!destination || !context.player.isLegalLocationForCardType(card.type, destination)) {
-            return false;
-        }
-
-        // Ensure that the card has no restrictions that would prevent it from being moved to a different player
-        if (changePlayer && (card.hasRestriction(EffectName.TakeControl, context) || card.anotherUniqueInPlay(context.player))) {
             return false;
         }
 
