@@ -65,6 +65,32 @@ describe('Defeat timing', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('When a unit enters play and is immediately defeated by a constant ability,', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['supreme-leader-snoke#shadow-ruler'],
+                    },
+                    player2: {
+                        hand: ['vanguard-infantry', 'lieutenant-childsen#death-star-prison-warden', 'vanquish']
+                    }
+                });
+            });
+
+            it('it cannot gain experience from its "when played" ability', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.lieutenantChildsen);
+
+                expect(context.lieutenantChildsen).toBeInLocation('discard');
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
+
         describe('When multiple units are defeated simultaneously,', function() {
             beforeEach(function () {
                 contextRef.setupTest({

@@ -317,6 +317,18 @@ class Player extends GameObject {
     }
 
     /**
+     * Returns if a unit is in play that has the passed keyword
+     * @param {KeywordName} keyword
+     * @param {any} ignoreUnit
+     * @returns {boolean} true/false if the trait is in play
+     */
+    isKeywordInPlay(keyword, ignoreUnit = null) {
+        return ignoreUnit != null
+            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeKeyword(keyword))
+            : this.getUnitsInPlay().some((card) => card.hasSomeKeyword(keyword));
+    }
+
+    /**
      * Returns true if any units or upgrades controlled by this player match the passed predicate
      * @param {Function} predicate - DrawCard => Boolean
      */
