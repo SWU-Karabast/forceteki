@@ -46,7 +46,7 @@ describe('Alliance Dispatcher', function() {
 
                 context.player1.clickCard(context.allianceDispatcher);
                 context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
-                context.player1.clickPrompt('Done');
+                context.player1.clickPrompt('Choose no target');
                 expect(context.allianceDispatcher.exhausted).toBe(true);
 
                 context.player2.passAction();

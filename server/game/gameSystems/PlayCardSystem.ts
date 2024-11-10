@@ -22,6 +22,8 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     optional?: boolean;
     entersReady?: boolean;
     playType?: PlayType;
+
+    /** @deprecated not used or tested yet */
     nested?: boolean;
     costAdjusterProperties?: ICostAdjusterProperties;
 }
