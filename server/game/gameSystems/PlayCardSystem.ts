@@ -3,7 +3,7 @@ import AbilityResolver from '../core/gameSteps/AbilityResolver';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
-import { CardType, PlayType, MetaEventName } from '../core/Constants';
+import { CardType, PlayType, MetaEventName, Duration } from '../core/Constants';
 import * as GameSystemLibrary from './GameSystemLibrary';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { PlayUnitAction } from '../actions/PlayUnitAction';
@@ -11,7 +11,7 @@ import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
 import { PlayEventAction } from '../actions/PlayEventAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
 import { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
-import { PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
+import { PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
 import * as AbilityLimit from '../core/ability/AbilityLimit';
 import { modifyCost } from '../ongoingEffects/ModifyCost';
 
@@ -54,8 +54,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     private queueApplyCostAdjusterGameSteps(costAdjusterProperties: ICostAdjusterProperties, context: AbilityContext) {
-        // TODO THIS PR: look into making a custom duration for this action only
-        const applyCostAdjusterSystem = new PlayerPhaseLastingEffectSystem({
+        const applyCostAdjusterSystem = new PlayerLastingEffectSystem({
+            duration: Duration.UntilEndOfAction,
             effect: modifyCost(Object.assign(costAdjusterProperties, { limit: AbilityLimit.perGame(1), playingTypes: context.playType }))
         });
         const effectEvents = [];

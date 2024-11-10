@@ -142,6 +142,10 @@ export class OngoingEffectEngine {
         this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfRound);
     }
 
+    private onActionEnded() {
+        this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfAction);
+    }
+
     private registerCustomDurationEvents(effect: OngoingEffect) {
         if (!effect.until) {
             return;
