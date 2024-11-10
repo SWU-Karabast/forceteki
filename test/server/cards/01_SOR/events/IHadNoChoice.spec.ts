@@ -30,7 +30,7 @@ describe('I Had No Choice', function() {
                     context.player2.clickCard(context.viperProbeDroid);
 
                     expect(context.viperProbeDroid).toBeInLocation('hand', context.player2);
-                    expect(context.wampa).toBeInBottomOfDeck(context.player1, 6);
+                    expect(context.wampa).toBeInBottomOfDeck(context.player1, 1);
                     expect(context.resilient).toBeInLocation('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
