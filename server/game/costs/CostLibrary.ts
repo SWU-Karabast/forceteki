@@ -62,7 +62,7 @@ export function dealDamage<TContext extends AbilityContext = AbilityContext>(amo
  * Cost that will return to hand from the play area the card that initiated the ability
  */
 export function returnSelfToHandFromPlay<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
-    return new GameSystemCost<TContext>(GameSystems.returnToHandFromPlay({ isCost: true }));
+    return new GameSystemCost<TContext>(GameSystems.returnToHand({ isCost: true }));
 }
 
 // /**

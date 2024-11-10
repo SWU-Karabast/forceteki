@@ -1,17 +1,27 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EventName, GameStateChangeRequired, Location, LocationFilter, WildcardCardType } from '../core/Constants';
+import { CardType, EventName, GameStateChangeRequired, Location, WildcardCardType } from '../core/Constants';
+import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Helpers from '../core/utils/Helpers.js';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
+/**
+ * Properties for moving a card within the game.
+ *
+ * @remarks
+ * Use this interface to specify the properties when moving a card to a new location.
+ * Note that to move cards to the discard pile, any arena, or to the resources, you should use the appropriate systems
+ * such as {@link DiscardSpecificCardSystem}, {@link PlayCardSystem}, or {@link ResourceCardSystem}.
+ *
+ * @property destination - The target location for the card. Excludes discard pile, space arena, ground arena, and resources.
+ * @property shuffle - Indicates whether the card should be shuffled into the destination.
+ * @property bottom - Indicates whether the card should be placed at the bottom of the destination.
+ */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Location;
-    locationFilter?: LocationFilter | LocationFilter[];
+    destination?: Exclude<Location, Location.SpaceArena | Location.GroundArena | Location.Resource>;
     shuffle?: boolean;
-    // TODO: remove completely if faceup logic is not needed
-    // faceup?: boolean;
     bottom?: boolean;
-    discardDestinationCards?: boolean;
 }
 
 // TODO: since there are already some more specific for moving to arena, hand, etc., what's the remaining use case for this? and can we rename it to be more specific?
@@ -46,26 +56,22 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {
+        return this.getEffectMessage(context);
+    }
+
+    public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         if (properties.destination === Location.Hand) {
+            if (Helpers.asArray(properties.target).some((card) => EnumHelpers.cardLocationMatches(card.location, Location.Resource))) {
+                const targets = Helpers.asArray(properties.target);
+                return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
+            }
             return ['return {0} to their hand', [properties.target]];
         } else if (properties.destination === Location.Deck) {
             if (properties.shuffle) {
                 return ['shuffle {0} into their deck', [properties.target]];
             }
             return ['move {0} to the {1} of their deck', [properties.target, properties.bottom ? 'bottom' : 'top']];
-        } else if (properties.destination === Location.Discard) {
-            return ['discard {0}', [properties.target]];
-        }
-        return ['move {0} to {1}', [properties.target, properties.destination]];
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
-        if (properties.shuffle) {
-            return ['shuffle {0} into their {1}', [properties.target, properties.destination]];
-        } else if (properties.destination === Location.Hand) {
-            return ['return {0} to their hand', [properties.target]];
         }
         return [
             'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + 'their {1}',
@@ -88,25 +94,20 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         event.destination = properties.destination;
         event.shuffle = properties.shuffle;
-        event.locationFilter = properties.locationFilter;
         event.options = { bottom: !!properties.bottom };
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { destination, locationFilter } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+        const { destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
 
         // Ensure that we have a valid destination and that the card can be moved there
         if (!destination || !context.player.isLegalLocationForCardType(card.type, destination)) {
             return false;
         }
 
-        // Ensure that if the card is in play, it can only be moved to the hand or deck
-        if (EnumHelpers.isArena(card.location) && destination !== Location.Hand && destination !== Location.Deck) {
-            return false;
-        }
-
-        // Ensure that the card is in the correct location
-        if (locationFilter && !EnumHelpers.cardLocationMatches(card.location, locationFilter)) {
+        // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
+        if (destination === Location.Hand && !EnumHelpers.cardLocationMatches(card.location, Location.Discard) && !EnumHelpers.cardLocationMatches(card.location, Location.Resource) && !EnumHelpers.isArena(card.location)) {
+            Contract.fail(`Cannot use MoveCardSystem to return a card to hand from ${card.location}`);
             return false;
         }
 

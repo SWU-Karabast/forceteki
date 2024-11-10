@@ -161,6 +161,24 @@ export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityCont
     );
 }
 
+export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext>): CardTargetSystem<TContext> {
+    return new MoveCardSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'bottom'>(
+            propertyFactory,
+            { destination: Location.Deck, bottom: false }
+        )
+    );
+}
+
+export function moveToDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IMoveCardProperties, TContext>): CardTargetSystem<TContext> {
+    return new MoveCardSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
+            propertyFactory,
+            { destination: Location.Deck }
+        )
+    );
+}
+
 /**
  * default resetOnCancel = false
  */
@@ -208,19 +226,18 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
 // export function returnToDeck(propertyFactory: PropsFactory<ReturnToDeckProperties> = {}): CardGameAction {
 //     return new ReturnToDeckAction(propertyFactory);
 // }
-export function returnToHandFromDiscard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
+
+/**
+ * Returns a card to the player's hand from any arena, discard pile, or resources.
+ *
+ * @param {PropsFactory<ICardTargetSystemProperties, TContext>} [propertyFactory={}] - A factory function or properties object to create the card target system properties.
+ * @returns {CardTargetSystem<TContext>} A new instance of the {@link MoveCardSystem} configured to move a card to the player's hand.
+ */
+export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'locationFilter'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: Location.Hand, locationFilter: Location.Discard }
-        )
-    );
-}
-export function returnToHandFromPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}): CardTargetSystem<TContext> {
-    return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'locationFilter'>(
-            propertyFactory,
-            { destination: Location.Hand, locationFilter: WildcardLocation.AnyArena }
+            { destination: Location.Hand }
         )
     );
 }

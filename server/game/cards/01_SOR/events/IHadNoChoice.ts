@@ -28,7 +28,7 @@ export default class IHadNoChoice extends EventCard {
                     choosingPlayer: RelativePlayer.Opponent,
                     cardCondition: (card, context) => Helpers.asArray(context.targets.targetUnits).includes(card),
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.returnToHandFromPlay(),
+                        AbilityHelper.immediateEffects.returnToHand(),
                         AbilityHelper.immediateEffects.moveToBottomOfDeck((context) => ({
                             target: Helpers.asArray(context.targets.targetUnits).filter((card) => card !== context.targets.opponentChoice)
                         }))
