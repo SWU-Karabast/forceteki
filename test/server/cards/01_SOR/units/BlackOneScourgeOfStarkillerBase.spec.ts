@@ -38,6 +38,9 @@ describe('Black One', function() {
                 context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(3);
+                expect(context.confiscate).toBeInLocation('discard', context.player1);
+                expect(context.waylay).toBeInLocation('discard', context.player1);
+                expect(context.isbAgent).toBeInLocation('discard', context.player1);
                 expect(context.cartelSpacer).toBeInLocation('hand', context.player1);
                 expect(context.wampa).toBeInLocation('hand', context.player1);
                 expect(context.disarm).toBeInLocation('hand', context.player1);
@@ -49,6 +52,9 @@ describe('Black One', function() {
                 context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(1);
+                expect(context.cartelSpacer).toBeInLocation('discard', context.player1);
+                expect(context.wampa).toBeInLocation('discard', context.player1);
+                expect(context.disarm).toBeInLocation('discard', context.player1);
                 expect(context.atst).toBeInLocation('hand', context.player1);
                 expect(context.p1Base.damage).toBe(6);
 
@@ -60,6 +66,7 @@ describe('Black One', function() {
                 context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(0);
+                expect(context.atst).toBeInLocation('discard', context.player1);
                 expect(context.p1Base.damage).toBe(15);
             });
         });
