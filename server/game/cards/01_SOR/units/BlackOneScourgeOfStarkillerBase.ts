@@ -17,7 +17,7 @@ export default class BlackOneScourgeOfStarkillerBase extends NonLeaderUnitCard {
                 onCardDefeated: (event, context) => event.card === context.source,
             },
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.discardEntireHand((context) => ({ target: context.player })),
+            immediateEffect: AbilityHelper.immediateEffects.discardEntireHand((context) => ({ target: context.source.controller })),
             ifYouDo: {
                 title: 'Draw 3 cards',
                 immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 3 })
