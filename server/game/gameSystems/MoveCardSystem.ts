@@ -101,14 +101,17 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const { destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
 
         // Ensure that we have a valid destination and that the card can be moved there
-        if (!destination || !context.player.isLegalLocationForCardType(card.type, destination)) {
-            return false;
-        }
+        Contract.assertTrue(
+            destination && context.player.isLegalLocationForCardType(card.type, destination),
+            `${destination} is not a valid location for ${card.type}`
+        );
 
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
-        if (destination === Location.Hand && !EnumHelpers.cardLocationMatches(card.location, Location.Discard) && !EnumHelpers.cardLocationMatches(card.location, Location.Resource) && !EnumHelpers.isArena(card.location)) {
-            Contract.fail(`Cannot use MoveCardSystem to return a card to hand from ${card.location}`);
-            return false;
+        if (destination === Location.Hand) {
+            Contract.assertTrue(
+                [Location.Discard, Location.Resource].includes(card.location) || EnumHelpers.isArena(card.location),
+                `Cannot use MoveCardSystem to return a card to hand from ${card.location}`
+            );
         }
 
         // Call the super implementation
