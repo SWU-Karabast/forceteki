@@ -71,7 +71,7 @@ import { IPlayerLastingEffectProperties, PlayerLastingEffectSystem } from './Pla
 import { IPlayerPhaseLastingEffectProperties, PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
 import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
 import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
-import { DiscardHandSystem, IDiscardHandSystemProperties } from './DiscardHandSystem';
+import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -243,8 +243,8 @@ export function discardCardsFromOwnHand<TContext extends AbilityContext = Abilit
     return new DiscardCardsFromHand<TContext>(propertyFactory);
 }
 
-export function discardHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardHandSystemProperties, TContext> = {}): DiscardHandSystem<TContext> {
-    return new DiscardHandSystem<TContext>(propertyFactory);
+export function discardEntireHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardEntireHandSystemProperties, TContext> = {}): DiscardEntireHandSystem<TContext> {
+    return new DiscardEntireHandSystem<TContext>(propertyFactory);
 }
 // /**
 //  * default amount = 1

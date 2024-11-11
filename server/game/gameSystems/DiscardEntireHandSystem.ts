@@ -5,14 +5,14 @@ import type Player from '../core/Player';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IDiscardHandSystemProperties extends IPlayerTargetSystemProperties {}
+export interface IDiscardEntireHandSystemProperties extends IPlayerTargetSystemProperties {}
 
 /**
  * A {@link GameSystem} which discards a player's entire hand
  */
-export class DiscardHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardHandSystemProperties> {
-    public override name = 'discardHand';
-    public override eventName = EventName.OnHandDiscarded;
+export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardEntireHandSystemProperties> {
+    public override name = 'discardEntireHand';
+    public override eventName = EventName.OnEntireHandDiscarded;
     public override readonly costDescription: string = 'discard hand';
     public override readonly effectDescription: string = 'discard hand';
 
