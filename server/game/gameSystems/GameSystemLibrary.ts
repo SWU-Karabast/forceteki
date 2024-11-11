@@ -243,7 +243,7 @@ export function discardCardsFromOwnHand<TContext extends AbilityContext = Abilit
     return new DiscardCardsFromHand<TContext>(propertyFactory);
 }
 
-export function discardEntireHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardEntireHandSystemProperties, TContext> = {}): DiscardEntireHandSystem<TContext> {
+export function discardEntireHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardEntireHandSystemProperties, TContext>): DiscardEntireHandSystem<TContext> {
     return new DiscardEntireHandSystem<TContext>(propertyFactory);
 }
 // /**

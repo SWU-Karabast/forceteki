@@ -5,8 +5,9 @@ import type Player from '../core/Player';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IDiscardEntireHandSystemProperties extends IPlayerTargetSystemProperties {}
+export interface IDiscardEntireHandSystemProperties extends IPlayerTargetSystemProperties {
+    target: Player | Player[];
+}
 
 /**
  * A {@link GameSystem} which discards a player's entire hand
@@ -19,10 +20,6 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
 
     public override eventHandler(): void {
         // Do nothing
-    }
-
-    public override defaultTargets(context: TContext): Player[] {
-        return [context.player];
     }
 
     public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Record<string, any> = {}): void {
