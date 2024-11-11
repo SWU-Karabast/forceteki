@@ -1,9 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
-import {StateWatcherRegistrar} from '../../../core/stateWatcher/StateWatcherRegistrar';
-import {UnitsDefeatedThisPhaseWatcher} from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
-import {EventCard} from '../../../core/card/EventCard';
-import {KeywordName, Location, WildcardCardType} from '../../../core/Constants';
-import {UnitCard} from '../../../core/card/CardTypes';
+import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import { EventCard } from '../../../core/card/EventCard';
+import { Location } from '../../../core/Constants';
 
 export default class TheEmperorsLegion extends EventCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
@@ -22,15 +21,12 @@ export default class TheEmperorsLegion extends EventCard {
     public override setupCardAbilities () {
         this.setEventAbility({
             title: 'Return each unit in your discard pile that was defeated this phase to your hand.',
-            targetResolver: {
-                locationFilter: Location.Discard,
-                cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(this.controller).includes(card as UnitCard),
-                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
-            },
-            // immediateEffect: AbilityHelper.immediateEffects.returnToHand({
-            //     target: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(this.controller)
-            // })
+            immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => {
+                const friendlyUnitsDefeatedThisPhaseInDiscard =
+                    this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller)
+                        .filter((card) => card.location === Location.Discard);
+                return { target: friendlyUnitsDefeatedThisPhaseInDiscard };
+            })
         });
     }
 }
