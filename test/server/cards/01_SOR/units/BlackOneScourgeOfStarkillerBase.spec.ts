@@ -21,8 +21,8 @@ describe('Black One', function() {
                 context.player1.clickCard(context.blackOne);
 
                 expect(context.player1.handSize).toBe(0);
-                expect(context.player1).toHaveEnabledPromptButton('You may discard your hand');
-                context.player1.clickPrompt('You may discard your hand');
+                expect(context.player1).toHavePassAbilityPrompt('Discard your hand');
+                context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(3);
                 expect(context.confiscate).toBeInLocation('hand', context.player1);
@@ -34,8 +34,8 @@ describe('Black One', function() {
                 context.player2.clickCard(context.vanquish);
 
                 // Player 1 actives When Defeated, drawing cards
-                expect(context.player1).toHaveEnabledPromptButton('You may discard your hand');
-                context.player1.clickPrompt('You may discard your hand');
+                expect(context.player1).toHavePassAbilityPrompt('Discard your hand');
+                context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(3);
                 expect(context.cartelSpacer).toBeInLocation('hand', context.player1);
@@ -46,7 +46,7 @@ describe('Black One', function() {
                 expect(context.player1).toBeActivePlayer();
                 context.player1.moveCard(context.blackOne, 'hand');
                 context.player1.clickCard(context.blackOne);
-                context.player1.clickPrompt('You may discard your hand');
+                context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(1);
                 expect(context.atst).toBeInLocation('hand', context.player1);
@@ -57,7 +57,7 @@ describe('Black One', function() {
                 context.player2.clickCard(context.rivalsFall);
 
                 // Player 1 actives When Defeated, drawing cards
-                context.player1.clickPrompt('You may discard your hand');
+                context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.p1Base.damage).toBe(15);
