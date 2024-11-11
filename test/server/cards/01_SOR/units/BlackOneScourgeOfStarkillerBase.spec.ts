@@ -1,6 +1,6 @@
 describe('Black One', function() {
     integration(function(contextRef) {
-        describe('ISB Agent\'s When Played and When Defeated ability', function() {
+        describe('Black One\'s When Played and When Defeated ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
