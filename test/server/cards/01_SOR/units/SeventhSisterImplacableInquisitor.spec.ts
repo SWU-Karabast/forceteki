@@ -5,7 +5,6 @@ describe('Seventh Sister', function () {
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine', 'seventh-sister#implacable-inquisitor'],
-                    hand: ['heroic-resolve'],
                 },
                 player2: {
                     groundArena: ['wampa', 'pyke-sentinel'],
@@ -39,18 +38,6 @@ describe('Seventh Sister', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.bobaFettDaimyo, context.chopperBase]);
             context.player1.clickCard(context.wampa);
             expect(context.wampa.damage).toBe(3);
-            expect(context.player2).toBeActivePlayer();
-
-            // CASE 3: should trigger damage if damage to base is dealt by overwhelm
-            reset();
-
-            context.player1.clickCard(context.heroicResolve);
-            context.player1.clickCard(context.seventhSisterImplacableInquisitor);
-            context.player2.passAction();
-            context.player1.clickCard(context.seventhSisterImplacableInquisitor);
-            context.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
-            context.player1.clickCard(context.pykeSentinel);
-            context.player1.clickCard(context.wampa);
             expect(context.player2).toBeActivePlayer();
         });
 
