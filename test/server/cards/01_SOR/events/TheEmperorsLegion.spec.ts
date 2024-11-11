@@ -39,16 +39,16 @@ describe('The Emprerors Legion', function () {
                 player1: {
                     hand: ['the-emperors-legion'],
                     groundArena: ['pyke-sentinel'],
-                    discard: ['green-squadron-awing']
+                    discard: ['green-squadron-awing'],
+                    base: 'echo-base'
                 }
             });
             const { context } = contextRef;
-            context.player1.passAction();
-            context.player2.passAction();
             context.player1.clickCard(context.theEmperorsLegion);
-            expect(context.pykeSentinel.location).toBe('ground');
+            expect(context.theEmperorsLegion.location).toBe('discard');
+            expect(context.pykeSentinel.location).toBe('ground arena');
             expect(context.greenSquadronAwing.location).toBe('discard');
-            expect(context.player1.countExhaustedResources).toBe(2);
+            expect(context.player1.countExhaustedResources()).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
     });
