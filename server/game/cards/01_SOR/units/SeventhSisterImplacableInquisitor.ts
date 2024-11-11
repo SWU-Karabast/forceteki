@@ -17,6 +17,7 @@ export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard
             title: 'When this unit deals combat damage to an opponent’s base: You may deal 3 damage to a ground unit that opponent controls',
             when: {
                 onDamageDealt: (event, _context) =>
+                    // TODO: refactor damage enum types to account for the fact that overwhelm is combat damage
                     (event.type === DamageType.Combat &&
                       event.damageSource.attack.target?.isBase()) ||
                       event.type === DamageType.Overwhelm
