@@ -19,7 +19,7 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
  * @property bottom - Indicates whether the card should be placed at the bottom of the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Exclude<Location, Location.SpaceArena | Location.GroundArena | Location.Resource>;
+    destination?: Exclude<Location, Location.Discard | Location.SpaceArena | Location.GroundArena | Location.Resource>;
     shuffle?: boolean;
     bottom?: boolean;
 }
