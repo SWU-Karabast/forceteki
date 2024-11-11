@@ -26,11 +26,6 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         for (const player of Helpers.asArray(properties.target) as Player[]) {
-            // Ensure that the player can be affected by this system
-            if (!this.canAffect(player, context, additionalProperties)) {
-                continue;
-            }
-
             // Discard each card in the player's hand
             for (const card of player.getCardPile(Location.Hand)) {
                 const discardCardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
