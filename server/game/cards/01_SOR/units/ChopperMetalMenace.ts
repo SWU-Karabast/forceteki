@@ -19,8 +19,9 @@ export default class ChopperMetalMenace extends NonLeaderUnitCard {
                     target: context.source.activeAttack.target.controller
                 })),
                 AbilityHelper.immediateEffects.conditional((context) => ({
-                    condition: this.isDiscardedCardEvent(context.events),
-                    onTrue: AbilityHelper.immediateEffects.exhaustResources({ amount: 1, isCost: false, target: context.source.activeAttack.target.controller }),
+                    // There will be one event for the discard system overall plus one per card, so we need to ensure at least two exist
+                    condition: context.events.length < 2 ? false : context.events[0].card.isEvent(),
+                    onTrue: AbilityHelper.immediateEffects.exhaustResources({ amount: 1, target: context.source.activeAttack.target.controller }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 }))
             ])
@@ -31,14 +32,6 @@ export default class ChopperMetalMenace extends NonLeaderUnitCard {
             condition: (context) => context.source.controller.getOtherUnitsInPlayWithTrait(context.source, Trait.Spectre).length > 0,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });
-    }
-
-    private isDiscardedCardEvent(events: any[]): boolean {
-        // If nothing was discarded, return false
-        if (events.length === 0) {
-            return false;
-        }
-        return events[0].card.isEvent();
     }
 }
 

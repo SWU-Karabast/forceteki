@@ -24,8 +24,9 @@ describe('Chopper, Metal Menace', function() {
                 context.player1.clickCard(context.chopper);
                 expect(context.player2.base.damage).toBe(1);
 
-                // Check mill and heal
+                // Check mill and resources
                 expect(context.player2.deck.length).toBe(4);
+                expect(context.battlefieldMarine).toBeInLocation('discard');
                 expect(context.player2.countSpendableResources()).toBe(5);
             });
         });
@@ -54,9 +55,36 @@ describe('Chopper, Metal Menace', function() {
                 context.player1.clickCard(context.chopper);
                 expect(context.player2.base.damage).toBe(2);
 
-                // Check mill and heal
+                // Check mill and resources
                 expect(context.player2.deck.length).toBe(4);
                 expect(context.player2.countSpendableResources()).toBe(4);
+            });
+        });
+
+        describe('Chopper\'s On Attack ability', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['chopper#metal-menace']
+                    },
+                    player2: {
+                        deck: [],
+                        resources: 5
+                    }
+                });
+            });
+
+            it('should not trigger empty deck draw damage when opponent has an empty deck', function () {
+                const { context } = contextRef;
+
+                expect(context.player2.base.damage).toBe(0);
+
+                context.player1.clickCard(context.chopper);
+
+                // Check mill and damage
+                expect(context.player2.deck.length).toBe(0);
+                expect(context.player2.base.damage).toBe(1);
             });
         });
     });

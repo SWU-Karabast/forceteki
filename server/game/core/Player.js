@@ -448,7 +448,8 @@ class Player extends GameObject {
      * Returns ths top cards of the player's deck
      * @returns {import('./card/CardTypes').PlayableCard[]} the Card,© or null if the deck is empty
      */
-    getTopCardsOfDeck(numCard = 1) {
+    getTopCardsOfDeck(numCard) {
+        Contract.assertPositiveNonZero(numCard);
         const deckLength = this.drawDeck.length;
         const cardsToGet = Math.min(numCard, deckLength);
 

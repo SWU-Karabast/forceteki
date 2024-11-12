@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, Trait } from '../../../core/Constants';
+import { Aspect, EventName, Trait } from '../../../core/Constants';
 
 export default class KananJarrusRevealedJedi extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -29,7 +29,7 @@ export default class KananJarrusRevealedJedi extends NonLeaderUnitCard {
 
     private getAspectCountFromEvents(events: any[]): number {
         const aspects = new Set<Aspect>();
-        const discardedCards = events.filter((event) => event.name === 'onCardDiscarded').map((event) => event.card);
+        const discardedCards = events.filter((event) => event.name === EventName.OnCardDiscarded).map((event) => event.card);
         for (const card of discardedCards) {
             card.aspects.forEach((aspect) => aspects.add(aspect));
         }

@@ -25,7 +25,7 @@ export default class LookTheOtherWay extends EventCard {
                         [`Exhaust ${context.targets.targetUnit.title}`]: AbilityHelper.immediateEffects.exhaust({
                             target: context.targets.targetUnit,
                         }),
-                        ['Pay 2 resources']: AbilityHelper.immediateEffects.exhaustResources({
+                        ['Pay 2 resources']: AbilityHelper.immediateEffects.payResourceCost({
                             target: context.targets.targetUnit.controller,
                             amount: 2
                         })

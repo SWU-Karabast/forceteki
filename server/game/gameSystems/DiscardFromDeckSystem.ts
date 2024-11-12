@@ -14,19 +14,8 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
     public override readonly name = 'discardFromDeck';
     public override readonly eventName = EventName.OnDiscardFromDeck;
 
-    protected override defaultProperties: IDiscardFromDeckProperties = {
-        amount: 1
-    };
-
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(_event): void { }
-
-    // public eventHandler(event): void {
-    //     for (let i = 0; i < event.amount; i++) {
-    //         const topCard = event.player.getTopCardOfDeck();
-    //         event.player.moveCard(topCard, Location.Discard);
-    //     }
-    // }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
@@ -36,13 +25,19 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
     public override canAffect(player: Player, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const availableDeck = player.drawDeck || []; // Without this | [], sometimes this is undefined, causing issues below
+        const availableDeck = Array.isArray(player) ? player[0].drawDeck : player.drawDeck;
 
-        if (mustChangeGameState !== GameStateChangeRequired.None && (availableDeck.length === 0 || properties.amount === 0)) {
+        Contract.assertNonNegative(properties.amount);
+
+        if (properties.amount === 0) {
             return false;
         }
 
-        if ((properties.isCost || GameStateChangeRequired.MustFullyResolve) && availableDeck.length < properties.amount) {
+        if (mustChangeGameState !== GameStateChangeRequired.None && availableDeck.length === 0) {
+            return false;
+        }
+
+        if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableDeck.length < properties.amount) {
             return false;
         }
 
@@ -50,7 +45,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
             return false;
         }
 
-        return properties.amount !== 0 && super.canAffect(player, context);
+        return super.canAffect(player, context);
     }
 
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
@@ -63,8 +58,6 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         for (const player of properties.target as Player[]) {
             const availableDeck = player.drawDeck;
-
-            Contract.assertNonNegative(properties.amount);
 
             const amount = Math.min(availableDeck.length, properties.amount);
 
