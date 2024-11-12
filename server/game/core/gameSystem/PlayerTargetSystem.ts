@@ -2,8 +2,9 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import Player from '../Player';
 import { GameSystem, type IGameSystemProperties } from './GameSystem';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IPlayerTargetSystemProperties extends IGameSystemProperties {}
+export interface IPlayerTargetSystemProperties extends IGameSystemProperties {
+    target?: Player | Player[];
+}
 
 /**
  * A {@link GameSystem} which targets a player for its effect
