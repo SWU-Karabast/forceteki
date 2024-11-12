@@ -26,6 +26,9 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         for (const player of Helpers.asArray(properties.target) as Player[]) {
+            // TODO: Understand if checking canAffect here is necessary or not. The superclass implementation does this
+            // so it seems a good idea to do it here as well but we should understand if it's really necessary or not.
+
             // Ensure that the player can be affected by this system
             if (!this.canAffect(player, context, additionalProperties)) {
                 continue;
