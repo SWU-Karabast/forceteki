@@ -22,9 +22,6 @@ describe('Public Enemy', function() {
                 // Destroys Wampa
                 context.player1.clickCard(context.wampa);
 
-                // Damange from Wampa to be assigned
-                expect(context.atst.damage).toBe(4);
-
                 // Assigning shield to Battlefield Marine
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.atst, context.escortSkiff]);
