@@ -72,8 +72,10 @@ describe('Krrsantan, Muscle For Hire', function() {
 
                 context.player1.clickCard(context.krrsantan);
                 context.player1.clickCard(context.p2Base);
+
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.krrsantan]);
                 expect(context.player1).toHaveChooseNoTargetButton();
+
                 context.player1.clickCard(context.wampa);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.wampa.damage).toBe(context.krrsantan.damage);
