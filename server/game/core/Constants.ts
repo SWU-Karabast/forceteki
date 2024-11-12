@@ -370,6 +370,7 @@ export enum StateWatcherName {
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
+    DamageDealtThisPhase = 'damageDealtThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado
