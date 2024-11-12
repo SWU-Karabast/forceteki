@@ -26,14 +26,14 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const players = Array.isArray(player) ? player : [player];
+        Contract.assertNonNegative(properties.amount);
+
+        if (properties.amount === 0) {
+            return false;
+        }
 
         for (const currentPlayer of players) {
             const availableDeck = currentPlayer.drawDeck;
-            Contract.assertNonNegative(properties.amount);
-
-            if (properties.amount === 0) {
-                return false;
-            }
 
             if (mustChangeGameState !== GameStateChangeRequired.None && availableDeck.length === 0) {
                 return false;
