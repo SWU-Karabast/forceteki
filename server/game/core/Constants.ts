@@ -186,6 +186,7 @@ export enum EventName {
     OnDamageRemoved = 'onDamageRemoved',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
+    OnDiscardFromDeck = 'onDiscardFromDeck',
     OnEffectApplied = 'onEffectApplied',
     onExhaustResources = 'onExhaustResources',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
