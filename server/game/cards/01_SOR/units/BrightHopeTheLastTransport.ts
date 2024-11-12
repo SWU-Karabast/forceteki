@@ -18,7 +18,7 @@ export default class BrightHopeTheLastTransport extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 locationFilter: Location.GroundArena,
-                immediateEffect: AbilityHelper.immediateEffects.returnToHandFromPlay()
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: {
                 title: 'Draw a card',

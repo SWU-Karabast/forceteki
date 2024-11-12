@@ -16,7 +16,7 @@ export default class PiratedStarfighter extends NonLeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                immediateEffect: AbilityHelper.immediateEffects.returnToHandFromPlay()
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             }
         });
     }
