@@ -317,6 +317,18 @@ class Player extends GameObject {
     }
 
     /**
+     * Returns if a unit is in play that has the passed keyword
+     * @param {KeywordName} keyword
+     * @param {any} ignoreUnit
+     * @returns {boolean} true/false if the trait is in play
+     */
+    isKeywordInPlay(keyword, ignoreUnit = null) {
+        return ignoreUnit != null
+            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeKeyword(keyword))
+            : this.getUnitsInPlay().some((card) => card.hasSomeKeyword(keyword));
+    }
+
+    /**
      * Returns true if any units or upgrades controlled by this player match the passed predicate
      * @param {Function} predicate - DrawCard => Boolean
      */
@@ -1173,13 +1185,20 @@ class Player extends GameObject {
         let { email, password, ...safeUser } = this.user;
         let state = {
             cardPiles: {
-                // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
                 hand: this.getSummaryForHand(this.hand, activePlayer, false),
-                removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer)
+                removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer),
+                resources: this.getSummaryForCardList(this.resources, activePlayer),
+                groundArena: this.getSummaryForCardList(this.groundArena, activePlayer),
+                spaceArena: this.getSummaryForCardList(this.spaceArena, activePlayer),
+                deck: this.getSummaryForCardList(this.drawDeck, activePlayer),
+                discard: this.getSummaryForCardList(this.discard, activePlayer)
             },
             disconnected: this.disconnected,
             // faction: this.faction,
             hasInitiative: this.hasInitiative(),
+            availableResources: this.countSpendableResources(),
+            leader: this.leader.getSummary(activePlayer),
+            base: this.base.getSummary(activePlayer),
             id: this.id,
             left: this.left,
             name: this.name,

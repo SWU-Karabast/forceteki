@@ -1,7 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import { EventName, Location } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -9,7 +8,7 @@ export interface IDiscardSpecificCardProperties extends ICardTargetSystemPropert
 
 export class DiscardSpecificCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDiscardSpecificCardProperties> {
     public override readonly name = 'discardSpecificCard';
-    public override readonly eventName = EventName.OnCardsDiscarded;
+    public override readonly eventName = EventName.OnCardDiscarded;
 
     public eventHandler(event): void {
         event.card.controller.moveCard(event.card, Location.Discard);

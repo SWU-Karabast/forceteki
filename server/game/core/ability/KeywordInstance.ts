@@ -1,10 +1,16 @@
-import { IAbilityPropsWithType } from '../../Interfaces';
+import { IAbilityPropsWithType, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from '../card/Card';
 import { Aspect, KeywordName } from '../Constants';
+import { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';
 import * as Contract from '../utils/Contract';
-import { AbilityContext } from './AbilityContext';
 
 export class KeywordInstance {
+    private blankingEffects: LoseKeyword[] = [];
+
+    public get isBlank() {
+        return this.blankingEffects.length > 0;
+    }
+
     /*
      * If false, this keyword instance requires some explicit implementation data
      * (such as a Bounty ability definition) that has not yet been provided
@@ -30,6 +36,14 @@ export class KeywordInstance {
     public valueOf() {
         return this.name;
     }
+
+    public registerBlankingEffect(blankingEffect: LoseKeyword) {
+        this.blankingEffects.push(blankingEffect);
+    }
+
+    public unregisterBlankingEffect(blankingEffect: LoseKeyword) {
+        this.blankingEffects = this.blankingEffects.filter((effect) => effect !== blankingEffect);
+    }
 }
 
 export class KeywordWithNumericValue extends KeywordInstance {
@@ -53,7 +67,7 @@ export class KeywordWithCostValues extends KeywordInstance {
 }
 
 export class KeywordWithAbilityDefinition<TSource extends Card = Card> extends KeywordInstance {
-    private _abilityProps?: IAbilityPropsWithType<TSource> = null;
+    private _abilityProps?: ITriggeredAbilityProps<TSource> = null;
 
     public get abilityProps() {
         if (this._abilityProps == null) {
@@ -68,12 +82,12 @@ export class KeywordWithAbilityDefinition<TSource extends Card = Card> extends K
     }
 
     /** @param abilityProps Optional, but if not provided must be provided via {@link KeywordWithAbilityDefinition.setAbilityProps} */
-    public constructor(name: KeywordName, abilityProps: IAbilityPropsWithType<TSource> = null) {
+    public constructor(name: KeywordName, abilityProps: ITriggeredAbilityProps<TSource> = null) {
         super(name);
         this._abilityProps = abilityProps;
     }
 
-    public setAbilityProps(abilityProps: IAbilityPropsWithType<TSource>) {
+    public setAbilityProps(abilityProps: ITriggeredAbilityProps<TSource>) {
         Contract.assertNotNullLike(abilityProps, `Attempting to set null ability definition for ${this.name}`);
         Contract.assertIsNullLike(this._abilityProps, `Attempting to set ability definition for ${this.name} but it already has a value`);
 

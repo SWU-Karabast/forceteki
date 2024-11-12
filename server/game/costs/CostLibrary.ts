@@ -1,6 +1,5 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, Location, PlayType, RelativePlayer, TargetMode } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
+import { DamageType, PlayType } from '../core/Constants';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
@@ -13,7 +12,6 @@ import { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
-import { ReturnToHandFromPlaySystem } from '../gameSystems/ReturnToHandFromPlaySystem';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 import Player from '../core/Player';
 
@@ -53,10 +51,18 @@ export function defeat<TContext extends AbilityContext = AbilityContext>(propert
 }
 
 /**
+ * Cost that requires dealing the given amount of damage to a card that matches
+ * the passed condition predicate function.
+ */
+export function dealDamage<TContext extends AbilityContext = AbilityContext>(amount: number, properties: SelectCostProperties<TContext>): ICost<TContext> {
+    return getSelectCost(GameSystems.damage<TContext>({ type: DamageType.Ability, amount: amount }), properties, `Select card to deal ${amount} damage to`);
+}
+
+/**
  * Cost that will return to hand from the play area the card that initiated the ability
  */
 export function returnSelfToHandFromPlay<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
-    return new GameSystemCost<TContext>(GameSystems.returnToHandFromPlay({ isCost: true }));
+    return new GameSystemCost<TContext>(GameSystems.returnToHand({ isCost: true }));
 }
 
 // /**

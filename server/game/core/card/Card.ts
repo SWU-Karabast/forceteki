@@ -4,18 +4,16 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, RelativePlayer, Trait, WildcardLocation } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, RelativePlayer, Trait, WildcardLocation } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import AbilityHelper from '../../AbilityHelper';
-import * as Helpers from '../utils/Helpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
-import { KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues } from '../ability/KeywordInstance';
+import { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
-import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty } from './CardTypes';
+import type { TokenCard, UnitCard, CardWithDamageProperty } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
@@ -38,7 +36,6 @@ export type CardConstructor = new (...args: any[]) => Card;
  */
 export class Card extends OngoingEffectSource {
     public static implemented = false;
-
     public readonly aspects: Aspect[] = [];
     public readonly internalName: string;
     public readonly subtitle?: string;
@@ -359,18 +356,14 @@ export class Card extends OngoingEffectSource {
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
     protected getKeywords() {
-        const keywords = [...this.printedKeywords];
-
-        for (const gainedKeyword of this.getOngoingEffectValues(EffectName.GainKeyword)) {
-            keywords.push(gainedKeyword);
+        let keywordInstances = [...this.printedKeywords];
+        const gainKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
+        for (const effect of gainKeywordEffects) {
+            keywordInstances.push(effect.getValue(this));
         }
+        keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
-        // TODO: lost keywords should be able to be re-added by later effects
-        // for (const lostKeyword of this.getOngoingEffectValues(EffectName.LoseKeyword)) {
-        //     keywords = keywords.filter((keyword) => keyword.name === lostKeyword);
-        // }
-
-        return keywords;
+        return keywordInstances;
     }
 
     public getKeywordWithCostValues(keywordName: KeywordName): KeywordWithCostValues {
@@ -458,6 +451,8 @@ export class Card extends OngoingEffectSource {
             originalLocation: originalLocation,
             newLocation: targetLocation
         });
+
+        this.game.registerMovedCard(this);
     }
 
     /**
@@ -465,6 +460,13 @@ export class Card extends OngoingEffectSource {
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected cleanupBeforeMove(nextLocation: Location) {}
+
+    /**
+     * Updates the card's abilities for its current location after being moved.
+     * Called from {@link Game.resolveGameState} after event resolution.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public resolveAbilitiesForNewLocation() {}
 
     /**
      * Deals with the engine effects of entering a new location, making sure all statuses are set with legal values.
@@ -752,8 +754,9 @@ export class Card extends OngoingEffectSource {
                 location: this.location,
                 uuid: isActivePlayer ? this.uuid : undefined
             };
-            return Object.assign(state, selectionState);
+            return { ...state, ...selectionState };
         }
+
 
         const state = {
             id: this.cardData.id,
@@ -761,15 +764,19 @@ export class Card extends OngoingEffectSource {
             // facedown: this.isFacedown(),
             location: this.location,
             // menu: this.getMenu(),
-            name: this.cardData.name,
+            name: this.cardData.title,
+            cost: this.cardData.cost,
+            power: this.cardData.power,
+            hp: this.cardData.hp,
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,
             // types: this.types,
-            uuid: this.uuid
+            uuid: this.uuid,
+            ...selectionState
         };
 
-        return Object.assign(state, selectionState);
+        return state;
     }
 
     public override getShortSummaryForControls(activePlayer: Player): any {

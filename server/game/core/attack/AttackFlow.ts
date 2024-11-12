@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { EventName } from '../Constants';
+import { DamageType, EventName } from '../Constants';
 import type { Attack } from './Attack';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
@@ -9,7 +9,7 @@ import AbilityHelper from '../../AbilityHelper';
 import { GameEvent } from '../event/GameEvent';
 import { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
-import { DamageSystem, DamageType } from '../../gameSystems/DamageSystem';
+import { DamageSystem } from '../../gameSystems/DamageSystem';
 
 export class AttackFlow extends BaseStepWithPipeline {
     public constructor(

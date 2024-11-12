@@ -23,6 +23,7 @@ import { GameEvent } from '../../event/GameEvent';
 import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
+import * as KeywordHelpers from '../../ability/KeywordHelpers';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -40,8 +41,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
     return class AsUnit extends StatsAndDamageClass {
         public static registerRulesListeners(game: Game) {
-            // register listeners for when-played keyword abilities
-            game.on(EventName.OnUnitEntersPlay, (event) => {
+            // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
+            game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {
                 const card = event.card as Card;
                 if (card.isUnit()) {
                     card.checkRegisterWhenPlayedKeywordAbilities(event);
@@ -157,18 +158,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected addBountyAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen' | 'abilityController'>): void {
-            const { title, ...otherProps } = properties;
-
-            const triggeredProperties: ITriggeredAbilityPropsWithType<this> = {
-                ...otherProps,
-                title: 'Bounty: ' + title,
-                type: AbilityType.Triggered,
-                when: {
-                    onCardDefeated: (event, context) => event.card === context.source
-                    // TODO CAPTURE: add capture trigger
-                },
-                abilityController: RelativePlayer.Opponent
-            };
+            const triggeredProperties = KeywordHelpers.createBountyAbilityFromProps(properties);
 
             const bountyKeywordsWithoutImpl = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty && !keyword.isFullyImplemented);
 
@@ -241,14 +231,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._whenPlayedKeywordAbilities = [];
 
             if (hasAmbush) {
-                const ambushProps = { ...this.buildGeneralAbilityProps('keyword_ambush'), ...AmbushAbility.buildAmbushAbilityProperties() };
+                const ambushProps = Object.assign(this.buildGeneralAbilityProps('keyword_ambush'), AmbushAbility.buildAmbushAbilityProperties());
                 const ambushAbility = this.createTriggeredAbility(ambushProps);
                 ambushAbility.registerEvents();
                 this._whenPlayedKeywordAbilities.push(ambushAbility);
             }
 
             if (hasShielded) {
-                const shieldedProps = { ...this.buildGeneralAbilityProps('keyword_shielded'), ...ShieldedAbility.buildShieldedAbilityProperties() };
+                const shieldedProps = Object.assign(this.buildGeneralAbilityProps('keyword_shielded'), ShieldedAbility.buildShieldedAbilityProperties());
                 const shieldedAbility = this.createTriggeredAbility(shieldedProps);
                 shieldedAbility.registerEvents();
                 this._whenPlayedKeywordAbilities.push(shieldedAbility);
@@ -282,14 +272,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             if (hasRestore) {
                 const restoreAmount = this.getNumericKeywordSum(KeywordName.Restore);
-                const restoreProps = { ...this.buildGeneralAbilityProps('keyword_restore'), ...RestoreAbility.buildRestoreAbilityProperties(restoreAmount) };
+                const restoreProps = Object.assign(this.buildGeneralAbilityProps('keyword_restore'), RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
                 const restoreAbility = this.createTriggeredAbility(restoreProps);
                 restoreAbility.registerEvents();
                 this._attackKeywordAbilities.push(restoreAbility);
             }
 
             if (hasSaboteur) {
-                const saboteurProps = { ...this.buildGeneralAbilityProps('keyword_saboteur'), ...SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties() };
+                const saboteurProps = Object.assign(this.buildGeneralAbilityProps('keyword_saboteur'), SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties());
                 const saboteurAbility = this.createTriggeredAbility(saboteurProps);
                 saboteurAbility.registerEvents();
                 this._attackKeywordAbilities.push(saboteurAbility);
@@ -314,15 +304,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             );
 
             this._whenDefeatedKeywordAbilities = [];
-            this.registerBountyAbilities(bountyKeywords, this._whenDefeatedKeywordAbilities);
 
-            event.addCleanupHandler(() => this.unregisterWhenDefeatedKeywords());
-        }
-
-        private registerBountyAbilities(bountyKeywordInstances: KeywordWithAbilityDefinition[], registrationArray: TriggeredAbility[]) {
-            for (const bountyKeyword of bountyKeywordInstances) {
+            for (const bountyKeyword of bountyKeywords) {
                 const abilityProps = bountyKeyword.abilityProps;
-                Contract.assertTrue(abilityProps.type === AbilityType.Triggered);
 
                 const bountyAbility = this.createTriggeredAbility({
                     ...this.buildGeneralAbilityProps('keyword_bounty'),
@@ -330,8 +314,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 });
 
                 bountyAbility.registerEvents();
-                registrationArray.push(bountyAbility);
+                this._whenDefeatedKeywordAbilities.push(bountyAbility);
             }
+
+            event.addCleanupHandler(() => this.unregisterWhenDefeatedKeywords());
         }
 
         private getBountyAbilities() {

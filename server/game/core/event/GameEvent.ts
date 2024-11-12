@@ -59,7 +59,7 @@ export class GameEvent {
             return false;
         }
 
-        return this.replacementEvent.isResolvedOrReplaced;
+        return this.replacementEvent.isResolvedOrReplacementResolved;
     }
 
     public get window(): EventWindow | null {
