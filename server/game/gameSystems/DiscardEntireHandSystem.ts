@@ -5,12 +5,13 @@ import type Player from '../core/Player';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
 
-export interface IDiscardEntireHandSystemProperties extends IPlayerTargetSystemProperties {
-    target: Player | Player[];
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IDiscardEntireHandSystemProperties extends IPlayerTargetSystemProperties {}
 
 /**
- * A {@link GameSystem} which discards a player's entire hand
+ * A {@link GameSystem} which discards a player's entire hand.
+ *
+ * By default, this system will target the opponent of the player who initiated the ability.
  */
 export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardEntireHandSystemProperties> {
     public override name = 'discardEntireHand';

@@ -243,7 +243,12 @@ export function discardCardsFromOwnHand<TContext extends AbilityContext = Abilit
     return new DiscardCardsFromHand<TContext>(propertyFactory);
 }
 
-export function discardEntireHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardEntireHandSystemProperties, TContext>): DiscardEntireHandSystem<TContext> {
+/**
+ * Creates a new instance of a system that discards the entire hand of the target player(s).
+ *
+ * By default, this system will target the opponent of the player who initiated the ability.
+ */
+export function discardEntireHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardEntireHandSystemProperties, TContext> = {}): DiscardEntireHandSystem<TContext> {
     return new DiscardEntireHandSystem<TContext>(propertyFactory);
 }
 // /**
