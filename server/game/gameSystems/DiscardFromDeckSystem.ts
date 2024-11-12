@@ -25,24 +25,27 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
     public override canAffect(player: Player, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const availableDeck = Array.isArray(player) ? player[0].drawDeck : player.drawDeck;
+        const players = Array.isArray(player) ? player : [player];
 
-        Contract.assertNonNegative(properties.amount);
+        for (const currentPlayer of players) {
+            const availableDeck = currentPlayer.drawDeck;
+            Contract.assertNonNegative(properties.amount);
 
-        if (properties.amount === 0) {
-            return false;
-        }
+            if (properties.amount === 0) {
+                return false;
+            }
 
-        if (mustChangeGameState !== GameStateChangeRequired.None && availableDeck.length === 0) {
-            return false;
-        }
+            if (mustChangeGameState !== GameStateChangeRequired.None && availableDeck.length === 0) {
+                return false;
+            }
 
-        if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableDeck.length < properties.amount) {
-            return false;
-        }
+            if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableDeck.length < properties.amount) {
+                return false;
+            }
 
-        if (!super.canAffect(player, context, additionalProperties)) {
-            return false;
+            if (!super.canAffect(currentPlayer, context, additionalProperties)) {
+                return false;
+            }
         }
 
         return super.canAffect(player, context);
