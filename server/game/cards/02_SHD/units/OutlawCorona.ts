@@ -12,9 +12,7 @@ export default class OutlawCorona extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addBountyAbility({
             title: 'Put the top card of your deck into play as a resource.',
-            targetResolver: {
-                immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.player.getTopCardOfDeck() }))
-            }
+            immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.player.getTopCardOfDeck() }))
         });
     }
 }
