@@ -23,9 +23,8 @@ describe('Ruthless Raider', function() {
                 context.player1.clickCard(context.ruthlessRaider);
 
                 // Select Enemy Unit and Base. Not able to select friendly units
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa, context.player2.base]);
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
                 context.player1.clickCard(context.greenSquadronAwing);
-                context.player1.clickCard(context.p2Base);
 
                 // Check damage on unit and base
                 expect(context.p2Base.damage).toBe(2);
@@ -36,13 +35,12 @@ describe('Ruthless Raider', function() {
                 context.player2.clickCard(context.ruthlessRaider);
 
                 // Select Enemy Unit and Base. Not able to select friendly units
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa, context.player2.base]);
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
                 context.player1.clickCard(context.greenSquadronAwing);
-                context.player1.clickCard(context.p2Base);
 
                 // Check damage on unit and base
                 expect(context.p2Base.damage).toBe(4);
-                expect(context.greenSquadronAwing.damage).toBe(4);
+                expect(context.greenSquadronAwing).toBeInLocation('discard');
             });
         });
     });

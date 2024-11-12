@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class RuthlessRaider extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -17,18 +17,14 @@ export default class RuthlessRaider extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) => event.card === context.source,
                 onCardDefeated: (event, context) => event.card === context.source
             },
-            targetResolvers: {
-                theirUnit: {
+            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
-                },
-                theirBase: {
-                    cardTypeFilter: CardType.Base,
-                    controller: RelativePlayer.Opponent,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
-                }
-            }
+                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                }),
+                AbilityHelper.immediateEffects.damage((context) => ({ amount: 2, target: context.source.controller.opponent.base }))
+            ])
         });
     }
 }
