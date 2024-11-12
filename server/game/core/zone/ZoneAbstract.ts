@@ -18,7 +18,7 @@ export abstract class ZoneAbstract<TCard extends Card> {
     public readonly owner: Player | Game;
 
     public abstract readonly hiddenForPlayers: RelativePlayer | null;
-    public abstract readonly zoneName: Location;
+    public abstract readonly name: Location;
 
     public abstract get count(): number;
 
@@ -39,7 +39,7 @@ export abstract class ZoneAbstract<TCard extends Card> {
     public hasCard(card: Card): boolean {
         const cardCount = this.cards.filter((zoneCard: TCard) => zoneCard === card).length;
 
-        Contract.assertFalse(cardCount > 1, `Found ${cardCount} duplicates of ${card.internalName} in ${this.zoneName}`);
+        Contract.assertFalse(cardCount > 1, `Found ${cardCount} duplicates of ${card.internalName} in ${this.name}`);
 
         return cardCount === 1;
     }
@@ -60,6 +60,6 @@ export abstract class ZoneAbstract<TCard extends Card> {
     }
 
     public toString() {
-        return (this.owner instanceof Player ? `${this.owner.name}:` : '') + this.zoneName;
+        return (this.owner instanceof Player ? `${this.owner.name}:` : '') + this.name;
     }
 }

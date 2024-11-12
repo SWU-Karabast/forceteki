@@ -14,6 +14,15 @@ import Player from './core/Player';
 import OngoingCardEffect from './core/ongoingEffect/OngoingCardEffect';
 import OngoingPlayerEffect from './core/ongoingEffect/OngoingPlayerEffect';
 import { UnitCard } from './core/card/CardTypes';
+import { BaseZone } from './core/zone/BaseZone';
+import { DeckZone } from './core/zone/DeckZone';
+import { DiscardZone } from './core/zone/DiscardZone';
+import { ArenaZone } from './core/zone/ArenaZone';
+import { HandZone } from './core/zone/HandZone';
+import { OutsideTheGameZone } from './core/zone/OutsideTheGameZone';
+import { ResourceZone } from './core/zone/ResourceZone';
+import { GroundArenaZone } from './core/zone/GroundArenaZone';
+import { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -145,6 +154,16 @@ export type IKeywordProperties =
   | IShieldedKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
+
+export type Zone =
+  | BaseZone
+  | DeckZone
+  | DiscardZone
+  | GroundArenaZone
+  | HandZone
+  | OutsideTheGameZone
+  | ResourceZone
+  | SpaceArenaZone;
 
 export interface IStateListenerProperties<TState> {
     when: WhenType;

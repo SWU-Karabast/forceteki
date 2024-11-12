@@ -4,5 +4,5 @@ import { SimpleZone } from './SimpleZone';
 
 export class OutsideTheGameZone extends SimpleZone<Card> {
     public override readonly hiddenForPlayers: null;
-    public override readonly zoneName: Location.OutsideTheGame;
+    public override readonly name: Location.OutsideTheGame;
 }

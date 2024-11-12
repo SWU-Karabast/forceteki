@@ -6,42 +6,46 @@ import * as Contract from '../utils/Contract';
 import { ICardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
 export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
+    public readonly base: BaseCard;
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Player;
-    public override readonly zoneName: Location.Base;
+    public override readonly name: Location.Base;
 
-    private readonly base: BaseCard;
-    private leader?: LeaderCard;
+    private _leader?: LeaderCard;
 
     public override get cards(): (LeaderCard | BaseCard)[] {
-        return this.leader ? [this.base, this.leader] : [this.base];
+        return this._leader ? [this.base, this._leader] : [this.base];
     }
 
     public override get count() {
-        return this.leader ? 2 : 1;
+        return this._leader ? 2 : 1;
     }
 
-    public override getCards(filter?: ICardFilterProperties): (LeaderCard | BaseCard)[] {
-        return this.cards.filter(this.buildFilterFn(filter));
+    public get leader(): LeaderCard | null {
+        return this._leader;
     }
 
     public constructor(owner: Player, base: BaseCard, leader: LeaderCard) {
         super(owner);
 
         this.base = base;
-        this.leader = leader;
+        this._leader = leader;
     }
 
-    public unsetLeader() {
-        Contract.assertNotNullLike(this.leader, `Attempting to remove leader from ${this} but it is in location ${this.owner.leader.location}`);
+    public override getCards(filter?: ICardFilterProperties): (LeaderCard | BaseCard)[] {
+        return this.cards.filter(this.buildFilterFn(filter));
+    }
 
-        this.leader = null;
+    public removeLeader() {
+        Contract.assertNotNullLike(this._leader, `Attempting to remove leader from ${this} but it is in location ${this.owner.leader.location}`);
+
+        this._leader = null;
     }
 
     public setLeader(leader: LeaderCard) {
         Contract.assertEqual(leader.controller, this.owner, `Attempting to add card ${leader.internalName} to ${this} but its controller is ${leader.controller}`);
-        Contract.assertIsNullLike(this.leader, `Attempting to add leader ${leader.internalName} to ${this} but leader ${this.leader.internalName} is already there`);
+        Contract.assertIsNullLike(this._leader, `Attempting to add leader ${leader.internalName} to ${this} but leader ${this._leader.internalName} is already there`);
 
-        this.leader = leader;
+        this._leader = leader;
     }
 }

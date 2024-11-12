@@ -4,5 +4,5 @@ import { SimpleZone } from './SimpleZone';
 
 export class DiscardZone extends SimpleZone<PlayableCard> {
     public override readonly hiddenForPlayers: null;
-    public override readonly zoneName: Location.Discard;
+    public override readonly name: Location.Discard;
 }

@@ -38,6 +38,8 @@ const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.j
 const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
 const { Card } = require('./card/Card.js');
 const { ArenaZone } = require('./zone/ArenaZone.js');
+const { GroundArenaZone } = require('./zone/GroundArenaZone.js');
+const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -75,8 +77,8 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
 
-        this.spaceArena = new ArenaZone(this, Location.SpaceArena);
-        this.groundArena = new ArenaZone(this, Location.GroundArena);
+        this.spaceArena = new SpaceArenaZone(this);
+        this.groundArena = new GroundArenaZone(this);
 
         this.registerGlobalRulesListeners();
 

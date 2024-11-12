@@ -31,8 +31,8 @@ export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard>
         this._cards.push(card);
     }
 
-    public removeCard(card: TCard) {
-        const cardIdx = this._cards.indexOf(card);
+    public removeCard(card: Card) {
+        const cardIdx = this._cards.indexOf(card as TCard);
 
         Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current location is ${card.location}.`);
 

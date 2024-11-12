@@ -4,5 +4,5 @@ import { SimpleZone } from './SimpleZone';
 
 export class HandZone extends SimpleZone<PlayableCard> {
     public override readonly hiddenForPlayers: RelativePlayer.Opponent;
-    public override readonly zoneName: Location.Hand;
+    public override readonly name: Location.Hand;
 }

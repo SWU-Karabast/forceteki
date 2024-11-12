@@ -427,7 +427,7 @@ class Player extends GameObject {
             );
         }
         for (let card of this.drawDeck.slice(0, numCards)) {
-            this.moveCard(card, Location.Hand);
+            card.moveTo(Location.Hand);
         }
     }
 
@@ -513,8 +513,13 @@ class Player extends GameObject {
      */
     prepareDecks() {
         var preparedDecklist = new Deck(this.decklistNames).prepare(this);
+
+        this.base = preparedDecklist.base;
+        this.leader = preparedDecklist.leader;
+
         this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
         this.baseZone = new BaseZone(this, preparedDecklist.base, preparedDecklist.leader);
+
         this.decklist = preparedDecklist;
     }
 
@@ -727,36 +732,6 @@ class Player extends GameObject {
     //     this.showDeck = true;
     // }
 
-    /**
-     * Gets the appropriate list for the passed location pile
-     * @param {String} source
-     */
-    // TODO THIS PR: update
-    getCardPile(source) {
-        switch (source) {
-            case Location.Hand:
-                return this.hand;
-            case Location.Deck:
-                return this.drawDeck;
-            case Location.Discard:
-                return this.discard;
-            case Location.Resource:
-                return this.resourceZone;
-            case Location.RemovedFromGame:
-                return this.outsideTheGame;
-            case Location.SpaceArena:
-                return this.spaceArena;
-            case Location.GroundArena:
-                return this.groundArena;
-            case Location.Base:
-                return this.baseZone;
-            case Location.OutsideTheGame:
-                return this.outsideTheGameCards;
-            default:
-                Contract.fail(`Unknown zone name enum value: ${source}`);
-        }
-    }
-
     // /**
     //  * Called when a player drags and drops a card from one location on the client to another
     //  * @param {String} cardId - the uuid of the dropped card
@@ -854,14 +829,6 @@ class Player extends GameObject {
         return this.deckZone.cards;
     }
 
-    get leader() {
-        return this.baseZone.leader;
-    }
-
-    get base() {
-        return this.baseZone.base;
-    }
-
     /**
      * Returns the number of resources available to spend
      */
@@ -884,7 +851,7 @@ class Player extends GameObject {
      * @param {boolean} exhaust Whether to exhaust the card. True by default.
      */
     resourceCard(card, exhaust = true) {
-        this.moveCard(card, Location.Resource);
+        card.moveTo(Location.Resource);
         card.exhausted = exhaust;
     }
 
@@ -923,137 +890,6 @@ class Player extends GameObject {
         for (let i = 0; i < Math.min(count, exhaustedResources.length); i++) {
             exhaustedResources[i].exhausted = false;
         }
-    }
-
-    /**
-     * Moves a card from one location to another. This involves removing in from the list it's currently in, calling BaseCard.move (which changes
-     * its location property), and then adding it to the list it should now be in
-     * @param card BaseCard
-     * @param targetLocation
-     * @param {Object} options
-     */
-    moveCard(card, targetLocation, options = {}) {
-        this.removeCardFromPile(card);
-
-        if (targetLocation.endsWith(' bottom')) {
-            options.bottom = true;
-            targetLocation = targetLocation.replace(' bottom', '');
-        }
-
-        var targetPile = this.getCardPile(targetLocation);
-
-        Contract.assertTrue(this.isLegalLocationForCardType(card.type, targetLocation), `Tried to move card ${card.name} to ${targetLocation} but it is not a legal location`);
-
-        Contract.assertFalse(targetPile.includes(card), `Tried to move card ${card.name} to ${targetLocation} but it is already there`);
-
-        let currentLocation = card.location;
-
-        if (EnumHelpers.isArena(currentLocation)) {
-            if (card.owner !== this) {
-                card.owner.moveCard(card, targetLocation, options);
-                return;
-            }
-
-            // In normal play, all upgrades should already have been removed, but in manual play we may need to remove them.
-            // This won't trigger any leaves play effects
-            if (card.isUnit()) {
-                for (const upgrade of card.upgrades) {
-                    upgrade.owner.moveCard(upgrade, Location.Discard);
-                }
-            }
-
-            card.controller = this;
-        } else if (EnumHelpers.isArena(targetLocation)) {
-            card.setDefaultController(this);
-            card.controller = this;
-            // // This should only be called when an upgrade is dragged into play
-            // if (card.isUpgrade()) {
-            //     this.promptForUpgrade(card);
-            //     return;
-            // }
-        } else {
-            card.controller = card.owner;
-        }
-
-        if (targetLocation === Location.Deck && !options.bottom) {
-            targetPile.unshift(card);
-        } else if (
-            [Location.Discard, Location.RemovedFromGame].includes(targetLocation)
-        ) {
-            // new cards go on the top of the discard pile
-            targetPile.unshift(card);
-        } else if (targetPile) {
-            targetPile.push(card);
-        }
-
-        card.moveTo(targetLocation);
-    }
-
-    /**
-     * Removes a card from whichever list it's currently in
-     * @param card DrawCard
-     */
-    // TODO THIS PR: update
-    removeCardFromPile(card) {
-        // upgrades have a special exception here b/c they might be in our pile but controlled by the opponent
-        if (card.controller !== this && !card.isUpgrade()) {
-            card.controller.removeCardFromPile(card);
-            return;
-        }
-
-        var originalLocation = card.location;
-        var originalPile = this.getCardPile(originalLocation);
-
-        if (originalPile) {
-            let updatedPile = this.removeCardByUuid(originalPile, card.uuid);
-
-            switch (originalLocation) {
-                case Location.Base:
-                    this.baseZone = updatedPile;
-                    break;
-                case Location.SpaceArena:
-                    this.spaceArena = updatedPile;
-                    break;
-                case Location.GroundArena:
-                    this.groundArena = updatedPile;
-                    break;
-                case Location.Hand:
-                    this.handZone = updatedPile;
-                    break;
-                case Location.Deck:
-                    this.deckZone = updatedPile;
-                    break;
-                case Location.Discard:
-                    this.discardZone = updatedPile;
-                    break;
-                case Location.RemovedFromGame:
-                    this.outsideTheGame = updatedPile;
-                    break;
-                case Location.OutsideTheGame:
-                    this.outsideTheGameCards = updatedPile;
-                    break;
-                case Location.Resource:
-                    this.resourceZone = updatedPile;
-                    break;
-                default:
-                    Contract.fail(`Unknown zone name enum value: ${originalLocation}`);
-            }
-        }
-    }
-
-    /**
-     * Special case for moving upgrades to an arena b/c upgrades can be in either player's arena.
-     * Other card types (or other types of upgrade move) must use {@link Player.moveCard}.
-     */
-    putUpgradeInArena(upgrade, location) {
-        Contract.assertTrue(upgrade.isUpgrade());
-        Contract.assertTrue(EnumHelpers.isArena(location));
-
-        const pile = this.getCardPile(location);
-
-        Contract.assertFalse(pile.includes(upgrade), `Tried to move upgrade ${upgrade.name} to ${location} for ${this.name} but it is already there`);
-
-        pile.push(upgrade);
     }
 
     /**

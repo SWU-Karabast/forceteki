@@ -1,4 +1,5 @@
 import { InPlayCard } from '../card/baseClasses/InPlayCard';
+import { Card } from '../card/Card';
 import { Location, WildcardCardType } from '../Constants';
 import Game from '../Game';
 import Player from '../Player';
@@ -9,10 +10,9 @@ export interface IArenaCardFilterProperties extends ICardFilterProperties {
     controller?: Player;
 }
 
-export class ArenaZone extends ZoneAbstract<InPlayCard> {
+export abstract class ArenaZone extends ZoneAbstract<InPlayCard> {
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Game;
-    public override readonly zoneName;
 
     protected _cards = new Map<Player, InPlayCard[]>();
 
@@ -26,9 +26,8 @@ export class ArenaZone extends ZoneAbstract<InPlayCard> {
         return cardCount;
     }
 
-    public constructor(owner: Game, zoneName: Location) {
+    public constructor(owner: Game) {
         super(owner);
-        this.zoneName = zoneName;
     }
 
     public override getCards(filter?: IArenaCardFilterProperties): InPlayCard[] {
@@ -64,7 +63,9 @@ export class ArenaZone extends ZoneAbstract<InPlayCard> {
         cardListForController.push(card);
     }
 
-    public removeCard(card: InPlayCard) {
+    public removeCard(card: Card) {
+        Contract.assertTrue(card.canBeInPlay());
+
         const controller = card.controller;
         const cardListForController = this._cards.get(controller);
         const cardIdx = cardListForController.indexOf(card);

@@ -1,3 +1,4 @@
+import { Card } from '../card/Card';
 import { PlayableCard } from '../card/CardTypes';
 import { Location, RelativePlayer } from '../Constants';
 import Player from '../Player';
@@ -13,7 +14,7 @@ export enum AddCardSide {
 export class DeckZone extends ZoneAbstract<PlayableCard> {
     public override readonly hiddenForPlayers: RelativePlayer.Any;
     public override readonly owner: Player;
-    public override readonly zoneName: Location.Deck;
+    public override readonly name: Location.Deck;
 
     protected deck: PlayableCard[] = [];
 
@@ -73,7 +74,9 @@ export class DeckZone extends ZoneAbstract<PlayableCard> {
         return this.deck.pop() ?? null;
     }
 
-    public removeCard(card: PlayableCard) {
+    public removeCard(card: Card) {
+        Contract.assertTrue(card.isTokenOrPlayable());
+
         const cardIdx = this.deck.indexOf(card);
 
         Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current location is ${card.location}.`);

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { CardType, WildcardCardType } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class MakeAnOpening extends EventCard {
     protected override getImplementationId () {
@@ -16,11 +16,10 @@ export default class MakeAnOpening extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
-                    }),
+                    controller: RelativePlayer.Opponent,
+                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 }),
-                AbilityHelper.immediateEffects.heal((context) => ({ amount: 2, target: context.source.controller.base }))
+                AbilityHelper.immediateEffects.damage((context) => ({ amount: 2, target: context.source.controller.base }))
             ])
         });
     }
