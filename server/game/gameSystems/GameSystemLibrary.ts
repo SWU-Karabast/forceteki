@@ -193,11 +193,16 @@ export function playCardFromHand<TContext extends AbilityContext = AbilityContex
     return new PlayCardSystem(propertyFactory);
 }
 export function exhaustResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustResourcesProperties, TContext>): GameSystem<TContext> {
-    return new ExhaustResourcesSystem<TContext>(Object.assign({ ...propertyFactory, isCost: false }));
+    return new ExhaustResourcesSystem<TContext>(propertyFactory);
 }
 
 export function payResourceCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustResourcesProperties, TContext>): GameSystem<TContext> {
-    return new ExhaustResourcesSystem<TContext>(propertyFactory);
+    return new ExhaustResourcesSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IExhaustResourcesProperties, 'isCost'>(
+            propertyFactory,
+            { isCost: true }
+        )
+    );
 }
 
 /**

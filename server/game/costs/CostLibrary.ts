@@ -255,8 +255,8 @@ export function payPlayCardResourceCost<TContext extends AbilityContext = Abilit
 export function abilityResourceCost<TContext extends AbilityContext = AbilityContext>(amount: number | ((context: TContext) => number)): ICost<TContext> {
     return new GameSystemCost<TContext>(
         typeof amount === 'function'
-            ? GameSystems.payResourceCost<TContext>((context) => ({ target: context.player, amount: amount(context), isCost: true }))
-            : GameSystems.payResourceCost<TContext>((context) => ({ target: context.player, amount, isCost: true }))
+            ? GameSystems.payResourceCost<TContext>((context) => ({ target: context.player, amount: amount(context) }))
+            : GameSystems.payResourceCost<TContext>((context) => ({ target: context.player, amount }))
     );
 }
 
