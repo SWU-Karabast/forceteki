@@ -1,9 +1,11 @@
 import { Card } from '../card/Card';
+import { Location } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { ICardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
 export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard> {
+    public abstract override readonly name: Location;
     public override readonly owner: Player;
 
     protected _cards: TCard[] = [];
@@ -20,7 +22,7 @@ export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard>
         super(owner);
     }
 
-    public override getCards(filter?: ICardFilterProperties): TCard[] {
+    public override getCards(filter?: IZoneCardFilterProperties): TCard[] {
         return this._cards.filter(this.buildFilterFn(filter));
     }
 

@@ -37,9 +37,9 @@ const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerM
 const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.js');
 const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
 const { Card } = require('./card/Card.js');
-const { ArenaZone } = require('./zone/ArenaZone.js');
 const { GroundArenaZone } = require('./zone/GroundArenaZone.js');
 const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
+const { AllArenasZone } = require('./zone/AllArenasZone.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -79,6 +79,7 @@ class Game extends EventEmitter {
 
         this.spaceArena = new SpaceArenaZone(this);
         this.groundArena = new GroundArenaZone(this);
+        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.registerGlobalRulesListeners();
 

@@ -4,7 +4,7 @@ import { Location, RelativePlayer } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
-import { ICardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
 export enum AddCardSide {
     Top = 'top',
@@ -36,7 +36,7 @@ export class DeckZone extends ZoneAbstract<PlayableCard> {
         this.deck = cards;
     }
 
-    public override getCards(filter?: ICardFilterProperties): PlayableCard[] {
+    public override getCards(filter?: IZoneCardFilterProperties): PlayableCard[] {
         return this.deck.filter(this.buildFilterFn(filter));
     }
 

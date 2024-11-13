@@ -1,6 +1,6 @@
 import { Location } from '../Constants';
-import { ArenaZone } from './ArenaZone';
+import { ConcreteArenaZone } from './ConcreteArenaZone';
 
-export class SpaceArenaZone extends ArenaZone {
+export class SpaceArenaZone extends ConcreteArenaZone {
     public override readonly name: Location.SpaceArena;
 }

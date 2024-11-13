@@ -17,12 +17,12 @@ import { UnitCard } from './core/card/CardTypes';
 import { BaseZone } from './core/zone/BaseZone';
 import { DeckZone } from './core/zone/DeckZone';
 import { DiscardZone } from './core/zone/DiscardZone';
-import { ArenaZone } from './core/zone/ArenaZone';
 import { HandZone } from './core/zone/HandZone';
 import { OutsideTheGameZone } from './core/zone/OutsideTheGameZone';
 import { ResourceZone } from './core/zone/ResourceZone';
 import { GroundArenaZone } from './core/zone/GroundArenaZone';
 import { SpaceArenaZone } from './core/zone/SpaceArenaZone';
+import { IZoneCardFilterProperties } from './core/zone/ZoneAbstract';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
