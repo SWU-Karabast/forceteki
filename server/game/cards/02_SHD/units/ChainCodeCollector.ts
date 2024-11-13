@@ -12,7 +12,7 @@ export default class ChainCodeCollector extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addOnAttackAbility({
-            title: 'Each friendly unit named Zuckuss gets +1/+1 and gains Ambush',
+            title: 'If the defender has a Bounty, it gets –4/–0 for this attack',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.event.attack.target.hasSomeKeyword(KeywordName.Bounty),
                 onTrue: AbilityHelper.immediateEffects.cardLastingEffect((context) => ({
