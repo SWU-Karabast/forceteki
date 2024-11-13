@@ -71,6 +71,7 @@ import { IPlayerPhaseLastingEffectProperties, PlayerPhaseLastingEffectSystem } f
 import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
 import { DiscardFromDeckSystem, IDiscardFromDeckProperties } from './DiscardFromDeckSystem';
 import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
+import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -289,6 +290,15 @@ export function reveal<TContext extends AbilityContext = AbilityContext>(propert
 export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHand<TContext> {
     // TODO: Once we support discarding from opponents hand, add logic only allow the target to discard from their own hand here
     return new DiscardCardsFromHand<TContext>(propertyFactory);
+}
+
+/**
+ * Creates a new instance of a system that discards the entire hand of the target player(s).
+ *
+ * By default, this system will target the opponent of the player who initiated the ability.
+ */
+export function discardEntireHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardEntireHandSystemProperties, TContext> = {}): DiscardEntireHandSystem<TContext> {
+    return new DiscardEntireHandSystem<TContext>(propertyFactory);
 }
 // /**
 //  * default amount = 1
