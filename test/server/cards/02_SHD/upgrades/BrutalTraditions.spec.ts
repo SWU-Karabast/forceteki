@@ -16,7 +16,7 @@ describe('Brutal Traditions', function() {
 
             it('should be able to play it from the discard pile when an opponent\'s unit is defeated.', function () {
                 const { context } = contextRef;
-                // CASE 1: Play it from the discard pile when removed with confiscate
+
                 context.player1.clickCard(context.vigilantHonorGuards);
                 context.player1.clickCard(context.wampa);
 
@@ -37,10 +37,9 @@ describe('Brutal Traditions', function() {
 
             it('should not be able to play it from the discard pile.', function () {
                 const { context } = contextRef;
-                // CASE 1: Play it from the discard pile when removed with confiscate
+
                 context.player1.passAction();
                 context.player2.clickCard(context.confiscate);
-
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player1).not.toBeAbleToSelect(context.brutalTraditions);
             });
