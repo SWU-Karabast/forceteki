@@ -27,7 +27,6 @@ export default class EzraBridger extends NonLeaderUnitCard {
                     thenCondition: (context) => context.source.controller.drawDeck.length > 0,
                     targetResolver: {
                         mode: TargetMode.Select,
-                        optional: true,
                         choices: {
                             ['Play it']: AbilityHelper.immediateEffects.playCardFromOutOfPlay(() => ({ target: topCardOfDeck, playType: PlayType.PlayFromOutOfPlay })),
                             ['Discard it']: AbilityHelper.immediateEffects.discardSpecificCard(() => ({ target: topCardOfDeck })),
