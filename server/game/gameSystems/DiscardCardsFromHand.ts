@@ -43,7 +43,7 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
                 return false;
             }
 
-            if ((properties.isCost || GameStateChangeRequired.MustFullyResolve) && availableHand.length < properties.amount) {
+            if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableHand.length < properties.amount) {
                 return false;
             }
 
