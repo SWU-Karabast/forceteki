@@ -8,7 +8,7 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                         groundArena: ['jango-fett#renowned-bounty-hunter']
                     },
                     player2: {
-                        groundArena: ['hylobon-enforcer', 'battlefield-marine', 'wampa', { card: 'maz-kanata#pirate-queen', upgrades: ['wanted'] }]
+                        groundArena: ['hylobon-enforcer', 'battlefield-marine', 'wampa', { card: 'maz-kanata#pirate-queen', upgrades: ['wanted'] }, 'seasoned-shoretrooper']
                     }
                 });
 
@@ -68,29 +68,22 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 expect(context.jangoFett.location).toBe('discard');
                 expect(context.wampa.location).toBe('discard');
                 expect(context.player1.hand.length).toBe(3);// no draw, still 3
-            });
 
-            it('should draw when killing a enemy unit (and die)', function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        groundArena: [{ card: 'jango-fett#renowned-bounty-hunter', damage: 3 }]
-                    },
-                    player2: {
-                        groundArena: ['battlefield-marine']
-                    }
-                });
+                // revive jango to the last test
+                context.player1.moveCard(context.jangoFett, 'ground arena');
+                context.setDamage(context.jangoFett, 3);
+                context.moveToNextActionPhase();
 
-                const { context } = contextRef;
-
+                // jango kill shoretrooper and die, we should draw
+                const handSize = context.player1.hand.length;
                 context.player1.clickCard(context.jangoFett);
-                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.seasonedShoretrooper);
 
                 expect(context.jangoFett.location).toBe('discard');
                 expect(context.battlefieldMarine.location).toBe('discard');
 
                 expect(context.p2Base.damage).toBe(0);
-                expect(context.player1.hand.length).toBe(1);
+                expect(context.player1.hand.length).toBe(handSize + 1);
             });
         });
     });
