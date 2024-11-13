@@ -1,17 +1,14 @@
 import { InPlayCard } from '../card/baseClasses/InPlayCard';
 import { Card } from '../card/Card';
-import { Location, WildcardCardType } from '../Constants';
+import { Location } from '../Constants';
 import Game from '../Game';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { ICardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import { ConcreteOrMetaArenaZone, IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
 
-export interface IArenaCardFilterProperties extends ICardFilterProperties {
-    controller?: Player;
-}
-
-export abstract class ArenaZone extends ZoneAbstract<InPlayCard> {
+export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone {
     public override readonly hiddenForPlayers: null;
+    public abstract override readonly name: Location;
     public override readonly owner: Game;
 
     protected _cards = new Map<Player, InPlayCard[]>();
@@ -30,7 +27,7 @@ export abstract class ArenaZone extends ZoneAbstract<InPlayCard> {
         super(owner);
     }
 
-    public override getCards(filter?: IArenaCardFilterProperties): InPlayCard[] {
+    public override getCards(filter?: IArenaZoneCardFilterProperties): InPlayCard[] {
         const filterFn = this.buildFilterFn(filter);
 
         let cards: InPlayCard[] = [];
@@ -42,14 +39,6 @@ export abstract class ArenaZone extends ZoneAbstract<InPlayCard> {
         }
 
         return cards;
-    }
-
-    public getUnitCards(filter?: Omit<IArenaCardFilterProperties, 'type'>): InPlayCard[] {
-        return this.getCards({ ...filter, type: WildcardCardType.Unit });
-    }
-
-    public getUpgradeCards(filter?: Omit<IArenaCardFilterProperties, 'type'>): InPlayCard[] {
-        return this.getCards({ ...filter, type: WildcardCardType.Upgrade });
     }
 
     public addCard(card: InPlayCard) {

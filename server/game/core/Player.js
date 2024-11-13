@@ -15,7 +15,9 @@ const {
     Aspect,
     WildcardLocation,
     PlayType,
-    KeywordName
+    KeywordName,
+    WildcardCardType,
+    Trait
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -115,22 +117,70 @@ class Player extends GameObject {
         this.clock.reset();
     }
 
+    // /**
+    //  * Get all cards in this player's arena(s). Any opponent upgrades will be included.
+    //  * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+    //  */
+    // getArenaCards(arena = WildcardLocation.AnyArena) {
+    //     switch (arena) {
+    //         case Location.GroundArena:
+    //             return [...this.groundArena];
+    //         case Location.SpaceArena:
+    //             return [...this.spaceArena];
+    //         case WildcardLocation.AnyArena:
+    //             return this.spaceArena.concat(this.groundArena);
+    //         default:
+    //             Contract.fail(`Unknown arena type: ${arena}`);
+    //             return [];
+    //     }
+    // }
+
     /**
-     * Get all cards in this player's arena(s). Any opponent upgrades will be included.
-     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+     *
+     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
      */
-    getArenaCards(arena = WildcardLocation.AnyArena) {
-        switch (arena) {
-            case Location.GroundArena:
-                return [...this.groundArena];
-            case Location.SpaceArena:
-                return [...this.spaceArena];
-            case WildcardLocation.AnyArena:
-                return this.spaceArena.concat(this.groundArena);
-            default:
-                Contract.fail(`Unknown arena type: ${arena}`);
-                return [];
-        }
+    getArenaCards(filter = {}) {
+        return this.game.allArenas.getCards({ ...filter, controller: this });
+    }
+
+    /**
+     *
+     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+     */
+    getArenaUnits(filter = {}) {
+        return this.game.allArenas.getUnitCards({ ...filter, controller: this });
+    }
+
+    /**
+     *
+     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+     */
+    getArenaUpgrades(filter = {}) {
+        return this.game.allArenas.getUpgradeCards({ ...filter, controller: this });
+    }
+
+    /**
+     *
+     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
+     */
+    hasSomeArenaCard(filter) {
+        return this.game.allArenas.hasSomeCard({ ...filter, controller: this });
+    }
+
+    /**
+         *
+         * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+         */
+    hasSomeArenaUnit(filter) {
+        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
+    }
+
+    /**
+         *
+         * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+         */
+    hasSomeArenaUpgrade(filter) {
+        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
     /**
@@ -138,7 +188,7 @@ class Player extends GameObject {
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
     getUnitsInPlay(arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
-        return this.getArenaCards(arena).filter((card) => card.isUnit() && cardCondition(card));
+        return this.getArenaUnits({ arena, condition: cardCondition });
     }
 
 
@@ -148,7 +198,7 @@ class Player extends GameObject {
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
     getUnitsInPlayWithAspect(aspect, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
-        return this.getArenaCards(arena).filter((card) => card.isUnit() && card.hasSomeAspect(aspect) && cardCondition(card));
+        return this.getArenaUnits({ aspect, arena, condition: cardCondition });
     }
 
     /**
@@ -157,7 +207,7 @@ class Player extends GameObject {
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
     getOtherUnitsInPlay(ignoreUnit, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
-        return this.getArenaCards(arena).filter((card) => card.isUnit() && card !== ignoreUnit && cardCondition(card));
+        return this.getArenaUnits({ otherThan: ignoreUnit, arena, condition: cardCondition });
     }
 
     /**
@@ -167,7 +217,7 @@ class Player extends GameObject {
      * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
      */
     getOtherUnitsInPlayWithAspect(ignoreUnit, aspect, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
-        return this.getArenaCards(arena).filter((card) => card.isUnit() && card !== ignoreUnit && card.hasSomeAspect(aspect) && cardCondition(card));
+        return this.getArenaUnits({ otherThan: ignoreUnit, aspect, arena, condition: cardCondition });
     }
 
     /**
@@ -175,7 +225,7 @@ class Player extends GameObject {
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
     controlsLeaderOrUnitWithTitle(title) {
-        return this.leader.title === title || this.getArenaCards(WildcardLocation.AnyArena).filter((card) => card.title === title).length > 0;
+        return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
     }
 
     // TODO THIS PR: remove
@@ -205,14 +255,15 @@ class Player extends GameObject {
         });
     }
 
-    /**
-     * Checks whether any cards in play are currently marked as selected
-     */
-    areCardsSelected() {
-        return this.getArenaCards().some((card) => {
-            return card.selected;
-        });
-    }
+    // TODO THIS PR: how is 'card.selected' set and used?
+    // /**
+    //  * Checks whether any cards in play are currently marked as selected
+    //  */
+    // areCardsSelected() {
+    //     return this.getArenaCards().some((card) => {
+    //         return card.selected;
+    //     });
+    // }
 
     /**
      * Removes a card with the passed uuid from a list. Returns an _(Array)
@@ -296,7 +347,7 @@ class Player extends GameObject {
     // TODO: add support for checking upgrades
     /**
      * Returns if a unit is in play that has the passed trait
-     * @param {string} trait
+     * @param {Trait} trait
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
@@ -315,7 +366,7 @@ class Player extends GameObject {
     isAspectInPlay(aspect, ignoreUnit = null) {
         return ignoreUnit != null
             ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeAspect(aspect))
-            : this.getUnitsInPlay().some((card) => card.hasSomeTrait(aspect));
+            : this.getUnitsInPlay().some((card) => card.hasSomeAspect(aspect));
     }
 
     /**

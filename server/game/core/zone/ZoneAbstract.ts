@@ -1,11 +1,11 @@
 import { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
-import { Aspect, CardTypeFilter, KeywordName, Location, RelativePlayer, Trait, WildcardCardType } from '../Constants';
+import { Aspect, CardTypeFilter, KeywordName, Location, RelativePlayer, Trait, WildcardCardType, WildcardLocation } from '../Constants';
 import Player from '../Player';
 import Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
 
-export interface ICardFilterProperties {
+export interface IZoneCardFilterProperties {
     aspect?: Aspect | Aspect[];
     condition?: (card: Card) => boolean;
     keyword?: KeywordName | KeywordName[];
@@ -18,7 +18,7 @@ export abstract class ZoneAbstract<TCard extends Card> {
     public readonly owner: Player | Game;
 
     public abstract readonly hiddenForPlayers: RelativePlayer | null;
-    public abstract readonly name: Location;
+    public abstract readonly name: Location | WildcardLocation;
 
     public abstract get count(): number;
 
@@ -30,9 +30,9 @@ export abstract class ZoneAbstract<TCard extends Card> {
         this.owner = owner;
     }
 
-    public abstract getCards(filter?: ICardFilterProperties): TCard[];
+    public abstract getCards(filter?: IZoneCardFilterProperties): TCard[];
 
-    public hasSomeCardMatching(filter: ICardFilterProperties): boolean {
+    public hasSomeCard(filter: IZoneCardFilterProperties): boolean {
         return this.getCards(filter).length > 0;
     }
 
@@ -45,7 +45,7 @@ export abstract class ZoneAbstract<TCard extends Card> {
     }
 
     /** Constructs a filtering handler based on the provided filter properties */
-    protected buildFilterFn(filter?: ICardFilterProperties): (card: Card) => boolean {
+    protected buildFilterFn(filter?: IZoneCardFilterProperties): (card: Card) => boolean {
         if (!filter) {
             return () => true;
         }

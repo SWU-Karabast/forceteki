@@ -17,7 +17,6 @@ import { UnitCard } from './core/card/CardTypes';
 import { BaseZone } from './core/zone/BaseZone';
 import { DeckZone } from './core/zone/DeckZone';
 import { DiscardZone } from './core/zone/DiscardZone';
-import { ArenaZone } from './core/zone/ArenaZone';
 import { HandZone } from './core/zone/HandZone';
 import { OutsideTheGameZone } from './core/zone/OutsideTheGameZone';
 import { ResourceZone } from './core/zone/ResourceZone';

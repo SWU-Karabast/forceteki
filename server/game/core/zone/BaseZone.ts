@@ -3,7 +3,7 @@ import { LeaderCard } from '../card/LeaderCard';
 import { Location } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { ICardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
 export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
     public readonly base: BaseCard;
@@ -32,7 +32,7 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
         this._leader = leader;
     }
 
-    public override getCards(filter?: ICardFilterProperties): (LeaderCard | BaseCard)[] {
+    public override getCards(filter?: IZoneCardFilterProperties): (LeaderCard | BaseCard)[] {
         return this.cards.filter(this.buildFilterFn(filter));
     }
 
