@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { WildcardCardType, WildcardLocation } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class Waylay extends EventCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class Waylay extends EventCard {
             title: 'Return a non-leader unit to its owner\'s hand',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                immediateEffect: AbilityHelper.immediateEffects.returnToHandFromPlay()
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             }
         });
     }
