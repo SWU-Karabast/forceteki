@@ -50,7 +50,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
         this._deployed = true;
-        this.controller.moveCard(this, this.defaultArena);
+        this.moveTo(this.defaultArena);
     }
 
     /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
@@ -58,7 +58,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
 
         this._deployed = false;
-        this.controller.moveCard(this, Location.Base);
+        this.moveTo(Location.Base);
     }
 
     /**

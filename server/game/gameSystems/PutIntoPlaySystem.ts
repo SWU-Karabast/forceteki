@@ -31,7 +31,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             finalController = finalController.opponent;
         }
 
-        player.moveCard(event.card, event.card.defaultArena);
+        event.card.moveTo(event.card.defaultArena);
 
         if (event.status === 'ready') {
             event.card.ready();

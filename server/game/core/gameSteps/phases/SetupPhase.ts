@@ -26,14 +26,14 @@ export class SetupPhase extends Phase {
 
     private putBaseInPlay() {
         for (const player of this.game.getPlayers()) {
-            player.moveCard(player.base, Location.Base);
+            player.putBaseInPlay();
             player.damageToBase = 0;
         }
     }
 
     private putLeaderInPlay() {
         for (const player of this.game.getPlayers()) {
-            player.moveCard(player.leader, Location.Base);
+            player.putLeaderInPlay();
             player.leader.ready();
         }
     }

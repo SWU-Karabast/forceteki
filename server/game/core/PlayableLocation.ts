@@ -1,12 +1,13 @@
+import { Zone } from '../Interfaces';
 import type { Location, PlayType } from './Constants';
 import type Player from './Player';
 import { Card } from './card/Card';
 
+// TODO THIS PR: look into redesigning PlayableLocation
 export class PlayableLocation {
     public constructor(
         public playingType: PlayType,
-        private player: Player,
-        private location: Location,
+        private zone: Zone,
         public cards = new Set<Card>()
     ) {}
 
@@ -15,6 +16,6 @@ export class PlayableLocation {
             return false;
         }
 
-        return this.player.getCardPile(this.location).includes(card);
+        return this.zone.hasCard(card);
     }
 }

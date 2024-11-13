@@ -22,8 +22,6 @@ const {
 
 const EnumHelpers = require('./utils/EnumHelpers');
 const Helpers = require('./utils/Helpers');
-const { BaseCard } = require('./card/BaseCard');
-const { LeaderUnitCard } = require('./card/LeaderUnitCard');
 const { InPlayCard } = require('./card/baseClasses/InPlayCard');
 const { AbilityContext } = require('./ability/AbilityContext');
 const { HandZone } = require('./zone/HandZone');
@@ -68,8 +66,8 @@ class Player extends GameObject {
         this.clock = clockFor(this, clockDetails);
 
         this.playableLocations = [
-            new PlayableLocation(PlayType.PlayFromHand, this, Location.Hand),
-            new PlayableLocation(PlayType.Smuggle, this, Location.Resource)
+            new PlayableLocation(PlayType.PlayFromHand, this.handZone),
+            new PlayableLocation(PlayType.Smuggle, this.resourceZone)
         ];
 
         this.limitedPlayed = 0;
@@ -569,7 +567,7 @@ class Player extends GameObject {
         this.leader = preparedDecklist.leader;
 
         this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
-        this.baseZone = new BaseZone(this, preparedDecklist.base, preparedDecklist.leader);
+        this.baseZone = new BaseZone(this);
 
         this.decklist = preparedDecklist;
     }
@@ -609,15 +607,22 @@ class Player extends GameObject {
         }
     }
 
-    addPlayableLocation(type, player, location, cards = []) {
-        Contract.assertNotNullLike(player);
-        let playableLocation = new PlayableLocation(type, player, location, new Set(cards));
+    addPlayableLocation(type, zone, cards = []) {
+        let playableLocation = new PlayableLocation(type, zone, new Set(cards));
         this.playableLocations.push(playableLocation);
         return playableLocation;
     }
 
     removePlayableLocation(location) {
         this.playableLocations = this.playableLocations.filter((l) => l !== location);
+    }
+
+    putBaseInPlay() {
+        this.baseZone.setBase(this.base);
+    }
+
+    putLeaderInPlay() {
+        this.baseZone.setLeader(this.leader);
     }
 
     /**

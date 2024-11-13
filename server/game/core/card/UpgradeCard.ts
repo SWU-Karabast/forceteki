@@ -75,11 +75,8 @@ export class UpgradeCard extends UpgradeCardParent {
 
         if (this._parentCard) {
             this.unattach();
-        } else {
-            this.controller.removeCardFromPile(this);
         }
 
-        newParentCard.controller.putUpgradeInArena(this, newParentCard.location);
         this.moveTo(newParentCard.location);
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
@@ -89,7 +86,6 @@ export class UpgradeCard extends UpgradeCardParent {
         Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
 
         this.parentCard.unattachUpgrade(this);
-        this.parentCard.controller.removeCardFromPile(this);
         this._parentCard = null;
     }
 

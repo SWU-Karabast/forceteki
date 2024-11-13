@@ -31,9 +31,11 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // event.cardStateWhenMoved = card.createSnapshot();
 
         const card = event.card as Card;
-        const player = event.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
 
-        player.moveCard(card, Location.Resource);
+        // TODO TAKE CONTROL: change controller on being resourced logic
+        // const player = event.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
+
+        card.moveTo(Location.Resource);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IResourceCardProperties {

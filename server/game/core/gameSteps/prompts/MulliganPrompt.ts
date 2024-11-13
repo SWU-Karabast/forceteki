@@ -2,6 +2,8 @@ import { AllPlayerPrompt } from './AllPlayerPrompt';
 import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import type Game from '../../Game';
 import * as Contract from '../../utils/Contract';
+import { AddCardSide } from '../../zone/DeckZone';
+import { Location } from '../../Constants';
 
 export class MulliganPrompt extends AllPlayerPrompt {
     protected playersDone = new Map<string, boolean>();
@@ -62,7 +64,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
         for (const player of this.game.getPlayers()) {
             if (this.playerMulligan[player.name]) {
                 for (const card of player.hand) {
-                    player.moveCard(card, 'deck bottom');
+                    card.moveTo(Location.Deck, AddCardSide.Bottom);
                 }
                 player.shuffleDeck();
                 player.drawCardsToHand(6);

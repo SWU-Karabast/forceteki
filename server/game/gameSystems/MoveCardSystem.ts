@@ -3,6 +3,7 @@ import type { Card } from '../core/card/Card';
 import { CardType, EffectName, EventName, Location, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { AddCardSide } from '../core/zone/DeckZone';
 
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
     destination?: Location;
@@ -38,11 +39,15 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         if (event.switch && event.switchTarget) {
             const otherCard = event.switchTarget;
-            card.owner.moveCard(otherCard, card.location);
+            otherCard.moveTo(card.location);
         }
 
-        const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
-        player.moveCard(card, event.destination, { bottom: !!event.bottom });
+        // TODO TAKE CONTROL: change controller on move logic
+        // const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
+        card.moveTo(event.destination, event.destination === Location.Deck
+            ? !!event.bottom ? AddCardSide.Top : AddCardSide.Bottom
+            : null
+        );
 
         // TODO: use ShuffleDeckSystem instead
         if (event.destination === Location.Deck && event.shuffle) {

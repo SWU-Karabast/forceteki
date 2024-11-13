@@ -35,7 +35,7 @@ export class RegroupPhase extends Phase {
         const cardsToReady: CardWithExhaustProperty[] = [];
 
         for (const player of this.game.getPlayers()) {
-            cardsToReady.push(...player.getUnitsInPlay());
+            cardsToReady.push(...player.getUnitsInPlay() as CardWithExhaustProperty[]);
             cardsToReady.push(...player.getResourceCards());
 
             if (!(player.leader.deployed)) {

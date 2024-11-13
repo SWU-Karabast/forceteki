@@ -6,12 +6,16 @@ import * as Contract from '../utils/Contract';
 import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
 export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
-    public readonly base: BaseCard;
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Player;
     public override readonly name: Location.Base;
 
+    private _base?: BaseCard;
     private _leader?: LeaderCard;
+
+    public get base(): BaseCard | null {
+        return this._base;
+    }
 
     public override get cards(): (LeaderCard | BaseCard)[] {
         return this._leader ? [this.base, this._leader] : [this.base];
@@ -25,15 +29,19 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
         return this._leader;
     }
 
-    public constructor(owner: Player, base: BaseCard, leader: LeaderCard) {
+    public constructor(owner: Player) {
         super(owner);
-
-        this.base = base;
-        this._leader = leader;
     }
 
     public override getCards(filter?: IZoneCardFilterProperties): (LeaderCard | BaseCard)[] {
         return this.cards.filter(this.buildFilterFn(filter));
+    }
+
+    public setLeader(leader: LeaderCard) {
+        Contract.assertEqual(leader.controller, this.owner, `Attempting to add card ${leader.internalName} to ${this} as leader but its controller is ${leader.controller}`);
+        Contract.assertIsNullLike(this._leader, `Attempting to add leader ${leader.internalName} to ${this} but leader ${this._leader.internalName} is already there`);
+
+        this._leader = leader;
     }
 
     public removeLeader() {
@@ -42,10 +50,16 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
         this._leader = null;
     }
 
-    public setLeader(leader: LeaderCard) {
-        Contract.assertEqual(leader.controller, this.owner, `Attempting to add card ${leader.internalName} to ${this} but its controller is ${leader.controller}`);
-        Contract.assertIsNullLike(this._leader, `Attempting to add leader ${leader.internalName} to ${this} but leader ${this._leader.internalName} is already there`);
+    public setBase(base: BaseCard) {
+        Contract.assertEqual(base.controller, this.owner, `Attempting to add card ${base.internalName} to ${this} as base but its controller is ${base.controller}`);
+        Contract.assertIsNullLike(this._base, `Attempting to add base ${base.internalName} to ${this} but base ${this._base.internalName} is already there`);
 
-        this._leader = leader;
+        this._base = base;
+    }
+
+    public removeBase() {
+        Contract.assertNotNullLike(this._base, `Attempting to remove base from ${this} but it is in location ${this.owner.base.location}`);
+
+        this._base = null;
     }
 }
