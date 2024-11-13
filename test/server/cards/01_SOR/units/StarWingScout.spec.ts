@@ -31,7 +31,7 @@ describe('Star Wing Scout', function () {
                 });
             });
 
-            describe('when the player has initiative', function () {
+            describe('when the player does not have initiative', function () {
                 beforeEach(function () {
                     contextRef.setupTest({
                         phase: 'action',
