@@ -35,12 +35,7 @@ describe('Forced Surrender', function() {
                     context.player1.clickPrompt('Done');
                 };
 
-                context.player1.passAction();
-
                 // Scenario 1: Damage dealt with direct attack
-                context.player2.clickCard(context.mazKanata);
-                context.player2.clickCard(context.p1Base);
-
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.p2Base);
 
@@ -65,8 +60,7 @@ describe('Forced Surrender', function() {
                 reset();
 
                 // Scenario 3: Damage dealt with overwhelm
-                context.player2.clickCard(context.mazKanata);
-                context.player2.clickCard(context.p1Base);
+                context.player2.passAction();
 
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.mazKanata);
@@ -81,8 +75,7 @@ describe('Forced Surrender', function() {
                 reset();
 
                 // Scenario 4: Damage dealt with event
-                context.player2.clickCard(context.mazKanata);
-                context.player2.clickCard(context.p1Base);
+                context.player2.passAction();
 
                 context.player1.moveCard(context.daringRaid, 'hand');
                 context.player1.clickCard(context.daringRaid);
@@ -98,8 +91,7 @@ describe('Forced Surrender', function() {
                 reset();
 
                 // Scenario 5: Damage dealt with ability and to self
-                context.player2.clickCard(context.mazKanata);
-                context.player2.clickCard(context.p1Base);
+                context.player2.passAction();
 
                 context.player1.clickCard(context.sabineWren);
                 context.player1.clickPrompt('Deal 1 damage to each base');
@@ -114,8 +106,7 @@ describe('Forced Surrender', function() {
                 reset();
 
                 // Scenario 6: Damage dealt with multiple sources
-                context.player2.clickCard(context.mazKanata);
-                context.player2.clickCard(context.p1Base);
+                context.player2.passAction();
 
                 context.player1.clickCard(context.sabineWren);
                 context.player1.clickPrompt('Deal 1 damage to each base');
