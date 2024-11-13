@@ -12,21 +12,19 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'If an enemy unit has a Bounty, you may ready this unit',
+            title: 'Ready this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.opponent.getUnitsInPlay(WildcardLocation.AnyArena, (card) => card.hasSomeKeyword(KeywordName.Bounty)).length > 0,
-                onTrue: AbilityHelper.immediateEffects.ready((context) => ({
-                    target: context.source
-                })),
+                onTrue: AbilityHelper.immediateEffects.ready(),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
 
         this.addOnAttackAbility({
-            title: 'You may deal 1 damage to it for each damage on this unit',
+            title: 'Deal 1 damage to a unit for each damage on this unit',
+            optional: true,
             targetResolver: {
-                optional: true,
                 locationFilter: Location.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 condition: (context) => context.source.damage > 0,
