@@ -3,18 +3,13 @@ import { EventName, GameStateChangeRequired } from '../core/Constants';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import Player from '../core/Player';
 
-export interface IPayResourceCostProperties extends IPlayerTargetSystemProperties {
+export interface IExhaustResourcesProperties extends IPlayerTargetSystemProperties {
     amount: number;
 }
 
-// TODO: replace this with ExhaustResourcesSystem when we have it
-export class PayResourceCostSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IPayResourceCostProperties> {
+export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IExhaustResourcesProperties> {
     public override readonly name = 'payResourceCost';
     public override readonly eventName = EventName.onExhaustResources;
-    protected override defaultProperties: IPayResourceCostProperties = {
-        amount: null,
-        isCost: true
-    };
 
     public override eventHandler(event): void {
         event.player.exhaustResources(event.amount);
