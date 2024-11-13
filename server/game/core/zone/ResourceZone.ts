@@ -4,7 +4,7 @@ import { SimpleZone } from './SimpleZone';
 
 export class ResourceZone extends SimpleZone<PlayableCard> {
     public override readonly hiddenForPlayers: RelativePlayer.Opponent;
-    public override readonly zoneName: Location.Resource;
+    public override readonly name: Location.Resource;
 
     public get exhaustedResourceCount() {
         return this.exhaustedResources.length;

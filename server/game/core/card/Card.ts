@@ -1,4 +1,4 @@
-import { IActionAbilityProps, IConstantAbilityProps } from '../../Interfaces';
+import { IActionAbilityProps, IConstantAbilityProps, Zone } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
@@ -25,6 +25,7 @@ import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployabl
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import { AddCardSide } from '../zone/DeckZone';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -61,7 +62,7 @@ export class Card extends OngoingEffectSource {
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
-    private _location: Location;
+    private _zone: Zone;
     private nextAbilityIdx = 0;
 
 
@@ -80,7 +81,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public get location(): Location {
-        return this._location;
+        return this._zone.name;
     }
 
     public get traits(): Set<Trait> {
@@ -89,6 +90,10 @@ export class Card extends OngoingEffectSource {
 
     public get type(): CardType {
         return this.printedType;
+    }
+
+    public get zone(): Zone {
+        return this.zone;
     }
 
     // *********************************************** CONSTRUCTOR ***********************************************
@@ -116,12 +121,6 @@ export class Card extends OngoingEffectSource {
         this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
             this.internalName);
-
-        if (this.isToken()) {
-            this._location = Location.OutsideTheGame;
-        } else {
-            this._location = Location.Deck;
-        }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
     }
@@ -449,7 +448,10 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* LOCATION MANAGEMENT *******************************************
-    public moveTo(targetLocation: Location) {
+    public moveTo(targetLocation: Location, addCardToDeckSide: AddCardSide = null) {
+        Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
+        Contract.assertEqual(targetLocation === Location.Deck, addCardToDeckSide != null, `Must provide addCardToDeckSide iff moving to deck (${this.internalName})`);
+
         const originalLocation = this.location;
 
         if (originalLocation === targetLocation) {
@@ -457,9 +459,18 @@ export class Card extends OngoingEffectSource {
         }
 
         this.cleanupBeforeMove(targetLocation);
-        const prevLocation = this._location;
-        this._location = targetLocation;
-        this.initializeForCurrentLocation(prevLocation);
+
+        const prevZone = this._zone;
+
+        if (prevZone.name === Location.Base) {
+            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${prevZone}`);
+            prevZone.removeLeader();
+        } else {
+            prevZone.removeCard(this);
+        }
+
+        this.addSelfToZone(targetLocation);
+        this.initializeForCurrentLocation(prevZone.name);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
@@ -468,6 +479,61 @@ export class Card extends OngoingEffectSource {
         });
 
         this.game.registerMovedCard(this);
+    }
+
+    private addSelfToZone(location: Location, addCardToDeckSide: AddCardSide = null) {
+        switch (location) {
+            case Location.Base:
+                this._zone = this.owner.baseZone;
+                Contract.assertTrue(this.isLeader());
+                this._zone.setLeader(this);
+                break;
+
+            case Location.Deck:
+                this._zone = this.owner.deckZone;
+                Contract.assertTrue(this.isTokenOrPlayable());
+                this._zone.addCard(this, addCardToDeckSide);
+                break;
+
+            case Location.Discard:
+                this._zone = this.owner.discardZone;
+                Contract.assertTrue(this.isTokenOrPlayable());
+                this._zone.addCard(this);
+                break;
+
+            case Location.GroundArena:
+                this._zone = this.game.groundArena;
+                Contract.assertTrue(this.canBeInPlay());
+                this._zone.addCard(this);
+                break;
+
+            case Location.Hand:
+                this._zone = this.owner.handZone;
+                Contract.assertTrue(this.isTokenOrPlayable());
+                this._zone.addCard(this);
+                break;
+
+            case Location.OutsideTheGame:
+                this._zone = this.owner.outsideTheGame;
+                Contract.assertTrue(this.isTokenOrPlayable());
+                this._zone.addCard(this);
+                break;
+
+            case Location.Resource:
+                this._zone = this.controller.resourceZone;
+                Contract.assertTrue(this.isTokenOrPlayable());
+                this._zone.addCard(this);
+                break;
+
+            case Location.SpaceArena:
+                this._zone = this.game.spaceArena;
+                Contract.assertTrue(this.canBeInPlay());
+                this._zone.addCard(this);
+                break;
+
+            default:
+                Contract.fail(`Unknown zone enum value: ${location}`);
+        }
     }
 
     /**
