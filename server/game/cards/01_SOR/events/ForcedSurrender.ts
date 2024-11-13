@@ -23,7 +23,14 @@ export default class ForcedSurrender extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.draw({ amount: 2 }),
                 AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
-                    target: this.damageDealtThisPhaseWatcher.getOpponentsWhoseBasesWereDamagedByPlayer(context.source.controller),
+                    target: [
+                        ...new Set(
+                            this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
+                                context.source.controller,
+                                (damage) => damage.target.isBase() && damage.target.controller !== context.source.controller
+                            ).map((damage) => damage.target.controller)
+                        )
+                    ],
                     amount: 2
                 }))
             ]),

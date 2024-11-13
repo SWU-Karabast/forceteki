@@ -21,14 +21,9 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
         super(StateWatcherName.DamageDealtThisPhase, registrar, card);
     }
 
-    public getOpponentsWhoseBasesWereDamagedByPlayer(player: Player) {
-        return [
-            ...new Set(
-                this.getCurrentValue()
-                    .filter((entry) => entry.target.isBase() && entry.damageSource.player === player)
-                    .map((entry) => entry.target.controller)
-            )
-        ].filter((opponent) => opponent !== player);
+    public getDamageDealtByPlayer(player: Player, filter: (entry: DamageDealtEntry) => boolean = () => true): IDamageDealtThisPhase {
+        return this.getCurrentValue()
+            .filter((entry) => entry.damageSource.player === player && filter(entry));
     }
 
     protected override setupWatcher() {
