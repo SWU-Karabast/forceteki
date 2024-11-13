@@ -38,8 +38,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
                 return false;
             }
             return (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
-              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState) &&
-                (!properties.cardCondition || properties.cardCondition(card, contextCopy)));
+              (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
+              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState));
         };
         return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }

@@ -9,7 +9,8 @@ describe('Toro Calican, Ambitious Upstart', function() {
                             'reputable-hunter',
                             'ketsu-onyo#old-friend',
                             'greedo#slow-on-the-draw',
-                            'embo#stoic-and-resolute'
+                            'embo#stoic-and-resolute',
+                            'hunter-of-the-haxion-brood'
                         ],
                         groundArena: [{ card: 'toro-calican#ambitious-upstart', exhausted: true }],
                         spaceArena: ['tieln-fighter'],
@@ -17,6 +18,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
                     },
                     player2: {
                         hand: ['dengar#the-demolisher', 'consular-security-force'],
+                        groundArena: ['hylobon-enforcer']
                     }
                 });
             });
@@ -73,8 +75,17 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 expect(context.embo.damage).toBe(1);
                 expect(context.toroCalican.exhausted).toBeFalse();
 
-                // TODO: when Bounty is working, add test with Hunter of the Haxion Brood
-                // so we can confirm that replacement effects satisfy the "if you do" condition
+                context.moveToNextActionPhase();
+                context.toroCalican.exhausted = true;
+
+                // CASE 7: shield replacement effect should activate "if you do" ability
+                context.player1.clickCard(context.hunterOfTheHaxionBrood);
+                context.player1.clickPrompt('Shielded');
+                context.player1.clickPrompt('Deal 1 damage to the played Bounty Hunter unit');
+
+                expect(context.hunterOfTheHaxionBrood.isUpgraded()).toBeFalse();
+                expect(context.hunterOfTheHaxionBrood.damage).toBe(0);
+                expect(context.toroCalican.exhausted).toBeFalse();
             });
         });
     });

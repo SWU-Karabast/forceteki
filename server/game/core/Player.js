@@ -15,7 +15,8 @@ const {
     Aspect,
     WildcardLocation,
     PlayType,
-    KeywordName
+    KeywordName,
+    Trait
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -140,6 +141,24 @@ class Player extends GameObject {
      */
     getUnitsInPlay(arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
         return this.getArenaCards(arena).filter((card) => card.isUnit() && cardCondition(card));
+    }
+
+    /**
+     * Get all units in designated play arena(s) controlled by this player
+     * @param { String } trait Get units with this trait
+     */
+    getUnitsInPlayWithTrait(trait) {
+        return this.getUnitsInPlay().filter((card) => card.hasSomeTrait(trait));
+    }
+
+    /**
+     * Get all cards in designated play arena(s) other than the passed card controlled by this player.
+     * @param { any } ignoreUnit Unit to filter from the returned results
+     * @param { Trait } trait The Trait to check for
+     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+     */
+    getOtherUnitsInPlayWithTrait(ignoreUnit, trait, arena = WildcardLocation.AnyArena) {
+        return this.getArenaCards(arena).filter((card) => card.isUnit() && card !== ignoreUnit && card.hasSomeTrait(trait));
     }
 
 
@@ -319,6 +338,18 @@ class Player extends GameObject {
     }
 
     /**
+     * Returns if a unit is in play that has the passed keyword
+     * @param {KeywordName} keyword
+     * @param {any} ignoreUnit
+     * @returns {boolean} true/false if the trait is in play
+     */
+    isKeywordInPlay(keyword, ignoreUnit = null) {
+        return ignoreUnit != null
+            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeKeyword(keyword))
+            : this.getUnitsInPlay().some((card) => card.hasSomeKeyword(keyword));
+    }
+
+    /**
      * Returns true if any units or upgrades controlled by this player match the passed predicate
      * @param {Function} predicate - DrawCard => Boolean
      */
@@ -412,6 +443,22 @@ class Player extends GameObject {
             return this.drawDeck[0];
         }
         return null;
+    }
+
+
+    /**
+     * Returns ths top cards of the player's deck
+     * @returns {import('./card/CardTypes').PlayableCard[]} the Card,© or null if the deck is empty
+     */
+    getTopCardsOfDeck(numCard) {
+        Contract.assertPositiveNonZero(numCard);
+        const deckLength = this.drawDeck.length;
+        const cardsToGet = Math.min(numCard, deckLength);
+
+        if (this.drawDeck.length > 0) {
+            return this.drawDeck.slice(0, cardsToGet);
+        }
+        return [];
     }
 
     /**
@@ -1179,13 +1226,20 @@ class Player extends GameObject {
         let { email, password, ...safeUser } = this.user;
         let state = {
             cardPiles: {
-                // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
                 hand: this.getSummaryForHand(this.hand, activePlayer, false),
-                removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer)
+                removedFromGame: this.getSummaryForCardList(this.removedFromGame, activePlayer),
+                resources: this.getSummaryForCardList(this.resources, activePlayer),
+                groundArena: this.getSummaryForCardList(this.groundArena, activePlayer),
+                spaceArena: this.getSummaryForCardList(this.spaceArena, activePlayer),
+                deck: this.getSummaryForCardList(this.drawDeck, activePlayer),
+                discard: this.getSummaryForCardList(this.discard, activePlayer)
             },
             disconnected: this.disconnected,
             // faction: this.faction,
             hasInitiative: this.hasInitiative(),
+            availableResources: this.countSpendableResources(),
+            leader: this.leader.getSummary(activePlayer),
+            base: this.base.getSummary(activePlayer),
             id: this.id,
             left: this.left,
             name: this.name,
