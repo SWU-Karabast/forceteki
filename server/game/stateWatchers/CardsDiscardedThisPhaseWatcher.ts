@@ -33,7 +33,7 @@ export class CardsDiscardsThisPhaseWatcher extends StateWatcher<ICardsDiscardedT
     protected override setupWatcher() {
         this.addUpdater({
             when: {
-                onCardsDiscarded: () => true,
+                onCardDiscarded: () => true,
             },
             update: (currentState: ICardsDiscardedThisPhase, event: any) =>
                 currentState.concat({
