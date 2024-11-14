@@ -10,37 +10,47 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
         };
     }
 
-    private buildFinnAbilityTargetEffect() {
-        const upgradedCard = (context) => ({ target: context.target.parentCard });
-        return AbilityHelper.immediateEffects.sequential([
-            AbilityHelper.immediateEffects.giveShield(upgradedCard),
-            AbilityHelper.immediateEffects.defeat(),
-        ]);
-    }
-
     protected override setupLeaderSideAbilities () {
         this.addActionAbility({
             title: 'Defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
-                controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Upgrade,
                 cardCondition: (card, context) => card.controller === context.source.controller,
-                immediateEffect: this.buildFinnAbilityTargetEffect(),
-            }
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                    // TODO: this is a hack to store the parent card of the upgrade before it's defeated.
+                    // once last known state is implemented, we need to read the upgrade's parent card from that (same for on-attack)
+                    AbilityHelper.immediateEffects.handler((context) => ({
+                        handler: () => context.targets.upgradeParentCard = context.target.parentCard
+                    })),
+                    AbilityHelper.immediateEffects.defeat()
+                ]),
+            },
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Give a Shield token to that unit',
+                immediateEffect: AbilityHelper.immediateEffects.giveShield({ target: ifYouDoContext.targets.upgradeParentCard }),
+            })
         });
     }
 
     protected override setupLeaderUnitSideAbilities () {
         this.addOnAttackAbility({
-            title: 'You may defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit',
+            title: 'Defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit',
             optional: true,
             targetResolver: {
-                controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Upgrade,
                 cardCondition: (card, context) => card.controller === context.source.controller,
-                immediateEffect: this.buildFinnAbilityTargetEffect(),
-            }
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                    AbilityHelper.immediateEffects.handler((context) => ({
+                        handler: () => context.targets.upgradeParentCard = context.target.parentCard
+                    })),
+                    AbilityHelper.immediateEffects.defeat()
+                ]),
+            },
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Give a Shield token to that unit',
+                immediateEffect: AbilityHelper.immediateEffects.giveShield({ target: ifYouDoContext.targets.upgradeParentCard }),
+            })
         });
     }
 }
