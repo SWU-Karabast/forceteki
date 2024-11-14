@@ -23,7 +23,7 @@ interface ICostAdjusterPropertiesBase {
     /** The type of cost adjustment */
     costAdjustType: CostAdjustType;
 
-    /** @deprecated (not yet tested) The number of cost reductions permitted */
+    /** The number of cost reductions permitted */
     limit?: IAbilityLimit;
 
     /** @deprecated (not yet tested) Which playType this reduction is active for */

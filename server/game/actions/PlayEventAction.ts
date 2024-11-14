@@ -5,14 +5,16 @@ import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.
 import { MoveCardSystem } from '../gameSystems/MoveCardSystem.js';
 import { GameEvent } from '../core/event/GameEvent.js';
 import { TriggerHandlingMode } from '../core/event/EventWindow.js';
+import { CostAdjuster } from '../core/cost/CostAdjuster.js';
 
 export class PlayEventAction extends PlayCardAction {
     public constructor(
         card: Card,
         playType: PlayType = PlayType.PlayFromHand,
-        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers,
+        costAdjuster: CostAdjuster = null
     ) {
-        super(card, 'Play this event', playType, triggerHandlingMode);
+        super(card, 'Play this event', playType, triggerHandlingMode, costAdjuster);
     }
 
     public override executeHandler(context: PlayCardContext): void {

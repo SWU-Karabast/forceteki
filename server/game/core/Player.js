@@ -680,9 +680,9 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    getMinimumPossibleCost(playingType, context, target) {
+    getMinimumPossibleCost(playingType, context, target, additionalCostAdjuster = null) {
         const card = context.source;
-        const adjustedCost = this.getAdjustedCost(playingType, card, target);
+        const adjustedCost = this.getAdjustedCost(playingType, card, target, additionalCostAdjuster);
 
         return Math.max(adjustedCost, 0);
     }
@@ -694,7 +694,7 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    getAdjustedCost(playingType, card, target) {
+    getAdjustedCost(playingType, card, target, additionalCostAdjuster = null) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
         let aspects;
@@ -730,8 +730,8 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    runAdjustersForCostType(playingType, baseCost, card, target) {
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
+    runAdjustersForCostType(playingType, baseCost, card, target, additionalCostAdjuster = null) {
+        var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjuster).filter((adjuster) =>
             adjuster.canAdjust(playingType, card, target, null)
         );
         var costIncreases = matchingAdjusters
@@ -759,8 +759,8 @@ class Player extends GameObject {
      * @param target BaseCard
      * @param penaltyAspect Aspect that is not present on the current base or leader
      */
-    runAdjustersForAspectPenalties(playingType, baseCost, card, target, penaltyAspect) {
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) =>
+    runAdjustersForAspectPenalties(playingType, baseCost, card, target, penaltyAspect, additionalCostAdjuster = null) {
+        var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjuster).filter((adjuster) =>
             adjuster.canAdjust(playingType, card, target, penaltyAspect)
         );
 

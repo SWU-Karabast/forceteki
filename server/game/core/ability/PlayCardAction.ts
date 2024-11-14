@@ -7,17 +7,17 @@ import { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
+import { CostAdjuster } from '../cost/CostAdjuster';
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
-    protected playType: PlayType;
-
     public constructor(
         card: Card,
         title: string,
-        playType: PlayType,
+        protected playType: PlayType,
         triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers,
+        public costAdjuster: CostAdjuster = null,
         targetResolver: IActionTargetResolver = null,
         additionalCosts: ICost[] = []
     ) {

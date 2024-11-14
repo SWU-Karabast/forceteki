@@ -35,10 +35,14 @@ describe('Alliance Dispatcher', function() {
                 context.player2.passAction();
                 context.allianceDispatcher.exhausted = false;
 
+                // should be able to select and play a unit that costs exactly 1 more than ready resources
+                context.player1.setResourceCount(2);
                 context.player1.clickCard(context.allianceDispatcher);
                 context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
                 // Consortium Starviper is automatically selected as it is the only choice
-                expect(context.player1.countExhaustedResources()).toBe(5);
+                expect(context.consortiumStarviper).toBeInLocation('space arena');
+                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should not give the next unit played by the controller a discount after the controller declines to play a unit with the ability', function() {

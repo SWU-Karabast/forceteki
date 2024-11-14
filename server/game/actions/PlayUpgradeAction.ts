@@ -7,15 +7,17 @@ import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 import { TriggerHandlingMode } from '../core/event/EventWindow.js';
+import { CostAdjuster } from '../core/cost/CostAdjuster.js';
 
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(
         card: Card,
         playType: PlayType = PlayType.PlayFromHand,
-        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers,
+        costAdjuster: CostAdjuster = null
     ) {
-        super(card, 'Play this upgrade', playType, triggerHandlingMode, { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source })) });
+        super(card, 'Play this upgrade', playType, triggerHandlingMode, costAdjuster, { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source })) });
     }
 
     public override executeHandler(context: PlayCardContext) {
