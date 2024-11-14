@@ -81,7 +81,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public get location(): Location {
-        return this._zone.name;
+        return this._zone?.name;
     }
 
     public get traits(): Set<Trait> {
@@ -448,7 +448,6 @@ export class Card extends OngoingEffectSource {
 
     // ******************************************* LOCATION MANAGEMENT *******************************************
     public moveTo(targetLocation: Location, addCardToDeckSide: AddCardSide = null) {
-        Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
         Contract.assertEqual(targetLocation === Location.Deck, addCardToDeckSide != null, `Must provide addCardToDeckSide iff moving to deck (${this.internalName})`);
 
         const originalLocation = this.location;
@@ -461,15 +460,17 @@ export class Card extends OngoingEffectSource {
 
         const prevZone = this._zone;
 
-        if (prevZone.name === Location.Base) {
-            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${prevZone}`);
-            prevZone.removeLeader();
-        } else {
-            prevZone.removeCard(this);
+        if (prevZone != null) {
+            if (prevZone.name === Location.Base) {
+                Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${prevZone}`);
+                prevZone.removeLeader();
+            } else {
+                prevZone.removeCard(this);
+            }
         }
 
         this.addSelfToZone(targetLocation);
-        this.initializeForCurrentLocation(prevZone.name);
+        this.initializeForCurrentLocation(prevZone?.name);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
