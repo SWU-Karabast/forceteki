@@ -72,6 +72,7 @@ import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSy
 import { DiscardFromDeckSystem, IDiscardFromDeckProperties } from './DiscardFromDeckSystem';
 import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
 import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
+import { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -413,13 +414,10 @@ export function selectCard<TContext extends AbilityContext = AbilityContext>(pro
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameSystem {
 //     return new SelectTokenAction(propertyFactory);
 // }
-export function sequential<TContext extends AbilityContext = AbilityContext>(gameSystems: GameSystem<TContext>[]): GameSystem<TContext> {
+export function sequential<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>): GameSystem<TContext> {
     return new SequentialSystem<TContext>(gameSystems);
 } // takes an array of gameActions, not a propertyFactory
-// export function sequentialContext(propertyFactory: PropsFactory<SequentialContextProperties>): GameSystem {
-//     return new SequentialContextAction(propertyFactory);
-// }
-export function simultaneous<TContext extends AbilityContext = AbilityContext>(gameSystems: (GameSystem<TContext>)[], ignoreTargetingRequirements = null): GameSystem<TContext> {
+export function simultaneous<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = null): GameSystem<TContext> {
     return new SimultaneousGameSystem<TContext>(gameSystems, ignoreTargetingRequirements);
 }
 

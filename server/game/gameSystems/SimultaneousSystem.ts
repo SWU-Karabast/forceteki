@@ -2,7 +2,7 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import { GameObject } from '../core/GameObject';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import { AggregateSystem, ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 
 export interface ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     gameSystems: GameSystem<TContext>[];
@@ -16,13 +16,13 @@ export interface ISimultaneousSystemProperties<TContext extends AbilityContext =
 
 export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISimultaneousSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Simultaneous;
-    protected override readonly defaultProperties: ISimultaneousSystemProperties<TContext> = {
-        gameSystems: null,
-        ignoreTargetingRequirements: false
-    };
 
-    public constructor(gameSystems: (GameSystem<TContext>)[], ignoreTargetingRequirements = null) {
-        super({ gameSystems, ignoreTargetingRequirements });
+    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false) {
+        if (typeof gameSystems === 'function') {
+            super((context: TContext) => ({ gameSystems: gameSystems(context), ignoreTargetingRequirements }));
+        } else {
+            super({ gameSystems, ignoreTargetingRequirements });
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
