@@ -4,6 +4,7 @@ import { CardType, EffectName, EventName, Location, MetaEventName, WildcardCardT
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem';
+import * as Contract from '../core/utils/Contract';
 
 export interface IDrawSpecificCardProperties extends ICardTargetSystemProperties {
     switch?: boolean;
@@ -32,12 +33,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         // TODO: remove this completely if determinmed we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
-        if (properties.switch && properties.switchTarget) {
-            const otherCard = properties.switchTarget;
-            card.owner.moveCard(otherCard, card.location);
-        }
-        const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
-        player.moveCard(card, Location.Hand);
+        card.moveTo(Location.Hand);
 
         const target = properties.target;
         // if (Array.isArray(target)) {

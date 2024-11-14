@@ -7,6 +7,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
+import { AddCardSide } from '../zone/DeckZone';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -223,6 +224,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             event.context.game.actions.defeat({ target: event.card }).resolve();
         }
 
-        event.card.owner.moveCard(event.card, event.destination, event.options || {});
+        event.card.moveTo(event.destination, event.destination === Location.Deck
+            ? !!event.bottom ? AddCardSide.Top : AddCardSide.Bottom
+            : null
+        );
     }
 }

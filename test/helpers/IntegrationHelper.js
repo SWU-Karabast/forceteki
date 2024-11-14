@@ -874,20 +874,20 @@ global.integration = function (definitions) {
 
                 if (options.phase !== 'setup') {
                     // Resources
-                    this.player1.setResourceCards(options.player1.resources, ['removed from game']);
-                    this.player2.setResourceCards(options.player2.resources, ['removed from game']);
+                    this.player1.setResourceCards(options.player1.resources, ['outside the game']);
+                    this.player2.setResourceCards(options.player2.resources, ['outside the game']);
 
                     // Arenas
-                    this.player1.setGroundArenaUnits(options.player1.groundArena, ['removed from game']);
-                    this.player2.setGroundArenaUnits(options.player2.groundArena, ['removed from game']);
-                    this.player1.setSpaceArenaUnits(options.player1.spaceArena, ['removed from game']);
-                    this.player2.setSpaceArenaUnits(options.player2.spaceArena, ['removed from game']);
+                    this.player1.setGroundArenaUnits(options.player1.groundArena, ['outside the game']);
+                    this.player2.setGroundArenaUnits(options.player2.groundArena, ['outside the game']);
+                    this.player1.setSpaceArenaUnits(options.player1.spaceArena, ['outside the game']);
+                    this.player2.setSpaceArenaUnits(options.player2.spaceArena, ['outside the game']);
 
                     // Hand + discard
-                    this.player1.setHand(options.player1.hand, ['removed from game']);
-                    this.player2.setHand(options.player2.hand, ['removed from game']);
-                    this.player1.setDiscard(options.player1.discard, ['removed from game']);
-                    this.player2.setDiscard(options.player2.discard, ['removed from game']);
+                    this.player1.setHand(options.player1.hand, ['outside the game']);
+                    this.player2.setHand(options.player2.hand, ['outside the game']);
+                    this.player1.setDiscard(options.player1.discard, ['outside the game']);
+                    this.player2.setDiscard(options.player2.discard, ['outside the game']);
 
                     // Set Leader state (deployed, exhausted, etc.)
                     this.player1.setLeaderStatus(options.player1.leader);
@@ -899,8 +899,8 @@ global.integration = function (definitions) {
                 this.player2.setBaseStatus(options.player2.base);
 
                 // Deck
-                this.player1.setDeck(options.player1.deck, ['removed from game']);
-                this.player2.setDeck(options.player2.deck, ['removed from game']);
+                this.player1.setDeck(options.player1.deck, ['outside the game']);
+                this.player2.setDeck(options.player2.deck, ['outside the game']);
 
                 // add named cards to this for easy reference (allows us to do "this.<cardName>")
                 // note that if cards map to the same property name (i.e., same title), then they won't be added

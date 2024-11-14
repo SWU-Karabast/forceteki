@@ -1,5 +1,7 @@
+const { Location } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
 const Player = require('../../server/game/core/Player.js');
+const { AddCardSide } = require('../../server/game/core/zone/DeckZone.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
@@ -32,12 +34,12 @@ class PlayerInteractionWrapper {
      * be moved into their proper starting locations for the test.
      */
     moveAllNonBaseZonesToRemoved() {
-        this.player.spaceArena.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.groundArena.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.resources.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.discard.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.hand.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.drawDeck.forEach((card) => this.moveCard(card, 'removed from game'));
+        this.player.spaceArena.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.groundArena.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.resources.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.discard.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.hand.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.drawDeck.forEach((card) => this.moveCard(card, 'outside the game'));
     }
 
     get hand() {
@@ -446,17 +448,6 @@ class PlayerInteractionWrapper {
         this.player.exhaustResources(number);
     }
 
-    putIntoPlay(card) {
-        if (typeof card === 'string') {
-            card = this.findCardByName(card);
-        }
-        if (card.location !== 'play area') {
-            this.player.moveCard(card, 'play area');
-        }
-        card.facedown = false;
-        return card;
-    }
-
     hasPrompt(title) {
         var currentPrompt = this.player.currentPrompt();
         return (
@@ -644,7 +635,7 @@ class PlayerInteractionWrapper {
         if (typeof card === 'string') {
             card = this.mixedListToCardList([card], searchLocations)[0];
         }
-        this.player.moveCard(card, targetLocation);
+        card.moveTo(targetLocation, targetLocation === Location.Deck ? AddCardSide.Top : null);
         this.game.continue();
         return card;
     }
@@ -755,11 +746,11 @@ class PlayerInteractionWrapper {
     //     }
     // }
 
-    reduceDeckToNumber(number) {
-        for (let i = this.deck.length - 1; i >= number; i--) {
-            this.moveCard(this.deck[i], 'conflict discard pile');
-        }
-    }
+    // reduceDeckToNumber(number) {
+    //     for (let i = this.deck.length - 1; i >= number; i--) {
+    //         this.moveCard(this.deck[i], 'conflict discard pile');
+    //     }
+    // }
 }
 
 module.exports = PlayerInteractionWrapper;

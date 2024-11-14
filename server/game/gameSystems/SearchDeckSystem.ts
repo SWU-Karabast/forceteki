@@ -11,6 +11,7 @@ import Player from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
+import { AddCardSide } from '../core/zone/DeckZone.js';
 
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
@@ -223,7 +224,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
         if (cardsToMove.length > 0) {
             shuffleArray(cardsToMove);
             for (const card of cardsToMove) {
-                event.player.moveCard(card, Location.Deck, { bottom: true });
+                card.moveTo(Location.Deck, AddCardSide.Bottom);
             }
             context.game.addMessage(
                 '{0} puts {1} card{2} on the bottom of their deck',
