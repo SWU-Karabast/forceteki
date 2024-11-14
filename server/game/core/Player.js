@@ -717,11 +717,11 @@ class Player extends GameObject {
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(playingType, 2, card, target, aspect);
+            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(playingType, 2, card, target, aspect, additionalCostAdjuster);
         }
 
         let penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCostType(playingType, penalizedCost, card, target);
+        return this.runAdjustersForCostType(playingType, penalizedCost, card, target, additionalCostAdjuster);
     }
 
     /**
@@ -732,7 +732,7 @@ class Player extends GameObject {
      */
     runAdjustersForCostType(playingType, baseCost, card, target, additionalCostAdjuster = null) {
         var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjuster).filter((adjuster) =>
-            adjuster.canAdjust(playingType, card, target, null)
+            adjuster?.canAdjust(playingType, card, target, null)
         );
         var costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
@@ -761,7 +761,7 @@ class Player extends GameObject {
      */
     runAdjustersForAspectPenalties(playingType, baseCost, card, target, penaltyAspect, additionalCostAdjuster = null) {
         var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjuster).filter((adjuster) =>
-            adjuster.canAdjust(playingType, card, target, penaltyAspect)
+            adjuster?.canAdjust(playingType, card, target, penaltyAspect)
         );
 
         var ignoreAllAspectPenalties = matchingAdjusters

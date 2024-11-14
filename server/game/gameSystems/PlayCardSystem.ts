@@ -65,7 +65,10 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     private makeCostAdjuster(properties: ICostAdjusterProperties, context: AbilityContext) {
-        return new CostAdjuster(context.game, context.source, properties);
+        if (properties) {
+            return new CostAdjuster(context.game, context.source, properties);
+        }
+        return null;
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

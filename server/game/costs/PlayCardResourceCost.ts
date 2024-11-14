@@ -2,7 +2,6 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, PlayType } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
-import { PlayCardAction } from '../core/ability/PlayCardAction';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -23,7 +22,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
             return false;
         }
 
-        const costAdjusterFromAbility = context.ability instanceof PlayCardAction ? context.ability.costAdjuster : null;
+        const costAdjusterFromAbility = 'costAdjuster' in context.ability ? context.ability.costAdjuster : null;
 
         // get the minimum cost we could possibly pay for this card to see if we have the resources available
         // (aspect penalty is included in this calculation)
@@ -45,7 +44,8 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     }
 
     protected getAdjustedCost(context: TContext): number {
-        return context.player.getAdjustedCost(context.playType, context.source, context.target);
+        const costAdjusterFromAbility = 'costAdjuster' in context.ability ? context.ability.costAdjuster : null;
+        return context.player.getAdjustedCost(context.playType, context.source, context.target, costAdjusterFromAbility);
     }
 
     public payEvent(context: TContext): GameEvent {
