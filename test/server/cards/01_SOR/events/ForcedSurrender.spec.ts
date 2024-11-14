@@ -6,12 +6,12 @@ describe('Forced Surrender', function() {
                     phase: 'action',
                     player1: {
                         hand: ['forced-surrender', 'atst', 'atst'],
-                        groundArena: ['wampa'],
+                        groundArena: ['wampa', 'yoda#old-master'],
                         discard: ['daring-raid'],
                         leader: 'sabine-wren#galvanized-revolutionary'
                     },
                     player2: {
-                        groundArena: ['maz-kanata#pirate-queen'],
+                        groundArena: ['maz-kanata#pirate-queen', 'gamorrean-guards'],
                         hand: ['atst', 'atst']
                     }
                 });
@@ -134,6 +134,32 @@ describe('Forced Surrender', function() {
                 expect(context.player2.handSize).toBe(0);
 
                 reset();
+
+                // Scenario 7: Damage dealt by drawing cards shouldn't count
+                context.player1.reduceDeckToNumber(0);
+                context.player2.reduceDeckToNumber(0);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.gamorreanGuards);
+
+                const p1BaseDamageBeforeDraw = context.p1Base.damage;
+                const p2BaseDamageBeforeDraw = context.p2Base.damage;
+                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Done');
+                expect(context.p1Base.damage).toBe(p1BaseDamageBeforeDraw + 3);
+                expect(context.p2Base.damage).toBe(p2BaseDamageBeforeDraw + 3);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.forcedSurrender);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.handSize).toBe(2);
+                expect(context.player2.handSize).toBe(2);
+                expect(context.p1Base.damage).toBe(p1BaseDamageBeforeDraw + 9);
+                expect(context.p2Base.damage).toBe(p2BaseDamageBeforeDraw + 3);
             });
         });
     });
