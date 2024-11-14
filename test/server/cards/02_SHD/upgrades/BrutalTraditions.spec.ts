@@ -5,11 +5,15 @@ describe('Brutal Traditions', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'vigilant-honor-guards', upgrades: ['brutal-traditions'] }, { card: 'moisture-farmer' }],
+                        groundArena: [
+                            { card: 'vigilant-honor-guards', upgrades: ['brutal-traditions'] },
+                            { card: 'moisture-farmer' },
+                            { card: 'death-trooper' }
+                        ],
                     },
                     player2: {
                         groundArena: ['wampa'],
-                        hand: ['confiscate', 'vanquish']
+                        hand: ['confiscate', 'vanquish', 'rivals-fall']
                     }
                 });
             });
@@ -45,7 +49,19 @@ describe('Brutal Traditions', function() {
                 expect(context.player1).toBeAbleToSelect(context.brutalTraditions);
 
                 context.player1.clickCard(context.brutalTraditions);
+                context.player1.clickCard(context.moistureFarmer);
                 expect(context.moistureFarmer.upgrades).toEqual([context.brutalTraditions]);
+
+                // remove it with fell the dragon
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.moistureFarmer);
+                expect(context.brutalTraditions).toBeInLocation('discard');
+
+                // CASE 2: Should not be able to be played in the next turn.
+                context.moveToNextActionPhase();
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1).not.toBeAbleToSelect(context.brutalTraditions);
             });
         });
     });
