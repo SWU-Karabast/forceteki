@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, RelativePlayer, WildcardRelativePlayer } from '../../../core/Constants';
+import { KeywordName, RelativePlayer } from '../../../core/Constants';
 import { TargetMode } from '../../../core/Constants';
 
 export default class RichReward extends UpgradeCard {
@@ -19,7 +19,7 @@ export default class RichReward extends UpgradeCard {
                 targetResolver: {
                     mode: TargetMode.UpTo,
                     numCards: 2,
-                    controller: WildcardRelativePlayer.Any,
+                    controller: RelativePlayer.Any,
                     immediateEffect: AbilityHelper.immediateEffects.giveExperience()
                 }
             }
