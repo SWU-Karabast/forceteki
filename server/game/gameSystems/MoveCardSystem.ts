@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import { CardWithExhaustProperty } from '../core/card/CardTypes';
 import { CardType, EventName, GameStateChangeRequired, Location, WildcardCardType } from '../core/Constants';
 import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
@@ -41,9 +42,15 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         if (EnumHelpers.isArena(event.card.location) && !EnumHelpers.isArena(event.destination)) {
             this.leavesPlayEventHandler(event, additionalProperties);
         } else {
-            // TODO: remove this completely if determinmed we don't need card snapshots
+            // TODO: remove this completely if determined we don't need card snapshots
             // event.cardStateWhenMoved = card.createSnapshot();
             const card = event.card as Card;
+
+            // If the card is a resource and it is ready, try to ready another resource instead
+            // and exhaust this one. This should be the desired behavior for most cases.
+            if (card.location === Location.Resource && (card as CardWithExhaustProperty).ready) {
+                card.controller.swapReadyResource(card);
+            }
 
             const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
             player.moveCard(card, event.destination, event.options);
@@ -62,7 +69,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         if (properties.destination === Location.Hand) {
-            if (Helpers.asArray(properties.target).some((card) => EnumHelpers.cardLocationMatches(card.location, Location.Resource))) {
+            if (Helpers.asArray(properties.target).some((card) => card.location === Location.Resource)) {
                 const targets = Helpers.asArray(properties.target);
                 return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
             }
