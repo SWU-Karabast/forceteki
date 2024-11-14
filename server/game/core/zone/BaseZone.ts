@@ -39,7 +39,7 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
 
     public setLeader(leader: LeaderCard) {
         Contract.assertEqual(leader.controller, this.owner, `Attempting to add card ${leader.internalName} to ${this} as leader but its controller is ${leader.controller}`);
-        Contract.assertIsNullLike(this._leader, `Attempting to add leader ${leader.internalName} to ${this} but leader ${this._leader.internalName} is already there`);
+        Contract.assertIsNullLike(this._leader, `Attempting to add leader ${leader.internalName} to ${this} but a leader is already there`);
 
         this._leader = leader;
     }
@@ -52,7 +52,7 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
 
     public setBase(base: BaseCard) {
         Contract.assertEqual(base.controller, this.owner, `Attempting to add card ${base.internalName} to ${this} as base but its controller is ${base.controller}`);
-        Contract.assertIsNullLike(this._base, `Attempting to add base ${base.internalName} to ${this} but base ${this._base.internalName} is already there`);
+        Contract.assertIsNullLike(this._base, `Attempting to add base ${base.internalName} to ${this} but a base is already there`);
 
         this._base = base;
     }

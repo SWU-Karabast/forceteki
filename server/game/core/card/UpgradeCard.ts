@@ -5,7 +5,7 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
 import { AbilityType, CardType, KeywordName, Location, PlayType, RelativePlayer } from '../Constants';
-import { UnitCard } from './CardTypes';
+import { PlayableCard, UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
@@ -60,6 +60,10 @@ export class UpgradeCard extends UpgradeCardParent {
         Contract.assertTrue(this.isInPlay());
 
         return this._parentCard;
+    }
+
+    public override isTokenOrPlayable(): this is PlayableCard {
+        return true;
     }
 
     public override moveTo(targetLocation: Location) {

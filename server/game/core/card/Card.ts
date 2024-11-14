@@ -332,7 +332,6 @@ export class Card extends OngoingEffectSource {
 
     /**
      * Returns true if the card is in a location where it can legally be exhausted.
-     * The returned type set is equivalent to {@link CardWithExhaustProperty}.
      */
     public isTokenOrPlayable(): this is PlayableCard {
         return false;

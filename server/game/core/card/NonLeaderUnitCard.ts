@@ -7,6 +7,7 @@ import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import { PlayableCard } from './CardTypes';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 
@@ -31,6 +32,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
             actions.push(new PlayUnitAction(this, PlayType.Smuggle));
         }
         return actions;
+    }
+
+    public override isTokenOrPlayable(): this is PlayableCard {
+        return true;
     }
 
     protected override initializeForCurrentLocation(prevLocation: Location): void {

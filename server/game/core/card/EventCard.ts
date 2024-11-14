@@ -9,6 +9,7 @@ import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import AbilityHelper from '../../AbilityHelper';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import { PlayableCard } from './CardTypes';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
@@ -40,6 +41,10 @@ export class EventCard extends EventCardParent {
             actions.push(new PlayEventAction(this, PlayType.Smuggle));
         }
         return actions;
+    }
+
+    public override isTokenOrPlayable(): this is PlayableCard {
+        return true;
     }
 
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */

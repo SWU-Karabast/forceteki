@@ -1,8 +1,8 @@
 import { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import { Aspect, CardTypeFilter, KeywordName, Location, RelativePlayer, Trait, WildcardCardType, WildcardLocation } from '../Constants';
-import Player from '../Player';
-import Game from '../Game';
+import type Player from '../Player';
+import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
 
 export interface IZoneCardFilterProperties {
@@ -60,6 +60,6 @@ export abstract class ZoneAbstract<TCard extends Card> {
     }
 
     public toString() {
-        return (this.owner instanceof Player ? `${this.owner.name}:` : '') + this.name;
+        return ('game' in this.owner ? `${this.owner.name}:` : '') + this.name;
     }
 }
