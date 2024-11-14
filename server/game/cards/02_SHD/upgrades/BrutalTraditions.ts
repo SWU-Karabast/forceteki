@@ -1,8 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { CardsDiscardsThisPhaseWatcher } from '../../../stateWatchers/CardsDiscardedThisPhaseWatcher';
-import { PlayType, Location } from '../../../core/Constants';
+import { Location } from '../../../core/Constants';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
@@ -26,8 +24,8 @@ export default class BrutalTraditions extends UpgradeCard {
                 const opponentUnitsDefeatedThisPhase = this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller.opponent);
                 return opponentUnitsDefeatedThisPhase.length > 0;
             },
-            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ playType: PlayType.PlayFromOutOfPlay }),
-            locationFilter: [Location.Discard]
+            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay(),
+            locationFilter: Location.Discard
         });
     }
 }

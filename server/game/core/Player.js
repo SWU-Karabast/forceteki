@@ -674,6 +674,7 @@ class Player extends GameObject {
         let cost;
 
         switch (playingType) {
+            case PlayType.PlayFromOutOfPlay:
             case PlayType.PlayFromHand:
                 aspects = card.aspects;
                 cost = card.cost;
@@ -682,10 +683,6 @@ class Player extends GameObject {
                 const smuggleInstance = card.getKeywordWithCostValues(KeywordName.Smuggle);
                 aspects = smuggleInstance.aspects;
                 cost = smuggleInstance.cost;
-                break;
-            case PlayType.PlayFromOutOfPlay:
-                aspects = card.aspects;
-                cost = card.cost;
                 break;
             default:
                 Contract.fail(`Invalid Play Type ${playingType}`);

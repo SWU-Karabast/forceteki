@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { Location, WildcardLocation } from '../core/Constants';
+import { Location, PlayType, WildcardLocation } from '../core/Constants';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
@@ -205,8 +205,13 @@ export function payResourceCost<TContext extends AbilityContext = AbilityContext
         )
     );
 }
-export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'optional'>, TContext> = {}): PlayCardSystem<TContext> {
-    return new PlayCardSystem(propertyFactory);
+export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext> = {}): PlayCardSystem<TContext> {
+    return new PlayCardSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IPlayCardProperties, 'playType'>(
+            propertyFactory,
+            { playType: PlayType.PlayFromOutOfPlay }
+        )
+    );
 }
 
 /**

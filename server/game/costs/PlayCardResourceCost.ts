@@ -9,7 +9,7 @@ import { GameEvent } from '../core/event/GameEvent';
  */
 export class PlayCardResourceCost<TContext extends AbilityContext = AbilityContext> implements ICost<TContext> {
     public readonly isPlayCost = true;
-    public readonly isPrintedResourceCost = PlayType.PlayFromHand === this.playType || PlayType.PlayFromOutOfPlay === this.playType;
+    public readonly isPrintedResourceCost = [PlayType.PlayFromHand, PlayType.PlayFromOutOfPlay].includes(this.playType);
     public readonly isSmuggleCost = PlayType.Smuggle === this.playType;
 
     // used for extending this class if any cards have unique after pay hooks

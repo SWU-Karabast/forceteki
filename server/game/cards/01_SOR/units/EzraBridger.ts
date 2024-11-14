@@ -23,12 +23,12 @@ export default class EzraBridger extends NonLeaderUnitCard {
             then: (thenContext) => {
                 const topCardOfDeck = thenContext.source.controller.getTopCardOfDeck();
                 return {
-                    title: 'Look at the top card of your deck.',
+                    title: 'You may play it, discard it, or leave it on top of your deck.',
                     thenCondition: (context) => context.source.controller.drawDeck.length > 0,
                     targetResolver: {
                         mode: TargetMode.Select,
                         choices: {
-                            ['Play it']: AbilityHelper.immediateEffects.playCardFromOutOfPlay(() => ({ target: topCardOfDeck, playType: PlayType.PlayFromOutOfPlay })),
+                            ['Play it']: AbilityHelper.immediateEffects.playCardFromOutOfPlay(() => ({ target: topCardOfDeck })),
                             ['Discard it']: AbilityHelper.immediateEffects.discardSpecificCard(() => ({ target: topCardOfDeck })),
                             ['Leave it on top of your deck']: AbilityHelper.immediateEffects.noAction,
                         }

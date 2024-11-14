@@ -57,6 +57,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         event.playCardAbility = this.generatePlayCardAbility(target, properties.playType);
         event.optional = properties.optional ?? context.ability.optional;
+        event.entersReady = properties.entersReady;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {

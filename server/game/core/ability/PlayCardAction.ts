@@ -59,7 +59,7 @@ export abstract class PlayCardAction extends PlayerAction {
             player: player,
             source: this.card,
             stage: Stage.PreTarget,
-            costAspects: this.card.aspects,
+            costAspects: this.card.aspects
         });
     }
 
