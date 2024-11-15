@@ -250,11 +250,6 @@ class Player extends GameObject {
         }
     }
 
-    // TODO THIS PR: remove
-    getResourceCards() {
-        return this.resources;
-    }
-
     /**
      * Checks whether a card with a uuid matching the passed card is in the passed _(Array)
      * @param list _(Array)
@@ -276,16 +271,6 @@ class Player extends GameObject {
             return c.name === card.name;
         });
     }
-
-    // TODO THIS PR: how is 'card.selected' set and used?
-    // /**
-    //  * Checks whether any cards in play are currently marked as selected
-    //  */
-    // areCardsSelected() {
-    //     return this.getArenaCards().some((card) => {
-    //         return card.selected;
-    //     });
-    // }
 
     /**
      * Removes a card with the passed uuid from a list. Returns an _(Array)
@@ -631,8 +616,8 @@ class Player extends GameObject {
         }
     }
 
-    addPlayableLocation(type, zone, cards = []) {
-        let playableLocation = new PlayableLocation(type, zone, new Set(cards));
+    addPlayableLocation(type, zone) {
+        let playableLocation = new PlayableLocation(type, zone);
         this.playableLocations.push(playableLocation);
         return playableLocation;
     }
