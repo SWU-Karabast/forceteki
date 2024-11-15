@@ -65,12 +65,12 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
 
             if (amount === 0) {
                 events.push(this.generateEvent(context, additionalProperties));
-                return;
+                continue;
             }
 
             if (amount >= availableHand.length) {
                 this.generateEventsForCards(availableHand, context, events, additionalProperties);
-                return;
+                continue;
             }
 
             context.game.promptForSelect(player, {
