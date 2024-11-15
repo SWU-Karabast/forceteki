@@ -2,9 +2,9 @@ import { Card } from '../card/Card';
 import { Location } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import { IAddRemoveZone, IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
-export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard> {
+export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard> implements IAddRemoveZone {
     public abstract override readonly name: Location;
     public override readonly owner: Player;
 

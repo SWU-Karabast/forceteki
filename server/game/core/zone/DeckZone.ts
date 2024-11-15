@@ -1,17 +1,12 @@
 import { Card } from '../card/Card';
 import { PlayableCard } from '../card/CardTypes';
-import { Location, RelativePlayer } from '../Constants';
+import { Location, MoveLocation, MoveToDeckLocation, RelativePlayer } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
-import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import { IAddRemoveZone, IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
-export enum AddCardSide {
-    Top = 'top',
-    Bottom = 'bottom'
-}
-
-export class DeckZone extends ZoneAbstract<PlayableCard> {
+export class DeckZone extends ZoneAbstract<PlayableCard> implements IAddRemoveZone {
     public override readonly hiddenForPlayers: RelativePlayer.Any;
     public override readonly owner: Player;
     public override readonly name: Location.Deck;
@@ -52,25 +47,25 @@ export class DeckZone extends ZoneAbstract<PlayableCard> {
     }
 
     public addCardToTop(card: PlayableCard) {
-        this.addCard(card, AddCardSide.Top);
+        this.addCard(card, MoveToDeckLocation.DeckTop);
     }
 
     public addCardToBottom(card: PlayableCard) {
-        this.addCard(card, AddCardSide.Bottom);
+        this.addCard(card, MoveToDeckLocation.DeckTop);
     }
 
-    public addCard(card: PlayableCard, side: AddCardSide) {
+    public addCard(card: PlayableCard, location: MoveToDeckLocation) {
         Contract.assertEqual(card.controller, this.owner, `Attempting to add card ${card.internalName} to ${this} but its controller is ${card.controller}`);
 
-        switch (side) {
-            case AddCardSide.Top:
+        switch (location) {
+            case MoveToDeckLocation.DeckTop:
                 this.deck.push(card);
                 return;
-            case AddCardSide.Bottom:
+            case MoveToDeckLocation.DeckBottom:
                 this.deck.unshift(card);
                 return;
             default:
-                Contract.fail(`Unknown value for AddCardSide enum: ${side}`);
+                Contract.fail(`Unknown value for MoveToDeckLocation enum: ${location}`);
         }
     }
 
@@ -90,5 +85,12 @@ export class DeckZone extends ZoneAbstract<PlayableCard> {
 
     public shuffle() {
         Helpers.shuffle(this.deck);
+    }
+
+    protected override checkLocationMatches(card: Card, location: MoveLocation | null) {
+        Contract.assertTrue(
+            ([MoveToDeckLocation.DeckBottom, MoveToDeckLocation.DeckTop] as MoveLocation[]).includes(location),
+            `Attempting to move ${card.internalName} to ${this} with incorrect location parameter (must be DeckBottom or DeckTop): ${location}`
+        );
     }
 }

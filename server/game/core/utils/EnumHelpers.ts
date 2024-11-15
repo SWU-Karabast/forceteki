@@ -1,4 +1,4 @@
-import { CardType, CardTypeFilter, Location, LocationFilter, RelativePlayer, WildcardCardType, WildcardLocation } from '../Constants';
+import { CardType, CardTypeFilter, Location, LocationFilter, MoveLocation, MoveToDeckLocation, RelativePlayer, WildcardCardType, WildcardLocation } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -73,6 +73,13 @@ export const cardLocationMatches = (cardLocation: Location, locationFilter: Loca
                 return cardLocation === allowedLocation;
         }
     });
+};
+
+/** Converts a MoveLocation to a Location by converting deck move locations to Location.Deck */
+export const asConcreteLocation = (location: Location | MoveLocation): Location => {
+    return location === MoveToDeckLocation.DeckBottom || location === MoveToDeckLocation.DeckTop
+        ? Location.Deck
+        : location;
 };
 
 export const isUnit = (cardType: CardTypeFilter) => {

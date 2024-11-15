@@ -14,6 +14,17 @@ export enum Location {
     SpaceArena = 'space arena',
 }
 
+export enum MoveToDeckLocation {
+    DeckTop = 'deckTop',
+    DeckBottom = 'deckBottom'
+}
+
+/**
+ * Helper type used when a passed Location represents a move destination.
+ * Used to account for moving to top or bottom of deck.
+ */
+export type MoveLocation = Exclude<Location, Location.Deck> | MoveToDeckLocation.DeckBottom | MoveToDeckLocation.DeckTop;
+
 export enum WildcardLocation {
     Any = 'any',
     AnyArena = 'any arena',

@@ -1,7 +1,6 @@
-const { Location } = require('../../server/game/core/Constants.js');
+const { Location, MoveToDeckLocation } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
 const Player = require('../../server/game/core/Player.js');
-const { AddCardSide } = require('../../server/game/core/zone/DeckZone.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
@@ -634,7 +633,7 @@ class PlayerInteractionWrapper {
         if (typeof card === 'string') {
             card = this.mixedListToCardList([card], searchLocations)[0];
         }
-        card.moveTo(targetLocation, targetLocation === Location.Deck ? AddCardSide.Top : null);
+        card.moveTo(targetLocation === Location.Deck ? MoveToDeckLocation.DeckTop : targetLocation);
         this.game.continue();
         return card;
     }

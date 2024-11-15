@@ -1,18 +1,16 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, Location, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, Location, MoveLocation, MoveToDeckLocation, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { AddCardSide } from '../core/zone/DeckZone';
 
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Location;
+    destination?: MoveLocation;
     switch?: boolean;
     switchTarget?: Card;
     shuffle?: boolean;
     // TODO: remove completely if faceup logic is not needed
     // faceup?: boolean;
-    bottom?: boolean;
     changePlayer?: boolean;
     discardDestinationCards?: boolean;
 }
@@ -28,7 +26,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         switch: false,
         switchTarget: null,
         shuffle: false,
-        bottom: false,
         changePlayer: false,
     };
 
@@ -44,10 +41,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         // TODO TAKE CONTROL: change controller on move logic
         // const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
-        card.moveTo(event.destination, event.destination === Location.Deck
-            ? !!event.bottom ? AddCardSide.Top : AddCardSide.Bottom
-            : null
-        );
+
+        card.moveTo(event.destination);
 
         // TODO: use ShuffleDeckSystem instead
         if (event.destination === Location.Deck && event.shuffle) {
@@ -73,7 +68,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             return ['shuffle {0} into {1}\'s {2}', [properties.target, destinationController, properties.destination]];
         }
         return [
-            'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + '{1}\'s {2}',
+            'move {0} to ' + (properties.destination === MoveToDeckLocation.DeckBottom ? 'the bottom of ' : '') + '{1}\'s {2}',
             [properties.target, destinationController, properties.destination]
         ];
     }
@@ -86,7 +81,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.switchTarget = properties.switchTarget;
         event.changePlayer = properties.changePlayer;
         event.destination = properties.destination;
-        event.bottom = properties.bottom;
         event.shuffle = properties.shuffle;
     }
 

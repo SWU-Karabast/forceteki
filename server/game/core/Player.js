@@ -17,7 +17,8 @@ const {
     PlayType,
     KeywordName,
     WildcardCardType,
-    Trait
+    Trait,
+    MoveToDeckLocation
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -853,12 +854,12 @@ class Player extends GameObject {
     /**
      * Checks whether card type is consistent with location, checking for custom out-of-play locations
      * @param {CardType} cardType
-     * @param {Location} location
+     * @param {Location | import('./Constants').MoveLocation} location
      */
     isLegalLocationForCardType(cardType, location) {
         const legalLocationsForType = Helpers.defaultLegalLocationsForCardType(cardType);
 
-        return legalLocationsForType && EnumHelpers.cardLocationMatches(location, legalLocationsForType);
+        return legalLocationsForType && EnumHelpers.cardLocationMatches(EnumHelpers.asConcreteLocation(location), legalLocationsForType);
     }
 
     /**

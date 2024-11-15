@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, RelativePlayer, Trait, WildcardLocation } from '../Constants';
+import { AbilityRestriction, AbilityType, Arena, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, MoveLocation, MoveToDeckLocation, RelativePlayer, Trait, WildcardLocation } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Helpers from '../utils/Helpers';
@@ -25,7 +25,6 @@ import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployabl
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
-import { AddCardSide } from '../zone/DeckZone';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -447,9 +446,8 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* LOCATION MANAGEMENT *******************************************
-    public moveTo(targetLocation: Location, addCardToDeckSide: AddCardSide = null) {
+    public moveTo(targetLocation: MoveLocation) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
-        Contract.assertEqual(targetLocation === Location.Deck, addCardToDeckSide != null, `Must provide addCardToDeckSide iff moving to deck (${this.internalName})`);
 
         const originalLocation = this.location;
 
@@ -494,7 +492,7 @@ export class Card extends OngoingEffectSource {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected initializeForStartLocation(): void {}
 
-    private addSelfToZone(location: Location, addCardToDeckSide: AddCardSide = null) {
+    private addSelfToZone(location: MoveLocation) {
         switch (location) {
             case Location.Base:
                 this._zone = this.owner.baseZone;
@@ -502,10 +500,11 @@ export class Card extends OngoingEffectSource {
                 this._zone.setLeader(this);
                 break;
 
-            case Location.Deck:
+            case MoveToDeckLocation.DeckBottom:
+            case MoveToDeckLocation.DeckTop:
                 this._zone = this.owner.deckZone;
                 Contract.assertTrue(this.isTokenOrPlayable());
-                this._zone.addCard(this, addCardToDeckSide);
+                this._zone.addCard(this, location);
                 break;
 
             case Location.Discard:
@@ -553,7 +552,7 @@ export class Card extends OngoingEffectSource {
      * Deals with any engine effects of leaving the current location before the move happens
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextLocation: Location) {}
+    protected cleanupBeforeMove(nextLocation: MoveLocation) {}
 
     /**
      * Updates the card's abilities for its current location after being moved.

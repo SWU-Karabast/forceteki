@@ -4,7 +4,7 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
-import { AbilityType, CardType, KeywordName, Location, PlayType, RelativePlayer } from '../Constants';
+import { AbilityType, CardType, KeywordName, Location, MoveLocation, PlayType, RelativePlayer } from '../Constants';
 import { PlayableCard, UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
@@ -66,7 +66,7 @@ export class UpgradeCard extends UpgradeCardParent {
         return true;
     }
 
-    public override moveTo(targetLocation: Location) {
+    public override moveTo(targetLocation: MoveLocation) {
         Contract.assertFalse(this._parentCard && targetLocation !== this._parentCard.location,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
@@ -76,6 +76,9 @@ export class UpgradeCard extends UpgradeCardParent {
     public attachTo(newParentCard: UnitCard) {
         Contract.assertTrue(newParentCard.isUnit());
         Contract.assertTrue(newParentCard.isInPlay());
+
+        // this assert needed for type narrowing or else the moveTo fails
+        Contract.assertTrue(newParentCard.location !== Location.Deck);
 
         if (this._parentCard) {
             this.unattach();
