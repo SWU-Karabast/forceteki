@@ -173,6 +173,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     /** Update the context of each constant ability. Used when the card's controller has changed. */
+    // TODO TAKE CONTROL: this still needed?
     public updateConstantAbilityContexts() {
         for (const constantAbility of this.constantAbilities) {
             if (constantAbility.registeredEffects) {

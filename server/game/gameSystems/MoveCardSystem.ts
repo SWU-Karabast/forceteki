@@ -42,7 +42,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         // TODO TAKE CONTROL: change controller on move logic
         // const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
 
-        card.moveTo(event.destination);
+        if (EnumHelpers.isArena(card.location) && !EnumHelpers.isArena(event.destination)) {
+            this.leavesPlayEventHandler(event, additionalProperties);
+        } else {
+            card.moveTo(event.destination);
+        }
 
         // TODO: use ShuffleDeckSystem instead
         if (event.destination === Location.Deck && event.shuffle) {

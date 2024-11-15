@@ -813,7 +813,7 @@ class Game extends EventEmitter {
         // at end of round, any tokens in outsideTheGameZone are removed completely
         for (const player of this.getPlayers()) {
             for (const token of player.outsideTheGameZone.cards.filter((card) => card.isToken())) {
-                token.removeFromGame();
+                this.removeTokenFromPlay(token);
             }
         }
     }
@@ -1205,6 +1205,7 @@ class Game extends EventEmitter {
         this.filterCardFromList(token, this.allCards);
         this.filterCardFromList(token, player.decklist.tokens);
         this.filterCardFromList(token, player.decklist.allCards);
+        token.removeFromGame();
     }
 
     /**

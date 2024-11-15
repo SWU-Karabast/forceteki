@@ -45,6 +45,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     public override initializeForStartLocation(): void {
         // leaders are always in a zone where they are allowed to be exhausted
         this.setExhaustEnabled(true);
+        this.resolveAbilitiesForNewLocation();
     }
 
     /** Deploy the leader to the arena. Handles the move operation and state changes. */

@@ -958,7 +958,7 @@ class Player extends GameObject {
      * Ready the specified number of resources
      */
     readyResources(count) {
-        let exhaustedResources = this.resourceZone.readyResources;
+        let exhaustedResources = this.resourceZone.exhaustedResources;
         for (let i = 0; i < Math.min(count, exhaustedResources.length); i++) {
             exhaustedResources[i].exhausted = false;
         }
