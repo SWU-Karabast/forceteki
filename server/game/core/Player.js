@@ -968,7 +968,7 @@ class Player extends GameObject {
     /**
      * If possible, exhaust the given resource and ready another one instead
      */
-    swapReadyResource(resource) {
+    swapResourceReadyState(resource) {
         Contract.assertTrue(resource.location === Location.Resource, 'Tried to exhaust a resource that is not in the resource zone');
 
         // The resource is already exhausted, do nothing

@@ -49,7 +49,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             // If the card is a resource and it is ready, try to ready another resource instead
             // and exhaust this one. This should be the desired behavior for most cases.
             if (card.location === Location.Resource && (card as CardWithExhaustProperty).ready) {
-                card.controller.swapReadyResource(card);
+                card.controller.swapResourceReadyState(card);
             }
 
             const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
