@@ -994,7 +994,7 @@ class Player extends GameObject {
     moveCard(card, targetLocation, options = {}) {
         // If the card is a resource and it is ready, try to ready another resource instead
         // and exhaust this one. This should be the desired behavior for most cases.
-        if (card.location === Location.Resource && Object.prototype.hasOwnProperty.call(card, 'ready') && card.ready) {
+        if (card.location === Location.Resource && 'exhausted' in card && !card.exhausted) {
             card.controller.swapResourceReadyState(card);
         }
 
