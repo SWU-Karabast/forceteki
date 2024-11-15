@@ -633,7 +633,7 @@ class PlayerInteractionWrapper {
         if (typeof card === 'string') {
             card = this.mixedListToCardList([card], searchLocations)[0];
         }
-        card.moveTo(targetLocation === Location.Deck ? MoveToDeckLocation.DeckBottom : targetLocation);
+        card.moveTo(targetLocation === Location.Deck ? MoveToDeckLocation.DeckTop : targetLocation);
         this.game.continue();
         return card;
     }

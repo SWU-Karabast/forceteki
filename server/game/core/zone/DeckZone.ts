@@ -59,10 +59,10 @@ export class DeckZone extends ZoneAbstract<PlayableCard> implements IAddRemoveZo
 
         switch (location) {
             case MoveToDeckLocation.DeckTop:
-                this.deck.push(card);
+                this.deck.unshift(card);
                 return;
             case MoveToDeckLocation.DeckBottom:
-                this.deck.unshift(card);
+                this.deck.push(card);
                 return;
             default:
                 Contract.fail(`Unknown value for MoveToDeckLocation enum: ${location}`);

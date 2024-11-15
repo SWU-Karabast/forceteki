@@ -1,6 +1,5 @@
 import Player from '../Player';
 import { LeaderCard } from './LeaderCard';
-import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { CardType, Location, LocationFilter } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -26,7 +25,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
         // add deploy leader action
         this.addActionAbility({
-            title: `Deploy ${this.name}`,
+            title: `Deploy ${this.title}`,
             limit: AbilityHelper.limit.epicAction(),
             condition: (context) => context.source.controller.resources.length >= context.source.cost,
             locationFilter: Location.Base,
