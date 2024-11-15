@@ -5,10 +5,10 @@ describe('Finn, This is a Rescue', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['jedi-lightsaber'],
+                        hand: ['entrenched'],
                         leader: { card: 'finn#this-is-a-rescue', deployed: false },
-                        groundArena: ['battlefield-marine'],
-                        resources: 5
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber'] }],
+                        resources: 4
                     },
                     player2: {
                         hand: ['top-target'],
@@ -21,39 +21,46 @@ describe('Finn, This is a Rescue', function () {
             it('should defeat a friendly upgrade and give a shield token', function () {
                 const { context } = contextRef;
 
-                // Equip a friendly upgrade to battlefield marine
-                context.player1.clickCard(context.jediLightsaber);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
-                context.player1.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
+                // Scenario 1: Defeat a friendly upgrade on a friendly unit
+                context.player1.clickCard(context.finn);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(context.jediLightsaber).toBeInZone('discard');
 
+                context.finn.exhausted = false;
                 context.player2.passAction();
 
-                // Use Finn's ability
+                // Scenario 2: Defeat a friendly upgrade on an opponent's unit
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toHaveExactUpgradeNames(['entrenched']);
+                context.player2.passAction();
                 context.player1.clickCard(context.finn);
-                context.player1.clickPrompt('Defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit');
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                // There are now two friendly upgrades (entrenched and shield token), so we are prompted to select one
+                context.player1.clickCard(context.entrenched);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+                expect(context.entrenched).toBeInZone('discard');
             });
 
-            it('should not be able to defeat an opponent\'s (non-friendly) upgrade', function () {
+            it('should not defeat an opponent\'s upgrade', function () {
                 const { context } = contextRef;
 
-                // Equip a friendly upgrade to battlefield marine
-                context.player1.clickCard(context.jediLightsaber);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
-                context.player1.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
+                context.player1.passAction();
 
-                // Opponent equips an upgrade to battlefield marine
                 context.player2.clickCard(context.topTarget);
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'top-target']);
 
-                // Unable to use Finn's ability on non-friendly upgrade
                 context.player1.clickCard(context.finn);
-                context.player1.clickPrompt('Defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit');
-                expect(context.player1).not.toBeAbleToSelect(context.topTarget);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['top-target', 'shield']);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield', 'top-target']);
+                expect(context.jediLightsaber).toBeInZone('discard');
+
+                context.player2.passAction();
+
+                // Finn should be exhausted
+                expect(context.finn).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
 
@@ -62,14 +69,14 @@ describe('Finn, This is a Rescue', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['jedi-lightsaber'],
+                        hand: ['entrenched'],
                         leader: { card: 'finn#this-is-a-rescue', deployed: true },
-                        groundArena: [{ card: 'battlefield-marine', upgrades: ['experience'] }],
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber'] }],
                         resources: 5
                     },
                     player2: {
                         hand: ['top-target'],
-                        groundArena: ['wampa'],
+                        groundArena: ['wampa', 'atst'],
                         resources: 5
                     }
                 });
@@ -78,49 +85,68 @@ describe('Finn, This is a Rescue', function () {
             it('should defeat a friendly upgrade and give a shield token on attack', function () {
                 const { context } = contextRef;
 
-                // Equip a friendly upgrade to battlefield marine
-                context.player1.clickCard(context.jediLightsaber);
-                expect(context.player1).toBeAbleToSelectExactly([context.finn, context.battlefieldMarine, context.wampa]);
-                context.player1.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'jedi-lightsaber']);
+                const reset = (passAction = true) => {
+                    context.finn.exhausted = false;
+                    context.finn.damage = 0;
+                    context.wampa.damage = 0;
+                    if (passAction) {
+                        context.player2.passAction();
+                    }
+                };
+
+                // Scenario 1: Pass on defeating an upgrade on attack
+                context.player1.clickCard(context.finn);
+                context.player1.clickCard(context.wampa);
+                context.player1.passAction();
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
+                expect(context.wampa.damage).toBe(4);
+
+                reset();
+
+                // Scenario 2: Defeat a friendly upgrade on a friendly unit on attack
+                context.player1.clickCard(context.finn);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickPrompt('Defeat a friendly upgrade on a unit');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(context.jediLightsaber).toBeInZone('discard');
+                expect(context.wampa.damage).toBe(4);
+
+                reset();
+
+                // Scenario 3: Defeat a friendly upgrade on an opponent's unit on attack
+                // Attach a friendly upgrade to an opponent's unit
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toHaveExactUpgradeNames(['entrenched']);
 
                 context.player2.passAction();
 
-                // Attack with Finn
+                // // Attack with Finn
                 context.player1.clickCard(context.finn);
-                expect(context.player1).toHavePrompt('Choose a target for attack');
                 context.player1.clickCard(context.p2Base);
-
-                // Use Finn's ability
-                expect(context.player1).toHavePrompt('Choose an upgrade');
-                expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickCard(context.experience);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'shield']);
+                context.player1.clickCard(context.entrenched);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.atst).toHaveExactUpgradeNames(['shield']);
+                expect(context.entrenched).toBeInZone('discard');
             });
 
-            it('should not be able to defeat an opponent\'s (non-friendly) upgrade on attack', function () {
+            it('should not defeat an opponent\'s upgrade', function () {
                 const { context } = contextRef;
 
-                // Equip a friendly upgrade to battlefield marine
-                context.player1.clickCard(context.jediLightsaber);
-                expect(context.player1).toBeAbleToSelectExactly([context.finn, context.battlefieldMarine, context.wampa]);
-                context.player1.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'jedi-lightsaber']);
+                context.player1.passAction();
 
-                // Opponent equips an upgrade to battlefield marine
                 context.player2.clickCard(context.topTarget);
                 context.player2.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'jedi-lightsaber', 'top-target']);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'top-target']);
 
-                // Attack with Finn
                 context.player1.clickCard(context.finn);
-                expect(context.player1).toHavePrompt('Choose a target for attack');
-                context.player1.clickCard(context.p2Base);
-
-                // Use Finn's ability
-                expect(context.player1).toHavePrompt('Choose an upgrade');
-                expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.experience, context.jediLightsaber]);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickPrompt('Defeat a friendly upgrade on a unit');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield', 'top-target']);
+                expect(context.jediLightsaber).toBeInZone('discard');
             });
         });
     });
