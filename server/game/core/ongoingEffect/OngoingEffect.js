@@ -107,7 +107,7 @@ class OngoingEffect {
     }
 
     resolveEffectTargets(stateChanged) {
-        if (!this.condition(this.context) || !this.isEffectActive()) {
+        if (!this.isEffectActive() || !this.condition(this.context)) {
             stateChanged = this.targets.length > 0 || stateChanged;
             this.cancel();
             return stateChanged;
