@@ -56,10 +56,9 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     public override canAffect(card: Card, context: TContext): boolean {
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy);
-        const playAbleLocations = [Location.Resource, Location.Deck, Location.Discard];
         if (!super.canAffect(card, context)) {
             return false;
-        } else if (!card.canBeInPlay() || card.isInPlay() || (card.facedown && !playAbleLocations.includes(card.location))) {
+        } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;
         } else if (card.location === Location.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
             return false;

@@ -39,9 +39,6 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public eventHandler(event, additionalProperties): void {
         const player = event.player;
         const newContext = (event.playCardAbility as PlayCardAction).createContext(player);
-        const properties = this.generatePropertiesFromContext(newContext, additionalProperties);
-        newContext.ability.playType = properties.playType;
-        newContext.ability.entersReady = properties.entersReady;
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
     }
 
@@ -55,9 +52,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        event.playCardAbility = this.generatePlayCardAbility(target, properties.playType);
+        event.playCardAbility = this.generatePlayCardAbility(target, properties);
         event.optional = properties.optional ?? context.ability.optional;
-        event.entersReady = properties.entersReady;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
