@@ -992,6 +992,12 @@ class Player extends GameObject {
      * @param {Object} options
      */
     moveCard(card, targetLocation, options = {}) {
+        // If the card is a resource and it is ready, try to ready another resource instead
+        // and exhaust this one. This should be the desired behavior for most cases.
+        if (card.location === Location.Resource && Object.prototype.hasOwnProperty.call(card, 'ready') && card.ready) {
+            card.controller.swapResourceReadyState(card);
+        }
+
         this.removeCardFromPile(card);
 
         if (targetLocation.endsWith(' bottom')) {
