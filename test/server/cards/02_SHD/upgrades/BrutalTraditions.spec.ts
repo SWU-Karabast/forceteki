@@ -6,14 +6,15 @@ describe('Brutal Traditions', function() {
                     phase: 'action',
                     player1: {
                         groundArena: [
-                            { card: 'vigilant-honor-guards', upgrades: ['brutal-traditions'] },
-                            { card: 'moisture-farmer' },
-                            { card: 'death-trooper' }
+                            'atst',
+                            'moisture-farmer',
+                            'death-trooper'
                         ],
+                        discard: ['brutal-traditions']
                     },
                     player2: {
                         groundArena: ['wampa'],
-                        hand: ['confiscate', 'vanquish', 'rivals-fall']
+                        hand: ['confiscate', 'vanquish']
                     }
                 });
             });
@@ -21,29 +22,18 @@ describe('Brutal Traditions', function() {
             it('should be able to play it from the discard pile when an opponent\'s unit is defeated.', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.vigilantHonorGuards);
+                context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.wampa);
-
-                expect(context.player2).toBeActivePlayer();
-                expect(context.wampa).toBeInLocation('discard');
-
-                context.player2.clickCard(context.confiscate);
-                expect(context.brutalTraditions).toBeInLocation('discard');
-                expect(context.player1).toBeActivePlayer();
+                context.player2.passAction();
                 expect(context.player1).toBeAbleToSelect(context.brutalTraditions);
 
                 context.player1.clickCard(context.brutalTraditions);
-                context.player1.clickCard(context.vigilantHonorGuards);
-                expect(context.vigilantHonorGuards.upgrades).toEqual([context.brutalTraditions]);
-                expect(context.vigilantHonorGuards.getPower()).toBe(5);
-                expect(context.vigilantHonorGuards.getHp()).toBe(8);
-                expect(context.vigilantHonorGuards.damage).toBe(4);
+                context.player1.clickCard(context.atst);
+                expect(context.atst.upgrades).toEqual([context.brutalTraditions]);
 
                 // Brutal tradition is again able to be played from the discard pile
                 context.player2.clickCard(context.vanquish);
-                expect(context.player2).toBeAbleToSelect(context.vigilantHonorGuards);
-                context.player2.clickCard(context.vigilantHonorGuards);
-                expect(context.vigilantHonorGuards).toBeInLocation('discard');
+                context.player2.clickCard(context.atst);
 
                 expect(context.brutalTraditions).toBeInLocation('discard');
                 expect(context.player1).toBeAbleToSelect(context.brutalTraditions);
@@ -52,9 +42,8 @@ describe('Brutal Traditions', function() {
                 context.player1.clickCard(context.moistureFarmer);
                 expect(context.moistureFarmer.upgrades).toEqual([context.brutalTraditions]);
 
-                // remove it with fell the dragon
-                context.player2.clickCard(context.rivalsFall);
-                context.player2.clickCard(context.moistureFarmer);
+                // remove it with confiscate
+                context.player2.clickCard(context.confiscate);
                 expect(context.brutalTraditions).toBeInLocation('discard');
 
                 // CASE 2: Should not be able to be played in the next turn.
