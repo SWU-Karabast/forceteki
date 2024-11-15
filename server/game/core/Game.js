@@ -809,6 +809,13 @@ class Game extends EventEmitter {
 
     roundEnded() {
         this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, TriggerHandlingMode.ResolvesTriggers);
+
+        // at end of round, any tokens in outsideTheGameZone are removed completely
+        for (const player of this.getPlayers()) {
+            for (const token of player.outsideTheGameZone.cards.filter((card) => card.isToken())) {
+                token.removeFromGame();
+            }
+        }
     }
 
     claimInitiative(player) {
@@ -1198,9 +1205,6 @@ class Game extends EventEmitter {
         this.filterCardFromList(token, this.allCards);
         this.filterCardFromList(token, player.decklist.tokens);
         this.filterCardFromList(token, player.decklist.allCards);
-
-        // removes the token from the zone
-        token.removeFromGame();
     }
 
     /**

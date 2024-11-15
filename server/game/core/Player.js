@@ -237,6 +237,8 @@ class Player extends GameObject {
                 return this.discardZone.cards;
             case Location.Resource:
                 return this.resourceZone.cards;
+            case Location.Base:
+                return this.baseZone.cards;
             case Location.OutsideTheGame:
                 return this.outsideTheGameZone.cards;
             case Location.SpaceArena:
