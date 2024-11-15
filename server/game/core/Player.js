@@ -30,6 +30,8 @@ const { ResourceZone } = require('./zone/ResourceZone');
 const { DiscardZone } = require('./zone/DiscardZone');
 const { OutsideTheGameZone } = require('./zone/OutsideTheGameZone');
 const { BaseZone } = require('./zone/BaseZone');
+const { SpaceArenaZone } = require('./zone/SpaceArenaZone');
+const { GroundArenaZone } = require('./zone/GroundArenaZone');
 
 class Player extends GameObject {
     constructor(id, user, owner, game, clockDetails) {
@@ -224,6 +226,27 @@ class Player extends GameObject {
      */
     controlsLeaderOrUnitWithTitle(title) {
         return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
+    }
+
+    getCardsInZone(location) {
+        switch (location) {
+            case Location.Hand:
+                return this.handZone.cards;
+            case Location.Deck:
+                return this.deckZone.cards;
+            case Location.Discard:
+                return this.discardZone.cards;
+            case Location.Resource:
+                return this.resourceZone.cards;
+            case Location.OutsideTheGame:
+                return this.outsideTheGame.cards;
+            case SpaceArenaZone:
+                return this.game.spaceArena.getCards({ controller: this });
+            case GroundArenaZone:
+                return this.game.groundArena.getCards({ controller: this });
+            default:
+                Contract.fail(`Unknown location: ${location}`);
+        }
     }
 
     // TODO THIS PR: remove
@@ -567,7 +590,7 @@ class Player extends GameObject {
         this.leader = preparedDecklist.leader;
 
         this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
-        this.baseZone = new BaseZone(this);
+        this.baseZone = new BaseZone(this, this.base, this.leader);
 
         this.decklist = preparedDecklist;
     }
@@ -615,14 +638,6 @@ class Player extends GameObject {
 
     removePlayableLocation(location) {
         this.playableLocations = this.playableLocations.filter((l) => l !== location);
-    }
-
-    putBaseInPlay() {
-        this.baseZone.setBase(this.base);
-    }
-
-    putLeaderInPlay() {
-        this.baseZone.setLeader(this.leader);
     }
 
     /**

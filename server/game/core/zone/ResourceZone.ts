@@ -1,5 +1,6 @@
 import { PlayableCard } from '../card/CardTypes';
 import { Location, RelativePlayer } from '../Constants';
+import Player from '../Player';
 import { SimpleZone } from './SimpleZone';
 
 export class ResourceZone extends SimpleZone<PlayableCard> {
@@ -20,5 +21,11 @@ export class ResourceZone extends SimpleZone<PlayableCard> {
 
     public get readyResources() {
         return this._cards.filter((card) => !card.exhausted);
+    }
+
+    public constructor(owner: Player) {
+        super(owner);
+
+        this.name = Location.Resource;
     }
 }

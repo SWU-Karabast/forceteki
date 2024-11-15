@@ -6,16 +6,12 @@ import * as Contract from '../utils/Contract';
 import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
 export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
+    public readonly base: BaseCard;
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Player;
     public override readonly name: Location.Base;
 
-    private _base?: BaseCard;
     private _leader?: LeaderCard;
-
-    public get base(): BaseCard | null {
-        return this._base;
-    }
 
     public override get cards(): (LeaderCard | BaseCard)[] {
         return this._leader ? [this.base, this._leader] : [this.base];
@@ -29,8 +25,16 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
         return this._leader;
     }
 
-    public constructor(owner: Player) {
+    public constructor(owner: Player, base: BaseCard, leader: LeaderCard) {
         super(owner);
+
+        this.name = Location.Base;
+
+        this.base = base;
+        this._leader = leader;
+
+        base.initializeLocation(this);
+        leader.initializeLocation(this);
     }
 
     public override getCards(filter?: IZoneCardFilterProperties): (LeaderCard | BaseCard)[] {
@@ -48,18 +52,5 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
         Contract.assertNotNullLike(this._leader, `Attempting to remove leader from ${this} but it is in location ${this.owner.leader.location}`);
 
         this._leader = null;
-    }
-
-    public setBase(base: BaseCard) {
-        Contract.assertEqual(base.controller, this.owner, `Attempting to add card ${base.internalName} to ${this} as base but its controller is ${base.controller}`);
-        Contract.assertIsNullLike(this._base, `Attempting to add base ${base.internalName} to ${this} but a base is already there`);
-
-        this._base = base;
-    }
-
-    public removeBase() {
-        Contract.assertNotNullLike(this._base, `Attempting to remove base from ${this} but it is in location ${this.owner.base.location}`);
-
-        this._base = null;
     }
 }

@@ -34,12 +34,11 @@ class PlayerInteractionWrapper {
      * be moved into their proper starting locations for the test.
      */
     moveAllNonBaseZonesToRemoved() {
-        this.player.spaceArena.forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.groundArena.forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.resources.forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.discard.forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.hand.forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.drawDeck.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.getArenaCards().forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.resourceZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.discardZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
     }
 
     get hand() {
@@ -266,7 +265,7 @@ class PlayerInteractionWrapper {
     }
 
     setDeck(newContents = [], prevLocations = ['any']) {
-        this.player.drawDeck = [];
+        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
         newContents.reverse().forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevLocations) : nameOrCard;
             this.moveCard(card, 'deck');

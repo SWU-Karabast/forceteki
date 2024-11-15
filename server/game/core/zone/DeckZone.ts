@@ -33,7 +33,11 @@ export class DeckZone extends ZoneAbstract<PlayableCard> {
     public constructor(owner: Player, cards: PlayableCard[]) {
         super(owner);
 
+        this.name = Location.Deck;
+
         this.deck = cards;
+
+        cards.forEach((card) => card.initializeLocation(this));
     }
 
     public override getCards(filter?: IZoneCardFilterProperties): PlayableCard[] {

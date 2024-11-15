@@ -77,13 +77,11 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
 
-        this.spaceArena = new SpaceArenaZone(this);
-        this.groundArena = new GroundArenaZone(this);
-        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
-
         this.registerGlobalRulesListeners();
 
         this.shortCardData = options.shortCardData || [];
+
+        Contract.assertArraySize(details.players, 2, 'Game must have exactly 2 players');
 
         details.players.forEach((player) => {
             this.playersAndSpectators[player.user.username] = new Player(
@@ -98,6 +96,12 @@ class Game extends EventEmitter {
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.user.username] = new Spectator(spectator.id, spectator.user);
         });
+
+        const [player1, player2] = this.getPlayers();
+
+        this.spaceArena = new SpaceArenaZone(this, player1, player2);
+        this.groundArena = new GroundArenaZone(this, player1, player2);
+        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
 
@@ -279,17 +283,11 @@ class Game extends EventEmitter {
 
     /**
      * Returns all cards which matching the passed predicated function from either players arenas
-     * @param {Function} predicate - card => Boolean
+     * @param {(Card) => boolean} predicate - card => Boolean
      * @returns {Array} Array of DrawCard objects
      */
     findAnyCardsInPlay(predicate = () => true) {
-        var foundCards = [];
-
-        this.getPlayers().forEach((player) => {
-            foundCards = foundCards.concat(player.findCards(player.getArenaCards(), predicate));
-        });
-
-        return foundCards;
+        return this.allArenas.getCards({ condition: predicate });
     }
 
     /**

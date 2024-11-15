@@ -191,9 +191,9 @@ class ActionWindow extends UiPrompt {
 
     highlightSelectableCards() {
         const allPossibleCards = this.game.findAnyCardsInPlay().concat(
-            this.activePlayer.getCardPile(Location.Discard),
-            this.activePlayer.getCardPile(Location.Resource),
-            this.activePlayer.getCardPile(Location.Hand)
+            this.activePlayer.discardZone.cards,
+            this.activePlayer.resourceZone.cards,
+            this.activePlayer.handZone.cards
         );
         this.activePlayer.setSelectableCards(allPossibleCards.filter((card) => this.getCardLegalActions(card, this.activePlayer).length > 0));
     }

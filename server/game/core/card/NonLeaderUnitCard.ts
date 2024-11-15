@@ -38,7 +38,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         return true;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
+    protected override initializeForCurrentLocation(prevLocation?: Location): void {
         super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {

@@ -192,7 +192,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.movedFromLocation = null;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location) {
+    protected override initializeForCurrentLocation(prevLocation?: Location) {
         super.initializeForCurrentLocation(prevLocation);
 
         this.movedFromLocation = prevLocation;

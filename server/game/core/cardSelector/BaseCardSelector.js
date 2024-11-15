@@ -70,10 +70,10 @@ class BaseCardSelector {
                 break;
             case WildcardLocation.AnyAttackable:
                 cards = player.getArenaCards();
-                cards = cards.concat(player.getCardPile(Location.Base));
+                cards = cards.concat(player.baseZone.cards);
                 break;
             default:
-                cards = player.getCardPile(location);
+                cards = player.getCardsInZone(location);
                 break;
         }
 

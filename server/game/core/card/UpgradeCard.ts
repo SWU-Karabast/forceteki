@@ -202,7 +202,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.attachCondition = attachCondition;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
+    protected override initializeForCurrentLocation(prevLocation?: Location): void {
         super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {

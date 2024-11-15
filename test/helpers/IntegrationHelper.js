@@ -646,16 +646,7 @@ var customMatchers = {
 
                 const pileOwningPlayer = player?.player || card.owner;
 
-                const correctProperty = card.location === location;
-                const correctPile = pileOwningPlayer.getCardPile(location).includes(card);
-
-                if (correctProperty !== correctPile) {
-                    result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent location state, card.location is '${card.location}' but it is not in the corresponding pile for ${pileOwningPlayer.name}'`;
-                    return result;
-                }
-
-                result.pass = correctProperty && correctPile;
+                result.pass = card.location === location;
 
                 if (result.pass) {
                     result.message = `Expected ${card.internalName} not to be in location '${location}' but it is`;

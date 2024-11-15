@@ -24,9 +24,6 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities();
 
-        // leaders are always in a zone where they are allowed to be exhausted
-        this.setExhaustEnabled(true);
-
         // add deploy leader action
         this.addActionAbility({
             title: `Deploy ${this.name}`,
@@ -43,6 +40,11 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
 
     public override isLeaderUnit(): this is LeaderUnitCard {
         return this._deployed;
+    }
+
+    public override initializeForStartLocation(): void {
+        // leaders are always in a zone where they are allowed to be exhausted
+        this.setExhaustEnabled(true);
     }
 
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
@@ -97,7 +99,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
             : abilityLocation;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
+    protected override initializeForCurrentLocation(prevLocation?: Location): void {
         super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {
@@ -115,7 +117,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
-                this.exhausted = EnumHelpers.isArena(prevLocation);
+                this.exhausted = prevLocation ? EnumHelpers.isArena(prevLocation) : false;
                 break;
         }
     }

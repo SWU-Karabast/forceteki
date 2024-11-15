@@ -448,6 +448,7 @@ export class Card extends OngoingEffectSource {
 
     // ******************************************* LOCATION MANAGEMENT *******************************************
     public moveTo(targetLocation: Location, addCardToDeckSide: AddCardSide = null) {
+        Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
         Contract.assertEqual(targetLocation === Location.Deck, addCardToDeckSide != null, `Must provide addCardToDeckSide iff moving to deck (${this.internalName})`);
 
         const originalLocation = this.location;
@@ -470,7 +471,7 @@ export class Card extends OngoingEffectSource {
         }
 
         this.addSelfToZone(targetLocation);
-        this.initializeForCurrentLocation(prevZone?.name);
+        this.initializeForCurrentLocation(prevZone.name);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
@@ -480,6 +481,18 @@ export class Card extends OngoingEffectSource {
 
         this.game.registerMovedCard(this);
     }
+
+    public initializeLocation(zone: Zone) {
+        Contract.assertIsNullLike(this._zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
+
+        this._zone = zone;
+
+        this.initializeForStartLocation();
+        this.initializeForCurrentLocation(null);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected initializeForStartLocation(): void {}
 
     private addSelfToZone(location: Location, addCardToDeckSide: AddCardSide = null) {
         switch (location) {
@@ -556,7 +569,7 @@ export class Card extends OngoingEffectSource {
      *
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
-    protected initializeForCurrentLocation(prevLocation: Location) {
+    protected initializeForCurrentLocation(prevLocation?: Location) {
         this.hiddenForOpponent = EnumHelpers.isHidden(this.location, RelativePlayer.Self);
 
         switch (this.location) {

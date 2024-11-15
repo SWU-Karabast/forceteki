@@ -1,6 +1,7 @@
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
 
+// TODO NOISY PR: clean up the spaces from these
 export enum Location {
     Base = 'base',
     Deck = 'deck',

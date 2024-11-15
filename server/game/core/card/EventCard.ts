@@ -54,7 +54,7 @@ export class EventCard extends EventCardParent {
             : this._eventAbility;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
+    protected override initializeForCurrentLocation(prevLocation?: Location): void {
         super.initializeForCurrentLocation(prevLocation);
 
         // event cards can only be exhausted when resourced

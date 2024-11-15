@@ -41,6 +41,9 @@ export class AllArenasZone extends ConcreteOrMetaArenaZone {
 
     public constructor(owner: Game, groundArena: GroundArenaZone, spaceArena: SpaceArenaZone) {
         super(owner);
+
+        this.name = WildcardLocation.AnyArena;
+
         this.groundArena = groundArena;
         this.spaceArena = spaceArena;
     }

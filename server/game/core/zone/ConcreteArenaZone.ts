@@ -23,8 +23,11 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone {
         return cardCount;
     }
 
-    public constructor(owner: Game) {
+    public constructor(owner: Game, player1: Player, player2: Player) {
         super(owner);
+
+        this._cards.set(player1, []);
+        this._cards.set(player2, []);
     }
 
     public override getCards(filter?: IArenaZoneCardFilterProperties): InPlayCard[] {
