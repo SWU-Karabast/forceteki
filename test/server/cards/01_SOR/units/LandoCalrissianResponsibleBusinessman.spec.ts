@@ -8,14 +8,13 @@ describe('Lando Calrissian, Responsible Businessman', function() {
                         base: 'chopper-base',
                         hand: ['lando-calrissian#responsible-businessman'],
                         leader: 'hera-syndulla#spectre-two',
+                        resources: 7
                     }
                 });
             });
 
             it('returns up to 2 resources to hand', function () {
                 const { context } = contextRef;
-
-                context.player1.setResourceCount(7);
 
                 expect(context.player1.countSpendableResources()).toBe(7);
                 context.player1.clickCard(context.landoCalrissian);
