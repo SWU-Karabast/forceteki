@@ -17,10 +17,9 @@ export default class WolffeSuspiciousVeteran extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) => event.card === context.source,
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source,
             },
-            immediateEffect: AbilityHelper.immediateEffects.cardLastingEffect((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeHealed),
                 target: [context.source.controller.base, context.source.controller.opponent.base],
-                duration: Duration.UntilEndOfPhase
             }))
         });
     }
