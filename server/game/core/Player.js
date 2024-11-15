@@ -54,13 +54,14 @@ class Player extends GameObject {
         this.left = false;
         this.lobbyId = null;
 
-        // TODO THIS PR: make some of these private with #
         this.handZone = new HandZone(this);
         this.deckZone = null;
         this.resourceZone = new ResourceZone(this);
         this.discardZone = new DiscardZone(this);
-        this.outsideTheGame = new OutsideTheGameZone(this);
         this.canTakeActionsThisPhase = null;
+
+        // mainly used for staging tokens when they are created / removed
+        this.outsideTheGameZone = new OutsideTheGameZone(this);
 
         this.baseZone = null;
 
@@ -87,9 +88,6 @@ class Player extends GameObject {
         // this.timerSettings.windowTimer = user.settings.windowTimer;
         this.optionSettings = user.settings.optionSettings;
         this.resetTimerAtEndOfRound = false;
-
-        // mainly used for staging new tokens when they are created
-        this.outsideTheGameCards = [];
 
         // TODO: this should be a user setting at some point
         this.autoSingleTarget = true;
@@ -240,10 +238,10 @@ class Player extends GameObject {
             case Location.Resource:
                 return this.resourceZone.cards;
             case Location.OutsideTheGame:
-                return this.outsideTheGame.cards;
-            case SpaceArenaZone:
+                return this.outsideTheGameZone.cards;
+            case Location.SpaceArena:
                 return this.game.spaceArena.getCards({ controller: this });
-            case GroundArenaZone:
+            case Location.GroundArena:
                 return this.game.groundArena.getCards({ controller: this });
             default:
                 Contract.fail(`Unknown location: ${location}`);
@@ -1072,7 +1070,7 @@ class Player extends GameObject {
             cardPiles: {
                 // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
                 hand: this.getSummaryForHand(this.hand, activePlayer, false),
-                outsideTheGame: this.getSummaryForCardList(this.outsideTheGame, activePlayer)
+                outsideTheGame: this.getSummaryForCardList(this.outsideTheGameZone, activePlayer)
             },
             disconnected: this.disconnected,
             // faction: this.faction,

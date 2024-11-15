@@ -92,7 +92,11 @@ export class Card extends OngoingEffectSource {
     }
 
     public get zone(): Zone {
-        return this.zone;
+        return this._zone;
+    }
+
+    protected set zone(zone: Zone) {
+        this._zone = zone;
     }
 
     // *********************************************** CONSTRUCTOR ***********************************************
@@ -526,7 +530,7 @@ export class Card extends OngoingEffectSource {
                 break;
 
             case Location.OutsideTheGame:
-                this._zone = this.owner.outsideTheGame;
+                this._zone = this.owner.outsideTheGameZone;
                 Contract.assertTrue(this.isTokenOrPlayable());
                 this._zone.addCard(this);
                 break;
@@ -547,6 +551,10 @@ export class Card extends OngoingEffectSource {
                 Contract.fail(`Unknown zone enum value: ${location}`);
         }
     }
+
+    // public removeFromGame() {
+    //     Contract.fail(`Attempting to remove card ${this.internalName} from the game but it is not a token`);
+    // }
 
     /**
      * Deals with any engine effects of leaving the current location before the move happens

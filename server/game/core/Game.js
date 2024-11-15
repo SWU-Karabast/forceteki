@@ -1179,13 +1179,14 @@ class Game extends EventEmitter {
         this.allCards.push(token);
         player.decklist.tokens.push(token);
         player.decklist.allCards.push(token);
-        player.outsideTheGameCards.push(token);
+        player.outsideTheGameZone.addCard(token);
+        token.initializeLocation(player.outsideTheGameZone);
 
         return token;
     }
 
     /**
-     * Removes a shield token from all relevant card lists
+     * Removes a shield token from all relevant card lists, including its zone
      * @param {import('./card/CardTypes.js').TokenCard} token
      */
     removeTokenFromPlay(token) {
@@ -1197,7 +1198,9 @@ class Game extends EventEmitter {
         this.filterCardFromList(token, this.allCards);
         this.filterCardFromList(token, player.decklist.tokens);
         this.filterCardFromList(token, player.decklist.allCards);
-        this.filterCardFromList(token, player.outsideTheGameCards);
+
+        // removes the token from the zone
+        token.removeFromGame();
     }
 
     /**
