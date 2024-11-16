@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { CardType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class ItBindsAllThings extends EventCard {
     protected override getImplementationId () {
