@@ -26,6 +26,7 @@ describe('Brutal Traditions', function() {
                 context.player1.clickCard(context.wampa);
                 context.player2.passAction();
                 expect(context.player1).toBeAbleToSelect(context.brutalTraditions);
+                expect(context.player1.currentActionTargets).toContain(context.brutalTraditions);
 
                 context.player1.clickCard(context.brutalTraditions);
                 context.player1.clickCard(context.atst);
@@ -37,6 +38,7 @@ describe('Brutal Traditions', function() {
 
                 expect(context.brutalTraditions).toBeInLocation('discard');
                 expect(context.player1).toBeAbleToSelect(context.brutalTraditions);
+                expect(context.player1.currentActionTargets).toContain(context.brutalTraditions);
 
                 context.player1.clickCard(context.brutalTraditions);
                 context.player1.clickCard(context.moistureFarmer);
@@ -45,6 +47,7 @@ describe('Brutal Traditions', function() {
                 // remove it with confiscate
                 context.player2.clickCard(context.confiscate);
                 expect(context.brutalTraditions).toBeInLocation('discard');
+                expect(context.player1.currentActionTargets).toContain(context.brutalTraditions);
 
                 // CASE 2: Should not be able to be played in the next turn.
                 context.moveToNextActionPhase();
