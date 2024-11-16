@@ -31,7 +31,7 @@ export default class ZebOrreliosHeadstrongWarrior extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) =>
                         context.event.attack.target.isUnit() &&
-                        this.unitsDefeatedThisPhaseWatcher.getDefeatedUnits(context.source.controller.opponent).includes(context.event.attack.target),
+                        this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller.opponent).includes(context.event.attack.target),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 4 }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })
