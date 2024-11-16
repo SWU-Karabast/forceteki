@@ -1116,7 +1116,7 @@ class Game extends EventEmitter {
     resolveGameState(hasChanged = false, events = []) {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
         for (const movedCard of this.movedCards) {
-            movedCard.resolveAbilitiesForNewLocation();
+            movedCard.resolveAbilitiesForNewZone();
         }
         this.movedCards = [];
 

@@ -2,7 +2,7 @@ import type { ZoneName, PlayType } from './Constants';
 import type Player from './Player';
 import { Card } from './card/Card';
 
-export class PlayableLocation {
+export class PlayableZone {
     public constructor(
         public playingType: PlayType,
         private player: Player,

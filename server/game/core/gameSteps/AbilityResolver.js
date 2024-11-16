@@ -76,7 +76,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                 this.events.push(new GameEvent(EventName.OnCardPlayed, this.context, {
                     player: this.context.player,
                     card: this.context.source,
-                    originalLocation: this.context.source.zoneName,
+                    originalZone: this.context.source.zoneName,
                     originallyOnTopOfDeck:
                         this.context.player && this.context.player.drawDeck && this.context.player.drawDeck[0] === this.context.source,
                     onPlayCardSource: this.context.onPlayCardSource,

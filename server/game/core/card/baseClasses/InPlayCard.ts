@@ -85,7 +85,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
         const ability = this.createConstantAbility(properties);
         // This check is necessary to make sure on-play cost-reduction effects are registered
-        if (ability.sourceLocationFilter === WildcardZoneName.Any) {
+        if (ability.sourceZoneFilter === WildcardZoneName.Any) {
             ability.registeredEffects = this.addEffectToEngine(ability);
         }
         this.constantAbilities.push(ability);
@@ -183,7 +183,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         }
     }
 
-    public override resolveAbilitiesForNewLocation() {
+    public override resolveAbilitiesForNewZone() {
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(this.movedFromLocation, this.zoneName);
@@ -230,17 +230,17 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         // check to register / unregister any effects that we are the source of
         for (const constantAbility of this.constantAbilities) {
-            if (constantAbility.sourceLocationFilter === WildcardZoneName.Any) {
+            if (constantAbility.sourceZoneFilter === WildcardZoneName.Any) {
                 continue;
             }
             if (
-                !EnumHelpers.cardLocationMatches(from, constantAbility.sourceLocationFilter) &&
-                EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
+                !EnumHelpers.cardLocationMatches(from, constantAbility.sourceZoneFilter) &&
+                EnumHelpers.cardLocationMatches(to, constantAbility.sourceZoneFilter)
             ) {
                 constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
             } else if (
-                EnumHelpers.cardLocationMatches(from, constantAbility.sourceLocationFilter) &&
-                !EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
+                EnumHelpers.cardLocationMatches(from, constantAbility.sourceZoneFilter) &&
+                !EnumHelpers.cardLocationMatches(to, constantAbility.sourceZoneFilter)
             ) {
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];

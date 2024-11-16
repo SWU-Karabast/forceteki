@@ -28,10 +28,10 @@ export class InitiateAttackAction extends PlayerAction {
             return 'player';
         }
         if (
-            !ignoredRequirements.includes('location') &&
+            !ignoredRequirements.includes('zone') &&
             !EnumHelpers.isArena(context.source.zoneName)
         ) {
-            return 'location';
+            return 'zone';
         }
         if (context.player.hasRestriction(AbilityRestriction.Attack, context)) {
             return 'restriction';

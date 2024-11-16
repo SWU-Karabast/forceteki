@@ -17,8 +17,8 @@ export class EventAbility extends CardAbility {
     }
 
     public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
-        if (!ignoredRequirements.includes('location') && this.card.zoneName !== ZoneName.Discard) {
-            return 'location';
+        if (!ignoredRequirements.includes('zone') && this.card.zoneName !== ZoneName.Discard) {
+            return 'zone';
         }
 
         if (!ignoredRequirements.includes('phase') && this.game.currentPhase !== PhaseName.Action) {

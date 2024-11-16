@@ -193,10 +193,10 @@ export = {
     //                 }
     //                 card.fromOutOfPlaySource.push(sourceOfEffect);
     //             }
-    //             return player.addPlayableLocation(playType, player.opponent, location, cards);
+    //             return player.addPlayableZone(playType, player.opponent, location, cards);
     //         },
     //         unapply: (player, context, location) => {
-    //             player.removePlayableLocation(location);
+    //             player.removePlayableZone(location);
     //             for (const card of location.cards) {
     //                 if (Array.isArray(card.fromOutOfPlaySource)) {
     //                     card.fromOutOfPlaySource.filter((a) => a !== context.source);

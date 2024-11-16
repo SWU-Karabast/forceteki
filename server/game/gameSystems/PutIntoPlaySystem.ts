@@ -78,7 +78,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         ) as IPutIntoPlayProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
-        event.originalLocation = overrideLocation || card.zoneName;
+        event.originalZone = overrideLocation || card.zoneName;
         event.status = entersReady ? 'ready' : event.status;
     }
 

@@ -82,7 +82,7 @@ export interface IAbilityProps<TContext extends AbilityContext> {
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
-    sourceLocationFilter?: ZoneFilter | ZoneFilter[];
+    sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** A handler to enable or disable the ability's effects depending on game context */
     condition?: (context: AbilityContext<TSource>) => boolean;

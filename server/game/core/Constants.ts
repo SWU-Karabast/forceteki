@@ -17,7 +17,7 @@ export enum WildcardZoneName {
     Any = 'any',
     AnyArena = 'any arena',
 
-    /** Any location that is a valid attack target - an arena or base zone */
+    /** Any zone that is a valid attack target - an arena or base zone */
     AnyAttackable = 'any attackable'
 }
 

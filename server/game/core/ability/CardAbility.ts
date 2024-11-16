@@ -129,7 +129,7 @@ export class CardAbility extends CardAbilityStep {
 
     protected isInValidLocation(context) {
         return this.card.isEvent()
-            ? context.player.isCardInPlayableLocation(context.source, context.playType)
+            ? context.player.isCardInPlayableZone(context.source, context.playType)
             : EnumHelpers.cardLocationMatches(this.card.zoneName, this.zoneFilter);
     }
 

@@ -35,10 +35,10 @@ export abstract class PlayCardAction extends PlayerAction {
             return 'phase';
         }
         if (
-            !ignoredRequirements.includes('location') &&
-            !context.player.isCardInPlayableLocation(context.source, this.playType)
+            !ignoredRequirements.includes('zone') &&
+            !context.player.isCardInPlayableZone(context.source, this.playType)
         ) {
-            return 'location';
+            return 'zone';
         }
         if (
             !ignoredRequirements.includes('cannotTrigger') &&

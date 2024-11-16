@@ -141,7 +141,7 @@ export class PlayableOrDeployableCard extends Card {
     private buildCostAdjusterAbilityProps(condition: (context: AbilityContext<this>) => boolean, title: string, ongoingEffect: IOngoingEffectGenerator): IConstantAbilityProps {
         const costAdjustAbilityProps: IConstantAbilityProps = {
             title,
-            sourceLocationFilter: WildcardZoneName.Any,
+            sourceZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Any,
             condition,
             ongoingEffect

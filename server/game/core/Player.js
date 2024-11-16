@@ -3,7 +3,7 @@ const { Deck } = require('../Deck.js');
 const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
 const { CostAdjuster, CostAdjustType } = require('./cost/CostAdjuster');
-const { PlayableLocation } = require('./PlayableLocation');
+const { PlayableZone } = require('./PlayableZone');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
 const Contract = require('./utils/Contract');
 const {
@@ -65,11 +65,11 @@ class Player extends GameObject {
 
         this.clock = clockFor(this, clockDetails);
 
-        this.playableLocations = [
-            new PlayableLocation(PlayType.PlayFromHand, this, ZoneName.Hand),
-            new PlayableLocation(PlayType.Smuggle, this, ZoneName.Resource),
-            new PlayableLocation(PlayType.PlayFromOutOfPlay, this, ZoneName.Deck),
-            new PlayableLocation(PlayType.PlayFromOutOfPlay, this, ZoneName.Discard),
+        this.playableZones = [
+            new PlayableZone(PlayType.PlayFromHand, this, ZoneName.Hand),
+            new PlayableZone(PlayType.Smuggle, this, ZoneName.Resource),
+            new PlayableZone(PlayType.PlayFromOutOfPlay, this, ZoneName.Deck),
+            new PlayableZone(PlayType.PlayFromOutOfPlay, this, ZoneName.Discard),
         ];
 
         this.limitedPlayed = 0;
@@ -396,13 +396,13 @@ class Player extends GameObject {
      * @param card BaseCard
      * @param {String} playingType
      */
-    isCardInPlayableLocation(card, playingType = null) {
+    isCardInPlayableZone(card, playingType = null) {
         // use an effect check to see if this card is in an out of play location but can still be played from
         if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
             return true;
         }
 
-        return this.playableLocations.some(
+        return this.playableZones.some(
             (location) => (!playingType || location.playingType === playingType) && location.includes(card)
         );
     }
@@ -413,7 +413,7 @@ class Player extends GameObject {
             return effects[effects.length - 1].playType || PlayType.PlayFromHand;
         }
 
-        let location = this.playableLocations.find((location) => location.includes(card));
+        let location = this.playableZones.find((location) => location.includes(card));
         if (location) {
             return location.playingType;
         }
@@ -609,15 +609,15 @@ class Player extends GameObject {
         }
     }
 
-    addPlayableLocation(type, player, location, cards = []) {
+    addPlayableZone(type, player, location, cards = []) {
         Contract.assertNotNullLike(player);
-        let playableLocation = new PlayableLocation(type, player, location, new Set(cards));
-        this.playableLocations.push(playableLocation);
-        return playableLocation;
+        let playableZone = new PlayableZone(type, player, location, new Set(cards));
+        this.playableZones.push(playableZone);
+        return playableZone;
     }
 
-    removePlayableLocation(location) {
-        this.playableLocations = this.playableLocations.filter((l) => l !== location);
+    removePlayableZone(location) {
+        this.playableZones = this.playableZones.filter((l) => l !== location);
     }
 
     /**
@@ -1068,13 +1068,13 @@ class Player extends GameObject {
             return;
         }
 
-        var originalLocation = card.zoneName;
-        var originalPile = this.getCardPile(originalLocation);
+        var originalZone = card.zoneName;
+        var originalPile = this.getCardPile(originalZone);
 
         if (originalPile) {
             let updatedPile = this.removeCardByUuid(originalPile, card.uuid);
 
-            switch (originalLocation) {
+            switch (originalZone) {
                 case ZoneName.Base:
                     this.baseZone = updatedPile;
                     break;
@@ -1106,7 +1106,7 @@ class Player extends GameObject {
                     if (this.additionalPiles[originalPile]) {
                         this.additionalPiles[originalPile].cards = updatedPile;
                     } else {
-                        Contract.fail(`Attempting to remove ${card.internalName} from pile, but pile '${originalLocation}' does not exist for ${this.name}`);
+                        Contract.fail(`Attempting to remove ${card.internalName} from pile, but pile '${originalZone}' does not exist for ${this.name}`);
                     }
             }
         }

@@ -74,7 +74,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     protected override addConstantAbility(properties: IConstantAbilityProps<this>): void {
-        properties.sourceLocationFilter = this.getAbilityLocationsForSide(properties.sourceLocationFilter);
+        properties.sourceZoneFilter = this.getAbilityLocationsForSide(properties.sourceZoneFilter);
         super.addConstantAbility(properties);
     }
 

@@ -43,8 +43,8 @@ export class ActionAbility extends CardAbility {
     }
 
     public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
-        if (!ignoredRequirements.includes('location') && !this.isInValidLocation(context)) {
-            return 'location';
+        if (!ignoredRequirements.includes('zone') && !this.isInValidLocation(context)) {
+            return 'zone';
         }
 
         if (!ignoredRequirements.includes('phase') && this.phase !== 'any' && this.phase !== this.game.currentPhase) {

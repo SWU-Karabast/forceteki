@@ -31,7 +31,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         Contract.assertTrue(parentCard.isUnit());
 
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
-        event.originalLocation = upgradeCard.zoneName;
+        event.originalZone = upgradeCard.zoneName;
 
         // attachTo manages all of the unattach and move zone logic
         upgradeCard.attachTo(parentCard);

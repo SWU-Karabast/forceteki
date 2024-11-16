@@ -37,7 +37,7 @@ export class AmbushAbility extends TriggeredAbility {
         const attackAction = AbilityHelper.immediateEffects.attack({
             attacker: context.source,
             targetCondition: (card) => !card.isBase(),
-            ignoredRequirements: ['location', 'cost']
+            ignoredRequirements: ['zone', 'cost']
         });
 
         return attackAction.hasLegalTarget(context);

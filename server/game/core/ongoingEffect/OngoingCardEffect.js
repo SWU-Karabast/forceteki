@@ -21,7 +21,7 @@ class OngoingCardEffect extends OngoingEffect {
         this.targetsSourceOnly = false;
 
         if (!properties.targetZoneFilter) {
-            this.targetZoneFilter = properties.sourceLocationFilter === WildcardZoneName.Any
+            this.targetZoneFilter = properties.sourceZoneFilter === WildcardZoneName.Any
                 ? WildcardZoneName.Any
                 : WildcardZoneName.AnyArena;
         } else {

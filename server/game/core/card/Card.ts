@@ -246,11 +246,11 @@ export class Card extends OngoingEffectSource {
     }
 
     public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
-        const sourceLocationFilter = properties.sourceLocationFilter || WildcardZoneName.AnyArena;
+        const sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
 
         return {
             duration: Duration.Persistent,
-            sourceLocationFilter,
+            sourceZoneFilter,
             ...properties,
             ...this.buildGeneralAbilityProps('constant'),
             uuid: uuidv4()
@@ -435,9 +435,9 @@ export class Card extends OngoingEffectSource {
 
     // ******************************************* LOCATION MANAGEMENT *******************************************
     public moveTo(targetLocation: ZoneName) {
-        const originalLocation = this.zoneName;
+        const originalZone = this.zoneName;
 
-        if (originalLocation === targetLocation) {
+        if (originalZone === targetLocation) {
             return;
         }
 
@@ -448,7 +448,7 @@ export class Card extends OngoingEffectSource {
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
-            originalLocation: originalLocation,
+            originalZone: originalZone,
             newLocation: targetLocation
         });
 
@@ -466,7 +466,7 @@ export class Card extends OngoingEffectSource {
      * Called from {@link Game.resolveGameState} after event resolution.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public resolveAbilitiesForNewLocation() {}
+    public resolveAbilitiesForNewZone() {}
 
     /**
      * Deals with the engine effects of entering a new location, making sure all statuses are set with legal values.
