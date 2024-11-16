@@ -27,7 +27,7 @@ describe('Bright Hope, The Last Transport', function() {
 
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.battlefieldMarine.zoneName).toBe('hand');
-                expect(context.specforceSoldier.zoneName).toBe('ground arena');
+                expect(context.specforceSoldier.zoneName).toBe('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -42,8 +42,8 @@ describe('Bright Hope, The Last Transport', function() {
                 context.player1.clickPrompt('Pass ability');
 
                 expect(context.player1.hand.length).toBe(0);
-                expect(context.battlefieldMarine.zoneName).toBe('ground arena');
-                expect(context.specforceSoldier.zoneName).toBe('ground arena');
+                expect(context.battlefieldMarine.zoneName).toBe('groundArena');
+                expect(context.specforceSoldier.zoneName).toBe('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
 

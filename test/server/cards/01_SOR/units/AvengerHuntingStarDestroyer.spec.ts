@@ -62,7 +62,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 context.player2.clickCard(context.imperialInterceptor);
 
                 // Interceptor not yet destroyed
-                expect(context.imperialInterceptor).toBeInZone('space arena');
+                expect(context.imperialInterceptor).toBeInZone('spaceArena');
 
                 // Player 1 must choose its own unit
                 expect(context.player1).toBeAbleToSelectExactly([context.imperialInterceptor, context.pykeSentinel]);

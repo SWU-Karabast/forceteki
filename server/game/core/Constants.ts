@@ -5,20 +5,20 @@ export enum ZoneName {
     Base = 'base',
     Deck = 'deck',
     Discard = 'discard',
-    GroundArena = 'ground arena',
+    GroundArena = 'groundArena',
     Hand = 'hand',
-    OutsideTheGame = 'outside the game',
-    RemovedFromGame = 'removed from game',
+    OutsideTheGame = 'outsideTheGame',
+    RemovedFromGame = 'removedFromGame',
     Resource = 'resource',
-    SpaceArena = 'space arena',
+    SpaceArena = 'spaceArena',
 }
 
 export enum WildcardZoneName {
     Any = 'any',
-    AnyArena = 'any arena',
+    AnyArena = 'anyArena',
 
     /** Any zone that is a valid attack target - an arena or base zone */
-    AnyAttackable = 'any attackable'
+    AnyAttackable = 'anyAttackable'
 }
 
 export type ZoneFilter = ZoneName | WildcardZoneName;

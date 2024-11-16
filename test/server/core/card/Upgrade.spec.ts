@@ -82,7 +82,7 @@ describe('Upgrade cards', function() {
 
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.atatSuppressor);
-                expect(context.bobaFett).toBeInZone('ground arena');
+                expect(context.bobaFett).toBeInZone('groundArena');
                 expect(context.bobaFett.damage).toBe(8);
                 expect(context.atatSuppressor.damage).toBe(6);
             });

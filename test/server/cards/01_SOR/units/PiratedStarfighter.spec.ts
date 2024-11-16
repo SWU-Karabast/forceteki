@@ -31,7 +31,7 @@ describe('Pirated Starfighter', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.piratedStarfighter, context.pykeSentinel, context.seasonedShoretrooper]);
             context.player1.clickCard(context.pykeSentinel);
             expect(context.pykeSentinel).toBeInZone('hand');
-            expect(context.piratedStarfighter).toBeInZone('space arena');
+            expect(context.piratedStarfighter).toBeInZone('spaceArena');
         });
     });
 });

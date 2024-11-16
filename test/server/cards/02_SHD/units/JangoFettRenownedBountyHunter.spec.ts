@@ -57,7 +57,7 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 context.player1.clickCard(context.jangoFett);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.wampa.zoneName).toBe('ground arena');
+                expect(context.wampa.zoneName).toBe('groundArena');
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player1.hand.length).toBe(3); // no draw, still 3
 
@@ -70,7 +70,7 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 expect(context.player1.hand.length).toBe(3);// no draw, still 3
 
                 // revive jango to the last test
-                context.player1.moveCard(context.jangoFett, 'ground arena');
+                context.player1.moveCard(context.jangoFett, 'groundArena');
                 context.setDamage(context.jangoFett, 3);
                 context.moveToNextActionPhase();
 

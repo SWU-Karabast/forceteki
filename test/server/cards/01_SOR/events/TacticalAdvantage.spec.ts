@@ -28,7 +28,7 @@ describe('Tactical Advantage', function () {
                 // pyke sentinel is automatically choose
                 expect(context.wampa.damage).toBe(4);
                 expect(context.pykeSentinel.damage).toBe(4);
-                expect(context.pykeSentinel).toBeInZone('ground arena');
+                expect(context.pykeSentinel).toBeInZone('groundArena');
             });
         });
     });

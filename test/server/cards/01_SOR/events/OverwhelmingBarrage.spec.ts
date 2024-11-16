@@ -43,9 +43,9 @@ describe('Overwhelming Barrage', function() {
                 context.setDamage(context.atst, 0);
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.wampa);
-                expect(context.wampa).toBeInZone('ground arena');
+                expect(context.wampa).toBeInZone('groundArena');
                 expect(context.wampa.damage).toBe(6);
-                expect(context.atst).toBeInZone('ground arena');
+                expect(context.atst).toBeInZone('groundArena');
                 expect(context.atst.damage).toBe(6);
             });
 
@@ -87,9 +87,9 @@ describe('Overwhelming Barrage', function() {
                 context.setDamage(context.atst, 0);
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.wampa);
-                expect(context.wampa).toBeInZone('ground arena');
+                expect(context.wampa).toBeInZone('groundArena');
                 expect(context.wampa.damage).toBe(6);
-                expect(context.atst).toBeInZone('ground arena');
+                expect(context.atst).toBeInZone('groundArena');
                 expect(context.atst.damage).toBe(6);
             });
         });

@@ -148,7 +148,7 @@ describe('Regroup phase', function() {
                     expect(context.wampa.zoneName).toBe('discard');
 
                     // Move to regroup phase
-                    expect(context.ardentSympathizer.zoneName).toBe('ground arena');
+                    expect(context.ardentSympathizer.zoneName).toBe('groundArena');
                     context.player1.passAction();
                     context.player2.claimInitiative();
 

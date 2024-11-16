@@ -23,7 +23,7 @@ describe('Timely Intervention', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.allianceXwing]);
 
                 context.player1.clickCard(context.rebelPathfinder);
-                expect(context.rebelPathfinder).toBeInZone('ground arena');
+                expect(context.rebelPathfinder).toBeInZone('groundArena');
                 expect(context.player1.countExhaustedResources()).toBe(3);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
@@ -57,7 +57,7 @@ describe('Timely Intervention', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.allianceXwing]);
 
                 context.player1.clickCard(context.rebelPathfinder);
-                expect(context.rebelPathfinder).toBeInZone('ground arena');
+                expect(context.rebelPathfinder).toBeInZone('groundArena');
                 expect(context.player1.countExhaustedResources()).toBe(4);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 

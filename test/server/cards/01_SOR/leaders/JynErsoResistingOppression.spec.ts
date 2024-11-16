@@ -77,7 +77,7 @@ describe('Jyn Erso, Resisting Oppression', function() {
                 context.player2.passAction();
 
                 // jyn attack wampa, jyn should take 4-1=3 and wampa should die
-                expect(context.wampa.zoneName).toBe('ground arena');
+                expect(context.wampa.zoneName).toBe('groundArena');
                 context.player1.clickCard(context.jynErso);
                 context.player1.clickCard(context.wampa);
                 expect(context.jynErso.damage).toBe(3);

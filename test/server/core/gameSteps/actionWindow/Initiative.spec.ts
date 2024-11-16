@@ -24,7 +24,7 @@ describe('Claiming initiative', function() {
                 expect(context.ardentSympathizer.getPower()).toBe(5);
                 context.player2.clickCard(context.scoutBikePursuer);
 
-                expect(context.scoutBikePursuer).toBeInZone('ground arena');
+                expect(context.scoutBikePursuer).toBeInZone('groundArena');
                 expect(context.player2).toHaveExactPromptButtons(['Pass']);
                 expect(context.player2).toBeActivePlayer();
                 context.player2.clickCard(context.wampa);

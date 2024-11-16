@@ -27,10 +27,10 @@ describe('Count Dooku, Darth Tyranus', function () {
 
                 // only battlefield marine defeated
                 expect(context.battlefieldMarine).toBeInZone('discard');
-                expect(context._21bSurgicalDroid).toBeInZone('ground arena');
-                expect(context.greenSquadronAwing).toBeInZone('space arena');
-                expect(context.atst).toBeInZone('ground arena');
-                expect(context.echoBaseDefender).toBeInZone('ground arena');
+                expect(context._21bSurgicalDroid).toBeInZone('groundArena');
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+                expect(context.atst).toBeInZone('groundArena');
+                expect(context.echoBaseDefender).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
         });

@@ -34,7 +34,7 @@ describe('Rukh, Thrawn\'s Assassin', function() {
                 // CASE 2: Rukh is attacked, ability doesn't trigger
                 context.player2.clickCard(context.escortSkiff);
                 context.player2.clickCard(context.rukh);
-                expect(context.escortSkiff).toBeInZone('ground arena');
+                expect(context.escortSkiff).toBeInZone('groundArena');
                 expect(context.escortSkiff.damage).toBe(3);
                 expect(context.rukh.damage).toBe(4);
 
@@ -43,7 +43,7 @@ describe('Rukh, Thrawn\'s Assassin', function() {
                 // CASE 3: Rukh attacks into shield, ability doesn't trigger
                 context.player1.clickCard(context.rukh);
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toBeInZone('ground arena');
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
                 expect(context.rukh.damage).toBe(3);

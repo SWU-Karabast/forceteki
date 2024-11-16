@@ -28,7 +28,7 @@ describe('Admiral Ozzel, Overconfident', function() {
                 expect(context.player1).toHaveChooseNoTargetButton();
 
                 context.player1.clickCard(context.atst);
-                expect(context.atst).toBeInZone('ground arena');
+                expect(context.atst).toBeInZone('groundArena');
                 expect(context.atst.exhausted).toBe(false);
                 expect(context.player1.countExhaustedResources()).toBe(6);
 

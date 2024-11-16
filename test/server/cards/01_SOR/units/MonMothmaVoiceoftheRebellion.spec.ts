@@ -63,7 +63,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 // Check results
                 context.player1.clickCard(context.monMothma);
-                expect(context.monMothma).toBeInZone('ground arena');
+                expect(context.monMothma).toBeInZone('groundArena');
                 expect(context.player1.deck.length).toBe(0);
 
                 // Player 2 now active

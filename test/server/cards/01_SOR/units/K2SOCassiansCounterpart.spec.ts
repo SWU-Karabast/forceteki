@@ -26,7 +26,7 @@ describe('K-2SO', function() {
                 expect(context.player2.handSize).toBe(0);
                 expect(context.wampa).toBeInZone('discard');
 
-                context.player1.moveCard(context.k2so, 'ground arena');
+                context.player1.moveCard(context.k2so, 'groundArena');
                 context.player2.clickCard(context.kraytDragon);
                 context.player2.clickCard(context.k2so);
                 expect(context.player1).toHaveExactPromptButtons(['Deal 3 damage to opponent\'s base', 'The opponent discards a card']);
@@ -35,7 +35,7 @@ describe('K-2SO', function() {
                 context.player1.clickPrompt('The opponent discards a card');
                 expect(context.player2.handSize).toBe(0);
 
-                context.player1.moveCard(context.k2so, 'ground arena');
+                context.player1.moveCard(context.k2so, 'groundArena');
                 context.moveToNextActionPhase();
 
                 context.player1.clickCard(context.k2so);

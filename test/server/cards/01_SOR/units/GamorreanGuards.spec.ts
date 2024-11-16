@@ -23,7 +23,7 @@ describe('Gamorrean Guards', function() {
                 expect(context.p1Base.damage).toBe(4);
 
                 context.player1.clickCard(context.strafingGunship);
-                expect(context.strafingGunship.zoneName).toBe('space arena');
+                expect(context.strafingGunship.zoneName).toBe('spaceArena');
                 expect(context.player2).toBeActivePlayer();
 
                 context.player2.clickCard(context.battlefieldMarine);

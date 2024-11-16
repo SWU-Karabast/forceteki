@@ -63,7 +63,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 // Case 5 - when a friendly unit leaves play
                 reset();
                 context.player1.moveCard(context.rivalsFall, 'hand');
-                context.player1.moveCard(context.deathStarStormtrooper, 'ground arena');
+                context.player1.moveCard(context.deathStarStormtrooper, 'groundArena');
 
                 context.player1.clickCard(context.rivalsFall);
                 context.player1.clickCard(context.deathStarStormtrooper);

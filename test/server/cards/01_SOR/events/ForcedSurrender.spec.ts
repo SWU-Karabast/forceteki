@@ -22,7 +22,7 @@ describe('Forced Surrender', function() {
 
                 const reset = () => {
                     if (context.mazKanata.zoneName === 'discard') {
-                        context.player2.moveCard(context.mazKanata, 'ground arena');
+                        context.player2.moveCard(context.mazKanata, 'groundArena');
                     }
                     context.player2.claimInitiative();
 

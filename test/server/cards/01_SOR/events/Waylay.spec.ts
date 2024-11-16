@@ -48,7 +48,7 @@ describe('Waylay', function() {
                 expect(context.pykeSentinel.damage).toBe(0); // Just making sure that the damage is not added back
                 expect(context.pykeSentinel.isUpgraded()).toBe(false);
 
-                expect(context.pykeSentinel).toBeInZone('ground arena', context.player1);
+                expect(context.pykeSentinel).toBeInZone('groundArena', context.player1);
                 expect(context.pykeSentinel.exhausted).toBe(true); // Does not retain state when returned to hand
             });
         });

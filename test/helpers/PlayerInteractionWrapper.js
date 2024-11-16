@@ -32,12 +32,12 @@ class PlayerInteractionWrapper {
      * be moved into their proper starting zones for the test.
      */
     moveAllNonBaseZonesToRemoved() {
-        this.player.spaceArena.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.groundArena.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.resources.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.discard.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.hand.forEach((card) => this.moveCard(card, 'removed from game'));
-        this.player.drawDeck.forEach((card) => this.moveCard(card, 'removed from game'));
+        this.player.spaceArena.forEach((card) => this.moveCard(card, 'removedFromGame'));
+        this.player.groundArena.forEach((card) => this.moveCard(card, 'removedFromGame'));
+        this.player.resources.forEach((card) => this.moveCard(card, 'removedFromGame'));
+        this.player.discard.forEach((card) => this.moveCard(card, 'removedFromGame'));
+        this.player.hand.forEach((card) => this.moveCard(card, 'removedFromGame'));
+        this.player.drawDeck.forEach((card) => this.moveCard(card, 'removedFromGame'));
     }
 
     get hand() {
@@ -169,11 +169,11 @@ class PlayerInteractionWrapper {
      * @return {BaseCard[]} - List of player's cards currently in play in the space arena
      */
     get spaceArena() {
-        return this.player.filterCardsInPlay((card) => card.zoneName === 'space arena');
+        return this.player.filterCardsInPlay((card) => card.zoneName === 'spaceArena');
     }
 
     setSpaceArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
-        this.setArenaUnits('space arena', this.spaceArena, newState, prevZones);
+        this.setArenaUnits('spaceArena', this.spaceArena, newState, prevZones);
     }
 
     /**
@@ -181,11 +181,11 @@ class PlayerInteractionWrapper {
      * @return {BaseCard[]} - List of player's cards currently in play in the ground arena
      */
     get groundArena() {
-        return this.player.filterCardsInPlay((card) => card.zoneName === 'ground arena');
+        return this.player.filterCardsInPlay((card) => card.zoneName === 'groundArena');
     }
 
     setGroundArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
-        this.setArenaUnits('ground arena', this.groundArena, newState, prevZones);
+        this.setArenaUnits('groundArena', this.groundArena, newState, prevZones);
     }
 
     /**
@@ -199,7 +199,7 @@ class PlayerInteractionWrapper {
      *    damage: Number
      *  }
      * or String containing name or id of the card
-     * @param {String} arenaName - name of the arena to set the units in, either 'ground arena' or 'space arena'
+     * @param {String} arenaName - name of the arena to set the units in, either 'groundArena' or 'spaceArena'
      * @param {DrawCard[]} currentUnitsInArena - list of cards currently in the arena
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */

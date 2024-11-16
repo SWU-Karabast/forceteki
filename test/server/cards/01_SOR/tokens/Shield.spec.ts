@@ -23,7 +23,7 @@ describe('Shield', function() {
                 expect(context.cartelSpacer.damage).toBe(2);
                 expect(context.tielnFighter.damage).toBe(0);
 
-                expect(context.shield).toBeInZone('outside the game');
+                expect(context.shield).toBeInZone('outsideTheGame');
                 expect(context.tielnFighter.isUpgraded()).toBe(false);
 
                 // second attack to confirm that shield effect is off
@@ -40,7 +40,7 @@ describe('Shield', function() {
                 context.player1.clickCard(context.tielnFighter);
 
                 expect(context.tielnFighter).toBeInZone('discard');
-                expect(context.shield).toBeInZone('outside the game');
+                expect(context.shield).toBeInZone('outsideTheGame');
             });
         });
 
@@ -72,7 +72,7 @@ describe('Shield', function() {
                 expect(context.tielnFighter.damage).toBe(0);
                 expect(context.tielnFighter).toHaveExactUpgradeNames(['shield']);
 
-                expect(getShieldZonesSorted(context.shields)).toEqual(['outside the game', 'space arena']);
+                expect(getShieldZonesSorted(context.shields)).toEqual(['outsideTheGame', 'spaceArena']);
 
                 // second attack
                 context.player2.clickCard(context.tielnFighter);
@@ -81,7 +81,7 @@ describe('Shield', function() {
                 expect(context.tielnFighter.damage).toBe(0);
                 expect(context.tielnFighter.isUpgraded()).toBe(false);
 
-                expect(getShieldZonesSorted(context.shields)).toEqual(['outside the game', 'outside the game']);
+                expect(getShieldZonesSorted(context.shields)).toEqual(['outsideTheGame', 'outsideTheGame']);
             });
         });
 

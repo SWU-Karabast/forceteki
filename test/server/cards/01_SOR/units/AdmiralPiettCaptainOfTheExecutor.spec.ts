@@ -32,19 +32,19 @@ describe('Admiral Piett, Captain of the Executor\'s Folly', function() {
                 // CASE 2: enemy non-leader unit cost >= 6, does not gain Ambush
                 context.player2.clickCard(context.atst);
                 expect(context.player1).toBeActivePlayer();
-                expect(context.atst).toBeInZone('ground arena');
+                expect(context.atst).toBeInZone('groundArena');
 
                 // CASE 3: friendly non-leader unit cost < 6, does not gain Ambush
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toBeInZone('ground arena');
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
 
                 context.player2.passAction();
 
                 // CASE 4: friendly leader unit cost >= 6, does not gain Ambush
                 context.player1.clickCard(context.heraSyndulla);
                 expect(context.player2).toBeActivePlayer();
-                expect(context.heraSyndulla).toBeInZone('ground arena');
+                expect(context.heraSyndulla).toBeInZone('groundArena');
 
                 // CASE 5: Piett is defeated, effect goes away
                 context.player2.clickCard(context.wampa);
