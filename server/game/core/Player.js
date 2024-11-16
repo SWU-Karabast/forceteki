@@ -62,6 +62,7 @@ class Player extends GameObject {
         this.outsideTheGameZone = new OutsideTheGameZone(this);
 
         this.baseZone = null;
+        this.deckZone = null;
 
         this.damageToBase = null;
 
@@ -615,17 +616,18 @@ class Player extends GameObject {
         this.leader = preparedDecklist.leader;
 
         this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
-        this.baseZone = new BaseZone(this, this.base, this.leader);
 
-        this.decklist = preparedDecklist;
-
-        // set up playable locations now that all zones are created
+        // set up playable locations now that all relevant zones are created
         this.playableLocations = [
             new PlayableLocation(PlayType.PlayFromHand, this.handZone),
             new PlayableLocation(PlayType.Smuggle, this.resourceZone),
             new PlayableLocation(PlayType.PlayFromOutOfPlay, this.deckZone),
             new PlayableLocation(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
+
+        this.baseZone = new BaseZone(this, this.base, this.leader);
+
+        this.decklist = preparedDecklist;
     }
 
     /**

@@ -44,7 +44,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public subResolution = false;
     public choosingPlayerOverride: Player = null;
     public gameActionsResolutionChain: GameSystem[] = [];
-    public playType: PlayType;
+    public playType?: PlayType;
     public cardStateWhenInitiated: any = null;
 
     public constructor(properties: IAbilityContextProperties) {
@@ -59,7 +59,10 @@ export class AbilityContext<TSource extends Card = Card> {
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
         // const location = this.player && this.player.playableLocations.find(location => location.contains(this.source));
-        this.playType = properties.playType ?? (this.player && this.player.findPlayType(this.source));
+
+        this.playType = this.ability?.isCardPlayed()
+            ? properties.playType ?? (this.player && this.player.findPlayType(this.source))
+            : null;
     }
 
     public copy(newProps: Partial<IAbilityContextProperties> = {}): AbilityContext<TSource> {
