@@ -14,21 +14,21 @@ export default class GreedoSlowOnTheDraw extends NonLeaderUnitCard {
         this.addWhenDefeatedAbility({
             title: 'Discard a card from your deck. If it\'s not a unit, deal 2 damage to a ground unit.',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.discardFromDeck((context) => ({
-                    amount: 1,
-                    target: context.source.controller
-                })),
-                AbilityHelper.immediateEffects.conditional((context) => ({
-                    // There will be one event for the discard system overall plus one per card, so we need to ensure at least two exist
-                    condition: context.events.length < 2 ? false : !context.events[0].card.isUnit(),
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
+                amount: 1,
+                target: context.source.controller
+            })),
+            ifYouDo: (context) => ({
+                title: 'Deal 2 damage to a ground unit',
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: !context.events[0].card.isUnit(),
                     onTrue: AbilityHelper.immediateEffects.selectCard({
                         locationFilter: Location.GroundArena,
                         innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
                     }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
-                }))
-            ])
+                })
+            })
         });
     }
 }
