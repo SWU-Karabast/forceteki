@@ -436,7 +436,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {import('./card/CardTypes').PlayableCard | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/CardTypes').TokenOrPlayableCard | null} the Card,© or null if the deck is empty
      */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {
@@ -448,7 +448,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top cards of the player's deck
-     * @returns {import('./card/CardTypes').PlayableCard[]} the Card,© or null if the deck is empty
+     * @returns {import('./card/CardTypes').TokenOrPlayableCard[]} the Card,© or null if the deck is empty
      */
     getTopCardsOfDeck(numCard) {
         Contract.assertPositiveNonZero(numCard);

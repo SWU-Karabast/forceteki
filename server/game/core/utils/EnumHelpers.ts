@@ -121,7 +121,7 @@ export const isToken = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isPlayable = (cardType: CardTypeFilter) => {
+export const isTokenOrPlayable = (cardType: CardTypeFilter) => {
     switch (cardType) {
         case WildcardCardType.Playable:
         case CardType.Event:
@@ -152,7 +152,7 @@ export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilt
             case WildcardCardType.Token:
                 return isToken(cardType);
             case WildcardCardType.Playable:
-                return isPlayable(cardType);
+                return isTokenOrPlayable(cardType);
             default:
                 return cardType === allowedCardType;
         }
