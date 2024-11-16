@@ -23,7 +23,7 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
-                    const opponentUnitsDefeatedThisPhase = this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller.opponent);
+                    const opponentUnitsDefeatedThisPhase = this.unitsDefeatedThisPhaseWatcher.getDefeatedUnits(context.source.controller.opponent);
                     return opponentUnitsDefeatedThisPhase.length > 0;
                 },
                 onTrue: AbilityHelper.immediateEffects.heal((context) => {
