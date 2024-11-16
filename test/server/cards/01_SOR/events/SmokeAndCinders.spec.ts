@@ -20,10 +20,7 @@ describe('Smoke and Cinders', function() {
                     context.player2.passAction();
 
                     context.player1.moveCard(context.smokeAndCinders, 'hand');
-                    context.player1.claimInitiative();
-
-                    context.player2.clickPrompt('Done');
-                    context.player1.clickPrompt('Done');
+                    context.moveToNextActionPhase();
                 };
 
                 // Scenario 1: Both players have 2 or less cards in hand
