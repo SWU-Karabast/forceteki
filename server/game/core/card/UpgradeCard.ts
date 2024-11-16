@@ -47,7 +47,7 @@ export class UpgradeCard extends UpgradeCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
-        if (this.location === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayUpgradeAction(this, PlayType.Smuggle));
         }
         return actions;
@@ -63,7 +63,7 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     public override moveTo(targetLocation: ZoneName) {
-        Contract.assertFalse(this._parentCard && targetLocation !== this._parentCard.location,
+        Contract.assertFalse(this._parentCard && targetLocation !== this._parentCard.zoneName,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
         super.moveTo(targetLocation);
@@ -79,8 +79,8 @@ export class UpgradeCard extends UpgradeCardParent {
             this.controller.removeCardFromPile(this);
         }
 
-        newParentCard.controller.putUpgradeInArena(this, newParentCard.location);
-        this.moveTo(newParentCard.location);
+        newParentCard.controller.putUpgradeInArena(this, newParentCard.zoneName);
+        this.moveTo(newParentCard.zoneName);
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
     }
@@ -205,7 +205,7 @@ export class UpgradeCard extends UpgradeCardParent {
     protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
         super.initializeForCurrentLocation(prevLocation);
 
-        switch (this.location) {
+        switch (this.zoneName) {
             case ZoneName.Resource:
                 this.setExhaustEnabled(true);
                 break;

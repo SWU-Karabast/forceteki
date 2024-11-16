@@ -100,7 +100,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
         super.initializeForCurrentLocation(prevLocation);
 
-        switch (this.location) {
+        switch (this.zoneName) {
             case ZoneName.GroundArena:
             case ZoneName.SpaceArena:
                 this._deployed = true;

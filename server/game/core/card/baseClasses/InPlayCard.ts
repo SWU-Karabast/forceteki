@@ -47,7 +47,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     public isInPlay(): boolean {
-        return EnumHelpers.isArena(this.location);
+        return EnumHelpers.isArena(this.zoneName);
     }
 
     public override canBeInPlay(): this is InPlayCard {
@@ -186,8 +186,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
     public override resolveAbilitiesForNewLocation() {
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(this.movedFromLocation, this.location);
-        this.updateConstantAbilityEffects(this.movedFromLocation, this.location);
+        this.updateTriggeredAbilityEvents(this.movedFromLocation, this.zoneName);
+        this.updateConstantAbilityEffects(this.movedFromLocation, this.zoneName);
 
         this.movedFromLocation = null;
     }
@@ -197,7 +197,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         this.movedFromLocation = prevLocation;
 
-        if (EnumHelpers.isArena(this.location)) {
+        if (EnumHelpers.isArena(this.zoneName)) {
             this.setPendingDefeatEnabled(true);
 
             if (this.unique) {

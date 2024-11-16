@@ -29,7 +29,7 @@ export class InitiateAttackAction extends PlayerAction {
         }
         if (
             !ignoredRequirements.includes('location') &&
-            !EnumHelpers.isArena(context.source.location)
+            !EnumHelpers.isArena(context.source.zoneName)
         ) {
             return 'location';
         }

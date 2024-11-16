@@ -22,7 +22,7 @@ describe('Incinerator Trooper', function() {
 
                 // check board state
                 expect(context.incineratorTrooper.damage).toBe(0);
-                expect(context.jedhaAgitator.location).toBe('discard');
+                expect(context.jedhaAgitator.zoneName).toBe('discard');
 
                 // Case 2 attacking wampa should defeat incinerator-trooper and give 2 damage to wampa
                 context.player2.passAction();
@@ -31,7 +31,7 @@ describe('Incinerator Trooper', function() {
                 context.player1.clickCard(context.wampa);
 
                 // check board state
-                expect(context.incineratorTrooper.location).toBe('discard');
+                expect(context.incineratorTrooper.zoneName).toBe('discard');
                 expect(context.wampa.damage).toBe(2);
             });
         });

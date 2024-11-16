@@ -6,7 +6,7 @@ export class PlayableLocation {
     public constructor(
         public playingType: PlayType,
         private player: Player,
-        private location: ZoneName,
+        private zoneName: ZoneName,
         public cards = new Set<Card>()
     ) {}
 
@@ -15,6 +15,6 @@ export class PlayableLocation {
             return false;
         }
 
-        return this.player.getCardPile(this.location).includes(card);
+        return this.player.getCardPile(this.zoneName).includes(card);
     }
 }

@@ -27,7 +27,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
-        if (this.location === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayUnitAction(this, PlayType.Smuggle));
         }
         return actions;
@@ -36,7 +36,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
     protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
         super.initializeForCurrentLocation(prevLocation);
 
-        switch (this.location) {
+        switch (this.zoneName) {
             case ZoneName.GroundArena:
             case ZoneName.SpaceArena:
                 this.setActiveAttackEnabled(true);

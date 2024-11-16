@@ -28,7 +28,7 @@ describe('Maximum Firepower', function() {
                 context.player1.clickCard(context.wampa);
 
                 // check game state
-                expect(context.wampa.location).toBe('discard');
+                expect(context.wampa.zoneName).toBe('discard');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -46,13 +46,13 @@ describe('Maximum Firepower', function() {
 
                 // third action set where we select tielnfighter and check if wampa received damage
                 expect(context.wampa.damage).toBe(3);
-                expect(context.wampa.location).toBe('ground arena');
+                expect(context.wampa.zoneName).toBe('ground arena');
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.gladiatorStarDestroyer]);
                 context.player1.clickCard(context.tielnFighter);
 
                 // end game stat
                 expect(context.wampa.damage).toBe(5);
-                expect(context.wampa.location).toBe('ground arena');
+                expect(context.wampa.zoneName).toBe('ground arena');
                 expect(context.player2).toBeActivePlayer();
             });
         });

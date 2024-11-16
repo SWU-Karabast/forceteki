@@ -39,7 +39,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     public eventHandler(event: any, additionalProperties = {}): void {
         // Check if the card is leaving play
-        if (EnumHelpers.isArena(event.card.location) && !EnumHelpers.isArena(event.destination)) {
+        if (EnumHelpers.isArena(event.card.zoneName) && !EnumHelpers.isArena(event.destination)) {
             this.leavesPlayEventHandler(event, additionalProperties);
         } else {
             // TODO: remove this completely if determined we don't need card snapshots
@@ -63,7 +63,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         if (properties.destination === ZoneName.Hand) {
-            if (Helpers.asArray(properties.target).some((card) => card.location === ZoneName.Resource)) {
+            if (Helpers.asArray(properties.target).some((card) => card.zoneName === ZoneName.Resource)) {
                 const targets = Helpers.asArray(properties.target);
                 return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
             }
@@ -82,7 +82,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         // Check if the card is leaving play
-        if (EnumHelpers.isArena(card.location) && !EnumHelpers.isArena(event.destination)) {
+        if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         } else {
             super.updateEvent(event, card, context, additionalProperties);
@@ -110,8 +110,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
         if (destination === ZoneName.Hand) {
             Contract.assertTrue(
-                [ZoneName.Discard, ZoneName.Resource].includes(card.location) || EnumHelpers.isArena(card.location),
-                `Cannot use MoveCardSystem to return a card to hand from ${card.location}`
+                [ZoneName.Discard, ZoneName.Resource].includes(card.zoneName) || EnumHelpers.isArena(card.zoneName),
+                `Cannot use MoveCardSystem to return a card to hand from ${card.zoneName}`
             );
         }
 

@@ -58,7 +58,7 @@ export class Attack extends GameObject {
     }
 
     private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
-        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.name} location is ${involvedUnit.location}, cannot participate in combat`);
+        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.name} location is ${involvedUnit.zoneName}, cannot participate in combat`);
 
         return involvedUnit.getPower();
     }

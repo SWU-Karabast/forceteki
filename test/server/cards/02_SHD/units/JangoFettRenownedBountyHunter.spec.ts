@@ -29,7 +29,7 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 // pass draw from hylobon
                 context.player1.clickPrompt('Pass');
 
-                expect(context.hylobonEnforcer.location).toBe('discard');
+                expect(context.hylobonEnforcer.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.player1.hand.length).toBe(1); // first draw
                 reset();
@@ -38,7 +38,7 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 context.player1.clickCard(context.jangoFett);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.battlefieldMarine.location).toBe('discard');
+                expect(context.battlefieldMarine.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player1.hand.length).toBe(2); // second draw
                 reset();
@@ -48,7 +48,7 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 context.player1.clickCard(context.mazKanata);
                 context.player1.clickPrompt('Draw a card');
 
-                expect(context.mazKanata.location).toBe('discard');
+                expect(context.mazKanata.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(5);
                 expect(context.player1.hand.length).toBe(3); // third draw
                 reset();
@@ -57,7 +57,7 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 context.player1.clickCard(context.jangoFett);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.wampa.location).toBe('ground arena');
+                expect(context.wampa.zoneName).toBe('ground arena');
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player1.hand.length).toBe(3); // no draw, still 3
 
@@ -65,8 +65,8 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.jangoFett);
 
-                expect(context.jangoFett.location).toBe('discard');
-                expect(context.wampa.location).toBe('discard');
+                expect(context.jangoFett.zoneName).toBe('discard');
+                expect(context.wampa.zoneName).toBe('discard');
                 expect(context.player1.hand.length).toBe(3);// no draw, still 3
 
                 // revive jango to the last test
@@ -79,8 +79,8 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 context.player1.clickCard(context.jangoFett);
                 context.player1.clickCard(context.seasonedShoretrooper);
 
-                expect(context.jangoFett.location).toBe('discard');
-                expect(context.battlefieldMarine.location).toBe('discard');
+                expect(context.jangoFett.zoneName).toBe('discard');
+                expect(context.battlefieldMarine.zoneName).toBe('discard');
 
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player1.hand.length).toBe(handSize + 1);

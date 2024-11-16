@@ -60,7 +60,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;
-        } else if (card.location === ZoneName.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
+        } else if (card.zoneName === ZoneName.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;
@@ -78,7 +78,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         ) as IPutIntoPlayProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
-        event.originalLocation = overrideLocation || card.location;
+        event.originalLocation = overrideLocation || card.zoneName;
         event.status = entersReady ? 'ready' : event.status;
     }
 

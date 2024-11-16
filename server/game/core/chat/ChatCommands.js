@@ -72,7 +72,7 @@ class ChatCommands {
             location: WildcardZoneName.Any,
             controller: RelativePlayer.Self,
             onSelect: (p, card) => {
-                const cardInitialLocation = card.location;
+                const cardInitialLocation = card.zoneName;
                 GameSystems.moveCard({ target: card, bottom: true, destination: ZoneName.Deck }).resolve(player, this.game.getFrameworkContext());
                 this.game.addMessage('{0} uses a command to move {1} from their {2} to the bottom of their {3}.', player, card, cardInitialLocation);
                 return true;
@@ -91,7 +91,7 @@ class ChatCommands {
     //     this.game.promptForSelect(player, {
     //         activePromptTitle: 'Select a card',
     //         waitingPromptTitle: 'Waiting for opponent to set token',
-    //         cardCondition: card => (EnumHelpers.isArena(card.location) || card.location === 'plot') && card.controller === player,
+    //         cardCondition: card => (EnumHelpers.isArena(card.zoneName) || card.zoneName === 'plot') && card.controller === player,
     //         onSelect: (p, card) => {
     //             var numTokens = card.tokens[token] || 0;
 

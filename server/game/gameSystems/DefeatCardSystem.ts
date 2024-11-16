@@ -51,7 +51,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
     public override canAffect(card: Card, context: TContext): boolean {
         if (
-            card.location !== ZoneName.Resource &&
+            card.zoneName !== ZoneName.Resource &&
             (!card.canBeInPlay() || !card.isInPlay())
         ) {
             return false;

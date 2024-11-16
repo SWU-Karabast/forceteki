@@ -25,7 +25,7 @@ describe('Saboteur keyword', function() {
                 expect(context.p2Base.damage).toBe(5);
                 expect(context.resourcefulPursuers.damage).toBe(0);
                 expect(context.echoBaseDefender).toBeInLocation('ground arena');
-                expect(context.wampa.location).toBe('ground arena');
+                expect(context.wampa.zoneName).toBe('ground arena');
             });
 
             it('a unit with shields, the shields are defeated before the attack', function () {

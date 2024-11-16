@@ -34,7 +34,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
         if (properties.switch && properties.switchTarget) {
             const otherCard = properties.switchTarget;
-            card.owner.moveCard(otherCard, card.location);
+            card.owner.moveCard(otherCard, card.zoneName);
         }
         const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
         player.moveCard(card, ZoneName.Hand);
@@ -84,7 +84,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
               (!card.hasRestriction(EffectName.TakeControl, context) &&
                 !card.anotherUniqueInPlay(context.player))) &&
                 (context.player.isLegalLocationForCardType(card.type, ZoneName.Hand)) &&
-                !EnumHelpers.isArena(card.location) &&
+                !EnumHelpers.isArena(card.zoneName) &&
                 super.canAffect(card, context)
         );
     }

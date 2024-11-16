@@ -30,7 +30,7 @@ describe('Ruthlessness', function () {
                 context.player1.clickCard(context.specforceSoldier);
 
                 expect(context.battlefieldMarine.damage).toBe(2);
-                expect(context.specforceSoldier.location).toBe('discard');
+                expect(context.specforceSoldier.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
 
@@ -40,7 +40,7 @@ describe('Ruthlessness', function () {
                 context.player2.clickCard(context.wildernessFighter);
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.damage).toBe(2);
-                expect(context.wildernessFighter.location).toBe('discard');
+                expect(context.wildernessFighter.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player1).toBeActivePlayer();
 
@@ -51,7 +51,7 @@ describe('Ruthlessness', function () {
                 context.player1.clickCard(context.regionalGovernor);
 
                 expect(context.wampa.damage).toBe(1);
-                expect(context.regionalGovernor.location).toBe('discard');
+                expect(context.regionalGovernor.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
 
@@ -61,7 +61,7 @@ describe('Ruthlessness', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.atst);
 
-                expect(context.battlefieldMarine.location).toBe('discard');
+                expect(context.battlefieldMarine.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
@@ -86,8 +86,8 @@ describe('Ruthlessness', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.ardentSympathizer);
 
-                expect(context.battlefieldMarine.location).toBe('discard');
-                expect(context.ardentSympathizer.location).toBe('discard');
+                expect(context.battlefieldMarine.zoneName).toBe('discard');
+                expect(context.ardentSympathizer.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });

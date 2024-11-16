@@ -20,7 +20,7 @@ export default class HardpointHeavyBlaster extends UpgradeCard {
             targetResolver: {
                 controller: RelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => card.location === context.event.attack.target.location,
+                cardCondition: (card, context) => card.zoneName === context.event.attack.target.zoneName,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => !context.event.attack.target.isBase(),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),

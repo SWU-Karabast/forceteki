@@ -15,8 +15,8 @@ describe('Uniqueness rule', function() {
 
                 const { context } = contextRef;
                 const p1Choppers = context.player1.findCardsByName('chopper#metal-menace');
-                context.chopperInHand = p1Choppers.find((chopper) => chopper.location === 'hand');
-                context.chopperInPlay = p1Choppers.find((chopper) => chopper.location === 'ground arena');
+                context.chopperInHand = p1Choppers.find((chopper) => chopper.zoneName === 'hand');
+                context.chopperInPlay = p1Choppers.find((chopper) => chopper.zoneName === 'ground arena');
                 context.p2Chopper = context.player2.findCardByName('chopper#metal-menace');
             });
 
@@ -74,8 +74,8 @@ describe('Uniqueness rule', function() {
 
                 const { context } = contextRef;
                 const p1Lightsabers = context.player1.findCardsByName('lukes-lightsaber');
-                context.lightsaberInHand = p1Lightsabers.find((lightsaber) => lightsaber.location === 'hand');
-                context.lightsaberInPlay = p1Lightsabers.find((lightsaber) => lightsaber.location === 'ground arena');
+                context.lightsaberInHand = p1Lightsabers.find((lightsaber) => lightsaber.zoneName === 'hand');
+                context.lightsaberInPlay = p1Lightsabers.find((lightsaber) => lightsaber.zoneName === 'ground arena');
                 context.p2Lightsaber = context.player2.findCardByName('lukes-lightsaber');
             });
 
@@ -139,8 +139,8 @@ describe('Uniqueness rule', function() {
 
                 const { context } = contextRef;
                 const p1Yularens = context.player1.findCardsByName('colonel-yularen#isb-director');
-                context.yularenInHand = p1Yularens.find((yularen) => yularen.location === 'hand');
-                context.yularenInPlay = p1Yularens.find((yularen) => yularen.location === 'ground arena');
+                context.yularenInHand = p1Yularens.find((yularen) => yularen.zoneName === 'hand');
+                context.yularenInPlay = p1Yularens.find((yularen) => yularen.zoneName === 'ground arena');
             });
 
             it('the trigger should happen twice', function () {
@@ -182,8 +182,8 @@ describe('Uniqueness rule', function() {
 
                 const { context } = contextRef;
                 const p1Kalluss = context.player1.findCardsByName('agent-kallus#seeking-the-rebels');
-                context.kallusInHand = p1Kalluss.find((kallus) => kallus.location === 'hand');
-                context.kallusInPlay = p1Kalluss.find((kallus) => kallus.location === 'ground arena');
+                context.kallusInHand = p1Kalluss.find((kallus) => kallus.zoneName === 'hand');
+                context.kallusInPlay = p1Kalluss.find((kallus) => kallus.zoneName === 'ground arena');
             });
 
             it('and the copy in play is chosen for defeat, the ability should trigger', function () {
@@ -256,8 +256,8 @@ describe('Uniqueness rule', function() {
 
                 const { context } = contextRef;
                 const p1Mottis = context.player1.findCardsByName('admiral-motti#brazen-and-scornful');
-                context.mottiInHand = p1Mottis.find((motti) => motti.location === 'hand');
-                context.mottiInPlay = p1Mottis.find((motti) => motti.location === 'ground arena');
+                context.mottiInHand = p1Mottis.find((motti) => motti.zoneName === 'hand');
+                context.mottiInPlay = p1Mottis.find((motti) => motti.zoneName === 'ground arena');
             });
 
             it('and the in play copy is chosen for defeat, it should be able to target the copy from hand with a when defeated ability', function () {
@@ -324,8 +324,8 @@ describe('Uniqueness rule', function() {
 
                 const { context } = contextRef;
                 const p1Snokes = context.player1.findCardsByName('supreme-leader-snoke#shadow-ruler');
-                context.snokeInHand = p1Snokes.find((snoke) => snoke.location === 'hand');
-                context.snokeInPlay = p1Snokes.find((snoke) => snoke.location === 'ground arena');
+                context.snokeInHand = p1Snokes.find((snoke) => snoke.zoneName === 'hand');
+                context.snokeInPlay = p1Snokes.find((snoke) => snoke.zoneName === 'ground arena');
             });
 
             it('the ongoing effects should never be active at the same time if the copy in play is defeated', function () {

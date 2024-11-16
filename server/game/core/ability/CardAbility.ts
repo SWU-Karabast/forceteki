@@ -130,7 +130,7 @@ export class CardAbility extends CardAbilityStep {
     protected isInValidLocation(context) {
         return this.card.isEvent()
             ? context.player.isCardInPlayableLocation(context.source, context.playType)
-            : EnumHelpers.cardLocationMatches(this.card.location, this.zoneFilter);
+            : EnumHelpers.cardLocationMatches(this.card.zoneName, this.zoneFilter);
     }
 
     private getLocationMessage(location, context) {
@@ -148,14 +148,14 @@ export class CardAbility extends CardAbilityStep {
     public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if (
             context.source.isEvent() &&
-            context.source.location !== ZoneName.Discard
+            context.source.zoneName !== ZoneName.Discard
         ) {
             this.game.addMessage(
                 '{0} plays {1} from {2} {3}',
                 context.player,
                 context.source,
                 context.source.controller === context.player ? 'their' : 'their opponent\'s',
-                this.getLocationMessage(context.source.location, context)
+                this.getLocationMessage(context.source.zoneName, context)
             );
         }
 

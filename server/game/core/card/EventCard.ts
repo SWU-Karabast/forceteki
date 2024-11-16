@@ -36,7 +36,7 @@ export class EventCard extends EventCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
-        if (this.location === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayEventAction(this, PlayType.Smuggle));
         }
         return actions;
@@ -53,7 +53,7 @@ export class EventCard extends EventCardParent {
         super.initializeForCurrentLocation(prevLocation);
 
         // event cards can only be exhausted when resourced
-        switch (this.location) {
+        switch (this.zoneName) {
             case ZoneName.Resource:
                 this.setExhaustEnabled(true);
                 break;

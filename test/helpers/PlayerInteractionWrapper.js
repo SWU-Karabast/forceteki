@@ -169,7 +169,7 @@ class PlayerInteractionWrapper {
      * @return {BaseCard[]} - List of player's cards currently in play in the space arena
      */
     get spaceArena() {
-        return this.player.filterCardsInPlay((card) => card.location === 'space arena');
+        return this.player.filterCardsInPlay((card) => card.zoneName === 'space arena');
     }
 
     setSpaceArenaUnits(newState = [], prevLocations = ['deck', 'hand']) {
@@ -181,7 +181,7 @@ class PlayerInteractionWrapper {
      * @return {BaseCard[]} - List of player's cards currently in play in the ground arena
      */
     get groundArena() {
-        return this.player.filterCardsInPlay((card) => card.location === 'ground arena');
+        return this.player.filterCardsInPlay((card) => card.zoneName === 'ground arena');
     }
 
     setGroundArenaUnits(newState = [], prevLocations = ['deck', 'hand']) {
@@ -411,7 +411,7 @@ class PlayerInteractionWrapper {
         }
         try {
             var cards = this.filterCards(
-                (card) => namesAra.includes(card.cardData.internalName) && (locations === 'any' || locations.includes(card.location)),
+                (card) => namesAra.includes(card.cardData.internalName) && (locations === 'any' || locations.includes(card.zoneName)),
                 side
             );
         } catch (e) {
@@ -450,7 +450,7 @@ class PlayerInteractionWrapper {
         if (typeof card === 'string') {
             card = this.findCardByName(card);
         }
-        if (card.location !== 'play area') {
+        if (card.zoneName !== 'play area') {
             this.player.moveCard(card, 'play area');
         }
         card.facedown = false;
@@ -628,7 +628,7 @@ class PlayerInteractionWrapper {
     }
 
     dragCard(card, targetLocation) {
-        this.game.drop(this.player.name, card.uuid, card.location, targetLocation);
+        this.game.drop(this.player.name, card.uuid, card.zoneName, targetLocation);
         this.game.continue();
         // this.checkUnserializableGameState();
     }

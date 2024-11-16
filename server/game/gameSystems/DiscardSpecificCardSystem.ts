@@ -15,7 +15,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
-        return card.location !== ZoneName.Discard && super.canAffect(card, context, additionalProperties);
+        return card.zoneName !== ZoneName.Discard && super.canAffect(card, context, additionalProperties);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -27,7 +27,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Record<string, any> = {}): void {
-        event.discardedFromLocation = card.location;
+        event.discardedFromLocation = card.zoneName;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
     }
 }

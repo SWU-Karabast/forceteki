@@ -50,7 +50,7 @@ class OngoingCardEffect extends OngoingEffect {
         return (
             (this.targetController !== RelativePlayer.Self || target.controller === this.source.controller) &&
             (this.targetController !== RelativePlayer.Opponent || target.controller !== this.source.controller) &&
-            EnumHelpers.cardLocationMatches(target.location, this.targetZoneFilter) &&
+            EnumHelpers.cardLocationMatches(target.zoneName, this.targetZoneFilter) &&
             EnumHelpers.cardTypeMatches(target.type, this.targetCardTypeFilter) &&
             this.matchTarget(target, this.context)
         );

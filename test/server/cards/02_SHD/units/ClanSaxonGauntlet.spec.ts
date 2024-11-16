@@ -36,7 +36,7 @@ describe('Clan Saxon Gauntlet', function () {
                 context.player1.clickCard(context.clanSaxonGauntlet);
                 expect(context.clanSaxonGauntlet.damage).toBe(2);
                 expect(context.clanSaxonGauntlet).toHaveExactUpgradeNames(['experience']);
-                expect(context.hwk290Freighter.location).toBe('discard');
+                expect(context.hwk290Freighter.zoneName).toBe('discard');
                 context.player1.passAction();
 
                 // unit attacks clan saxon gauntlet, should give an experience
@@ -49,7 +49,7 @@ describe('Clan Saxon Gauntlet', function () {
                 expect(context.clanSaxonGauntlet.damage).toBe(5);
                 expect(context.clanSaxonGauntlet).toHaveExactUpgradeNames(['experience']);
                 expect(context.swoopRacer).toHaveExactUpgradeNames(['experience']);
-                expect(context.greenSquadronAwing.location).toBe('discard');
+                expect(context.greenSquadronAwing.zoneName).toBe('discard');
             });
         });
     });

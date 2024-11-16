@@ -24,7 +24,7 @@ describe('Bounty Hunter Crew', function () {
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.disarm);
                 expect(context.player1.hand.length).toBe(1);
-                expect(context.disarm.location).toBe('hand');
+                expect(context.disarm.zoneName).toBe('hand');
             });
 
             it('should return card to opponent hand from a discard pile', function () {
@@ -36,7 +36,7 @@ describe('Bounty Hunter Crew', function () {
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.tacticalAdvantage);
                 expect(context.player2.hand.length).toBe(1);
-                expect(context.tacticalAdvantage.location).toBe('hand');
+                expect(context.tacticalAdvantage.zoneName).toBe('hand');
             });
         });
     });

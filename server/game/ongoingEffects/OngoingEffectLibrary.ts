@@ -181,7 +181,7 @@ export = {
     //                 return;
     //             }
     //             for (const card of cards.filter(
-    //                 (card) => card.isEvent() && card.location === location
+    //                 (card) => card.isEvent() && card.zoneName === location
     //             )) {
     //                 for (const reaction of card.getTriggeredAbilities()) {
     //                     reaction.registerEvents();

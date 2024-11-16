@@ -58,7 +58,7 @@ export class Card extends OngoingEffectSource {
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
-    private _location: ZoneName;
+    private _zoneName: ZoneName;
     private nextAbilityIdx = 0;
 
 
@@ -76,8 +76,8 @@ export class Card extends OngoingEffectSource {
         return this.getKeywords();
     }
 
-    public get location(): ZoneName {
-        return this._location;
+    public get zoneName(): ZoneName {
+        return this._zoneName;
     }
 
     public get traits(): Set<Trait> {
@@ -115,9 +115,9 @@ export class Card extends OngoingEffectSource {
             this.internalName);
 
         if (this.isToken()) {
-            this._location = ZoneName.OutsideTheGame;
+            this._zoneName = ZoneName.OutsideTheGame;
         } else {
-            this._location = ZoneName.Deck;
+            this._zoneName = ZoneName.Deck;
         }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
@@ -435,15 +435,15 @@ export class Card extends OngoingEffectSource {
 
     // ******************************************* LOCATION MANAGEMENT *******************************************
     public moveTo(targetLocation: ZoneName) {
-        const originalLocation = this.location;
+        const originalLocation = this.zoneName;
 
         if (originalLocation === targetLocation) {
             return;
         }
 
         this.cleanupBeforeMove(targetLocation);
-        const prevLocation = this._location;
-        this._location = targetLocation;
+        const prevLocation = this._zoneName;
+        this._zoneName = targetLocation;
         this.initializeForCurrentLocation(prevLocation);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
@@ -476,9 +476,9 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentLocation(prevLocation: ZoneName) {
-        this.hiddenForOpponent = EnumHelpers.isHidden(this.location, RelativePlayer.Self);
+        this.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
 
-        switch (this.location) {
+        switch (this.zoneName) {
             case ZoneName.SpaceArena:
             case ZoneName.GroundArena:
                 this.controller = this.owner;
@@ -519,7 +519,7 @@ export class Card extends OngoingEffectSource {
                 break;
 
             default:
-                Contract.fail(`Unknown location enum value: ${this.location}`);
+                Contract.fail(`Unknown location enum value: ${this.zoneName}`);
         }
     }
 
@@ -556,7 +556,7 @@ export class Card extends OngoingEffectSource {
     }
 
     private buildPropertyDisabledStr(propertyName: string) {
-        return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in location '${this.location}' where the property does not apply`;
+        return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in location '${this.zoneName}' where the property does not apply`;
     }
 
     protected resetLimits() {
@@ -572,14 +572,14 @@ export class Card extends OngoingEffectSource {
     }
 
     public getModifiedController() {
-        if (EnumHelpers.isArena(this.location)) {
+        if (EnumHelpers.isArena(this.zoneName)) {
             return this.mostRecentOngoingEffect(EffectName.TakeControl) || this.defaultController;
         }
         return this.owner;
     }
 
     public isResource() {
-        return this.location === ZoneName.Resource;
+        return this.zoneName === ZoneName.Resource;
     }
 
     // TODO: should we break this out into variants for event (Play) vs other (EnterPlay)?
@@ -720,7 +720,7 @@ export class Card extends OngoingEffectSource {
     //     clone.controller = this.controller;
     //     clone.exhausted = this.exhausted;
     //     // clone.statusTokens = [...this.statusTokens];
-    //     clone.location = this.location;
+    //     clone.zoneName = this.zoneName;
     //     clone.parentCard = this.parentCard;
     //     clone.aspects = [...this.aspects];
     //     // clone.fate = this.fate;
@@ -751,7 +751,7 @@ export class Card extends OngoingEffectSource {
                 controller: this.controller.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,
                 facedown: true,
-                location: this.location,
+                location: this.zoneName,
                 uuid: isActivePlayer ? this.uuid : undefined
             };
             return { ...state, ...selectionState };
@@ -762,7 +762,7 @@ export class Card extends OngoingEffectSource {
             id: this.cardData.id,
             controlled: this.owner !== this.controller,
             // facedown: this.isFacedown(),
-            location: this.location,
+            location: this.zoneName,
             // menu: this.getMenu(),
             name: this.cardData.title,
             cost: this.cardData.cost,

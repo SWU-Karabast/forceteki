@@ -45,7 +45,7 @@ class ActionWindow extends UiPrompt {
             }
         }
         this.game.promptWithHandlerMenu(player, {
-            activePromptTitle: (EnumHelpers.isArena(card.location) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
+            activePromptTitle: (EnumHelpers.isArena(card.zoneName) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
             source: card,
             choices: legalActions.map((action) => action.title).concat('Cancel'),
             handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)

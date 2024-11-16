@@ -480,8 +480,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          */
         public attachUpgrade(upgrade) {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
-            Contract.assertEqual(upgrade.location, this.location);
-            Contract.assertTrue(this.controller.getCardPile(this.location).includes(upgrade));
+            Contract.assertEqual(upgrade.zoneName, this.zoneName);
+            Contract.assertTrue(this.controller.getCardPile(this.zoneName).includes(upgrade));
 
             this._upgrades.push(upgrade);
         }

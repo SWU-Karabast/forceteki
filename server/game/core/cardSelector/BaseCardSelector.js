@@ -91,7 +91,7 @@ class BaseCardSelector {
         }
 
         if (this.sameDiscardPile && selectedCards.length > 0) {
-            return card.location === selectedCards[0].location && card.owner === selectedCards[0].owner;
+            return card.zoneName === selectedCards[0].zoneName && card.owner === selectedCards[0].owner;
         }
 
         if (this.checkTarget && !card.canBeTargeted(context, selectedCards)) {
@@ -103,10 +103,10 @@ class BaseCardSelector {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!EnumHelpers.cardLocationMatches(card.location, this.zoneFilter)) {
+        if (!EnumHelpers.cardLocationMatches(card.zoneName, this.zoneFilter)) {
             return false;
         }
-        if (card.location === ZoneName.Hand && card.controller !== choosingPlayer) {
+        if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {
             return false;
         }
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardCondition(card, context);

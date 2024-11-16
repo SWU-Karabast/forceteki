@@ -41,7 +41,7 @@ describe('Han Solo Reluctant Hero', function() {
 
                 // check board state
                 expect(context.hanSolo.damage).toBe(0);
-                expect(context.wampa.location).toBe('discard');
+                expect(context.wampa.zoneName).toBe('discard');
 
                 // Case 3 attack action should deal 6 damage to consular security force and 3 on han solo
                 context.player2.passAction();
@@ -62,7 +62,7 @@ describe('Han Solo Reluctant Hero', function() {
 
                 // check board state
                 expect(context.hanSolo.damage).toBe(3);
-                expect(context.battlefieldMarine.location).toBe('discard');
+                expect(context.battlefieldMarine.zoneName).toBe('discard');
 
                 // reset board
                 reset();
@@ -73,7 +73,7 @@ describe('Han Solo Reluctant Hero', function() {
                 context.player1.clickCard(context.consularSecurityForce);
 
                 // Check board state
-                expect(context.hanSolo.location).toBe('discard');
+                expect(context.hanSolo.zoneName).toBe('discard');
             });
         });
     });

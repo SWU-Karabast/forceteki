@@ -23,7 +23,7 @@ describe('Distant Patroller', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.deathTrooper, context.avenger, context.infernoFour, context.systemPatrolCraft, context.chirrutImwe]);
                 // add a shield on avenger
                 context.player1.clickCard(context.avenger);
-                expect(context.distantPatroller.location).toBe('discard');
+                expect(context.distantPatroller.zoneName).toBe('discard');
                 expect(context.avenger).toHaveExactUpgradeNames(['shield']);
             });
         });

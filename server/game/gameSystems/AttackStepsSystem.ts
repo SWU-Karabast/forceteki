@@ -62,7 +62,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         Contract.assertTrue(properties.attacker.isUnit());
-        if (!properties.attacker.isInPlay() || !EnumHelpers.isAttackableLocation(target.location)) {
+        if (!properties.attacker.isInPlay() || !EnumHelpers.isAttackableLocation(target.zoneName)) {
             context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
             return;
         }
@@ -115,14 +115,14 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return false; // cannot attack cards with a BeAttacked restriction
         }
 
-        const attackerLocation = properties.attacker.location === ZoneName.GroundArena ? ZoneName.GroundArena : ZoneName.SpaceArena;
+        const attackerLocation = properties.attacker.zoneName === ZoneName.GroundArena ? ZoneName.GroundArena : ZoneName.SpaceArena;
         const canTargetGround = attackerLocation === ZoneName.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
         const canTargetSpace = attackerLocation === ZoneName.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
         if (
-            targetCard.location !== attackerLocation &&
-            targetCard.location !== ZoneName.Base &&
-            !(targetCard.location === ZoneName.SpaceArena && canTargetSpace) &&
-            !(targetCard.location === ZoneName.GroundArena && canTargetGround)
+            targetCard.zoneName !== attackerLocation &&
+            targetCard.zoneName !== ZoneName.Base &&
+            !(targetCard.zoneName === ZoneName.SpaceArena && canTargetSpace) &&
+            !(targetCard.zoneName === ZoneName.GroundArena && canTargetGround)
         ) {
             return false; // can only attack same arena or base unless an effect allows otherwise
         }
@@ -135,7 +135,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         return (
             properties.targetCondition(targetCard, context) &&
-            EnumHelpers.isAttackableLocation(targetCard.location)
+            EnumHelpers.isAttackableLocation(targetCard.zoneName)
         );
     }
 

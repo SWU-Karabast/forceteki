@@ -1184,8 +1184,8 @@ class Game extends EventEmitter {
      * @param {import('./card/CardTypes.js').TokenCard} token
      */
     removeTokenFromPlay(token) {
-        Contract.assertEqual(token.location, ZoneName.OutsideTheGame,
-            `Tokens must be moved to location ${ZoneName.OutsideTheGame} before removing from play, instead found token at ${token.location}`
+        Contract.assertEqual(token.zoneName, ZoneName.OutsideTheGame,
+            `Tokens must be moved to location ${ZoneName.OutsideTheGame} before removing from play, instead found token at ${token.zoneName}`
         );
 
         const player = token.owner;

@@ -38,7 +38,7 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
-        if (card.location === ZoneName.Deck || card.location === ZoneName.Hand || card.location === ZoneName.Resource) {
+        if (card.zoneName === ZoneName.Deck || card.zoneName === ZoneName.Hand || card.zoneName === ZoneName.Resource) {
             return super.canAffect(card, context);
         }
         return false;

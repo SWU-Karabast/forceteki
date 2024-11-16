@@ -118,7 +118,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             return false;
         }
 
-        if (!EnumHelpers.isAttackableLocation(card.location)) {
+        if (!EnumHelpers.isAttackableLocation(card.zoneName)) {
             return false;
         }
         if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {

@@ -565,7 +565,7 @@ var customMatchers = {
                 const L = deck.length;
                 result.pass = L >= numCards;
                 if (result.pass) {
-                    result.pass = card.location === 'deck';
+                    result.pass = card.zoneName === 'deck';
                     if (!result.pass) {
                         result.message = `Expected ${card.title} to be in the deck.`;
                     } else {
@@ -600,7 +600,7 @@ var customMatchers = {
                     var notInDeck = [];
                     var notOnBottom = [];
                     for (let card of cards) {
-                        thisCardPass = card.location === 'deck';
+                        thisCardPass = card.zoneName === 'deck';
                         if (!thisCardPass) {
                             result.pass = thisCardPass;
                             notInDeck.push(card.title);
@@ -646,12 +646,12 @@ var customMatchers = {
 
                 const pileOwningPlayer = player?.player || card.owner;
 
-                const correctProperty = card.location === location;
+                const correctProperty = card.zoneName === location;
                 const correctPile = pileOwningPlayer.getCardPile(location).includes(card);
 
                 if (correctProperty !== correctPile) {
                     result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent location state, card.location is '${card.location}' but it is not in the corresponding pile for ${pileOwningPlayer.name}'`;
+                    result.message = `Card ${card.internalName} has inconsistent location state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${pileOwningPlayer.name}'`;
                     return result;
                 }
 
@@ -660,7 +660,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${card.internalName} not to be in location '${location}' but it is`;
                 } else {
-                    result.message = `Expected ${card.internalName} to be in location '${location}' but it is in location '${card.location}'`;
+                    result.message = `Expected ${card.internalName} to be in location '${location}' but it is in location '${card.zoneName}'`;
                 }
 
                 return result;

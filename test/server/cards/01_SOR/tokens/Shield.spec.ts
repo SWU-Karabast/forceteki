@@ -63,7 +63,7 @@ describe('Shield', function() {
             it('should defeat itself to prevent damage to the attached unit', function () {
                 const { context } = contextRef;
 
-                const getShieldLocationsSorted = (shields) => shields.map((shield) => shield.location).sort();
+                const getShieldLocationsSorted = (shields) => shields.map((shield) => shield.zoneName).sort();
 
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.tielnFighter);

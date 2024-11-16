@@ -355,7 +355,7 @@ class Player extends GameObject {
      */
     anyCardsInPlay(predicate) {
         return this.game.allCards.some(
-            (card) => card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)
+            (card) => card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)
         );
     }
 
@@ -365,7 +365,7 @@ class Player extends GameObject {
      */
     filterCardsInPlay(predicate) {
         return this.game.allCards.filter(
-            (card) => card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)
+            (card) => card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)
         );
     }
 
@@ -383,7 +383,7 @@ class Player extends GameObject {
      */
     getNumberOfCardsInPlay(predicate) {
         return this.game.allCards.reduce((num, card) => {
-            if (card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)) {
+            if (card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)) {
                 return num + 1;
             }
 
@@ -837,7 +837,7 @@ class Player extends GameObject {
     //         !this.game.manualMode ||
     //         source === target ||
     //         !this.isLegalLocationForCardTypes(card.types, target) ||
-    //         card.location !== source
+    //         card.zoneName !== source
     //     ) {
     //         return;
     //     }
@@ -972,7 +972,7 @@ class Player extends GameObject {
      * If possible, exhaust the given resource and ready another one instead
      */
     swapResourceReadyState(resource) {
-        Contract.assertTrue(resource.location === ZoneName.Resource, 'Tried to exhaust a resource that is not in the resource zone');
+        Contract.assertTrue(resource.zoneName === ZoneName.Resource, 'Tried to exhaust a resource that is not in the resource zone');
 
         // The resource is already exhausted, do nothing
         if (resource.exhausted) {
@@ -997,7 +997,7 @@ class Player extends GameObject {
     moveCard(card, targetLocation, options = {}) {
         // If the card is a resource and it is ready, try to ready another resource instead
         // and exhaust this one. This should be the desired behavior for most cases.
-        if (card.location === ZoneName.Resource && card.canBeExhausted() && !card.exhausted) {
+        if (card.zoneName === ZoneName.Resource && card.canBeExhausted() && !card.exhausted) {
             card.controller.swapResourceReadyState(card);
         }
 
@@ -1014,7 +1014,7 @@ class Player extends GameObject {
 
         Contract.assertFalse(targetPile.includes(card), `Tried to move card ${card.name} to ${targetLocation} but it is already there`);
 
-        let currentLocation = card.location;
+        let currentLocation = card.zoneName;
 
         if (EnumHelpers.isArena(currentLocation)) {
             if (card.owner !== this) {
@@ -1068,7 +1068,7 @@ class Player extends GameObject {
             return;
         }
 
-        var originalLocation = card.location;
+        var originalLocation = card.zoneName;
         var originalPile = this.getCardPile(originalLocation);
 
         if (originalPile) {

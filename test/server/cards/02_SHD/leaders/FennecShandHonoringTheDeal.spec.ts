@@ -96,7 +96,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.moddedCohort.exhausted).toBeTrue();
                 expect(context.moddedCohort.damage).toBe(3);
-                expect(context.battlefieldMarine.location).toBe('discard');
+                expect(context.battlefieldMarine.zoneName).toBe('discard');
             });
         });
 
