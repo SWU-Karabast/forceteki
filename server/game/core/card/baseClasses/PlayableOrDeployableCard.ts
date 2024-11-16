@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { Aspect, CardType, RelativePlayer, WildcardLocation, Location } from '../../Constants';
+import { Aspect, CardType, RelativePlayer, WildcardLocation, Location, MoveLocation } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
@@ -72,6 +72,16 @@ export class PlayableOrDeployableCard extends Card {
     public ready() {
         this.assertPropertyEnabled(this._exhausted, 'exhausted');
         this._exhausted = false;
+    }
+
+    public override moveTo(targetLocation: MoveLocation): void {
+        // If this card is a resource and it is ready, try to ready another resource instead
+        // and exhaust this one. This should be the desired behavior for most cases.
+        if (this.location === Location.Resource && !this.exhausted) {
+            this.controller.swapResourceReadyState(this);
+        }
+
+        super.moveTo(targetLocation);
     }
 
     public override canBeExhausted(): this is PlayableOrDeployableCard {

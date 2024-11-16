@@ -39,7 +39,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         if (EnumHelpers.isArena(event.card.location) && !EnumHelpers.isArena(event.destination)) {
             this.leavesPlayEventHandler(event, additionalProperties);
         } else {
-            // TODO: remove this completely if determinmed we don't need card snapshots
+            // TODO: remove this completely if determined we don't need card snapshots
             // event.cardStateWhenMoved = card.createSnapshot();
             const card = event.card as Card;
 
@@ -59,7 +59,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
         if (properties.destination === Location.Hand) {
-            if (Helpers.asArray(properties.target).some((card) => EnumHelpers.cardLocationMatches(card.location, Location.Resource))) {
+            if (Helpers.asArray(properties.target).some((card) => card.location === Location.Resource)) {
                 const targets = Helpers.asArray(properties.target);
                 return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
             }
