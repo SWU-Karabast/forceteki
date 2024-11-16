@@ -5,9 +5,7 @@ describe('Doctor Evazan, Wanted on Twelve Systems', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        base: 'kestro-city',
-                        leader: 'gar-saxon#viceroy-of-mandalore',
-                        hand: ['avenger#hunting-star-destroyer', 'wampa'],
+                        groundArena: ['wampa'],
                         resources: 13
                     },
                     player2: {
@@ -17,12 +15,11 @@ describe('Doctor Evazan, Wanted on Twelve Systems', function() {
 
                 const { context } = contextRef;
 
-                // play wampa (4 resources exhausted)
-                context.player1.clickCard(context.wampa);
-                context.player2.passAction();
+                context.player1.exhaustResources(13);
 
-                // play avenger (9 resources exhausted)
-                context.player1.clickCard(context.avenger);
+                // kill evazan with wampa
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.doctorEvazan);
 
                 // evazan was killed, 12 resources should be ready
                 expect(context.doctorEvazan.location).toBe('discard');

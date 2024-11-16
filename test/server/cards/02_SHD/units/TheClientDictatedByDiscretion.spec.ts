@@ -1,7 +1,7 @@
 describe('The Client, Dictated by Discretion', function() {
     integration(function(contextRef) {
         describe('The Client\'s Bounty ability', function() {
-            const prompt ='For this phase, targeted unit gains: "Bounty — Heal 5 damage from a base."';
+            const prompt = 'For this phase, targeted unit gains: "Bounty — Heal 5 damage from a base."';
             beforeEach(function() {
                 contextRef.setupTest({
                     phase: 'action',
@@ -41,10 +41,11 @@ describe('The Client, Dictated by Discretion', function() {
 
                 context.player1.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(5);
-            });
 
-            it('should add a bounty which expire with action phase', function () {
-                const { context } = contextRef;
+                // reset state
+                context.player2.moveCard(context.wampa, 'ground arena');
+                context.theClient.exhausted = false;
+                context.player2.passAction();
 
                 // add a bounty to wampa
                 context.player1.clickCard(context.theClient);
