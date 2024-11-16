@@ -6,22 +6,20 @@ describe('Chain Code Collector', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['chain-code-collector'],
+                        hand: ['chain-code-collector'],
                     },
                     player2: {
-                        groundArena: [{ card: 'hylobon-enforcer', damage: 3 }, 'battlefield-marine']
+                        groundArena: [{ card: 'gideon-hask#ruthless-loyalist', upgrades: ['top-target'] }, 'battlefield-marine']
                     }
                 });
 
-                // kill hylobon enforcer
+                // ambush gideon hask
                 context.player1.clickCard(context.chainCodeCollector);
-                context.player1.clickCard(context.hylobonEnforcer);
+                context.player1.clickPrompt('Ambush');
+                context.player1.clickCard(context.gideonHask);
 
-                // pass bounty from hylobon enforcer
-                context.player1.clickPrompt('Pass');
-
-                // chain code collector did not take damage (hylobon gets -4/-0)
-                expect(context.chainCodeCollector.damage).toBe(0);
+                // chain code collector take only 1 damage (gideon gets -4/-0)
+                expect(context.chainCodeCollector.damage).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();
                 context.chainCodeCollector.exhausted = false;
