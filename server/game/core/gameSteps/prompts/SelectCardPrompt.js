@@ -1,6 +1,6 @@
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const CardSelectorFactory = require('../../cardSelector/CardSelectorFactory.js');
-const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
+const { OngoingEffectSource } = require('../../ongoingEffect/OngoingEffectSource');
 const Contract = require('../../utils/Contract.js');
 const { UiPrompt } = require('./UiPrompt.js');
 

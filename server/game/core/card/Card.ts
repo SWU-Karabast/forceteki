@@ -1,7 +1,7 @@
 import { IActionAbilityProps, IConstantAbilityProps } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
+import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, RelativePlayer, Trait, WildcardLocation } from '../Constants';

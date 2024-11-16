@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import { type RelativePlayer, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration } from './core/Constants';
+import { type RelativePlayer, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration, WildcardLocation } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
@@ -37,7 +37,11 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 };
 
 export interface IOngoingEffectProps {
-    targetLocationFilter?: Location | Location[];
+    targetController?: RelativePlayer;
+    targetCardTypeFilter?: any;
+    sourceLocationFilter?: WildcardLocation;
+    matchTarget?: () => boolean;
+    targetLocationFilter?: WildcardLocation;
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;

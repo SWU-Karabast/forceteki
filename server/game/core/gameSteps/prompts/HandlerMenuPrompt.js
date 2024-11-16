@@ -1,5 +1,5 @@
 const { AbilityContext } = require('../../ability/AbilityContext.js');
-const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
+const { OngoingEffectSource } = require('../../ongoingEffect/OngoingEffectSource.js');
 const { UiPrompt } = require('./UiPrompt.js');
 
 /**
@@ -128,6 +128,7 @@ class HandlerMenuPrompt extends UiPrompt {
     }
 
     /** @override */
+    // @ts-ignore
     menuCommand(player, arg) {
         if (typeof arg === 'string') {
             if (arg === 'cancel') {

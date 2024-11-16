@@ -1,17 +1,23 @@
-const OngoingEffect = require('./OngoingEffect.js');
-const { RelativePlayer } = require('../Constants.js');
+import OngoingEffect from './OngoingEffect';
+import { RelativePlayer } from '../Constants';
+import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+import Game from '../Game';
+import { Card } from '../card/Card';
+import { IOngoingEffectProps } from '../../Interfaces';
+import Player from '../Player';
 
 class OngoingPlayerEffect extends OngoingEffect {
-    constructor(game, source, properties, effect) {
+    public override matchTarget: (target: Player) => boolean;
+
+    public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effect: OngoingEffectImpl<any>) {
         super(game, source, properties, effect);
-        this.targetController = properties.targetController || RelativePlayer.Self;
         if (typeof this.matchTarget !== 'function') {
-            this.matchTarget = (player) => true;
+            this.matchTarget = (_player) => true;
         }
     }
 
     /** @override */
-    isValidTarget(target) {
+    public override isValidTarget(target) {
         if (this.targetController !== RelativePlayer.Any && this.targetController !== RelativePlayer.Self && this.targetController !== RelativePlayer.Opponent && this.targetController !== target) {
             return false;
         }
@@ -25,9 +31,9 @@ class OngoingPlayerEffect extends OngoingEffect {
     }
 
     /** @override */
-    getTargets() {
+    public override getTargets() {
         return this.game.getPlayers().filter((player) => this.matchTarget(player));
     }
 }
 
-module.exports = OngoingPlayerEffect;
+export default OngoingPlayerEffect;

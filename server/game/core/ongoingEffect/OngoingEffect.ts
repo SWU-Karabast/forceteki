@@ -1,5 +1,10 @@
-const { Location, Duration, WildcardLocation } = require('../Constants');
-const EnumHelpers = require('../utils/EnumHelpers');
+import { IOngoingEffectProps, WhenType } from '../../Interfaces';
+import { AbilityContext } from '../ability/AbilityContext';
+import { Card } from '../card/Card';
+import { Duration, RelativePlayer, WildcardLocation } from '../Constants';
+import Game from '../Game';
+import { GameObject } from '../GameObject';
+import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 
 /**
  * Represents a card based effect applied to one or more targets.
@@ -29,7 +34,24 @@ const EnumHelpers = require('../utils/EnumHelpers');
  *                        and the numerical value of the effect, if any.
  */
 class OngoingEffect {
-    constructor(game, source, properties, effectImpl) {
+    public game: Game;
+    public source: Card;
+    // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
+    public matchTarget: GameObject | ((target: GameObject, context: AbilityContext) => boolean);
+    public duration?: Duration;
+    public until: WhenType;
+    public condition: (context?: AbilityContext) => boolean;
+    public sourceLocationFilter: WildcardLocation;
+    public canChangeZoneOnce: boolean;
+    public canChangeZoneNTimes: number;
+    public impl: OngoingEffectImpl<any>;
+    // ISSUE: refreshContext sets ability to IOngoingEffectProps, but the listed type for context is PlayerOrCardAbility. Why is there a mismatch? Are we just overriding it in the context of OngoingEffects and everywhere else it acts as PlayerOrCardAbility?
+    public ability: any;
+    public targets: GameObject[];
+    public context: AbilityContext;
+    public targetController: RelativePlayer;
+
+    public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effectImpl: OngoingEffectImpl<any>) {
         this.game = game;
         this.source = source;
         this.matchTarget = properties.matchTarget || (() => true);
@@ -42,54 +64,56 @@ class OngoingEffect {
         this.impl = effectImpl;
         this.ability = properties;
         this.targets = [];
+        this.targetController = properties.targetController || RelativePlayer.Self;
         this.refreshContext();
+
         this.impl.duration = this.duration;
         this.impl.isConditional = !!properties.condition;
     }
 
-    refreshContext() {
+    public refreshContext() {
         this.context = this.game.getFrameworkContext(this.source.controller);
         this.context.source = this.source;
         this.context.ability = this.ability;
         this.impl.setContext(this.context);
     }
 
-    isValidTarget(target) {
+    public isValidTarget(target) {
         return true;
     }
 
-    getDefaultTarget(context) {
+    public getDefaultTarget(context) {
         return null;
     }
 
-    getTargets() {
+    public getTargets() {
         return [];
     }
 
-    addTarget(target) {
+    public addTarget(target) {
         this.targets.push(target);
         this.impl.apply(target);
     }
 
-    removeTarget(target) {
+    public removeTarget(target) {
         this.removeTargets([target]);
     }
 
-    removeTargets(targets) {
+    public removeTargets(targets) {
         targets.forEach((target) => this.impl.unapply(target));
         this.targets = this.targets.filter((target) => !targets.includes(target));
     }
 
-    hasTarget(target) {
+    public hasTarget(target) {
         return this.targets.includes(target);
     }
 
-    cancel() {
+    public cancel() {
         this.targets.forEach((target) => this.impl.unapply(target));
         this.targets = [];
     }
 
-    isEffectActive() {
+    public isEffectActive() {
         if (this.duration !== Duration.Persistent) {
             return true;
         }
@@ -106,21 +130,23 @@ class OngoingEffect {
         return !this.source.facedown;
     }
 
-    resolveEffectTargets(stateChanged) {
-        if (!this.isEffectActive() || !this.condition(this.context)) {
+    public resolveEffectTargets(stateChanged) {
+        if (!this.condition(this.context) || !this.isEffectActive()) {
             stateChanged = this.targets.length > 0 || stateChanged;
             this.cancel();
             return stateChanged;
         } else if (typeof this.matchTarget === 'function') {
+            // HACK: type narrowing is not retained in filter call, so we cache it here as a work around.
+            const matchTarget = this.matchTarget;
             // Get any targets which are no longer valid
-            let invalidTargets = this.targets.filter((target) => !this.matchTarget(target, this.context) || !this.isValidTarget(target));
+            const invalidTargets = this.targets.filter((target) => !matchTarget(target, this.context) || !this.isValidTarget(target));
             // Remove invalid targets
             this.removeTargets(invalidTargets);
             stateChanged = stateChanged || invalidTargets.length > 0;
             // Recalculate the effect for valid targets
             this.targets.forEach((target) => stateChanged = this.impl.recalculate(target) || stateChanged);
             // Check for new targets
-            let newTargets = this.getTargets().filter((target) => !this.targets.includes(target) && this.isValidTarget(target));
+            const newTargets = this.getTargets().filter((target) => !this.targets.includes(target) && this.isValidTarget(target));
             // Apply the effect to new targets
             newTargets.forEach((target) => this.addTarget(target));
             return stateChanged || newTargets.length > 0;
@@ -137,7 +163,7 @@ class OngoingEffect {
         return stateChanged;
     }
 
-    getDebugInfo() {
+    public getDebugInfo() {
         return {
             source: this.source.name,
             targets: this.targets.map((target) => target.name).join(','),
@@ -148,4 +174,4 @@ class OngoingEffect {
     }
 }
 
-module.exports = OngoingEffect;
+export default OngoingEffect;
