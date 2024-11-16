@@ -39,8 +39,14 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             default:
                 Contract.fail(`Unknown prompt type: ${this.properties.type}`);
         }
-
-        const menuTitle = `Distribute ${this.distributeType} among targets`;
+        let menuTitle = null;
+        if (this.properties.maxTargets) {
+            menuTitle = this.properties.maxTargets > 1
+                ? `Distribute ${this.distributeType} up to ${this.properties.maxTargets} targets`
+                : `Distribute ${this.distributeType} to 1 target`;
+        } else {
+            menuTitle = `Distribute ${this.distributeType} among targets`;
+        }
 
         const promptData: IDistributeAmongTargetsPromptData = {
             type: this.properties.type,
@@ -128,6 +134,13 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
         const cardsDistributedTo = Array.from(results.valueDistribution.keys());
         const illegalCardsDistributedTo = cardsDistributedTo.filter((card) => !this.properties.legalTargets.includes(card));
+
+        if (this.properties.maxTargets) {
+            Contract.assertFalse(cardsDistributedTo.length > this.properties.maxTargets,
+                `Illegal prompt results for '${this._activePrompt.menuTitle}', distributed ${this.distributeType} should be distributed to maximum ${this.properties.maxTargets} targets but instead was distributed to ${cardsDistributedTo.length}`
+            );
+        }
+
         Contract.assertFalse(
             illegalCardsDistributedTo.length > 0,
             `Illegal prompt results for '${this._activePrompt.menuTitle}', the following cards were not legal targets for distribution: ${illegalCardsDistributedTo.map((card) => card.internalName).join(', ')}`

@@ -29,6 +29,7 @@ export interface IDistributeAmongTargetsSystemProperties<TContext extends Abilit
     locationFilter?: LocationFilter | LocationFilter[];
     cardCondition?: (card: Card, context: TContext) => boolean;
     selector?: BaseCardSelector;
+    maxTargets?: number;
 }
 
 export abstract class DistributeAmongTargetsSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDistributeAmongTargetsSystemProperties> {
@@ -37,7 +38,8 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
         amountToDistribute: null,
         cardCondition: () => true,
         canChooseNoTargets: null,
-        canDistributeLess: this.canDistributeLessDefault()
+        canDistributeLess: this.canDistributeLessDefault(),
+        maxTargets: null,
     };
 
     public abstract promptType: StatefulPromptType.DistributeDamage | StatefulPromptType.DistributeHealing;
@@ -73,6 +75,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
             legalTargets,
             canChooseNoTargets: properties.canChooseNoTargets || context.ability.optional,
             canDistributeLess: properties.canDistributeLess,
+            maxTargets: properties.maxTargets,
             source: context.source,
             amount: this.getAmountToDistribute(properties.amountToDistribute, context),
             resultsHandler: (results: IDistributeAmongTargetsPromptResults) =>
