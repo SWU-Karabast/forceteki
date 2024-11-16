@@ -1,4 +1,4 @@
-const { Location, RelativePlayer, WildcardLocation } = require('../Constants');
+const { ZoneName, RelativePlayer, WildcardZoneName } = require('../Constants');
 const Contract = require('../utils/Contract');
 const EnumHelpers = require('../utils/EnumHelpers');
 
@@ -8,7 +8,7 @@ class BaseCardSelector {
         this.cardCondition = properties.cardCondition;
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
-        this.locationFilter = this.buildLocationFilter(properties.locationFilter);
+        this.zoneFilter = this.buildLocationFilter(properties.zoneFilter);
         this.controller = properties.controller || RelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
@@ -23,11 +23,11 @@ class BaseCardSelector {
     }
 
     buildLocationFilter(property) {
-        let locationFilter = property || WildcardLocation.AnyAttackable || [];
-        if (!Array.isArray(locationFilter)) {
-            locationFilter = [locationFilter];
+        let zoneFilter = property || WildcardZoneName.AnyAttackable || [];
+        if (!Array.isArray(zoneFilter)) {
+            zoneFilter = [zoneFilter];
         }
-        return locationFilter;
+        return zoneFilter;
     }
 
     findPossibleCards(context) {
@@ -36,7 +36,7 @@ class BaseCardSelector {
             controllerProp = controllerProp(context);
         }
 
-        if (this.locationFilter.includes(WildcardLocation.Any)) {
+        if (this.zoneFilter.includes(WildcardZoneName.Any)) {
             if (controllerProp === RelativePlayer.Self) {
                 return context.game.allCards.filter((card) => card.controller === context.player);
             } else if (controllerProp === RelativePlayer.Opponent) {
@@ -47,13 +47,13 @@ class BaseCardSelector {
 
         let possibleCards = [];
         if (controllerProp !== RelativePlayer.Opponent) {
-            possibleCards = this.locationFilter.reduce(
-                (array, locationFilter) => array.concat(this.getCardsForPlayerLocations(locationFilter, context.player)), possibleCards
+            possibleCards = this.zoneFilter.reduce(
+                (array, zoneFilter) => array.concat(this.getCardsForPlayerLocations(zoneFilter, context.player)), possibleCards
             );
         }
         if (controllerProp !== RelativePlayer.Self && context.player.opponent) {
-            possibleCards = this.locationFilter.reduce(
-                (array, locationFilter) => array.concat(this.getCardsForPlayerLocations(locationFilter, context.player.opponent)), possibleCards
+            possibleCards = this.zoneFilter.reduce(
+                (array, zoneFilter) => array.concat(this.getCardsForPlayerLocations(zoneFilter, context.player.opponent)), possibleCards
             );
         }
         return possibleCards;
@@ -62,15 +62,15 @@ class BaseCardSelector {
     getCardsForPlayerLocations(location, player) {
         var cards;
         switch (location) {
-            case WildcardLocation.Any:
+            case WildcardZoneName.Any:
                 // TODO: is this ever a case we should have? this would allow targeting deck, discard, etc.
-                throw Error('WildcardLocation.Any is currently not supported for card selectors');
-            case WildcardLocation.AnyArena:
+                throw Error('WildcardZoneName.Any is currently not supported for card selectors');
+            case WildcardZoneName.AnyArena:
                 cards = player.getArenaCards();
                 break;
-            case WildcardLocation.AnyAttackable:
+            case WildcardZoneName.AnyAttackable:
                 cards = player.getArenaCards();
-                cards = cards.concat(player.getCardPile(Location.Base));
+                cards = cards.concat(player.getCardPile(ZoneName.Base));
                 break;
             default:
                 cards = player.getCardPile(location);
@@ -103,10 +103,10 @@ class BaseCardSelector {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!EnumHelpers.cardLocationMatches(card.location, this.locationFilter)) {
+        if (!EnumHelpers.cardLocationMatches(card.location, this.zoneFilter)) {
             return false;
         }
-        if (card.location === Location.Hand && card.controller !== choosingPlayer) {
+        if (card.location === ZoneName.Hand && card.controller !== choosingPlayer) {
             return false;
         }
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardCondition(card, context);

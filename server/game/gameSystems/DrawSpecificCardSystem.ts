@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, Location, MetaEventName, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, ZoneName, MetaEventName, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem';
@@ -37,7 +37,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
             card.owner.moveCard(otherCard, card.location);
         }
         const player = properties.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
-        player.moveCard(card, Location.Hand);
+        player.moveCard(card, ZoneName.Hand);
 
         const target = properties.target;
         // if (Array.isArray(target)) {
@@ -83,7 +83,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
             (!changePlayer ||
               (!card.hasRestriction(EffectName.TakeControl, context) &&
                 !card.anotherUniqueInPlay(context.player))) &&
-                (context.player.isLegalLocationForCardType(card.type, Location.Hand)) &&
+                (context.player.isLegalLocationForCardType(card.type, ZoneName.Hand)) &&
                 !EnumHelpers.isArena(card.location) &&
                 super.canAffect(card, context)
         );

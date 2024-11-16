@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, CardTypeFilter, Duration, EventName, KeywordName, Location, MetaEventName, WildcardCardType, WildcardLocation } from '../core/Constants';
+import { AbilityRestriction, CardType, CardTypeFilter, Duration, EventName, KeywordName, ZoneName, MetaEventName, WildcardCardType, WildcardZoneName } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
@@ -115,14 +115,14 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return false; // cannot attack cards with a BeAttacked restriction
         }
 
-        const attackerLocation = properties.attacker.location === Location.GroundArena ? Location.GroundArena : Location.SpaceArena;
-        const canTargetGround = attackerLocation === Location.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
-        const canTargetSpace = attackerLocation === Location.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
+        const attackerLocation = properties.attacker.location === ZoneName.GroundArena ? ZoneName.GroundArena : ZoneName.SpaceArena;
+        const canTargetGround = attackerLocation === ZoneName.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
+        const canTargetSpace = attackerLocation === ZoneName.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
         if (
             targetCard.location !== attackerLocation &&
-            targetCard.location !== Location.Base &&
-            !(targetCard.location === Location.SpaceArena && canTargetSpace) &&
-            !(targetCard.location === Location.GroundArena && canTargetGround)
+            targetCard.location !== ZoneName.Base &&
+            !(targetCard.location === ZoneName.SpaceArena && canTargetSpace) &&
+            !(targetCard.location === ZoneName.GroundArena && canTargetGround)
         ) {
             return false; // can only attack same arena or base unless an effect allows otherwise
         }

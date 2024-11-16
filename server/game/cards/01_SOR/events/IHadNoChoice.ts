@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as Helpers from '../../../core/utils/Helpers.js';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, WildcardCardType, WildcardLocation } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class IHadNoChoice extends EventCard {
     protected override getImplementationId() {
@@ -19,7 +19,7 @@ export default class IHadNoChoice extends EventCard {
                     mode: TargetMode.UpTo,
                     numCards: 2,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     controller: RelativePlayer.Any
                 },
                 opponentChoice: {

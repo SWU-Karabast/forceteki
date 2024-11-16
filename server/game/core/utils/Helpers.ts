@@ -1,5 +1,5 @@
 import { Card } from '../card/Card';
-import { Aspect, CardType, CardTypeFilter, Location } from '../Constants';
+import { Aspect, CardType, CardTypeFilter, ZoneName } from '../Constants';
 import * as Contract from './Contract';
 import * as EnumHelpers from './EnumHelpers';
 
@@ -45,7 +45,7 @@ export function shuffle<T>(array: T[]): T[] {
 export function defaultLegalLocationsForCardTypeFilter(cardTypeFilter: CardTypeFilter) {
     const cardTypes = EnumHelpers.getCardTypesForFilter(cardTypeFilter);
 
-    const locations = new Set<Location>();
+    const locations = new Set<ZoneName>();
 
     cardTypes.forEach((cardType) => {
         const legalLocations = defaultLegalLocationsForCardType(cardType);
@@ -57,24 +57,24 @@ export function defaultLegalLocationsForCardTypeFilter(cardTypeFilter: CardTypeF
 
 export function defaultLegalLocationsForCardType(cardType: CardType) {
     const drawCardLocations = [
-        Location.Hand,
-        Location.Deck,
-        Location.Discard,
-        Location.RemovedFromGame,
-        Location.SpaceArena,
-        Location.GroundArena,
-        Location.Resource
+        ZoneName.Hand,
+        ZoneName.Deck,
+        ZoneName.Discard,
+        ZoneName.RemovedFromGame,
+        ZoneName.SpaceArena,
+        ZoneName.GroundArena,
+        ZoneName.Resource
     ];
 
     switch (cardType) {
         case CardType.TokenUnit:
         case CardType.TokenUpgrade:
-            return [Location.SpaceArena, Location.GroundArena, Location.OutsideTheGame];
+            return [ZoneName.SpaceArena, ZoneName.GroundArena, ZoneName.OutsideTheGame];
         case CardType.LeaderUnit:
-            return [Location.SpaceArena, Location.GroundArena];
+            return [ZoneName.SpaceArena, ZoneName.GroundArena];
         case CardType.Base:
         case CardType.Leader:
-            return [Location.Base];
+            return [ZoneName.Base];
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
         case CardType.Event:

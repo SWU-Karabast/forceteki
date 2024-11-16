@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { Aspect, CardType, RelativePlayer, WildcardLocation, Location } from '../../Constants';
+import { Aspect, CardType, RelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
@@ -141,7 +141,7 @@ export class PlayableOrDeployableCard extends Card {
     private buildCostAdjusterAbilityProps(condition: (context: AbilityContext<this>) => boolean, title: string, ongoingEffect: IOngoingEffectGenerator): IConstantAbilityProps {
         const costAdjustAbilityProps: IConstantAbilityProps = {
             title,
-            sourceLocationFilter: WildcardLocation.Any,
+            sourceLocationFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Any,
             condition,
             ongoingEffect

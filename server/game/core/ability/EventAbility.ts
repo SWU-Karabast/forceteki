@@ -1,6 +1,6 @@
 import type { AbilityContext } from './AbilityContext.js';
 import { CardAbility } from './CardAbility.js';
-import { AbilityType, Location, PhaseName } from '../Constants.js';
+import { AbilityType, ZoneName, PhaseName } from '../Constants.js';
 import type { IEventAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
@@ -17,7 +17,7 @@ export class EventAbility extends CardAbility {
     }
 
     public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
-        if (!ignoredRequirements.includes('location') && this.card.location !== Location.Discard) {
+        if (!ignoredRequirements.includes('location') && this.card.location !== ZoneName.Discard) {
             return 'location';
         }
 

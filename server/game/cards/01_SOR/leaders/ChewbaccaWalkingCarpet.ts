@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, Location } from '../../../core/Constants';
+import { KeywordName, ZoneName } from '../../../core/Constants';
 
 export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 3,
-                locationFilter: Location.Hand,
+                zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel) })

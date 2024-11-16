@@ -1,7 +1,7 @@
 import { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
 import { Card, CardConstructor } from '../Card';
-import { Location } from '../../Constants';
+import { ZoneName } from '../../Constants';
 import type Player from '../../Player';
 import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';

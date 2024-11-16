@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { WildcardLocation, RelativePlayer } from '../Constants';
+import { WildcardZoneName, RelativePlayer } from '../Constants';
 import type { ICost, Result } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
@@ -24,7 +24,7 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         const additionalProps = {
             controller: RelativePlayer.Self,
-            locationFilter: properties.locationFilter || WildcardLocation.Any
+            zoneFilter: properties.zoneFilter || WildcardZoneName.Any
         };
         return this.gameSystem.hasLegalTarget(context, additionalProps);
     }
@@ -44,7 +44,7 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
 
         const additionalProps = {
             activePromptTitle: this.activePromptTitle,
-            location: properties.locationFilter || WildcardLocation.Any,
+            location: properties.zoneFilter || WildcardZoneName.Any,
             controller: RelativePlayer.Self,
             cancelHandler: !result.canCancel ? null : () => (result.cancelled = true),
             subActionProperties: (target: any) => {

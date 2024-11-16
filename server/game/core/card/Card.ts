@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, RelativePlayer, Trait, WildcardLocation } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, ZoneName, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import { CardAbility } from '../ability/CardAbility';
@@ -58,7 +58,7 @@ export class Card extends OngoingEffectSource {
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
-    private _location: Location;
+    private _location: ZoneName;
     private nextAbilityIdx = 0;
 
 
@@ -76,7 +76,7 @@ export class Card extends OngoingEffectSource {
         return this.getKeywords();
     }
 
-    public get location(): Location {
+    public get location(): ZoneName {
         return this._location;
     }
 
@@ -115,9 +115,9 @@ export class Card extends OngoingEffectSource {
             this.internalName);
 
         if (this.isToken()) {
-            this._location = Location.OutsideTheGame;
+            this._location = ZoneName.OutsideTheGame;
         } else {
-            this._location = Location.Deck;
+            this._location = ZoneName.Deck;
         }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
@@ -246,7 +246,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
-        const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
+        const sourceLocationFilter = properties.sourceLocationFilter || WildcardZoneName.AnyArena;
 
         return {
             duration: Duration.Persistent,
@@ -434,7 +434,7 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* LOCATION MANAGEMENT *******************************************
-    public moveTo(targetLocation: Location) {
+    public moveTo(targetLocation: ZoneName) {
         const originalLocation = this.location;
 
         if (originalLocation === targetLocation) {
@@ -459,7 +459,7 @@ export class Card extends OngoingEffectSource {
      * Deals with any engine effects of leaving the current location before the move happens
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextLocation: Location) {}
+    protected cleanupBeforeMove(nextLocation: ZoneName) {}
 
     /**
      * Updates the card's abilities for its current location after being moved.
@@ -475,44 +475,44 @@ export class Card extends OngoingEffectSource {
      *
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
-    protected initializeForCurrentLocation(prevLocation: Location) {
+    protected initializeForCurrentLocation(prevLocation: ZoneName) {
         this.hiddenForOpponent = EnumHelpers.isHidden(this.location, RelativePlayer.Self);
 
         switch (this.location) {
-            case Location.SpaceArena:
-            case Location.GroundArena:
+            case ZoneName.SpaceArena:
+            case ZoneName.GroundArena:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
-            case Location.Base:
+            case ZoneName.Base:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
-            case Location.Resource:
+            case ZoneName.Resource:
                 this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = false;
                 break;
 
-            case Location.Deck:
+            case ZoneName.Deck:
                 this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = true;
                 break;
 
-            case Location.Hand:
+            case ZoneName.Hand:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
-            case Location.Discard:
-            case Location.RemovedFromGame:
-            case Location.OutsideTheGame:
+            case ZoneName.Discard:
+            case ZoneName.RemovedFromGame:
+            case ZoneName.OutsideTheGame:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
@@ -579,7 +579,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public isResource() {
-        return this.location === Location.Resource;
+        return this.location === ZoneName.Resource;
     }
 
     // TODO: should we break this out into variants for event (Play) vs other (EnterPlay)?
@@ -683,7 +683,7 @@ export class Card extends OngoingEffectSource {
         // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
         // if (cardsUnderneath.length > 0) {
         //     cardsUnderneath.forEach((card) => {
-        //         this.controller.moveCard(card, Location.RemovedFromGame);
+        //         this.controller.moveCard(card, ZoneName.RemovedFromGame);
         //     });
         //     this.game.addMessage(
         //         '{0} {1} removed from the game due to {2} leaving play',

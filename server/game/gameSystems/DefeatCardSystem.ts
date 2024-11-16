@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { EventName, Location, WildcardCardType } from '../core/Constants';
+import { EventName, ZoneName, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { DamageSourceType, DefeatSourceType, IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
@@ -35,12 +35,12 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (event.card.isToken()) {
             // move the token out of the play area so that effect cleanup happens, then remove it from all card lists
-            event.card.owner.moveCard(event.card, Location.OutsideTheGame, event.options || {});
+            event.card.owner.moveCard(event.card, ZoneName.OutsideTheGame, event.options || {});
             event.context.game.removeTokenFromPlay(event.card);
         } else if (event.card.isLeader()) {
             event.card.undeploy();
         } else {
-            event.card.owner.moveCard(event.card, Location.Discard, event.options || {});
+            event.card.owner.moveCard(event.card, ZoneName.Discard, event.options || {});
         }
     }
 
@@ -51,7 +51,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
     public override canAffect(card: Card, context: TContext): boolean {
         if (
-            card.location !== Location.Resource &&
+            card.location !== ZoneName.Resource &&
             (!card.canBeInPlay() || !card.isInPlay())
         ) {
             return false;

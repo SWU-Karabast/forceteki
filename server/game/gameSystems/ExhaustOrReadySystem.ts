@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, CardTypeFilter, EventName, GameStateChangeRequired, Location, WildcardCardType } from '../core/Constants';
+import { CardType, CardTypeFilter, EventName, GameStateChangeRequired, ZoneName, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { CardWithExhaustProperty } from '../core/card/CardTypes';
@@ -14,8 +14,8 @@ export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = Abi
     public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (
             !EnumHelpers.isArena(card.location) &&
-            card.location !== Location.Resource &&
-            !(card.isLeader() && card.location === Location.Base)
+            card.location !== ZoneName.Resource &&
+            !(card.isLeader() && card.location === ZoneName.Base)
         ) {
             return false;
         }

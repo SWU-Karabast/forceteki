@@ -1,12 +1,12 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, EventName, KeywordName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, EventName, KeywordName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: RelativePlayer;
-    overrideLocation?: Location;
+    overrideLocation?: ZoneName;
     entersReady?: boolean;
 }
 
@@ -60,7 +60,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;
-        } else if (card.location === Location.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
+        } else if (card.location === ZoneName.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;

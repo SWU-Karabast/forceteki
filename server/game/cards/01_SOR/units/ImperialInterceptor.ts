@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class ImperialInterceptor extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class ImperialInterceptor extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Any,
-                locationFilter: Location.SpaceArena,
+                zoneFilter: ZoneName.SpaceArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
             },
             effect: 'deal 3 damage to {1}',

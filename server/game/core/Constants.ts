@@ -1,7 +1,7 @@
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
 
-export enum Location {
+export enum ZoneName {
     Base = 'base',
     Deck = 'deck',
     Discard = 'discard',
@@ -13,7 +13,7 @@ export enum Location {
     SpaceArena = 'space arena',
 }
 
-export enum WildcardLocation {
+export enum WildcardZoneName {
     Any = 'any',
     AnyArena = 'any arena',
 
@@ -21,9 +21,9 @@ export enum WildcardLocation {
     AnyAttackable = 'any attackable'
 }
 
-export type LocationFilter = Location | WildcardLocation;
+export type ZoneFilter = ZoneName | WildcardZoneName;
 
-export type Arena = Location.GroundArena | Location.SpaceArena;
+export type Arena = ZoneName.GroundArena | ZoneName.SpaceArena;
 
 export enum PlayType {
     PlayFromHand = 'playFromHand',

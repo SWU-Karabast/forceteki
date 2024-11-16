@@ -1,13 +1,13 @@
 import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
 import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
-import { Location } from '../core/Constants';
+import { ZoneName } from '../core/Constants';
 
 const getApplyingPlayer = (effect) => {
     return effect.applyingPlayer || effect.context.player;
 };
 
 // const isMoveToHandAction = (gameAction) =>
-//     gameAction instanceof MoveCardAction && gameAction.properties.destination === Location.Hand;
+//     gameAction instanceof MoveCardAction && gameAction.properties.destination === ZoneName.Hand;
 
 export const restrictionDsl = {
     // abilitiesTriggeredByOpponents: (context, effect) =>

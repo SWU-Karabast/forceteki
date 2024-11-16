@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import { type RelativePlayer, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration } from './core/Constants';
+import { type RelativePlayer, type CardType, type ZoneName, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
@@ -37,7 +37,7 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 };
 
 export interface IOngoingEffectProps {
-    targetLocationFilter?: Location | Location[];
+    targetZoneFilter?: ZoneName | ZoneName[];
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;
@@ -54,7 +54,7 @@ export interface IOngoingEffectProps {
 /** Base interface for triggered and action ability definitions */
 export interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
-    locationFilter?: LocationFilter | LocationFilter[];
+    zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
 
@@ -82,7 +82,7 @@ export interface IAbilityProps<TContext extends AbilityContext> {
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
-    sourceLocationFilter?: LocationFilter | LocationFilter[];
+    sourceLocationFilter?: ZoneFilter | ZoneFilter[];
 
     /** A handler to enable or disable the ability's effects depending on game context */
     condition?: (context: AbilityContext<TSource>) => boolean;
@@ -90,7 +90,7 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     /** A handler to determine if a specific card is impacted by the ability effect */
     matchTarget?: (card: Card, context?: AbilityContext<TSource>) => boolean;
     targetController?: RelativePlayer;
-    targetLocationFilter?: LocationFilter;
+    targetZoneFilter?: ZoneFilter;
     targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardName?: string;
     uuid?: string;

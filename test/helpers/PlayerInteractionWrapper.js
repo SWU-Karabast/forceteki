@@ -415,7 +415,7 @@ class PlayerInteractionWrapper {
                 side
             );
         } catch (e) {
-            throw new TestSetupError(`Names: ${namesAra}, Location: ${locations}. Error thrown: ${e}`);
+            throw new TestSetupError(`Names: ${namesAra}, ZoneName: ${locations}. Error thrown: ${e}`);
         }
         return cards;
     }
@@ -634,7 +634,7 @@ class PlayerInteractionWrapper {
     }
 
     /**
-     * Moves cards between Location
+     * Moves cards between ZoneName
      * @param {String|DrawCard} card - card to be moved
      * @param {String} targetLocation - location where the card should be moved
      * @param {String | String[]} searchLocations - locations where to find the

@@ -4,7 +4,7 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
-import { AbilityType, CardType, KeywordName, Location, PlayType, RelativePlayer } from '../Constants';
+import { AbilityType, CardType, KeywordName, ZoneName, PlayType, RelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
@@ -47,7 +47,7 @@ export class UpgradeCard extends UpgradeCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
-        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.location === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayUpgradeAction(this, PlayType.Smuggle));
         }
         return actions;
@@ -62,7 +62,7 @@ export class UpgradeCard extends UpgradeCardParent {
         return this._parentCard;
     }
 
-    public override moveTo(targetLocation: Location) {
+    public override moveTo(targetLocation: ZoneName) {
         Contract.assertFalse(this._parentCard && targetLocation !== this._parentCard.location,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
@@ -202,11 +202,11 @@ export class UpgradeCard extends UpgradeCardParent {
         this.attachCondition = attachCondition;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
+    protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
         super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {
-            case Location.Resource:
+            case ZoneName.Resource:
                 this.setExhaustEnabled(true);
                 break;
 

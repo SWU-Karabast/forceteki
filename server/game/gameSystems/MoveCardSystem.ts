@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardWithExhaustProperty } from '../core/card/CardTypes';
-import { CardType, EventName, GameStateChangeRequired, Location, WildcardCardType } from '../core/Constants';
+import { CardType, EventName, GameStateChangeRequired, ZoneName, WildcardCardType } from '../core/Constants';
 import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers.js';
@@ -20,7 +20,7 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
  * @property bottom - Indicates whether the card should be placed at the bottom of the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Exclude<Location, Location.Discard | Location.SpaceArena | Location.GroundArena | Location.Resource>;
+    destination?: Exclude<ZoneName, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
     bottom?: boolean;
 }
@@ -50,7 +50,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             player.moveCard(card, event.destination, event.options);
 
             // TODO: use ShuffleDeckSystem instead
-            if (event.destination === Location.Deck && event.shuffle) {
+            if (event.destination === ZoneName.Deck && event.shuffle) {
                 card.owner.shuffleDeck();
             }
         }
@@ -62,13 +62,13 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
-        if (properties.destination === Location.Hand) {
-            if (Helpers.asArray(properties.target).some((card) => card.location === Location.Resource)) {
+        if (properties.destination === ZoneName.Hand) {
+            if (Helpers.asArray(properties.target).some((card) => card.location === ZoneName.Resource)) {
                 const targets = Helpers.asArray(properties.target);
                 return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
             }
             return ['return {0} to their hand', [properties.target]];
-        } else if (properties.destination === Location.Deck) {
+        } else if (properties.destination === ZoneName.Deck) {
             if (properties.shuffle) {
                 return ['shuffle {0} into their deck', [properties.target]];
             }
@@ -108,9 +108,9 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         );
 
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
-        if (destination === Location.Hand) {
+        if (destination === ZoneName.Hand) {
             Contract.assertTrue(
-                [Location.Discard, Location.Resource].includes(card.location) || EnumHelpers.isArena(card.location),
+                [ZoneName.Discard, ZoneName.Resource].includes(card.location) || EnumHelpers.isArena(card.location),
                 `Cannot use MoveCardSystem to return a card to hand from ${card.location}`
             );
         }

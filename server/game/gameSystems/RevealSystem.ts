@@ -2,7 +2,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { BaseCard } from '../core/card/BaseCard';
 import { Card } from '../core/card/Card';
-import { EventName, Location } from '../core/Constants';
+import { EventName, ZoneName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as Helpers from '../core/utils/Helpers';
@@ -38,7 +38,7 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
-        if (card.location === Location.Deck || card.location === Location.Hand || card.location === Location.Resource) {
+        if (card.location === ZoneName.Deck || card.location === ZoneName.Hand || card.location === ZoneName.Resource) {
             return super.canAffect(card, context);
         }
         return false;

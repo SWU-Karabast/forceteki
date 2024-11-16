@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { AbilityType, Arena, CardType, EffectName, EventName, KeywordName, Location, RelativePlayer, StatType } from '../../Constants';
+import { AbilityType, Arena, CardType, EffectName, EventName, KeywordName, ZoneName, RelativePlayer, StatType } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -105,10 +105,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             Contract.assertNotNullLike(cardData.arena);
             switch (cardData.arena) {
                 case 'space':
-                    this.defaultArena = Location.SpaceArena;
+                    this.defaultArena = ZoneName.SpaceArena;
                     break;
                 case 'ground':
-                    this.defaultArena = Location.GroundArena;
+                    this.defaultArena = ZoneName.GroundArena;
                     break;
                 default:
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
@@ -493,7 +493,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
             // if (cardsUnderneath.length > 0) {
             //     cardsUnderneath.forEach((card) => {
-            //         this.controller.moveCard(card, Location.RemovedFromGame);
+            //         this.controller.moveCard(card, ZoneName.RemovedFromGame);
             //     });
             //     this.game.addMessage(
             //         '{0} {1} removed from the game due to {2} leaving play',

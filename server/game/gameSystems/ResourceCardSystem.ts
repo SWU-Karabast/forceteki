@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ready } from './GameSystemLibrary';
@@ -33,7 +33,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         const card = event.card as Card;
         const player = event.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
 
-        player.moveCard(card, Location.Resource);
+        player.moveCard(card, ZoneName.Resource);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IResourceCardProperties {
@@ -87,7 +87,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
             (targetPlayer === RelativePlayer.Self ||
               (!card.hasRestriction(EffectName.TakeControl, context) &&
                 !card.anotherUniqueInPlay(context.player))) &&
-                context.player.isLegalLocationForCardType(card.type, Location.Resource) &&
+                context.player.isLegalLocationForCardType(card.type, ZoneName.Resource) &&
                 !EnumHelpers.isArena(card.location) &&
                 super.canAffect(card, context)
         );

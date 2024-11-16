@@ -1,6 +1,6 @@
 import Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
-import { CardType, KeywordName, Location, PlayType } from '../Constants';
+import { CardType, KeywordName, ZoneName, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import { IDecreaseEventCostAbilityProps, PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { IEventAbilityProps } from '../../Interfaces';
@@ -36,7 +36,7 @@ export class EventCard extends EventCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
-        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.location === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayEventAction(this, PlayType.Smuggle));
         }
         return actions;
@@ -49,12 +49,12 @@ export class EventCard extends EventCardParent {
             : this._eventAbility;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
+    protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
         super.initializeForCurrentLocation(prevLocation);
 
         // event cards can only be exhausted when resourced
         switch (this.location) {
-            case Location.Resource:
+            case ZoneName.Resource:
                 this.setExhaustEnabled(true);
                 break;
 

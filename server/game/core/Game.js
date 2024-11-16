@@ -28,7 +28,7 @@ const { cards } = require('../cards/Index.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
-const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
+const { EffectName, EventName, ZoneName, TokenName } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
@@ -1184,8 +1184,8 @@ class Game extends EventEmitter {
      * @param {import('./card/CardTypes.js').TokenCard} token
      */
     removeTokenFromPlay(token) {
-        Contract.assertEqual(token.location, Location.OutsideTheGame,
-            `Tokens must be moved to location ${Location.OutsideTheGame} before removing from play, instead found token at ${token.location}`
+        Contract.assertEqual(token.location, ZoneName.OutsideTheGame,
+            `Tokens must be moved to location ${ZoneName.OutsideTheGame} before removing from play, instead found token at ${token.location}`
         );
 
         const player = token.owner;

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import PlayerAction from '../core/ability/PlayerAction.js';
-import { AbilityRestriction, PhaseName, WildcardLocation } from '../core/Constants.js';
+import { AbilityRestriction, PhaseName, WildcardZoneName } from '../core/Constants.js';
 import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import * as GameSystemLibrary from '../gameSystems/GameSystemLibrary.js';
@@ -18,7 +18,7 @@ export class InitiateAttackAction extends PlayerAction {
     public constructor(card: Card, private attackProperties?: IAttackProperties) {
         super(card, 'Attack', [exhaustSelf()], {
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
-            locationFilter: WildcardLocation.AnyAttackable,
+            zoneFilter: WildcardZoneName.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
         });
     }

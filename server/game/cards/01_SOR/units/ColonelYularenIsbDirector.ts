@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, CardType, Location, RelativePlayer } from '../../../core/Constants';
+import { Aspect, CardType, ZoneName, RelativePlayer } from '../../../core/Constants';
 
 export default class ColonelYularenIsbDirector extends NonLeaderUnitCard {
     protected override getImplementationId() {

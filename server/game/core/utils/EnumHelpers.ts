@@ -1,4 +1,4 @@
-import { CardType, CardTypeFilter, Location, LocationFilter, RelativePlayer, WildcardCardType, WildcardLocation } from '../Constants';
+import { CardType, CardTypeFilter, ZoneName, ZoneFilter, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -20,35 +20,35 @@ export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
 
-export const isArena = (location: LocationFilter) => {
+export const isArena = (location: ZoneFilter) => {
     switch (location) {
-        case Location.GroundArena:
-        case Location.SpaceArena:
-        case WildcardLocation.AnyArena:
+        case ZoneName.GroundArena:
+        case ZoneName.SpaceArena:
+        case WildcardZoneName.AnyArena:
             return true;
         default:
             return false;
     }
 };
 
-export const isAttackableLocation = (location: LocationFilter) => {
+export const isAttackableLocation = (location: ZoneFilter) => {
     switch (location) {
-        case Location.GroundArena:
-        case Location.SpaceArena:
-        case WildcardLocation.AnyArena:
-        case Location.Base:
+        case ZoneName.GroundArena:
+        case ZoneName.SpaceArena:
+        case WildcardZoneName.AnyArena:
+        case ZoneName.Base:
             return true;
         default:
             return false;
     }
 };
 
-export const isHidden = (location: LocationFilter, controller: RelativePlayer) => {
+export const isHidden = (location: ZoneFilter, controller: RelativePlayer) => {
     switch (location) {
-        case Location.Hand:
-        case Location.Resource:
+        case ZoneName.Hand:
+        case ZoneName.Resource:
             return controller !== RelativePlayer.Opponent;
-        case Location.Deck:
+        case ZoneName.Deck:
             return true;
         default:
             return false;
@@ -56,18 +56,18 @@ export const isHidden = (location: LocationFilter, controller: RelativePlayer) =
 };
 
 // return true if the card location matches one of the allowed location filters
-export const cardLocationMatches = (cardLocation: Location, locationFilter: LocationFilter | LocationFilter[]) => {
-    if (!Array.isArray(locationFilter)) {
-        locationFilter = [locationFilter];
+export const cardLocationMatches = (cardLocation: ZoneName, zoneFilter: ZoneFilter | ZoneFilter[]) => {
+    if (!Array.isArray(zoneFilter)) {
+        zoneFilter = [zoneFilter];
     }
 
-    return locationFilter.some((allowedLocation) => {
+    return zoneFilter.some((allowedLocation) => {
         switch (allowedLocation) {
-            case WildcardLocation.Any:
+            case WildcardZoneName.Any:
                 return true;
-            case WildcardLocation.AnyArena:
+            case WildcardZoneName.AnyArena:
                 return isArena(cardLocation);
-            case WildcardLocation.AnyAttackable:
+            case WildcardZoneName.AnyAttackable:
                 return isAttackableLocation(cardLocation);
             default:
                 return cardLocation === allowedLocation;

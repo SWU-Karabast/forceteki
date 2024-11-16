@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { Location, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class HardpointHeavyBlaster extends UpgradeCard {
     protected override getImplementationId() {

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, Location } from '../../../core/Constants';
+import { CardType, ZoneName } from '../../../core/Constants';
 
 export default class BountyHunterCrew extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -16,7 +16,7 @@ export default class BountyHunterCrew extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: CardType.Event,
-                locationFilter: Location.Discard,
+                zoneFilter: ZoneName.Discard,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             }
         });

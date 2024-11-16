@@ -1,5 +1,5 @@
 const GameSystems = require('../../gameSystems/GameSystemLibrary');
-const { Location, CardType, RelativePlayer, WildcardLocation } = require('../Constants.js');
+const { ZoneName, CardType, RelativePlayer, WildcardZoneName } = require('../Constants.js');
 
 class ChatCommands {
     constructor(game) {
@@ -69,11 +69,11 @@ class ChatCommands {
         this.game.promptForSelect(player, {
             activePromptTitle: 'Select a card to send to the bottom of one of their decks',
             waitingPromptTitle: 'Waiting for opponent to send a card to the bottom of one of their decks',
-            location: WildcardLocation.Any,
+            location: WildcardZoneName.Any,
             controller: RelativePlayer.Self,
             onSelect: (p, card) => {
                 const cardInitialLocation = card.location;
-                GameSystems.moveCard({ target: card, bottom: true, destination: Location.Deck }).resolve(player, this.game.getFrameworkContext());
+                GameSystems.moveCard({ target: card, bottom: true, destination: ZoneName.Deck }).resolve(player, this.game.getFrameworkContext());
                 this.game.addMessage('{0} uses a command to move {1} from their {2} to the bottom of their {3}.', player, card, cardInitialLocation);
                 return true;
             }
@@ -107,7 +107,7 @@ class ChatCommands {
         this.game.promptForSelect(player, {
             activePromptTitle: 'Select a card to reveal',
             waitingPromptTitle: 'Waiting for opponent to reveal a card',
-            location: WildcardLocation.Any,
+            location: WildcardZoneName.Any,
             controller: RelativePlayer.Self,
             cardCondition: (card) => card.isFacedown(),
             onSelect: (player, card) => {

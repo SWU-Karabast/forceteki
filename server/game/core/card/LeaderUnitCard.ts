@@ -1,7 +1,7 @@
 import Player from '../Player';
 import { LeaderCard } from './LeaderCard';
 import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
-import { CardType, Location, LocationFilter } from '../Constants';
+import { CardType, ZoneName, ZoneFilter } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import type { UnitCard } from './CardTypes';
@@ -32,7 +32,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
             title: `Deploy ${this.name}`,
             limit: AbilityHelper.limit.epicAction(),
             condition: (context) => context.source.controller.resources.length >= context.source.cost,
-            locationFilter: Location.Base,
+            zoneFilter: ZoneName.Base,
             immediateEffect: AbilityHelper.immediateEffects.deploy()
         });
     }
@@ -58,7 +58,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
 
         this._deployed = false;
-        this.controller.moveCard(this, Location.Base);
+        this.controller.moveCard(this, ZoneName.Base);
     }
 
     /**
@@ -69,7 +69,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
-        properties.locationFilter = this.getAbilityLocationsForSide(properties.locationFilter);
+        properties.zoneFilter = this.getAbilityLocationsForSide(properties.zoneFilter);
         super.addActionAbility(properties);
     }
 
@@ -79,30 +79,30 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): void {
-        properties.locationFilter = this.getAbilityLocationsForSide(properties.locationFilter);
+        properties.zoneFilter = this.getAbilityLocationsForSide(properties.zoneFilter);
         super.addReplacementEffectAbility(properties);
     }
 
     protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>): void {
-        properties.locationFilter = this.getAbilityLocationsForSide(properties.locationFilter);
+        properties.zoneFilter = this.getAbilityLocationsForSide(properties.zoneFilter);
         super.addTriggeredAbility(properties);
     }
 
-    /** Generates the right locationFilter property depending on which leader side we're setting up */
-    private getAbilityLocationsForSide(propertyLocation: LocationFilter | LocationFilter[]) {
-        const abilityLocation = this.setupLeaderUnitSide ? this.defaultArena : Location.Base;
+    /** Generates the right zoneFilter property depending on which leader side we're setting up */
+    private getAbilityLocationsForSide(propertyLocation: ZoneFilter | ZoneFilter[]) {
+        const abilityLocation = this.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
 
         return propertyLocation
             ? Helpers.asArray(propertyLocation).concat([abilityLocation])
             : abilityLocation;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
+    protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
         super.initializeForCurrentLocation(prevLocation);
 
         switch (this.location) {
-            case Location.GroundArena:
-            case Location.SpaceArena:
+            case ZoneName.GroundArena:
+            case ZoneName.SpaceArena:
                 this._deployed = true;
                 this.setDamageEnabled(true);
                 this.setActiveAttackEnabled(true);
@@ -110,7 +110,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this.exhausted = false;
                 break;
 
-            case Location.Base:
+            case ZoneName.Base:
                 this._deployed = false;
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);

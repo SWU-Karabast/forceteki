@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import { EventName, Location } from '../core/Constants';
+import { EventName, ZoneName } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -11,11 +11,11 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
     public override readonly eventName = EventName.OnCardDiscarded;
 
     public eventHandler(event): void {
-        event.card.controller.moveCard(event.card, Location.Discard);
+        event.card.controller.moveCard(event.card, ZoneName.Discard);
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
-        return card.location !== Location.Discard && super.canAffect(card, context, additionalProperties);
+        return card.location !== ZoneName.Discard && super.canAffect(card, context, additionalProperties);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
