@@ -19,6 +19,7 @@ export interface IAbilityContextProperties {
     events?: any[];
     stage?: Stage;
     targetAbility?: any;
+    playType?: PlayType;
 }
 
 /**
@@ -58,7 +59,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
         // const location = this.player && this.player.playableLocations.find(location => location.contains(this.source));
-        this.playType = this.player && this.player.findPlayType(this.source); // location && location.playingType;
+        this.playType = properties.playType ?? (this.player && this.player.findPlayType(this.source));
     }
 
     public copy(newProps: Partial<IAbilityContextProperties> = {}): AbilityContext<TSource> {
