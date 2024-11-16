@@ -1,6 +1,7 @@
 describe('The Client, Dictated by Discretion', function() {
     integration(function(contextRef) {
         describe('The Client\'s Bounty ability', function() {
+            const prompt ='For this phase, targeted unit gains: "Bounty — Heal 5 damage from a base."';
             beforeEach(function() {
                 contextRef.setupTest({
                     phase: 'action',
@@ -20,7 +21,7 @@ describe('The Client, Dictated by Discretion', function() {
 
                 // add a bounty to wampa
                 context.player1.clickCard(context.theClient);
-                context.player1.clickPrompt('Choose a unit. For this phase, it gains: "Bounty — Heal 5 damage from a base."');
+                context.player1.clickPrompt(prompt);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.theClient, context.wampa, context.jangoFett]);
                 context.player1.clickCard(context.wampa);
@@ -47,7 +48,7 @@ describe('The Client, Dictated by Discretion', function() {
 
                 // add a bounty to wampa
                 context.player1.clickCard(context.theClient);
-                context.player1.clickPrompt('Choose a unit. For this phase, it gains: "Bounty — Heal 5 damage from a base."');
+                context.player1.clickPrompt(prompt);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.theClient, context.wampa, context.jangoFett]);
                 context.player1.clickCard(context.wampa);

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityRestriction, Duration } from '../../../core/Constants';
+import { AbilityRestriction } from '../../../core/Constants';
 
 export default class WolffeSuspiciousVeteran extends NonLeaderUnitCard {
     protected override getImplementationId() {
