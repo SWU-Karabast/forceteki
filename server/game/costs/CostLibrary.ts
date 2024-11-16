@@ -12,7 +12,6 @@ import { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
-import { ReturnToHandFromPlaySystem } from '../gameSystems/ReturnToHandFromPlaySystem';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 import Player from '../core/Player';
 
@@ -63,7 +62,7 @@ export function dealDamage<TContext extends AbilityContext = AbilityContext>(amo
  * Cost that will return to hand from the play area the card that initiated the ability
  */
 export function returnSelfToHandFromPlay<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
-    return new GameSystemCost<TContext>(GameSystems.returnToHandFromPlay({ isCost: true }));
+    return new GameSystemCost<TContext>(GameSystems.returnToHand({ isCost: true }));
 }
 
 // /**

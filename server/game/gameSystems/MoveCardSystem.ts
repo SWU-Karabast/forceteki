@@ -1,18 +1,26 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, Location, MoveLocation, MoveToDeckLocation, WildcardCardType } from '../core/Constants';
+import { CardType, EventName, GameStateChangeRequired, Location, MoveLocation, MoveToDeckLocation, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Helpers from '../core/utils/Helpers.js';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import * as Contract from '../core/utils/Contract';
 
+/**
+ * Properties for moving a card within the game.
+ *
+ * @remarks
+ * Use this interface to specify the properties when moving a card to a new location.
+ * Note that to move cards to the discard pile, any arena, or to the resources, you should use the appropriate systems
+ * such as {@link DiscardSpecificCardSystem}, {@link PlayCardSystem}, or {@link ResourceCardSystem}.
+ *
+ * @property destination - The target location for the card. Excludes discard pile, space arena, ground arena, and resources.
+ * @property shuffle - Indicates whether the card should be shuffled into the destination.
+ * @property bottom - Indicates whether the card should be placed at the bottom of the destination.
+ */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: MoveLocation;
-    switch?: boolean;
-    switchTarget?: Card;
+    destination?: Exclude<MoveLocation, Location.Discard | Location.SpaceArena | Location.GroundArena | Location.Resource>;
     shuffle?: boolean;
-    // TODO: remove completely if faceup logic is not needed
-    // faceup?: boolean;
-    changePlayer?: boolean;
-    discardDestinationCards?: boolean;
 }
 
 // TODO: since there are already some more specific for moving to arena, hand, etc., what's the remaining use case for this? and can we rename it to be more specific?
@@ -23,80 +31,86 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     protected override defaultProperties: IMoveCardProperties = {
         destination: null,
-        switch: false,
-        switchTarget: null,
         shuffle: false,
-        changePlayer: false,
     };
 
     public eventHandler(event: any, additionalProperties = {}): void {
-        // TODO: remove this completely if determinmed we don't need card snapshots
-        // event.cardStateWhenMoved = card.createSnapshot();
-        const card = event.card as Card;
-
-        if (event.switch && event.switchTarget) {
-            const otherCard = event.switchTarget;
-            otherCard.moveTo(card.location);
-        }
-
-        // TODO TAKE CONTROL: change controller on move logic
-        // const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
-
-        if (EnumHelpers.isArena(card.location) && !EnumHelpers.isArena(event.destination)) {
+        // Check if the card is leaving play
+        if (EnumHelpers.isArena(event.card.location) && !EnumHelpers.isArena(event.destination)) {
             this.leavesPlayEventHandler(event, additionalProperties);
         } else {
-            card.moveTo(event.destination);
-        }
+            // TODO: remove this completely if determinmed we don't need card snapshots
+            // event.cardStateWhenMoved = card.createSnapshot();
+            const card = event.card as Card;
 
-        // TODO: use ShuffleDeckSystem instead
-        if (event.destination === Location.Deck && event.shuffle) {
-            card.owner.shuffleDeck();
+            card.moveTo(event.destination);
+
+            // TODO: use ShuffleDeckSystem instead
+            if (event.destination === Location.Deck && event.shuffle) {
+                card.owner.shuffleDeck();
+            }
         }
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
-        return ['shuffling {0} into their deck', [properties.target]];
+        return this.getEffectMessage(context);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
-        const destinationController = Array.isArray(properties.target)
-            ? properties.changePlayer
-                ? properties.target[0].controller.opponent
-                : properties.target[0].controller
-            : properties.changePlayer
-                ? properties.target.controller.opponent
-                : properties.target.controller;
-        if (properties.shuffle) {
-            return ['shuffle {0} into {1}\'s {2}', [properties.target, destinationController, properties.destination]];
+        if (properties.destination === Location.Hand) {
+            if (Helpers.asArray(properties.target).some((card) => EnumHelpers.cardLocationMatches(card.location, Location.Resource))) {
+                const targets = Helpers.asArray(properties.target);
+                return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
+            }
+            return ['return {0} to their hand', [properties.target]];
+        } else if (EnumHelpers.isDeckMoveLocation(properties.destination)) {
+            if (properties.shuffle) {
+                return ['shuffle {0} into their deck', [properties.target]];
+            }
+            return ['move {0} to the {1} of their deck', [properties.target, properties.destination === MoveToDeckLocation.DeckBottom ? 'bottom' : 'top']];
         }
         return [
-            'move {0} to ' + (properties.destination === MoveToDeckLocation.DeckBottom ? 'the bottom of ' : '') + '{1}\'s {2}',
-            [properties.target, destinationController, properties.destination]
+            'move {0} to ' + (properties.destination === MoveToDeckLocation.DeckBottom ? 'the bottom of ' : '') + 'their {1}',
+            [properties.target, properties.destination]
         ];
+    }
+
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        // Check if the card is leaving play
+        if (EnumHelpers.isArena(card.location) && !EnumHelpers.isArena(event.destination)) {
+            this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
+        } else {
+            super.updateEvent(event, card, context, additionalProperties);
+        }
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
-        event.switch = properties.switch;
-        event.switchTarget = properties.switchTarget;
-        event.changePlayer = properties.changePlayer;
         event.destination = properties.destination;
         event.shuffle = properties.shuffle;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
-        const { changePlayer, destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
-        return (
-            (!changePlayer ||
-              (!card.hasRestriction(EffectName.TakeControl, context) &&
-                !card.anotherUniqueInPlay(context.player))) &&
-                (!destination || context.player.isLegalLocationForCardType(card.type, destination)) &&
-                !EnumHelpers.isArena(card.location) &&
-                super.canAffect(card, context)
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const { destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+
+        // Ensure that we have a valid destination and that the card can be moved there
+        Contract.assertTrue(
+            destination && context.player.isLegalLocationForCardType(card.type, destination),
+            `${destination} is not a valid location for ${card.type}`
         );
+
+        // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
+        if (destination === Location.Hand) {
+            Contract.assertTrue(
+                [Location.Discard, Location.Resource].includes(card.location) || EnumHelpers.isArena(card.location),
+                `Cannot use MoveCardSystem to return a card to hand from ${card.location}`
+            );
+        }
+
+        // Call the super implementation
+        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 }

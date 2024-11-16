@@ -16,7 +16,7 @@ export default class CantinaBouncer extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                immediateEffect: AbilityHelper.immediateEffects.returnToHandFromPlay(),
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand(),
             }
         });
     }

@@ -82,6 +82,10 @@ export const asConcreteLocation = (location: Location | MoveLocation): Location 
         : location;
 };
 
+export const isDeckMoveLocation = (location: MoveLocation): boolean => {
+    return location === MoveToDeckLocation.DeckBottom || location === MoveToDeckLocation.DeckTop;
+};
+
 export const isUnit = (cardType: CardTypeFilter) => {
     switch (cardType) {
         case WildcardCardType.Unit:

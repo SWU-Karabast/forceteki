@@ -17,8 +17,7 @@ const {
     PlayType,
     KeywordName,
     WildcardCardType,
-    Trait,
-    MoveToDeckLocation
+    Trait
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -55,7 +54,6 @@ class Player extends GameObject {
         this.lobbyId = null;
 
         this.handZone = new HandZone(this);
-        this.deckZone = null;
         this.resourceZone = new ResourceZone(this);
         this.discardZone = new DiscardZone(this);
         this.canTakeActionsThisPhase = null;
@@ -68,11 +66,6 @@ class Player extends GameObject {
         this.damageToBase = null;
 
         this.clock = clockFor(this, clockDetails);
-
-        this.playableLocations = [
-            new PlayableLocation(PlayType.PlayFromHand, this.handZone),
-            new PlayableLocation(PlayType.Smuggle, this.resourceZone)
-        ];
 
         this.limitedPlayed = 0;
         this.decklist = {};
@@ -188,6 +181,24 @@ class Player extends GameObject {
      */
     getUnitsInPlay(arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
         return this.getArenaUnits({ arena, condition: cardCondition });
+    }
+
+    /**
+     * Get all units in designated play arena(s) controlled by this player
+     * @param { Trait } trait Get units with this trait
+     */
+    getUnitsInPlayWithTrait(trait) {
+        return this.getUnitsInPlay().filter((card) => card.hasSomeTrait(trait));
+    }
+
+    /**
+     * Get all cards in designated play arena(s) other than the passed card controlled by this player.
+     * @param { any } ignoreUnit Unit to filter from the returned results
+     * @param { Trait } trait The Trait to check for
+     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+     */
+    getOtherUnitsInPlayWithTrait(ignoreUnit, trait, arena = WildcardLocation.AnyArena) {
+        return this.getArenaCards({ otherThan: ignoreUnit, trait, arena }).filter((card) => card.isUnit() && card !== ignoreUnit && card.hasSomeTrait(trait));
     }
 
 
@@ -377,6 +388,18 @@ class Player extends GameObject {
     }
 
     /**
+     * Returns if a unit is in play that has the passed keyword
+     * @param {KeywordName} keyword
+     * @param {any} ignoreUnit
+     * @returns {boolean} true/false if the trait is in play
+     */
+    isKeywordInPlay(keyword, ignoreUnit = null) {
+        return ignoreUnit != null
+            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeKeyword(keyword))
+            : this.getUnitsInPlay().some((card) => card.hasSomeKeyword(keyword));
+    }
+
+    /**
      * Returns true if any units or upgrades controlled by this player match the passed predicate
      * @param {Function} predicate - DrawCard => Boolean
      */
@@ -470,6 +493,22 @@ class Player extends GameObject {
             return this.drawDeck[0];
         }
         return null;
+    }
+
+
+    /**
+     * Returns ths top cards of the player's deck
+     * @returns {import('./card/CardTypes').PlayableCard[]} the Card,© or null if the deck is empty
+     */
+    getTopCardsOfDeck(numCard) {
+        Contract.assertPositiveNonZero(numCard);
+        const deckLength = this.drawDeck.length;
+        const cardsToGet = Math.min(numCard, deckLength);
+
+        if (this.drawDeck.length > 0) {
+            return this.drawDeck.slice(0, cardsToGet);
+        }
+        return [];
     }
 
     /**
@@ -579,6 +618,14 @@ class Player extends GameObject {
         this.baseZone = new BaseZone(this, this.base, this.leader);
 
         this.decklist = preparedDecklist;
+
+        // set up playable locations now that all zones are created
+        this.playableLocations = [
+            new PlayableLocation(PlayType.PlayFromHand, this.handZone),
+            new PlayableLocation(PlayType.Smuggle, this.resourceZone),
+            new PlayableLocation(PlayType.PlayFromOutOfPlay, this.deckZone),
+            new PlayableLocation(PlayType.PlayFromOutOfPlay, this.discardZone),
+        ];
     }
 
     /**
@@ -680,6 +727,7 @@ class Player extends GameObject {
         let cost;
 
         switch (playingType) {
+            case PlayType.PlayFromOutOfPlay:
             case PlayType.PlayFromHand:
                 aspects = card.aspects;
                 cost = card.cost;
@@ -973,11 +1021,11 @@ class Player extends GameObject {
         // if (this.optionSettings.sortHandByName) {
         //     return this.getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup);
         // }
-        return this.getSummaryForCardList(list, activePlayer, hideWhenFaceup);
+        return this.getSummaryForZone(list, activePlayer, hideWhenFaceup);
     }
 
-    getSummaryForCardList(list, activePlayer, hideWhenFaceup) {
-        return list.map((card) => {
+    getSummaryForZone(zone, activePlayer, hideWhenFaceup) {
+        return this.getCardsInZone(zone.name).map((card) => {
             return card.getSummary(activePlayer, hideWhenFaceup);
         });
     }
@@ -1055,13 +1103,20 @@ class Player extends GameObject {
         let { email, password, ...safeUser } = this.user;
         let state = {
             cardPiles: {
-                // cardsInPlay: this.getSummaryForCardList(this.cardsInPlay, activePlayer),
                 hand: this.getSummaryForHand(this.hand, activePlayer, false),
-                outsideTheGame: this.getSummaryForCardList(this.outsideTheGameZone, activePlayer)
+                removedFromGame: this.getSummaryForZone(Location.OutsideTheGame, activePlayer),
+                resources: this.getSummaryForZone(Location.Resource, activePlayer),
+                groundArena: this.getSummaryForZone(Location.GroundArena, activePlayer),
+                spaceArena: this.getSummaryForZone(Location.SpaceArena, activePlayer),
+                deck: this.getSummaryForZone(Location.Deck, activePlayer),
+                discard: this.getSummaryForZone(Location.Discard, activePlayer)
             },
             disconnected: this.disconnected,
             // faction: this.faction,
             hasInitiative: this.hasInitiative(),
+            availableResources: this.countSpendableResources(),
+            leader: this.leader.getSummary(activePlayer),
+            base: this.base.getSummary(activePlayer),
             id: this.id,
             left: this.left,
             name: this.name,
@@ -1075,7 +1130,7 @@ class Player extends GameObject {
 
         // if (this.showDeck) {
         //     state.showDeck = true;
-        //     state.cardPiles.deck = this.getSummaryForCardList(this.deck, activePlayer);
+        //     state.cardPiles.deck = this.getSummaryForZone(this.deck, activePlayer);
         // }
 
         // if (this.role) {

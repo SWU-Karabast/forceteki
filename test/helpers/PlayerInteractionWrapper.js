@@ -744,11 +744,11 @@ class PlayerInteractionWrapper {
     //     }
     // }
 
-    // reduceDeckToNumber(number) {
-    //     for (let i = this.deck.length - 1; i >= number; i--) {
-    //         this.moveCard(this.deck[i], 'conflict discard pile');
-    //     }
-    // }
+    reduceDeckToNumber(number) {
+        for (let i = this.deck.length - 1; i >= number; i--) {
+            this.moveCard(this.deck[i], 'discard');
+        }
+    }
 }
 
 module.exports = PlayerInteractionWrapper;

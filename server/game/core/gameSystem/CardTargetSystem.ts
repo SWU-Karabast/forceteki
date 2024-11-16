@@ -142,6 +142,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     public override checkEventCondition(event: any, additionalProperties = {}): boolean {
+        // TODO Migrate game state check to somewhere more universal
         return this.canAffect(event.card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve);
     }
 
