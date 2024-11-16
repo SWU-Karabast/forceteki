@@ -145,8 +145,8 @@ describe('Setup Phase', function() {
                 expect(context.player2.resources.length).toBe(2);
 
                 // check if resources aren't exhausted
-                expect(context.player1.countSpendableResources()).toBe(2);
-                expect(context.player2.countSpendableResources()).toBe(2);
+                expect(context.player1.readyResourceCount).toBe(2);
+                expect(context.player2.readyResourceCount).toBe(2);
 
                 // Check if resources are correctly set
                 expect(context.player1.resources).toContain(player1FirstCard);

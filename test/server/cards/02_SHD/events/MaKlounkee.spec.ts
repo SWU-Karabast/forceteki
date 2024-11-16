@@ -51,7 +51,7 @@ describe('MaKlounkee', function() {
             const { context } = contextRef;
 
             context.player1.clickCard('ma-klounkee');
-            expect(context.player1.countExhaustedResources()).toBe(1);
+            expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
         it('should bounce unit if only one available and nothing happens after that', function () {

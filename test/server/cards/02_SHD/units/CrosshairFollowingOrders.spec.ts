@@ -24,7 +24,7 @@ describe('Crosshair', function() {
                 expect(context.crosshair.exhausted).toBeFalse();
                 expect(context.crosshair.getPower()).toBe(3); // 2+1 = 3
                 expect(context.crosshair.getHp()).toBe(6);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 // boost crosshair again
                 context.player2.passAction();
@@ -35,7 +35,7 @@ describe('Crosshair', function() {
                 expect(context.crosshair.exhausted).toBeFalse();
                 expect(context.crosshair.getPower()).toBe(4);// 2+1+1 = 4
                 expect(context.crosshair.getHp()).toBe(6);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
 
                 // deal damage equal to his current power (4)
                 context.player2.passAction();
@@ -45,7 +45,7 @@ describe('Crosshair', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.crosshair.exhausted).toBeTrue();
                 expect(context.wampa.damage).toBe(4);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
 
                 // attack base for 4
                 context.crosshair.exhausted = false;

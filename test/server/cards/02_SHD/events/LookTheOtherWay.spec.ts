@@ -25,7 +25,7 @@ describe('Look the Other Way', function () {
                 expect(context.player2).toHaveEnabledPromptButtons(['Exhaust Viper Probe Droid', 'Pay 2 resources']);
                 context.player2.clickPrompt('Exhaust Viper Probe Droid');
                 expect(context.viperProbeDroid.exhausted).toBeTrue();
-                expect(context.player2.countExhaustedResources()).toBe(0);
+                expect(context.player2.exhaustedResourceCount).toBe(0);
             });
 
             it('should exhaust a friendly unit', function () {
@@ -38,7 +38,7 @@ describe('Look the Other Way', function () {
                 expect(context.player1).toHaveEnabledPromptButtons(['Exhaust Wampa', 'Pay 2 resources']);
                 context.player1.clickPrompt('Exhaust Wampa');
                 expect(context.wampa.exhausted).toBeTrue();
-                expect(context.player1.countExhaustedResources()).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
             });
 
             it('should does not exhaust unit because controller pays 2 resources (opponent)', function () {
@@ -51,7 +51,7 @@ describe('Look the Other Way', function () {
                 expect(context.player2).toHaveEnabledPromptButtons(['Exhaust Viper Probe Droid', 'Pay 2 resources']);
                 context.player2.clickPrompt('Pay 2 resources');
                 expect(context.viperProbeDroid.exhausted).toBeFalse();
-                expect(context.player2.countExhaustedResources()).toBe(2);
+                expect(context.player2.exhaustedResourceCount).toBe(2);
             });
 
             it('should does not exhaust unit because controller pays 2 resources (friendly)', function () {
@@ -64,7 +64,7 @@ describe('Look the Other Way', function () {
                 expect(context.player1).toHaveEnabledPromptButtons(['Exhaust Wampa', 'Pay 2 resources']);
                 context.player1.clickPrompt('Pay 2 resources');
                 expect(context.wampa.exhausted).toBeFalse();
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
         });
 

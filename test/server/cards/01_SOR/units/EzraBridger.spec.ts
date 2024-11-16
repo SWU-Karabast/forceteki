@@ -82,7 +82,7 @@ describe('Ezra Bridger', function() {
                 context.player1.clickPrompt('Play it');
 
                 // check board state
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.wampa).toBeInZone('groundArena');
                 expect(context.wampa.exhausted).toBe(true);
                 expect(context.player1.deck.length).toEqual(5);

@@ -26,7 +26,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 context.player1.clickCard(context.atst);
                 expect(context.grandMoffTarkin.exhausted).toBe(true);
                 expect(context.atst).toHaveExactUpgradeNames(['experience']);
-                expect(context.player1.countExhaustedResources()).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
             });
         });
 
@@ -52,7 +52,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.grandMoffTarkin.exhausted).toBe(true);
-                expect(context.player1.countExhaustedResources()).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
             });
         });
 

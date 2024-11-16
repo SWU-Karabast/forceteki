@@ -12,7 +12,7 @@ describe('Pirated Starfighter', function () {
 
             context.player1.clickCard(context.piratedStarfighter);
             expect(context.piratedStarfighter).toBeInZone('hand');
-            expect(context.player1.countExhaustedResources()).toBe(2);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
 

@@ -905,14 +905,14 @@ class Player extends GameObject {
     /**
      * Returns the number of resources available to spend
      */
-    countSpendableResources() {
+    get readyResourceCount() {
         return this.resources.reduce((count, card) => count += !card.exhausted, 0);
     }
 
     /**
      * Returns the number of exhausted resources
      */
-    countExhaustedResources() {
+    get exhaustedResourceCount() {
         return this.resources.reduce((count, card) => count += card.exhausted, 0);
     }
 
@@ -1254,7 +1254,7 @@ class Player extends GameObject {
             disconnected: this.disconnected,
             // faction: this.faction,
             hasInitiative: this.hasInitiative(),
-            availableResources: this.countSpendableResources(),
+            availableResources: this.readyResourceCount,
             leader: this.leader.getSummary(activePlayer),
             base: this.base.getSummary(activePlayer),
             id: this.id,

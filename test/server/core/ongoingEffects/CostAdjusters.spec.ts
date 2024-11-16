@@ -23,7 +23,7 @@ describe('Cost adjusters', function() {
                 context.player1.passAction();
 
                 context.player2.clickCard(context.smugglersAid);
-                expect(context.player2.countExhaustedResources()).toBe(4);
+                expect(context.player2.exhaustedResourceCount).toBe(4);
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.smugglersAid).toBeInZone('discard');
             });

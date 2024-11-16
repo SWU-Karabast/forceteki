@@ -29,7 +29,7 @@ describe('Heroic Resolve', function() {
                 expect(context.heroicResolve).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(2);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
 
             it('should be able to be activated even if the unit cannot attack', function () {
@@ -43,7 +43,7 @@ describe('Heroic Resolve', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.frontierAtrt.isUpgraded()).toBe(false);
                 expect(context.heroicResolve).toBeInZone('discard');
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
         });
 
@@ -87,7 +87,7 @@ describe('Heroic Resolve', function() {
                 expect(context.p1HeroicResolve1).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(5); // extra 3 damage from upgrade stat boosts
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 // activate second Heroic Resolve
                 context.player2.passAction();
@@ -105,7 +105,7 @@ describe('Heroic Resolve', function() {
                 expect(context.p1HeroicResolve2).toBeInZone('discard');
                 expect(context.specforceSoldier).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(12);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
             });
         });
 
@@ -156,7 +156,7 @@ describe('Heroic Resolve', function() {
                 expect(context.p1HeroicResolve).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(3); // extra 1 damage from the heroic resolve stat boost
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 // activate second Heroic Resolve
                 context.player2.passAction();
@@ -174,7 +174,7 @@ describe('Heroic Resolve', function() {
                 expect(context.p2HeroicResolve).toBeInZone('discard');
                 expect(context.specforceSoldier).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(8);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
             });
         });
     });

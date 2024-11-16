@@ -311,12 +311,12 @@ class PlayerInteractionWrapper {
         return this.player.hand.length;
     }
 
-    countSpendableResources() {
-        return this.player.countSpendableResources();
+    get readyResourceCount() {
+        return this.player.readyResourceCount;
     }
 
-    countExhaustedResources() {
-        return this.player.countExhaustedResources();
+    get exhaustedResourceCount() {
+        return this.player.exhaustedResourceCount;
     }
 
     get discard() {

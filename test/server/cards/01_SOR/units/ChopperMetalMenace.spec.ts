@@ -19,7 +19,7 @@ describe('Chopper, Metal Menace', function() {
                 const { context } = contextRef;
 
                 expect(context.player2.deck.length).toBe(5);
-                expect(context.player2.countSpendableResources()).toBe(5);
+                expect(context.player2.readyResourceCount).toBe(5);
 
                 context.player1.clickCard(context.chopper);
                 expect(context.player2.base.damage).toBe(1);
@@ -27,7 +27,7 @@ describe('Chopper, Metal Menace', function() {
                 // Check mill and resources
                 expect(context.player2.deck.length).toBe(4);
                 expect(context.battlefieldMarine).toBeInZone('discard');
-                expect(context.player2.countSpendableResources()).toBe(5);
+                expect(context.player2.readyResourceCount).toBe(5);
             });
         });
 
@@ -50,14 +50,14 @@ describe('Chopper, Metal Menace', function() {
                 const { context } = contextRef;
 
                 expect(context.player2.deck.length).toBe(5);
-                expect(context.player2.countSpendableResources()).toBe(5);
+                expect(context.player2.readyResourceCount).toBe(5);
 
                 context.player1.clickCard(context.chopper);
                 expect(context.player2.base.damage).toBe(2);
 
                 // Check mill and resources
                 expect(context.player2.deck.length).toBe(4);
-                expect(context.player2.countSpendableResources()).toBe(4);
+                expect(context.player2.readyResourceCount).toBe(4);
             });
         });
 

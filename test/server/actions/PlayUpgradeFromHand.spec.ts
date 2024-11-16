@@ -29,7 +29,7 @@ describe('Play upgrade from hand', function() {
                 expect(context.wampa.getPower()).toBe(7);
                 expect(context.wampa.getHp()).toBe(8);
 
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 context.player2.passAction();
 
@@ -43,7 +43,7 @@ describe('Play upgrade from hand', function() {
                 expect(context.tielnFighter.getPower()).toBe(4);
                 expect(context.tielnFighter.getHp()).toBe(3);
 
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
 
                 context.player2.passAction();
 

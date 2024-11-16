@@ -19,7 +19,7 @@ describe('Kylo Ren, Killing the Past', function() {
                 context.player1.clickCard(context.kyloRen);
 
                 // Kylo should cost 6 since it ignores the villainy aspect
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
             });
         });
 
@@ -41,7 +41,7 @@ describe('Kylo Ren, Killing the Past', function() {
                 context.player1.clickCard(context.kyloRen);
 
                 // Kylo should cost 6 since it ignores the villainy aspect
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
             });
         });
 

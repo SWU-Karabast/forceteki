@@ -21,7 +21,7 @@ describe('Smuggling Compartment', function() {
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.snowspeeder);
 
-                expect(context.player1.countExhaustedResources()).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
             });
         });
 

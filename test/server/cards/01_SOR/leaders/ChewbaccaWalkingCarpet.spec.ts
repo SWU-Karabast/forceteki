@@ -25,7 +25,7 @@ describe('Chewbacca, Walking Carpet', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.liberatedSlaves, context.seventhFleetDefender]);
 
                 context.player1.clickCard(context.liberatedSlaves);
-                expect(context.player1.countExhaustedResources()).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
 
                 // player 2 attacks, liberated slaves automatically selected due to sentinel
                 context.player2.clickCard(context.wampa);
@@ -45,7 +45,7 @@ describe('Chewbacca, Walking Carpet', function() {
 
                 context.player1.clickCard(context.chewbacca);
                 context.player1.clickCard(context.seventhFleetDefender);
-                expect(context.player1.countExhaustedResources()).toBe(5);
+                expect(context.player1.exhaustedResourceCount).toBe(5);
 
                 // test sentinel gain again for good measure
                 context.player2.clickCard(context.tielnFighter);

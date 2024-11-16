@@ -25,7 +25,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 context.player1.clickCard(context.rebelPathfinder);
                 expect(context.fennecShand.exhausted).toBeTrue();
                 expect(context.rebelPathfinder).toBeInZone('groundArena');
-                expect(context.player1.countExhaustedResources()).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
                 context.player1.clickPrompt('Ambush');
@@ -62,7 +62,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 // play rebel pathfinder
                 context.player1.clickCard(context.rebelPathfinder);
                 expect(context.rebelPathfinder).toBeInZone('groundArena');
-                expect(context.player1.countExhaustedResources()).toBe(2); // no extra cost
+                expect(context.player1.exhaustedResourceCount).toBe(2); // no extra cost
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
                 // ambush isb agent
@@ -89,7 +89,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
 
                 // play a unit who already has Ambush
                 expect(context.moddedCohort).toBeInZone('groundArena');
-                expect(context.player1.countExhaustedResources()).toBe(6); // no extra cost
+                expect(context.player1.exhaustedResourceCount).toBe(6); // no extra cost
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
                 context.player1.clickPrompt('Ambush');

@@ -23,7 +23,7 @@ describe('Play event from hand', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.daringRaid).toBeInZone('discard');
-                expect(context.player1.countExhaustedResources()).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 context.player2.passAction();
 
@@ -32,7 +32,7 @@ describe('Play event from hand', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.repair).toBeInZone('discard');
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
             });
 
             // TODO: add a test of Restock to make sure it can target itself in the discard pile

@@ -24,7 +24,7 @@ describe('Timely Intervention', function () {
 
                 context.player1.clickCard(context.rebelPathfinder);
                 expect(context.rebelPathfinder).toBeInZone('groundArena');
-                expect(context.player1.countExhaustedResources()).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
                 context.player1.clickPrompt('Ambush');
@@ -58,7 +58,7 @@ describe('Timely Intervention', function () {
 
                 context.player1.clickCard(context.rebelPathfinder);
                 expect(context.rebelPathfinder).toBeInZone('groundArena');
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
                 context.player1.clickPrompt('Ambush');

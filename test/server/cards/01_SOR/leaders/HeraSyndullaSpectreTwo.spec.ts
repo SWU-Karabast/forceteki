@@ -19,7 +19,7 @@ describe('Hera Syndulla, Spectre Two', function() {
             it('ignores aspect penalties for Spectre unit and event', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.sabineWren);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 context.player2.passAction();
 
@@ -28,12 +28,12 @@ describe('Hera Syndulla, Spectre Two', function() {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.pykeSentinel).toBeInZone('discard');
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
 
                 context.player2.passAction();
 
                 context.player1.clickCard(context.wampa);
-                expect(context.player1.countExhaustedResources()).toBe(10);
+                expect(context.player1.exhaustedResourceCount).toBe(10);
             });
 
             // TODO: Add an upgrade test if a Spectre upgrade is ever printed
@@ -65,7 +65,7 @@ describe('Hera Syndulla, Spectre Two', function() {
                 context.player1.clickCard(context.pykeSentinel);
 
                 expect(context.pykeSentinel).toBeInZone('discard');
-                expect(context.player1.countExhaustedResources()).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
             // TODO: Add an upgrade test if a Spectre upgrade is ever printed
@@ -91,7 +91,7 @@ describe('Hera Syndulla, Spectre Two', function() {
             it('ignores aspect penalties for Spectre unit and event', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.sabineWren);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 context.player2.passAction();
 
@@ -103,12 +103,12 @@ describe('Hera Syndulla, Spectre Two', function() {
                 context.player1.clickCard(context.pykeSentinel);
 
                 expect(context.pykeSentinel.damage).toBe(1);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
 
                 context.player2.passAction();
 
                 context.player1.clickCard(context.wampa);
-                expect(context.player1.countExhaustedResources()).toBe(10);
+                expect(context.player1.exhaustedResourceCount).toBe(10);
             });
 
             it('gives an experience token to a unique unit on attack', function () {

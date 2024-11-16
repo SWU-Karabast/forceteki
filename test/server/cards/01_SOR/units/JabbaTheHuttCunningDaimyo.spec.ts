@@ -32,15 +32,15 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 expect(context.waylay).toBeInZone('hand');
 
                 context.player2.passAction();
-                const lastExhaustedResources = context.player1.countExhaustedResources();
+                const lastExhaustedResources = context.player1.exhaustedResourceCount;
 
                 // play waylay with 1 resource less
                 context.player1.clickCard(context.waylay);
                 context.player1.clickCard(context.greenSquadronAwing);
-                expect(context.player1.countExhaustedResources()).toBe(lastExhaustedResources + 2);
+                expect(context.player1.exhaustedResourceCount).toBe(lastExhaustedResources + 2);
 
                 context.player2.clickCard(p2ShootFirst);
-                expect(context.player2.countExhaustedResources()).toBe(1);
+                expect(context.player2.exhaustedResourceCount).toBe(1);
             });
         });
     });

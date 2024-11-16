@@ -23,7 +23,7 @@ describe('Force Choke', function() {
 
                 context.player1.clickCard(context.kraytDragon);
                 expect(context.kraytDragon.damage).toBe(5);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.player1.handSize).toBe(1);
             });
 
@@ -38,7 +38,7 @@ describe('Force Choke', function() {
 
                 context.player1.clickCard(context.consularSecurityForce);
                 expect(context.consularSecurityForce.damage).toBe(5);
-                expect(context.player1.countExhaustedResources()).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
                 expect(context.player2.handSize).toBe(1);
             });
         });
