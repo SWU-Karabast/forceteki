@@ -28,11 +28,11 @@ describe('Smuggle keyword', function() {
 
                 expect(context.player1.countSpendableResources()).toBe(18); // Sanity check before we Smuggle
                 context.player1.clickCard(context.collectionsStarhopper);
-                expect(context.collectionsStarhopper).toBeInLocation('space arena');
+                expect(context.collectionsStarhopper).toBeInZone('space arena');
                 expect(context.collectionsStarhopper.exhausted).toBe(true);
                 expect(context.player1.countExhaustedResources()).toBe(3);
                 expect(context.player1.countSpendableResources()).toBe(15);
-                expect(context.mercenaryGunship).toBeInLocation('resource');
+                expect(context.mercenaryGunship).toBeInZone('resource');
             });
 
             it('an upgrade can be played for its smuggle cost', function () {
@@ -42,13 +42,13 @@ describe('Smuggle keyword', function() {
                 context.player1.clickCard(context.armedToTheTeeth);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel]);
                 context.player1.clickCard(context.wampa);
-                expect(context.armedToTheTeeth).toBeInLocation('ground arena');
+                expect(context.armedToTheTeeth).toBeInZone('ground arena');
                 expect(context.wampa.upgrades).toContain(context.armedToTheTeeth);
 
                 // This costs 6 due to the lack of a red aspect
                 expect(context.player1.countExhaustedResources()).toBe(6);
                 expect(context.player1.countSpendableResources()).toBe(12);
-                expect(context.mercenaryGunship).toBeInLocation('resource');
+                expect(context.mercenaryGunship).toBeInZone('resource');
             });
 
             it('an event can be played for its smuggle cost', function () {
@@ -62,7 +62,7 @@ describe('Smuggle keyword', function() {
                 // This costs 5 due to the lack of a blue aspect
                 expect(context.player1.countExhaustedResources()).toBe(5);
                 expect(context.player1.countSpendableResources()).toBe(13);
-                expect(context.mercenaryGunship).toBeInLocation('resource');
+                expect(context.mercenaryGunship).toBeInZone('resource');
 
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.getPower()).toBe(5);
@@ -80,7 +80,7 @@ describe('Smuggle keyword', function() {
 
                 expect(context.player1.countSpendableResources()).toBe(18); // Sanity check before we Smuggle
                 context.player1.clickCard(context.chewbacca); // This card has a 9+RedHero cost, so it should cost us 11 here
-                expect(context.chewbacca).toBeInLocation('ground arena');
+                expect(context.chewbacca).toBeInZone('ground arena');
                 expect(context.player1.countExhaustedResources()).toBe(11);
                 expect(context.player1.countSpendableResources()).toBe(7);
             });

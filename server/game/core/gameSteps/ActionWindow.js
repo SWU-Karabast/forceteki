@@ -122,7 +122,7 @@ class ActionWindow extends UiPrompt {
                 this.game.promptForSelect(this.activePlayer, {
                     source: 'Manual Action',
                     activePrompt: 'Which ability are you using?',
-                    location: WildcardZoneName.Any,
+                    zone: WildcardZoneName.Any,
                     controller: RelativePlayer.Self,
                     cardCondition: (card) => card.isFaceup() || card.canBeSmuggled(),
                     onSelect: (player, card) => {

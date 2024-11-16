@@ -21,7 +21,7 @@ describe('Sentinel keyword', function() {
                 expect(context.liberatedSlaves.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.liberatedSlaves.damage).toBe(4);
-                expect(context.echoBaseDefender).toBeInLocation('discard');
+                expect(context.echoBaseDefender).toBeInZone('discard');
             });
         });
 
@@ -48,7 +48,7 @@ describe('Sentinel keyword', function() {
                 expect(context.liberatedSlaves.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.liberatedSlaves.damage).toBe(4);
-                expect(context.echoBaseDefender).toBeInLocation('discard');
+                expect(context.echoBaseDefender).toBeInZone('discard');
             });
         });
 

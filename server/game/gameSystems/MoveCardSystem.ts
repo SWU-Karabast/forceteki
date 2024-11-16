@@ -11,11 +11,11 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
  * Properties for moving a card within the game.
  *
  * @remarks
- * Use this interface to specify the properties when moving a card to a new location.
+ * Use this interface to specify the properties when moving a card to a new zone.
  * Note that to move cards to the discard pile, any arena, or to the resources, you should use the appropriate systems
  * such as {@link DiscardSpecificCardSystem}, {@link PlayCardSystem}, or {@link ResourceCardSystem}.
  *
- * @property destination - The target location for the card. Excludes discard pile, space arena, ground arena, and resources.
+ * @property destination - The target zone for the card. Excludes discard pile, space arena, ground arena, and resources.
  * @property shuffle - Indicates whether the card should be shuffled into the destination.
  * @property bottom - Indicates whether the card should be placed at the bottom of the destination.
  */
@@ -103,8 +103,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         // Ensure that we have a valid destination and that the card can be moved there
         Contract.assertTrue(
-            destination && context.player.isLegalLocationForCardType(card.type, destination),
-            `${destination} is not a valid location for ${card.type}`
+            destination && context.player.isLegalZoneForCardType(card.type, destination),
+            `${destination} is not a valid zone for ${card.type}`
         );
 
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource

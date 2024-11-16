@@ -24,7 +24,7 @@ describe('Cantina Bouncer', function() {
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);
-                expect(context.wampa).toBeInLocation('hand');
+                expect(context.wampa).toBeInZone('hand');
             });
         });
     });

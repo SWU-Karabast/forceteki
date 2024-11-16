@@ -21,7 +21,7 @@ describe('2-1B Surgical Droid', function() {
 
                 // Attack
                 context.player1.clickCard(context._21bSurgicalDroid);
-                expect(context._21bSurgicalDroid).toBeInLocation('ground arena');
+                expect(context._21bSurgicalDroid).toBeInZone('ground arena');
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
                 context.player1.clickCard(context.p2Base);
 
@@ -39,7 +39,7 @@ describe('2-1B Surgical Droid', function() {
 
                 // Attack
                 context.player1.clickCard(context._21bSurgicalDroid);
-                expect(context._21bSurgicalDroid).toBeInLocation('ground arena');
+                expect(context._21bSurgicalDroid).toBeInZone('ground arena');
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
                 context.player1.clickCard(context.p2Base);
 
@@ -58,7 +58,7 @@ describe('2-1B Surgical Droid', function() {
                 // Attack
                 context.player1.clickCard(context._21bSurgicalDroid);
                 expect(context.wampa.damage).toBe(2);
-                expect(context._21bSurgicalDroid).toBeInLocation('ground arena');
+                expect(context._21bSurgicalDroid).toBeInZone('ground arena');
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
                 context.player1.clickCard(context.p2Base);
 

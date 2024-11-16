@@ -28,14 +28,14 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Chopper, Metal Menace to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.chopperInHand, context.chopperInPlay]);
-                expect(context.chopperInHand).toBeInLocation('ground arena');
-                expect(context.chopperInPlay).toBeInLocation('ground arena');
+                expect(context.chopperInHand).toBeInZone('ground arena');
+                expect(context.chopperInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.chopperInPlay);
-                expect(context.chopperInHand).toBeInLocation('ground arena');
-                expect(context.chopperInPlay).toBeInLocation('discard');
-                expect(context.p2Chopper).toBeInLocation('ground arena');
+                expect(context.chopperInHand).toBeInZone('ground arena');
+                expect(context.chopperInPlay).toBeInZone('discard');
+                expect(context.p2Chopper).toBeInZone('ground arena');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -47,14 +47,14 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Chopper, Metal Menace to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.chopperInHand, context.chopperInPlay]);
-                expect(context.chopperInHand).toBeInLocation('ground arena');
-                expect(context.chopperInPlay).toBeInLocation('ground arena');
+                expect(context.chopperInHand).toBeInZone('ground arena');
+                expect(context.chopperInPlay).toBeInZone('ground arena');
 
                 // choose other copy this time, defeat resolves
                 context.player1.clickCard(context.chopperInHand);
-                expect(context.chopperInPlay).toBeInLocation('ground arena');
-                expect(context.chopperInHand).toBeInLocation('discard');
-                expect(context.p2Chopper).toBeInLocation('ground arena');
+                expect(context.chopperInPlay).toBeInZone('ground arena');
+                expect(context.chopperInHand).toBeInZone('discard');
+                expect(context.p2Chopper).toBeInZone('ground arena');
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -88,14 +88,14 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Luke\'s Lightsaber to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.lightsaberInHand, context.lightsaberInPlay]);
-                expect(context.lightsaberInHand).toBeInLocation('ground arena');
-                expect(context.lightsaberInPlay).toBeInLocation('ground arena');
+                expect(context.lightsaberInHand).toBeInZone('ground arena');
+                expect(context.lightsaberInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.lightsaberInPlay);
-                expect(context.lightsaberInHand).toBeInLocation('ground arena');
-                expect(context.lightsaberInPlay).toBeInLocation('discard');
-                expect(context.p2Lightsaber).toBeInLocation('ground arena');
+                expect(context.lightsaberInHand).toBeInZone('ground arena');
+                expect(context.lightsaberInPlay).toBeInZone('discard');
+                expect(context.p2Lightsaber).toBeInZone('ground arena');
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -117,8 +117,8 @@ describe('Uniqueness rule', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.lukeSkywalkerJediKnight);
-                expect(context.lukeSkywalkerJediKnight).toBeInLocation('ground arena');
-                expect(context.lukeSkywalkerFaithfulFriend).toBeInLocation('ground arena');
+                expect(context.lukeSkywalkerJediKnight).toBeInZone('ground arena');
+                expect(context.lukeSkywalkerFaithfulFriend).toBeInZone('ground arena');
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -151,13 +151,13 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Colonel Yularen, ISB Director to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.yularenInHand, context.yularenInPlay]);
-                expect(context.yularenInHand).toBeInLocation('ground arena');
-                expect(context.yularenInPlay).toBeInLocation('ground arena');
+                expect(context.yularenInHand).toBeInZone('ground arena');
+                expect(context.yularenInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.yularenInPlay);
-                expect(context.yularenInHand).toBeInLocation('ground arena');
-                expect(context.yularenInPlay).toBeInLocation('discard');
+                expect(context.yularenInHand).toBeInZone('ground arena');
+                expect(context.yularenInPlay).toBeInZone('discard');
 
                 // triggered ability from both copies of Yularen
                 expect(context.player1).toHaveExactPromptButtons(['Heal 1 damage from your base', 'Heal 1 damage from your base']);
@@ -196,13 +196,13 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Agent Kallus, Seeking the Rebels to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.kallusInHand, context.kallusInPlay]);
-                expect(context.kallusInHand).toBeInLocation('ground arena');
-                expect(context.kallusInPlay).toBeInLocation('ground arena');
+                expect(context.kallusInHand).toBeInZone('ground arena');
+                expect(context.kallusInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.kallusInPlay);
-                expect(context.kallusInHand).toBeInLocation('ground arena');
-                expect(context.kallusInPlay).toBeInLocation('discard');
+                expect(context.kallusInHand).toBeInZone('ground arena');
+                expect(context.kallusInPlay).toBeInZone('discard');
 
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to no attack target)
                 expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
@@ -223,13 +223,13 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Agent Kallus, Seeking the Rebels to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.kallusInHand, context.kallusInPlay]);
-                expect(context.kallusInHand).toBeInLocation('ground arena');
-                expect(context.kallusInPlay).toBeInLocation('ground arena');
+                expect(context.kallusInHand).toBeInZone('ground arena');
+                expect(context.kallusInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.kallusInHand);
-                expect(context.kallusInPlay).toBeInLocation('ground arena');
-                expect(context.kallusInHand).toBeInLocation('discard');
+                expect(context.kallusInPlay).toBeInZone('ground arena');
+                expect(context.kallusInHand).toBeInZone('discard');
 
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to attacker being defeated)
                 expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
@@ -268,13 +268,13 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Admiral Motti, Brazen and Scornful to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.mottiInHand, context.mottiInPlay]);
-                expect(context.mottiInHand).toBeInLocation('ground arena');
-                expect(context.mottiInPlay).toBeInLocation('ground arena');
+                expect(context.mottiInHand).toBeInZone('ground arena');
+                expect(context.mottiInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.mottiInPlay);
-                expect(context.mottiInHand).toBeInLocation('ground arena');
-                expect(context.mottiInPlay).toBeInLocation('discard');
+                expect(context.mottiInHand).toBeInZone('ground arena');
+                expect(context.mottiInPlay).toBeInZone('discard');
 
                 // triggered ability from defeated Motti
                 expect(context.player1).toHavePassAbilityPrompt('Ready a Villainy unit');
@@ -292,13 +292,13 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Admiral Motti, Brazen and Scornful to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.mottiInHand, context.mottiInPlay]);
-                expect(context.mottiInHand).toBeInLocation('ground arena');
-                expect(context.mottiInPlay).toBeInLocation('ground arena');
+                expect(context.mottiInHand).toBeInZone('ground arena');
+                expect(context.mottiInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.mottiInHand);
-                expect(context.mottiInPlay).toBeInLocation('ground arena');
-                expect(context.mottiInHand).toBeInLocation('discard');
+                expect(context.mottiInPlay).toBeInZone('ground arena');
+                expect(context.mottiInHand).toBeInZone('discard');
 
                 // triggered ability from defeated Motti
                 expect(context.player1).toHavePassAbilityPrompt('Ready a Villainy unit');
@@ -336,16 +336,16 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Supreme Leader Snoke, Shadow Ruler to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.snokeInHand, context.snokeInPlay]);
-                expect(context.snokeInHand).toBeInLocation('ground arena');
-                expect(context.snokeInPlay).toBeInLocation('ground arena');
+                expect(context.snokeInHand).toBeInZone('ground arena');
+                expect(context.snokeInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.snokeInPlay);
-                expect(context.snokeInHand).toBeInLocation('ground arena');
-                expect(context.snokeInPlay).toBeInLocation('discard');
+                expect(context.snokeInHand).toBeInZone('ground arena');
+                expect(context.snokeInPlay).toBeInZone('discard');
 
                 // Cell block guard should still be alive since the -2/-2 effects never stacked
-                expect(context.cellBlockGuard).toBeInLocation('ground arena');
+                expect(context.cellBlockGuard).toBeInZone('ground arena');
             });
 
             it('the ongoing effects should never be active at the same time if the copy from hand is defeated', function () {
@@ -356,16 +356,16 @@ describe('Uniqueness rule', function() {
                 // prompt for defeat step
                 expect(context.player1).toHavePrompt('Choose which copy of Supreme Leader Snoke, Shadow Ruler to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.snokeInHand, context.snokeInPlay]);
-                expect(context.snokeInHand).toBeInLocation('ground arena');
-                expect(context.snokeInPlay).toBeInLocation('ground arena');
+                expect(context.snokeInHand).toBeInZone('ground arena');
+                expect(context.snokeInPlay).toBeInZone('ground arena');
 
                 // defeat resolves
                 context.player1.clickCard(context.snokeInHand);
-                expect(context.snokeInPlay).toBeInLocation('ground arena');
-                expect(context.snokeInHand).toBeInLocation('discard');
+                expect(context.snokeInPlay).toBeInZone('ground arena');
+                expect(context.snokeInHand).toBeInZone('discard');
 
                 // Cell block guard should still be alive since the -2/-2 effects never stacked
-                expect(context.cellBlockGuard).toBeInLocation('ground arena');
+                expect(context.cellBlockGuard).toBeInZone('ground arena');
             });
         });
     });

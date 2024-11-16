@@ -174,14 +174,14 @@ export = {
     // additionalTriggerCost: (func) => OngoingEffectBuilder.player.static(EffectName.AdditionalTriggerCost, func),
     // additionalPlayCost: (func) => OngoingEffectBuilder.player.static(EffectName.AdditionalPlayCost, func),
     // canPlayFromOwn,
-    // canPlayFromOpponents: (location, cards, sourceOfEffect, playType = PlayType.PlayFromHand) =>
+    // canPlayFromOpponents: (zone, cards, sourceOfEffect, playType = PlayType.PlayFromHand) =>
     //     OngoingEffectBuilder.player.detached(EffectName.CanPlayFromOpponents, {
     //         apply: (player) => {
     //             if (!player.opponent) {
     //                 return;
     //             }
     //             for (const card of cards.filter(
-    //                 (card) => card.isEvent() && card.zoneName === location
+    //                 (card) => card.isEvent() && card.zoneName === zone
     //             )) {
     //                 for (const reaction of card.getTriggeredAbilities()) {
     //                     reaction.registerEvents();
@@ -193,11 +193,11 @@ export = {
     //                 }
     //                 card.fromOutOfPlaySource.push(sourceOfEffect);
     //             }
-    //             return player.addPlayableZone(playType, player.opponent, location, cards);
+    //             return player.addPlayableZone(playType, player.opponent, zone, cards);
     //         },
-    //         unapply: (player, context, location) => {
-    //             player.removePlayableZone(location);
-    //             for (const card of location.cards) {
+    //         unapply: (player, context, zone) => {
+    //             player.removePlayableZone(zone);
+    //             for (const card of zone.cards) {
     //                 if (Array.isArray(card.fromOutOfPlaySource)) {
     //                     card.fromOutOfPlaySource.filter((a) => a !== context.source);
     //                     if (card.fromOutOfPlaySource.length === 0) {

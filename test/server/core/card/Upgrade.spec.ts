@@ -47,8 +47,8 @@ describe('Upgrade cards', function() {
                 context.player1.clickCard(context.tielnFighter);
 
                 expect(context.brightHope.damage).toBe(5);
-                expect(context.tielnFighter).toBeInLocation('discard');
-                expect(context.entrenched).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
+                expect(context.entrenched).toBeInZone('discard');
             });
 
             it('and is giving an hp boost keeping the attached unit alive, the attached unit should be defeated when the upgrade is defeated', function () {
@@ -59,8 +59,8 @@ describe('Upgrade cards', function() {
 
                 context.player2.clickCard(context.confiscate);
                 context.player2.clickCard(context.entrenched);
-                expect(context.entrenched).toBeInLocation('discard');
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.entrenched).toBeInZone('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
             });
         });
 
@@ -82,7 +82,7 @@ describe('Upgrade cards', function() {
 
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.atatSuppressor);
-                expect(context.bobaFett).toBeInLocation('ground arena');
+                expect(context.bobaFett).toBeInZone('ground arena');
                 expect(context.bobaFett.damage).toBe(8);
                 expect(context.atatSuppressor.damage).toBe(6);
             });
@@ -115,8 +115,8 @@ describe('Upgrade cards', function() {
                 context.player1.passAction();
 
                 context.player2.clickCard(context.confiscate);
-                expect(context.entrenched).toBeInLocation('discard');
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.entrenched).toBeInZone('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
             });
         });
 
@@ -162,8 +162,8 @@ describe('Upgrade cards', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.deathTrooper, context.firstLegionSnowtrooper]);
                 context.player1.clickCard(context.pykeSentinel);
 
-                expect(context.pykeSentinel).toBeInLocation('hand', context.player1);
-                expect(context.entrenched).toBeInLocation('discard', context.player2);
+                expect(context.pykeSentinel).toBeInZone('hand', context.player1);
+                expect(context.entrenched).toBeInZone('discard', context.player2);
             });
         });
     });

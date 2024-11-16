@@ -27,7 +27,7 @@ export class CardAbility extends CardAbilityStep {
         this.title = properties.title;
         this.abilityCost = this.cost;
         this.printedAbility = properties.printedAbility === false ? false : true;
-        this.zoneFilter = this.locationOrDefault(card, properties.zoneFilter);
+        this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;
         this.abilityController = properties.abilityController ?? RelativePlayer.Self;
@@ -36,9 +36,9 @@ export class CardAbility extends CardAbilityStep {
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
     }
 
-    private locationOrDefault(card, location): ZoneFilter {
-        if (location != null) {
-            return location;
+    private zoneOrDefault(card, zone): ZoneFilter {
+        if (zone != null) {
+            return zone;
         }
 
         if (card.isEvent()) {
@@ -127,22 +127,22 @@ export class CardAbility extends CardAbilityStep {
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
-    protected isInValidLocation(context) {
+    protected isInValidZone(context) {
         return this.card.isEvent()
             ? context.player.isCardInPlayableZone(context.source, context.playType)
-            : EnumHelpers.cardLocationMatches(this.card.zoneName, this.zoneFilter);
+            : EnumHelpers.cardZoneMatches(this.card.zoneName, this.zoneFilter);
     }
 
-    private getLocationMessage(location, context) {
-        if (location.matchTarget(/^\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b$/i)) {
+    private getZoneMessage(zone, context) {
+        if (zone.matchTarget(/^\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b$/i)) {
             // it's a uuid
-            const source = context.game.findAnyCardInPlayByUuid(location);
+            const source = context.game.findAnyCardInPlayByUuid(zone);
             if (source) {
                 return `cards set aside by ${source.name}`;
             }
             return 'out of play area';
         }
-        return location;
+        return zone;
     }
 
     public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
@@ -155,7 +155,7 @@ export class CardAbility extends CardAbilityStep {
                 context.player,
                 context.source,
                 context.source.controller === context.player ? 'their' : 'their opponent\'s',
-                this.getLocationMessage(context.source.zoneName, context)
+                this.getZoneMessage(context.source.zoneName, context)
             );
         }
 

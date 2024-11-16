@@ -8,7 +8,7 @@ class BaseCardSelector {
         this.cardCondition = properties.cardCondition;
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
-        this.zoneFilter = this.buildLocationFilter(properties.zoneFilter);
+        this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
         this.controller = properties.controller || RelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
@@ -22,7 +22,7 @@ class BaseCardSelector {
         return this.cardTypeFilter || this.cardCondition;
     }
 
-    buildLocationFilter(property) {
+    buildZoneFilter(property) {
         let zoneFilter = property || WildcardZoneName.AnyAttackable || [];
         if (!Array.isArray(zoneFilter)) {
             zoneFilter = [zoneFilter];
@@ -48,20 +48,20 @@ class BaseCardSelector {
         let possibleCards = [];
         if (controllerProp !== RelativePlayer.Opponent) {
             possibleCards = this.zoneFilter.reduce(
-                (array, zoneFilter) => array.concat(this.getCardsForPlayerLocations(zoneFilter, context.player)), possibleCards
+                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player)), possibleCards
             );
         }
         if (controllerProp !== RelativePlayer.Self && context.player.opponent) {
             possibleCards = this.zoneFilter.reduce(
-                (array, zoneFilter) => array.concat(this.getCardsForPlayerLocations(zoneFilter, context.player.opponent)), possibleCards
+                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player.opponent)), possibleCards
             );
         }
         return possibleCards;
     }
 
-    getCardsForPlayerLocations(location, player) {
+    getCardsForPlayerZones(zone, player) {
         var cards;
-        switch (location) {
+        switch (zone) {
             case WildcardZoneName.Any:
                 // TODO: is this ever a case we should have? this would allow targeting deck, discard, etc.
                 throw Error('WildcardZoneName.Any is currently not supported for card selectors');
@@ -73,7 +73,7 @@ class BaseCardSelector {
                 cards = cards.concat(player.getCardPile(ZoneName.Base));
                 break;
             default:
-                cards = player.getCardPile(location);
+                cards = player.getCardPile(zone);
                 break;
         }
 
@@ -103,7 +103,7 @@ class BaseCardSelector {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!EnumHelpers.cardLocationMatches(card.zoneName, this.zoneFilter)) {
+        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter)) {
             return false;
         }
         if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {

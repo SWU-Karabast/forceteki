@@ -69,36 +69,36 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
-        properties.zoneFilter = this.getAbilityLocationsForSide(properties.zoneFilter);
+        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
         super.addActionAbility(properties);
     }
 
     protected override addConstantAbility(properties: IConstantAbilityProps<this>): void {
-        properties.sourceZoneFilter = this.getAbilityLocationsForSide(properties.sourceZoneFilter);
+        properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
         super.addConstantAbility(properties);
     }
 
     protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): void {
-        properties.zoneFilter = this.getAbilityLocationsForSide(properties.zoneFilter);
+        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
         super.addReplacementEffectAbility(properties);
     }
 
     protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>): void {
-        properties.zoneFilter = this.getAbilityLocationsForSide(properties.zoneFilter);
+        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
         super.addTriggeredAbility(properties);
     }
 
     /** Generates the right zoneFilter property depending on which leader side we're setting up */
-    private getAbilityLocationsForSide(propertyLocation: ZoneFilter | ZoneFilter[]) {
-        const abilityLocation = this.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
+    private getAbilityZonesForSide(propertyZone: ZoneFilter | ZoneFilter[]) {
+        const abilityZone = this.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
 
-        return propertyLocation
-            ? Helpers.asArray(propertyLocation).concat([abilityLocation])
-            : abilityLocation;
+        return propertyZone
+            ? Helpers.asArray(propertyZone).concat([abilityZone])
+            : abilityZone;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+        super.initializeForCurrentZone(prevZone);
 
         switch (this.zoneName) {
             case ZoneName.GroundArena:
@@ -115,7 +115,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
-                this.exhausted = EnumHelpers.isArena(prevLocation);
+                this.exhausted = EnumHelpers.isArena(prevZone);
                 break;
         }
     }

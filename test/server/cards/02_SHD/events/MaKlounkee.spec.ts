@@ -35,7 +35,7 @@ describe('MaKlounkee', function() {
             const { context } = contextRef;
 
             context.player1.clickCard('ma-klounkee');
-            expect(context.pykeSentinel).toBeInLocation('hand');
+            expect(context.pykeSentinel).toBeInZone('hand');
             expect(context.academyDefenseWalker.damage).toBe(3);
         });
 
@@ -65,7 +65,7 @@ describe('MaKlounkee', function() {
             const { context } = contextRef;
 
             context.player1.clickCard('ma-klounkee');
-            expect(context.pykeSentinel).toBeInLocation('hand');
+            expect(context.pykeSentinel).toBeInZone('hand');
         });
     });
 });

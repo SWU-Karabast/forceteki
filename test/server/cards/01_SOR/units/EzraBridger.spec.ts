@@ -38,7 +38,7 @@ describe('Ezra Bridger', function() {
 
                 // check that the damage was done before player1 clicks prompt
                 expect(context.ezraBridger.damage).toBe(3);
-                expect(context.deathTrooper).toBeInLocation('discard');
+                expect(context.deathTrooper).toBeInZone('discard');
 
                 // Leave it on top of the deck
                 const beforeActionDeck = context.player1.deck;
@@ -62,7 +62,7 @@ describe('Ezra Bridger', function() {
 
                 // Discard it
                 context.player1.clickPrompt('Discard it');
-                expect(context.momentOfPeace).toBeInLocation('discard');
+                expect(context.momentOfPeace).toBeInZone('discard');
                 expect(context.player1.deck.length).toEqual(6);
                 expect(context.player1.deck[0]).toBe(context.wampa);
 
@@ -83,7 +83,7 @@ describe('Ezra Bridger', function() {
 
                 // check board state
                 expect(context.player1.countExhaustedResources()).toBe(4);
-                expect(context.wampa).toBeInLocation('ground arena');
+                expect(context.wampa).toBeInZone('ground arena');
                 expect(context.wampa.exhausted).toBe(true);
                 expect(context.player1.deck.length).toEqual(5);
 
@@ -95,7 +95,7 @@ describe('Ezra Bridger', function() {
                 context.player1.clickCard(context.occupierSiegeTank);
 
                 // check board state
-                expect(context.ezraBridger).toBeInLocation('discard');
+                expect(context.ezraBridger).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
 

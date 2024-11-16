@@ -83,7 +83,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
             (!changePlayer ||
               (!card.hasRestriction(EffectName.TakeControl, context) &&
                 !card.anotherUniqueInPlay(context.player))) &&
-                (context.player.isLegalLocationForCardType(card.type, ZoneName.Hand)) &&
+                (context.player.isLegalZoneForCardType(card.type, ZoneName.Hand)) &&
                 !EnumHelpers.isArena(card.zoneName) &&
                 super.canAffect(card, context)
         );

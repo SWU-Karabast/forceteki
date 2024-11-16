@@ -22,7 +22,7 @@ describe('Play event from hand', function() {
                 context.player1.clickCard(context.daringRaid);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.daringRaid).toBeInLocation('discard');
+                expect(context.daringRaid).toBeInZone('discard');
                 expect(context.player1.countExhaustedResources()).toBe(1);
 
                 context.player2.passAction();
@@ -31,7 +31,7 @@ describe('Play event from hand', function() {
                 context.player1.clickCard(context.repair);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.repair).toBeInLocation('discard');
+                expect(context.repair).toBeInZone('discard');
                 expect(context.player1.countExhaustedResources()).toBe(4);
             });
 

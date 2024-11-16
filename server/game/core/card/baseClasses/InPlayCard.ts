@@ -25,7 +25,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected _pendingDefeat? = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
-    private movedFromLocation?: ZoneName = null;
+    private movedFromZone?: ZoneName = null;
 
     /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
@@ -186,16 +186,16 @@ export class InPlayCard extends PlayableOrDeployableCard {
     public override resolveAbilitiesForNewZone() {
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(this.movedFromLocation, this.zoneName);
-        this.updateConstantAbilityEffects(this.movedFromLocation, this.zoneName);
+        this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
+        this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
 
-        this.movedFromLocation = null;
+        this.movedFromZone = null;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: ZoneName) {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone: ZoneName) {
+        super.initializeForCurrentZone(prevZone);
 
-        this.movedFromLocation = prevLocation;
+        this.movedFromZone = prevZone;
 
         if (EnumHelpers.isArena(this.zoneName)) {
             this.setPendingDefeatEnabled(true);
@@ -213,9 +213,9 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.resetLimits();
 
         for (const triggeredAbility of this.triggeredAbilities) {
-            if (EnumHelpers.cardLocationMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.zoneFilter)) {
+            if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.registerEvents();
-            } else if (!EnumHelpers.cardLocationMatches(to, triggeredAbility.zoneFilter) && EnumHelpers.cardLocationMatches(from, triggeredAbility.zoneFilter)) {
+            } else if (!EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.unregisterEvents();
             }
         }
@@ -234,13 +234,13 @@ export class InPlayCard extends PlayableOrDeployableCard {
                 continue;
             }
             if (
-                !EnumHelpers.cardLocationMatches(from, constantAbility.sourceZoneFilter) &&
-                EnumHelpers.cardLocationMatches(to, constantAbility.sourceZoneFilter)
+                !EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
+                EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
             ) {
                 constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
             } else if (
-                EnumHelpers.cardLocationMatches(from, constantAbility.sourceZoneFilter) &&
-                !EnumHelpers.cardLocationMatches(to, constantAbility.sourceZoneFilter)
+                EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
+                !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
             ) {
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];

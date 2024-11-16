@@ -23,7 +23,7 @@ export class EventCard extends EventCardParent {
 
         Contract.assertNotNullLike(this._eventAbility, 'Event card\'s ability was not initialized');
 
-        // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of location
+        // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of zone
         for (const constantAbility of this.constantAbilities) {
             constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
         }
@@ -49,8 +49,8 @@ export class EventCard extends EventCardParent {
             : this._eventAbility;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+        super.initializeForCurrentZone(prevZone);
 
         // event cards can only be exhausted when resourced
         switch (this.zoneName) {

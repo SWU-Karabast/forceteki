@@ -636,9 +636,9 @@ var customMatchers = {
             }
         };
     },
-    toBeInLocation: function () {
+    toBeInZone: function () {
         return {
-            compare: function (card, location, player = null) {
+            compare: function (card, zone, player = null) {
                 if (typeof card === 'string') {
                     throw new TestSetupError('This expectation requires a card object, not a name');
                 }
@@ -646,21 +646,21 @@ var customMatchers = {
 
                 const pileOwningPlayer = player?.player || card.owner;
 
-                const correctProperty = card.zoneName === location;
-                const correctPile = pileOwningPlayer.getCardPile(location).includes(card);
+                const correctProperty = card.zoneName === zone;
+                const correctPile = pileOwningPlayer.getCardPile(zone).includes(card);
 
                 if (correctProperty !== correctPile) {
                     result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent location state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${pileOwningPlayer.name}'`;
+                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${pileOwningPlayer.name}'`;
                     return result;
                 }
 
                 result.pass = correctProperty && correctPile;
 
                 if (result.pass) {
-                    result.message = `Expected ${card.internalName} not to be in location '${location}' but it is`;
+                    result.message = `Expected ${card.internalName} not to be in zone '${zone}' but it is`;
                 } else {
-                    result.message = `Expected ${card.internalName} to be in location '${location}' but it is in location '${card.zoneName}'`;
+                    result.message = `Expected ${card.internalName} to be in zone '${zone}' but it is in zone '${card.zoneName}'`;
                 }
 
                 return result;

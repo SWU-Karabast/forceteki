@@ -44,7 +44,7 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
 
         const additionalProps = {
             activePromptTitle: this.activePromptTitle,
-            location: properties.zoneFilter || WildcardZoneName.Any,
+            zone: properties.zoneFilter || WildcardZoneName.Any,
             controller: RelativePlayer.Self,
             cancelHandler: !result.canCancel ? null : () => (result.cancelled = true),
             subActionProperties: (target: any) => {

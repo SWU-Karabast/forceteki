@@ -33,8 +33,8 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         return actions;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+        super.initializeForCurrentZone(prevZone);
 
         switch (this.zoneName) {
             case ZoneName.GroundArena:

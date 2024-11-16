@@ -17,7 +17,7 @@ export const restrictionDsl = {
     //     context.ability.abilityType !== AbilityTypes.ForcedInterrupt,
     // adjacentCharacters: (context, effect) =>
     //     context.source.type === CardTypes.Character &&
-    //     context.player.areLocationsAdjacent(context.source.zoneName, effect.context.source.zoneName),
+    //     context.player.areZonesAdjacent(context.source.zoneName, effect.context.source.zoneName),
     // attachmentsWithSameClan: (context, effect, card) =>
     //     context.source.type === CardTypes.Attachment &&
     //     context.source.getPrintedFaction() !== 'neutral' &&

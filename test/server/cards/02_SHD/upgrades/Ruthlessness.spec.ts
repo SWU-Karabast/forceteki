@@ -114,7 +114,7 @@ describe('Ruthlessness', function () {
         //         context.player1.clickCard(context.guardianOfTheWhills);
         //         context.player1.clickCard(context.jawaScavenger);
         //
-        //         expect(context.jawaScavenger).toBeInLocation('discard');
+        //         expect(context.jawaScavenger).toBeInZone('discard');
         //         expect(context.guardianOfTheWhills.damage).toBe(0);
         //         expect(context.p2Base.damage).toBe(2);
         //         expect(context.player2).toBeActivePlayer();

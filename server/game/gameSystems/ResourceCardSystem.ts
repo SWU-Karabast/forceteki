@@ -87,7 +87,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
             (targetPlayer === RelativePlayer.Self ||
               (!card.hasRestriction(EffectName.TakeControl, context) &&
                 !card.anotherUniqueInPlay(context.player))) &&
-                context.player.isLegalLocationForCardType(card.type, ZoneName.Resource) &&
+                context.player.isLegalZoneForCardType(card.type, ZoneName.Resource) &&
                 !EnumHelpers.isArena(card.zoneName) &&
                 super.canAffect(card, context)
         );

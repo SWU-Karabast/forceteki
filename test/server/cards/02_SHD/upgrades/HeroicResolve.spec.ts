@@ -26,8 +26,8 @@ describe('Heroic Resolve', function() {
 
                 context.player1.clickCard(context.wampa);
                 expect(context.frontierAtrt.isUpgraded()).toBe(false);
-                expect(context.heroicResolve).toBeInLocation('discard');
-                expect(context.wampa).toBeInLocation('discard');
+                expect(context.heroicResolve).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.player1.countExhaustedResources()).toBe(2);
             });
@@ -42,7 +42,7 @@ describe('Heroic Resolve', function() {
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.frontierAtrt.isUpgraded()).toBe(false);
-                expect(context.heroicResolve).toBeInLocation('discard');
+                expect(context.heroicResolve).toBeInZone('discard');
                 expect(context.player1.countExhaustedResources()).toBe(2);
             });
         });
@@ -84,8 +84,8 @@ describe('Heroic Resolve', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa, context.specforceSoldier, context.battlefieldMarine]);
                 context.player1.clickCard(context.wampa);
                 expect(context.frontierAtrt).toHaveExactUpgradeNames(['heroic-resolve', 'academy-training']);
-                expect(context.p1HeroicResolve1).toBeInLocation('discard');
-                expect(context.wampa).toBeInLocation('discard');
+                expect(context.p1HeroicResolve1).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(5); // extra 3 damage from upgrade stat boosts
                 expect(context.player1.countExhaustedResources()).toBe(2);
 
@@ -102,8 +102,8 @@ describe('Heroic Resolve', function() {
 
                 context.player1.clickCard(context.specforceSoldier);
                 expect(context.frontierAtrt).toHaveExactUpgradeNames(['academy-training']);
-                expect(context.p1HeroicResolve2).toBeInLocation('discard');
-                expect(context.specforceSoldier).toBeInLocation('discard');
+                expect(context.p1HeroicResolve2).toBeInZone('discard');
+                expect(context.specforceSoldier).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(12);
                 expect(context.player1.countExhaustedResources()).toBe(4);
             });
@@ -153,8 +153,8 @@ describe('Heroic Resolve', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa, context.specforceSoldier]);
                 context.player1.clickCard(context.wampa);
                 expect(context.frontierAtrt).toHaveExactUpgradeNames(['heroic-resolve']);
-                expect(context.p1HeroicResolve).toBeInLocation('discard');
-                expect(context.wampa).toBeInLocation('discard');
+                expect(context.p1HeroicResolve).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(3); // extra 1 damage from the heroic resolve stat boost
                 expect(context.player1.countExhaustedResources()).toBe(2);
 
@@ -171,8 +171,8 @@ describe('Heroic Resolve', function() {
 
                 context.player1.clickCard(context.specforceSoldier);
                 expect(context.frontierAtrt.isUpgraded()).toBe(false);
-                expect(context.p2HeroicResolve).toBeInLocation('discard');
-                expect(context.specforceSoldier).toBeInLocation('discard');
+                expect(context.p2HeroicResolve).toBeInZone('discard');
+                expect(context.specforceSoldier).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(8);
                 expect(context.player1.countExhaustedResources()).toBe(4);
             });

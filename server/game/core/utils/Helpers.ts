@@ -42,21 +42,21 @@ export function shuffle<T>(array: T[]): T[] {
     return shuffleArray;
 }
 
-export function defaultLegalLocationsForCardTypeFilter(cardTypeFilter: CardTypeFilter) {
+export function defaultLegalZonesForCardTypeFilter(cardTypeFilter: CardTypeFilter) {
     const cardTypes = EnumHelpers.getCardTypesForFilter(cardTypeFilter);
 
-    const locations = new Set<ZoneName>();
+    const zones = new Set<ZoneName>();
 
     cardTypes.forEach((cardType) => {
-        const legalLocations = defaultLegalLocationsForCardType(cardType);
-        legalLocations.forEach((location) => locations.add(location));
+        const legalZones = defaultLegalZonesForCardType(cardType);
+        legalZones.forEach((zone) => zones.add(zone));
     });
 
-    return Array.from(locations);
+    return Array.from(zones);
 }
 
-export function defaultLegalLocationsForCardType(cardType: CardType) {
-    const drawCardLocations = [
+export function defaultLegalZonesForCardType(cardType: CardType) {
+    const drawCardZones = [
         ZoneName.Hand,
         ZoneName.Deck,
         ZoneName.Discard,
@@ -78,7 +78,7 @@ export function defaultLegalLocationsForCardType(cardType: CardType) {
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
         case CardType.Event:
-            return drawCardLocations;
+            return drawCardZones;
         default:
             Contract.fail(`Unknown card type: ${cardType}`);
             return null;

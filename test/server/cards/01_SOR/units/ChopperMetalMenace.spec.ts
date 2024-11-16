@@ -26,7 +26,7 @@ describe('Chopper, Metal Menace', function() {
 
                 // Check mill and resources
                 expect(context.player2.deck.length).toBe(4);
-                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.player2.countSpendableResources()).toBe(5);
             });
         });

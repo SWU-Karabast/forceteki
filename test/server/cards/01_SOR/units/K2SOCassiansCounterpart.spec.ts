@@ -24,7 +24,7 @@ describe('K-2SO', function() {
 
                 context.player1.clickPrompt('The opponent discards a card');
                 expect(context.player2.handSize).toBe(0);
-                expect(context.wampa).toBeInLocation('discard');
+                expect(context.wampa).toBeInZone('discard');
 
                 context.player1.moveCard(context.k2so, 'ground arena');
                 context.player2.clickCard(context.kraytDragon);

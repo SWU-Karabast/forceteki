@@ -321,7 +321,7 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is in a location where it can legally be exhausted.
+     * Returns true if the card is in a zone where it can legally be exhausted.
      * The returned type set is equivalent to {@link CardWithExhaustProperty}.
      */
     public canBeExhausted(): this is PlayableOrDeployableCard {
@@ -433,49 +433,49 @@ export class Card extends OngoingEffectSource {
     }
 
 
-    // ******************************************* LOCATION MANAGEMENT *******************************************
-    public moveTo(targetLocation: ZoneName) {
+    // ******************************************* ZONE MANAGEMENT *******************************************
+    public moveTo(targetZone: ZoneName) {
         const originalZone = this.zoneName;
 
-        if (originalZone === targetLocation) {
+        if (originalZone === targetZone) {
             return;
         }
 
-        this.cleanupBeforeMove(targetLocation);
-        const prevLocation = this._zoneName;
-        this._zoneName = targetLocation;
-        this.initializeForCurrentLocation(prevLocation);
+        this.cleanupBeforeMove(targetZone);
+        const prevZone = this._zoneName;
+        this._zoneName = targetZone;
+        this.initializeForCurrentZone(prevZone);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
             originalZone: originalZone,
-            newLocation: targetLocation
+            newZone: targetZone
         });
 
         this.game.registerMovedCard(this);
     }
 
     /**
-     * Deals with any engine effects of leaving the current location before the move happens
+     * Deals with any engine effects of leaving the current zone before the move happens
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextLocation: ZoneName) {}
+    protected cleanupBeforeMove(nextZone: ZoneName) {}
 
     /**
-     * Updates the card's abilities for its current location after being moved.
+     * Updates the card's abilities for its current zone after being moved.
      * Called from {@link Game.resolveGameState} after event resolution.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public resolveAbilitiesForNewZone() {}
 
     /**
-     * Deals with the engine effects of entering a new location, making sure all statuses are set with legal values.
+     * Deals with the engine effects of entering a new zone, making sure all statuses are set with legal values.
      * If a card should have a different status on entry (e.g., readied instead of exhausted), call this method first
      * and then update the card state(s) as needed.
      *
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
-    protected initializeForCurrentLocation(prevLocation: ZoneName) {
+    protected initializeForCurrentZone(prevZone: ZoneName) {
         this.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
@@ -519,7 +519,7 @@ export class Card extends OngoingEffectSource {
                 break;
 
             default:
-                Contract.fail(`Unknown location enum value: ${this.zoneName}`);
+                Contract.fail(`Unknown zone enum value: ${this.zoneName}`);
         }
     }
 
@@ -556,7 +556,7 @@ export class Card extends OngoingEffectSource {
     }
 
     private buildPropertyDisabledStr(propertyName: string) {
-        return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in location '${this.zoneName}' where the property does not apply`;
+        return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in zone '${this.zoneName}' where the property does not apply`;
     }
 
     protected resetLimits() {
@@ -697,18 +697,18 @@ export class Card extends OngoingEffectSource {
     // TODO CAPTURE: will probably need to leverage or modify the below "child card" methods (see basecard.ts in L5R for reference)
     // originally these were for managing province cards
 
-    // protected addChildCard(card, location) {
+    // protected addChildCard(card, zone) {
     //     this.childCards.push(card);
-    //     this.controller.moveCard(card, location);
+    //     this.controller.moveCard(card, zone);
     // }
 
-    // protected removeChildCard(card, location) {
+    // protected removeChildCard(card, zone) {
     //     if (!card) {
     //         return;
     //     }
 
     //     this.childCards = this.childCards.filter((a) => a !== card);
-    //     this.controller.moveCard(card, location);
+    //     this.controller.moveCard(card, zone);
     // }
 
     // createSnapshot() {
@@ -751,7 +751,7 @@ export class Card extends OngoingEffectSource {
                 controller: this.controller.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,
                 facedown: true,
-                location: this.zoneName,
+                zone: this.zoneName,
                 uuid: isActivePlayer ? this.uuid : undefined
             };
             return { ...state, ...selectionState };
@@ -762,7 +762,7 @@ export class Card extends OngoingEffectSource {
             id: this.cardData.id,
             controlled: this.owner !== this.controller,
             // facedown: this.isFacedown(),
-            location: this.zoneName,
+            zone: this.zoneName,
             // menu: this.getMenu(),
             name: this.cardData.title,
             cost: this.cardData.cost,

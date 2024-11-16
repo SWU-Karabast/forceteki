@@ -1185,7 +1185,7 @@ class Game extends EventEmitter {
      */
     removeTokenFromPlay(token) {
         Contract.assertEqual(token.zoneName, ZoneName.OutsideTheGame,
-            `Tokens must be moved to location ${ZoneName.OutsideTheGame} before removing from play, instead found token at ${token.zoneName}`
+            `Tokens must be moved to zone ${ZoneName.OutsideTheGame} before removing from play, instead found token at ${token.zoneName}`
         );
 
         const player = token.owner;

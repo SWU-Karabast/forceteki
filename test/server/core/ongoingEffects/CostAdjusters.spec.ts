@@ -25,7 +25,7 @@ describe('Cost adjusters', function() {
                 context.player2.clickCard(context.smugglersAid);
                 expect(context.player2.countExhaustedResources()).toBe(4);
                 expect(context.p2Base.damage).toBe(2);
-                expect(context.smugglersAid).toBeInLocation('discard');
+                expect(context.smugglersAid).toBeInZone('discard');
             });
         });
     });

@@ -45,7 +45,7 @@ describe('Bendu, The One in the Middle', function() {
 
                 // CASE 1: play non-Heroism, non-Villainy (NHNV) card before Bendu attacks - no discount
                 context.player1.clickCard(context.cloudCityWingGuard);
-                expect(context.cloudCityWingGuard).toBeInLocation('ground arena');
+                expect(context.cloudCityWingGuard).toBeInZone('ground arena');
                 expect(context.player1.countExhaustedResources()).toBe(3);
 
                 resetState();
@@ -55,14 +55,14 @@ describe('Bendu, The One in the Middle', function() {
 
                 // CASE 2: Heroism card played after Bendu attacks - no discount
                 context.player1.clickCard(context.echoBaseDefender);
-                expect(context.echoBaseDefender).toBeInLocation('ground arena');
+                expect(context.echoBaseDefender).toBeInZone('ground arena');
                 expect(context.player1.countExhaustedResources()).toBe(3);
 
                 resetState();
 
                 // CASE 3: Villainy card played after Bendu attacks - no discount
                 context.player1.clickCard(context.emperorsRoyalGuard);
-                expect(context.emperorsRoyalGuard).toBeInLocation('ground arena');
+                expect(context.emperorsRoyalGuard).toBeInZone('ground arena');
                 expect(context.player1.countExhaustedResources()).toBe(5);  // 5 because of Villainy penalty
 
                 resetState();
@@ -70,14 +70,14 @@ describe('Bendu, The One in the Middle', function() {
                 // CASE 4: first NHNV card played after Bendu attacks - discount applied
                 context.player1.clickCard(context.wildernessFighter);
                 expect(context.player1.countExhaustedResources()).toBe(1);
-                expect(context.wildernessFighter).toBeInLocation('ground arena');
+                expect(context.wildernessFighter).toBeInZone('ground arena');
 
                 resetState();
 
                 // CASE 5: second NHNV card played after Bendu attacks - no discount
                 context.player1.clickCard(context.consortiumStarviper);
                 expect(context.player1.countExhaustedResources()).toBe(3);
-                expect(context.consortiumStarviper).toBeInLocation('space arena');
+                expect(context.consortiumStarviper).toBeInZone('space arena');
 
                 resetState();
 
@@ -88,7 +88,7 @@ describe('Bendu, The One in the Middle', function() {
                 // CASE 6: NHNV card played after Bendu attacks in previous phase - no discount
                 context.player1.clickCard(context.homesteadMilitia);
                 expect(context.player1.countExhaustedResources()).toBe(3);
-                expect(context.homesteadMilitia).toBeInLocation('ground arena');
+                expect(context.homesteadMilitia).toBeInZone('ground arena');
 
                 // Bendu attacks twice in a row to get double discount
                 resetState();
@@ -105,7 +105,7 @@ describe('Bendu, The One in the Middle', function() {
                 // CASE 8: second NHNV card played after Bendu double attack - no discount
                 context.player1.clickCard(context.hwk290Freighter);
                 expect(context.player1.countExhaustedResources()).toBe(3);
-                expect(context.hwk290Freighter).toBeInLocation('space arena');
+                expect(context.hwk290Freighter).toBeInZone('space arena');
 
                 // Bendu defeated due to combat
                 resetState();
@@ -117,7 +117,7 @@ describe('Bendu, The One in the Middle', function() {
                 // CASE 9: NHNV card played after Bendu defeated during attack - discount applied
                 context.player1.clickCard(context.wroshyrTreeTender);
                 expect(context.player1.countExhaustedResources()).toBe(1);
-                expect(context.wroshyrTreeTender).toBeInLocation('ground arena');
+                expect(context.wroshyrTreeTender).toBeInZone('ground arena');
             });
         });
     });

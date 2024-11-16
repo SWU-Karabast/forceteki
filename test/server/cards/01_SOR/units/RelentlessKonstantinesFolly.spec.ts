@@ -23,8 +23,8 @@ describe('Relentless, Konstantine\'s Folly', function() {
                 let exhaustedResourcesBeforeCardPlay = context.player2.countExhaustedResources();
                 context.player2.clickCard(context.vanquish);
                 expect(context.player2.countExhaustedResources()).toBe(exhaustedResourcesBeforeCardPlay + 5);
-                expect(context.relentless).toBeInLocation('space arena');
-                expect(context.vanquish).toBeInLocation('discard');
+                expect(context.relentless).toBeInZone('space arena');
+                expect(context.vanquish).toBeInZone('discard');
 
                 context.player1.passAction();
 
@@ -55,9 +55,9 @@ describe('Relentless, Konstantine\'s Folly', function() {
 
                 context.player1.clickCard(context.relentless);
 
-                expect(context.relentless).toBeInLocation('space arena');
+                expect(context.relentless).toBeInZone('space arena');
                 context.player2.clickCard(context.vanquish);
-                expect(context.relentless).toBeInLocation('discard');
+                expect(context.relentless).toBeInZone('discard');
             });
 
             it('should not nullify an event played by its controller', function () {

@@ -25,7 +25,7 @@ describe('Play upgrade from hand', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.upgrades).toContain(context.entrenched);
                 expect(context.wampa.upgrades.length).toBe(1);
-                expect(context.entrenched).toBeInLocation('ground arena');
+                expect(context.entrenched).toBeInZone('ground arena');
                 expect(context.wampa.getPower()).toBe(7);
                 expect(context.wampa.getHp()).toBe(8);
 
@@ -39,7 +39,7 @@ describe('Play upgrade from hand', function() {
                 context.player1.clickCard(context.tielnFighter);
                 expect(context.tielnFighter.upgrades).toContain(context.academyTraining);
                 expect(context.wampa.upgrades.length).toBe(1);
-                expect(context.academyTraining).toBeInLocation('space arena');
+                expect(context.academyTraining).toBeInZone('space arena');
                 expect(context.tielnFighter.getPower()).toBe(4);
                 expect(context.tielnFighter.getHp()).toBe(3);
 
@@ -53,7 +53,7 @@ describe('Play upgrade from hand', function() {
                 context.player1.clickCard(context.brightHope);
                 expect(context.brightHope.upgrades).toContain(context.resilient);
                 expect(context.wampa.upgrades.length).toBe(1);
-                expect(context.resilient).toBeInLocation('space arena', context.player2);
+                expect(context.resilient).toBeInZone('space arena', context.player2);
                 expect(context.brightHope.getPower()).toBe(2);
                 expect(context.brightHope.getHp()).toBe(9);
 

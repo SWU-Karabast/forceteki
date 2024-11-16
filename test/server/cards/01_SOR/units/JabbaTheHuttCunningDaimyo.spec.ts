@@ -29,7 +29,7 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 expect(context.player1).toHaveEnabledPromptButtons([context.waylay.title, p1ShootFirst.title, context.asteroidSanctuary.title, 'Take nothing']);
 
                 context.player1.clickPrompt(context.waylay.title);
-                expect(context.waylay).toBeInLocation('hand');
+                expect(context.waylay).toBeInZone('hand');
 
                 context.player2.passAction();
                 const lastExhaustedResources = context.player1.countExhaustedResources();

@@ -19,7 +19,7 @@ describe('Fleet Lieutenant', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fleetLieutenant);
-                expect(context.fleetLieutenant).toBeInLocation('ground arena');
+                expect(context.fleetLieutenant).toBeInZone('ground arena');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.monMothma]);
 
                 context.player1.clickCard(context.wampa);
@@ -55,7 +55,7 @@ describe('Fleet Lieutenant', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fleetLieutenant);
-                expect(context.fleetLieutenant).toBeInLocation('ground arena');
+                expect(context.fleetLieutenant).toBeInZone('ground arena');
 
                 context.player1.clickPrompt('Pass ability');
                 expect(context.player2).toBeActivePlayer();
@@ -65,7 +65,7 @@ describe('Fleet Lieutenant', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fleetLieutenant);
-                expect(context.fleetLieutenant).toBeInLocation('ground arena');
+                expect(context.fleetLieutenant).toBeInZone('ground arena');
 
                 context.player1.clickCard(context.monMothma);
 

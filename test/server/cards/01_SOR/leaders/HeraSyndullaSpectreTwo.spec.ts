@@ -27,7 +27,7 @@ describe('Hera Syndulla, Spectre Two', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.battlefieldMarine, context.yoda]);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.pykeSentinel).toBeInZone('discard');
                 expect(context.player1.countExhaustedResources()).toBe(4);
 
                 context.player2.passAction();
@@ -64,7 +64,7 @@ describe('Hera Syndulla, Spectre Two', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.delMeeko]);
                 context.player1.clickCard(context.pykeSentinel);
 
-                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.pykeSentinel).toBeInZone('discard');
                 expect(context.player1.countExhaustedResources()).toBe(3);
             });
 
@@ -123,7 +123,7 @@ describe('Hera Syndulla, Spectre Two', function() {
 
                 expect(context.chopper).toHaveExactUpgradeNames(['experience']);
                 expect(context.heraSyndulla.damage).toBe(2);
-                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.pykeSentinel).toBeInZone('discard');
             });
         });
     });

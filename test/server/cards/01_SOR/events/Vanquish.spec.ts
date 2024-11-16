@@ -23,7 +23,7 @@ describe('Vanquish', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa, context.imperialInterceptor]);
 
                 context.player1.clickCard(context.imperialInterceptor);
-                expect(context.imperialInterceptor).toBeInLocation('discard');
+                expect(context.imperialInterceptor).toBeInZone('discard');
             });
         });
     });

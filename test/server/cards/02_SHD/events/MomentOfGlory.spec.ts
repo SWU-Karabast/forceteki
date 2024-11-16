@@ -30,7 +30,7 @@ describe('Moment of Glory', function () {
                 // pyke sentinel is automatically choose
                 expect(context.atst.damage).toBe(6);
                 expect(context.pykeSentinel.damage).toBe(6);
-                expect(context.pykeSentinel).toBeInLocation('ground arena');
+                expect(context.pykeSentinel).toBeInZone('ground arena');
             });
         });
     });

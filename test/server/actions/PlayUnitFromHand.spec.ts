@@ -21,7 +21,7 @@ describe('Play unit from hand', function() {
 
                 context.player1.clickCard(context.cartelSpacer);
 
-                expect(context.cartelSpacer).toBeInLocation('space arena');
+                expect(context.cartelSpacer).toBeInZone('space arena');
                 expect(context.cartelSpacer.exhausted).toBe(true);
                 expect(context.player1.countSpendableResources()).toBe(4);
                 expect(context.player1.countExhaustedResources()).toBe(2);
@@ -32,7 +32,7 @@ describe('Play unit from hand', function() {
 
                 context.player1.clickCard(context.firstLegionSnowtrooper);
 
-                expect(context.firstLegionSnowtrooper).toBeInLocation('ground arena');
+                expect(context.firstLegionSnowtrooper).toBeInZone('ground arena');
                 expect(context.firstLegionSnowtrooper.exhausted).toBe(true);
                 expect(context.player1.countSpendableResources()).toBe(2);
                 expect(context.player1.countExhaustedResources()).toBe(4);
@@ -43,7 +43,7 @@ describe('Play unit from hand', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.battlefieldMarine).toBeInLocation('ground arena');
+                expect(context.battlefieldMarine).toBeInZone('ground arena');
                 expect(context.battlefieldMarine.exhausted).toBe(true);
                 expect(context.player1.countSpendableResources()).toBe(0);
                 expect(context.player1.countExhaustedResources()).toBe(6);

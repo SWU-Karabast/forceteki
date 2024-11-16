@@ -20,8 +20,8 @@ export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
 
-export const isArena = (location: ZoneFilter) => {
-    switch (location) {
+export const isArena = (zone: ZoneFilter) => {
+    switch (zone) {
         case ZoneName.GroundArena:
         case ZoneName.SpaceArena:
         case WildcardZoneName.AnyArena:
@@ -31,8 +31,8 @@ export const isArena = (location: ZoneFilter) => {
     }
 };
 
-export const isAttackableLocation = (location: ZoneFilter) => {
-    switch (location) {
+export const isAttackableZone = (zone: ZoneFilter) => {
+    switch (zone) {
         case ZoneName.GroundArena:
         case ZoneName.SpaceArena:
         case WildcardZoneName.AnyArena:
@@ -43,8 +43,8 @@ export const isAttackableLocation = (location: ZoneFilter) => {
     }
 };
 
-export const isHidden = (location: ZoneFilter, controller: RelativePlayer) => {
-    switch (location) {
+export const isHidden = (zone: ZoneFilter, controller: RelativePlayer) => {
+    switch (zone) {
         case ZoneName.Hand:
         case ZoneName.Resource:
             return controller !== RelativePlayer.Opponent;
@@ -55,22 +55,22 @@ export const isHidden = (location: ZoneFilter, controller: RelativePlayer) => {
     }
 };
 
-// return true if the card location matches one of the allowed location filters
-export const cardLocationMatches = (cardLocation: ZoneName, zoneFilter: ZoneFilter | ZoneFilter[]) => {
+// return true if the card zone matches one of the allowed zone filters
+export const cardZoneMatches = (cardZone: ZoneName, zoneFilter: ZoneFilter | ZoneFilter[]) => {
     if (!Array.isArray(zoneFilter)) {
         zoneFilter = [zoneFilter];
     }
 
-    return zoneFilter.some((allowedLocation) => {
-        switch (allowedLocation) {
+    return zoneFilter.some((allowedZone) => {
+        switch (allowedZone) {
             case WildcardZoneName.Any:
                 return true;
             case WildcardZoneName.AnyArena:
-                return isArena(cardLocation);
+                return isArena(cardZone);
             case WildcardZoneName.AnyAttackable:
-                return isAttackableLocation(cardLocation);
+                return isAttackableZone(cardZone);
             default:
-                return cardLocation === allowedLocation;
+                return cardZone === allowedZone;
         }
     });
 };
@@ -133,7 +133,7 @@ export const isPlayable = (cardType: CardTypeFilter) => {
     }
 };
 
-// return true if the card location matches one of the allowed location filters
+// return true if the card zone matches one of the allowed zone filters
 export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilter | CardTypeFilter[]) => {
     if (!Array.isArray(cardTypeFilter)) {
         cardTypeFilter = [cardTypeFilter];

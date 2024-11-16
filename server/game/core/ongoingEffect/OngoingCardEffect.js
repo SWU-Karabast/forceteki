@@ -31,7 +31,7 @@ class OngoingCardEffect extends OngoingEffect {
         this.targetController = properties.targetController || RelativePlayer.Self;
 
         // TODO: rework getTargets() so that we can provide an array while still not searching all cards in the game every time
-        Contract.assertFalse(Array.isArray(properties.targetZoneFilter), 'Target location filter for an effect definition cannot be an array');
+        Contract.assertFalse(Array.isArray(properties.targetZoneFilter), 'Target zone filter for an effect definition cannot be an array');
 
         this.targetCardTypeFilter = properties.targetCardTypeFilter ? Helpers.asArray(properties.targetCardTypeFilter) : [WildcardCardType.Unit];
     }
@@ -50,7 +50,7 @@ class OngoingCardEffect extends OngoingEffect {
         return (
             (this.targetController !== RelativePlayer.Self || target.controller === this.source.controller) &&
             (this.targetController !== RelativePlayer.Opponent || target.controller !== this.source.controller) &&
-            EnumHelpers.cardLocationMatches(target.zoneName, this.targetZoneFilter) &&
+            EnumHelpers.cardZoneMatches(target.zoneName, this.targetZoneFilter) &&
             EnumHelpers.cardTypeMatches(target.type, this.targetCardTypeFilter) &&
             this.matchTarget(target, this.context)
         );

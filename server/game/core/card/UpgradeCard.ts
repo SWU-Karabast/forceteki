@@ -62,11 +62,11 @@ export class UpgradeCard extends UpgradeCardParent {
         return this._parentCard;
     }
 
-    public override moveTo(targetLocation: ZoneName) {
-        Contract.assertFalse(this._parentCard && targetLocation !== this._parentCard.zoneName,
+    public override moveTo(targetZone: ZoneName) {
+        Contract.assertFalse(this._parentCard && targetZone !== this._parentCard.zoneName,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
-        super.moveTo(targetLocation);
+        super.moveTo(targetZone);
     }
 
     public attachTo(newParentCard: UnitCard) {
@@ -136,7 +136,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: this.addLocationCheckToGainCondition(gainCondition),
+            condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
         });
     }
@@ -150,7 +150,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: this.addLocationCheckToGainCondition(gainCondition),
+            condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
         });
     }
@@ -166,7 +166,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: this.addLocationCheckToGainCondition(gainCondition),
+            condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
         });
     }
@@ -180,7 +180,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give keyword to the attached card',
-            condition: this.addLocationCheckToGainCondition(gainCondition),
+            condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(keywordProperties)
         });
     }
@@ -189,7 +189,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * This is required because a gainCondition call can happen after an upgrade is discarded,
      * so we need to short-circuit in that case to keep from trying to access illegal state such as parentCard
      */
-    private addLocationCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
+    private addZoneCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
         return gainCondition == null
             ? null
             : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
@@ -202,8 +202,8 @@ export class UpgradeCard extends UpgradeCardParent {
         this.attachCondition = attachCondition;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: ZoneName): void {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+        super.initializeForCurrentZone(prevZone);
 
         switch (this.zoneName) {
             case ZoneName.Resource:

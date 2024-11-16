@@ -55,7 +55,7 @@ describe('Leia Organa, Defiant Princess', function() {
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickPrompt('Exhaust a unit');
                 expect(context.player2).toBeActivePlayer();
-                expect(context.leiaOrgana).toBeInLocation('ground arena');
+                expect(context.leiaOrgana).toBeInZone('ground arena');
                 expect(context.leiaOrgana.exhausted).toBe(true);
             });
         });

@@ -37,7 +37,7 @@ describe('ISB Agent', function() {
                     expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.atst, context.cartelSpacer, context.wampa, context.allianceXwing]);
                     context.player1.clickCard(context.wampa);
 
-                    expect(context.isbAgent).toBeInLocation('ground arena');
+                    expect(context.isbAgent).toBeInZone('ground arena');
                     expect(context.wampa.damage).toBe(1);
                 });
 
@@ -56,7 +56,7 @@ describe('ISB Agent', function() {
                         'player1 uses ISB Agent',
                     ]);
 
-                    expect(context.isbAgent).toBeInLocation('ground arena');
+                    expect(context.isbAgent).toBeInZone('ground arena');
                     expect(context.isbAgent.damage).toBe(0);
                     expect(context.atst.damage).toBe(0);
                     expect(context.cartelSpacer.damage).toBe(0);
@@ -89,7 +89,7 @@ describe('ISB Agent', function() {
                         'player1 plays ISB Agent',
                     ]);
 
-                    expect(context.isbAgent).toBeInLocation('ground arena');
+                    expect(context.isbAgent).toBeInZone('ground arena');
                     expect(context.isbAgent.damage).toBe(0);
 
                     expect(context.player2).toBeActivePlayer();

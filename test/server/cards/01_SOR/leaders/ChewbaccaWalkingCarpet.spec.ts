@@ -49,7 +49,7 @@ describe('Chewbacca, Walking Carpet', function() {
 
                 // test sentinel gain again for good measure
                 context.player2.clickCard(context.tielnFighter);
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
             });
         });
     }); // No tests for the unit side because it's only text is keywords.

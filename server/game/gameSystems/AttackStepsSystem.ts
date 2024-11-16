@@ -62,7 +62,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         Contract.assertTrue(properties.attacker.isUnit());
-        if (!properties.attacker.isInPlay() || !EnumHelpers.isAttackableLocation(target.zoneName)) {
+        if (!properties.attacker.isInPlay() || !EnumHelpers.isAttackableZone(target.zoneName)) {
             context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
             return;
         }
@@ -115,11 +115,11 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return false; // cannot attack cards with a BeAttacked restriction
         }
 
-        const attackerLocation = properties.attacker.zoneName === ZoneName.GroundArena ? ZoneName.GroundArena : ZoneName.SpaceArena;
-        const canTargetGround = attackerLocation === ZoneName.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
-        const canTargetSpace = attackerLocation === ZoneName.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
+        const attackerZone = properties.attacker.zoneName === ZoneName.GroundArena ? ZoneName.GroundArena : ZoneName.SpaceArena;
+        const canTargetGround = attackerZone === ZoneName.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
+        const canTargetSpace = attackerZone === ZoneName.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
         if (
-            targetCard.zoneName !== attackerLocation &&
+            targetCard.zoneName !== attackerZone &&
             targetCard.zoneName !== ZoneName.Base &&
             !(targetCard.zoneName === ZoneName.SpaceArena && canTargetSpace) &&
             !(targetCard.zoneName === ZoneName.GroundArena && canTargetGround)
@@ -128,14 +128,14 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
 
         if (!properties.attacker.hasSomeKeyword(KeywordName.Saboteur)) { // If not Saboteur, do a Sentinel check
-            if (targetCard.controller.getUnitsInPlay(attackerLocation, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
+            if (targetCard.controller.getUnitsInPlay(attackerZone, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
                 return targetCard.hasSomeKeyword(KeywordName.Sentinel);
             }
         }
 
         return (
             properties.targetCondition(targetCard, context) &&
-            EnumHelpers.isAttackableLocation(targetCard.zoneName)
+            EnumHelpers.isAttackableZone(targetCard.zoneName)
         );
     }
 

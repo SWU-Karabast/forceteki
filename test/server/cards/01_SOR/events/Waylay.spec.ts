@@ -24,7 +24,7 @@ describe('Waylay', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.imperialInterceptor, context.superlaserTechnician]);
 
                 context.player1.clickCard(context.superlaserTechnician);
-                expect(context.superlaserTechnician).toBeInLocation('hand', context.player2);
+                expect(context.superlaserTechnician).toBeInZone('hand', context.player2);
             });
 
             it('should allow the player to select a friendly unit to return to hand and should remove damage and be playable', function () {
@@ -40,15 +40,15 @@ describe('Waylay', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.superlaserTechnician, context.imperialInterceptor]);
 
                 context.player1.clickCard(context.pykeSentinel);
-                expect(context.pykeSentinel).toBeInLocation('hand', context.player1);
-                expect(context.entrenched).toBeInLocation('discard', context.player2);
+                expect(context.pykeSentinel).toBeInZone('hand', context.player1);
+                expect(context.entrenched).toBeInZone('discard', context.player2);
 
                 context.player2.passAction();
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.pykeSentinel.damage).toBe(0); // Just making sure that the damage is not added back
                 expect(context.pykeSentinel.isUpgraded()).toBe(false);
 
-                expect(context.pykeSentinel).toBeInLocation('ground arena', context.player1);
+                expect(context.pykeSentinel).toBeInZone('ground arena', context.player1);
                 expect(context.pykeSentinel.exhausted).toBe(true); // Does not retain state when returned to hand
             });
         });

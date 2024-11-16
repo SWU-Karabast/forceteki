@@ -76,7 +76,7 @@ describe('Maximum Firepower', function() {
 
                 // action play Maximum Firepower without target
                 context.player1.clickCard(context.maximumFirepower);
-                expect(context.maximumFirepower).toBeInLocation('discard');
+                expect(context.maximumFirepower).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
         });

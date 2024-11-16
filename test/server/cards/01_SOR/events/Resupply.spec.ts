@@ -18,7 +18,7 @@ describe('Resupply', function() {
 
                 context.player1.clickCard(context.resupply);
 
-                expect(context.resupply).toBeInLocation('resource');
+                expect(context.resupply).toBeInZone('resource');
                 expect(context.resupply.exhausted).toBe(true);
                 expect(context.player1.resources.length).toBe(startingResources + 1);
                 expect(context.player1.countSpendableResources()).toBe(startingResources - 3);

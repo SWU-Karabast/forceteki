@@ -33,7 +33,7 @@ export class AmbushAbility extends TriggeredAbility {
     }
 
     private static unitWouldHaveAmbushTarget<TSource extends Card = Card>(context: TriggeredAbilityContext<TSource>): boolean {
-        // generate an attack action that won't check location or cost and can't attack bases so that we can see if there would be a hypothetical attack target
+        // generate an attack action that won't check zone or cost and can't attack bases so that we can see if there would be a hypothetical attack target
         const attackAction = AbilityHelper.immediateEffects.attack({
             attacker: context.source,
             targetCondition: (card) => !card.isBase(),

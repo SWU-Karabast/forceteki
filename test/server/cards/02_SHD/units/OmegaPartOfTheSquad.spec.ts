@@ -25,7 +25,7 @@ describe('Omega, Part of the Squad', function() {
                 expect(context.player1).toHaveEnabledPromptButton(context.crosshair.title);
                 expect(context.player1).toHaveDisabledPromptButtons([context.atst.title, context.battlefieldMarine.title, context.cartelSpacer.title, context.pykeSentinel.title]);
                 context.player1.clickPrompt(context.crosshair.title);
-                expect(context.crosshair).toBeInLocation('hand');
+                expect(context.crosshair).toBeInZone('hand');
                 expect(context.getChatLogs(2)).toContain('player1 takes Crosshair');
 
                 // Omega should cost 4 since it cannot discount itself

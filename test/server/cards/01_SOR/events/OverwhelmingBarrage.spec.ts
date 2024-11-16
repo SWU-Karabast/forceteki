@@ -36,16 +36,16 @@ describe('Overwhelming Barrage', function() {
                 expect(context.wampa.damage).toBe(0);
                 expect(context.atst.damage).toBe(2);
                 expect(context.battlefieldMarine.damage).toBe(2);
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.hanSolo.damage).toBe(1);
 
                 // attack into wampa to confirm stats buff
                 context.setDamage(context.atst, 0);
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.wampa);
-                expect(context.wampa).toBeInLocation('ground arena');
+                expect(context.wampa).toBeInZone('ground arena');
                 expect(context.wampa.damage).toBe(6);
-                expect(context.atst).toBeInLocation('ground arena');
+                expect(context.atst).toBeInZone('ground arena');
                 expect(context.atst.damage).toBe(6);
             });
 
@@ -63,7 +63,7 @@ describe('Overwhelming Barrage', function() {
                 expect(context.wampa.damage).toBe(0);
                 expect(context.atst.damage).toBe(0);
                 expect(context.wampa.damage).toBe(0);
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.hanSolo.damage).toBe(0);
             });
 
@@ -87,9 +87,9 @@ describe('Overwhelming Barrage', function() {
                 context.setDamage(context.atst, 0);
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.wampa);
-                expect(context.wampa).toBeInLocation('ground arena');
+                expect(context.wampa).toBeInZone('ground arena');
                 expect(context.wampa.damage).toBe(6);
-                expect(context.atst).toBeInLocation('ground arena');
+                expect(context.atst).toBeInZone('ground arena');
                 expect(context.atst.damage).toBe(6);
             });
         });

@@ -28,7 +28,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             this.properties.immediateEffect.setDefaultTargetFn((context) => context.targets[name]);
         }
 
-        this.validateLocationLegalForTarget(properties);
+        this.validateZoneLegalForTarget(properties);
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
@@ -170,7 +170,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
-        return zoneFilter && Helpers.asArray(zoneFilter).every((location) => EnumHelpers.isHidden(location, controller));
+        return zoneFilter && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
     }
 
     private cancel(targetResults) {
@@ -211,22 +211,22 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     /**
-     * Checks whether the target's provided location filters have at least one legal location for the provided
-     * card types. This is to catch situations in which a mismatched location and card type was accidentally
+     * Checks whether the target's provided zone filters have at least one legal zone for the provided
+     * card types. This is to catch situations in which a mismatched zone and card type was accidentally
      * provided, which would cause target resolution to always silently fail to find any legal targets.
      */
-    private validateLocationLegalForTarget(properties) {
+    private validateZoneLegalForTarget(properties) {
         if (!properties.zoneFilter || !properties.cardTypeFilter) {
             return;
         }
 
         for (const type of Array.isArray(properties.cardTypeFilter) ? properties.cardTypeFilter : [properties.cardTypeFilter]) {
-            const legalLocations = Helpers.defaultLegalLocationsForCardTypeFilter(type);
-            if (legalLocations.some((location) => EnumHelpers.cardLocationMatches(location, properties.zoneFilter))) {
+            const legalZones = Helpers.defaultLegalZonesForCardTypeFilter(type);
+            if (legalZones.some((zone) => EnumHelpers.cardZoneMatches(zone, properties.zoneFilter))) {
                 return;
             }
         }
 
-        Contract.fail(`Target location filters '${properties.zoneFilter}' for ability has no overlap with legal locations for target card types '${properties.cardTypeFilter}', so target resolution is guaranteed to find no legal targets`);
+        Contract.fail(`Target zone filters '${properties.zoneFilter}' for ability has no overlap with legal zones for target card types '${properties.cardTypeFilter}', so target resolution is guaranteed to find no legal targets`);
     }
 }

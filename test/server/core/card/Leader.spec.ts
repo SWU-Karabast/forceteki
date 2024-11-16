@@ -61,7 +61,7 @@ describe('Leader cards', function() {
                 context.player1.clickPrompt('Deploy Grand Moff Tarkin');
 
                 expect(context.grandMoffTarkin.deployed).toBe(true);
-                expect(context.grandMoffTarkin).toBeInLocation('ground arena');
+                expect(context.grandMoffTarkin).toBeInZone('ground arena');
                 expect(context.grandMoffTarkin.exhausted).toBe(false);
                 expect(context.player2).toBeActivePlayer();
 

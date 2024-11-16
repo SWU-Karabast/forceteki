@@ -31,7 +31,7 @@ describe('Force Choke', function() {
                 const { context } = contextRef;
 
                 context.player1.setLeaderStatus({ card: 'darth-vader#dark-lord-of-the-sith', deployed: true });
-                expect(context.darthVader).toBeInLocation('ground arena');
+                expect(context.darthVader).toBeInZone('ground arena');
 
                 context.player1.clickCard(context.forceChoke);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.kraytDragon, context.darthVader, context.consularSecurityForce]);
