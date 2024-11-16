@@ -6,10 +6,11 @@ import { Card } from '../core/card/Card';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers';
+import { Derivable, derive } from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
 
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
-    amount: number;
+    amount: Derivable<number, Player>;
 
     /* TODO: Add reveal system to when card type filter or card condition exists, as this is required to keep the
     in order to keep the player honest in a in-person game */
@@ -43,7 +44,7 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
                 return false;
             }
 
-            if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableHand.length < properties.amount) {
+            if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableHand.length < derive(properties.amount, player)) {
                 return false;
             }
 
@@ -59,9 +60,9 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
         for (const player of properties.target as Player[]) {
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
 
-            Contract.assertNonNegative(properties.amount);
+            Contract.assertNonNegative(derive(properties.amount, player));
 
-            const amount = Math.min(availableHand.length, properties.amount);
+            const amount = Math.min(availableHand.length, derive(properties.amount, player));
 
             if (amount === 0) {
                 events.push(this.generateEvent(context, additionalProperties));

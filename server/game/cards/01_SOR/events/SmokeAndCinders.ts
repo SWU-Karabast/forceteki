@@ -16,7 +16,7 @@ export default class SmokeAndCinders extends EventCard {
                 (context) => context.game.getPlayers().map((player) =>
                     AbilityHelper.immediateEffects.discardCardsFromOwnHand({
                         target: player,
-                        amount: Math.max(0, player.hand.length - 2)
+                        amount: (player) => Math.max(0, player.hand.length - 2)
                     })
                 )
             )
