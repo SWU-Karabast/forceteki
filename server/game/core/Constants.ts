@@ -27,7 +27,8 @@ export type Arena = Location.GroundArena | Location.SpaceArena;
 
 export enum PlayType {
     PlayFromHand = 'playFromHand',
-    Smuggle = 'smuggle'
+    Smuggle = 'smuggle',
+    PlayFromOutOfPlay = 'playFromOutOfPlay',
 }
 
 export enum StatType {
@@ -370,6 +371,7 @@ export enum StateWatcherName {
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
+    DamageDealtThisPhase = 'damageDealtThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado
@@ -378,7 +380,7 @@ export enum StateWatcherName {
     // - entered play: Boba unit
     // - attacked base: Ephant Mon, Rule with Respect
     // - attacked with unit type: Medal Ceremony, Bo-Katan leader, Asajj Ventress
-    // - discarded: Kylo's TIE Silencer?
+    // - discarded: Kylo's TIE Silencer
 }
 
 /** For "canAffect" and target eligibility checks, indicates whether game state must be changed by the effect in order for the check to pass */
