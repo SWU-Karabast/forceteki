@@ -18,14 +18,14 @@ export default class CrippleAuthority extends EventCard {
                         target: context.source.controller,
                         amount: 1
                     }),
-                    ...context.game.getPlayers()
-                        .filter((player) => player !== context.source.controller && player.resources.length > context.source.controller.resources.length)
-                        .map((player) =>
-                            AbilityHelper.immediateEffects.discardCardsFromOwnHand({
-                                target: player,
-                                amount: 1
-                            })
-                        )
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: context.source.controller.opponent.resources.length > context.source.controller.resources.length,
+                        onTrue: AbilityHelper.immediateEffects.discardCardsFromOwnHand({
+                            target: context.source.controller.opponent,
+                            amount: 1
+                        }),
+                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    })
                 ]
             )
         });
