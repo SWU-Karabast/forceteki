@@ -13,27 +13,23 @@ export default class GalacticAmbition extends EventCard {
 
     public override setupCardAbilities () {
         this.setEventAbility({
-            title: 'Play a non-Heroism unit from your hand for free. Deal damage to your base equal to its cost.',
-            targetResolvers: {
-                playedUnit: {
-                    locationFilter: Location.Hand,
-                    cardTypeFilter: CardType.BasicUnit,
-                    cardCondition: (card) => !card.hasSomeAspect(Aspect.Heroism),
-                    immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                        costAdjusterProperties: {
-                            costAdjustType: CostAdjustType.Free
-                        }
-                    })
-                },
-                damagedBase: {
-                    dependsOn: 'playedUnit',
-                    cardTypeFilter: CardType.Base,
-                    controller: RelativePlayer.Self,
-                    immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: context.targets.playedUnit.printedCost }))
-                }
-            }
+            title: 'Play a non-Heroism unit from your hand for free',
+            targetResolver: {
+                locationFilter: Location.Hand,
+                cardTypeFilter: CardType.BasicUnit,
+                cardCondition: (card) => !card.hasSomeAspect(Aspect.Heroism),
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
+                    costAdjusterProperties: { costAdjustType: CostAdjustType.Free }
+                })
+            },
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Deal damage to your base equal to the played unit\'s cost',
+                immediateEffect: AbilityHelper.immediateEffects.damage({
+                    target: ifYouDoContext.source.controller.base,
+                    amount: ifYouDoContext.target.printedCost
+                })
+            })
         });
     }
 }
-
 GalacticAmbition.implemented = true;

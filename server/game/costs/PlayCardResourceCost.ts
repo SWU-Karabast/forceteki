@@ -2,6 +2,7 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, PlayType } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
+import { CostAdjuster } from '../core/cost/CostAdjuster';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -22,16 +23,18 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
             return false;
         }
 
-        const costAdjusterFromAbility = 'costAdjuster' in context.ability ? context.ability.costAdjuster : null;
-
         // get the minimum cost we could possibly pay for this card to see if we have the resources available
         // (aspect penalty is included in this calculation)
-        const minCost = context.player.getMinimumPossibleCost(context.playType, context, null, costAdjusterFromAbility);
+        const minCost = context.player.getMinimumPossibleCost(context.playType, context, null, this.costAdjusterFromAbility(context));
         if (minCost === 0) {
             return true;
         }
 
         return context.player.readyResourceCount >= minCost;
+    }
+
+    private costAdjusterFromAbility(context: TContext) {
+        return 'costAdjuster' in context.ability ? context.ability.costAdjuster as CostAdjuster : null;
     }
 
     public resolve(context: TContext, result: Result): void {
@@ -44,8 +47,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     }
 
     protected getAdjustedCost(context: TContext): number {
-        const costAdjusterFromAbility = 'costAdjuster' in context.ability ? context.ability.costAdjuster : null;
-        return context.player.getAdjustedCost(context.playType, context.source, context.target, costAdjusterFromAbility);
+        return context.player.getAdjustedCost(context.playType, context.source, context.target, this.costAdjusterFromAbility(context));
     }
 
     public payEvent(context: TContext): GameEvent {

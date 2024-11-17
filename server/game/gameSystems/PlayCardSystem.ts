@@ -3,7 +3,7 @@ import AbilityResolver from '../core/gameSteps/AbilityResolver';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
-import { CardType, PlayType, MetaEventName, Duration } from '../core/Constants';
+import { CardType, PlayType, MetaEventName } from '../core/Constants';
 import * as GameSystemLibrary from './GameSystemLibrary';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { PlayUnitAction } from '../actions/PlayUnitAction';
@@ -11,9 +11,6 @@ import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
 import { PlayEventAction } from '../actions/PlayEventAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
 import { CostAdjuster, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
-import { PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
-import * as AbilityLimit from '../core/ability/AbilityLimit';
-import { modifyCost } from '../ongoingEffects/ModifyCost';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
@@ -23,9 +20,6 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     entersReady?: boolean;
     playType?: PlayType;
     costAdjusterProperties?: ICostAdjusterProperties;
-
-    /** @deprecated not used or tested yet */
-    nested?: boolean;
 }
 
 // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilties with another function(s)
@@ -40,35 +34,18 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         ignoredRequirements: [],
         optional: false,
         entersReady: false,
-        playType: PlayType.PlayFromHand,
-        nested: false
+        playType: PlayType.PlayFromHand
     };
 
     public eventHandler(event, additionalProperties): void {
         const player = event.player;
         const newContext = (event.playCardAbility as PlayCardAction).createContext(player);
 
-        /* if (this.properties.costAdjusterProperties) {
-            this.queueApplyCostAdjusterGameSteps(this.properties.costAdjusterProperties, newContext);
-        }*/
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
     }
 
-    private queueApplyCostAdjusterGameSteps(costAdjusterProperties: ICostAdjusterProperties, context: AbilityContext) {
-        const applyCostAdjusterSystem = new PlayerLastingEffectSystem({
-            duration: Duration.UntilEndOfAction,
-            effect: modifyCost(Object.assign(costAdjusterProperties, { limit: AbilityLimit.perGame(1), playingTypes: context.playType }))
-        });
-        const effectEvents = [];
-        applyCostAdjusterSystem.queueGenerateEventGameSteps(effectEvents, context, {});
-        context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for application of cost adjuster');
-    }
-
-    private makeCostAdjuster(properties: ICostAdjusterProperties, context: AbilityContext) {
-        if (properties) {
-            return new CostAdjuster(context.game, context.source, properties);
-        }
-        return null;
+    private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: AbilityContext) {
+        return properties ? new CostAdjuster(context.game, context.source, properties) : null;
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -104,11 +81,11 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
      * Generate a play card ability for the specified card.
      */
     private generatePlayCardAbility(card: Card, playType: PlayType, costAdjusterForThisAction = null) {
-        const triggerHandlingMode = this.properties.nested ? TriggerHandlingMode.ResolvesTriggers : TriggerHandlingMode.PassesTriggersToParentWindow;
+        const properties = { card, playType, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, costAdjuster: costAdjusterForThisAction };
         switch (card.type) {
-            case CardType.BasicUnit: return new PlayUnitAction(card, playType, this.properties.entersReady, triggerHandlingMode, costAdjusterForThisAction);
-            case CardType.BasicUpgrade: return new PlayUpgradeAction(card, playType, triggerHandlingMode, costAdjusterForThisAction);
-            case CardType.Event: return new PlayEventAction(card, playType, triggerHandlingMode, costAdjusterForThisAction);
+            case CardType.BasicUnit: return new PlayUnitAction(Object.assign(properties, { entersReady: this.properties.entersReady }));
+            case CardType.BasicUpgrade: return new PlayUpgradeAction(properties);
+            case CardType.Event: return new PlayEventAction(properties);
             default: Contract.fail(`Attempted to play a card with invalid type ${card.type} as part of an ability`);
         }
     }

@@ -677,8 +677,9 @@ class Player extends GameObject {
     /**
      * Checks to see what the minimum possible resource cost for an action is, accounting for aspects and available cost adjusters
      * @param {PlayType} playingType
-     * @param card DrawCard
-     * @param target BaseCard
+     * @param {AbilityContext} context
+     * @param target
+     * @param {CostAdjuster} additionalCostAdjuster Used by abilities to add their own specific cost adjuster if necessary
      */
     getMinimumPossibleCost(playingType, context, target, additionalCostAdjuster = null) {
         const card = context.source;
@@ -691,8 +692,9 @@ class Player extends GameObject {
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
      * @param {PlayType} playingType
-     * @param card DrawCard
-     * @param target BaseCard
+     * @param card
+     * @param target
+     * @param {CostAdjuster} additionalCostAdjuster Used by abilities to add their own specific cost adjuster if necessary
      */
     getAdjustedCost(playingType, card, target, additionalCostAdjuster = null) {
         // if any aspect penalties, check modifiers for them separately
@@ -727,8 +729,10 @@ class Player extends GameObject {
     /**
      * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
      * @param {PlayType} playingType
-     * @param card DrawCard
-     * @param target BaseCard
+     * @param {number} baseCost
+     * @param card
+     * @param target
+     * @param {CostAdjuster} additionalCostAdjuster Used by abilities to add their own specific cost adjuster if necessary
      */
     runAdjustersForCostType(playingType, baseCost, card, target, additionalCostAdjuster = null) {
         var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjuster).filter((adjuster) =>
@@ -755,9 +759,11 @@ class Player extends GameObject {
     /**
      * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
      * @param {PlayType} playingType
-     * @param card DrawCard
-     * @param target BaseCard
+     * @param {number} baseCost
+     * @param card
+     * @param target
      * @param penaltyAspect Aspect that is not present on the current base or leader
+     * @param {CostAdjuster} additionalCostAdjuster Used by abilities to add their own specific cost adjuster if necessary
      */
     runAdjustersForAspectPenalties(playingType, baseCost, card, target, penaltyAspect, additionalCostAdjuster = null) {
         var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjuster).filter((adjuster) =>

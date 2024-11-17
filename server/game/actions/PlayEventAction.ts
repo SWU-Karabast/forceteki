@@ -2,21 +2,9 @@ import { AbilityRestriction, EventName, ZoneName, PlayType } from '../core/Const
 import { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract.js';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.js';
-import { MoveCardSystem } from '../gameSystems/MoveCardSystem.js';
 import { GameEvent } from '../core/event/GameEvent.js';
-import { TriggerHandlingMode } from '../core/event/EventWindow.js';
-import { CostAdjuster } from '../core/cost/CostAdjuster.js';
 
 export class PlayEventAction extends PlayCardAction {
-    public constructor(
-        card: Card,
-        playType: PlayType = PlayType.PlayFromHand,
-        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers,
-        costAdjuster: CostAdjuster = null
-    ) {
-        super(card, 'Play this event', playType, triggerHandlingMode, costAdjuster);
-    }
-
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());
 

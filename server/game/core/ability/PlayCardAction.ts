@@ -8,22 +8,38 @@ import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjuster } from '../cost/CostAdjuster';
+import * as Contract from '../utils/Contract';
+
+export interface IPlayCardActionProperties {
+    card: Card;
+    title?: string;
+    playType?: PlayType;
+    triggerHandlingMode?: TriggerHandlingMode;
+    costAdjuster?: CostAdjuster;
+    targetResolver?: IActionTargetResolver;
+    additionalCosts?: ICost[];
+}
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
-    public constructor(
-        card: Card,
-        title: string,
-        protected playType: PlayType,
-        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers,
-        public costAdjuster: CostAdjuster = null,
-        targetResolver: IActionTargetResolver = null,
-        additionalCosts: ICost[] = []
-    ) {
-        super(card, PlayCardAction.getTitle(title, playType), additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver, triggerHandlingMode);
+    protected readonly playType: PlayType;
+    public readonly costAdjuster: CostAdjuster;
 
-        this.playType = playType;
+    public constructor(
+        properties: IPlayCardActionProperties
+    ) {
+        const propertiesWithDefaults = Object.assign({}, { title: 'Play this card', playType: PlayType.PlayFromHand, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, additionalCosts: [] }, properties);
+        super(
+            propertiesWithDefaults.card,
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType),
+            propertiesWithDefaults.additionalCosts.concat(CostLibrary.payPlayCardResourceCost(propertiesWithDefaults.playType)),
+            propertiesWithDefaults.targetResolver,
+            propertiesWithDefaults.triggerHandlingMode
+        );
+
+        this.playType = propertiesWithDefaults.playType;
+        this.costAdjuster = propertiesWithDefaults.costAdjuster;
     }
 
     private static getTitle(title: string, playType: PlayType): string {

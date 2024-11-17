@@ -1,20 +1,23 @@
 import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
-import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
-import { PlayCardAction, PlayCardContext } from '../core/ability/PlayCardAction.js';
+import { PlayCardAction, PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
-import { TriggerHandlingMode } from '../core/event/EventWindow.js';
-import { CostAdjuster } from '../core/cost/CostAdjuster.js';
+
+export interface IPlayUnitActionProperties extends IPlayCardActionProperties {
+    entersReady?: boolean;
+}
 
 export class PlayUnitAction extends PlayCardAction {
+    private entersReady: boolean;
+
     public constructor(
-        card: Card, playType: PlayType = PlayType.PlayFromHand,
-        private entersReady: boolean = false,
-        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.ResolvesTriggers,
-        costAdjuster: CostAdjuster = null
+        properties: IPlayUnitActionProperties
     ) {
-        super(card, 'Play this unit', playType, triggerHandlingMode, costAdjuster);
+        super(Object.assign(properties, { title: 'Play this unit' }));
+
+        // default to false
+        this.entersReady = !!properties.entersReady;
     }
 
     public override executeHandler(context: PlayCardContext): void {

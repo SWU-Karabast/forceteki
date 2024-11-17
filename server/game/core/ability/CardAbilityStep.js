@@ -135,7 +135,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         let effectShouldResolve;
 
         if (this.properties.ifYouDo) {
-            ifAbility = this.properties.ifYouDo;
+            ifAbility = typeof this.properties.ifYouDo === 'function' ? this.properties.ifYouDo(context) : this.properties.ifYouDo;
             effectShouldResolve = true;
         } else if (this.properties.ifYouDoNot) {
             ifAbility = this.properties.ifYouDoNot;
