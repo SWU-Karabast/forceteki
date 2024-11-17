@@ -19,7 +19,7 @@ describe('Slaver\'s Freighter', function() {
                 });
             });
 
-            it('should allow a unit with power less than or equal to the number of upgrades on enemy units to be readied.', function () {
+            it('should allow another unit with power less than or equal to the number of upgrades on enemy units to be readied.', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.slaversFreighter);
