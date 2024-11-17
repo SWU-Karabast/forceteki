@@ -6,7 +6,7 @@ describe('Desperate Attack', function() {
                     phase: 'action',
                     player1: {
                         hand: ['desperate-attack'],
-                        groundArena: [{ card: 'isb-agent', damage: 1 }, { card: 'cell-block-guard', damage: 1 }, { card: 'wampa', exhausted: true }],
+                        groundArena: [{ card: 'isb-agent', damage: 1 }, { card: 'cell-block-guard', damage: 1 }, 'wampa'],
                         spaceArena: ['tieln-fighter']
                     },
                     player2: {
