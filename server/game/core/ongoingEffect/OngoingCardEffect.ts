@@ -1,5 +1,5 @@
 import { OngoingEffect } from './OngoingEffect';
-import { RelativePlayer, WildcardLocation, WildcardCardType, CardTypeFilter, LocationFilter, RelativePlayerValues } from '../Constants';
+import { RelativePlayer, WildcardLocation, WildcardCardType, CardTypeFilter, LocationFilter, relativePlayerValues } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
@@ -29,7 +29,7 @@ export class OngoingCardEffect extends OngoingEffect {
 
         this.targetsSourceOnly = false;
         this.targetController = properties.targetController || RelativePlayer.Self;
-        Contract.assertArrayIncludes(RelativePlayerValues, this.targetController, "target controller must be a RelativePlayer enum.");
+        Contract.assertArrayIncludes(relativePlayerValues, this.targetController, "target controller must be a RelativePlayer enum.");
 
         if (!properties.targetLocationFilter) {
             this.targetLocationFilter = properties.sourceLocationFilter === WildcardLocation.Any

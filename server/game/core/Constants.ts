@@ -106,7 +106,7 @@ export enum RelativePlayer {
 }
 
 /** RelativePlayer values as an array, primarily for checking if a value is a RelativePlayer at all. */
-export const RelativePlayerValues = Object.freeze(Object.values(RelativePlayer));
+export const relativePlayerValues = Object.freeze(Object.values(RelativePlayer));
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',
