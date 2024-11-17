@@ -86,7 +86,6 @@ class ActionWindow extends UiPrompt {
             this.highlightSelectableCards();
             this.game.currentActionWindow = this;
         } else {
-            this.game.emit(EventName.OnActionEnded);
             this.game.currentActionWindow = null;
         }
         return completed;

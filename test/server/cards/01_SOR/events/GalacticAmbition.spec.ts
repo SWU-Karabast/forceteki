@@ -7,7 +7,8 @@ describe('Galactic Ambition', function () {
                     player1: {
                         hand: ['galactic-ambition', 'supreme-leader-snoke#shadow-ruler', 'redemption#medical-frigate', 'bounty-guild-initiate', 'i-am-your-father'],
                         base: 'kestro-city',
-                        leader: 'grand-moff-tarkin#oversector-governor'
+                        leader: 'grand-moff-tarkin#oversector-governor',
+                        resources: 7
                     }
                 });
             });
