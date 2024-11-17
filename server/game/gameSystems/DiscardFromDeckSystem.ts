@@ -48,7 +48,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
             }
         }
 
-        return super.canAffect(player, context);
+        return true;
     }
 
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
