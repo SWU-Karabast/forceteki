@@ -324,7 +324,7 @@ class PlayerOrCardAbility {
     // TODO: refactor the other methods to also be type predicates
     /**
      * Indicates whether a card is played as part of the resolution this ability
-     * @returns {boolean}
+     * @returns {this is import('./PlayCardAction.js').PlayCardAction}
      */
     isCardPlayed() {
         return false;

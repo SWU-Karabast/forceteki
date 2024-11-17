@@ -10,7 +10,7 @@ import { PlayUnitAction } from '../actions/PlayUnitAction';
 import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
 import { PlayEventAction } from '../actions/PlayEventAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
-import { CostAdjuster, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { CostAdjuster } from '../core/cost/CostAdjuster';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
@@ -43,10 +43,6 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
     }
-
-    /* private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: AbilityContext) {
-        return properties ? new CostAdjuster(context.game, context.source, properties) : null;
-    }*/
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
