@@ -1,5 +1,5 @@
 import OngoingEffect from './OngoingEffect';
-import { RelativePlayer, WildcardLocation, WildcardCardType, CardTypeFilter, Location } from '../Constants';
+import { RelativePlayer, WildcardLocation, WildcardCardType, CardTypeFilter, LocationFilter } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
@@ -10,7 +10,7 @@ import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 
 class OngoingCardEffect extends OngoingEffect {
     public targetsSourceOnly: boolean;
-    public targetLocationFilter: WildcardLocation;
+    public targetLocationFilter: LocationFilter;
     public targetCardTypeFilter: CardTypeFilter[];
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effect: OngoingEffectImpl<any>) {

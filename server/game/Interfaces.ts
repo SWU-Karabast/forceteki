@@ -39,9 +39,9 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 export interface IOngoingEffectProps {
     targetController?: RelativePlayer;
     targetCardTypeFilter?: any;
-    sourceLocationFilter?: WildcardLocation;
+    sourceLocationFilter?: LocationFilter;
     matchTarget?: () => boolean;
-    targetLocationFilter?: WildcardLocation;
+    targetLocationFilter?: LocationFilter;
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;

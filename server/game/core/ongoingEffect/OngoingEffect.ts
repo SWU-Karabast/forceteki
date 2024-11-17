@@ -1,7 +1,7 @@
 import { IOngoingEffectProps, WhenType } from '../../Interfaces';
 import { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { Duration, RelativePlayer, WildcardLocation } from '../Constants';
+import { Duration, LocationFilter, RelativePlayer, WildcardLocation } from '../Constants';
 import Game from '../Game';
 import { GameObject } from '../GameObject';
 import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
@@ -41,7 +41,7 @@ class OngoingEffect {
     public duration?: Duration;
     public until: WhenType;
     public condition: (context?: AbilityContext) => boolean;
-    public sourceLocationFilter: WildcardLocation;
+    public sourceLocationFilter: LocationFilter;
     public canChangeZoneOnce: boolean;
     public canChangeZoneNTimes: number;
     public impl: OngoingEffectImpl<any>;
