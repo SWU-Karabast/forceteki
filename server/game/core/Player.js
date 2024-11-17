@@ -937,18 +937,18 @@ class Player extends GameObject {
     // TODO: Create an ExhaustResourcesSystem
     exhaustResources(count, priorityResources = []) {
         const readyPriorityResources = priorityResources.filter((resource) => !resource.exhausted);
-        const regularResourcesToReady = count - this.readyResourcesInList(readyPriorityResources, count);
+        const regularResourcesToReady = count - this.exhaustResourcesInList(readyPriorityResources, count);
 
         if (regularResourcesToReady > 0) {
             const readyRegularResources = this.resources.filter((card) => !card.exhausted);
-            this.readyResourcesInList(readyRegularResources, regularResourcesToReady);
+            this.exhaustResourcesInList(readyRegularResources, regularResourcesToReady);
         }
     }
 
     /**
      * Returns how many resources were readied
      */
-    readyResourcesInList(resources, count) {
+    exhaustResourcesInList(resources, count) {
         if (count < resources.length) {
             resources.slice(0, count).forEach((resource) => resource.exhaust());
             return count;
@@ -969,6 +969,25 @@ class Player extends GameObject {
     }
 
     /**
+     * If possible, exhaust the given resource and ready another one instead
+     */
+    swapResourceReadyState(resource) {
+        Contract.assertTrue(resource.location === Location.Resource, 'Tried to exhaust a resource that is not in the resource zone');
+
+        // The resource is already exhausted, do nothing
+        if (resource.exhausted) {
+            return;
+        }
+
+        // Find an exhausted resource to ready and swap the status
+        let exhaustedResource = this.resources.find((card) => card.exhausted);
+        if (exhaustedResource) {
+            resource.exhaust();
+            exhaustedResource.ready();
+        }
+    }
+
+    /**
      * Moves a card from one location to another. This involves removing in from the list it's currently in, calling BaseCard.move (which changes
      * its location property), and then adding it to the list it should now be in
      * @param card BaseCard
@@ -976,6 +995,12 @@ class Player extends GameObject {
      * @param {Object} options
      */
     moveCard(card, targetLocation, options = {}) {
+        // If the card is a resource and it is ready, try to ready another resource instead
+        // and exhaust this one. This should be the desired behavior for most cases.
+        if (card.location === Location.Resource && card.canBeExhausted() && !card.exhausted) {
+            card.controller.swapResourceReadyState(card);
+        }
+
         this.removeCardFromPile(card);
 
         if (targetLocation.endsWith(' bottom')) {
