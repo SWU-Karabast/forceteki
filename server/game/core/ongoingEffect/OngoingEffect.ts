@@ -70,7 +70,7 @@ export abstract class OngoingEffect {
     public refreshContext() {
         this.context = this.game.getFrameworkContext(this.source.controller);
         this.context.source = this.source;
-        // The process of creating the OngoingEffect tacks on additional properties that are ability related, 
+        // The process of creating the OngoingEffect tacks on additional properties that are ability related,
         //  so this is *probably* fine, but definitely a sign it needs a refactor at some point.
         this.context.ability = this.ability as PlayerOrCardAbility;
         this.impl.setContext(this.context);

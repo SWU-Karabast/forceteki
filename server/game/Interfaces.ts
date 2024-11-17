@@ -53,7 +53,7 @@ export interface IOngoingEffectProps {
 }
 
 export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
-    targetController?: Player | RelativePlayer;    
+    targetController?: Player | RelativePlayer;
 }
 
 export interface IOngoingCardEffectProps extends IOngoingEffectProps {

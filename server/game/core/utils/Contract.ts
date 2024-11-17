@@ -75,21 +75,21 @@ export function assertHasProperty<T extends object, PropertyName extends string>
     }
 }
 
-export function assertArraySize<T>(ara: ReadonlyArray<T>, expectedSize: number, message?: string): asserts ara is NonNullable<T[]> {
+export function assertArraySize<T>(ara: readonly T[], expectedSize: number, message?: string): asserts ara is NonNullable<T[]> {
     assertNotNullLike(ara);
     if (ara.length !== expectedSize) {
         contractCheckImpl.fail(message ?? `Array size ${ara.length} does not match expected size ${expectedSize}`);
     }
 }
 
-export function assertArrayIncludes<T>(ara: ReadonlyArray<T>, element: T, message?: string): asserts ara is NonNullable<T[]> {
+export function assertArrayIncludes<T>(ara: readonly T[], element: T, message?: string): asserts ara is NonNullable<T[]> {
     assertNotNullLike(ara);
     if (!ara.includes(element)) {
         contractCheckImpl.fail(message ?? `Array does not contain element ${element}`);
     }
 }
 
-export function assertNonEmpty<T>(ara: ReadonlyArray<T>, message?: string): asserts ara is NonNullable<T[]> {
+export function assertNonEmpty<T>(ara: readonly T[], message?: string): asserts ara is NonNullable<T[]> {
     assertNotNullLike(ara);
     if (ara.length === 0) {
         contractCheckImpl.fail(message ?? 'Array is empty');
