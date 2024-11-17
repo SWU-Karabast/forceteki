@@ -18,16 +18,16 @@ export default class ItBindsAllThings extends EventCard {
                 controller: RelativePlayer.Any,
                 canChooseNoTargets: true,
                 cardTypeFilter: WildcardCardType.Unit,
-                canDistributeLess: true,
                 maxTargets: 1,
             }),
             then: (thenContext) => ({
-                title: 'If you control a FORCE unit, you may deal that much damage to another unit.',
+                title: 'If you control a Force unit, you may deal that much damage to another unit.',
+                optional: true,
+                thenCondition: () => thenContext.source.controller.isTraitInPlay(Trait.Force) &&
+                  thenContext.events[0].damageRemoved > 0,
                 targetResolver: {
-                    optional: true,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card) => thenContext.source.controller.isTraitInPlay(Trait.Force) &&
-                      card !== thenContext.events[0].card && thenContext.events[0].damageRemoved > 0,
+                    cardCondition: (card) => card !== thenContext.events[0].card,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: thenContext.events[0].damageRemoved }),
                 }
             })

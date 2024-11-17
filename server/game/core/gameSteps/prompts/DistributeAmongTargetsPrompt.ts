@@ -42,10 +42,10 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         let menuTitle = null;
         if (this.properties.maxTargets) {
             menuTitle = this.properties.maxTargets > 1
-                ? `Distribute ${this.distributeType} up to ${this.properties.maxTargets} targets`
-                : `Distribute ${this.distributeType} to 1 target`;
+                ? `Distribute ${this.properties.amount} ${this.distributeType} up to ${this.properties.maxTargets} targets`
+                : `Distribute ${this.properties.amount} ${this.distributeType} to 1 target`;
         } else {
-            menuTitle = `Distribute ${this.distributeType} among targets`;
+            menuTitle = `Distribute ${this.properties.amount} ${this.distributeType} among targets`;
         }
 
         const promptData: IDistributeAmongTargetsPromptData = {
