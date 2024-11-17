@@ -19,7 +19,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     optional?: boolean;
     entersReady?: boolean;
     playType?: PlayType;
-    costAdjusterProperties?: ICostAdjusterProperties;
+    costAdjuster?: CostAdjuster;
 }
 
 // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilties with another function(s)
@@ -44,9 +44,9 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
     }
 
-    private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: AbilityContext) {
+    /* private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: AbilityContext) {
         return properties ? new CostAdjuster(context.game, context.source, properties) : null;
-    }
+    }*/
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);

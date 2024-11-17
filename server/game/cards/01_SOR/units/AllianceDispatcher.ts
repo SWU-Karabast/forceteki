@@ -19,7 +19,7 @@ export default class AllianceDispatcher extends NonLeaderUnitCard {
                 cardTypeFilter: CardType.BasicUnit,
                 locationFilter: Location.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    costAdjusterProperties: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
+                    costAdjuster: AbilityHelper.costAdjusters.decreaseCost(this, 1)
                 })
             }
         });

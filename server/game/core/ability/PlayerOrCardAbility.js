@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
 const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
+// const { PlayCardAction } = require('./PlayCardAction.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -320,7 +321,11 @@ class PlayerOrCardAbility {
         return this.type === AbilityType.Triggered;
     }
 
-    /** Indicates whether a card is played as part of the resolution this ability */
+    // TODO: refactor the other methods to also be type predicates
+    /**
+     * Indicates whether a card is played as part of the resolution this ability
+     * @returns {boolean}
+     */
     isCardPlayed() {
         return false;
     }

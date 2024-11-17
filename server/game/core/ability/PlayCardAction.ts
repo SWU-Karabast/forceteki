@@ -8,7 +8,6 @@ import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjuster } from '../cost/CostAdjuster';
-import * as Contract from '../utils/Contract';
 
 export interface IPlayCardActionProperties {
     card: Card;
@@ -87,7 +86,7 @@ export abstract class PlayCardAction extends PlayerAction {
         });
     }
 
-    public override isCardPlayed(): boolean {
+    public override isCardPlayed(): this is PlayCardAction {
         return true;
     }
 

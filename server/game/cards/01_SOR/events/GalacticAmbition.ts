@@ -19,7 +19,7 @@ export default class GalacticAmbition extends EventCard {
                 cardTypeFilter: CardType.BasicUnit,
                 cardCondition: (card) => !card.hasSomeAspect(Aspect.Heroism),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    costAdjusterProperties: { costAdjustType: CostAdjustType.Free }
+                    costAdjuster: AbilityHelper.costAdjusters.ignoreCost(this)
                 })
             },
             ifYouDo: (ifYouDoContext) => ({

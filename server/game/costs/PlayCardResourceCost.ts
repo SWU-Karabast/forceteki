@@ -3,6 +3,7 @@ import { EventName, PlayType } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import { CostAdjuster } from '../core/cost/CostAdjuster';
+import * as Contract from '../core/utils/Contract.js';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -34,6 +35,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     }
 
     private costAdjusterFromAbility(context: TContext) {
+        Contract.assertTrue(context.ability.isCardPlayed());
         return 'costAdjuster' in context.ability ? context.ability.costAdjuster as CostAdjuster : null;
     }
 
