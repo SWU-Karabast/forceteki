@@ -23,9 +23,7 @@ export default class EchoRestored extends NonLeaderUnitCard {
                 title: 'Give 2 Experience tokens to a unit in play with the same name as the discarded card',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card) => {
-                        return card.title === context.events[0].card.title;
-                    },
+                    cardCondition: (card) => card.title === context.events[0].card.title,
                     immediateEffect: AbilityHelper.immediateEffects.giveExperience({ amount: 2 })
                 }
             })
