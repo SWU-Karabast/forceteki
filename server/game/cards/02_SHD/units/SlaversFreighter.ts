@@ -16,7 +16,12 @@ export default class SlaversFreighter extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 locationFilter: WildcardLocation.AnyArena,
-                cardCondition: (card, context) => card.isUnit() && card.getPower() <= context.source.controller.opponent.getUnitsInPlay().reduce((total, unit) => total + unit.upgrades.length, 0),
+                cardCondition: (card, context) => {
+                    const opponentUpgradeCount = context.source.controller.opponent.getUnitsInPlay().reduce(
+                        (total, unit) => total + unit.upgrades.length,
+                        0);
+                    return card.isUnit() && card !== context.source && card.getPower() <= opponentUpgradeCount;
+                },
                 immediateEffect: AbilityHelper.immediateEffects.ready()
             }
         });
