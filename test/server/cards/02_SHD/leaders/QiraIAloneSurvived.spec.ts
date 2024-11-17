@@ -59,7 +59,7 @@ describe('Qi\'ra, I Alone Survived', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.qira);
-                context.player1.clickPrompt('Deploy Qi\'ra');
+                context.player1.clickPrompt('Deploy Qi’ra');
 
                 expect(context.qira.damage).toBe(4); // leader
                 expect(context.deathStarStormtrooper.damage).toBe(0); // 1 HP
