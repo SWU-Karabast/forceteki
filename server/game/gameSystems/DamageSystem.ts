@@ -24,7 +24,7 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 /** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
     type?: DamageType.Ability;    // this is optional so it can be the default property type
-    amount: number;
+    amount: number | ((card: UnitCard) => number);
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -83,7 +83,14 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     private getDamageAmountFromEvent(event: any): number {
         if (event.amount != null) {
-            return event.amount;
+            switch (typeof event.amount) {
+                case 'number':
+                    return event.amount;
+                case 'function':
+                    return event.amount(event.card);
+                default:
+                    Contract.fail(`Unexpected type ${typeof event.amount}`);
+            }
         }
 
         Contract.assertHasProperty(event, 'sourceEventForExcessDamage', 'Damage event does not have damage amount or source event to get excess damage amount from');

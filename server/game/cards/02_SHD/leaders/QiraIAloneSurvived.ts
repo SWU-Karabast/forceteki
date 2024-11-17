@@ -18,7 +18,7 @@ export default class QiraIAloneSuvived extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.damage((context) => ({ target: context.target, amount: 2 })),
+                    AbilityHelper.immediateEffects.damage({ amount: 2 }),
                     AbilityHelper.immediateEffects.giveShield()
                 ])
             }
@@ -30,40 +30,22 @@ export default class QiraIAloneSuvived extends LeaderUnitCard {
             title: 'Heal all damage from each unit. Then, deal damage to each unit equal to half its remaining HP, rounded down',
             when: {
                 onLeaderDeployed: (event, context) => {
-                    return event.target.controller === context.source.controller;
+                    return event.card === context.source;
                 }
             },
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.heal((context) => {
                     const allUnits = context.player.getUnitsInPlay().concat(context.player.opponent.getUnitsInPlay());
-                    return { amount: 9999, target: allUnits };
+                    const healAmount = (card) => card.damage;
+                    return { amount: healAmount, target: allUnits };
+                }),
+                AbilityHelper.immediateEffects.damage((context) => {
+                    const allUnits = context.player.getUnitsInPlay().concat(context.player.opponent.getUnitsInPlay());
+                    const damageAmount = (card) => Math.floor(card.getHp() / 2);
+                    return { amount: damageAmount, target: allUnits };
                 })
             ])
         });
-
-
-        /* this.addOnAttackAbility({
-            title: 'You may deal 1 damage to a unit. If you attacked with another Mandalorian unit this phase, you may deal 1 damage to a unit',
-            // TODO: correct implementation of the rules for multiple instances of damage in the same ability
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.selectCard({
-                    cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.damage({
-                        optional: true,
-                        amount: 1
-                    }),
-                }),
-                AbilityHelper.immediateEffects.selectCard({
-                    cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.conditional({
-                        optional: true,
-                        condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
-                        onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction(),
-                    })
-                })
-            ])
-        });*/
     }
 }
 

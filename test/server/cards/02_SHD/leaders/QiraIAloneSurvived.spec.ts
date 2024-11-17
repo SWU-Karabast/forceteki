@@ -18,12 +18,11 @@ describe('Qi\'ra, I Alone Survived', function() {
             it('should damage a friendly unit and give it a shield', function() {
                 const { context } = contextRef;
 
-                // ready scout bike pursuer
                 context.player1.clickCard(context.qira);
                 expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.deathStarStormtrooper]);
                 context.player1.clickCard(context.scoutBikePursuer);
 
-                // check damage is applied
+                // check damage and shield are applied
                 expect(context.scoutBikePursuer.damage).toBe(2);
                 expect(context.scoutBikePursuer).toHaveExactUpgradeNames(['shield']);
                 expect(context.player2).toBeActivePlayer();
@@ -32,12 +31,11 @@ describe('Qi\'ra, I Alone Survived', function() {
             it('should damage (and kill) a friendly unit with 3 power or less', function() {
                 const { context } = contextRef;
 
-                // try to ready death star stormtrooper but damage will kill it
                 context.player1.clickCard(context.qira);
                 expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.deathStarStormtrooper]);
                 context.player1.clickCard(context.deathStarStormtrooper);
 
-                // check stormtrooper is dead and no one is ready
+                // check stormtrooper is dead
                 expect(context.deathStarStormtrooper.location).toBe('discard');
                 expect(context.player2).toBeActivePlayer();
             });
@@ -48,7 +46,7 @@ describe('Qi\'ra, I Alone Survived', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'death-star-stormtrooper', damage: 1 }, { card: 'scout-bike-pursuer', damage: 2, upgrades: ['shield'] }, { card: 'wampa', damage: 3, upgrades: ['fallen-lightsaber'] }],
+                        groundArena: ['death-star-stormtrooper', { card: 'scout-bike-pursuer', damage: 2, upgrades: ['shield'] }, { card: 'wampa', damage: 3, upgrades: ['fallen-lightsaber'] }],
                         leader: { card: 'qira#i-alone-survived' },
                     },
                     player2: {
@@ -59,34 +57,19 @@ describe('Qi\'ra, I Alone Survived', function() {
 
             it('should heal all units and deal damage to each equal to half its remaining HP rounded down', function() {
                 const { context } = contextRef;
-                context.player1.setLeaderStatus({ card: 'qira#i-alone-survived', deployed: true });
 
-                expect(context.scoutBikePursuer.damage).toBe(0);
-            });
+                context.player1.clickCard(context.qira);
+                context.player1.clickPrompt('Deploy Qi\'ra');
 
-            /* it('should damage (and kill) a friendly unit with 3 power or less', function() {
-                const { context } = contextRef;
-                context.scoutBikePursuer.exhausted = true;
-                context.wampa.exhausted = true;
-                context.battlefieldMarine.exhausted = true;
-                context.player1.clickCard(context.grandInquisitor);
-                context.player1.clickCard(context.p2Base);
+                expect(context.qira.damage).toBe(4); // leader
+                expect(context.deathStarStormtrooper.damage).toBe(0); // 1 HP
+                expect(context.scoutBikePursuer.damage).toBe(0); // shielded
+                expect(context.scoutBikePursuer).toHaveExactUpgradeNames([]);
+                expect(context.wampa.damage).toBe(4); // hp upgraded
+                expect(context.battlefieldMarine.damage).toBe(1); // opponent controlled
 
-                // try to ready death star stormtrooper but damage will kill it
-                expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.deathStarStormtrooper]);
-                expect(context.player1).toHaveChooseNoTargetButton();
-                context.player1.clickCard(context.deathStarStormtrooper);
-
-                // check stormtrooper is dead and no one is ready
-                expect(context.deathStarStormtrooper.location).toBe('discard');
-                expect(context.battlefieldMarine.damage).toBe(0);
-                expect(context.battlefieldMarine.exhausted).toBeTrue();
-                expect(context.scoutBikePursuer.damage).toBe(0);
-                expect(context.scoutBikePursuer.exhausted).toBeTrue();
-                expect(context.wampa.damage).toBe(0);
-                expect(context.wampa.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
-            });*/
+            });
         });
     });
 });
