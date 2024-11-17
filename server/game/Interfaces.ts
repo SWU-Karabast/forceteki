@@ -11,8 +11,8 @@ import { ICost } from './core/cost/ICost';
 import Game from './core/Game';
 import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import Player from './core/Player';
-import OngoingCardEffect from './core/ongoingEffect/OngoingCardEffect';
-import OngoingPlayerEffect from './core/ongoingEffect/OngoingPlayerEffect';
+import { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
+import { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
 import { UnitCard } from './core/card/CardTypes';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file

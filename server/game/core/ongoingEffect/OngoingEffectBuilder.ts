@@ -7,11 +7,11 @@ import type { GameSystem, IGameSystemProperties } from '../gameSystem/GameSystem
 import type { IOngoingEffectProps, WhenType } from '../../Interfaces';
 import type Player from '../Player';
 // import type { StatusToken } from '../StatusToken';
-import OngoingCardEffect from './OngoingCardEffect';
+import { OngoingCardEffect } from './OngoingCardEffect';
 // import ConflictEffect from './ConflictEffect';
 import DetachedOngoingEffectImpl from './effectImpl/DetachedOngoingEffectImpl';
 import DynamicOngoingEffectImpl from './effectImpl/DynamicOngoingEffectImpl';
-import OngoingPlayerEffect from './OngoingPlayerEffect';
+import { OngoingPlayerEffect } from './OngoingPlayerEffect';
 import StaticOngoingEffectImpl from './effectImpl/StaticOngoingEffectImpl';
 
 /* Types of effect

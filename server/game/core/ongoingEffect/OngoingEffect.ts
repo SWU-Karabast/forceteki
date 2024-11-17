@@ -4,6 +4,7 @@ import { Card } from '../card/Card';
 import { Duration, LocationFilter, RelativePlayer, WildcardLocation } from '../Constants';
 import Game from '../Game';
 import { GameObject } from '../GameObject';
+import Player from '../Player';
 import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 
 /**
@@ -33,23 +34,23 @@ import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-class OngoingEffect {
+export class OngoingEffect {
     public game: Game;
     public source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
-    public matchTarget: GameObject | ((target: GameObject, context: AbilityContext) => boolean);
+    public matchTarget: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
     public duration?: Duration;
     public until: WhenType;
     public condition: (context?: AbilityContext) => boolean;
     public sourceLocationFilter: LocationFilter;
-    public canChangeZoneOnce: boolean;
-    public canChangeZoneNTimes: number;
     public impl: OngoingEffectImpl<any>;
     // ISSUE: refreshContext sets ability to IOngoingEffectProps, but the listed type for context is PlayerOrCardAbility. Why is there a mismatch? Are we just overriding it in the context of OngoingEffects and everywhere else it acts as PlayerOrCardAbility?
     public ability: any;
-    public targets: GameObject[];
+    public targets: (Player | Card)[];
     public context: AbilityContext;
     public targetController: RelativePlayer;
+    public canChangeZoneOnce: boolean;
+    public canChangeZoneNTimes: number;
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effectImpl: OngoingEffectImpl<any>) {
         this.game = game;
@@ -59,8 +60,6 @@ class OngoingEffect {
         this.until = properties.until || {};
         this.condition = properties.condition || (() => true);
         this.sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
-        this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
-        this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
         this.impl = effectImpl;
         this.ability = properties;
         this.targets = [];
@@ -173,5 +172,3 @@ class OngoingEffect {
         };
     }
 }
-
-export default OngoingEffect;

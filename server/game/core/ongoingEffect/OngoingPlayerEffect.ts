@@ -1,4 +1,4 @@
-import OngoingEffect from './OngoingEffect';
+import { OngoingEffect } from './OngoingEffect';
 import { RelativePlayer } from '../Constants';
 import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 import Game from '../Game';
@@ -6,7 +6,7 @@ import { Card } from '../card/Card';
 import { IOngoingEffectProps } from '../../Interfaces';
 import Player from '../Player';
 
-class OngoingPlayerEffect extends OngoingEffect {
+export class OngoingPlayerEffect extends OngoingEffect {
     public override matchTarget: (target: Player) => boolean;
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effect: OngoingEffectImpl<any>) {
@@ -35,5 +35,3 @@ class OngoingPlayerEffect extends OngoingEffect {
         return this.game.getPlayers().filter((player) => this.matchTarget(player));
     }
 }
-
-export default OngoingPlayerEffect;

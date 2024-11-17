@@ -1,7 +1,7 @@
 import { Card } from '../../card/Card';
 import { CardWithPrintedHp, CardWithPrintedPower, UnitCard } from '../../card/CardTypes';
 import type { CardType } from '../../Constants';
-import OngoingEffect from '../OngoingEffect';
+import { OngoingEffect } from '../OngoingEffect';
 import { IOngoingCardEffect } from '../IOngoingCardEffect';
 import { StatsModifier } from './StatsModifier';
 import { LeaderUnitCard } from '../../card/LeaderUnitCard';
