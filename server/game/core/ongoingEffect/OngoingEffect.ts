@@ -1,5 +1,6 @@
 import { IOngoingEffectProps, WhenType } from '../../Interfaces';
 import { AbilityContext } from '../ability/AbilityContext';
+import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { Card } from '../card/Card';
 import { Duration, LocationFilter, RelativePlayer, WildcardLocation } from '../Constants';
 import Game from '../Game';
@@ -34,7 +35,7 @@ import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-export class OngoingEffect {
+export abstract class OngoingEffect {
     public game: Game;
     public source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
@@ -45,12 +46,9 @@ export class OngoingEffect {
     public sourceLocationFilter: LocationFilter;
     public impl: OngoingEffectImpl<any>;
     // ISSUE: refreshContext sets ability to IOngoingEffectProps, but the listed type for context is PlayerOrCardAbility. Why is there a mismatch? Are we just overriding it in the context of OngoingEffects and everywhere else it acts as PlayerOrCardAbility?
-    public ability: any;
+    public ability?: IOngoingEffectProps;
     public targets: (Player | Card)[];
     public context: AbilityContext;
-    public targetController: RelativePlayer;
-    public canChangeZoneOnce: boolean;
-    public canChangeZoneNTimes: number;
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effectImpl: OngoingEffectImpl<any>) {
         this.game = game;
@@ -63,7 +61,6 @@ export class OngoingEffect {
         this.impl = effectImpl;
         this.ability = properties;
         this.targets = [];
-        this.targetController = properties.targetController || RelativePlayer.Self;
         this.refreshContext();
 
         this.impl.duration = this.duration;
@@ -73,11 +70,13 @@ export class OngoingEffect {
     public refreshContext() {
         this.context = this.game.getFrameworkContext(this.source.controller);
         this.context.source = this.source;
-        this.context.ability = this.ability;
+        // The process of creating the OngoingEffect tacks on additional properties that are ability related, 
+        //  so this is *probably* fine, but definitely a sign it needs a refactor at some point.
+        this.context.ability = this.ability as PlayerOrCardAbility;
         this.impl.setContext(this.context);
     }
 
-    public isValidTarget(target) {
+    public isValidTarget(target: Player | Card) {
         return true;
     }
 

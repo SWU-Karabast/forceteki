@@ -1,19 +1,22 @@
 import { OngoingEffect } from './OngoingEffect';
-import { RelativePlayer, WildcardLocation, WildcardCardType, CardTypeFilter, LocationFilter } from '../Constants';
+import { RelativePlayer, WildcardLocation, WildcardCardType, CardTypeFilter, LocationFilter, RelativePlayerValues } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import Game from '../Game';
 import { Card } from '../card/Card';
-import { IOngoingEffectProps } from '../../Interfaces';
+import { IOngoingCardEffectProps } from '../../Interfaces';
 import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+import { AbilityContext } from '../ability/AbilityContext';
 
 export class OngoingCardEffect extends OngoingEffect {
     public readonly targetsSourceOnly: boolean;
     public readonly targetLocationFilter: LocationFilter;
     public readonly targetCardTypeFilter: CardTypeFilter[];
+    public readonly targetController: RelativePlayer;
+    public override matchTarget: Card | ((target: Card, context: AbilityContext) => boolean);
 
-    public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effect: OngoingEffectImpl<any>) {
+    public constructor(game: Game, source: Card, properties: IOngoingCardEffectProps, effect: OngoingEffectImpl<any>) {
         super(game, source, properties, effect);
 
         if (!properties.matchTarget) {
@@ -25,6 +28,8 @@ export class OngoingCardEffect extends OngoingEffect {
         }
 
         this.targetsSourceOnly = false;
+        this.targetController = properties.targetController || RelativePlayer.Self;
+        Contract.assertArrayIncludes(RelativePlayerValues, this.targetController, "target controller must be a RelativePlayer enum.");
 
         if (!properties.targetLocationFilter) {
             this.targetLocationFilter = properties.sourceLocationFilter === WildcardLocation.Any
@@ -41,7 +46,7 @@ export class OngoingCardEffect extends OngoingEffect {
     }
 
     /** @override */
-    public override isValidTarget(target) {
+    public override isValidTarget(target: Card) {
         if (this.targetsSourceOnly) {
             return target === this.context.source;
         }
