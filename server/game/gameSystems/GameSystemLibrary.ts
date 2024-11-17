@@ -73,6 +73,7 @@ import { DiscardFromDeckSystem, IDiscardFromDeckProperties } from './DiscardFrom
 import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
 import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
 import { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
+import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -132,6 +133,9 @@ export function exhaust<TContext extends AbilityContext = AbilityContext>(proper
 }
 export function forThisPhaseCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties, TContext>) {
     return new CardPhaseLastingEffectSystem<TContext>(propertyFactory);
+}
+export function forThisAttackCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardAttackLastingEffectProperties, TContext>) {
+    return new CardAttackLastingEffectSystem<TContext>(propertyFactory);
 }
 export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveExperienceProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new GiveExperienceSystem<TContext>(propertyFactory);

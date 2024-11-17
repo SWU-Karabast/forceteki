@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Duration, KeywordName } from '../../../core/Constants';
+import { KeywordName } from '../../../core/Constants';
 
 export default class ChainCodeCollector extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -18,10 +18,9 @@ export default class ChainCodeCollector extends NonLeaderUnitCard {
                     const target = context.event.attack.target;
                     return target.isUnit() && target.hasSomeKeyword(KeywordName.Bounty);
                 },
-                onTrue: AbilityHelper.immediateEffects.cardLastingEffect((context) => ({
+                onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                     target: context.event.attack.target,
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 }),
-                    duration: Duration.UntilEndOfAttack,
                 })),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
