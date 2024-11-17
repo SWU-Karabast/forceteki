@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, ZoneFilter, MetaEventName, RelativePlayer, TargetMode } from '../core/Constants';
+import { CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, ZoneFilter, MetaEventName, RelativePlayer, TargetMode, RelativePlayerFilter } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
@@ -13,7 +13,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     activePromptTitle?: string;
     player?: RelativePlayer;
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
-    controller?: RelativePlayer;
+    controller?: RelativePlayerFilter;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context: TContext) => boolean;
     checkTarget?: boolean;

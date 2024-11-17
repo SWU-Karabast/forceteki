@@ -4,7 +4,7 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
-import { AbilityType, CardType, KeywordName, ZoneName, PlayType, RelativePlayer } from '../Constants';
+import { AbilityType, CardType, KeywordName, ZoneName, PlayType, RelativePlayer, WildcardRelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
@@ -122,7 +122,7 @@ export class UpgradeCard extends UpgradeCardParent {
             title: properties.title,
             condition: properties.condition || (() => true),
             matchTarget: (card, context) => card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
-            targetController: RelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+            targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
             ongoingEffect: properties.ongoingEffect
         });
     }

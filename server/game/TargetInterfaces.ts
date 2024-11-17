@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import { RelativePlayer, TargetMode, ZoneFilter, CardTypeFilter } from './core/Constants';
+import { RelativePlayer, TargetMode, ZoneFilter, CardTypeFilter, RelativePlayerFilter } from './core/Constants';
 import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -49,7 +49,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     zoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** Filter cards by their controller */
-    controller?: ((context: TContext) => RelativePlayer) | RelativePlayer;
+    controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
 
     // TODO: allow this be a concrete player object as well as a RelativePlayer enum
     /** Selects which player is choosing the target (defaults to the player controlling the source card) */

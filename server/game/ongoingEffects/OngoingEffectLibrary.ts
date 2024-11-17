@@ -244,7 +244,7 @@ export = {
     // forceConflictDeclarationType: (type) => OngoingEffectBuilder.player.static(EffectName.ForceConflictDeclarationType, type),
     // setMaxConflicts: (amount) => OngoingEffectBuilder.player.static(EffectName.SetMaxConflicts, amount),
     // setConflictTotalSkill: (value) => OngoingEffectBuilder.player.static(EffectName.SetConflictTotalSkill, value),
-    // showTopConflictCard: (players = RelativePlayer.Any) =>
+    // showTopConflictCard: (players = WildcardRelativePlayer.Any) =>
     //     OngoingEffectBuilder.player.static(EffectName.ShowTopConflictCard, players),
     // eventsCannotBeCancelled: () => OngoingEffectBuilder.player.static(EffectName.EventsCannotBeCancelled),
     // restartDynastyPhase: (source) => OngoingEffectBuilder.player.static(EffectName.RestartDynastyPhase, source),

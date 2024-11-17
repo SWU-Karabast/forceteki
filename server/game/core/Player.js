@@ -16,7 +16,8 @@ const {
     WildcardZoneName,
     PlayType,
     KeywordName,
-    Trait
+    Trait,
+    WildcardRelativePlayer
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -1206,13 +1207,13 @@ class Player extends GameObject {
 
         if (activePlayer === this) {
             return (
-                this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+                this.getOngoingEffectValues(EffectName.ShowTopCard).includes(WildcardRelativePlayer.Any) ||
                 this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Self)
             );
         }
 
         return (
-            this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+            this.getOngoingEffectValues(EffectName.ShowTopCard).includes(WildcardRelativePlayer.Any) ||
             this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Opponent)
         );
     }

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ready } from './GameSystemLibrary';
@@ -42,7 +42,6 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         if (Array.isArray(properties.target)) {
             Contract.assertTrue(properties.target.length === 1, 'Resourcing more than 1 card is not yet supported');
         }
-        Contract.assertFalse(properties.targetPlayer === RelativePlayer.Any, 'Cannot choose \'Any\' for targetPlayer');
         return properties;
     }
 

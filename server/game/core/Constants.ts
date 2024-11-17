@@ -101,9 +101,14 @@ export enum Stage {
 
 export enum RelativePlayer {
     Self = 'self',
-    Opponent = 'opponent',
+    Opponent = 'opponent'
+}
+
+export enum WildcardRelativePlayer {
     Any = 'any'
 }
+
+export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',

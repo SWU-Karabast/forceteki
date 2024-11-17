@@ -1,4 +1,4 @@
-const { ZoneName, RelativePlayer, WildcardZoneName } = require('../Constants');
+const { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } = require('../Constants');
 const Contract = require('../utils/Contract');
 const EnumHelpers = require('../utils/EnumHelpers');
 
@@ -9,7 +9,7 @@ class BaseCardSelector {
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
-        this.controller = properties.controller || RelativePlayer.Any;
+        this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
 
