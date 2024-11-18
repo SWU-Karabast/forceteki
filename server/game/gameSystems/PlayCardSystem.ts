@@ -10,7 +10,7 @@ import { PlayUnitAction } from '../actions/PlayUnitAction';
 import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
 import { PlayEventAction } from '../actions/PlayEventAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
-import { CostAdjuster } from '../core/cost/CostAdjuster';
+import { CostAdjuster, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
@@ -19,7 +19,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     optional?: boolean;
     entersReady?: boolean;
     playType?: PlayType;
-    costAdjuster?: CostAdjuster;
+    adjustCost?: ICostAdjusterProperties;
     // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
 }
 
@@ -72,6 +72,10 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const newContext = playCardAbility.createContext(context.player);
 
         return !playCardAbility.meetsRequirements(newContext, properties.ignoredRequirements);
+    }
+
+    private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: AbilityContext) {
+        return properties ? new CostAdjuster(context.game, context.source, properties) : null;
     }
 
     /**
