@@ -1,4 +1,4 @@
-import { EventName, Location } from '../core/Constants';
+import { EventName, ZoneName } from '../core/Constants';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Helpers from '../core/utils/Helpers.js';
 import type Player from '../core/Player';
@@ -36,7 +36,7 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
             }
 
             // Discard each card in the player's hand
-            for (const card of player.getCardsInZone(Location.Hand)) {
+            for (const card of player.getCardsInZone(ZoneName.Hand)) {
                 const discardCardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
                 events.push(discardCardEvent);
             }

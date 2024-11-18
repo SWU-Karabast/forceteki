@@ -1,7 +1,7 @@
 import { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
 import { Card, CardConstructor } from '../Card';
-import { Location } from '../../Constants';
+import { ZoneName } from '../../Constants';
 import type Player from '../../Player';
 import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';
@@ -111,7 +111,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
                     this.unsetActiveAttack();
                 }
             } else {
-                Contract.assertIsNullLike(this._activeAttack, `Moved ${this.internalName} to ${this.location} but it has an active attack set`);
+                Contract.assertIsNullLike(this._activeAttack, `Moved ${this.internalName} to ${this.zoneName} but it has an active attack set`);
             }
 
             this.attackEnabled = enabledStatus;

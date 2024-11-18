@@ -1,6 +1,6 @@
 import { InPlayCard } from '../card/baseClasses/InPlayCard';
 import { Card } from '../card/Card';
-import { Location } from '../Constants';
+import { ZoneName } from '../Constants';
 import Game from '../Game';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
@@ -9,7 +9,7 @@ import { IAddRemoveZone } from './ZoneAbstract';
 
 export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implements IAddRemoveZone {
     public override readonly hiddenForPlayers: null;
-    public abstract override readonly name: Location;
+    public abstract override readonly name: ZoneName;
     public override readonly owner: Game;
 
     protected _cards = new Map<Player, InPlayCard[]>();

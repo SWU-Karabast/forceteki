@@ -2,40 +2,39 @@
 /* eslint @stylistic/lines-around-comment: off */
 
 // TODO NOISY PR: clean up the spaces from these
-export enum Location {
+export enum ZoneName {
     Base = 'base',
     Deck = 'deck',
     Discard = 'discard',
-    GroundArena = 'ground arena',
+    GroundArena = 'groundArena',
     Hand = 'hand',
-    OutsideTheGame = 'outside the game',
-    RemovedFromGame = 'removed from game',
+    OutsideTheGame = 'outsideTheGame',
     Resource = 'resource',
-    SpaceArena = 'space arena',
+    SpaceArena = 'spaceArena',
 }
 
-export enum MoveToDeckLocation {
+export enum MoveToDeckZoneName {
     DeckTop = 'deckTop',
     DeckBottom = 'deckBottom'
 }
 
 /**
- * Helper type used when a passed Location represents a move destination.
+ * Helper type used when a passed ZoneName represents a move destination.
  * Used to account for moving to top or bottom of deck.
  */
-export type MoveLocation = Exclude<Location, Location.Deck> | MoveToDeckLocation.DeckBottom | MoveToDeckLocation.DeckTop;
+export type MoveZoneName = Exclude<ZoneName, ZoneName.Deck> | MoveToDeckZoneName.DeckBottom | MoveToDeckZoneName.DeckTop;
 
-export enum WildcardLocation {
+export enum WildcardZoneName {
     Any = 'any',
-    AnyArena = 'any arena',
+    AnyArena = 'anyArena',
 
-    /** Any location that is a valid attack target - an arena or base zone */
-    AnyAttackable = 'any attackable'
+    /** Any zone that is a valid attack target - an arena or base zone */
+    AnyAttackable = 'anyAttackable'
 }
 
-export type LocationFilter = Location | WildcardLocation;
+export type ZoneFilter = ZoneName | WildcardZoneName;
 
-export type Arena = Location.GroundArena | Location.SpaceArena;
+export type Arena = ZoneName.GroundArena | ZoneName.SpaceArena;
 
 export enum PlayType {
     PlayFromHand = 'playFromHand',
@@ -113,9 +112,14 @@ export enum Stage {
 
 export enum RelativePlayer {
     Self = 'self',
-    Opponent = 'opponent',
+    Opponent = 'opponent'
+}
+
+export enum WildcardRelativePlayer {
     Any = 'any'
 }
+
+export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',

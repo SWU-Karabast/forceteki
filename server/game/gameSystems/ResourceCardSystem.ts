@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ready } from './GameSystemLibrary';
@@ -35,7 +35,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // TODO TAKE CONTROL: change controller on being resourced logic
         // const player = event.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
 
-        card.moveTo(Location.Resource);
+        card.moveTo(ZoneName.Resource);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IResourceCardProperties {
@@ -44,7 +44,6 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         if (Array.isArray(properties.target)) {
             Contract.assertTrue(properties.target.length === 1, 'Resourcing more than 1 card is not yet supported');
         }
-        Contract.assertFalse(properties.targetPlayer === RelativePlayer.Any, 'Cannot choose \'Any\' for targetPlayer');
         return properties;
     }
 
@@ -89,8 +88,8 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
             (targetPlayer === RelativePlayer.Self ||
               (!card.hasRestriction(EffectName.TakeControl, context) &&
                 !card.anotherUniqueInPlay(context.player))) &&
-                context.player.isLegalLocationForCardType(card.type, Location.Resource) &&
-                !EnumHelpers.isArena(card.location) &&
+                context.player.isLegalZoneForCardType(card.type, ZoneName.Resource) &&
+                !EnumHelpers.isArena(card.zoneName) &&
                 super.canAffect(card, context)
         );
     }

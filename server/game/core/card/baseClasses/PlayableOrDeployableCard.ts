@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { Aspect, CardType, RelativePlayer, WildcardLocation, Location, MoveLocation } from '../../Constants';
+import { Aspect, CardType, WildcardRelativePlayer, WildcardZoneName, ZoneName, MoveZoneName } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
@@ -74,14 +74,14 @@ export class PlayableOrDeployableCard extends Card {
         this._exhausted = false;
     }
 
-    public override moveTo(targetLocation: MoveLocation): void {
+    public override moveTo(targetZone: MoveZoneName): void {
         // If this card is a resource and it is ready, try to ready another resource instead
         // and exhaust this one. This should be the desired behavior for most cases.
-        if (this.location === Location.Resource && !this.exhausted) {
+        if (this.zoneName === ZoneName.Resource && !this.exhausted) {
             this.controller.swapResourceReadyState(this);
         }
 
-        super.moveTo(targetLocation);
+        super.moveTo(targetZone);
     }
 
     public override canBeExhausted(): this is PlayableOrDeployableCard {
@@ -151,8 +151,8 @@ export class PlayableOrDeployableCard extends Card {
     private buildCostAdjusterAbilityProps(condition: (context: AbilityContext<this>) => boolean, title: string, ongoingEffect: IOngoingEffectGenerator): IConstantAbilityProps {
         const costAdjustAbilityProps: IConstantAbilityProps = {
             title,
-            sourceLocationFilter: WildcardLocation.Any,
-            targetController: RelativePlayer.Any,
+            sourceZoneFilter: WildcardZoneName.Any,
+            targetController: WildcardRelativePlayer.Any,
             condition,
             ongoingEffect
         };

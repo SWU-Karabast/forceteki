@@ -1,5 +1,5 @@
 const { UiPrompt } = require('./prompts/UiPrompt.js');
-const { Location, RelativePlayer, WildcardLocation } = require('../Constants.js');
+const { ZoneName, RelativePlayer, WildcardZoneName } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
 const Contract = require('../utils/Contract');
 
@@ -45,7 +45,7 @@ class ActionWindow extends UiPrompt {
             }
         }
         this.game.promptWithHandlerMenu(player, {
-            activePromptTitle: (EnumHelpers.isArena(card.location) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
+            activePromptTitle: (EnumHelpers.isArena(card.zoneName) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
             source: card,
             choices: legalActions.map((action) => action.title).concat('Cancel'),
             handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)
@@ -122,7 +122,7 @@ class ActionWindow extends UiPrompt {
                 this.game.promptForSelect(this.activePlayer, {
                     source: 'Manual Action',
                     activePrompt: 'Which ability are you using?',
-                    location: WildcardLocation.Any,
+                    zone: WildcardZoneName.Any,
                     controller: RelativePlayer.Self,
                     cardCondition: (card) => card.isFaceup() || card.canBeSmuggled(),
                     onSelect: (player, card) => {

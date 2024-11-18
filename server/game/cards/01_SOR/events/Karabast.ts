@@ -2,7 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import {
     RelativePlayer,
     WildcardCardType,
-    WildcardLocation
+    WildcardZoneName
 } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 
@@ -20,13 +20,13 @@ export default class Karabast extends EventCard {
             targetResolvers: {
                 friendlyUnit: {
                     controller: RelativePlayer.Self,
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit
                 },
                 enemyUnit: {
                     dependsOn: 'friendlyUnit',
                     controller: RelativePlayer.Opponent,
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
                         ({ amount: context.targets.friendlyUnit.damage + 1 })),

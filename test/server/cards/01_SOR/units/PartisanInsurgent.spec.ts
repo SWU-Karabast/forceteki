@@ -26,7 +26,7 @@ describe('Partisan Insurgent', function () {
                 // kill a-wing
                 context.player2.clickCard(context.systemPatrolCraft);
                 context.player2.clickCard(context.greenSquadronAwing);
-                expect(context.greenSquadronAwing.location).toBe('discard');
+                expect(context.greenSquadronAwing.zoneName).toBe('discard');
 
                 // attack again with partisan insurgent, damage should be 1 because a-wing is dead
                 context.player1.clickCard(context.keepFighting);

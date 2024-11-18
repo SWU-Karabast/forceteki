@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, Trait } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class Snowspeeder extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +14,7 @@ export default class Snowspeeder extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'Exhaust an enemy Vehicle ground unit',
             targetResolver: {
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 controller: RelativePlayer.Opponent,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()

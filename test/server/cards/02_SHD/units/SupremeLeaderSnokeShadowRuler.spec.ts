@@ -31,13 +31,13 @@ describe('Supreme Leader Snoke, Shadow Ruler', function() {
                 expect(context.cartelSpacer.getPower()).toBe(0);
                 expect(context.cartelSpacer.getHp()).toBe(1);
 
-                expect(context.specforceSoldier).toBeInLocation('discard');
+                expect(context.specforceSoldier).toBeInZone('discard');
 
                 expect(context.jynErso.getPower()).toBe(4);
                 expect(context.jynErso.getHp()).toBe(7);
 
                 context.player2.clickCard(context.deathStarStormtrooper);
-                expect(context.deathStarStormtrooper).toBeInLocation('discard');
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
             });
 
             // double Snoke case is covered in UniqueRule.spec.ts

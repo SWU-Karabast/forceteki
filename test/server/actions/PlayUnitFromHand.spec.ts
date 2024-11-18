@@ -21,10 +21,10 @@ describe('Play unit from hand', function() {
 
                 context.player1.clickCard(context.cartelSpacer);
 
-                expect(context.cartelSpacer).toBeInLocation('space arena');
+                expect(context.cartelSpacer).toBeInZone('spaceArena');
                 expect(context.cartelSpacer.exhausted).toBe(true);
-                expect(context.player1.countSpendableResources()).toBe(4);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.readyResourceCount).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
 
             it('it should cost 2 extra resources for one aspect penalty', function () {
@@ -32,10 +32,10 @@ describe('Play unit from hand', function() {
 
                 context.player1.clickCard(context.firstLegionSnowtrooper);
 
-                expect(context.firstLegionSnowtrooper).toBeInLocation('ground arena');
+                expect(context.firstLegionSnowtrooper).toBeInZone('groundArena');
                 expect(context.firstLegionSnowtrooper.exhausted).toBe(true);
-                expect(context.player1.countSpendableResources()).toBe(2);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.readyResourceCount).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
             });
 
             it('it should cost 4 extra resources for two aspect penalties', function () {
@@ -43,10 +43,10 @@ describe('Play unit from hand', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.battlefieldMarine).toBeInLocation('ground arena');
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.battlefieldMarine.exhausted).toBe(true);
-                expect(context.player1.countSpendableResources()).toBe(0);
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
             });
         });
     });

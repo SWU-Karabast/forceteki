@@ -1,4 +1,4 @@
-const { Location, MoveToDeckLocation } = require('../../server/game/core/Constants.js');
+const { ZoneName, MoveToDeckZoneName } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
 const Player = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
@@ -30,14 +30,14 @@ class PlayerInteractionWrapper {
 
     /**
      * Moves all cards other than leader + base to the RemovedFromTheGame zone so they can
-     * be moved into their proper starting locations for the test.
+     * be moved into their proper starting zones for the test.
      */
     moveAllNonBaseZonesToRemoved() {
-        this.player.getArenaCards().forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.resourceZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.discardZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
-        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
+        this.player.getArenaCards().forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.resourceZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.discardZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
     }
 
     get hand() {
@@ -49,11 +49,11 @@ class PlayerInteractionWrapper {
      * hand and conflict deck
      * @param {String|DrawCard[]} [newContents] - a list of card names or objects
      */
-    setHand(newContents = [], prevLocations = ['deck']) {
+    setHand(newContents = [], prevZones = ['deck']) {
         this.hand.forEach((card) => this.moveCard(card, 'deck'));
 
         newContents.reverse().forEach((nameOrCard) => {
-            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevLocations) : nameOrCard;
+            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.moveCard(card, 'hand');
         });
     }
@@ -169,11 +169,11 @@ class PlayerInteractionWrapper {
      * @return {BaseCard[]} - List of player's cards currently in play in the space arena
      */
     get spaceArena() {
-        return this.player.filterCardsInPlay((card) => card.location === 'space arena');
+        return this.player.filterCardsInPlay((card) => card.zoneName === 'spaceArena');
     }
 
-    setSpaceArenaUnits(newState = [], prevLocations = ['deck', 'hand']) {
-        this.setArenaUnits('space arena', this.spaceArena, newState, prevLocations);
+    setSpaceArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
+        this.setArenaUnits('spaceArena', this.spaceArena, newState, prevZones);
     }
 
     /**
@@ -181,11 +181,11 @@ class PlayerInteractionWrapper {
      * @return {BaseCard[]} - List of player's cards currently in play in the ground arena
      */
     get groundArena() {
-        return this.player.filterCardsInPlay((card) => card.location === 'ground arena');
+        return this.player.filterCardsInPlay((card) => card.zoneName === 'groundArena');
     }
 
-    setGroundArenaUnits(newState = [], prevLocations = ['deck', 'hand']) {
-        this.setArenaUnits('ground arena', this.groundArena, newState, prevLocations);
+    setGroundArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
+        this.setArenaUnits('groundArena', this.groundArena, newState, prevZones);
     }
 
     /**
@@ -199,11 +199,11 @@ class PlayerInteractionWrapper {
      *    damage: Number
      *  }
      * or String containing name or id of the card
-     * @param {String} arenaName - name of the arena to set the units in, either 'ground arena' or 'space arena'
+     * @param {String} arenaName - name of the arena to set the units in, either 'groundArena' or 'spaceArena'
      * @param {DrawCard[]} currentUnitsInArena - list of cards currently in the arena
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
-    setArenaUnits(arenaName, currentUnitsInArena, newState = [], prevLocations = ['deck', 'hand']) {
+    setArenaUnits(arenaName, currentUnitsInArena, newState = [], prevZones = ['deck', 'hand']) {
         // First, move all cards in play back to the deck
         currentUnitsInArena.forEach((card) => {
             this.moveCard(card, 'deck');
@@ -218,7 +218,7 @@ class PlayerInteractionWrapper {
             if (!options.card) {
                 throw new TestSetupError('You must provide a card name');
             }
-            var card = this.findCardByName(options.card, prevLocations);
+            var card = this.findCardByName(options.card, prevZones);
 
             if (card.isUnit() && card.defaultArena !== arenaName) {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
@@ -245,7 +245,7 @@ class PlayerInteractionWrapper {
                     if (isToken) {
                         upgrade = this.game.generateToken(this.player, upgradeName);
                     } else {
-                        upgrade = this.findCardByName(upgradeName, prevLocations);
+                        upgrade = this.findCardByName(upgradeName, prevZones);
                     }
 
                     upgrade.attachTo(card);
@@ -263,10 +263,10 @@ class PlayerInteractionWrapper {
         return this.player.drawDeck;
     }
 
-    setDeck(newContents = [], prevLocations = ['any']) {
-        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outside the game'));
+    setDeck(newContents = [], prevZones = ['any']) {
+        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
         newContents.reverse().forEach((nameOrCard) => {
-            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevLocations) : nameOrCard;
+            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.moveCard(card, 'deck');
         });
     }
@@ -293,7 +293,7 @@ class PlayerInteractionWrapper {
      * or String containing name or id of the card
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
-    setResourceCards(newContents = [], prevLocations = ['deck', 'hand']) {
+    setResourceCards(newContents = [], prevZones = ['deck', 'hand']) {
         //  Move cards to the deck
         this.resources.forEach((card) => {
             this.moveCard(card, 'deck');
@@ -301,7 +301,7 @@ class PlayerInteractionWrapper {
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((name) => {
-            var card = this.findCardByName(name, prevLocations);
+            var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
             card.exhausted = false;
         });
@@ -311,12 +311,12 @@ class PlayerInteractionWrapper {
         return this.player.hand.length;
     }
 
-    countSpendableResources() {
-        return this.player.countSpendableResources();
+    get readyResourceCount() {
+        return this.player.readyResourceCount;
     }
 
-    countExhaustedResources() {
-        return this.player.countExhaustedResources();
+    get exhaustedResourceCount() {
+        return this.player.exhaustedResourceCount;
     }
 
     get discard() {
@@ -327,13 +327,13 @@ class PlayerInteractionWrapper {
      * Sets the contents of the conflict discard pile
      * @param {String[]} newContents - list of names of cards to be put in conflict discard
      */
-    setDiscard(newContents = [], prevLocations = ['deck']) {
+    setDiscard(newContents = [], prevZones = ['deck']) {
         //  Move cards to the deck
         this.discard.forEach((card) => this.moveCard(card, 'deck'));
         // Move cards to the discard in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((name) => {
-            const card = typeof name === 'string' ? this.findCardByName(name, prevLocations) : name;
+            const card = typeof name === 'string' ? this.findCardByName(name, prevZones) : name;
             this.moveCard(card, 'discard');
         });
     }
@@ -387,35 +387,35 @@ class PlayerInteractionWrapper {
         return !this.hasPrompt('Waiting for opponent to take an action or pass');
     }
 
-    findCardByName(name, locations = 'any', side) {
-        return this.filterCardsByName(name, locations, side)[0];
+    findCardByName(name, zones = 'any', side) {
+        return this.filterCardsByName(name, zones, side)[0];
     }
 
-    findCardsByName(names, locations = 'any', side) {
-        return this.filterCardsByName(names, locations, side);
+    findCardsByName(names, zones = 'any', side) {
+        return this.filterCardsByName(names, zones, side);
     }
 
     /**
-     * Filters all of a player's cards using the name and location of a card
+     * Filters all of a player's cards using the name and zone of a card
      * @param {String} names - the names of the cards
-     * @param {String[]|String} [locations = 'any'] - locations in which to look for. 'provinces' = 'province 1', 'province 2', etc.
+     * @param {String[]|String} [zones = 'any'] - zones in which to look for. 'provinces' = 'province 1', 'province 2', etc.
      * @param {?String} side - set to 'opponent' to search in opponent's cards
      */
-    filterCardsByName(names, locations = 'any', side) {
-        // So that function can accept either lists or single locations
+    filterCardsByName(names, zones = 'any', side) {
+        // So that function can accept either lists or single zones
         const namesAra = Array.isArray(names) ? names : [names];
-        if (locations !== 'any') {
-            if (!Array.isArray(locations)) {
-                locations = [locations];
+        if (zones !== 'any') {
+            if (!Array.isArray(zones)) {
+                zones = [zones];
             }
         }
         try {
             var cards = this.filterCards(
-                (card) => namesAra.includes(card.cardData.internalName) && (locations === 'any' || locations.includes(card.location)),
+                (card) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
                 side
             );
         } catch (e) {
-            throw new TestSetupError(`Names: ${namesAra}, Location: ${locations}. Error thrown: ${e}`);
+            throw new TestSetupError(`Names: ${namesAra}, ZoneName: ${zones}. Error thrown: ${e}`);
         }
         return cards;
     }
@@ -570,15 +570,15 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    clickCardNonChecking(card, location = 'any', side = 'self') {
-        this.clickCard(card, location, side, false);
+    clickCardNonChecking(card, zone = 'any', side = 'self') {
+        this.clickCard(card, zone, side, false);
     }
 
-    clickCard(card, location = 'any', side = 'self', expectChange = true) {
+    clickCard(card, zone = 'any', side = 'self', expectChange = true) {
         checkNullCard(card, this.testContext);
 
         if (typeof card === 'string') {
-            card = this.findCardByName(card, location, side);
+            card = this.findCardByName(card, zone, side);
         }
 
         let beforeClick = null;
@@ -616,24 +616,24 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    dragCard(card, targetLocation) {
-        this.game.drop(this.player.name, card.uuid, card.location, targetLocation);
+    dragCard(card, targetZone) {
+        this.game.drop(this.player.name, card.uuid, card.zoneName, targetZone);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
 
     /**
-     * Moves cards between Location
+     * Moves cards between ZoneName
      * @param {String|DrawCard} card - card to be moved
-     * @param {String} targetLocation - location where the card should be moved
-     * @param {String | String[]} searchLocations - locations where to find the
+     * @param {String} targetZone - zone where the card should be moved
+     * @param {String | String[]} searchZones - zones where to find the
      * card object, if card parameter is a String
      */
-    moveCard(card, targetLocation, searchLocations = 'any') {
+    moveCard(card, targetZone, searchZones = 'any') {
         if (typeof card === 'string') {
-            card = this.mixedListToCardList([card], searchLocations)[0];
+            card = this.mixedListToCardList([card], searchZones)[0];
         }
-        card.moveTo(targetLocation === Location.Deck ? MoveToDeckLocation.DeckTop : targetLocation);
+        card.moveTo(targetZone === ZoneName.Deck ? MoveToDeckZoneName.DeckTop : targetZone);
         this.game.continue();
         return card;
     }
@@ -700,9 +700,9 @@ class PlayerInteractionWrapper {
     /**
      * Converts a mixed list of card objects and card names to a list of card objects
      * @param {(DrawCard|String)[]} mixed - mixed list of cards and names or ids
-     * @param {String[]|String} locations - list of locations to get card objects from
+     * @param {String[]|String} zones - list of zones to get card objects from
      */
-    mixedListToCardList(mixed, locations = 'any') {
+    mixedListToCardList(mixed, zones = 'any') {
         if (!mixed) {
             return [];
         }
@@ -712,7 +712,7 @@ class PlayerInteractionWrapper {
         // Find cards objects for the rest
         mixed.forEach((card) => {
             // Find only those cards that aren't already in the list
-            var cardObject = this.filterCardsByName(card, locations).find((card) => !cardList.includes(card));
+            var cardObject = this.filterCardsByName(card, zones).find((card) => !cardList.includes(card));
             if (!cardObject) {
                 throw new TestSetupError(`Could not find card named ${card}`);
             }

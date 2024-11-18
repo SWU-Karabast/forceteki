@@ -1,19 +1,19 @@
 import { Card } from '../card/Card';
-import { PlayableCard } from '../card/CardTypes';
-import { Location, MoveLocation, MoveToDeckLocation, RelativePlayer } from '../Constants';
+import { TokenOrPlayableCard } from '../card/CardTypes';
+import { ZoneName, MoveZoneName, MoveToDeckZoneName, WildcardRelativePlayer } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { IAddRemoveZone, IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
-export class DeckZone extends ZoneAbstract<PlayableCard> implements IAddRemoveZone {
-    public override readonly hiddenForPlayers: RelativePlayer.Any;
+export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddRemoveZone {
+    public override readonly hiddenForPlayers: WildcardRelativePlayer.Any;
     public override readonly owner: Player;
-    public override readonly name: Location.Deck;
+    public override readonly name: ZoneName.Deck;
 
-    protected deck: PlayableCard[] = [];
+    protected deck: TokenOrPlayableCard[] = [];
 
-    public override get cards(): PlayableCard[] {
+    public override get cards(): TokenOrPlayableCard[] {
         return [...this.deck];
     }
 
@@ -21,21 +21,21 @@ export class DeckZone extends ZoneAbstract<PlayableCard> implements IAddRemoveZo
         return this.deck.length;
     }
 
-    public get topCard(): PlayableCard | null {
+    public get topCard(): TokenOrPlayableCard | null {
         return this.deck.length > 0 ? this.deck[0] : null;
     }
 
-    public constructor(owner: Player, cards: PlayableCard[]) {
+    public constructor(owner: Player, cards: TokenOrPlayableCard[]) {
         super(owner);
 
-        this.name = Location.Deck;
+        this.name = ZoneName.Deck;
 
         this.deck = cards;
 
-        cards.forEach((card) => card.initializeLocation(this));
+        cards.forEach((card) => card.initializeZone(this));
     }
 
-    public override getCards(filter?: IZoneCardFilterProperties): PlayableCard[] {
+    public override getCards(filter?: IZoneCardFilterProperties): TokenOrPlayableCard[] {
         return this.deck.filter(this.buildFilterFn(filter));
     }
 
@@ -46,30 +46,30 @@ export class DeckZone extends ZoneAbstract<PlayableCard> implements IAddRemoveZo
         return this.deck.slice(0, cardsToGet);
     }
 
-    public addCardToTop(card: PlayableCard) {
-        this.addCard(card, MoveToDeckLocation.DeckTop);
+    public addCardToTop(card: TokenOrPlayableCard) {
+        this.addCard(card, MoveToDeckZoneName.DeckTop);
     }
 
-    public addCardToBottom(card: PlayableCard) {
-        this.addCard(card, MoveToDeckLocation.DeckTop);
+    public addCardToBottom(card: TokenOrPlayableCard) {
+        this.addCard(card, MoveToDeckZoneName.DeckTop);
     }
 
-    public addCard(card: PlayableCard, location: MoveToDeckLocation) {
+    public addCard(card: TokenOrPlayableCard, zone: MoveToDeckZoneName) {
         Contract.assertEqual(card.controller, this.owner, `Attempting to add card ${card.internalName} to ${this} but its controller is ${card.controller}`);
 
-        switch (location) {
-            case MoveToDeckLocation.DeckTop:
+        switch (zone) {
+            case MoveToDeckZoneName.DeckTop:
                 this.deck.unshift(card);
                 return;
-            case MoveToDeckLocation.DeckBottom:
+            case MoveToDeckZoneName.DeckBottom:
                 this.deck.push(card);
                 return;
             default:
-                Contract.fail(`Unknown value for MoveToDeckLocation enum: ${location}`);
+                Contract.fail(`Unknown value for MoveToDeckZoneName enum: ${zone}`);
         }
     }
 
-    public removeTopCard(): PlayableCard | null {
+    public removeTopCard(): TokenOrPlayableCard | null {
         return this.deck.pop() ?? null;
     }
 
@@ -78,7 +78,7 @@ export class DeckZone extends ZoneAbstract<PlayableCard> implements IAddRemoveZo
 
         const cardIdx = this.deck.indexOf(card);
 
-        Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current location is ${card.location}.`);
+        Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current zone is ${card.zone}.`);
 
         this.deck.splice(cardIdx, 1);
     }
@@ -87,10 +87,10 @@ export class DeckZone extends ZoneAbstract<PlayableCard> implements IAddRemoveZo
         Helpers.shuffle(this.deck);
     }
 
-    protected override checkLocationMatches(card: Card, location: MoveLocation | null) {
+    protected override checkZoneMatches(card: Card, zone: MoveZoneName | null) {
         Contract.assertTrue(
-            ([MoveToDeckLocation.DeckBottom, MoveToDeckLocation.DeckTop] as MoveLocation[]).includes(location),
-            `Attempting to move ${card.internalName} to ${this} with incorrect location parameter (must be DeckBottom or DeckTop): ${location}`
+            ([MoveToDeckZoneName.DeckBottom, MoveToDeckZoneName.DeckTop] as MoveZoneName[]).includes(zone),
+            `Attempting to move ${card.internalName} to ${this} with incorrect zone parameter (must be DeckBottom or DeckTop): ${zone}`
         );
     }
 }

@@ -1,6 +1,6 @@
 import { BaseCard } from '../card/BaseCard';
 import { LeaderCard } from '../card/LeaderCard';
-import { Location } from '../Constants';
+import { ZoneName } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
@@ -9,7 +9,7 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
     public readonly base: BaseCard;
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Player;
-    public override readonly name: Location.Base;
+    public override readonly name: ZoneName.Base;
 
     private _leader?: LeaderCard;
 
@@ -28,13 +28,13 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
     public constructor(owner: Player, base: BaseCard, leader: LeaderCard) {
         super(owner);
 
-        this.name = Location.Base;
+        this.name = ZoneName.Base;
 
         this.base = base;
         this._leader = leader;
 
-        base.initializeLocation(this);
-        leader.initializeLocation(this);
+        base.initializeZone(this);
+        leader.initializeZone(this);
     }
 
     public override getCards(filter?: IZoneCardFilterProperties): (LeaderCard | BaseCard)[] {
@@ -49,7 +49,7 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
     }
 
     public removeLeader() {
-        Contract.assertNotNullLike(this._leader, `Attempting to remove leader from ${this} but it is in location ${this.owner.leader.location}`);
+        Contract.assertNotNullLike(this._leader, `Attempting to remove leader from ${this} but it is in zone ${this.owner.leader.zone}`);
 
         this._leader = null;
     }

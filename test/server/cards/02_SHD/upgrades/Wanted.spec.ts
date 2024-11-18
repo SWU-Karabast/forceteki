@@ -17,7 +17,7 @@ describe('Wanted', function() {
                 context.player2.exhaustResources(3);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.wampa);
-                expect(context.player2.countExhaustedResources()).toBe(1);
+                expect(context.player2.exhaustedResourceCount).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -37,7 +37,7 @@ describe('Wanted', function() {
                 context.player2.exhaustResources(1);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.wampa);
-                expect(context.player2.countExhaustedResources()).toBe(0);
+                expect(context.player2.exhaustedResourceCount).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
         });

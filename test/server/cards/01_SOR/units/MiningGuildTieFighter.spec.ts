@@ -17,7 +17,7 @@ describe('Mining Guild TIE Fighter', function() {
                 // pay 2 resources to draw
                 context.player1.clickPrompt('Pay 2 resources to draw');
                 expect(context.player1.hand.length).toBe(1);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 context.miningGuildTieFighter.exhausted = false;
                 context.player2.passAction();
@@ -28,7 +28,7 @@ describe('Mining Guild TIE Fighter', function() {
 
                 // as we pass, nothing changed
                 expect(context.player1.hand.length).toBe(1);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
 
             it('should not prompt as we do not have spendable resource', function () {

@@ -29,11 +29,11 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
             return true;
         }
 
-        return context.player.countSpendableResources() >= minCost;
+        return context.player.readyResourceCount >= minCost;
     }
 
     public resolve(context: TContext, result: Result): void {
-        const availableResources = context.player.countSpendableResources();
+        const availableResources = context.player.readyResourceCount;
         const reducedCost = this.getAdjustedCost(context);
         if (reducedCost > availableResources) {
             result.cancelled = true;

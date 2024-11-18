@@ -1,6 +1,6 @@
 import Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
-import { CardType, KeywordName, Location, PlayType } from '../Constants';
+import { CardType, KeywordName, ZoneName, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import { IDecreaseEventCostAbilityProps, PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { IEventAbilityProps } from '../../Interfaces';
@@ -9,7 +9,7 @@ import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import AbilityHelper from '../../AbilityHelper';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { PlayableCard } from './CardTypes';
+import { TokenOrPlayableCard } from './CardTypes';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
@@ -24,7 +24,7 @@ export class EventCard extends EventCardParent {
 
         Contract.assertNotNullLike(this._eventAbility, 'Event card\'s ability was not initialized');
 
-        // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of location
+        // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of zone
         for (const constantAbility of this.constantAbilities) {
             constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
         }
@@ -37,13 +37,13 @@ export class EventCard extends EventCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
-        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayEventAction(this, PlayType.Smuggle));
         }
         return actions;
     }
 
-    public override isTokenOrPlayable(): this is PlayableCard {
+    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
         return true;
     }
 
@@ -54,12 +54,12 @@ export class EventCard extends EventCardParent {
             : this._eventAbility;
     }
 
-    protected override initializeForCurrentLocation(prevLocation?: Location): void {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone?: ZoneName): void {
+        super.initializeForCurrentZone(prevZone);
 
         // event cards can only be exhausted when resourced
-        switch (this.location) {
-            case Location.Resource:
+        switch (this.zoneName) {
+            case ZoneName.Resource:
                 this.setExhaustEnabled(true);
                 break;
 

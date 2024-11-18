@@ -1,7 +1,7 @@
 const AbilityHelper = require('../../AbilityHelper');
 const { GameObject } = require('../GameObject.js');
 
-const { Duration, WildcardLocation } = require('../Constants.js');
+const { Duration, WildcardZoneName } = require('../Constants.js');
 const OngoingEffect = require('./OngoingEffect.js');
 const Contract = require('../utils/Contract.js');
 
@@ -17,7 +17,7 @@ class OngoingEffectSource extends GameObject {
      */
     untilEndOfPhase(propertyFactory) {
         var properties = propertyFactory(AbilityHelper);
-        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, locationFilter: WildcardLocation.Any }, properties));
+        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
     /**
@@ -25,7 +25,7 @@ class OngoingEffectSource extends GameObject {
      */
     untilEndOfRound(propertyFactory) {
         var properties = propertyFactory(AbilityHelper);
-        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, locationFilter: WildcardLocation.Any }, properties));
+        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
     /**
@@ -33,7 +33,7 @@ class OngoingEffectSource extends GameObject {
      */
     lastingEffect(propertyFactory) {
         let properties = propertyFactory(AbilityHelper);
-        this.addEffectToEngine(Object.assign({ duration: Duration.Custom, locationFilter: WildcardLocation.Any }, properties));
+        this.addEffectToEngine(Object.assign({ duration: Duration.Custom, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
     /**

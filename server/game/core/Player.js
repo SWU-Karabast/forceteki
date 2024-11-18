@@ -3,21 +3,22 @@ const { Deck } = require('../Deck.js');
 const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
 const { CostAdjuster, CostAdjustType } = require('./cost/CostAdjuster');
-const { PlayableLocation } = require('./PlayableLocation');
+const { PlayableZone } = require('./PlayableZone');
 const { PlayerPromptState } = require('./PlayerPromptState.js');
 const Contract = require('./utils/Contract');
 const {
     CardType,
     EffectName,
     EventName,
-    Location,
+    ZoneName,
     RelativePlayer,
     Aspect,
-    WildcardLocation,
+    WildcardZoneName,
     PlayType,
     KeywordName,
     WildcardCardType,
-    Trait
+    Trait,
+    WildcardRelativePlayer
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -112,15 +113,15 @@ class Player extends GameObject {
 
     // /**
     //  * Get all cards in this player's arena(s). Any opponent upgrades will be included.
-    //  * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+    //  * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
     //  */
-    // getArenaCards(arena = WildcardLocation.AnyArena) {
+    // getArenaCards(arena = WildcardZoneName.AnyArena) {
     //     switch (arena) {
-    //         case Location.GroundArena:
+    //         case ZoneName.GroundArena:
     //             return [...this.groundArena];
-    //         case Location.SpaceArena:
+    //         case ZoneName.SpaceArena:
     //             return [...this.spaceArena];
-    //         case WildcardLocation.AnyArena:
+    //         case WildcardZoneName.AnyArena:
     //             return this.spaceArena.concat(this.groundArena);
     //         default:
     //             Contract.fail(`Unknown arena type: ${arena}`);
@@ -178,9 +179,9 @@ class Player extends GameObject {
 
     /**
      * Get all units in designated play arena(s) controlled by this player
-     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      */
-    getUnitsInPlay(arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
+    getUnitsInPlay(arena = WildcardZoneName.AnyArena, cardCondition = (card) => true) {
         return this.getArenaUnits({ arena, condition: cardCondition });
     }
 
@@ -196,9 +197,9 @@ class Player extends GameObject {
      * Get all cards in designated play arena(s) other than the passed card controlled by this player.
      * @param { any } ignoreUnit Unit to filter from the returned results
      * @param { Trait } trait The Trait to check for
-     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      */
-    getOtherUnitsInPlayWithTrait(ignoreUnit, trait, arena = WildcardLocation.AnyArena) {
+    getOtherUnitsInPlayWithTrait(ignoreUnit, trait, arena = WildcardZoneName.AnyArena) {
         return this.getArenaCards({ otherThan: ignoreUnit, trait, arena }).filter((card) => card.isUnit() && card !== ignoreUnit && card.hasSomeTrait(trait));
     }
 
@@ -206,18 +207,18 @@ class Player extends GameObject {
     /**
      * Get all units in designated play arena(s) controlled by this player
      * @param { Aspect } aspect Aspect needed for units
-     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      */
-    getUnitsInPlayWithAspect(aspect, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
+    getUnitsInPlayWithAspect(aspect, arena = WildcardZoneName.AnyArena, cardCondition = (card) => true) {
         return this.getArenaUnits({ aspect, arena, condition: cardCondition });
     }
 
     /**
      * Get all cards in designated play arena(s) other than the passed card controlled by this player.
      * @param { any } ignoreUnit Unit to filter from the returned results
-     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      */
-    getOtherUnitsInPlay(ignoreUnit, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
+    getOtherUnitsInPlay(ignoreUnit, arena = WildcardZoneName.AnyArena, cardCondition = (card) => true) {
         return this.getArenaUnits({ otherThan: ignoreUnit, arena, condition: cardCondition });
     }
 
@@ -225,9 +226,9 @@ class Player extends GameObject {
      * Get all cards in designated play arena(s) other than the passed card controlled by this player.
      * @param { any } ignoreUnit Unit to filter from the returned results
      * @param { Aspect } aspect Aspect needed for units
-     * @param { WildcardLocation.AnyArena | Location.GroundArena | Location.SpaceArena } arena Arena to select units from
+     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      */
-    getOtherUnitsInPlayWithAspect(ignoreUnit, aspect, arena = WildcardLocation.AnyArena, cardCondition = (card) => true) {
+    getOtherUnitsInPlayWithAspect(ignoreUnit, aspect, arena = WildcardZoneName.AnyArena, cardCondition = (card) => true) {
         return this.getArenaUnits({ otherThan: ignoreUnit, aspect, arena, condition: cardCondition });
     }
 
@@ -239,26 +240,26 @@ class Player extends GameObject {
         return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
     }
 
-    getCardsInZone(location) {
-        switch (location) {
-            case Location.Hand:
+    getCardsInZone(zoneName) {
+        switch (zoneName) {
+            case ZoneName.Hand:
                 return this.handZone.cards;
-            case Location.Deck:
+            case ZoneName.Deck:
                 return this.deckZone.cards;
-            case Location.Discard:
+            case ZoneName.Discard:
                 return this.discardZone.cards;
-            case Location.Resource:
+            case ZoneName.Resource:
                 return this.resourceZone.cards;
-            case Location.Base:
+            case ZoneName.Base:
                 return this.baseZone.cards;
-            case Location.OutsideTheGame:
+            case ZoneName.OutsideTheGame:
                 return this.outsideTheGameZone.cards;
-            case Location.SpaceArena:
+            case ZoneName.SpaceArena:
                 return this.game.spaceArena.getCards({ controller: this });
-            case Location.GroundArena:
+            case ZoneName.GroundArena:
                 return this.game.groundArena.getCards({ controller: this });
             default:
-                Contract.fail(`Unknown location: ${location}`);
+                Contract.fail(`Unknown zone: ${zoneName}`);
         }
     }
 
@@ -406,7 +407,7 @@ class Player extends GameObject {
      */
     anyCardsInPlay(predicate) {
         return this.game.allCards.some(
-            (card) => card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)
+            (card) => card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)
         );
     }
 
@@ -416,7 +417,7 @@ class Player extends GameObject {
      */
     filterCardsInPlay(predicate) {
         return this.game.allCards.filter(
-            (card) => card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)
+            (card) => card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)
         );
     }
 
@@ -434,7 +435,7 @@ class Player extends GameObject {
      */
     getNumberOfCardsInPlay(predicate) {
         return this.game.allCards.reduce((num, card) => {
-            if (card.controller === this && EnumHelpers.isArena(card.location) && predicate(card)) {
+            if (card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)) {
                 return num + 1;
             }
 
@@ -443,18 +444,18 @@ class Player extends GameObject {
     }
 
     /**
-     * Checks whether the passed card is in a legal location for the passed type of play
+     * Checks whether the passed card is in a legal zone for the passed type of play
      * @param card BaseCard
      * @param {String} playingType
      */
-    isCardInPlayableLocation(card, playingType = null) {
-        // use an effect check to see if this card is in an out of play location but can still be played from
+    isCardInPlayableZone(card, playingType = null) {
+        // use an effect check to see if this card is in an out of play zone but can still be played from
         if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
             return true;
         }
 
-        return this.playableLocations.some(
-            (location) => (!playingType || location.playingType === playingType) && location.includes(card)
+        return this.playableZones.some(
+            (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
     }
 
@@ -464,9 +465,9 @@ class Player extends GameObject {
             return effects[effects.length - 1].playType || PlayType.PlayFromHand;
         }
 
-        let location = this.playableLocations.find((location) => location.includes(card));
-        if (location) {
-            return location.playingType;
+        let zone = this.playableZones.find((zone) => zone.includes(card));
+        if (zone) {
+            return zone.playingType;
         }
 
         return undefined;
@@ -487,7 +488,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {import('./card/CardTypes').PlayableCard | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/CardTypes').TokenOrPlayableCard | null} the Card,© or null if the deck is empty
      */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {
@@ -499,7 +500,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top cards of the player's deck
-     * @returns {import('./card/CardTypes').PlayableCard[]} the Card,© or null if the deck is empty
+     * @returns {import('./card/CardTypes').TokenOrPlayableCard[]} the Card,© or null if the deck is empty
      */
     getTopCardsOfDeck(numCard) {
         Contract.assertPositiveNonZero(numCard);
@@ -525,7 +526,7 @@ class Player extends GameObject {
             );
         }
         for (let card of this.drawDeck.slice(0, numCards)) {
-            card.moveTo(Location.Hand);
+            card.moveTo(ZoneName.Hand);
         }
     }
 
@@ -559,17 +560,17 @@ class Player extends GameObject {
 
     // /**
     //  * Moves the top card of the dynasty deck to the passed province
-    //  * @param {String} location - one of 'province 1', 'province 2', 'province 3', 'province 4'
+    //  * @param {String} zone - one of 'province 1', 'province 2', 'province 3', 'province 4'
     //  */
-    // replaceDynastyCard(location) {
-    //     let province = this.getProvinceCardInProvince(location);
+    // replaceDynastyCard(zone) {
+    //     let province = this.getProvinceCardInProvince(zone);
 
-    //     if (!province || this.getCardPile(location).size() > 1) {
+    //     if (!province || this.getCardPile(zone).size() > 1) {
     //         return false;
     //     }
     //     if (this.dynastyDeck.size() === 0) {
     //         this.deckRanOutOfCards('dynasty');
-    //         this.game.queueSimpleStep(() => this.replaceDynastyCard(location));
+    //         this.game.queueSimpleStep(() => this.replaceDynastyCard(zone));
     //     } else {
     //         let refillAmount = 1;
     //         if (province) {
@@ -579,18 +580,18 @@ class Player extends GameObject {
     //             }
     //         }
 
-    //         this.refillProvince(location, refillAmount);
+    //         this.refillProvince(zone, refillAmount);
     //     }
     //     return true;
     // }
 
-    // putTopDynastyCardInProvince(location, facedown = false) {
+    // putTopDynastyCardInProvince(zone, facedown = false) {
     //     if (this.dynastyDeck.size() === 0) {
     //         this.deckRanOutOfCards('dynasty');
-    //         this.game.queueSimpleStep(() => this.putTopDynastyCardInProvince(location, facedown));
+    //         this.game.queueSimpleStep(() => this.putTopDynastyCardInProvince(zone, facedown));
     //     } else {
     //         let cardFromDeck = this.dynastyDeck.first();
-    //         this.moveCard(cardFromDeck, location);
+    //         this.moveCard(cardFromDeck, zone);
     //         cardFromDeck.facedown = facedown;
     //         return true;
     //     }
@@ -617,12 +618,12 @@ class Player extends GameObject {
 
         this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
 
-        // set up playable locations now that all relevant zones are created
-        this.playableLocations = [
-            new PlayableLocation(PlayType.PlayFromHand, this.handZone),
-            new PlayableLocation(PlayType.Smuggle, this.resourceZone),
-            new PlayableLocation(PlayType.PlayFromOutOfPlay, this.deckZone),
-            new PlayableLocation(PlayType.PlayFromOutOfPlay, this.discardZone),
+        // set up playable zones now that all relevant zones are created
+        this.playableZones = [
+            new PlayableZone(PlayType.PlayFromHand, this.handZone),
+            new PlayableZone(PlayType.Smuggle, this.resourceZone),
+            new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
+            new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
         this.baseZone = new BaseZone(this, this.base, this.leader);
@@ -665,14 +666,14 @@ class Player extends GameObject {
         }
     }
 
-    addPlayableLocation(type, zone) {
-        let playableLocation = new PlayableLocation(type, zone);
-        this.playableLocations.push(playableLocation);
-        return playableLocation;
+    addPlayableZone(type, zone) {
+        let playableZone = new PlayableZone(type, zone);
+        this.playableZones.push(playableZone);
+        return playableZone;
     }
 
-    removePlayableLocation(location) {
-        this.playableLocations = this.playableLocations.filter((l) => l !== location);
+    removePlayableZone(zone) {
+        this.playableZones = this.playableZones.filter((l) => l !== zone);
     }
 
     /**
@@ -840,7 +841,7 @@ class Player extends GameObject {
     // }
 
     // /**
-    //  * Called when a player drags and drops a card from one location on the client to another
+    //  * Called when a player drags and drops a card from one zone on the client to another
     //  * @param {String} cardId - the uuid of the dropped card
     //  * @param source
     //  * @param target
@@ -849,12 +850,12 @@ class Player extends GameObject {
     //     var sourceList = this.getCardPile(source);
     //     var card = this.findCardByUuid(sourceList, cardId);
 
-    //     // Dragging is only legal in manual mode, when the card is currently in source, when the source and target are different and when the target is a legal location
+    //     // Dragging is only legal in manual mode, when the card is currently in source, when the source and target are different and when the target is a legal zone
     //     if (
     //         !this.game.manualMode ||
     //         source === target ||
-    //         !this.isLegalLocationForCardTypes(card.types, target) ||
-    //         card.location !== source
+    //         !this.isLegalZoneForCardTypes(card.types, target) ||
+    //         card.zoneName !== source
     //     ) {
     //         return;
     //     }
@@ -862,7 +863,7 @@ class Player extends GameObject {
     //     // Don't allow two province cards in one province
     //     if (
     //         card.isProvince &&
-    //         target !== Location.ProvinceDeck &&
+    //         target !== ZoneName.ProvinceDeck &&
     //         this.getCardPile(target).any((card) => card.isProvince)
     //     ) {
     //         return;
@@ -870,12 +871,12 @@ class Player extends GameObject {
 
     //     let display = 'a card';
     //     if (
-    //         (card.isFaceup() && source !== Location.Hand) ||
+    //         (card.isFaceup() && source !== ZoneName.Hand) ||
     //         [
-    //             Location.PlayArea,
-    //             Location.DynastyDiscardPile,
-    //             Location.ConflictDiscardPile,
-    //             Location.RemovedFromGame
+    //             ZoneName.PlayArea,
+    //             ZoneName.DynastyDiscardPile,
+    //             ZoneName.ConflictDiscardPile,
+    //             ZoneName.RemovedFromGame
     //         ].includes(target)
     //     ) {
     //         display = card;
@@ -887,14 +888,14 @@ class Player extends GameObject {
     // }
 
     /**
-     * Checks whether card type is consistent with location, checking for custom out-of-play locations
+     * Checks whether card type is consistent with zone, checking for custom out-of-play zones
      * @param {CardType} cardType
-     * @param {Location | import('./Constants').MoveLocation} location
+     * @param {ZoneName | import('./Constants').MoveZoneName} zone
      */
-    isLegalLocationForCardType(cardType, location) {
-        const legalLocationsForType = Helpers.defaultLegalLocationsForCardType(cardType);
+    isLegalZoneForCardType(cardType, zone) {
+        const legalZonesForType = Helpers.defaultLegalZonesForCardTypeFilter(cardType);
 
-        return legalLocationsForType && EnumHelpers.cardLocationMatches(EnumHelpers.asConcreteLocation(location), legalLocationsForType);
+        return legalZonesForType && EnumHelpers.cardZoneMatches(EnumHelpers.asConcreteZone(zone), legalZonesForType);
     }
 
     /**
@@ -939,26 +940,24 @@ class Player extends GameObject {
     /**
      * Returns the number of resources available to spend
      */
-    // TODO THIS PR: rename to "get readyResourceCount" in noisy PR
-    countSpendableResources() {
+    get readyResourceCount() {
         return this.resourceZone.readyResourceCount;
     }
 
     /**
      * Returns the number of exhausted resources
      */
-    // TODO THIS PR: rename to "get exhaustedResourceCount" in noisy PR
-    countExhaustedResources() {
+    get exhaustedResourceCount() {
         return this.resourceZone.exhaustedResourceCount;
     }
 
     /**
-     * Moves a card from its current location to the resource zone
+     * Moves a card from its current zone to the resource zone
      * @param card BaseCard
      * @param {boolean} exhaust Whether to exhaust the card. True by default.
      */
     resourceCard(card, exhaust = true) {
-        card.moveTo(Location.Resource);
+        card.moveTo(ZoneName.Resource);
         card.exhausted = exhaust;
     }
 
@@ -1004,7 +1003,7 @@ class Player extends GameObject {
      * If possible, exhaust the given resource and ready another one instead
      */
     swapResourceReadyState(resource) {
-        Contract.assertTrue(resource.location === Location.Resource, 'Tried to exhaust a resource that is not in the resource zone');
+        Contract.assertTrue(resource.zoneName === ZoneName.Resource, 'Tried to exhaust a resource that is not in the resource zone');
 
         // The resource is already exhausted, do nothing
         if (resource.exhausted) {
@@ -1088,13 +1087,13 @@ class Player extends GameObject {
 
         if (activePlayer === this) {
             return (
-                this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+                this.getOngoingEffectValues(EffectName.ShowTopCard).includes(WildcardRelativePlayer.Any) ||
                 this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Self)
             );
         }
 
         return (
-            this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Any) ||
+            this.getOngoingEffectValues(EffectName.ShowTopCard).includes(WildcardRelativePlayer.Any) ||
             this.getOngoingEffectValues(EffectName.ShowTopCard).includes(RelativePlayer.Opponent)
         );
     }
@@ -1126,17 +1125,17 @@ class Player extends GameObject {
         let state = {
             cardPiles: {
                 hand: this.getSummaryForHand(this.hand, activePlayer, false),
-                removedFromGame: this.getSummaryForZone(Location.OutsideTheGame, activePlayer),
-                resources: this.getSummaryForZone(Location.Resource, activePlayer),
-                groundArena: this.getSummaryForZone(Location.GroundArena, activePlayer),
-                spaceArena: this.getSummaryForZone(Location.SpaceArena, activePlayer),
-                deck: this.getSummaryForZone(Location.Deck, activePlayer),
-                discard: this.getSummaryForZone(Location.Discard, activePlayer)
+                outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer),
+                resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
+                groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
+                spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer),
+                deck: this.getSummaryForZone(ZoneName.Deck, activePlayer),
+                discard: this.getSummaryForZone(ZoneName.Discard, activePlayer)
             },
             disconnected: this.disconnected,
             // faction: this.faction,
             hasInitiative: this.hasInitiative(),
-            availableResources: this.countSpendableResources(),
+            availableResources: this.readyResourceCount,
             leader: this.leader.getSummary(activePlayer),
             base: this.base.getSummary(activePlayer),
             id: this.id,

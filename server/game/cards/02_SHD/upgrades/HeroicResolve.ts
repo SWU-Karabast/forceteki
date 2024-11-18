@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class HeroicResolve extends UpgradeCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class HeroicResolve extends UpgradeCard {
                 AbilityHelper.costs.abilityResourceCost(2),
                 AbilityHelper.costs.defeat({
                     cardCondition: (card, context) => card.isUpgrade() && card.parentCard === context.source && card.title === 'Heroic Resolve',
-                    controller: RelativePlayer.Any,
+                    controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Upgrade
                 })
             ],

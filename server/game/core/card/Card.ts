@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, Location, MoveLocation, MoveToDeckLocation, RelativePlayer, Trait, WildcardLocation } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, ZoneName, MoveZoneName, MoveToDeckZoneName, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import { CardAbility } from '../ability/CardAbility';
@@ -13,7 +13,7 @@ import { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstan
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
-import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty, PlayableCard } from './CardTypes';
+import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
@@ -76,7 +76,7 @@ export class Card extends OngoingEffectSource {
         return this.getKeywords();
     }
 
-    public get location(): Location {
+    public get zoneName(): ZoneName {
         return this._zone?.name;
     }
 
@@ -248,11 +248,11 @@ export class Card extends OngoingEffectSource {
     }
 
     public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
-        const sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
+        const sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
 
         return {
             duration: Duration.Persistent,
-            sourceLocationFilter,
+            sourceZoneFilter,
             ...properties,
             ...this.buildGeneralAbilityProps('constant'),
             uuid: uuidv4()
@@ -323,7 +323,7 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is in a location where it can legally be exhausted.
+     * Returns true if the card is in a zone where it can legally be exhausted.
      * The returned type set is equivalent to {@link CardWithExhaustProperty}.
      */
     public canBeExhausted(): this is PlayableOrDeployableCard {
@@ -331,9 +331,9 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is in a location where it can legally be exhausted.
+     * Returns true if the card is in a zone where it can legally be exhausted.
      */
-    public isTokenOrPlayable(): this is PlayableCard {
+    public isTokenOrPlayable(): this is TokenOrPlayableCard {
         return false;
     }
 
@@ -442,22 +442,22 @@ export class Card extends OngoingEffectSource {
     }
 
 
-    // ******************************************* LOCATION MANAGEMENT *******************************************
-    public moveTo(targetLocation: MoveLocation) {
+    // ******************************************* ZONE MANAGEMENT *******************************************
+    public moveTo(targetZone: MoveZoneName) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
-        const originalLocation = this.location;
+        const originalZone = this.zoneName;
 
-        if (originalLocation === targetLocation) {
+        if (originalZone === targetZone) {
             return;
         }
 
-        this.cleanupBeforeMove(targetLocation);
+        this.cleanupBeforeMove(targetZone);
 
         const prevZone = this._zone;
 
         if (prevZone != null) {
-            if (prevZone.name === Location.Base) {
+            if (prevZone.name === ZoneName.Base) {
                 Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${prevZone}`);
                 prevZone.removeLeader();
             } else {
@@ -465,83 +465,83 @@ export class Card extends OngoingEffectSource {
             }
         }
 
-        this.addSelfToZone(targetLocation);
-        this.initializeForCurrentLocation(prevZone.name);
+        this.addSelfToZone(targetZone);
+        this.initializeForCurrentZone(prevZone.name);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
-            originalLocation: originalLocation,
-            newLocation: targetLocation
+            originalZone: originalZone,
+            newZone: targetZone
         });
 
         this.game.registerMovedCard(this);
     }
 
-    public initializeLocation(zone: Zone) {
+    public initializeZone(zone: Zone) {
         Contract.assertIsNullLike(this._zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
 
         this._zone = zone;
 
-        this.initializeForStartLocation();
-        this.initializeForCurrentLocation(null);
+        this.initializeForStartZone();
+        this.initializeForCurrentZone(null);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected initializeForStartLocation(): void {}
+    protected initializeForStartZone(): void {}
 
-    private addSelfToZone(location: MoveLocation) {
-        switch (location) {
-            case Location.Base:
+    private addSelfToZone(zoneName: MoveZoneName) {
+        switch (zoneName) {
+            case ZoneName.Base:
                 this._zone = this.owner.baseZone;
                 Contract.assertTrue(this.isLeader());
                 this._zone.setLeader(this);
                 break;
 
-            case MoveToDeckLocation.DeckBottom:
-            case MoveToDeckLocation.DeckTop:
+            case MoveToDeckZoneName.DeckBottom:
+            case MoveToDeckZoneName.DeckTop:
                 this._zone = this.owner.deckZone;
                 Contract.assertTrue(this.isTokenOrPlayable());
-                this._zone.addCard(this, location);
+                this._zone.addCard(this, zoneName);
                 break;
 
-            case Location.Discard:
+            case ZoneName.Discard:
                 this._zone = this.owner.discardZone;
                 Contract.assertTrue(this.isTokenOrPlayable());
                 this._zone.addCard(this);
                 break;
 
-            case Location.GroundArena:
+            case ZoneName.GroundArena:
                 this._zone = this.game.groundArena;
                 Contract.assertTrue(this.canBeInPlay());
                 this._zone.addCard(this);
                 break;
 
-            case Location.Hand:
+            case ZoneName.Hand:
                 this._zone = this.owner.handZone;
                 Contract.assertTrue(this.isTokenOrPlayable());
                 this._zone.addCard(this);
                 break;
 
-            case Location.OutsideTheGame:
+            case ZoneName.OutsideTheGame:
                 this._zone = this.owner.outsideTheGameZone;
                 Contract.assertTrue(this.isTokenOrPlayable());
                 this._zone.addCard(this);
                 break;
 
-            case Location.Resource:
+            case ZoneName.Resource:
                 this._zone = this.controller.resourceZone;
                 Contract.assertTrue(this.isTokenOrPlayable());
                 this._zone.addCard(this);
                 break;
 
-            case Location.SpaceArena:
+            case ZoneName.SpaceArena:
                 this._zone = this.game.spaceArena;
                 Contract.assertTrue(this.canBeInPlay());
                 this._zone.addCard(this);
                 break;
 
             default:
-                Contract.fail(`Unknown zone enum value: ${location}`);
+                Contract.fail(`Unknown zone enum value: ${zoneName}`);
         }
     }
 
@@ -550,70 +550,69 @@ export class Card extends OngoingEffectSource {
     // }
 
     /**
-     * Deals with any engine effects of leaving the current location before the move happens
+     * Deals with any engine effects of leaving the current zone before the move happens
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextLocation: MoveLocation) {}
+    protected cleanupBeforeMove(nextZone: MoveZoneName) {}
 
     /**
-     * Updates the card's abilities for its current location after being moved.
+     * Updates the card's abilities for its current zone after being moved.
      * Called from {@link Game.resolveGameState} after event resolution.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public resolveAbilitiesForNewLocation() {}
+    public resolveAbilitiesForNewZone() {}
 
     /**
-     * Deals with the engine effects of entering a new location, making sure all statuses are set with legal values.
+     * Deals with the engine effects of entering a new zone, making sure all statuses are set with legal values.
      * If a card should have a different status on entry (e.g., readied instead of exhausted), call this method first
      * and then update the card state(s) as needed.
      *
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
-    protected initializeForCurrentLocation(prevLocation?: Location) {
-        this.hiddenForOpponent = EnumHelpers.isHidden(this.location, RelativePlayer.Self);
+    protected initializeForCurrentZone(prevZone?: ZoneName) {
+        this.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
 
-        switch (this.location) {
-            case Location.SpaceArena:
-            case Location.GroundArena:
+        switch (this.zoneName) {
+            case ZoneName.SpaceArena:
+            case ZoneName.GroundArena:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
-            case Location.Base:
+            case ZoneName.Base:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
-            case Location.Resource:
+            case ZoneName.Resource:
                 this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = false;
                 break;
 
-            case Location.Deck:
+            case ZoneName.Deck:
                 this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = true;
                 break;
 
-            case Location.Hand:
+            case ZoneName.Hand:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
-            case Location.Discard:
-            case Location.RemovedFromGame:
-            case Location.OutsideTheGame:
+            case ZoneName.Discard:
+            case ZoneName.OutsideTheGame:
                 this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
             default:
-                Contract.fail(`Unknown location enum value: ${this.location}`);
+                Contract.fail(`Unknown zone enum value: ${this.zoneName}`);
         }
     }
 
@@ -650,7 +649,7 @@ export class Card extends OngoingEffectSource {
     }
 
     private buildPropertyDisabledStr(propertyName: string) {
-        return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in location '${this.location}' where the property does not apply`;
+        return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in zone '${this.zoneName}' where the property does not apply`;
     }
 
     protected resetLimits() {
@@ -666,14 +665,14 @@ export class Card extends OngoingEffectSource {
     }
 
     public getModifiedController() {
-        if (EnumHelpers.isArena(this.location)) {
+        if (EnumHelpers.isArena(this.zoneName)) {
             return this.mostRecentOngoingEffect(EffectName.TakeControl) || this.defaultController;
         }
         return this.owner;
     }
 
     public isResource() {
-        return this.location === Location.Resource;
+        return this.zoneName === ZoneName.Resource;
     }
 
     // TODO: should we break this out into variants for event (Play) vs other (EnterPlay)?
@@ -777,7 +776,7 @@ export class Card extends OngoingEffectSource {
         // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
         // if (cardsUnderneath.length > 0) {
         //     cardsUnderneath.forEach((card) => {
-        //         this.controller.moveCard(card, Location.RemovedFromGame);
+        //         this.controller.moveCard(card, ZoneName.RemovedFromGame);
         //     });
         //     this.game.addMessage(
         //         '{0} {1} removed from the game due to {2} leaving play',
@@ -791,18 +790,18 @@ export class Card extends OngoingEffectSource {
     // TODO CAPTURE: will probably need to leverage or modify the below "child card" methods (see basecard.ts in L5R for reference)
     // originally these were for managing province cards
 
-    // protected addChildCard(card, location) {
+    // protected addChildCard(card, zone) {
     //     this.childCards.push(card);
-    //     this.controller.moveCard(card, location);
+    //     this.controller.moveCard(card, zone);
     // }
 
-    // protected removeChildCard(card, location) {
+    // protected removeChildCard(card, zone) {
     //     if (!card) {
     //         return;
     //     }
 
     //     this.childCards = this.childCards.filter((a) => a !== card);
-    //     this.controller.moveCard(card, location);
+    //     this.controller.moveCard(card, zone);
     // }
 
     // createSnapshot() {
@@ -814,7 +813,7 @@ export class Card extends OngoingEffectSource {
     //     clone.controller = this.controller;
     //     clone.exhausted = this.exhausted;
     //     // clone.statusTokens = [...this.statusTokens];
-    //     clone.location = this.location;
+    //     clone.zoneName = this.zoneName;
     //     clone.parentCard = this.parentCard;
     //     clone.aspects = [...this.aspects];
     //     // clone.fate = this.fate;
@@ -845,7 +844,7 @@ export class Card extends OngoingEffectSource {
                 controller: this.controller.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,
                 facedown: true,
-                location: this.location,
+                zone: this.zoneName,
                 uuid: isActivePlayer ? this.uuid : undefined
             };
             return { ...state, ...selectionState };
@@ -856,7 +855,7 @@ export class Card extends OngoingEffectSource {
             id: this.cardData.id,
             controlled: this.owner !== this.controller,
             // facedown: this.isFacedown(),
-            location: this.location,
+            zone: this.zoneName,
             // menu: this.getMenu(),
             name: this.cardData.title,
             cost: this.cardData.cost,

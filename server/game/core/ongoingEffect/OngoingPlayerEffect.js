@@ -1,5 +1,5 @@
 const OngoingEffect = require('./OngoingEffect.js');
-const { RelativePlayer } = require('../Constants.js');
+const { RelativePlayer, WildcardRelativePlayer } = require('../Constants.js');
 
 class OngoingPlayerEffect extends OngoingEffect {
     constructor(game, source, properties, effect) {
@@ -12,7 +12,7 @@ class OngoingPlayerEffect extends OngoingEffect {
 
     /** @override */
     isValidTarget(target) {
-        if (this.targetController !== RelativePlayer.Any && this.targetController !== RelativePlayer.Self && this.targetController !== RelativePlayer.Opponent && this.targetController !== target) {
+        if (this.targetController !== WildcardRelativePlayer.Any && this.targetController !== RelativePlayer.Self && this.targetController !== RelativePlayer.Opponent && this.targetController !== target) {
             return false;
         }
 

@@ -34,7 +34,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 // CASE 1: option to draw card when friendly unique unit is defeated (do not take)
                 context.player1.clickCard(context.dengar);
                 context.player1.clickCard(context.wampa);
-                expect(context.dengar).toBeInLocation('discard');
+                expect(context.dengar).toBeInZone('discard');
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
                 context.player1.clickPrompt('Pass');
                 expect(context.player1.handSize).toBe(round1HandSize);
@@ -44,7 +44,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 // CASE 2: non-unique is defeated, no trigger
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.wampa);
-                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(round1HandSize);
 
                 reset(false);
@@ -52,7 +52,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 // CASE 3: option to draw card when enemy unique unit is defeated (do take)
                 context.player2.clickCard(context.generalVeers);
                 context.player2.clickCard(context.agentKallus);
-                expect(context.generalVeers).toBeInLocation('discard');
+                expect(context.generalVeers).toBeInZone('discard');
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1.handSize).toBe(round1HandSize + 1);
@@ -62,7 +62,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 // CASE 4: unique is defeated but ability already used, no trigger
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickCard(context.wampa);
-                expect(context.leiaOrgana).toBeInLocation('discard');
+                expect(context.leiaOrgana).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(round1HandSize + 1);
 
                 reset();
@@ -72,7 +72,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 // CASE 5: unique is defeated next round, ability can trigger
                 context.player1.clickCard(context.generalTagge);
                 context.player1.clickCard(context.wampa);
-                expect(context.generalTagge).toBeInLocation('discard');
+                expect(context.generalTagge).toBeInZone('discard');
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1.handSize).toBe(round2HandSize + 1);
@@ -84,7 +84,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 // CASE 6: Kallus is defeated, no trigger
                 context.player1.clickCard(context.agentKallus);
                 context.player1.clickCard(context.wampa);
-                expect(context.agentKallus).toBeInLocation('discard');
+                expect(context.agentKallus).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(round3HandSize);
                 expect(context.player2).toBeActivePlayer();
             });

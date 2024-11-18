@@ -1,6 +1,6 @@
 import { InPlayCard } from '../card/baseClasses/InPlayCard';
 import { Card } from '../card/Card';
-import { Location, WildcardCardType } from '../Constants';
+import { ZoneName, WildcardCardType } from '../Constants';
 import Game from '../Game';
 import Player from '../Player';
 import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';

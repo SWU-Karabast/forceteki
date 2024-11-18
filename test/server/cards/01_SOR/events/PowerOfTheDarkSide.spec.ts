@@ -22,7 +22,7 @@ describe('Power of the Dark Side', function() {
                 expect(context.player2).toBeAbleToSelectExactly([context.fleetLieutenant, context.sabineWren]);
 
                 context.player2.clickCard(context.fleetLieutenant);
-                expect(context.fleetLieutenant).toBeInLocation('discard');
+                expect(context.fleetLieutenant).toBeInZone('discard');
                 expect(context.sabineWren.deployed).toBeTrue();
             });
         });

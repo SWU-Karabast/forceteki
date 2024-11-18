@@ -1,7 +1,7 @@
 import Player from '../../Player';
 import { GameEvent } from '../../event/GameEvent';
 import { EventWindow } from '../../event/EventWindow';
-import { AbilityType, WildcardLocation } from '../../Constants';
+import { AbilityType, WildcardZoneName } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import TriggeredAbility from '../../ability/TriggeredAbility';

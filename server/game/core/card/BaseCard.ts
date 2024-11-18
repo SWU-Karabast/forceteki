@@ -27,7 +27,7 @@ export class BaseCard extends BaseCardParent {
         return true;
     }
 
-    public override initializeForStartLocation(): void {
+    public override initializeForStartZone(): void {
         this.setDamageEnabled(true);
         this.setActiveAttackEnabled(true);
     }

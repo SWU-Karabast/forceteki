@@ -21,7 +21,7 @@ describe('Drawing cards', function() {
                 context.player1.clickPrompt('You');
                 expect(context.player1.base.damage).toBe(3);
                 expect(context.player1.hand.length).toBe(2);
-                expect(context.wampa).toBeInLocation('hand');
+                expect(context.wampa).toBeInZone('hand');
                 expect(context.player1.deck.length).toBe(0);
             });
 

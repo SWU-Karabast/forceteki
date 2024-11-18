@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class MidnightRepairs extends EventCard {
     protected override getImplementationId () {
@@ -16,7 +16,7 @@ export default class MidnightRepairs extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.distributeHealingAmong({
                 amountToDistribute: 8,
                 canChooseNoTargets: true,
-                controller: RelativePlayer.Any,
+                controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Unit
             })
         });

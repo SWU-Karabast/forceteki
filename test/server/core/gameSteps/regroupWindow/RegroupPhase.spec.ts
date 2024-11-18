@@ -145,10 +145,10 @@ describe('Regroup phase', function() {
 
                     // check board state
                     expect(context.ardentSympathizer.damage).toBe(4);
-                    expect(context.wampa.location).toBe('discard');
+                    expect(context.wampa.zoneName).toBe('discard');
 
                     // Move to regroup phase
-                    expect(context.ardentSympathizer.location).toBe('ground arena');
+                    expect(context.ardentSympathizer.zoneName).toBe('groundArena');
                     context.player1.passAction();
                     context.player2.claimInitiative();
 
@@ -157,7 +157,7 @@ describe('Regroup phase', function() {
                     context.player1.clickPrompt('Draw a card');
 
                     // Check board state
-                    expect(context.ardentSympathizer.location).toBe('discard');
+                    expect(context.ardentSympathizer.zoneName).toBe('discard');
                     expect(context.scoutBikePursuer.getPower()).toBe(1);
                     expect(context.allianceXwing.getPower()).toBe(2);
                 }

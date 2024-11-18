@@ -1,11 +1,11 @@
 import { Card } from '../card/Card';
-import { Location } from '../Constants';
+import { ZoneName } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { IAddRemoveZone, IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
 export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard> implements IAddRemoveZone {
-    public abstract override readonly name: Location;
+    public abstract override readonly name: ZoneName;
     public override readonly owner: Player;
 
     protected _cards: TCard[] = [];
@@ -36,7 +36,7 @@ export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard>
     public removeCard(card: Card) {
         const cardIdx = this._cards.indexOf(card as TCard);
 
-        Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current location is ${card.location}.`);
+        Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current zone is ${card.zone}.`);
 
         this._cards.splice(cardIdx, 1);
     }

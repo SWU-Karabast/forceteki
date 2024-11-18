@@ -25,7 +25,7 @@ describe('Rey, More Than a Scavenger', function () {
 
                 expect(context.rey.exhausted).toBeTrue();
                 expect(context.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                expect(context.player1.countExhaustedResources()).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
             });
         });
 
@@ -56,7 +56,7 @@ describe('Rey, More Than a Scavenger', function () {
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.rey.isUpgraded()).toBeFalse();
                 expect(context.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                expect(context.player1.countExhaustedResources()).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
 
                 // rey can give experience to herself
                 context.rey.exhausted = false;
@@ -71,7 +71,7 @@ describe('Rey, More Than a Scavenger', function () {
                 expect(context.rey.exhausted).toBeTrue();
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.rey).toHaveExactUpgradeNames(['experience']);
-                expect(context.player1.countExhaustedResources()).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
             });
         });
 
@@ -106,7 +106,7 @@ describe('Rey, More Than a Scavenger', function () {
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.rey).toHaveExactUpgradeNames([]);
                 expect(context.partisanInsurgent).toHaveExactUpgradeNames(['experience']);
-                expect(context.player1.countExhaustedResources()).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
             });
         });
     });

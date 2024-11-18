@@ -21,7 +21,7 @@ describe('Sentinel keyword', function() {
                 expect(context.liberatedSlaves.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.liberatedSlaves.damage).toBe(4);
-                expect(context.echoBaseDefender).toBeInLocation('discard');
+                expect(context.echoBaseDefender).toBeInZone('discard');
             });
         });
 
@@ -48,7 +48,7 @@ describe('Sentinel keyword', function() {
                 expect(context.liberatedSlaves.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.liberatedSlaves.damage).toBe(4);
-                expect(context.echoBaseDefender).toBeInLocation('discard');
+                expect(context.echoBaseDefender).toBeInZone('discard');
             });
         });
 
@@ -80,7 +80,7 @@ describe('Sentinel keyword', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender, context.corellianFreighter]);
                 context.player1.clickCard(context.echoBaseDefender);
                 expect(context.player2).toBeActivePlayer();
-                expect(context.echoBaseDefender.location).toBe('discard');
+                expect(context.echoBaseDefender.zoneName).toBe('discard');
                 expect(context.strafingGunship.damage).toBe(2);
 
                 reset();
@@ -88,7 +88,7 @@ describe('Sentinel keyword', function() {
                 context.player1.clickCard(context.strafingGunship);
                 // corellian freighter is chosen automatically because it has sentinel
                 expect(context.player2).toBeActivePlayer();
-                expect(context.strafingGunship.location).toBe('discard');
+                expect(context.strafingGunship.zoneName).toBe('discard');
                 expect(context.corellianFreighter.damage).toBe(3);
             });
         });

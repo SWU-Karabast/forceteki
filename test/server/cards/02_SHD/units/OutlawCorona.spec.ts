@@ -16,7 +16,7 @@ describe('Outlaw Corona', function() {
             it('should add the top deck card as a resource', function () {
                 const { context } = contextRef;
 
-                const startingResources = context.player2.countSpendableResources();
+                const startingResources = context.player2.readyResourceCount;
 
                 context.player1.clickCard(context.outlawCorona);
                 context.player1.clickCard(context.fettsFirespray);

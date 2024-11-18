@@ -1,11 +1,11 @@
-import { CardType, Location } from './core/Constants';
+import { CardType, ZoneName } from './core/Constants';
 import { BaseCard } from './core/card/BaseCard';
 import { LeaderCard } from './core/card/LeaderCard';
 import { Card } from './core/card/Card';
 import { cards } from './cards/Index';
 import Player from './core/Player';
 import * as CardHelpers from './core/card/CardHelpers';
-import { PlayableCard, TokenCard } from './core/card/CardTypes';
+import { TokenOrPlayableCard, TokenCard } from './core/card/CardTypes';
 import * as Contract from './core/utils/Contract';
 
 export class Deck {
@@ -13,7 +13,7 @@ export class Deck {
 
     public prepare(player: Player) {
         const result = {
-            deckCards: [] as PlayableCard[],
+            deckCards: [] as TokenOrPlayableCard[],
             outOfPlayCards: [],
             outsideTheGameCards: [] as Card[],
             tokens: [] as TokenCard[],

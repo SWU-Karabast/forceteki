@@ -28,7 +28,7 @@ const { cards } = require('../cards/Index.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
-const { EffectName, EventName, Location, TokenName, Trait } = require('./Constants.js');
+const { EventName, ZoneName, TokenName, Trait } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
@@ -1128,7 +1128,7 @@ class Game extends EventEmitter {
     resolveGameState(hasChanged = false, events = []) {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
         for (const movedCard of this.movedCards) {
-            movedCard.resolveAbilitiesForNewLocation();
+            movedCard.resolveAbilitiesForNewZone();
         }
         this.movedCards = [];
 
@@ -1187,7 +1187,7 @@ class Game extends EventEmitter {
         player.decklist.tokens.push(token);
         player.decklist.allCards.push(token);
         player.outsideTheGameZone.addCard(token);
-        token.initializeLocation(player.outsideTheGameZone);
+        token.initializeZone(player.outsideTheGameZone);
 
         return token;
     }
@@ -1197,8 +1197,8 @@ class Game extends EventEmitter {
      * @param {import('./card/CardTypes.js').TokenCard} token
      */
     removeTokenFromPlay(token) {
-        Contract.assertEqual(token.location, Location.OutsideTheGame,
-            `Tokens must be moved to location ${Location.OutsideTheGame} before removing from play, instead found token at ${token.location}`
+        Contract.assertEqual(token.zoneName, ZoneName.OutsideTheGame,
+            `Tokens must be moved to zone ${ZoneName.OutsideTheGame} before removing from play, instead found token at ${token.zoneName}`
         );
 
         const player = token.owner;

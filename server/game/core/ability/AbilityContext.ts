@@ -58,7 +58,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.selects = properties.selects || {};
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
-        // const location = this.player && this.player.playableLocations.find(location => location.contains(this.source));
+        // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
         this.playType = this.ability?.isCardPlayed()
             ? properties.playType ?? (this.player && this.player.findPlayType(this.source))

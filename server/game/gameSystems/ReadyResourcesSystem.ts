@@ -25,12 +25,12 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
         const { isCost, amount } = this.generatePropertiesFromContext(context);
 
         // if this is a cost or an "if you do" condition, must ready all required resources
-        if ((isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && player.countExhaustedResources() < amount) {
+        if ((isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && player.exhaustedResourceCount < amount) {
             return false;
         }
 
         // if this is for the effect of an ability, just need to have some effect
-        if (mustChangeGameState === GameStateChangeRequired.MustFullyOrPartiallyResolve && player.countExhaustedResources() === 0) {
+        if (mustChangeGameState === GameStateChangeRequired.MustFullyOrPartiallyResolve && player.exhaustedResourceCount === 0) {
             return false;
         }
 

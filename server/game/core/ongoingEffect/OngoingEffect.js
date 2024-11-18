@@ -1,4 +1,4 @@
-const { Location, Duration, WildcardLocation } = require('../Constants');
+const { ZoneName, Duration, WildcardZoneName } = require('../Constants');
 const EnumHelpers = require('../utils/EnumHelpers');
 
 /**
@@ -15,14 +15,14 @@ const EnumHelpers = require('../utils/EnumHelpers');
  *                        effect can be applied. Use with cards that have a
  *                        condition that must be met before applying a persistent
  *                        effect (e.g. 'when exhausted').
- * locationFilter       - location where the source of this effect needs to be for
+ * zoneFilter       - zone where the source of this effect needs to be for
  *                        the effect to be active. Defaults to 'play area'.
  * targetController     - string that determines which player's cards are targeted.
  *                        Can be 'self' (default), 'opponent' or 'any'. For player
  *                        effects it determines which player(s) are affected.
- * targetLocationFilter - string that determines the location of cards that can be
+ * targetZoneFilter - string that determines the zone of cards that can be
  *                        applied by the effect. Can be 'play area' (default),
- *                        'province', or a specific location (e.g. 'stronghold province'
+ *                        'province', or a specific zone (e.g. 'stronghold province'
  *                        or 'hand'). This has no effect if a specific card is passed
  *                        to match.  Card effects only.
  * impl                 - object with details of effect to be applied. Includes duration
@@ -36,7 +36,7 @@ class OngoingEffect {
         this.duration = properties.duration;
         this.until = properties.until || {};
         this.condition = properties.condition || (() => true);
-        this.sourceLocationFilter = properties.sourceLocationFilter || WildcardLocation.AnyArena;
+        this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
         this.canChangeZoneOnce = !!properties.canChangeZoneOnce;
         this.canChangeZoneNTimes = properties.canChangeZoneNTimes || 0;
         this.impl = effectImpl;

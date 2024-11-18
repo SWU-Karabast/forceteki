@@ -25,11 +25,11 @@ describe('Play upgrade from hand', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.upgrades).toContain(context.entrenched);
                 expect(context.wampa.upgrades.length).toBe(1);
-                expect(context.entrenched).toBeInLocation('ground arena');
+                expect(context.entrenched).toBeInZone('groundArena');
                 expect(context.wampa.getPower()).toBe(7);
                 expect(context.wampa.getHp()).toBe(8);
 
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 context.player2.passAction();
 
@@ -39,11 +39,11 @@ describe('Play upgrade from hand', function() {
                 context.player1.clickCard(context.tielnFighter);
                 expect(context.tielnFighter.upgrades).toContain(context.academyTraining);
                 expect(context.wampa.upgrades.length).toBe(1);
-                expect(context.academyTraining).toBeInLocation('space arena');
+                expect(context.academyTraining).toBeInZone('spaceArena');
                 expect(context.tielnFighter.getPower()).toBe(4);
                 expect(context.tielnFighter.getHp()).toBe(3);
 
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
 
                 context.player2.passAction();
 
@@ -53,7 +53,7 @@ describe('Play upgrade from hand', function() {
                 context.player1.clickCard(context.brightHope);
                 expect(context.brightHope.upgrades).toContain(context.resilient);
                 expect(context.wampa.upgrades.length).toBe(1);
-                expect(context.resilient).toBeInLocation('space arena', context.player2);
+                expect(context.resilient).toBeInZone('spaceArena', context.player2);
                 expect(context.brightHope.getPower()).toBe(2);
                 expect(context.brightHope.getHp()).toBe(9);
 

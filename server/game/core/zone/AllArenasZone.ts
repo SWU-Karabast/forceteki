@@ -1,6 +1,6 @@
 import { InPlayCard } from '../card/baseClasses/InPlayCard';
 import { Card } from '../card/Card';
-import { Location, WildcardCardType, WildcardLocation } from '../Constants';
+import { ZoneName, WildcardCardType, WildcardZoneName } from '../Constants';
 import Game from '../Game';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
@@ -10,7 +10,7 @@ import { GroundArenaZone } from './GroundArenaZone';
 import { SpaceArenaZone } from './SpaceArenaZone';
 
 export interface IAllArenasZoneCardFilterProperties extends IArenaZoneCardFilterProperties {
-    arena?: Location.SpaceArena | Location.GroundArena | WildcardLocation.AnyArena;
+    arena?: ZoneName.SpaceArena | ZoneName.GroundArena | WildcardZoneName.AnyArena;
 }
 
 // used for player.getArenaCards, declared here since that file is still JS
@@ -19,7 +19,7 @@ export type IAllArenasForPlayerSpecificTypeCardFilterProperties = Omit<IAllArena
 
 export class AllArenasZone extends ConcreteOrMetaArenaZone {
     public override readonly hiddenForPlayers: null;
-    public override readonly name: WildcardLocation.AnyArena;
+    public override readonly name: WildcardZoneName.AnyArena;
     public override readonly owner: Game;
 
     private groundArena: GroundArenaZone;
@@ -42,7 +42,7 @@ export class AllArenasZone extends ConcreteOrMetaArenaZone {
     public constructor(owner: Game, groundArena: GroundArenaZone, spaceArena: SpaceArenaZone) {
         super(owner);
 
-        this.name = WildcardLocation.AnyArena;
+        this.name = WildcardZoneName.AnyArena;
 
         this.groundArena = groundArena;
         this.spaceArena = spaceArena;
@@ -52,7 +52,7 @@ export class AllArenasZone extends ConcreteOrMetaArenaZone {
         let cards: InPlayCard[] = [];
 
         for (const arena of this.arenas) {
-            if (!filter?.arena || filter.arena === WildcardLocation.AnyArena || filter.arena === arena.name) {
+            if (!filter?.arena || filter.arena === WildcardZoneName.AnyArena || filter.arena === arena.name) {
                 cards = cards.concat(arena.getCards(filter));
             }
         }

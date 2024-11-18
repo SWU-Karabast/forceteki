@@ -4,7 +4,7 @@ import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
 import { Attack } from '../../core/attack/Attack';
 import { Card } from '../../core/card/Card';
-import { KeywordName, WildcardLocation } from '../../core/Constants';
+import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';
@@ -16,7 +16,7 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
         return {
             title: 'Saboteur: defeat all shields',
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
-            locationFilter: WildcardLocation.AnyArena,
+            zoneFilter: WildcardZoneName.AnyArena,
             targetResolver: {
                 cardCondition: (card: Card, context: TriggeredAbilityContext) => {
                     const attacker = context.source;

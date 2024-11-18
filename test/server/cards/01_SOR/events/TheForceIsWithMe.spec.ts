@@ -95,7 +95,7 @@ describe('The Force is With Me', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theForceIsWithMe);
-                expect(context.theForceIsWithMe).toBeInLocation('discard');
+                expect(context.theForceIsWithMe).toBeInZone('discard');
 
                 expect(context.player2).toBeActivePlayer();
             });

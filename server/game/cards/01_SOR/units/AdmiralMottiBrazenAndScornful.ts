@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, WildcardLocation } from '../../../core/Constants';
+import { Aspect, WildcardZoneName } from '../../../core/Constants';
 
 export default class AdmiralMottiBrazenAndScornful extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class AdmiralMottiBrazenAndScornful extends NonLeaderUnitCard {
             title: 'Ready a Villainy unit',
             optional: true,
             targetResolver: {
-                locationFilter: WildcardLocation.AnyArena,
+                zoneFilter: WildcardZoneName.AnyArena,
                 cardCondition: (card) => card.isUnit() && card.aspects.includes(Aspect.Villainy),
                 immediateEffect: AbilityHelper.immediateEffects.ready()
             }

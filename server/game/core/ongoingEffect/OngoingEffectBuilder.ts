@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type { Card } from '../card/Card';
-import type { Duration, EffectName, Location } from '../Constants';
+import type { Duration, EffectName, ZoneName } from '../Constants';
 import type Game from '../Game';
 import type { GameSystem, IGameSystemProperties } from '../gameSystem/GameSystem';
 import type { IOngoingEffectProps, WhenType } from '../../Interfaces';

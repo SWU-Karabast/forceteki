@@ -1,6 +1,6 @@
 import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { CardType, Location, RelativePlayer, WildcardLocation } from '../../Constants';
+import { CardType, ZoneName, RelativePlayer, WildcardZoneName } from '../../Constants';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { IDecreaseEventCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
@@ -25,7 +25,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected _pendingDefeat? = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
-    private movedFromLocation?: Location = null;
+    private movedFromZone?: ZoneName = null;
 
     /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
@@ -47,7 +47,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     public isInPlay(): boolean {
-        return EnumHelpers.isArena(this.location);
+        return EnumHelpers.isArena(this.zoneName);
     }
 
     public override canBeInPlay(): this is InPlayCard {
@@ -85,7 +85,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
         const ability = this.createConstantAbility(properties);
         // This check is necessary to make sure on-play cost-reduction effects are registered
-        if (ability.sourceLocationFilter === WildcardLocation.Any) {
+        if (ability.sourceZoneFilter === WildcardZoneName.Any) {
             ability.registeredEffects = this.addEffectToEngine(ability);
         }
         this.constantAbilities.push(ability);
@@ -184,21 +184,21 @@ export class InPlayCard extends PlayableOrDeployableCard {
         }
     }
 
-    public override resolveAbilitiesForNewLocation() {
+    public override resolveAbilitiesForNewZone() {
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(this.movedFromLocation, this.location);
-        this.updateConstantAbilityEffects(this.movedFromLocation, this.location);
+        this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
+        this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
 
-        this.movedFromLocation = null;
+        this.movedFromZone = null;
     }
 
-    protected override initializeForCurrentLocation(prevLocation?: Location) {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone?: ZoneName) {
+        super.initializeForCurrentZone(prevZone);
 
-        this.movedFromLocation = prevLocation;
+        this.movedFromZone = prevZone;
 
-        if (EnumHelpers.isArena(this.location)) {
+        if (EnumHelpers.isArena(this.zoneName)) {
             this.setPendingDefeatEnabled(true);
 
             if (this.unique) {
@@ -210,20 +210,20 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     /** Register / un-register the event triggers for any triggered abilities */
-    private updateTriggeredAbilityEvents(from: Location, to: Location, reset: boolean = true) {
+    private updateTriggeredAbilityEvents(from: ZoneName, to: ZoneName, reset: boolean = true) {
         this.resetLimits();
 
         for (const triggeredAbility of this.triggeredAbilities) {
-            if (EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && !EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
+            if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.registerEvents();
-            } else if (!EnumHelpers.cardLocationMatches(to, triggeredAbility.locationFilter) && EnumHelpers.cardLocationMatches(from, triggeredAbility.locationFilter)) {
+            } else if (!EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.unregisterEvents();
             }
         }
     }
 
     /** Register / un-register the effect registrations for any constant abilities */
-    private updateConstantAbilityEffects(from: Location, to: Location) {
+    private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
         // removing any lasting effects from ourself
         if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
             this.removeLastingEffects();
@@ -231,17 +231,17 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         // check to register / unregister any effects that we are the source of
         for (const constantAbility of this.constantAbilities) {
-            if (constantAbility.sourceLocationFilter === WildcardLocation.Any) {
+            if (constantAbility.sourceZoneFilter === WildcardZoneName.Any) {
                 continue;
             }
             if (
-                !EnumHelpers.cardLocationMatches(from, constantAbility.sourceLocationFilter) &&
-                EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
+                !EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
+                EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
             ) {
                 constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
             } else if (
-                EnumHelpers.cardLocationMatches(from, constantAbility.sourceLocationFilter) &&
-                !EnumHelpers.cardLocationMatches(to, constantAbility.sourceLocationFilter)
+                EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
+                !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
             ) {
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];
@@ -285,7 +285,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         const chooseDuplicateToDefeatPromptProperties = {
             activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
-            locationFilter: WildcardLocation.AnyArena,
+            zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>
                 card.unique && card.title === this.title && card.subtitle === this.subtitle && !card.pendingDefeat,
