@@ -10,7 +10,8 @@ describe('Ambush keyword', function() {
                     },
                     player2: {
                         groundArena: ['consular-security-force', 'snowspeeder'],
-                        spaceArena: ['cartel-spacer']
+                        spaceArena: ['cartel-spacer'],
+                        hand: ['waylay']
                     }
                 });
             });
@@ -29,6 +30,23 @@ describe('Ambush keyword', function() {
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.syndicateLackeys.damage).toBe(3);
                 expect(context.consularSecurityForce.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+
+                // CASE 2 waylay the card and play it again. It should not trigger twice
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.syndicateLackeys);
+
+                context.player1.clickCard(context.syndicateLackeys);
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Ambush');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.snowspeeder]);
+
+                context.player1.clickCard(context.snowspeeder);
+                expect(context.syndicateLackeys.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.syndicateLackeys.damage).toBe(3);
+                expect(context.snowspeeder.damage).toBe(5);
                 expect(context.player2).toBeActivePlayer();
             });
         });

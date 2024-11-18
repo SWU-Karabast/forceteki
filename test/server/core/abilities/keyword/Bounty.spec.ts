@@ -78,7 +78,7 @@ describe('Bounty', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['covetous-rivals'],
+                        hand: ['covetous-rivals', 'waylay'],
                         groundArena: ['fugitive-wookiee', 'battlefield-marine', { card: 'atst', upgrades: ['wanted'] }]
                     },
                     player2: {
@@ -99,6 +99,53 @@ describe('Bounty', function() {
 
                 context.player2.passAction();
                 context.covetousRivals.exhausted = false;
+            });
+
+            it('should not trigger twice when removed from play and played again.', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['waylay'],
+                        groundArena: [{ card: 'atst', upgrades: ['top-target'] }]
+                    },
+                    player2: {
+                        groundArena: ['hylobon-enforcer'],
+                        spaceArena: ['cartel-turncoat'],
+                        hand: ['waylay'],
+                    }
+                });
+
+                const { context } = contextRef;
+                context.firstWaylay = context.player1.hand[0];
+                context.secondWaylay = context.player2.hand[0];
+
+                // CASE 1: check that the bounty isn't triggered when removed from play
+                context.player1.clickCard(context.firstWaylay);
+                context.player1.clickCard(context.hylobonEnforcer);
+
+                // return atst to hand without collecting bounty
+                expect(context.player2).toBeActivePlayer();
+                context.player2.clickCard(context.secondWaylay);
+                context.player2.clickCard(context.atst);
+
+                expect(context.player1).toBeActivePlayer();
+                context.player1.passAction();
+
+                // CASE 2: We now defeat it to check it doesn't trigger twice.
+                context.player2.clickCard(context.hylobonEnforcer);
+                context.player1.clickCard(context.atst);
+                context.player2.passAction();
+                context.atst.exhausted = false;
+
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.hylobonEnforcer);
+
+                expect(context.player1).toHavePassAbilityPrompt('Bounty: Draw a card');
+                context.player1.clickPrompt('Bounty: Draw a card');
+
+                expect(context.player1.handSize).toBe(1);
+                expect(context.player2.handSize).toBe(0);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
