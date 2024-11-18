@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { Aspect, CardType, RelativePlayer, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+import { Aspect, CardType, WildcardRelativePlayer, WildcardZoneName, ZoneName, MoveZoneDestination } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
@@ -74,11 +74,21 @@ export class PlayableOrDeployableCard extends Card {
         this._exhausted = false;
     }
 
+    public override moveTo(targetZone: MoveZoneDestination): void {
+        // If this card is a resource and it is ready, try to ready another resource instead
+        // and exhaust this one. This should be the desired behavior for most cases.
+        if (this.zoneName === ZoneName.Resource && !this.exhausted) {
+            this.controller.swapResourceReadyState(this);
+        }
+
+        super.moveTo(targetZone);
+    }
+
     public override canBeExhausted(): this is PlayableOrDeployableCard {
         return true;
     }
 
-    public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+    public override getSummary(activePlayer: Player, hideWhenFaceup?: boolean) {
         return { ...super.getSummary(activePlayer, hideWhenFaceup), exhausted: this._exhausted };
     }
 

@@ -224,6 +224,6 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             event.context.game.actions.defeat({ target: event.card }).resolve();
         }
 
-        event.card.owner.moveCard(event.card, event.destination, event.options || {});
+        event.card.moveTo(event.destination);
     }
 }
