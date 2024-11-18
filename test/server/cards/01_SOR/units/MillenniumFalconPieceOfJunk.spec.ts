@@ -61,6 +61,8 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.millenniumFalcon).toBeInZone('hand');
             });
+
+            // TODO CHECK IF ENTERS READY WHEN PLAYED FROM RESOURCES OR DISCARD
         });
     });
 });

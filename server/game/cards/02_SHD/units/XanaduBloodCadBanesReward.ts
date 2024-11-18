@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,15 +20,22 @@ export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
-                cardCondition: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Underworld),
+                cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Underworld),
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: {
                 title: 'Exhaust an enemy unit or resource',
                 targetResolver: {
-                    controller: RelativePlayer.Opponent,
-                    zoneFilter: [ZoneName.Resource, ZoneName.GroundArena, ZoneName.SpaceArena],
-                    immediateEffect: AbilityHelper.immediateEffects.exhaust()
+                    mode: TargetMode.Select,
+                    choices: {
+                        ['Exhaust an enemy resource']: AbilityHelper.immediateEffects.exhaustResources({ amount: 1 }),
+                        ['Exhaust an enemy unit']: AbilityHelper.immediateEffects.selectCard({
+                            controller: RelativePlayer.Opponent,
+                            cardTypeFilter: WildcardCardType.Unit,
+                            innerSystem: AbilityHelper.immediateEffects.exhaust()
+                        }),
+                    }
                 }
             }
         });

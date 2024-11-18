@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class JabbasRancorPateesa extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,9 +13,7 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addDecreaseCostAbility({
             title: 'If you control Jabba the Hutt, this unit costs 1 resource less to play',
-            condition: (context) =>
-                context.source.controller.leader.title === 'Jabba the Hutt' ||
-                context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.title === 'Jabba the Hutt').length > 0,
+            condition: (context) => context.source.controller.controlsLeaderOrUnitWithTitle('Jabba the Hutt'),
             amount: 1
         });
 

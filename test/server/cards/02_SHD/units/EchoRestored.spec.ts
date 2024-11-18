@@ -2,7 +2,7 @@ describe('Echo, Restored', function () {
     integration(function (contextRef) {
         describe('Echo\'s ability', function () {
             const prompt = 'Discard a card from your hand. Give 2 Experience tokens to a unit in play with the same name as the discarded card.';
-            it('can heal a target unit for the amount of damage it has', function () {
+            it('can discard a card and give 2 experience tokens to a unit with same name', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -81,7 +81,7 @@ describe('Echo, Restored', function () {
                 expect(context.player1).not.toHaveChooseNoTargetButton();
                 context.player1.clickCard(friendlyGroundWampa);
 
-                // friendly wampa should hvae 2 experiences tokens
+                // friendly wampa should have 2 experiences tokens
                 expect(context.player2).toBeActivePlayer();
                 expect(handWampa).toBeInZone('discard');
 

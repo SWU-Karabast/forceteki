@@ -17,7 +17,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         // superclasses check that we are a unit, check here that we are a non-leader unit
         Contract.assertFalse(this.printedType === CardType.Leader);
 
-        this.defaultActions.push(new PlayUnitAction(this, PlayType.PlayFromHand, cardData.entersReady));
+        this.defaultActions.push(new PlayUnitAction(this));
     }
 
     public override isNonLeaderUnit(): this is NonLeaderUnitCard {

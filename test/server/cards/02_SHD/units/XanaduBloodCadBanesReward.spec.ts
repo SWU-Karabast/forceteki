@@ -12,7 +12,6 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
                     player2: {
                         groundArena: ['cantina-braggart'],
                         spaceArena: ['green-squadron-awing'],
-                        resources: ['atst', 'escort-skiff', 'crafty-smuggler']
                     }
                 });
 
@@ -26,7 +25,9 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
                 context.player1.clickCard(context.cartelSpacer);
 
                 // exhaust an enemy unit or resource
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.cantinaBraggart, context.atst, context.escortSkiff, context.craftySmuggler]);
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust an enemy resource', 'Exhaust an enemy unit']);
+                context.player1.clickPrompt('Exhaust an enemy unit')
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.cantinaBraggart]);
                 context.player1.clickCard(context.cantinaBraggart);
 
                 expect(context.player2).toBeActivePlayer();
@@ -46,11 +47,11 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
                 context.player1.clickCard(context.syndicateLackeys);
 
                 // exhaust an enemy unit or resource
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.cantinaBraggart, context.atst, context.escortSkiff, context.craftySmuggler]);
-                context.player1.clickCard(context.atst);
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust an enemy resource', 'Exhaust an enemy unit']);
+                context.player1.clickPrompt('Exhaust an enemy resource')
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.atst.exhausted).toBeTrue();
+                expect(context.player2.exhaustedResourceCount).toBe(1);
                 expect(context.syndicateLackeys).toBeInZone('hand');
 
                 context.xanaduBlood.exhausted = false;
