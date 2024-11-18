@@ -1,11 +1,22 @@
-const OngoingEffect = require('./OngoingEffect.js');
-const { RelativePlayer, WildcardLocation, WildcardCardType } = require('../Constants.js');
-const EnumHelpers = require('../utils/EnumHelpers.js');
-const Contract = require('../utils/Contract.js');
-const Helpers = require('../utils/Helpers.js');
+import { OngoingEffect } from './OngoingEffect';
+import { RelativePlayer, WildcardLocation, WildcardCardType, CardTypeFilter, LocationFilter, relativePlayerValues } from '../Constants';
+import * as EnumHelpers from '../utils/EnumHelpers';
+import * as Contract from '../utils/Contract';
+import * as Helpers from '../utils/Helpers';
+import Game from '../Game';
+import { Card } from '../card/Card';
+import { IOngoingCardEffectProps } from '../../Interfaces';
+import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+import { AbilityContext } from '../ability/AbilityContext';
 
-class OngoingCardEffect extends OngoingEffect {
-    constructor(game, source, properties, effect) {
+export class OngoingCardEffect extends OngoingEffect {
+    public readonly targetsSourceOnly: boolean;
+    public readonly targetLocationFilter: LocationFilter;
+    public readonly targetCardTypeFilter: CardTypeFilter[];
+    public readonly targetController: RelativePlayer;
+    public override matchTarget: Card | ((target: Card, context: AbilityContext) => boolean);
+
+    public constructor(game: Game, source: Card, properties: IOngoingCardEffectProps, effect: OngoingEffectImpl<any>) {
         super(game, source, properties, effect);
 
         if (!properties.matchTarget) {
@@ -14,11 +25,11 @@ class OngoingCardEffect extends OngoingEffect {
                 this.targetsSourceOnly = true;
                 return;
             }
-
-            properties.matchTarget = () => true;
         }
 
         this.targetsSourceOnly = false;
+        this.targetController = properties.targetController || RelativePlayer.Self;
+        Contract.assertArrayIncludes(relativePlayerValues, this.targetController, 'target controller must be a RelativePlayer enum.');
 
         if (!properties.targetLocationFilter) {
             this.targetLocationFilter = properties.sourceLocationFilter === WildcardLocation.Any
@@ -28,8 +39,6 @@ class OngoingCardEffect extends OngoingEffect {
             this.targetLocationFilter = properties.targetLocationFilter;
         }
 
-        this.targetController = properties.targetController || RelativePlayer.Self;
-
         // TODO: rework getTargets() so that we can provide an array while still not searching all cards in the game every time
         Contract.assertFalse(Array.isArray(properties.targetLocationFilter), 'Target location filter for an effect definition cannot be an array');
 
@@ -37,14 +46,18 @@ class OngoingCardEffect extends OngoingEffect {
     }
 
     /** @override */
-    isValidTarget(target) {
-        if (target === this.matchTarget) {
-            // This is a hack to check whether this is a lasting effect
-            return true;
-        }
-
+    public override isValidTarget(target: Card) {
         if (this.targetsSourceOnly) {
             return target === this.context.source;
+        }
+
+        if (typeof this.matchTarget !== 'function') {
+            if (target === this.matchTarget) {
+                // This is a hack to check whether this is a lasting effect
+                return true;
+            }
+
+            return false;
         }
 
         return (
@@ -57,7 +70,7 @@ class OngoingCardEffect extends OngoingEffect {
     }
 
     /** @override */
-    getTargets() {
+    public override getTargets() {
         if (this.targetsSourceOnly) {
             return [this.context.source];
         } else if (this.targetLocationFilter === WildcardLocation.Any) {
@@ -68,5 +81,3 @@ class OngoingCardEffect extends OngoingEffect {
         return this.game.allCards;
     }
 }
-
-module.exports = OngoingCardEffect;

@@ -1,4 +1,4 @@
-import OngoingEffect from '../ongoingEffect/OngoingEffect';
+import { OngoingEffect } from '../ongoingEffect/OngoingEffect';
 import { TriggeredAbilityWindow } from './abilityWindow/TriggeredAbilityWindow';
 
 // TODO: do we even need this?

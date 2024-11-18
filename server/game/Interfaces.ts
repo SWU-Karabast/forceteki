@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import { type RelativePlayer, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration } from './core/Constants';
+import { type RelativePlayer, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration, WildcardLocation } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
@@ -11,8 +11,8 @@ import { ICost } from './core/cost/ICost';
 import Game from './core/Game';
 import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import Player from './core/Player';
-import OngoingCardEffect from './core/ongoingEffect/OngoingCardEffect';
-import OngoingPlayerEffect from './core/ongoingEffect/OngoingPlayerEffect';
+import { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
+import { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
 import { UnitCard } from './core/card/CardTypes';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -37,7 +37,10 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 };
 
 export interface IOngoingEffectProps {
-    targetLocationFilter?: Location | Location[];
+    targetCardTypeFilter?: any;
+    sourceLocationFilter?: LocationFilter;
+    matchTarget?: () => boolean;
+    targetLocationFilter?: LocationFilter;
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;
@@ -47,6 +50,14 @@ export interface IOngoingEffectProps {
     target?: (Player | Card) | (Player | Card)[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
+}
+
+export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
+    targetController?: Player | RelativePlayer;
+}
+
+export interface IOngoingCardEffectProps extends IOngoingEffectProps {
+    targetController?: RelativePlayer;
 }
 
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
