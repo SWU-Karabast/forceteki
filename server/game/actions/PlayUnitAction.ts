@@ -28,9 +28,11 @@ export class PlayUnitAction extends PlayCardAction {
             context.player,
             context.source,
         );
+
+        // TODO TAKE CONTROL
         const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
         const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
-        const entersReady = this.entersReady || context.source.getOngoingEffectValues(EffectName.EntersPlayReady).length > 0;
+        const entersReady = this.entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady);
 
         const events = [
             putIntoPlay({ target: context.source, controller: player, entersReady: entersReady }).generateEvent(context),
