@@ -26,7 +26,7 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
 
                 // exhaust an enemy unit or resource
                 expect(context.player1).toHaveExactPromptButtons(['Exhaust an enemy resource', 'Exhaust an enemy unit']);
-                context.player1.clickPrompt('Exhaust an enemy unit')
+                context.player1.clickPrompt('Exhaust an enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.cantinaBraggart]);
                 context.player1.clickCard(context.cantinaBraggart);
 
@@ -48,7 +48,7 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
 
                 // exhaust an enemy unit or resource
                 expect(context.player1).toHaveExactPromptButtons(['Exhaust an enemy resource', 'Exhaust an enemy unit']);
-                context.player1.clickPrompt('Exhaust an enemy resource')
+                context.player1.clickPrompt('Exhaust an enemy resource');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player2.exhaustedResourceCount).toBe(1);
