@@ -545,10 +545,6 @@ export class Card extends OngoingEffectSource {
         }
     }
 
-    // public removeFromGame() {
-    //     Contract.fail(`Attempting to remove card ${this.internalName} from the game but it is not a token`);
-    // }
-
     /**
      * Deals with any engine effects of leaving the current zone before the move happens
      */

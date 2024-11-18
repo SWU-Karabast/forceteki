@@ -111,24 +111,6 @@ class Player extends GameObject {
         this.clock.reset();
     }
 
-    // /**
-    //  * Get all cards in this player's arena(s). Any opponent upgrades will be included.
-    //  * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
-    //  */
-    // getArenaCards(arena = WildcardZoneName.AnyArena) {
-    //     switch (arena) {
-    //         case ZoneName.GroundArena:
-    //             return [...this.groundArena];
-    //         case ZoneName.SpaceArena:
-    //             return [...this.spaceArena];
-    //         case WildcardZoneName.AnyArena:
-    //             return this.spaceArena.concat(this.groundArena);
-    //         default:
-    //             Contract.fail(`Unknown arena type: ${arena}`);
-    //             return [];
-    //     }
-    // }
-
     /**
      *
      * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
