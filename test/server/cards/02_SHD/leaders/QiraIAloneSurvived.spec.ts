@@ -38,7 +38,7 @@ describe('Qi\'ra, I Alone Survived', function() {
                 context.player1.clickCard(context.deathStarStormtrooper);
 
                 // check stormtrooper is dead
-                expect(context.deathStarStormtrooper.location).toBe('discard');
+                expect(context.deathStarStormtrooper.zoneName).toBe('discard');
                 expect(context.player2).toBeActivePlayer();
             });
         });
