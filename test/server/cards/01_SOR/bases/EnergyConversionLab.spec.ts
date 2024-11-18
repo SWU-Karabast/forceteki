@@ -23,8 +23,8 @@ describe('Energy Conversion Lab', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.allianceXwing, context.atst]);
 
                 context.player1.clickCard(context.rebelPathfinder);
-                expect(context.rebelPathfinder).toBeInLocation('ground arena');
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.rebelPathfinder).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
                 context.player1.clickPrompt('Ambush');

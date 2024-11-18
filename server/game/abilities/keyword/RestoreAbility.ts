@@ -1,6 +1,6 @@
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import { Card } from '../../core/card/Card';
-import { CardType, KeywordName, RelativePlayer, WildcardLocation } from '../../core/Constants';
+import { CardType, KeywordName, RelativePlayer, WildcardZoneName } from '../../core/Constants';
 import Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import * as GameSystemLibrary from '../../gameSystems/GameSystemLibrary';
@@ -13,7 +13,7 @@ export class RestoreAbility extends TriggeredAbility {
         return {
             title: `Restore ${restoreAmount}`,
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
-            locationFilter: WildcardLocation.AnyArena,
+            zoneFilter: WildcardZoneName.AnyArena,
             targetResolver: {
                 cardTypeFilter: CardType.Base,
                 controller: RelativePlayer.Self,

@@ -23,14 +23,14 @@ describe('Shield', function() {
                 expect(context.cartelSpacer.damage).toBe(2);
                 expect(context.tielnFighter.damage).toBe(0);
 
-                expect(context.shield).toBeInLocation('outside the game');
+                expect(context.shield).toBeInZone('outsideTheGame');
                 expect(context.tielnFighter.isUpgraded()).toBe(false);
 
                 // second attack to confirm that shield effect is off
                 context.player2.clickCard(context.tielnFighter);
                 context.player2.clickCard(context.cartelSpacer);
-                expect(context.cartelSpacer).toBeInLocation('discard');
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
             });
 
             it('should be removed from the game when the attached unit is defeated', function () {
@@ -39,8 +39,8 @@ describe('Shield', function() {
                 context.player1.clickCard(context.vanquish);
                 context.player1.clickCard(context.tielnFighter);
 
-                expect(context.tielnFighter).toBeInLocation('discard');
-                expect(context.shield).toBeInLocation('outside the game');
+                expect(context.tielnFighter).toBeInZone('discard');
+                expect(context.shield).toBeInZone('outsideTheGame');
             });
         });
 
@@ -63,7 +63,7 @@ describe('Shield', function() {
             it('should defeat itself to prevent damage to the attached unit', function () {
                 const { context } = contextRef;
 
-                const getShieldLocationsSorted = (shields) => shields.map((shield) => shield.location).sort();
+                const getShieldZonesSorted = (shields) => shields.map((shield) => shield.zoneName).sort();
 
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.tielnFighter);
@@ -72,16 +72,16 @@ describe('Shield', function() {
                 expect(context.tielnFighter.damage).toBe(0);
                 expect(context.tielnFighter).toHaveExactUpgradeNames(['shield']);
 
-                expect(getShieldLocationsSorted(context.shields)).toEqual(['outside the game', 'space arena']);
+                expect(getShieldZonesSorted(context.shields)).toEqual(['outsideTheGame', 'spaceArena']);
 
                 // second attack
                 context.player2.clickCard(context.tielnFighter);
                 context.player2.clickCard(context.cartelSpacer);
-                expect(context.cartelSpacer).toBeInLocation('discard');
+                expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.tielnFighter.damage).toBe(0);
                 expect(context.tielnFighter.isUpgraded()).toBe(false);
 
-                expect(getShieldLocationsSorted(context.shields)).toEqual(['outside the game', 'outside the game']);
+                expect(getShieldZonesSorted(context.shields)).toEqual(['outsideTheGame', 'outsideTheGame']);
             });
         });
 

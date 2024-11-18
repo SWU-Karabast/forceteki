@@ -3,7 +3,7 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { Card } from '../core/card/Card.js';
-import { EventName, Location, TargetMode } from '../core/Constants.js';
+import { EventName, ZoneName, TargetMode } from '../core/Constants.js';
 import { GameEvent } from '../core/event/GameEvent.js';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem.js';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -223,7 +223,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
         if (cardsToMove.length > 0) {
             shuffleArray(cardsToMove);
             for (const card of cardsToMove) {
-                event.player.moveCard(card, Location.Deck, { bottom: true });
+                event.player.moveCard(card, ZoneName.Deck, { bottom: true });
             }
             context.game.addMessage(
                 '{0} puts {1} card{2} on the bottom of their deck',

@@ -48,7 +48,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 expect(context.player2).toBeAbleToSelectExactly([context.sabineWren, context.cloudCityWingGuard]);
 
                 context.player2.clickCard(context.sabineWren);
-                expect(context.sabineWren).toBeInLocation('discard');
+                expect(context.sabineWren).toBeInZone('discard');
                 expect(context.wampa.damage).toBe(3);
             });
         });

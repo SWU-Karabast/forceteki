@@ -60,9 +60,9 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
                 expect(context.player2.deck.length).toBe(2);
 
                 // Should heal 3 for Command, Heroism, Aggression
-                expect(context.battlefieldMarine).toBeInLocation('discard');
-                expect(context.theChaosOfWar).toBeInLocation('discard');
-                expect(context.volunteerSoldier).toBeInLocation('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.theChaosOfWar).toBeInZone('discard');
+                expect(context.volunteerSoldier).toBeInZone('discard');
                 expect(context.player1.base.damage).toBe(2);
             });
         });
@@ -96,8 +96,8 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
                 expect(context.player2.base.damage).toBe(4);
 
                 // Should heal 3 for Command, Heroism, Aggression
-                expect(context.battlefieldMarine).toBeInLocation('discard');
-                expect(context.theChaosOfWar).toBeInLocation('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.theChaosOfWar).toBeInZone('discard');
                 expect(context.player1.base.damage).toBe(2);
             });
         });

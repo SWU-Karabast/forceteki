@@ -1,6 +1,6 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { KeywordName, CardType, Location } from '../../../core/Constants';
+import { KeywordName, CardType, ZoneName } from '../../../core/Constants';
 
 export default class EnergyConversionLab extends BaseCard {
     protected override getImplementationId () {
@@ -16,7 +16,7 @@ export default class EnergyConversionLab extends BaseCard {
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 6,
                 cardTypeFilter: CardType.BasicUnit,
-                locationFilter: Location.Hand,
+                zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush) }),

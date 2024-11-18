@@ -2,7 +2,7 @@ import Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
-import { CardType, KeywordName, Location, PlayType } from '../Constants';
+import { CardType, KeywordName, ZoneName, PlayType } from '../Constants';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
@@ -27,25 +27,25 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
-        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayUnitAction(this, PlayType.Smuggle));
         }
         return actions;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+        super.initializeForCurrentZone(prevZone);
 
-        switch (this.location) {
-            case Location.GroundArena:
-            case Location.SpaceArena:
+        switch (this.zoneName) {
+            case ZoneName.GroundArena:
+            case ZoneName.SpaceArena:
                 this.setActiveAttackEnabled(true);
                 this.setDamageEnabled(true);
                 this.setExhaustEnabled(true);
                 this.setUpgradesEnabled(true);
                 break;
 
-            case Location.Resource:
+            case ZoneName.Resource:
                 this.setActiveAttackEnabled(false);
                 this.setDamageEnabled(false);
                 this.setExhaustEnabled(true);

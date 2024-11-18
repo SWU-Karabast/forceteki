@@ -25,7 +25,7 @@ describe('Del Meeko, Providing Overwatch', function() {
 
                 context.player2.clickCard(context.daringRaid);
                 context.player2.clickCard(context.p1Base);
-                expect(context.player2.countExhaustedResources()).toBe(2);
+                expect(context.player2.exhaustedResourceCount).toBe(2);
             });
         });
     });

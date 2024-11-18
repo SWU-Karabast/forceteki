@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { Location } from '../../../core/Constants';
+import { ZoneName } from '../../../core/Constants';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
@@ -25,7 +25,7 @@ export default class BrutalTraditions extends UpgradeCard {
                 return opponentUnitsDefeatedThisPhase.length > 0;
             },
             immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay(),
-            locationFilter: Location.Discard
+            zoneFilter: ZoneName.Discard
         });
     }
 }

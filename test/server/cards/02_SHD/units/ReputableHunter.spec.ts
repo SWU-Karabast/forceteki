@@ -14,7 +14,7 @@ describe('Reputable Hunter', function() {
 
                 context.player1.clickCard(context.reputableHunter);
 
-                expect(context.player1.countExhaustedResources()).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
 
@@ -32,12 +32,12 @@ describe('Reputable Hunter', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.topTarget);
-                const exhaustedResourcesBeforePlay = context.player1.countExhaustedResources();
+                const exhaustedResourcesBeforePlay = context.player1.exhaustedResourceCount;
                 context.player2.passAction();
                 context.player1.clickCard(context.reputableHunter);
 
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['top-target']);
-                expect(context.player1.countExhaustedResources() - exhaustedResourcesBeforePlay).toBe(2);
+                expect(context.player1.exhaustedResourceCount - exhaustedResourcesBeforePlay).toBe(2);
             });
 
             it('should cost 2 if opponent has a unit with a dedicated bounty in play', () => {
@@ -57,7 +57,7 @@ describe('Reputable Hunter', function() {
                 context.player2.clickCard(context.hylobonEnforcer);
                 context.player1.clickCard(context.reputableHunter);
 
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
         });
     });

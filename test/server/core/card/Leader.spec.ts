@@ -61,7 +61,7 @@ describe('Leader cards', function() {
                 context.player1.clickPrompt('Deploy Grand Moff Tarkin');
 
                 expect(context.grandMoffTarkin.deployed).toBe(true);
-                expect(context.grandMoffTarkin).toBeInLocation('ground arena');
+                expect(context.grandMoffTarkin).toBeInZone('groundArena');
                 expect(context.grandMoffTarkin.exhausted).toBe(false);
                 expect(context.player2).toBeActivePlayer();
 
@@ -85,7 +85,7 @@ describe('Leader cards', function() {
 
                 expect(context.wampa.damage).toBe(4);
                 expect(context.grandMoffTarkin.deployed).toBe(false);
-                expect(context.grandMoffTarkin.location).toBe('base');
+                expect(context.grandMoffTarkin.zoneName).toBe('base');
                 expect(context.grandMoffTarkin.exhausted).toBe(true);
 
                 // confirm no action available (can't deploy)

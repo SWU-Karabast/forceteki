@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, CardTypeFilter, LocationFilter, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
+import { CardType, CardTypeFilter, ZoneFilter, RelativePlayer, TargetMode, WildcardCardType, RelativePlayerFilter } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import BaseCardSelector from '../core/cardSelector/BaseCardSelector';
@@ -25,10 +25,11 @@ export interface IDistributeAmongTargetsSystemProperties<TContext extends Abilit
     activePromptTitle?: string;
     player?: RelativePlayer;
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
-    controller?: RelativePlayer;
-    locationFilter?: LocationFilter | LocationFilter[];
+    controller?: RelativePlayerFilter;
+    zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context: TContext) => boolean;
     selector?: BaseCardSelector;
+    maxTargets?: number;
 }
 
 export abstract class DistributeAmongTargetsSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDistributeAmongTargetsSystemProperties> {
@@ -37,7 +38,8 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
         amountToDistribute: null,
         cardCondition: () => true,
         canChooseNoTargets: null,
-        canDistributeLess: this.canDistributeLessDefault()
+        canDistributeLess: this.canDistributeLessDefault(),
+        maxTargets: null,
     };
 
     public abstract promptType: StatefulPromptType.DistributeDamage | StatefulPromptType.DistributeHealing;
@@ -73,6 +75,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
             legalTargets,
             canChooseNoTargets: properties.canChooseNoTargets || context.ability.optional,
             canDistributeLess: properties.canDistributeLess,
+            maxTargets: properties.maxTargets,
             source: context.source,
             amount: this.getAmountToDistribute(properties.amountToDistribute, context),
             resultsHandler: (results: IDistributeAmongTargetsPromptResults) =>

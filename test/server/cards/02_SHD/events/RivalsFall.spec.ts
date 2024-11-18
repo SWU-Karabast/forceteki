@@ -23,7 +23,7 @@ describe('Rival\'s Fall', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.bobaFett]);
 
                 context.player1.clickCard(context.atst);
-                expect(context.atst).toBeInLocation('discard');
+                expect(context.atst).toBeInZone('discard');
             });
 
             it('should defeat an ally', function () {
@@ -33,7 +33,7 @@ describe('Rival\'s Fall', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.bobaFett]);
 
                 context.player1.clickCard(context.pykeSentinel);
-                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.pykeSentinel).toBeInZone('discard');
             });
 
             it('should defeat a leader', function () {

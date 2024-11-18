@@ -18,6 +18,7 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
     source: Card;
     canChooseNoTargets: boolean;
     canDistributeLess: boolean;
+    maxTargets?: number;
     legalTargets: Card[];
     resultsHandler: (results: IDistributeAmongTargetsPromptResults) => void;
 }

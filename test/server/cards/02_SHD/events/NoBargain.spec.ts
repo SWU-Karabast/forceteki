@@ -23,7 +23,7 @@ describe('No Bargain', function() {
 
                 expect(context.player2).toBeAbleToSelectExactly([context.pillage, context.craftySmuggler]);
                 context.player2.clickCard(context.pillage);
-                expect(context.pillage).toBeInLocation('discard');
+                expect(context.pillage).toBeInZone('discard');
 
                 expect(context.player2.handSize).toBe(opponentStartingHandSize - 1);
                 expect(context.player1.handSize).toBe(activePlayerStartingHandSize);

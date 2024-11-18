@@ -20,7 +20,7 @@ describe('Protector', function() {
                 // Snowspeeder automatically selected due to sentinel
                 expect(context.player2).toBeActivePlayer();
                 expect(context.snowspeeder.damage).toBe(3);
-                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
             });
         });
     });

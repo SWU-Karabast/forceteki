@@ -22,9 +22,9 @@ describe('Leia Organa, Defiant Princess', function() {
 
                 context.player1.clickCard(context.leiaOrgana);
                 expect(context.player1).toHaveEnabledPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                const exhaustedResourcesBeforeAbility = context.player1.countExhaustedResources();
+                const exhaustedResourcesBeforeAbility = context.player1.exhaustedResourceCount;
                 context.player1.clickPrompt('Ready a resource');
-                expect(context.player1.countExhaustedResources()).toBe(exhaustedResourcesBeforeAbility - 1);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAbility - 1);
             });
 
             it('should be able to target any unit to exhaust', function () {
@@ -55,7 +55,7 @@ describe('Leia Organa, Defiant Princess', function() {
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickPrompt('Exhaust a unit');
                 expect(context.player2).toBeActivePlayer();
-                expect(context.leiaOrgana).toBeInLocation('ground arena');
+                expect(context.leiaOrgana).toBeInZone('groundArena');
                 expect(context.leiaOrgana.exhausted).toBe(true);
             });
         });

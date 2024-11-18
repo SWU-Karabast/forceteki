@@ -1,7 +1,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { Duration, EventName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLastingEffectSystem';
+import { Duration, EventName } from '../core/Constants';
 
 export type ICardPhaseLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration'>;
 

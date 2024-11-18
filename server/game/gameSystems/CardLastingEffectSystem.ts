@@ -1,11 +1,11 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import { Duration, EffectName, EventName, Location, WildcardLocation } from '../core/Constants';
+import { Duration, EffectName, EventName, ZoneName, WildcardZoneName } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
 
 export interface ICardLastingEffectProperties extends Omit<ILastingEffectPropertiesBase, 'target'>, ICardTargetSystemProperties {
-    targetLocationFilter?: Location | Location[];
+    targetZoneFilter?: ZoneName | ZoneName[];
 }
 
 /**
@@ -30,7 +30,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
 
         const lastingEffectRestrictions = event.card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
         const { effect: effect, ...otherProperties } = properties;
-        const effectProperties = Object.assign({ matchTarget: event.card, locationFilter: WildcardLocation.Any }, otherProperties);
+        const effectProperties = Object.assign({ matchTarget: event.card, zoneFilter: WildcardZoneName.Any }, otherProperties);
         let effects = properties.effect.map((factory) =>
             factory(event.context.game, event.context.source, effectProperties)
         );

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer } from '../../../core/Constants';
+import { ZoneName, RelativePlayer } from '../../../core/Constants';
 
 export default class CrosshairFollowingOrders extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -24,7 +24,7 @@ export default class CrosshairFollowingOrders extends NonLeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 controller: RelativePlayer.Opponent,
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: context.source.getPower() }))
             }
         });

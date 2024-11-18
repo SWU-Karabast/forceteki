@@ -150,7 +150,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.bokatanKryze);
-                expect(context.jedhaAgitator.location).toBe('discard');
+                expect(context.jedhaAgitator.zoneName).toBe('discard');
                 expect(context.player2).toBeActivePlayer();
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit who die on first damage)

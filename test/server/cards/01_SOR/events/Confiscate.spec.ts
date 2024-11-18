@@ -23,7 +23,7 @@ describe('Confiscate', function() {
 
                 context.player1.clickCard(context.academyTraining);
                 expect(context.imperialInterceptor.isUpgraded()).toBe(false);
-                expect(context.academyTraining).toBeInLocation('discard');
+                expect(context.academyTraining).toBeInZone('discard');
             });
         });
 
@@ -52,7 +52,7 @@ describe('Confiscate', function() {
                 expect(context.wampa.isUpgraded()).toBe(false);
 
                 // this expectation will automatically check that entrenched is in the owning player's discard
-                expect(context.entrenched).toBeInLocation('discard', context.player1);
+                expect(context.entrenched).toBeInZone('discard', context.player1);
             });
         });
     });

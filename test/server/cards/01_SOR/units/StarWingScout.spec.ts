@@ -24,7 +24,7 @@ describe('Star Wing Scout', function () {
 
                     // Player 2 plays Rival's Fall, targeting Star Wing Scout
                     context.player2.clickCard(context.rivalsFall);
-                    expect(context.starWingScout.location).toBe('discard');
+                    expect(context.starWingScout.zoneName).toBe('discard');
 
                     // Player 1 draws 2 cards
                     expect(context.player1.handSize).toBe(2);
@@ -53,7 +53,7 @@ describe('Star Wing Scout', function () {
 
                     // Player 2 plays Rival's Fall, targeting Star Wing Scout
                     context.player2.clickCard(context.rivalsFall);
-                    expect(context.starWingScout.location).toBe('discard');
+                    expect(context.starWingScout.zoneName).toBe('discard');
 
                     // Player 1 draws 2 cards
                     expect(context.player1.handSize).toBe(0);

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, KeywordName, WildcardLocation } from '../../../core/Constants';
+import { Aspect, KeywordName, WildcardZoneName } from '../../../core/Constants';
 
 export default class PrivateerScyk extends NonLeaderUnitCard {
     protected override getImplementationId () {

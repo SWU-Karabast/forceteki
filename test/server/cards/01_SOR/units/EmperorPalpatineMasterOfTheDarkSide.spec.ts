@@ -30,7 +30,7 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
 
                 expect(context.consularSecurityForce.damage).toBe(2);
                 expect(context.wampa.damage).toBe(2);
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.bobaFett.damage).toBe(1);
             });
 
@@ -45,7 +45,7 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
 
                 expect(context.consularSecurityForce.damage).toBe(0);
                 expect(context.wampa.damage).toBe(0);
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.bobaFett.damage).toBe(0);
             });
         });

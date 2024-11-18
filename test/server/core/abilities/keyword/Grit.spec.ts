@@ -53,7 +53,7 @@ describe('Grit keyword', function() {
                 context.player1.clickCard(context.wookieeWarrior);
                 expect(context.player1).toBeAbleToSelectExactly([context.wookieeWarrior, context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.wookieeWarrior);
-                expect(context.sabineWren).toBeInLocation('discard');
+                expect(context.sabineWren).toBeInZone('discard');
                 expect(context.wookieeWarrior.damage).toBe(3);
                 expect(context.wookieeWarrior.getPower()).toBe(5);
             });

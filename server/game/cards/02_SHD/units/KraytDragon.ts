@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer } from '../../../core/Constants';
+import { ZoneName, RelativePlayer } from '../../../core/Constants';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class KraytDragon extends NonLeaderUnitCard {
@@ -19,7 +19,7 @@ export default class KraytDragon extends NonLeaderUnitCard {
             },
             targetResolver: {
                 controller: RelativePlayer.Opponent,
-                locationFilter: [Location.GroundArena, Location.Base],
+                zoneFilter: [ZoneName.GroundArena, ZoneName.Base],
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: context.event.card.cost,

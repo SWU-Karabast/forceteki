@@ -25,9 +25,9 @@ describe('Black One', function() {
                 context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(3);
-                expect(context.confiscate).toBeInLocation('hand', context.player1);
-                expect(context.waylay).toBeInLocation('hand', context.player1);
-                expect(context.isbAgent).toBeInLocation('hand', context.player1);
+                expect(context.confiscate).toBeInZone('hand', context.player1);
+                expect(context.waylay).toBeInZone('hand', context.player1);
+                expect(context.isbAgent).toBeInZone('hand', context.player1);
 
                 // Player 2 plays Vanquish and defeats Black One
                 expect(context.player2).toBeActivePlayer();
@@ -38,12 +38,12 @@ describe('Black One', function() {
                 context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(3);
-                expect(context.confiscate).toBeInLocation('discard', context.player1);
-                expect(context.waylay).toBeInLocation('discard', context.player1);
-                expect(context.isbAgent).toBeInLocation('discard', context.player1);
-                expect(context.cartelSpacer).toBeInLocation('hand', context.player1);
-                expect(context.wampa).toBeInLocation('hand', context.player1);
-                expect(context.disarm).toBeInLocation('hand', context.player1);
+                expect(context.confiscate).toBeInZone('discard', context.player1);
+                expect(context.waylay).toBeInZone('discard', context.player1);
+                expect(context.isbAgent).toBeInZone('discard', context.player1);
+                expect(context.cartelSpacer).toBeInZone('hand', context.player1);
+                expect(context.wampa).toBeInZone('hand', context.player1);
+                expect(context.disarm).toBeInZone('hand', context.player1);
 
                 // Player 1 plays Black One again and activates When Played, taking damage
                 expect(context.player1).toBeActivePlayer();
@@ -52,10 +52,10 @@ describe('Black One', function() {
                 context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(1);
-                expect(context.cartelSpacer).toBeInLocation('discard', context.player1);
-                expect(context.wampa).toBeInLocation('discard', context.player1);
-                expect(context.disarm).toBeInLocation('discard', context.player1);
-                expect(context.atst).toBeInLocation('hand', context.player1);
+                expect(context.cartelSpacer).toBeInZone('discard', context.player1);
+                expect(context.wampa).toBeInZone('discard', context.player1);
+                expect(context.disarm).toBeInZone('discard', context.player1);
+                expect(context.atst).toBeInZone('hand', context.player1);
                 expect(context.p1Base.damage).toBe(6);
 
                 // Player 2 plays Rival's Fall and defeats Black One
@@ -66,7 +66,7 @@ describe('Black One', function() {
                 context.player1.clickPrompt('Discard your hand');
 
                 expect(context.player1.handSize).toBe(0);
-                expect(context.atst).toBeInLocation('discard', context.player1);
+                expect(context.atst).toBeInZone('discard', context.player1);
                 expect(context.p1Base.damage).toBe(15);
             });
         });

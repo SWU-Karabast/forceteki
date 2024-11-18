@@ -121,7 +121,7 @@ describe('Tobias Beckett, I Trust No One', function () {
 
                 context.player1.clickCard(context.tobiasBeckett);
                 expect(context.player2).toBeActivePlayer();
-                expect(context.player1.countExhaustedResources()).toBe(7);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
             });
         });
     });

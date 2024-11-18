@@ -17,7 +17,7 @@ describe('Cartel Spacer', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.cartelSpacer);
-                expect(context.cartelSpacer.location).toBe('space arena');
+                expect(context.cartelSpacer.zoneName).toBe('spaceArena');
                 expect(context.player2).toBeActivePlayer();
 
                 expect(context.atst.exhausted).toBeFalse();

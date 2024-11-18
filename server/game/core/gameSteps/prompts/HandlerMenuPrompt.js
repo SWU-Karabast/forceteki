@@ -1,5 +1,5 @@
 const { AbilityContext } = require('../../ability/AbilityContext.js');
-const OngoingEffectSource = require('../../ongoingEffect/OngoingEffectSource.js');
+const { OngoingEffectSource } = require('../../ongoingEffect/OngoingEffectSource.js');
 const { UiPrompt } = require('./UiPrompt.js');
 
 /**

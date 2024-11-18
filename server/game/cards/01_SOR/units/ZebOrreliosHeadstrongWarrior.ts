@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, WildcardCardType } from '../../../core/Constants';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
@@ -26,7 +26,7 @@ export default class ZebOrreliosHeadstrongWarrior extends NonLeaderUnitCard {
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) =>

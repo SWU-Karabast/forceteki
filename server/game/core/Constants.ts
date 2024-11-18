@@ -1,29 +1,29 @@
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
 
-export enum Location {
+export enum ZoneName {
     Base = 'base',
     Deck = 'deck',
     Discard = 'discard',
-    GroundArena = 'ground arena',
+    GroundArena = 'groundArena',
     Hand = 'hand',
-    OutsideTheGame = 'outside the game',
-    RemovedFromGame = 'removed from game',
+    OutsideTheGame = 'outsideTheGame',
+    RemovedFromGame = 'removedFromGame',
     Resource = 'resource',
-    SpaceArena = 'space arena',
+    SpaceArena = 'spaceArena',
 }
 
-export enum WildcardLocation {
+export enum WildcardZoneName {
     Any = 'any',
-    AnyArena = 'any arena',
+    AnyArena = 'anyArena',
 
-    /** Any location that is a valid attack target - an arena or base zone */
-    AnyAttackable = 'any attackable'
+    /** Any zone that is a valid attack target - an arena or base zone */
+    AnyAttackable = 'anyAttackable'
 }
 
-export type LocationFilter = Location | WildcardLocation;
+export type ZoneFilter = ZoneName | WildcardZoneName;
 
-export type Arena = Location.GroundArena | Location.SpaceArena;
+export type Arena = ZoneName.GroundArena | ZoneName.SpaceArena;
 
 export enum PlayType {
     PlayFromHand = 'playFromHand',
@@ -101,9 +101,14 @@ export enum Stage {
 
 export enum RelativePlayer {
     Self = 'self',
-    Opponent = 'opponent',
+    Opponent = 'opponent'
+}
+
+export enum WildcardRelativePlayer {
     Any = 'any'
 }
+
+export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',

@@ -2,7 +2,7 @@ const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
 const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js');
 const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
-const { Location, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
+const { ZoneName, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
 
@@ -76,7 +76,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                 this.events.push(new GameEvent(EventName.OnCardPlayed, this.context, {
                     player: this.context.player,
                     card: this.context.source,
-                    originalLocation: this.context.source.location,
+                    originalZone: this.context.source.zoneName,
                     originallyOnTopOfDeck:
                         this.context.player && this.context.player.drawDeck && this.context.player.drawDeck[0] === this.context.source,
                     onPlayCardSource: this.context.onPlayCardSource,
@@ -244,8 +244,8 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         // Increment limits (limits aren't used up on cards in hand)
-        if (this.context.ability.limit && this.context.source.location !== Location.Hand &&
-          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.location === this.context.source.location)) {
+        if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
+          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
             this.context.ability.limit.increment(this.context.player);
         }
         this.context.ability.displayMessage(this.context);

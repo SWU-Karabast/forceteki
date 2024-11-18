@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, Trait, WildcardLocation } from '../../../core/Constants';
+import { ZoneName, Trait, WildcardZoneName } from '../../../core/Constants';
 
 export default class BountyGuildInitiate extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,7 +14,7 @@ export default class BountyGuildInitiate extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Deal 2 damage to a ground unit if you control another Bounty Hunter unit',
             targetResolver: {
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isTraitInPlay(Trait.BountyHunter, context.source),

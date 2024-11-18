@@ -79,7 +79,7 @@ describe('Jedha Agitator', function() {
                 context.player1.clickCard(context.p2Base);
                 context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
                 context.player1.clickCard(context.jedhaAgitator);
-                expect(context.jedhaAgitator).toBeInLocation('discard');
+                expect(context.jedhaAgitator).toBeInZone('discard');
                 expect(context.p1Base.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(4);     // attack did not resolve
             });
@@ -109,7 +109,7 @@ describe('Jedha Agitator', function() {
                 context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
                 context.player1.clickCard(context.jedhaAgitator);
 
-                expect(context.jedhaAgitator).toBeInLocation('discard');
+                expect(context.jedhaAgitator).toBeInZone('discard');
                 expect(context.wampa.isUpgraded()).toBe(false);
                 expect(context.wampa.damage).toBe(0);
             });
