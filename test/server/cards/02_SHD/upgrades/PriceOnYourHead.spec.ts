@@ -15,7 +15,7 @@ describe('Price on your Head', function() {
                 const { context } = contextRef;
                 const prompt = 'Bounty: Put the top card of your deck into play as a resource';
 
-                const startingResources = context.player2.countSpendableResources();
+                const startingResources = context.player2.resources.length;
 
                 context.player1.clickCard(context.greenSquadronAwing);
                 context.player1.clickCard(context.restoredArc170);

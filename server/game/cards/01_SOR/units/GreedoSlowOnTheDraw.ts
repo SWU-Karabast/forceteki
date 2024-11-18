@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location } from '../../../core/Constants';
+import { ZoneName } from '../../../core/Constants';
 
 export default class GreedoSlowOnTheDraw extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -23,7 +23,7 @@ export default class GreedoSlowOnTheDraw extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: !context.events[0].card.isUnit(),
                     onTrue: AbilityHelper.immediateEffects.selectCard({
-                        locationFilter: Location.GroundArena,
+                        zoneFilter: ZoneName.GroundArena,
                         innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
                     }),
                     onFalse: AbilityHelper.immediateEffects.noAction()

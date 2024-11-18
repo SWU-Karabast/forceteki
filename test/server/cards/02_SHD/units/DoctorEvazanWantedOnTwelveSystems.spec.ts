@@ -22,8 +22,8 @@ describe('Doctor Evazan, Wanted on Twelve Systems', function() {
                 context.player1.clickCard(context.doctorEvazan);
 
                 // evazan was killed, 12 resources should be ready
-                expect(context.doctorEvazan.location).toBe('discard');
-                expect(context.player1.countSpendableResources()).toBe(12);
+                expect(context.doctorEvazan).toBeInZone('discard');
+                expect(context.player1.readyResourceCount).toBe(12);
             });
         });
     });

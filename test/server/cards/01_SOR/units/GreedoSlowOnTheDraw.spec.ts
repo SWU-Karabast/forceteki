@@ -20,14 +20,14 @@ describe('Greedo, Slow on the Draw', function () {
                 // kill greedo
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.greedo);
-                expect(context.greedo.location).toBe('discard');
+                expect(context.greedo).toBeInZone('discard');
 
                 // player2 should have prompt or pass
                 expect(context.player2).toHavePassAbilityPrompt(prompt);
                 context.player2.clickPrompt(prompt);
 
                 // top card is an upgrade, deal 2 damage to a ground unit
-                expect(context.protector.location).toBe('discard');
+                expect(context.protector).toBeInZone('discard');
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.atst]);
 
                 context.player2.clickCard(context.battlefieldMarine);
@@ -51,14 +51,14 @@ describe('Greedo, Slow on the Draw', function () {
                 // kill greedo
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.greedo);
-                expect(context.greedo.location).toBe('discard');
+                expect(context.greedo).toBeInZone('discard');
 
                 // player2 should have prompt or pass
                 expect(context.player2).toHavePassAbilityPrompt(prompt);
                 context.player2.clickPrompt(prompt);
 
                 // top card is a unit, nothing happen
-                expect(context.isbAgent.location).toBe('discard');
+                expect(context.isbAgent).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -79,7 +79,7 @@ describe('Greedo, Slow on the Draw', function () {
                 // kill greedo
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.greedo);
-                expect(context.greedo.location).toBe('discard');
+                expect(context.greedo).toBeInZone('discard');
 
                 // deck is empty, nothing to discard, no prompt
                 expect(context.player2).toBeActivePlayer();

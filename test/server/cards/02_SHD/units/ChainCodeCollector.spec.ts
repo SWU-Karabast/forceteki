@@ -29,7 +29,7 @@ describe('Chain Code Collector', function () {
                 context.player1.clickCard(context.chainCodeCollector);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.chainCodeCollector.location).toBe('discard');
+                expect(context.chainCodeCollector).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
         });

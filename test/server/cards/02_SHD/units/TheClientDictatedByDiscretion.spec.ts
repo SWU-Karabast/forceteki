@@ -43,7 +43,7 @@ describe('The Client, Dictated by Discretion', function() {
                 expect(context.p1Base.damage).toBe(5);
 
                 // reset state
-                context.player2.moveCard(context.wampa, 'ground arena');
+                context.player2.moveCard(context.wampa, 'groundArena');
                 context.theClient.exhausted = false;
                 context.player2.passAction();
 
@@ -63,7 +63,7 @@ describe('The Client, Dictated by Discretion', function() {
                 context.player1.clickCard(context.jangoFett);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.wampa.location).toBe('ground arena');
+                expect(context.wampa).toBeInZone('ground arena');
                 expect(context.player2).toBeActivePlayer();
             });
         });
