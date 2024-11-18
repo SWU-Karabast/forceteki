@@ -9,6 +9,7 @@ import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import AbilityHelper from '../../AbilityHelper';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import { TokenOrPlayableCard } from './CardTypes';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
@@ -42,6 +43,10 @@ export class EventCard extends EventCardParent {
         return actions;
     }
 
+    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
+        return true;
+    }
+
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
         return this.isBlank()
@@ -49,7 +54,7 @@ export class EventCard extends EventCardParent {
             : this._eventAbility;
     }
 
-    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+    protected override initializeForCurrentZone(prevZone?: ZoneName): void {
         super.initializeForCurrentZone(prevZone);
 
         // event cards can only be exhausted when resourced

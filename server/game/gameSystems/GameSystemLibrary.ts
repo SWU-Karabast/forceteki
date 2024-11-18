@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { ZoneName, PlayType, WildcardZoneName } from '../core/Constants';
+import { ZoneName, DeckZoneDestination, PlayType } from '../core/Constants';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
@@ -160,27 +160,18 @@ export function moveCard<TContext extends AbilityContext = AbilityContext>(prope
 
 export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext>): CardTargetSystem<TContext> {
     return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'bottom'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: ZoneName.Deck, bottom: true }
+            { destination: DeckZoneDestination.DeckBottom }
         )
     );
 }
 
 export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext>): CardTargetSystem<TContext> {
     return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'bottom'>(
-            propertyFactory,
-            { destination: ZoneName.Deck, bottom: false }
-        )
-    );
-}
-
-export function moveToDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IMoveCardProperties, TContext>): CardTargetSystem<TContext> {
-    return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: ZoneName.Deck }
+            { destination: DeckZoneDestination.DeckTop }
         )
     );
 }

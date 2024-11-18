@@ -3,6 +3,7 @@ import type { Card } from '../core/card/Card';
 import { EventName, ZoneName, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { DamageSourceType, DefeatSourceType, IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 
 export interface IDefeatCardPropertiesBase extends ICardTargetSystemProperties {
@@ -35,12 +36,11 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (event.card.isToken()) {
             // move the token out of the play area so that effect cleanup happens, then remove it from all card lists
-            event.card.owner.moveCard(event.card, ZoneName.OutsideTheGame, event.options || {});
-            event.context.game.removeTokenFromPlay(event.card);
+            event.card.moveTo(ZoneName.OutsideTheGame);
         } else if (event.card.isLeader()) {
             event.card.undeploy();
         } else {
-            event.card.owner.moveCard(event.card, ZoneName.Discard, event.options || {});
+            event.card.moveTo(ZoneName.Discard);
         }
     }
 

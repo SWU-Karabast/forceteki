@@ -1,4 +1,4 @@
-import { CardType, CardTypeFilter, ZoneName, ZoneFilter, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
+import { CardType, CardTypeFilter, ZoneName, ZoneFilter, MoveZoneDestination, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -75,6 +75,17 @@ export const cardZoneMatches = (cardZone: ZoneName, zoneFilter: ZoneFilter | Zon
     });
 };
 
+/** Converts a MoveZoneDestination to a ZoneName by converting deck move zones to ZoneName.Deck */
+export const asConcreteZone = (zoneName: ZoneName | MoveZoneDestination): ZoneName => {
+    return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop
+        ? ZoneName.Deck
+        : zoneName;
+};
+
+export const isDeckMoveZone = (zoneName: MoveZoneDestination): boolean => {
+    return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
+};
+
 export const isUnit = (cardType: CardTypeFilter) => {
     switch (cardType) {
         case WildcardCardType.Unit:
@@ -121,7 +132,7 @@ export const isToken = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isTokenOrPlayable = (cardType: CardTypeFilter) => {
+export const isPlayable = (cardType: CardTypeFilter) => {
     switch (cardType) {
         case WildcardCardType.Playable:
         case CardType.Event:
@@ -152,7 +163,7 @@ export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilt
             case WildcardCardType.Token:
                 return isToken(cardType);
             case WildcardCardType.Playable:
-                return isTokenOrPlayable(cardType);
+                return isPlayable(cardType);
             default:
                 return cardType === allowedCardType;
         }
