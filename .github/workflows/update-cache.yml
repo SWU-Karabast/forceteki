@@ -24,7 +24,8 @@ jobs:
           uses: actions/cache@v3
           with:
             path: ./test/json
-            key: sor-shd-manual-v05-getcardfixes
+            # IMPORTANT: if you change the cache key name below, also change it in pullrequest.yml
+            key: sor-shd-manual-v06-quotationmark
 
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
