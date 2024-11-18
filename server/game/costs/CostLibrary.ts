@@ -104,7 +104,7 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
 //  */
 // export function shuffleIntoDeck(properties: SelectCostProperties): ICost {
 //     return getSelectCost(
-//         GameSystems.moveCard({ destination: Location.Deck, shuffle: true }),
+//         GameSystems.moveCard({ destination: ZoneName.Deck, shuffle: true }),
 //         properties,
 //         'Select card to shuffle into deck'
 //     );
@@ -130,7 +130,7 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
 // export function discardCard(properties?: SelectCostProperties): Cost {
 //     return getSelectCost(
 //         GameSystems.discardCard(),
-//         Object.assign({ location: Location.Hand, mode: TargetMode.Exactly }, properties),
+//         Object.assign({ zone: ZoneName.Hand, mode: TargetMode.Exactly }, properties),
 //         (properties?.numCards ?? 0) > 1 ? `Select ${properties.numCards} cards to discard` : 'Select card to discard'
 //     );
 // }
@@ -146,7 +146,7 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
 //         },
 //         pay: (context) => {
 //             for (const card of context.costs.discardTopCardsFromDeck as Card[]) {
-//                 card.controller.moveCard(card, Location.Deck);
+//                 card.controller.moveCard(card, ZoneName.Deck);
 //             }
 //         }
 //     };
@@ -162,7 +162,7 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
 // /**
 //  * Cost that requires removing a card selected by the player from the game.
 //  */
-// export function removeSelfFromGame(properties?: { location: Array<Location> }): Cost {
+// export function removeSelfFromGame(properties?: { zone: Array<ZoneName> }): Cost {
 //     return new GameSystemCost(GameSystems.removeFromGame(properties));
 // }
 
@@ -388,7 +388,7 @@ export function abilityResourceCost<TContext extends AbilityContext = AbilityCon
 //                 mode: TargetMode.Exactly,
 //                 numCards: amount,
 //                 ordered: false,
-//                 location: Location.Hand,
+//                 zone: ZoneName.Hand,
 //                 controller: RelativePlayer.Self,
 //                 onSelect: (player, cards) => {
 //                     if (cards.length === 0) {
@@ -574,7 +574,7 @@ export function abilityResourceCost<TContext extends AbilityContext = AbilityCon
 //     };
 // }
 
-// export function switchLocation(): Cost {
+// export function switchZone(): Cost {
 //     return {
 //         promptsPlayer: false,
 //         canPay(context: TriggeredAbilityContext) {
@@ -584,7 +584,7 @@ export function abilityResourceCost<TContext extends AbilityContext = AbilityCon
 //             return canMoveHome || canMoveToConflict;
 //         },
 //         getActionName(context: TriggeredAbilityContext) {
-//             return 'switchLocation';
+//             return 'switchZone';
 //         },
 //         getCostMessage(context: TriggeredAbilityContext) {
 //             if (!context.source.isParticipating()) {
@@ -593,13 +593,13 @@ export function abilityResourceCost<TContext extends AbilityContext = AbilityCon
 //             return ['moving {1} to the conflict', [context.source]];
 //         },
 //         resolve(context: TriggeredAbilityContext, result) {
-//             context.costs.switchLocation = context.source;
+//             context.costs.switchZone = context.source;
 //         },
 //         payEvent(context: TriggeredAbilityContext) {
 //             const action = context.source.isParticipating()
-//                 ? context.game.actions.sendHome({ target: context.costs.switchLocation })
-//                 : context.game.actions.moveToConflict({ target: context.costs.switchLocation });
-//             return action.generateEvent(context.costs.switchLocation, context);
+//                 ? context.game.actions.sendHome({ target: context.costs.switchZone })
+//                 : context.game.actions.moveToConflict({ target: context.costs.switchZone });
+//             return action.generateEvent(context.costs.switchZone, context);
 //         }
 //     };
 // }

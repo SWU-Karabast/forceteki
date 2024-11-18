@@ -18,7 +18,7 @@ function formatObject(keys) {
     };
 }
 
-Card.prototype.toString = formatObject(['name', 'location']);
+Card.prototype.toString = formatObject(['name', 'zone']);
 Player.prototype.toString = formatObject(['name']);
 
 Game.prototype.toString = function () {

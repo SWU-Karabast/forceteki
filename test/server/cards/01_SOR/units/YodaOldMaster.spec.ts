@@ -19,7 +19,7 @@ describe('Yoda, Old Master', function() {
 
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.rogueSquadronSkirmisher);
-                expect(context.yoda).toBeInLocation('discard');
+                expect(context.yoda).toBeInZone('discard');
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 context.player1.clickPrompt('You');
@@ -34,7 +34,7 @@ describe('Yoda, Old Master', function() {
 
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.rogueSquadronSkirmisher);
-                expect(context.yoda).toBeInLocation('discard');
+                expect(context.yoda).toBeInZone('discard');
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 context.player1.clickPrompt('Opponent');
@@ -49,7 +49,7 @@ describe('Yoda, Old Master', function() {
 
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.rogueSquadronSkirmisher);
-                expect(context.yoda).toBeInLocation('discard');
+                expect(context.yoda).toBeInZone('discard');
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 context.player1.clickPrompt('You');
@@ -65,7 +65,7 @@ describe('Yoda, Old Master', function() {
 
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.rogueSquadronSkirmisher);
-                expect(context.yoda).toBeInLocation('discard');
+                expect(context.yoda).toBeInZone('discard');
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 context.player1.clickPrompt('Done');

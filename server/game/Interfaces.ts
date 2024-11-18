@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import { type RelativePlayer, type CardType, type Location, type EventName, type PhaseName, type LocationFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration } from './core/Constants';
+import { type RelativePlayer, type CardType, type ZoneName, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration, RelativePlayerFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
@@ -11,8 +11,8 @@ import { ICost } from './core/cost/ICost';
 import Game from './core/Game';
 import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import Player from './core/Player';
-import OngoingCardEffect from './core/ongoingEffect/OngoingCardEffect';
-import OngoingPlayerEffect from './core/ongoingEffect/OngoingPlayerEffect';
+import { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
+import { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
 import { UnitCard } from './core/card/CardTypes';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -37,7 +37,10 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 };
 
 export interface IOngoingEffectProps {
-    targetLocationFilter?: Location | Location[];
+    targetZoneFilter?: ZoneFilter;
+    sourceZoneFilter?: ZoneFilter;
+    targetCardTypeFilter?: any;
+    matchTarget?: () => boolean;
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;
@@ -49,12 +52,20 @@ export interface IOngoingEffectProps {
     optional?: boolean;
 }
 
+export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
+    targetController?: Player | RelativePlayer;
+}
+
+export interface IOngoingCardEffectProps extends IOngoingEffectProps {
+    targetController?: RelativePlayer;
+}
+
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
 // for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
 /** Base interface for triggered and action ability definitions */
 export interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
-    locationFilter?: LocationFilter | LocationFilter[];
+    zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
 
@@ -82,15 +93,15 @@ export interface IAbilityProps<TContext extends AbilityContext> {
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
-    sourceLocationFilter?: LocationFilter | LocationFilter[];
+    sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** A handler to enable or disable the ability's effects depending on game context */
     condition?: (context: AbilityContext<TSource>) => boolean;
 
     /** A handler to determine if a specific card is impacted by the ability effect */
     matchTarget?: (card: Card, context?: AbilityContext<TSource>) => boolean;
-    targetController?: RelativePlayer;
-    targetLocationFilter?: LocationFilter;
+    targetController?: RelativePlayerFilter;
+    targetZoneFilter?: ZoneFilter;
     targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardName?: string;
     uuid?: string;

@@ -55,7 +55,7 @@ describe('Defeat timing', function() {
                 context.player2.clickCard(context.vanguardInfantry);
                 expect(context.player2).toHavePrompt('Choose an ability to resolve:');
                 expect(context.player1).toHavePrompt('Waiting for opponent to use Choose Triggered Ability Resolution Order');
-                expect(context.vanguardInfantry).toBeInLocation('discard');
+                expect(context.vanguardInfantry).toBeInZone('discard');
 
                 context.player2.clickPrompt('Give an Experience token to a unit');
                 context.player2.clickPrompt('Pass ability');
@@ -86,7 +86,7 @@ describe('Defeat timing', function() {
 
                 context.player2.clickCard(context.lieutenantChildsen);
 
-                expect(context.lieutenantChildsen).toBeInLocation('discard');
+                expect(context.lieutenantChildsen).toBeInZone('discard');
                 expect(context.player1).toBeActivePlayer();
             });
         });
@@ -115,12 +115,12 @@ describe('Defeat timing', function() {
                 context.player1.clickCard(context.superlaserBlast);
 
                 // all units defeated
-                expect(context.generalKrell).toBeInLocation('discard');
-                expect(context.cartelSpacer).toBeInLocation('discard');
-                expect(context.superlaserTechnician).toBeInLocation('discard');
-                expect(context.yoda).toBeInLocation('discard');
-                expect(context.idenVersio).toBeInLocation('base');
-                expect(context.lukeSkywalker).toBeInLocation('base');
+                expect(context.generalKrell).toBeInZone('discard');
+                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.superlaserTechnician).toBeInZone('discard');
+                expect(context.yoda).toBeInZone('discard');
+                expect(context.idenVersio).toBeInZone('base');
+                expect(context.lukeSkywalker).toBeInZone('base');
 
                 // triggered abilities happen
                 expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
@@ -155,7 +155,7 @@ describe('Defeat timing', function() {
                 expect(context.p1Base.damage).toBe(2);
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(1);
-                expect(context.superlaserTechnician).toBeInLocation('resource');
+                expect(context.superlaserTechnician).toBeInZone('resource');
             });
         });
     });

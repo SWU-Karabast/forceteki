@@ -39,7 +39,7 @@ describe('Raid keyword', function() {
                 context.player2.clickCard(context.cantinaBraggart);
 
                 expect(context.battlefieldMarine.damage).toBe(0);
-                expect(context.cantinaBraggart).toBeInLocation('discard');
+                expect(context.cantinaBraggart).toBeInZone('discard');
             });
         });
 

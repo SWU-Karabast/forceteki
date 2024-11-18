@@ -29,9 +29,9 @@ describe('I Had No Choice', function() {
                     expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.viperProbeDroid]);
                     context.player2.clickCard(context.viperProbeDroid);
 
-                    expect(context.viperProbeDroid).toBeInLocation('hand', context.player2);
+                    expect(context.viperProbeDroid).toBeInZone('hand', context.player2);
                     expect(context.wampa).toBeInBottomOfDeck(context.player1, 1);
-                    expect(context.resilient).toBeInLocation('discard', context.player1);
+                    expect(context.resilient).toBeInZone('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
             });
@@ -57,8 +57,8 @@ describe('I Had No Choice', function() {
 
                     context.player1.clickCard(context.iHadNoChoice);
 
-                    expect(context.wampa).toBeInLocation('hand', context.player1);
-                    expect(context.resilient).toBeInLocation('discard', context.player1);
+                    expect(context.wampa).toBeInZone('hand', context.player1);
+                    expect(context.resilient).toBeInZone('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
             });

@@ -22,7 +22,7 @@ describe('Recruit', function () {
 
                     context.player1.clickPrompt(context.viperProbeDroid.title);
                     expect(context.getChatLogs(2)).toContain('player1 takes Viper Probe Droid');
-                    expect(context.viperProbeDroid).toBeInLocation('hand');
+                    expect(context.viperProbeDroid).toBeInZone('hand');
 
                     expect(context.confiscate).toBeInBottomOfDeck(context.player1, 4);
                     expect(context.iAmYourFather).toBeInBottomOfDeck(context.player1, 4);
@@ -70,7 +70,7 @@ describe('Recruit', function () {
                     expect(context.player1.deck.length).toBe(0);
 
                     context.player1.clickCard(context.recruit);
-                    expect(context.recruit).toBeInLocation('discard');
+                    expect(context.recruit).toBeInZone('discard');
                     expect(context.player1.deck.length).toBe(0);
 
                     expect(context.player2).toBeActivePlayer();
@@ -124,7 +124,7 @@ describe('Recruit', function () {
 
                     context.player1.clickPrompt(context.cellBlockGuard.title);
                     expect(context.getChatLogs(2)).toContain('player1 takes Cell Block Guard');
-                    expect(context.cellBlockGuard).toBeInLocation('hand');
+                    expect(context.cellBlockGuard).toBeInZone('hand');
 
                     expect(context.viperProbeDroid).toBeInBottomOfDeck(context.player1, 4);
                     expect(context.confiscate).toBeInBottomOfDeck(context.player1, 4);

@@ -1,4 +1,4 @@
-import { Location } from '../../Constants';
+import { ZoneName } from '../../Constants';
 import { randomItem } from '../../utils/Helpers';
 import type Game from '../../Game';
 import { Phase } from './Phase';
@@ -26,14 +26,14 @@ export class SetupPhase extends Phase {
 
     private putBaseInPlay() {
         for (const player of this.game.getPlayers()) {
-            player.moveCard(player.base, Location.Base);
+            player.moveCard(player.base, ZoneName.Base);
             player.damageToBase = 0;
         }
     }
 
     private putLeaderInPlay() {
         for (const player of this.game.getPlayers()) {
-            player.moveCard(player.leader, Location.Base);
+            player.moveCard(player.leader, ZoneName.Base);
             player.leader.ready();
         }
     }

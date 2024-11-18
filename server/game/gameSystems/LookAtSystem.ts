@@ -23,6 +23,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         super(propsWithViewType);
     }
 
+    // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
     public override getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [

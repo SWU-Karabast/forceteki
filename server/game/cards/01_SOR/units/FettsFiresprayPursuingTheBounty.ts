@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardLocation } from '../../../core/Constants';
+import { WildcardZoneName } from '../../../core/Constants';
 
 export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
                 condition: (context) =>
                     context.source.controller.leader.title === 'Boba Fett' ||
                     context.source.controller.leader.title === 'Jango Fett' ||
-                    context.source.controller.getUnitsInPlay(WildcardLocation.AnyArena, (card) => card.title === 'Boba Fett' || card.title === 'Jango Fett').length > 0,
+                    context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.title === 'Boba Fett' || card.title === 'Jango Fett').length > 0,
                 onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })

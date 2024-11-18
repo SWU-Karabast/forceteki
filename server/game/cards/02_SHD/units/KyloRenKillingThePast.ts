@@ -1,6 +1,6 @@
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { Aspect, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class KyloRenKillingThePast extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,7 +20,7 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'Give a unit +2/0 for this phase',
             targetResolver: {
-                controller: RelativePlayer.Any,
+                controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({

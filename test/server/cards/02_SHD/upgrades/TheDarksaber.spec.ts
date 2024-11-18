@@ -59,7 +59,7 @@ describe('The Darksaber', function() {
                 context.player1.clickCard(context.theDarksaber);
                 expect(context.player1).toBeAbleToSelectExactly([context.supercommandoSquad, context.clanWrenRescuer, context.pykeSentinel, context.followerOfTheWay]);
                 context.player1.clickCard(context.clanWrenRescuer);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
             });
 
             it('should ignore Aspect penalties when being attached to an enemy Mandalorian', function () {
@@ -67,7 +67,7 @@ describe('The Darksaber', function() {
                 context.player1.clickCard(context.theDarksaber);
                 expect(context.player1).toBeAbleToSelectExactly([context.supercommandoSquad, context.clanWrenRescuer, context.pykeSentinel, context.followerOfTheWay]);
                 context.player1.clickCard(context.followerOfTheWay);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
             });
 
             it('should not ignore Aspect penalties when not being attached to a Mandalorian', function () {
@@ -75,7 +75,7 @@ describe('The Darksaber', function() {
                 context.player1.clickCard(context.theDarksaber);
                 expect(context.player1).toBeAbleToSelectExactly([context.supercommandoSquad, context.clanWrenRescuer, context.pykeSentinel, context.followerOfTheWay]);
                 context.player1.clickCard(context.pykeSentinel);
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
             });
         });
     });

@@ -24,12 +24,12 @@ describe('Superlaser Blast', function() {
                         const { context } = contextRef;
 
                         context.player1.clickCard(context.superlaserBlast);
-                        expect(context.atst).toBeInLocation('discard');
-                        expect(context.cartelSpacer).toBeInLocation('discard');
-                        expect(context.wampa).toBeInLocation('discard');
-                        expect(context.allianceXwing).toBeInLocation('discard');
-                        expect(context.bobaFett).toBeInLocation('base');
-                        expect(context.lukeSkywalker).toBeInLocation('base');
+                        expect(context.atst).toBeInZone('discard');
+                        expect(context.cartelSpacer).toBeInZone('discard');
+                        expect(context.wampa).toBeInZone('discard');
+                        expect(context.allianceXwing).toBeInZone('discard');
+                        expect(context.bobaFett).toBeInZone('base');
+                        expect(context.lukeSkywalker).toBeInZone('base');
                     });
                 });
             });

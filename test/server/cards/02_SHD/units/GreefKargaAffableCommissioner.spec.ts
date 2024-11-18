@@ -19,7 +19,7 @@ describe('Greef Karga, Affable Commissioner', function() {
                 expect(context.player1).toHaveEnabledPromptButton(context.foundling.title);
                 expect(context.player1).toHaveDisabledPromptButtons([context.atst.title, context.battlefieldMarine.title, context.cartelSpacer.title, context.pykeSentinel.title]);
                 context.player1.clickPrompt(context.foundling.title);
-                expect(context.foundling).toBeInLocation('hand');
+                expect(context.foundling).toBeInZone('hand');
                 expect(context.getChatLogs(2)).toContain('player1 takes Foundling');
             });
         });

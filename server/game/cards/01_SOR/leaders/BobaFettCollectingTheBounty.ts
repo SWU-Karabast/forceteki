@@ -26,7 +26,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             },
             // we shortcut and automatically activate Boba's ability if there are any exhausted resources
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
-                condition: context.source.controller.countExhaustedResources() > 0,
+                condition: context.source.controller.exhaustedResourceCount > 0,
                 onTrue: AbilityHelper.immediateEffects.exhaust(),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })),

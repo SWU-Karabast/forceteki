@@ -16,7 +16,7 @@ export class PlayUnitAction extends PlayCardAction {
         const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, context, {
             player: context.player,
             card: context.source,
-            originalLocation: context.source.location,
+            originalZone: context.source.zoneName,
             originallyOnTopOfDeck:
                 context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
             onPlayCardSource: context.onPlayCardSource,

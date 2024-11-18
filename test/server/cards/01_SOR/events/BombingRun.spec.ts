@@ -45,9 +45,9 @@ describe('Bombing Run', function() {
                         context.player1.clickPrompt('Space');
 
                         expect(context.atst.damage).toBe(0);
-                        expect(context.cartelSpacer).toBeInLocation('discard');
+                        expect(context.cartelSpacer).toBeInZone('discard');
                         expect(context.wampa.damage).toBe(0);
-                        expect(context.allianceXwing).toBeInLocation('discard');
+                        expect(context.allianceXwing).toBeInZone('discard');
                         expect(context.bobaFett.damage).toBe(0);
                         expect(context.lukeSkywalker.damage).toBe(0);
 

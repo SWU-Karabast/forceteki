@@ -28,7 +28,7 @@ describe('Blizzard Assault AT-AT', function() {
                 // CASE 1: AT-AT attack defeats a unit, ability triggers
                 context.player1.clickCard(context.blizzardAssaultAtat);
                 context.player1.clickCard(context.wampa);
-                expect(context.wampa).toBeInLocation('discard');
+                expect(context.wampa).toBeInZone('discard');
                 expect(context.blizzardAssaultAtat.damage).toBe(4);
 
                 expect(context.player1).toHavePassAbilityButton();
@@ -52,7 +52,7 @@ describe('Blizzard Assault AT-AT', function() {
                 // CASE 3: Enemy attacks into AT-AT and dies, ability does not trigger
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.blizzardAssaultAtat);
-                expect(context.atst).toBeInLocation('discard');
+                expect(context.atst).toBeInZone('discard');
                 expect(context.blizzardAssaultAtat.damage).toBe(6);
                 expect(context.player1).toBeActivePlayer();
 
@@ -61,8 +61,8 @@ describe('Blizzard Assault AT-AT', function() {
                 // CASE 4: friendly unit trades with enemy unit, AT-AT ability does not trigger
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.mandalorianWarrior);
-                expect(context.battlefieldMarine).toBeInLocation('discard');
-                expect(context.mandalorianWarrior).toBeInLocation('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.mandalorianWarrior).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
 
                 reset();
@@ -72,7 +72,7 @@ describe('Blizzard Assault AT-AT', function() {
                 context.setDamage(context.kraytDragon, 2);
                 context.player1.clickCard(context.blizzardAssaultAtat);
                 context.player1.clickCard(context.kraytDragon);
-                expect(context.blizzardAssaultAtat).toBeInLocation('discard');
+                expect(context.blizzardAssaultAtat).toBeInZone('discard');
 
                 expect(context.player1).toHavePassAbilityPrompt('Deal the excess damage from the attack to an enemy ground unit');
                 context.player1.clickPrompt('Deal the excess damage from the attack to an enemy ground unit');
@@ -105,7 +105,7 @@ describe('Blizzard Assault AT-AT', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.jawaScavenger, context.blizzardAssaultAtat]);
                 context.player1.clickCard(context.jawaScavenger);
 
-                expect(context.jawaScavenger).toBeInLocation('discard');
+                expect(context.jawaScavenger).toBeInZone('discard');
                 expect(context.blizzardAssaultAtat.damage).toBe(0);
                 expect(context.blizzardAssaultAtat.exhausted).toBeTrue();
             });
@@ -132,7 +132,7 @@ describe('Blizzard Assault AT-AT', function() {
                 context.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
                 context.player1.clickCard(context.kraytDragon);
 
-                expect(context.kraytDragon).toBeInLocation('discard');
+                expect(context.kraytDragon).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });

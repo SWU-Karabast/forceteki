@@ -20,7 +20,7 @@ import type Game from '../Game.js';
  * phase        - string representing which phases the action may be executed.
  *                Defaults to 'any' which allows the action to be executed in
  *                any phase.
- * location     - string indicating the location the card should be in in order
+ * zone     - string indicating the zone the card should be in in order
  *                to activate the action. Defaults to 'play area'.
  * limit        - optional AbilityLimit object that represents the max number of
  *                uses for the action as well as when it resets.
@@ -43,8 +43,8 @@ export class ActionAbility extends CardAbility {
     }
 
     public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
-        if (!ignoredRequirements.includes('location') && !this.isInValidLocation(context)) {
-            return 'location';
+        if (!ignoredRequirements.includes('zone') && !this.isInValidZone(context)) {
+            return 'zone';
         }
 
         if (!ignoredRequirements.includes('phase') && this.phase !== 'any' && this.phase !== this.game.currentPhase) {

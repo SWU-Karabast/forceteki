@@ -9,7 +9,7 @@ import { GameEvent } from '../core/event/GameEvent';
  */
 export class PlayCardResourceCost<TContext extends AbilityContext = AbilityContext> implements ICost<TContext> {
     public readonly isPlayCost = true;
-    public readonly isPrintedResourceCost = PlayType.PlayFromHand === this.playType;
+    public readonly isPrintedResourceCost = [PlayType.PlayFromHand, PlayType.PlayFromOutOfPlay].includes(this.playType);
     public readonly isSmuggleCost = PlayType.Smuggle === this.playType;
 
     // used for extending this class if any cards have unique after pay hooks
@@ -29,11 +29,11 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
             return true;
         }
 
-        return context.player.countSpendableResources() >= minCost;
+        return context.player.readyResourceCount >= minCost;
     }
 
     public resolve(context: TContext, result: Result): void {
-        const availableResources = context.player.countSpendableResources();
+        const availableResources = context.player.readyResourceCount;
         const reducedCost = this.getAdjustedCost(context);
         if (reducedCost > availableResources) {
             result.cancelled = true;

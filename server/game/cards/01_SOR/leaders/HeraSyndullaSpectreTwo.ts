@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -32,7 +32,7 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
             title: 'Give an experience token to another unique unit',
             optional: true,
             targetResolver: {
-                controller: RelativePlayer.Any,
+                controller: WildcardRelativePlayer.Any,
                 cardCondition: (card, context) => card.unique && card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }

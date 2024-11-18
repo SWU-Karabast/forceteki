@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class BrightHopeTheLastTransport extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -17,7 +17,7 @@ export default class BrightHopeTheLastTransport extends NonLeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: {

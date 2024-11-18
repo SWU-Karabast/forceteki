@@ -1,4 +1,4 @@
-import { CardTypeFilter, EventName, GameStateChangeRequired, Location, RelativePlayer, TargetMode } from '../core/Constants';
+import { CardTypeFilter, EventName, GameStateChangeRequired, ZoneName, RelativePlayer, TargetMode } from '../core/Constants';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import type Player from '../core/Player';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
@@ -79,7 +79,7 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
                 context: context,
                 mode: TargetMode.Exactly,
                 numCards: amount,
-                locationFilter: Location.Hand,
+                zoneFilter: ZoneName.Hand,
                 controller: player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent,
                 cardCondition: (card) => properties.cardCondition(card, context),
                 onSelect: (_player, cards) => {

@@ -1,4 +1,4 @@
-import { AbilityType, EffectName, Location, LocationFilter, PhaseName, RelativePlayer, WildcardLocation } from '../Constants';
+import { AbilityType, EffectName, ZoneName, ZoneFilter, PhaseName, RelativePlayer, WildcardZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
@@ -14,7 +14,7 @@ export class CardAbility extends CardAbilityStep {
     public readonly abilityCost: ICost[];
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
-    public readonly locationFilter: LocationFilter | LocationFilter[];
+    public readonly zoneFilter: ZoneFilter | ZoneFilter[];
     public readonly printedAbility: boolean;
 
     public constructor(game, card, properties, type = AbilityType.Action) {
@@ -27,7 +27,7 @@ export class CardAbility extends CardAbilityStep {
         this.title = properties.title;
         this.abilityCost = this.cost;
         this.printedAbility = properties.printedAbility === false ? false : true;
-        this.locationFilter = this.locationOrDefault(card, properties.locationFilter);
+        this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;
         this.abilityController = properties.abilityController ?? RelativePlayer.Self;
@@ -36,25 +36,25 @@ export class CardAbility extends CardAbilityStep {
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
     }
 
-    private locationOrDefault(card, location): LocationFilter {
-        if (location != null) {
-            return location;
+    private zoneOrDefault(card, zone): ZoneFilter {
+        if (zone != null) {
+            return zone;
         }
 
         if (card.isEvent()) {
-            return Location.Hand;
+            return ZoneName.Hand;
         }
         if (card.isLeader()) {
-            // check that this is a gained ability - if it's a printed leader ability, it should have an explicit locationFilter based on which side of the card it's on
-            Contract.assertFalse(this.printedAbility, 'Leader card abilities must explicitly assign properties.locationFilter for the correct active zone of the ability');
+            // check that this is a gained ability - if it's a printed leader ability, it should have an explicit zoneFilter based on which side of the card it's on
+            Contract.assertFalse(this.printedAbility, 'Leader card abilities must explicitly assign properties.zoneFilter for the correct active zone of the ability');
 
-            return WildcardLocation.AnyArena;
+            return WildcardZoneName.AnyArena;
         }
         if (card.isBase()) {
-            return Location.Base;
+            return ZoneName.Base;
         }
         if (card.isUnit() || card.isUpgrade()) {
-            return WildcardLocation.AnyArena;
+            return WildcardZoneName.AnyArena;
         }
 
         Contract.fail(`Unknown card type for card: ${card.internalName}`);
@@ -127,35 +127,35 @@ export class CardAbility extends CardAbilityStep {
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
-    protected isInValidLocation(context) {
+    protected isInValidZone(context) {
         return this.card.isEvent()
-            ? context.player.isCardInPlayableLocation(context.source, context.playType)
-            : EnumHelpers.cardLocationMatches(this.card.location, this.locationFilter);
+            ? context.player.isCardInPlayableZone(context.source, context.playType)
+            : EnumHelpers.cardZoneMatches(this.card.zoneName, this.zoneFilter);
     }
 
-    private getLocationMessage(location, context) {
-        if (location.matchTarget(/^\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b$/i)) {
+    private getZoneMessage(zone, context) {
+        if (zone.matchTarget(/^\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b$/i)) {
             // it's a uuid
-            const source = context.game.findAnyCardInPlayByUuid(location);
+            const source = context.game.findAnyCardInPlayByUuid(zone);
             if (source) {
                 return `cards set aside by ${source.name}`;
             }
             return 'out of play area';
         }
-        return location;
+        return zone;
     }
 
     public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if (
             context.source.isEvent() &&
-            context.source.location !== Location.Discard
+            context.source.zoneName !== ZoneName.Discard
         ) {
             this.game.addMessage(
                 '{0} plays {1} from {2} {3}',
                 context.player,
                 context.source,
                 context.source.controller === context.player ? 'their' : 'their opponent\'s',
-                this.getLocationMessage(context.source.location, context)
+                this.getZoneMessage(context.source.zoneName, context)
             );
         }
 
