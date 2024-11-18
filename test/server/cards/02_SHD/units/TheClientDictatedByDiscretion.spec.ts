@@ -63,7 +63,7 @@ describe('The Client, Dictated by Discretion', function() {
                 context.player1.clickCard(context.jangoFett);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.wampa).toBeInZone('ground arena');
+                expect(context.wampa).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
         });
