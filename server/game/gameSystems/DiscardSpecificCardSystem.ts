@@ -11,7 +11,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
     public override readonly eventName = EventName.OnCardDiscarded;
 
     public eventHandler(event): void {
-        event.card.controller.moveCard(event.card, ZoneName.Discard);
+        event.card.moveTo(ZoneName.Discard);
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {

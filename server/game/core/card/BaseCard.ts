@@ -21,13 +21,15 @@ export class BaseCard extends BaseCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Base);
-
-        this.setDamageEnabled(true);
-        this.setActiveAttackEnabled(true);
     }
 
     public override isBase(): this is BaseCard {
         return true;
+    }
+
+    public override initializeForStartZone(): void {
+        this.setDamageEnabled(true);
+        this.setActiveAttackEnabled(true);
     }
 
     public override getActionAbilities(): ActionAbility[] {
@@ -38,7 +40,7 @@ export class BaseCard extends BaseCardParent {
         return super.getActionAbilities();
     }
 
-    public setEpicActionAbility(properties: IEpicActionProps<this>): void {
+    protected setEpicActionAbility(properties: IEpicActionProps<this>): void {
         Contract.assertIsNullLike(this._epicActionAbility, 'Epic action ability already set');
 
         const propertiesWithLimit: IActionAbilityProps<this> = Object.assign(properties, {

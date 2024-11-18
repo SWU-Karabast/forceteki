@@ -60,7 +60,7 @@ export function defaultLegalZonesForCardType(cardType: CardType) {
         ZoneName.Hand,
         ZoneName.Deck,
         ZoneName.Discard,
-        ZoneName.RemovedFromGame,
+        ZoneName.OutsideTheGame,
         ZoneName.SpaceArena,
         ZoneName.GroundArena,
         ZoneName.Resource

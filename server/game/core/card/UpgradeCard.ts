@@ -4,8 +4,8 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
-import { AbilityType, CardType, KeywordName, ZoneName, PlayType, RelativePlayer, WildcardRelativePlayer } from '../Constants';
-import { UnitCard } from './CardTypes';
+import { AbilityType, CardType, KeywordName, ZoneName, MoveZoneDestination, PlayType, WildcardRelativePlayer } from '../Constants';
+import { TokenOrPlayableCard, UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { Card } from './Card';
@@ -62,7 +62,11 @@ export class UpgradeCard extends UpgradeCardParent {
         return this._parentCard;
     }
 
-    public override moveTo(targetZone: ZoneName) {
+    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
+        return true;
+    }
+
+    public override moveTo(targetZone: MoveZoneDestination) {
         Contract.assertFalse(this._parentCard && targetZone !== this._parentCard.zoneName,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
@@ -73,13 +77,13 @@ export class UpgradeCard extends UpgradeCardParent {
         Contract.assertTrue(newParentCard.isUnit());
         Contract.assertTrue(newParentCard.isInPlay());
 
+        // this assert needed for type narrowing or else the moveTo fails
+        Contract.assertTrue(newParentCard.zoneName !== ZoneName.Deck);
+
         if (this._parentCard) {
             this.unattach();
-        } else {
-            this.controller.removeCardFromPile(this);
         }
 
-        newParentCard.controller.putUpgradeInArena(this, newParentCard.zoneName);
         this.moveTo(newParentCard.zoneName);
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
@@ -89,7 +93,6 @@ export class UpgradeCard extends UpgradeCardParent {
         Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
 
         this.parentCard.unattachUpgrade(this);
-        this.parentCard.controller.removeCardFromPile(this);
         this._parentCard = null;
     }
 
@@ -202,7 +205,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.attachCondition = attachCondition;
     }
 
-    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+    protected override initializeForCurrentZone(prevZone?: ZoneName): void {
         super.initializeForCurrentZone(prevZone);
 
         switch (this.zoneName) {

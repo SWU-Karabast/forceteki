@@ -8,10 +8,20 @@ export enum ZoneName {
     GroundArena = 'groundArena',
     Hand = 'hand',
     OutsideTheGame = 'outsideTheGame',
-    RemovedFromGame = 'removedFromGame',
     Resource = 'resource',
     SpaceArena = 'spaceArena',
 }
+
+export enum DeckZoneDestination {
+    DeckTop = 'deckTop',
+    DeckBottom = 'deckBottom'
+}
+
+/**
+ * Helper type used when a passed ZoneName represents a move destination.
+ * Used to account for moving to top or bottom of deck.
+ */
+export type MoveZoneDestination = Exclude<ZoneName, ZoneName.Deck> | DeckZoneDestination.DeckBottom | DeckZoneDestination.DeckTop;
 
 export enum WildcardZoneName {
     Any = 'any',
@@ -166,6 +176,7 @@ export enum TokenName {
     Experience = 'experience'
 }
 
+// TODO: start removing these if they aren't used
 export enum EventName {
     OnAbilityResolved = 'onAbilityResolved',
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
