@@ -5,6 +5,9 @@ import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
+/**
+ * Base zone which holds the player's base and leader
+ */
 export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
     public readonly base: BaseCard;
     public override readonly hiddenForPlayers: null;

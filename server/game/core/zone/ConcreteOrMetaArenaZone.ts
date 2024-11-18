@@ -11,6 +11,9 @@ export interface IArenaZoneCardFilterProperties extends IZoneCardFilterPropertie
     controller?: Player;
 }
 
+/**
+ * Base class for arena zones, including the meta-zone for all arenas
+ */
 export abstract class ConcreteOrMetaArenaZone extends ZoneAbstract<InPlayCard> {
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Game;

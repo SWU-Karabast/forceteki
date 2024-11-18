@@ -17,6 +17,10 @@ export interface IAllArenasZoneCardFilterProperties extends IArenaZoneCardFilter
 export type IAllArenasForPlayerCardFilterProperties = Omit<IAllArenasZoneCardFilterProperties, 'controller'>;
 export type IAllArenasForPlayerSpecificTypeCardFilterProperties = Omit<IAllArenasForPlayerCardFilterProperties, 'type'>;
 
+/**
+ * This is a meta-zone that allows doing operations across both the ground arena and space arena as one.
+ * Can't add or remove cards but all accessor operations are supported.
+ */
 export class AllArenasZone extends ConcreteOrMetaArenaZone {
     public override readonly hiddenForPlayers: null;
     public override readonly name: WildcardZoneName.AnyArena;

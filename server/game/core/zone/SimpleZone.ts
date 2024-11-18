@@ -4,6 +4,9 @@ import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { IAddRemoveZone, IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
 
+/**
+ * Base class for zones that are basically just a list of cards with no special behavior
+ */
 export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard> implements IAddRemoveZone {
     public abstract override readonly name: ZoneName;
     public override readonly owner: Player;
