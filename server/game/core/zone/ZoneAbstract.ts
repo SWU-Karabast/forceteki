@@ -1,6 +1,6 @@
 import { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
-import { Aspect, CardTypeFilter, KeywordName, ZoneName, MoveZoneName, Trait, WildcardZoneName, RelativePlayerFilter } from '../Constants';
+import { Aspect, CardTypeFilter, KeywordName, ZoneName, MoveZoneDestination, Trait, WildcardZoneName, RelativePlayerFilter } from '../Constants';
 import type Player from '../Player';
 import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -15,7 +15,7 @@ export interface IZoneCardFilterProperties {
 }
 
 export interface IAddRemoveZone {
-    addCard(card: Card, zone?: MoveZoneName): void;
+    addCard(card: Card, zone?: MoveZoneDestination): void;
     removeCard(card: Card): void;
 }
 
@@ -64,7 +64,7 @@ export abstract class ZoneAbstract<TCard extends Card> {
             (!filter.condition || filter.condition(card));
     }
 
-    protected checkZoneMatches(card: Card, zone: MoveZoneName | null) {
+    protected checkZoneMatches(card: Card, zone: MoveZoneDestination | null) {
         Contract.assertTrue(!zone || zone === this.name, `Attempting to move ${card.internalName} to ${this} with incorrect zone parameter: ${zone}`);
     }
 

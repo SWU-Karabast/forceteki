@@ -1,6 +1,6 @@
 import { Card } from '../card/Card';
 import { TokenOrPlayableCard } from '../card/CardTypes';
-import { ZoneName, MoveZoneName, MoveToDeckZoneName, WildcardRelativePlayer } from '../Constants';
+import { ZoneName, MoveZoneDestination, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
@@ -47,26 +47,26 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
     }
 
     public addCardToTop(card: TokenOrPlayableCard) {
-        this.addCard(card, MoveToDeckZoneName.DeckTop);
+        this.addCard(card, DeckZoneDestination.DeckTop);
     }
 
     public addCardToBottom(card: TokenOrPlayableCard) {
-        this.addCard(card, MoveToDeckZoneName.DeckTop);
+        this.addCard(card, DeckZoneDestination.DeckTop);
     }
 
-    public addCard(card: TokenOrPlayableCard, zone: MoveToDeckZoneName) {
+    public addCard(card: TokenOrPlayableCard, zone: DeckZoneDestination) {
         Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
         Contract.assertEqual(card.controller, this.owner, `Attempting to add card ${card.internalName} to ${this} but its controller is ${card.controller}`);
 
         switch (zone) {
-            case MoveToDeckZoneName.DeckTop:
+            case DeckZoneDestination.DeckTop:
                 this.deck.unshift(card);
                 return;
-            case MoveToDeckZoneName.DeckBottom:
+            case DeckZoneDestination.DeckBottom:
                 this.deck.push(card);
                 return;
             default:
-                Contract.fail(`Unknown value for MoveToDeckZoneName enum: ${zone}`);
+                Contract.fail(`Unknown value for DeckZoneDestination enum: ${zone}`);
         }
     }
 
@@ -88,9 +88,9 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
         Helpers.shuffle(this.deck);
     }
 
-    protected override checkZoneMatches(card: Card, zone: MoveZoneName | null) {
+    protected override checkZoneMatches(card: Card, zone: MoveZoneDestination | null) {
         Contract.assertTrue(
-            ([MoveToDeckZoneName.DeckBottom, MoveToDeckZoneName.DeckTop] as MoveZoneName[]).includes(zone),
+            ([DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop] as MoveZoneDestination[]).includes(zone),
             `Attempting to move ${card.internalName} to ${this} with incorrect zone parameter (must be DeckBottom or DeckTop): ${zone}`
         );
     }

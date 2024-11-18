@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, ZoneName, MoveZoneName, MoveToDeckZoneName, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, ZoneName, MoveZoneDestination, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import { CardAbility } from '../ability/CardAbility';
@@ -443,7 +443,7 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* ZONE MANAGEMENT *******************************************
-    public moveTo(targetZone: MoveZoneName) {
+    public moveTo(targetZone: MoveZoneDestination) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const originalZone = this.zoneName;
@@ -489,7 +489,7 @@ export class Card extends OngoingEffectSource {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected initializeForStartZone(): void {}
 
-    private addSelfToZone(zoneName: MoveZoneName) {
+    private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
             case ZoneName.Base:
                 this._zone = this.owner.baseZone;
@@ -497,8 +497,8 @@ export class Card extends OngoingEffectSource {
                 this._zone.setLeader(this);
                 break;
 
-            case MoveToDeckZoneName.DeckBottom:
-            case MoveToDeckZoneName.DeckTop:
+            case DeckZoneDestination.DeckBottom:
+            case DeckZoneDestination.DeckTop:
                 this._zone = this.owner.deckZone;
                 Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
                 this._zone.addCard(this, zoneName);
@@ -549,7 +549,7 @@ export class Card extends OngoingEffectSource {
      * Deals with any engine effects of leaving the current zone before the move happens
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextZone: MoveZoneName) {}
+    protected cleanupBeforeMove(nextZone: MoveZoneDestination) {}
 
     /**
      * Updates the card's abilities for its current zone after being moved.

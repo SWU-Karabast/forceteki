@@ -112,7 +112,6 @@ class Player extends GameObject {
     }
 
     /**
-     *
      * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
      */
     getArenaCards(filter = {}) {
@@ -120,45 +119,13 @@ class Player extends GameObject {
     }
 
     /**
-     *
      * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
      */
     getArenaUnits(filter = {}) {
         return this.game.allArenas.getUnitCards({ ...filter, controller: this });
     }
 
-    /**
-     *
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
-     */
-    getArenaUpgrades(filter = {}) {
-        return this.game.allArenas.getUpgradeCards({ ...filter, controller: this });
-    }
-
-    /**
-     *
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
-     */
-    hasSomeArenaCard(filter) {
-        return this.game.allArenas.hasSomeCard({ ...filter, controller: this });
-    }
-
-    /**
-         *
-         * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
-         */
-    hasSomeArenaUnit(filter) {
-        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
-    }
-
-    /**
-         *
-         * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
-         */
-    hasSomeArenaUpgrade(filter) {
-        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
-    }
-
+    // TODO: this will be refactored to merge with getArenaUnits
     /**
      * Get all units in designated play arena(s) controlled by this player
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
@@ -168,11 +135,39 @@ class Player extends GameObject {
     }
 
     /**
+     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+     */
+    getArenaUpgrades(filter = {}) {
+        return this.game.allArenas.getUpgradeCards({ ...filter, controller: this });
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
+     */
+    hasSomeArenaCard(filter) {
+        return this.game.allArenas.hasSomeCard({ ...filter, controller: this });
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+     */
+    hasSomeArenaUnit(filter) {
+        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+     */
+    hasSomeArenaUpgrade(filter) {
+        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
+    }
+
+    /**
      * Get all units in designated play arena(s) controlled by this player
      * @param { Trait } trait Get units with this trait
      */
     getUnitsInPlayWithTrait(trait) {
-        return this.getUnitsInPlay().filter((card) => card.hasSomeTrait(trait));
+        return this.getArenaUnits({ trait });
     }
 
     /**
@@ -354,9 +349,7 @@ class Player extends GameObject {
      * @returns {boolean} true/false if the trait is in play
      */
     isTraitInPlay(trait, ignoreUnit = null) {
-        return ignoreUnit != null
-            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeTrait(trait))
-            : this.getUnitsInPlay().some((card) => card.hasSomeTrait(trait));
+        return this.hasSomeArenaUnit({ trait, otherThan: ignoreUnit });
     }
 
     /**
@@ -366,9 +359,7 @@ class Player extends GameObject {
      * @returns {boolean} true/false if the trait is in play
      */
     isAspectInPlay(aspect, ignoreUnit = null) {
-        return ignoreUnit != null
-            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeAspect(aspect))
-            : this.getUnitsInPlay().some((card) => card.hasSomeAspect(aspect));
+        return this.hasSomeArenaUnit({ aspect, otherThan: ignoreUnit });
     }
 
     /**
@@ -378,9 +369,7 @@ class Player extends GameObject {
      * @returns {boolean} true/false if the trait is in play
      */
     isKeywordInPlay(keyword, ignoreUnit = null) {
-        return ignoreUnit != null
-            ? this.getOtherUnitsInPlay(ignoreUnit).some((card) => card.hasSomeKeyword(keyword))
-            : this.getUnitsInPlay().some((card) => card.hasSomeKeyword(keyword));
+        return this.hasSomeArenaUnit({ keyword, otherThan: ignoreUnit });
     }
 
     /**
@@ -872,7 +861,7 @@ class Player extends GameObject {
     /**
      * Checks whether card type is consistent with zone, checking for custom out-of-play zones
      * @param {CardType} cardType
-     * @param {ZoneName | import('./Constants').MoveZoneName} zone
+     * @param {ZoneName | import('./Constants').MoveZoneDestination} zone
      */
     isLegalZoneForCardType(cardType, zone) {
         const legalZonesForType = Helpers.defaultLegalZonesForCardTypeFilter(cardType);

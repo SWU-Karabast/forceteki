@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EventName, GameStateChangeRequired, ZoneName, MoveZoneName, MoveToDeckZoneName, WildcardCardType } from '../core/Constants';
+import { CardType, EventName, GameStateChangeRequired, ZoneName, MoveZoneDestination, DeckZoneDestination, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers.js';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -19,7 +19,7 @@ import * as Contract from '../core/utils/Contract';
  * @property bottom - Indicates whether the card should be placed at the bottom of the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Exclude<MoveZoneName, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
+    destination?: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
 }
 
@@ -68,10 +68,10 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             if (properties.shuffle) {
                 return ['shuffle {0} into their deck', [properties.target]];
             }
-            return ['move {0} to the {1} of their deck', [properties.target, properties.destination === MoveToDeckZoneName.DeckBottom ? 'bottom' : 'top']];
+            return ['move {0} to the {1} of their deck', [properties.target, properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top']];
         }
         return [
-            'move {0} to ' + (properties.destination === MoveToDeckZoneName.DeckBottom ? 'the bottom of ' : '') + 'their {1}',
+            'move {0} to ' + (properties.destination === DeckZoneDestination.DeckBottom ? 'the bottom of ' : '') + 'their {1}',
             [properties.target, properties.destination]
         ];
     }

@@ -12,7 +12,7 @@ export enum ZoneName {
     SpaceArena = 'spaceArena',
 }
 
-export enum MoveToDeckZoneName {
+export enum DeckZoneDestination {
     DeckTop = 'deckTop',
     DeckBottom = 'deckBottom'
 }
@@ -21,7 +21,7 @@ export enum MoveToDeckZoneName {
  * Helper type used when a passed ZoneName represents a move destination.
  * Used to account for moving to top or bottom of deck.
  */
-export type MoveZoneName = Exclude<ZoneName, ZoneName.Deck> | MoveToDeckZoneName.DeckBottom | MoveToDeckZoneName.DeckTop;
+export type MoveZoneDestination = Exclude<ZoneName, ZoneName.Deck> | DeckZoneDestination.DeckBottom | DeckZoneDestination.DeckTop;
 
 export enum WildcardZoneName {
     Any = 'any',

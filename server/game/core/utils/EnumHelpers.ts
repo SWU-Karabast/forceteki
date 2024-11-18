@@ -1,4 +1,4 @@
-import { CardType, CardTypeFilter, ZoneName, ZoneFilter, MoveZoneName, MoveToDeckZoneName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
+import { CardType, CardTypeFilter, ZoneName, ZoneFilter, MoveZoneDestination, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -75,15 +75,15 @@ export const cardZoneMatches = (cardZone: ZoneName, zoneFilter: ZoneFilter | Zon
     });
 };
 
-/** Converts a MoveZoneName to a ZoneName by converting deck move zones to ZoneName.Deck */
-export const asConcreteZone = (zoneName: ZoneName | MoveZoneName): ZoneName => {
-    return zoneName === MoveToDeckZoneName.DeckBottom || zoneName === MoveToDeckZoneName.DeckTop
+/** Converts a MoveZoneDestination to a ZoneName by converting deck move zones to ZoneName.Deck */
+export const asConcreteZone = (zoneName: ZoneName | MoveZoneDestination): ZoneName => {
+    return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop
         ? ZoneName.Deck
         : zoneName;
 };
 
-export const isDeckMoveZone = (zoneName: MoveZoneName): boolean => {
-    return zoneName === MoveToDeckZoneName.DeckBottom || zoneName === MoveToDeckZoneName.DeckTop;
+export const isDeckMoveZone = (zoneName: MoveZoneDestination): boolean => {
+    return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
 };
 
 export const isUnit = (cardType: CardTypeFilter) => {

@@ -1,4 +1,4 @@
-const { ZoneName, MoveToDeckZoneName } = require('../../server/game/core/Constants.js');
+const { ZoneName, DeckZoneDestination } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
 const Player = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
@@ -633,7 +633,7 @@ class PlayerInteractionWrapper {
         if (typeof card === 'string') {
             card = this.mixedListToCardList([card], searchZones)[0];
         }
-        card.moveTo(targetZone === ZoneName.Deck ? MoveToDeckZoneName.DeckTop : targetZone);
+        card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         this.game.continue();
         return card;
     }

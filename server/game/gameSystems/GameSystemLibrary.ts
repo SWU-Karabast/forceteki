@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { ZoneName, MoveToDeckZoneName, PlayType } from '../core/Constants';
+import { ZoneName, DeckZoneDestination, PlayType } from '../core/Constants';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
@@ -162,7 +162,7 @@ export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityCont
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: MoveToDeckZoneName.DeckBottom }
+            { destination: DeckZoneDestination.DeckBottom }
         )
     );
 }
@@ -171,7 +171,7 @@ export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: MoveToDeckZoneName.DeckTop }
+            { destination: DeckZoneDestination.DeckTop }
         )
     );
 }

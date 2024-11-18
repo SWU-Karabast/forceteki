@@ -81,6 +81,7 @@ class Game extends EventEmitter {
 
         this.shortCardData = options.shortCardData || [];
 
+        // TODO TWIN SUNS
         Contract.assertArraySize(details.players, 2, 'Game must have exactly 2 players');
 
         details.players.forEach((player) => {
