@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, WildcardCardType, WildcardLocation } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 
 export default class JabbasRancorPateesa extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
             title: 'If you control Jabba the Hutt, this unit costs 1 resource less to play',
             condition: (context) =>
                 context.source.controller.leader.title === 'Jabba the Hutt' ||
-                context.source.controller.getUnitsInPlay(WildcardLocation.AnyArena, (card) => card.title === 'Jabba the Hutt').length > 0,
+                context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.title === 'Jabba the Hutt').length > 0,
             amount: 1
         });
 
@@ -29,14 +29,14 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
                 myGroundUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
-                    locationFilter: Location.GroundArena,
+                    zoneFilter: ZoneName.GroundArena,
                     cardCondition: (card, context) => card !== context.source,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 }),
                 },
                 theirGroundUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
-                    locationFilter: Location.GroundArena,
+                    zoneFilter: ZoneName.GroundArena,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 }),
                 }
             }

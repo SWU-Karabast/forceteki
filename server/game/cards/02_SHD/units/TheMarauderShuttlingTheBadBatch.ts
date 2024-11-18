@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer } from '../../../core/Constants';
+import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class TheMarauderShuttlingTheBadBatch extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class TheMarauderShuttlingTheBadBatch extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
-                locationFilter: Location.Discard,
+                zoneFilter: ZoneName.Discard,
                 cardCondition: (card, context) => {
                     const unitTitles = new Set(context.source.controller.getUnitsInPlay().map((c) => c.title));
                     return unitTitles.has(card.title);

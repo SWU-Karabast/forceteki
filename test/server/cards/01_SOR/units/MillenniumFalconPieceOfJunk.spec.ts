@@ -19,7 +19,7 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 context.player2.passAction();
 
                 expect(context.millenniumFalcon.exhausted).toBeFalse();
-                expect(context.millenniumFalcon.location).toBe('space arena');
+                expect(context.millenniumFalcon).toBeInZone('spaceArena');
 
                 // attack with falcon
                 context.player1.clickCard(context.millenniumFalcon);
@@ -40,7 +40,7 @@ describe('Millennium Falcon, Piece of Junk', function () {
 
                 // we paid 1 resource, unit still in arena and can attack
                 expect(context.player1).toBeActivePlayer();
-                expect(context.player1.countExhaustedResources()).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 context.player1.clickCard(context.millenniumFalcon);
                 expect(context.player2).toBeActivePlayer();
@@ -59,7 +59,7 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 context.player1.clickPrompt('Return this unit to her owner\'s hand');
 
                 expect(context.player1).toBeActivePlayer();
-                expect(context.millenniumFalcon.location).toBe('hand');
+                expect(context.millenniumFalcon).toBeInZone('hand');
             });
         });
     });

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, Trait } from '../../../core/Constants';
+import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
 
 export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -27,7 +27,7 @@ export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
                 title: 'Exhaust an enemy unit or resource',
                 targetResolver: {
                     controller: RelativePlayer.Opponent,
-                    locationFilter: [Location.Resource, Location.GroundArena, Location.SpaceArena],
+                    zoneFilter: [ZoneName.Resource, ZoneName.GroundArena, ZoneName.SpaceArena],
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }
             }

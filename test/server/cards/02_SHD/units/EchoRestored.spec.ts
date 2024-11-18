@@ -24,12 +24,12 @@ describe('Echo, Restored', function () {
 
                 // find duplicates
                 const handLuke = context.player1.findCardByName('luke-skywalker#jedi-knight', 'hand');
-                const leaderLuke = context.player1.findCardByName('luke-skywalker#faithful-friend', 'ground arena');
+                const leaderLuke = context.player1.findCardByName('luke-skywalker#faithful-friend', 'groundArena');
                 const handBattlefieldMarine = context.player1.findCardByName('battlefield-marine', 'hand');
-                const groundBattlefieldMarine = context.player1.findCardByName('battlefield-marine', 'ground arena');
+                const groundBattlefieldMarine = context.player1.findCardByName('battlefield-marine', 'groundArena');
                 const handWampa = context.player1.findCardByName('wampa', 'hand');
-                const friendlyGroundWampa = context.player1.findCardByName('wampa', 'ground arena');
-                const enemyGroundWampa = context.player2.findCardByName('wampa', 'ground arena');
+                const friendlyGroundWampa = context.player1.findCardByName('wampa', 'groundArena');
+                const enemyGroundWampa = context.player2.findCardByName('wampa', 'groundArena');
 
                 // play echo
                 context.player1.clickCard(context.echo);
@@ -42,9 +42,9 @@ describe('Echo, Restored', function () {
                 expect(context.player1).toBeAbleToSelectExactly([handLuke, handBattlefieldMarine, handWampa, context.atst]);
                 context.player1.clickCard(context.atst);
 
-                // disccarded card have no unit in play with same title, nothing happen
+                // discarded card have no unit in play with same title, nothing happen
                 expect(context.player2).toBeActivePlayer();
-                expect(context.atst.location).toBe('discard');
+                expect(context.atst).toBeInZone('discard');
 
                 expect(leaderLuke.isUpgraded()).toBeFalse();
                 expect(groundBattlefieldMarine.isUpgraded()).toBeFalse();
@@ -61,7 +61,7 @@ describe('Echo, Restored', function () {
 
                 // luke was discarded, leader luke should have 2 experiences tokens
                 expect(context.player2).toBeActivePlayer();
-                expect(handLuke.location).toBe('discard');
+                expect(handLuke).toBeInZone('discard');
 
                 expect(leaderLuke).toHaveExactUpgradeNames(['experience', 'experience']);
                 expect(groundBattlefieldMarine.isUpgraded()).toBeFalse();
@@ -83,7 +83,7 @@ describe('Echo, Restored', function () {
 
                 // friendly wampa should hvae 2 experiences tokens
                 expect(context.player2).toBeActivePlayer();
-                expect(handWampa.location).toBe('discard');
+                expect(handWampa).toBeInZone('discard');
 
                 expect(leaderLuke).toHaveExactUpgradeNames(['experience', 'experience']);
                 expect(friendlyGroundWampa).toHaveExactUpgradeNames(['experience', 'experience']);

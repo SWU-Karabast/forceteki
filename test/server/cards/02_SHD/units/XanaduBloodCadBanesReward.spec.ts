@@ -31,7 +31,7 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.cantinaBraggart.exhausted).toBeTrue();
-                expect(context.cartelSpacer.location).toBe('hand');
+                expect(context.cartelSpacer).toBeInZone('hand');
 
                 context.xanaduBlood.exhausted = false;
                 context.player2.passAction();
@@ -51,7 +51,7 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst.exhausted).toBeTrue();
-                expect(context.syndicateLackeys.location).toBe('hand');
+                expect(context.syndicateLackeys).toBeInZone('hand');
 
                 context.xanaduBlood.exhausted = false;
                 context.player2.passAction();

@@ -12,7 +12,7 @@ describe('Jabba\'s Rancor, Pateesa', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbasRancor);
-                expect(context.player1.countExhaustedResources()).toBe(8);
+                expect(context.player1.exhaustedResourceCount).toBe(8);
             });
 
             it('should decrease the cost because we control Jabba the Hutt as leader', function () {
@@ -26,7 +26,7 @@ describe('Jabba\'s Rancor, Pateesa', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbasRancor);
-                expect(context.player1.countExhaustedResources()).toBe(7);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
             });
 
             it('should decrease the cost because we control Jabba the Hutt as unit and should deal 3 damage to an another friendly ground unit and an enemy ground unit ', function () {
@@ -47,7 +47,7 @@ describe('Jabba\'s Rancor, Pateesa', function () {
 
                 // play jabba's rancor
                 context.player1.clickCard(context.jabbasRancor);
-                expect(context.player1.countExhaustedResources()).toBe(7);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
 
                 // should choose another friendly ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.jabbaTheHutt, context.hylobonEnforcer]);

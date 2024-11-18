@@ -37,7 +37,7 @@ describe('The Marauder, Shuttling The Bad Batch', function () {
                 context.player1.clickCard(resourcedLuke);
 
                 expect(context.player1.resources.length).toBe(resource + 1);
-                expect(resourcedLuke.location).toBe('resource');
+                expect(resourcedLuke).toBeInZone('resource');
                 expect(context.player2).toBeActivePlayer();
             });
         });
