@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardLocation } from '../../../core/Constants';
+import { WildcardZoneName } from '../../../core/Constants';
 
 export default class RuggedSurvivors extends NonLeaderUnitCard {
     protected override getImplementationId () {

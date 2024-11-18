@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, RelativePlayer, Location, TargetMode } from '../../../core/Constants';
+import { Aspect, RelativePlayer, ZoneName, TargetMode } from '../../../core/Constants';
 
 export default class LieutenantChildsenDeathStarPrisonWarden extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class LieutenantChildsenDeathStarPrisonWarden extends NonLeaderUn
                 mode: TargetMode.UpTo,
                 numCards: 4,
                 controller: RelativePlayer.Self,
-                locationFilter: Location.Hand,
+                zoneFilter: ZoneName.Hand,
                 cardCondition: (card) => card.hasSomeAspect(Aspect.Vigilance),
                 immediateEffect: AbilityHelper.immediateEffects.reveal(),
             },

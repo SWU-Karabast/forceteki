@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardCardType, WildcardLocation, Trait } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, WildcardZoneName, Trait } from '../../../core/Constants';
 
 export default class StrikeTrue extends EventCard {
     protected override getImplementationId () {
@@ -16,13 +16,13 @@ export default class StrikeTrue extends EventCard {
             targetResolvers: {
                 friendlyUnit: {
                     controller: RelativePlayer.Self,
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit
                 },
                 damageTarget: {
                     dependsOn: 'friendlyUnit',
                     controller: RelativePlayer.Opponent,
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
                         ({ amount: context.targets.friendlyUnit.getPower() })),

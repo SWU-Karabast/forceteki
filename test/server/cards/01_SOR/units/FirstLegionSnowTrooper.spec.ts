@@ -50,7 +50,7 @@ describe('First Legion Snow Trooper', function() {
                 context.player1.clickCard(context.snowtrooperLieutenant);
 
                 // Check board state
-                expect(context.snowtrooperLieutenant).toBeInLocation('discard');
+                expect(context.snowtrooperLieutenant).toBeInZone('discard');
                 expect(context.firstLegionSnowtrooper.exhausted).toBe(true);
                 expect(context.firstLegionSnowtrooper.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(8);

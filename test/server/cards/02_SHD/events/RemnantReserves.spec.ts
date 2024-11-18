@@ -23,9 +23,9 @@ describe('Remnant Reserves', function () {
                 context.player1.clickPrompt(context.restoredArc170.title);
                 context.player1.clickPrompt(context.infernoFour.title);
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing, Restored ARC-170, and Inferno Four');
-                expect(context.greenSquadronAwing).toBeInLocation('hand');
-                expect(context.restoredArc170).toBeInLocation('hand');
-                expect(context.infernoFour).toBeInLocation('hand');
+                expect(context.greenSquadronAwing).toBeInZone('hand');
+                expect(context.restoredArc170).toBeInZone('hand');
+                expect(context.infernoFour).toBeInZone('hand');
 
                 expect(context.recruit).toBeInBottomOfDeck(context.player1, 2);
                 expect(context.prepareForTakeoff).toBeInBottomOfDeck(context.player1, 2);
@@ -42,7 +42,7 @@ describe('Remnant Reserves', function () {
                 context.player1.clickPrompt(context.greenSquadronAwing.title);
                 context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing');
-                expect(context.greenSquadronAwing).toBeInLocation('hand');
+                expect(context.greenSquadronAwing).toBeInZone('hand');
 
                 expect(context.recruit).toBeInBottomOfDeck(context.player1, 4);
                 expect(context.restoredArc170).toBeInBottomOfDeck(context.player1, 4);

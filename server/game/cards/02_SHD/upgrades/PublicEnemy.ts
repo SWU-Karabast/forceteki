@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class PublicEnemy extends UpgradeCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class PublicEnemy extends UpgradeCard {
             ability: {
                 title: 'Give a Shield token to a unit.',
                 targetResolver: {
-                    controller: RelativePlayer.Any,
+                    controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.giveShield()
                 }

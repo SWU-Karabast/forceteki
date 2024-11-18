@@ -47,7 +47,7 @@ describe('Overwhelm keyword', function() {
                 context.player2.clickCard(context.battlefieldMarine);
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(3);
-                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.p1Base.damage).toBe(0);
 

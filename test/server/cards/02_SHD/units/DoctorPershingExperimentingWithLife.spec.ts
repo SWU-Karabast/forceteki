@@ -32,7 +32,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 // Target a space friendly unit
                 context.player1.clickCard(context.tielnFighter);
                 expect(context.doctorPershing.exhausted).toBeTrue();
-                expect(context.tielnFighter).toBeInLocation('discard');
+                expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(0);
 

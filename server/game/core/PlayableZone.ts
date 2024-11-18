@@ -1,12 +1,12 @@
-import type { Location, PlayType } from './Constants';
+import type { ZoneName, PlayType } from './Constants';
 import type Player from './Player';
 import { Card } from './card/Card';
 
-export class PlayableLocation {
+export class PlayableZone {
     public constructor(
         public playingType: PlayType,
         private player: Player,
-        private location: Location,
+        private zoneName: ZoneName,
         public cards = new Set<Card>()
     ) {}
 
@@ -15,6 +15,6 @@ export class PlayableLocation {
             return false;
         }
 
-        return this.player.getCardPile(this.location).includes(card);
+        return this.player.getCardPile(this.zoneName).includes(card);
     }
 }

@@ -31,7 +31,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player1.clickCard(context.rivalsFall);
                 context.player1.clickCard(context.viperProbeDroid);
 
-                expect(context.player1.countSpendableResources()).toBe(1);
+                expect(context.player1.readyResourceCount).toBe(1);
                 expect(context.bobaFett.exhausted).toBeTrue();
 
                 // Case 2 - when returning an enemy unit to hand
@@ -40,7 +40,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player1.clickCard(context.cantinaBouncer);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1.countSpendableResources()).toBe(2);
+                expect(context.player1.readyResourceCount).toBe(2);
                 expect(context.bobaFett.exhausted).toBeTrue();
 
                 // Case 3 - when defeating an enemy leader unit
@@ -50,7 +50,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player1.clickCard(context.rivalsFall);
                 context.player1.clickCard(context.lukeSkywalker);
 
-                expect(context.player1.countSpendableResources()).toBe(1);
+                expect(context.player1.readyResourceCount).toBe(1);
                 expect(context.bobaFett.exhausted).toBeTrue();
 
                 // Case 4 - when there are no exhausted resources
@@ -63,12 +63,12 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 // Case 5 - when a friendly unit leaves play
                 reset();
                 context.player1.moveCard(context.rivalsFall, 'hand');
-                context.player1.moveCard(context.deathStarStormtrooper, 'ground arena');
+                context.player1.moveCard(context.deathStarStormtrooper, 'groundArena');
 
                 context.player1.clickCard(context.rivalsFall);
                 context.player1.clickCard(context.deathStarStormtrooper);
 
-                expect(context.player1.countSpendableResources()).toBe(0);
+                expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.bobaFett.exhausted).toBeFalse();
             });
         });
@@ -96,7 +96,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.bobaFett);
 
-                expect(context.player1.countSpendableResources()).toBe(3);
+                expect(context.player1.readyResourceCount).toBe(3);
             });
 
             it('should not ready resources if Boba Fett dies while attacking, even if an enemy unit left play this turn', function() {
@@ -107,7 +107,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.bobaFett);
 
-                expect(context.player1.countSpendableResources()).toBe(1);
+                expect(context.player1.readyResourceCount).toBe(1);
             });
         });
     });

@@ -27,9 +27,9 @@ describe('Deals Damage Before Defender', function () {
                 context.player1.clickCard(context.r2d2);
 
                 // check game state
-                expect(context.r2d2.location).toBe('discard');
+                expect(context.r2d2.zoneName).toBe('discard');
                 expect(context.firstLegionSnowtrooper.damage).toBe(0);
-                expect(context.shootFirst.location).toBe('discard');
+                expect(context.shootFirst.zoneName).toBe('discard');
                 expect(context.p2Base.damage).toBe(2);
             });
 
@@ -43,7 +43,7 @@ describe('Deals Damage Before Defender', function () {
                 // check game state
                 expect(context.consularSecurityForce.damage).toBe(6);
                 expect(context.scoutBikePursuer.damage).toBe(4);
-                expect(context.shootFirst.location).toBe('discard');
+                expect(context.shootFirst.zoneName).toBe('discard');
             });
         });
 

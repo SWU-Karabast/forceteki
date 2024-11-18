@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, CardType, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, CardType, WildcardCardType } from '../../../core/Constants';
 
 export default class ISBAgent extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class ISBAgent extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: CardType.Event,
                 controller: RelativePlayer.Self,
-                locationFilter: Location.Hand,
+                zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.reveal()
             },
             ifYouDo: {

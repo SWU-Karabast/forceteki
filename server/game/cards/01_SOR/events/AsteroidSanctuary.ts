@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UnitCard } from '../../../core/card/CardTypes';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardLocation } from '../../../core/Constants';
+import { RelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
 export default class AsteroidSanctuary extends EventCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class AsteroidSanctuary extends EventCard {
             title: 'Exhaust an enemy unit and give a shield to a friendly unit that costs 3 or less',
             targetResolvers: {
                 exhaust: {
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     controller: RelativePlayer.Opponent,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 },

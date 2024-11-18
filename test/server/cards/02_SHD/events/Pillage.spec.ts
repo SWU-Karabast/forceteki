@@ -26,11 +26,11 @@ describe('Pillage', function() {
                 player2.clickCardNonChecking(battlefieldMarine);
                 player2.clickPrompt('Done');
 
-                expect(wampa).toBeInLocation('discard');
-                expect(imperialInterceptor).toBeInLocation('discard');
+                expect(wampa).toBeInZone('discard');
+                expect(imperialInterceptor).toBeInZone('discard');
 
-                expect(allianceXwing).toBeInLocation('hand');
-                expect(battlefieldMarine).toBeInLocation('hand');
+                expect(allianceXwing).toBeInZone('hand');
+                expect(battlefieldMarine).toBeInZone('hand');
 
                 expect(player2).toBeActivePlayer();
             });
@@ -52,7 +52,7 @@ describe('Pillage', function() {
                 player1.clickCard(pillage);
                 player1.clickPrompt('Opponent');
 
-                expect(imperialInterceptor).toBeInLocation('discard');
+                expect(imperialInterceptor).toBeInZone('discard');
 
                 expect(player2).toBeActivePlayer();
             });
@@ -96,11 +96,11 @@ describe('Pillage', function() {
                 player1.clickCard(wampa);
                 player1.clickPrompt('Done');
 
-                expect(wampa).toBeInLocation('discard');
-                expect(imperialInterceptor).toBeInLocation('discard');
+                expect(wampa).toBeInZone('discard');
+                expect(imperialInterceptor).toBeInZone('discard');
 
-                expect(allianceXwing).toBeInLocation('hand');
-                expect(battlefieldMarine).toBeInLocation('hand');
+                expect(allianceXwing).toBeInZone('hand');
+                expect(battlefieldMarine).toBeInZone('hand');
 
                 expect(player2).toBeActivePlayer();
             });

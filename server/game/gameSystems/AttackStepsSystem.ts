@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, CardTypeFilter, Duration, EventName, KeywordName, Location, MetaEventName, WildcardCardType, WildcardLocation } from '../core/Constants';
+import { AbilityRestriction, CardType, CardTypeFilter, Duration, EventName, KeywordName, ZoneName, MetaEventName, WildcardCardType, WildcardZoneName } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { EffectName } from '../core/Constants';
@@ -62,7 +62,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         Contract.assertTrue(properties.attacker.isUnit());
-        if (!properties.attacker.isInPlay() || !EnumHelpers.isAttackableLocation(target.location)) {
+        if (!properties.attacker.isInPlay() || !EnumHelpers.isAttackableZone(target.zoneName)) {
             context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
             return;
         }
@@ -115,27 +115,27 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return false; // cannot attack cards with a BeAttacked restriction
         }
 
-        const attackerLocation = properties.attacker.location === Location.GroundArena ? Location.GroundArena : Location.SpaceArena;
-        const canTargetGround = attackerLocation === Location.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
-        const canTargetSpace = attackerLocation === Location.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
+        const attackerZone = properties.attacker.zoneName === ZoneName.GroundArena ? ZoneName.GroundArena : ZoneName.SpaceArena;
+        const canTargetGround = attackerZone === ZoneName.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
+        const canTargetSpace = attackerZone === ZoneName.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
         if (
-            targetCard.location !== attackerLocation &&
-            targetCard.location !== Location.Base &&
-            !(targetCard.location === Location.SpaceArena && canTargetSpace) &&
-            !(targetCard.location === Location.GroundArena && canTargetGround)
+            targetCard.zoneName !== attackerZone &&
+            targetCard.zoneName !== ZoneName.Base &&
+            !(targetCard.zoneName === ZoneName.SpaceArena && canTargetSpace) &&
+            !(targetCard.zoneName === ZoneName.GroundArena && canTargetGround)
         ) {
             return false; // can only attack same arena or base unless an effect allows otherwise
         }
 
         if (!properties.attacker.hasSomeKeyword(KeywordName.Saboteur)) { // If not Saboteur, do a Sentinel check
-            if (targetCard.controller.getUnitsInPlay(attackerLocation, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
+            if (targetCard.controller.getUnitsInPlay(attackerZone, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
                 return targetCard.hasSomeKeyword(KeywordName.Sentinel);
             }
         }
 
         return (
             properties.targetCondition(targetCard, context) &&
-            EnumHelpers.isAttackableLocation(targetCard.location)
+            EnumHelpers.isAttackableZone(targetCard.zoneName)
         );
     }
 

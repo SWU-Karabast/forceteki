@@ -23,12 +23,12 @@ describe('Gamorrean Guards', function() {
                 expect(context.p1Base.damage).toBe(4);
 
                 context.player1.clickCard(context.strafingGunship);
-                expect(context.strafingGunship.location).toBe('space arena');
+                expect(context.strafingGunship.zoneName).toBe('spaceArena');
                 expect(context.player2).toBeActivePlayer();
 
                 context.player2.clickCard(context.battlefieldMarine);
                 // Gamorrean Guards automatically selected due to sentinel
-                expect(context.battlefieldMarine.location).toBe('discard');
+                expect(context.battlefieldMarine.zoneName).toBe('discard');
                 expect(context.player1).toBeActivePlayer();
                 expect(context.gamorreanGuards.damage).toBe(3);
             });

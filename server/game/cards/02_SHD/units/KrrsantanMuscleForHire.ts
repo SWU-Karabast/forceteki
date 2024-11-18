@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, Location, WildcardCardType, WildcardLocation } from '../../../core/Constants';
+import { KeywordName, ZoneName, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
             title: 'Ready this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.opponent.getUnitsInPlay(WildcardLocation.AnyArena, (card) => card.hasSomeKeyword(KeywordName.Bounty)).length > 0,
+                condition: (context) => context.source.controller.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeKeyword(KeywordName.Bounty)).length > 0,
                 onTrue: AbilityHelper.immediateEffects.ready(),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
@@ -25,7 +25,7 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
             title: 'Deal 1 damage to a unit for each damage on this unit',
             optional: true,
             targetResolver: {
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 condition: (context) => context.source.damage > 0,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({

@@ -24,7 +24,7 @@ describe('Fell the Dragon', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.avenger, context.atst, context.scoutBikePursuer]);
 
                 context.player1.clickCard(context.atst);
-                expect(context.atst).toBeInLocation('discard');
+                expect(context.atst).toBeInZone('discard');
             });
 
             it('should defeat an ally', function () {
@@ -34,7 +34,7 @@ describe('Fell the Dragon', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.avenger, context.atst, context.scoutBikePursuer]);
 
                 context.player1.clickCard(context.avenger);
-                expect(context.avenger).toBeInLocation('discard');
+                expect(context.avenger).toBeInZone('discard');
             });
         });
     });

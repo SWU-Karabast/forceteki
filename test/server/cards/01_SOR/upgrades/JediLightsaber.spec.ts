@@ -34,7 +34,7 @@ describe('Jedi Lightsaber', function() {
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.grogu);
                 expect(context.grogu.damage).toBe(4);
-                expect(context.atst).toBeInLocation('discard');
+                expect(context.atst).toBeInZone('discard');
 
                 // CASE 2: defender dies from combined attack damage and hp effect
                 context.grogu.exhausted = false;
@@ -45,7 +45,7 @@ describe('Jedi Lightsaber', function() {
 
                 expect(context.grogu.damage).toBe(2);
                 expect(context.grogu.exhausted).toBe(true);
-                expect(context.wampa).toBeInLocation('discard');
+                expect(context.wampa).toBeInZone('discard');
 
                 // CASE 3: defender dies from hp effect before attack resolves
                 context.player2.passAction();
@@ -57,7 +57,7 @@ describe('Jedi Lightsaber', function() {
 
                 expect(context.grogu.damage).toBe(0);
                 expect(context.grogu.exhausted).toBe(true);
-                expect(context.specforceSoldier).toBeInLocation('discard');
+                expect(context.specforceSoldier).toBeInZone('discard');
 
                 // CASE 4: no effect when attacking a base
                 context.player2.passAction();

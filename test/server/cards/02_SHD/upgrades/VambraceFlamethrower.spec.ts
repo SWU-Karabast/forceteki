@@ -66,7 +66,7 @@ describe('Vambrace Flamethrower', function () {
                     [context.specforceSoldier, 3],
                 ]));
 
-                expect(context.specforceSoldier.location).toBe('discard');
+                expect(context.specforceSoldier.zoneName).toBe('discard');
                 expect(context.player2).toBeActivePlayer();
             });
         });

@@ -28,9 +28,9 @@ describe('Admiral Ozzel, Overconfident', function() {
                 expect(context.player1).toHaveChooseNoTargetButton();
 
                 context.player1.clickCard(context.atst);
-                expect(context.atst).toBeInLocation('ground arena');
+                expect(context.atst).toBeInZone('groundArena');
                 expect(context.atst.exhausted).toBe(false);
-                expect(context.player1.countExhaustedResources()).toBe(6);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
 
                 expect(context.player2).toHavePrompt('Ready a unit');
                 expect(context.player2).toHaveEnabledPromptButton('Done');
@@ -64,7 +64,7 @@ describe('Admiral Ozzel, Overconfident', function() {
 
                 context.player1.clickPrompt('Play an Imperial unit from your hand. It enters play ready');
                 expect(context.admiralOzzel.exhausted).toBe(true);
-                expect(context.player1.countExhaustedResources()).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
 
                 expect(context.player2).toHavePrompt('Ready a unit');
                 expect(context.player2).toBeAbleToSelectExactly([context.admiralOzzel, context.wampa, context.ruthlessRaider]);

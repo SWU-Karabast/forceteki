@@ -40,7 +40,7 @@ describe('Ruthless Raider', function() {
 
                 // Check damage on unit and base
                 expect(context.p2Base.damage).toBe(4);
-                expect(context.greenSquadronAwing).toBeInLocation('discard');
+                expect(context.greenSquadronAwing).toBeInZone('discard');
             });
         });
     });

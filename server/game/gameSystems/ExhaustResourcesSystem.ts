@@ -38,9 +38,9 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
     public override canAffect(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.amount > 0 &&
-          player.countSpendableResources() > 0 &&
+          player.readyResourceCount > 0 &&
           super.canAffect(player, context, additionalProperties, mustChangeGameState) &&
-            player.countSpendableResources() >= properties.amount;
+            player.readyResourceCount >= properties.amount;
     }
 
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {

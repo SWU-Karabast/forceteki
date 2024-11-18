@@ -88,8 +88,8 @@ describe('Leia Organa, Alliance General', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.fleetLieutenant, context.allianceXwing]);
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.tieAdvanced);
-                expect(context.allianceXwing).toBeInLocation('discard');
-                expect(context.tieAdvanced).toBeInLocation('discard');
+                expect(context.allianceXwing).toBeInZone('discard');
+                expect(context.tieAdvanced).toBeInZone('discard');
 
                 expect(context.player2).toBeActivePlayer();
 
