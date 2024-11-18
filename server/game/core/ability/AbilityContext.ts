@@ -1,6 +1,6 @@
 import PlayerOrCardAbility from './PlayerOrCardAbility';
 import { Aspect, PlayType, Stage } from '../Constants';
-import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
+import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';

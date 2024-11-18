@@ -11,8 +11,8 @@ import { ICost } from './core/cost/ICost';
 import Game from './core/Game';
 import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import Player from './core/Player';
-import OngoingCardEffect from './core/ongoingEffect/OngoingCardEffect';
-import OngoingPlayerEffect from './core/ongoingEffect/OngoingPlayerEffect';
+import { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
+import { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
 import { UnitCard } from './core/card/CardTypes';
 import { BaseZone } from './core/zone/BaseZone';
 import { DeckZone } from './core/zone/DeckZone';
@@ -45,7 +45,10 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 };
 
 export interface IOngoingEffectProps {
-    targetZoneFilter?: ZoneName | ZoneName[];
+    targetZoneFilter?: ZoneFilter;
+    sourceZoneFilter?: ZoneFilter;
+    targetCardTypeFilter?: any;
+    matchTarget?: () => boolean;
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;
@@ -55,6 +58,14 @@ export interface IOngoingEffectProps {
     target?: (Player | Card) | (Player | Card)[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
+}
+
+export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
+    targetController?: Player | RelativePlayer;
+}
+
+export interface IOngoingCardEffectProps extends IOngoingEffectProps {
+    targetController?: RelativePlayer;
 }
 
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
