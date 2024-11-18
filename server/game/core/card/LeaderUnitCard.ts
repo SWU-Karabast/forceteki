@@ -1,6 +1,5 @@
 import Player from '../Player';
 import { LeaderCard } from './LeaderCard';
-import { InitiateAttackAction } from '../../actions/InitiateAttackAction';
 import { CardType, ZoneName, ZoneFilter } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -24,12 +23,9 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities();
 
-        // leaders are always in a zone where they are allowed to be exhausted
-        this.setExhaustEnabled(true);
-
         // add deploy leader action
         this.addActionAbility({
-            title: `Deploy ${this.name}`,
+            title: `Deploy ${this.title}`,
             limit: AbilityHelper.limit.epicAction(),
             condition: (context) => context.source.controller.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
@@ -45,12 +41,18 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         return this._deployed;
     }
 
+    public override initializeForStartZone(): void {
+        // leaders are always in a zone where they are allowed to be exhausted
+        this.setExhaustEnabled(true);
+        this.resolveAbilitiesForNewZone();
+    }
+
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
     public override deploy() {
         Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
         this._deployed = true;
-        this.controller.moveCard(this, this.defaultArena);
+        this.moveTo(this.defaultArena);
     }
 
     /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
@@ -58,7 +60,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
 
         this._deployed = false;
-        this.controller.moveCard(this, ZoneName.Base);
+        this.moveTo(ZoneName.Base);
     }
 
     /**
@@ -97,7 +99,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
             : abilityZone;
     }
 
-    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+    protected override initializeForCurrentZone(prevZone?: ZoneName): void {
         super.initializeForCurrentZone(prevZone);
 
         switch (this.zoneName) {
@@ -115,7 +117,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
-                this.exhausted = EnumHelpers.isArena(prevZone);
+                this.exhausted = prevZone ? EnumHelpers.isArena(prevZone) : false;
                 break;
         }
     }

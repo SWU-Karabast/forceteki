@@ -1,4 +1,3 @@
-import { ZoneName } from '../../Constants';
 import { randomItem } from '../../utils/Helpers';
 import type Game from '../../Game';
 import { Phase } from './Phase';
@@ -12,8 +11,6 @@ export class SetupPhase extends Phase {
         super(game, name);
         this.game.currentPhase = name;
         this.pipeline.initialise([
-            new SimpleStep(game, () => this.putBaseInPlay(), 'putBaseInPlay'),
-            new SimpleStep(game, () => this.putLeaderInPlay(), 'putLeaderInPlay'),
             new SimpleStep(game, () => this.chooseFirstPlayer(), 'chooseFirstPlayer'),
             new SimpleStep(game, () => this.drawStartingHands(), 'drawStartingHands'),
             new MulliganPrompt(game),
@@ -22,20 +19,6 @@ export class SetupPhase extends Phase {
             // there aren't clear game rules yet for resolving events that trigger during the setup step, so we skip the event window here
             new SimpleStep(game, () => this.endPhase(true), 'endPhase')
         ]);
-    }
-
-    private putBaseInPlay() {
-        for (const player of this.game.getPlayers()) {
-            player.moveCard(player.base, ZoneName.Base);
-            player.damageToBase = 0;
-        }
-    }
-
-    private putLeaderInPlay() {
-        for (const player of this.game.getPlayers()) {
-            player.moveCard(player.leader, ZoneName.Base);
-            player.leader.ready();
-        }
     }
 
     private chooseFirstPlayer() {

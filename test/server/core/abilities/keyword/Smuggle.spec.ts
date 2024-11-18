@@ -84,6 +84,8 @@ describe('Smuggle keyword', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(11);
                 expect(context.player1.readyResourceCount).toBe(7);
             });
+
+            // TODO: add test confirming if a ready resource is smuggled, its status is swapped with an exhausted resource before moving
         });
     });
 });
