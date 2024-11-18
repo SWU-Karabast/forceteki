@@ -27,7 +27,7 @@ describe('C-3PO, Protocol Droid', function() {
 
                 context.player1.clickPrompt('Reveal and draw Wampa from the top of your deck');
                 expect(context.getChatLogs(1)).toContain('player1 reveals Wampa due to C-3PO');
-                expect(context.wampa).toBeInLocation('hand');
+                expect(context.wampa).toBeInZone('hand');
 
                 // CASE 2: threepio attacks, we guess the number wrong
                 context.c3po.exhausted = false;
@@ -39,7 +39,7 @@ describe('C-3PO, Protocol Droid', function() {
 
                 expect(context.getChatLogs(1)).toContain('C-3PO sees Battlefield Marine');
                 expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toBeInLocation('deck');
+                expect(context.battlefieldMarine).toBeInZone('deck');
             });
         });
 

@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { Location, Trait, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class VadersLightsaber extends UpgradeCard {
     protected override getImplementationId() {
@@ -18,7 +18,7 @@ export default class VadersLightsaber extends UpgradeCard {
             title: 'Deal 4 damage to a ground unit',
             optional: true,
             targetResolver: {
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.parentCard?.title === 'Darth Vader',

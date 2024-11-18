@@ -144,7 +144,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private checkUnsetActiveAttack(card: CardWithDamageProperty) {
-        if (EnumHelpers.isArena(card.location) || card.isBase()) {
+        if (EnumHelpers.isArena(card.zoneName) || card.isBase()) {
             card.unsetActiveAttack();
         }
     }

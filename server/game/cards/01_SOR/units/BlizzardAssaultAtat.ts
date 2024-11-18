@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { DamageType, Location, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { DamageType, ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import * as Contract from '../../../core/utils/Contract';
 
 
@@ -25,7 +25,7 @@ export default class BlizzardAssaultAtat extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     type: DamageType.Excess,
                     sourceEventForExcessDamage: context.event.defeatSource.event

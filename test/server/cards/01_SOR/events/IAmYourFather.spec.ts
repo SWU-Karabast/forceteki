@@ -59,7 +59,7 @@ describe('I Am Your Father', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.iAmYourFather);
-                expect(context.iAmYourFather).toBeInLocation('discard');
+                expect(context.iAmYourFather).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
         });

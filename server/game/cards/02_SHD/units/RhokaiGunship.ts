@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location } from '../../../core/Constants';
+import { ZoneName } from '../../../core/Constants';
 
 export default class RhokaiGunship extends NonLeaderUnitCard {
     protected override getImplementationId () {

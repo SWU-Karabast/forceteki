@@ -4,7 +4,7 @@ import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
-import { AbilityType, CardType, KeywordName, Location, PlayType, RelativePlayer } from '../Constants';
+import { AbilityType, CardType, KeywordName, ZoneName, PlayType, RelativePlayer, WildcardRelativePlayer } from '../Constants';
 import { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
@@ -47,7 +47,7 @@ export class UpgradeCard extends UpgradeCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
-        if (this.location === Location.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayUpgradeAction(this, PlayType.Smuggle));
         }
         return actions;
@@ -62,11 +62,11 @@ export class UpgradeCard extends UpgradeCardParent {
         return this._parentCard;
     }
 
-    public override moveTo(targetLocation: Location) {
-        Contract.assertFalse(this._parentCard && targetLocation !== this._parentCard.location,
+    public override moveTo(targetZone: ZoneName) {
+        Contract.assertFalse(this._parentCard && targetZone !== this._parentCard.zoneName,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
-        super.moveTo(targetLocation);
+        super.moveTo(targetZone);
     }
 
     public attachTo(newParentCard: UnitCard) {
@@ -79,8 +79,8 @@ export class UpgradeCard extends UpgradeCardParent {
             this.controller.removeCardFromPile(this);
         }
 
-        newParentCard.controller.putUpgradeInArena(this, newParentCard.location);
-        this.moveTo(newParentCard.location);
+        newParentCard.controller.putUpgradeInArena(this, newParentCard.zoneName);
+        this.moveTo(newParentCard.zoneName);
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
     }
@@ -122,7 +122,7 @@ export class UpgradeCard extends UpgradeCardParent {
             title: properties.title,
             condition: properties.condition || (() => true),
             matchTarget: (card, context) => card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
-            targetController: RelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+            targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
             ongoingEffect: properties.ongoingEffect
         });
     }
@@ -136,7 +136,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: this.addLocationCheckToGainCondition(gainCondition),
+            condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
         });
     }
@@ -150,7 +150,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: this.addLocationCheckToGainCondition(gainCondition),
+            condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
         });
     }
@@ -166,7 +166,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
-            condition: this.addLocationCheckToGainCondition(gainCondition),
+            condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
         });
     }
@@ -180,7 +180,7 @@ export class UpgradeCard extends UpgradeCardParent {
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give keyword to the attached card',
-            condition: this.addLocationCheckToGainCondition(gainCondition),
+            condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(keywordProperties)
         });
     }
@@ -189,7 +189,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * This is required because a gainCondition call can happen after an upgrade is discarded,
      * so we need to short-circuit in that case to keep from trying to access illegal state such as parentCard
      */
-    private addLocationCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
+    private addZoneCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
         return gainCondition == null
             ? null
             : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
@@ -202,11 +202,11 @@ export class UpgradeCard extends UpgradeCardParent {
         this.attachCondition = attachCondition;
     }
 
-    protected override initializeForCurrentLocation(prevLocation: Location): void {
-        super.initializeForCurrentLocation(prevLocation);
+    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+        super.initializeForCurrentZone(prevZone);
 
-        switch (this.location) {
-            case Location.Resource:
+        switch (this.zoneName) {
+            case ZoneName.Resource:
                 this.setExhaustEnabled(true);
                 break;
 

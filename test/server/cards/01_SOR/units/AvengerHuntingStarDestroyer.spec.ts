@@ -33,7 +33,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 context.player2.clickCard(context.cartelSpacer);
 
                 // Chosen unit defeated
-                expect(context.cartelSpacer).toBeInLocation('discard');
+                expect(context.cartelSpacer).toBeInZone('discard');
             });
 
             it('forces opponent to defeat friendly non-leader unit when Avenger attacks', function () {
@@ -48,7 +48,7 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 // Player 1 must choose its own unit
                 expect(context.player1).toBeAbleToSelectExactly([context.imperialInterceptor, context.pykeSentinel]);
                 context.player1.clickCard(context.pykeSentinel);
-                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.pykeSentinel).toBeInZone('discard');
                 expect(context.p1Base.damage).toBe(8);
             });
 
@@ -62,14 +62,14 @@ describe('Avenger, Hunting Star Destroyer', function() {
                 context.player2.clickCard(context.imperialInterceptor);
 
                 // Interceptor not yet destroyed
-                expect(context.imperialInterceptor).toBeInLocation('space arena');
+                expect(context.imperialInterceptor).toBeInZone('spaceArena');
 
                 // Player 1 must choose its own unit
                 expect(context.player1).toBeAbleToSelectExactly([context.imperialInterceptor, context.pykeSentinel]);
 
                 // Choose the defender and check it was destroyed
                 context.player1.clickCard(context.imperialInterceptor);
-                expect(context.imperialInterceptor).toBeInLocation('discard');
+                expect(context.imperialInterceptor).toBeInZone('discard');
 
                 // Ensure no damage happened
                 expect(context.p2Avenger.damage).toBe(0);

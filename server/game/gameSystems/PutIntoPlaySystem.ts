@@ -1,12 +1,12 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, EventName, KeywordName, Location, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, EventName, KeywordName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: RelativePlayer;
-    overrideLocation?: Location;
+    overrideZone?: ZoneName;
     entersReady?: boolean;
 }
 
@@ -18,7 +18,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
     protected override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
-        overrideLocation: null,
+        overrideZone: null,
         entersReady: false
     };
 
@@ -56,13 +56,11 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     public override canAffect(card: Card, context: TContext): boolean {
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy);
-        const location = card.location;
-
         if (!super.canAffect(card, context)) {
             return false;
-        } else if (!card.canBeInPlay() || card.isInPlay() || (card.facedown && card.location !== Location.Resource)) {
+        } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;
-        } else if (card.location === Location.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
+        } else if (card.zoneName === ZoneName.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;
@@ -74,13 +72,13 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         // TODO:rename this class and all related classes / methods as PutUnitIntoPlay
-        const { controller, overrideLocation, entersReady } = this.generatePropertiesFromContext(
+        const { controller, overrideZone, entersReady } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IPutIntoPlayProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
-        event.originalLocation = overrideLocation || card.location;
+        event.originalZone = overrideZone || card.zoneName;
         event.status = entersReady ? 'ready' : event.status;
     }
 

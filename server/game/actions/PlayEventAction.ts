@@ -1,4 +1,4 @@
-import { AbilityRestriction, EventName, Location, PlayType } from '../core/Constants.js';
+import { AbilityRestriction, EventName, ZoneName, PlayType } from '../core/Constants.js';
 import { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract.js';
 import { PlayCardContext, PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -38,13 +38,13 @@ export class PlayEventAction extends PlayCardAction {
         const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, context, {
             player: context.player,
             card: context.source,
-            originalLocation: context.source.location,
+            originalZone: context.source.zoneName,
             originallyOnTopOfDeck:
                 context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
             playType: context.playType,
             onPlayCardSource: context.onPlayCardSource,
             resolver: this,
-            handler: () => context.source.controller.moveCard(context.source, Location.Discard)
+            handler: () => context.source.controller.moveCard(context.source, ZoneName.Discard)
         });
 
         const events = [cardPlayedEvent];

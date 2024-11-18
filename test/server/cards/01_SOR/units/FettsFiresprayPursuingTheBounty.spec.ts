@@ -156,7 +156,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
 
                 // fett's firespray should not be exhaust and 2 resources was spent
                 expect(context.fettsFirespray.exhausted).toBeFalse();
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
                 context.player2.passAction();
 
                 // attack with fett's firespray
@@ -169,7 +169,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                 context.player1.clickCard(context.fettsFirespray);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.scoutBikePursuer, context.echoBaseDefender]);
                 context.player1.clickCard(context.scoutBikePursuer);
-                expect(context.player1.countExhaustedResources()).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
             });
         });
 
@@ -196,10 +196,10 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                 // exhaust battlefield marine
                 expect(context.fettsFirespray).toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.player2).toBeActivePlayer();
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 context.player2.passAction();
-                expect(context.player1.countSpendableResources()).toBe(1);
+                expect(context.player1.readyResourceCount).toBe(1);
                 expect(context.fettsFirespray).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });

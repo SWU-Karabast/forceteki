@@ -58,7 +58,7 @@ describe('Val, Loyal To The End', function() {
 
                 // kill battlefield marine
                 context.player2.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine.location).toBe('discard');
+                expect(context.battlefieldMarine.zoneName).toBe('discard');
 
                 // green squadron awing is automatically choose
                 expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['experience', 'experience']);

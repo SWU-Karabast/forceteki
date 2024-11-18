@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { CardType, CardTypeFilter, EffectName, EventName, GameStateChangeRequired, Location, WildcardCardType } from '../Constants';
+import { CardType, CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, WildcardCardType } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -142,6 +142,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     public override checkEventCondition(event: any, additionalProperties = {}): boolean {
+        // TODO Migrate game state check to somewhere more universal
         return this.canAffect(event.card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve);
     }
 
@@ -167,7 +168,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
         super.updateEvent(event, card, context, additionalProperties);
-        event.destination = properties.destination || Location.Discard;
+        event.destination = properties.destination || ZoneName.Discard;
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
@@ -199,7 +200,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         // event.preResolutionEffect = () => {
         //     event.cardStateWhenLeftPlay = event.card.createSnapshot();
         //     if (event.card.isAncestral() && event.isContingent) {
-        //         event.destination = Location.Hand;
+        //         event.destination = ZoneName.Hand;
         //         context.game.addMessage(
         //             '{0} returns to {1}'s hand due to its Ancestral keyword',
         //             event.card,

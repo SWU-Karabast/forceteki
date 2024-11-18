@@ -4,7 +4,7 @@ import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSyste
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import { CardType, PlayType, MetaEventName } from '../core/Constants';
-import { isPlayable } from '../core/card/CardTypes';
+import { isTokenOrPlayable } from '../core/card/CardTypes';
 import * as GameSystemLibrary from './GameSystemLibrary';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { PlayUnitAction } from '../actions/PlayUnitAction';
@@ -52,20 +52,19 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        event.playCardAbility = this.generatePlayCardAbility(target, this.properties.playType);
+        event.playCardAbility = this.generatePlayCardAbility(target, properties);
         event.optional = properties.optional ?? context.ability.optional;
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
-        if (!(isPlayable(card))) {
+        if (!(isTokenOrPlayable(card))) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (!super.canAffect(card, context)) {
             return false;
         }
-
-        const playCardAbility = this.generatePlayCardAbility(card, this.properties.playType);
+        const playCardAbility = this.generatePlayCardAbility(card, properties);
         const newContext = playCardAbility.createContext(context.player);
 
         return !playCardAbility.meetsRequirements(newContext, properties.ignoredRequirements);
@@ -74,11 +73,11 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     /**
      * Generate a play card ability for the specified card.
      */
-    private generatePlayCardAbility(card: Card, playType: PlayType) {
+    private generatePlayCardAbility(card: Card, properties) {
         switch (card.type) {
-            case CardType.BasicUnit: return new PlayUnitAction(card, playType, this.properties.entersReady);
-            case CardType.BasicUpgrade: return new PlayUpgradeAction(card, playType);
-            case CardType.Event: return new PlayEventAction(card, playType);
+            case CardType.BasicUnit: return new PlayUnitAction(card, properties.playType, properties.entersReady);
+            case CardType.BasicUpgrade: return new PlayUpgradeAction(card, properties.playType);
+            case CardType.Event: return new PlayEventAction(card, properties.playType);
             default: Contract.fail(`Attempted to play a card with invalid type ${card.type} as part of an ability`);
         }
     }

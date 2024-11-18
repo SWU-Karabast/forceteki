@@ -1,4 +1,4 @@
-import { CardType, CardTypeFilter, Location, LocationFilter, RelativePlayer, WildcardCardType, WildcardLocation } from '../Constants';
+import { CardType, CardTypeFilter, ZoneName, ZoneFilter, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -20,57 +20,57 @@ export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
 
-export const isArena = (location: LocationFilter) => {
-    switch (location) {
-        case Location.GroundArena:
-        case Location.SpaceArena:
-        case WildcardLocation.AnyArena:
+export const isArena = (zone: ZoneFilter) => {
+    switch (zone) {
+        case ZoneName.GroundArena:
+        case ZoneName.SpaceArena:
+        case WildcardZoneName.AnyArena:
             return true;
         default:
             return false;
     }
 };
 
-export const isAttackableLocation = (location: LocationFilter) => {
-    switch (location) {
-        case Location.GroundArena:
-        case Location.SpaceArena:
-        case WildcardLocation.AnyArena:
-        case Location.Base:
+export const isAttackableZone = (zone: ZoneFilter) => {
+    switch (zone) {
+        case ZoneName.GroundArena:
+        case ZoneName.SpaceArena:
+        case WildcardZoneName.AnyArena:
+        case ZoneName.Base:
             return true;
         default:
             return false;
     }
 };
 
-export const isHidden = (location: LocationFilter, controller: RelativePlayer) => {
-    switch (location) {
-        case Location.Hand:
-        case Location.Resource:
+export const isHidden = (zone: ZoneFilter, controller: RelativePlayer) => {
+    switch (zone) {
+        case ZoneName.Hand:
+        case ZoneName.Resource:
             return controller !== RelativePlayer.Opponent;
-        case Location.Deck:
+        case ZoneName.Deck:
             return true;
         default:
             return false;
     }
 };
 
-// return true if the card location matches one of the allowed location filters
-export const cardLocationMatches = (cardLocation: Location, locationFilter: LocationFilter | LocationFilter[]) => {
-    if (!Array.isArray(locationFilter)) {
-        locationFilter = [locationFilter];
+// return true if the card zone matches one of the allowed zone filters
+export const cardZoneMatches = (cardZone: ZoneName, zoneFilter: ZoneFilter | ZoneFilter[]) => {
+    if (!Array.isArray(zoneFilter)) {
+        zoneFilter = [zoneFilter];
     }
 
-    return locationFilter.some((allowedLocation) => {
-        switch (allowedLocation) {
-            case WildcardLocation.Any:
+    return zoneFilter.some((allowedZone) => {
+        switch (allowedZone) {
+            case WildcardZoneName.Any:
                 return true;
-            case WildcardLocation.AnyArena:
-                return isArena(cardLocation);
-            case WildcardLocation.AnyAttackable:
-                return isAttackableLocation(cardLocation);
+            case WildcardZoneName.AnyArena:
+                return isArena(cardZone);
+            case WildcardZoneName.AnyAttackable:
+                return isAttackableZone(cardZone);
             default:
-                return cardLocation === allowedLocation;
+                return cardZone === allowedZone;
         }
     });
 };
@@ -121,7 +121,7 @@ export const isToken = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isPlayable = (cardType: CardTypeFilter) => {
+export const isTokenOrPlayable = (cardType: CardTypeFilter) => {
     switch (cardType) {
         case WildcardCardType.Playable:
         case CardType.Event:
@@ -133,7 +133,7 @@ export const isPlayable = (cardType: CardTypeFilter) => {
     }
 };
 
-// return true if the card location matches one of the allowed location filters
+// return true if the card zone matches one of the allowed zone filters
 export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilter | CardTypeFilter[]) => {
     if (!Array.isArray(cardTypeFilter)) {
         cardTypeFilter = [cardTypeFilter];
@@ -152,7 +152,7 @@ export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilt
             case WildcardCardType.Token:
                 return isToken(cardType);
             case WildcardCardType.Playable:
-                return isPlayable(cardType);
+                return isTokenOrPlayable(cardType);
             default:
                 return cardType === allowedCardType;
         }

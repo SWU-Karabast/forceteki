@@ -22,7 +22,7 @@ describe('Commission', function () {
 
                     context.player1.clickPrompt(context.electrostaff.title);
                     expect(context.getChatLogs(2)).toContain('player1 takes Electrostaff');
-                    expect(context.electrostaff).toBeInLocation('hand');
+                    expect(context.electrostaff).toBeInZone('hand');
 
                     expect(context.viperProbeDroid).toBeInBottomOfDeck(context.player1, 9);
                     expect(context.confiscate).toBeInBottomOfDeck(context.player1, 9);
@@ -86,7 +86,7 @@ describe('Commission', function () {
                     expect(context.player1.deck.length).toBe(0);
 
                     context.player1.clickCard(context.commission);
-                    expect(context.commission).toBeInLocation('discard');
+                    expect(context.commission).toBeInZone('discard');
                     expect(context.player1.deck.length).toBe(0);
 
                     expect(context.player2).toBeActivePlayer();

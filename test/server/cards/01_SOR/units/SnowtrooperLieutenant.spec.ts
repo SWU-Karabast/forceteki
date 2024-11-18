@@ -19,7 +19,7 @@ describe('Snowtrooper Lieutenant', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.snowtrooperLieutenant);
-                expect(context.snowtrooperLieutenant).toBeInLocation('ground arena');
+                expect(context.snowtrooperLieutenant).toBeInZone('groundArena');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.admiralPiett]);
 
                 context.player1.clickCard(context.wampa);

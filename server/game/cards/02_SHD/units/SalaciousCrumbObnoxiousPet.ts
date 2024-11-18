@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, Location, RelativePlayer } from '../../../core/Constants';
+import { CardType, ZoneName, RelativePlayer } from '../../../core/Constants';
 
 export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -27,7 +27,7 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
             ],
             cannotTargetFirst: true,
             targetResolver: {
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
             }
         });

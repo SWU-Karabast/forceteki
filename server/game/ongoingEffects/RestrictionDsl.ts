@@ -1,13 +1,13 @@
 import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
 import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
-import { Location } from '../core/Constants';
+import { ZoneName } from '../core/Constants';
 
 const getApplyingPlayer = (effect) => {
     return effect.applyingPlayer || effect.context.player;
 };
 
 // const isMoveToHandAction = (gameAction) =>
-//     gameAction instanceof MoveCardAction && gameAction.properties.destination === Location.Hand;
+//     gameAction instanceof MoveCardAction && gameAction.properties.destination === ZoneName.Hand;
 
 export const restrictionDsl = {
     // abilitiesTriggeredByOpponents: (context, effect) =>
@@ -17,7 +17,7 @@ export const restrictionDsl = {
     //     context.ability.abilityType !== AbilityTypes.ForcedInterrupt,
     // adjacentCharacters: (context, effect) =>
     //     context.source.type === CardTypes.Character &&
-    //     context.player.areLocationsAdjacent(context.source.location, effect.context.source.location),
+    //     context.player.areZonesAdjacent(context.source.zoneName, effect.context.source.zoneName),
     // attachmentsWithSameClan: (context, effect, card) =>
     //     context.source.type === CardTypes.Attachment &&
     //     context.source.getPrintedFaction() !== 'neutral' &&

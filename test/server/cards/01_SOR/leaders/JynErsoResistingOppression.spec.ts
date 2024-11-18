@@ -68,7 +68,7 @@ describe('Jyn Erso, Resisting Oppression', function() {
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.wildernessFighter);
                 expect(context.wampa.damage).toBe(4);
-                expect(context.wildernessFighter.location).toBe('discard');
+                expect(context.wildernessFighter.zoneName).toBe('discard');
 
                 // awing attack sentinel, awing should take 3-1 damage and system patrol craft should take 3
                 context.player1.clickCard(context.greenSquadronAwing);
@@ -77,11 +77,11 @@ describe('Jyn Erso, Resisting Oppression', function() {
                 context.player2.passAction();
 
                 // jyn attack wampa, jyn should take 4-1=3 and wampa should die
-                expect(context.wampa.location).toBe('ground arena');
+                expect(context.wampa.zoneName).toBe('groundArena');
                 context.player1.clickCard(context.jynErso);
                 context.player1.clickCard(context.wampa);
                 expect(context.jynErso.damage).toBe(3);
-                expect(context.wampa.location).toBe('discard');
+                expect(context.wampa.zoneName).toBe('discard');
             });
         });
     });

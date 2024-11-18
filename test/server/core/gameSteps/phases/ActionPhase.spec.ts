@@ -47,7 +47,7 @@ describe('Action Phase', function() {
                 expect(context.player1.currentActionTargets).not.toContain(context.vanguardInfantry);
 
                 // steal mercenary gunship TODO wait till the gunship is implemented
-                /* expect(context.player1.countSpendableResources()).toBe(4);
+                /* expect(context.player1.readyResourceCount).toBe(4);
                 context.player1.clickCard(context.mercenaryGunship);
                 expect(context.player1.currentActionTargets).not.toContain(context.mercenaryGunship);*/
 

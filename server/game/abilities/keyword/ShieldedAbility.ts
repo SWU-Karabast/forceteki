@@ -2,7 +2,7 @@ import AbilityHelper from '../../AbilityHelper';
 import { AbilityContext } from '../../core/ability/AbilityContext';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import { Card } from '../../core/card/Card';
-import { KeywordName, WildcardLocation } from '../../core/Constants';
+import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import { ITriggeredAbilityProps } from '../../Interfaces';
@@ -15,7 +15,7 @@ export class ShieldedAbility extends TriggeredAbility {
             title: 'Shielded',
             when: { onUnitEntersPlay: (event, context) => event.card === context.source },
             immediateEffect: AbilityHelper.immediateEffects.giveShield(),
-            locationFilter: WildcardLocation.AnyArena
+            zoneFilter: WildcardZoneName.AnyArena
         };
     }
 

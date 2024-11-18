@@ -1,6 +1,6 @@
 import PlayerOrCardAbility from './PlayerOrCardAbility';
 import { Aspect, PlayType, Stage } from '../Constants';
-import OngoingEffectSource from '../ongoingEffect/OngoingEffectSource';
+import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';
@@ -19,6 +19,7 @@ export interface IAbilityContextProperties {
     events?: any[];
     stage?: Stage;
     targetAbility?: any;
+    playType?: PlayType;
 }
 
 /**
@@ -57,8 +58,8 @@ export class AbilityContext<TSource extends Card = Card> {
         this.selects = properties.selects || {};
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
-        // const location = this.player && this.player.playableLocations.find(location => location.contains(this.source));
-        this.playType = this.player && this.player.findPlayType(this.source); // location && location.playingType;
+        // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
+        this.playType = properties.playType ?? (this.player && this.player.findPlayType(this.source));
     }
 
     public copy(newProps: Partial<IAbilityContextProperties> = {}): AbilityContext<TSource> {

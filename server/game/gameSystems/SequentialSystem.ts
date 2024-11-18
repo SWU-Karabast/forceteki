@@ -3,7 +3,7 @@ import { MetaEventName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameObject } from '../core/GameObject';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import { AggregateSystem, ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 
 
 export interface ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
@@ -20,8 +20,12 @@ export interface ISequentialSystemProperties<TContext extends AbilityContext = A
  */
 export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISequentialSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Sequential;
-    public constructor(gameSystems: (GameSystem<TContext>)[]) {
-        super({ gameSystems });
+    public constructor(gameSystems: ISystemArrayOrFactory<TContext>) {
+        if (typeof gameSystems === 'function') {
+            super((context: TContext) => ({ gameSystems: gameSystems(context) }));
+        } else {
+            super({ gameSystems });
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

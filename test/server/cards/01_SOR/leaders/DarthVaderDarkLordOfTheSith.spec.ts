@@ -21,11 +21,11 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 const { context } = contextRef;
 
                 // no card played; ability has no effect
-                let exhaustedResourcesBeforeAbilityUsed = context.player1.countExhaustedResources();
+                let exhaustedResourcesBeforeAbilityUsed = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.darthVader);
 
                 expect(context.darthVader.exhausted).toBe(true);
-                expect(context.player1.countExhaustedResources()).toBe(exhaustedResourcesBeforeAbilityUsed + 1);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAbilityUsed + 1);
                 expect(context.atst.damage).toBe(0);
                 expect(context.lukeSkywalker.damage).toBe(0);
                 expect(context.allianceXwing.damage).toBe(0);
@@ -39,7 +39,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 context.player2.passAction();
 
                 // use ability with effect
-                exhaustedResourcesBeforeAbilityUsed = context.player1.countExhaustedResources();
+                exhaustedResourcesBeforeAbilityUsed = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.darthVader);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.atst, context.lukeSkywalker, context.allianceXwing]);
@@ -49,7 +49,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.darthVader.exhausted).toBe(true);
-                expect(context.player1.countExhaustedResources()).toBe(exhaustedResourcesBeforeAbilityUsed + 1);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAbilityUsed + 1);
                 expect(context.atst.damage).toBe(0);
                 expect(context.lukeSkywalker.damage).toBe(1);
                 expect(context.allianceXwing.damage).toBe(0);

@@ -22,8 +22,8 @@ describe('Prepare for Takeoff', function () {
                 context.player1.clickPrompt(context.greenSquadronAwing.title);
                 context.player1.clickPrompt(context.restoredArc170.title);
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing and Restored ARC-170');
-                expect(context.greenSquadronAwing).toBeInLocation('hand');
-                expect(context.restoredArc170).toBeInLocation('hand');
+                expect(context.greenSquadronAwing).toBeInZone('hand');
+                expect(context.restoredArc170).toBeInZone('hand');
 
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 6);
                 expect(context.pykeSentinel).toBeInBottomOfDeck(context.player1, 6);
@@ -44,7 +44,7 @@ describe('Prepare for Takeoff', function () {
                 context.player1.clickPrompt(context.greenSquadronAwing.title);
                 context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing');
-                expect(context.greenSquadronAwing).toBeInLocation('hand');
+                expect(context.greenSquadronAwing).toBeInZone('hand');
 
                 expect(context.restoredArc170).toBeInBottomOfDeck(context.player1, 7);
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 7);

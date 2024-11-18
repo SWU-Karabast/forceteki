@@ -3,7 +3,7 @@ import {
     RelativePlayer,
     Trait,
     WildcardCardType,
-    WildcardLocation
+    WildcardZoneName
 } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 
@@ -21,15 +21,15 @@ export default class MaximumFirePower extends EventCard {
             targetResolvers: {
                 firstImperial: {
                     controller: RelativePlayer.Self,
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
                 },
                 damageTarget: {
                     dependsOn: 'firstImperial',
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (_, context) => (context.player.getUnitsInPlay(WildcardLocation.AnyArena,
+                    cardCondition: (_, context) => (context.player.getUnitsInPlay(WildcardZoneName.AnyArena,
                         (card) => card.hasSomeTrait(Trait.Imperial)).length > 0),
                     immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
                         ({ amount: context.targets.firstImperial.getPower() })),
@@ -39,7 +39,7 @@ export default class MaximumFirePower extends EventCard {
                 title: 'Another friendly Imperial unit deals damage equal to its power to the same unit.',
                 targetResolver: {
                     controller: RelativePlayer.Self,
-                    locationFilter: WildcardLocation.AnyArena,
+                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial) && card !== thenContext.targets.firstImperial,
                     immediateEffect: AbilityHelper.immediateEffects.damage((damageContext) =>

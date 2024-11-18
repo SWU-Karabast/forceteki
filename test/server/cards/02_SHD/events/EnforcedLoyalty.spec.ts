@@ -20,7 +20,7 @@ describe('Enforced Loyalty', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer]);
 
                 context.player1.clickCard(context.pykeSentinel);
-                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.pykeSentinel).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });

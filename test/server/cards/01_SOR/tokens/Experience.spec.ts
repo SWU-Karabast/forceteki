@@ -36,9 +36,9 @@ describe('Experience', function() {
 
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.valiantAssaultShip);
-                expect(context.cartelSpacer).toBeInLocation('discard');
-                expect(context.valiantAssaultShip).toBeInLocation('discard');
-                expect(context.experience).toBeInLocation('outside the game');
+                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.valiantAssaultShip).toBeInZone('discard');
+                expect(context.experience).toBeInZone('outsideTheGame');
             });
         });
 
@@ -62,7 +62,7 @@ describe('Experience', function() {
 
                 // ability will resolve automatically since there's only one legal target
                 expect(context.cartelSpacer.isUpgraded()).toBe(false);
-                expect(context.experience).toBeInLocation('outside the game');
+                expect(context.experience).toBeInZone('outsideTheGame');
             });
         });
 

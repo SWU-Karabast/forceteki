@@ -1,33 +1,34 @@
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
 
-export enum Location {
+export enum ZoneName {
     Base = 'base',
     Deck = 'deck',
     Discard = 'discard',
-    GroundArena = 'ground arena',
+    GroundArena = 'groundArena',
     Hand = 'hand',
-    OutsideTheGame = 'outside the game',
-    RemovedFromGame = 'removed from game',
+    OutsideTheGame = 'outsideTheGame',
+    RemovedFromGame = 'removedFromGame',
     Resource = 'resource',
-    SpaceArena = 'space arena',
+    SpaceArena = 'spaceArena',
 }
 
-export enum WildcardLocation {
+export enum WildcardZoneName {
     Any = 'any',
-    AnyArena = 'any arena',
+    AnyArena = 'anyArena',
 
-    /** Any location that is a valid attack target - an arena or base zone */
-    AnyAttackable = 'any attackable'
+    /** Any zone that is a valid attack target - an arena or base zone */
+    AnyAttackable = 'anyAttackable'
 }
 
-export type LocationFilter = Location | WildcardLocation;
+export type ZoneFilter = ZoneName | WildcardZoneName;
 
-export type Arena = Location.GroundArena | Location.SpaceArena;
+export type Arena = ZoneName.GroundArena | ZoneName.SpaceArena;
 
 export enum PlayType {
     PlayFromHand = 'playFromHand',
-    Smuggle = 'smuggle'
+    Smuggle = 'smuggle',
+    PlayFromOutOfPlay = 'playFromOutOfPlay',
 }
 
 export enum StatType {
@@ -100,9 +101,14 @@ export enum Stage {
 
 export enum RelativePlayer {
     Self = 'self',
-    Opponent = 'opponent',
+    Opponent = 'opponent'
+}
+
+export enum WildcardRelativePlayer {
     Any = 'any'
 }
+
+export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',
@@ -186,8 +192,10 @@ export enum EventName {
     OnDamageRemoved = 'onDamageRemoved',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
+    OnDiscardFromDeck = 'onDiscardFromDeck',
     OnEffectApplied = 'onEffectApplied',
     onExhaustResources = 'onExhaustResources',
+    OnEntireHandDiscarded = 'onEntireHandDiscarded',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
@@ -368,6 +376,7 @@ export enum StateWatcherName {
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
+    DamageDealtThisPhase = 'damageDealtThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado
@@ -376,7 +385,7 @@ export enum StateWatcherName {
     // - entered play: Boba unit
     // - attacked base: Ephant Mon, Rule with Respect
     // - attacked with unit type: Medal Ceremony, Bo-Katan leader, Asajj Ventress
-    // - discarded: Kylo's TIE Silencer?
+    // - discarded: Kylo's TIE Silencer
 }
 
 /** For "canAffect" and target eligibility checks, indicates whether game state must be changed by the effect in order for the check to pass */

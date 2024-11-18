@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { Card } from '../../card/Card';
-import { Stage, EffectName, LocationFilter, RelativePlayer, GameStateChangeRequired } from '../../Constants';
+import { Stage, EffectName, ZoneFilter, RelativePlayer, GameStateChangeRequired } from '../../Constants';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
@@ -28,7 +28,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             this.properties.immediateEffect.setDefaultTargetFn((context) => context.targets[name]);
         }
 
-        this.validateLocationLegalForTarget(properties);
+        this.validateZoneLegalForTarget(properties);
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
@@ -65,8 +65,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         // A player can always choose not to pick a card from a zone that is hidden from their opponents
         // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
         // TODO: test if picking a card from an opponent's usually hidden zone(e.g. opponent's hand) works as expected(the if block here should be skipped)
-        const controller = typeof this.properties.controller === 'function' ? this.properties.controller(context) : this.properties.controller;
-        if (CardTargetResolver.allZonesAreHidden(this.properties.locationFilter, controller) && this.selector.hasAnyCardFilter) {
+        const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
+        if (CardTargetResolver.allZonesAreHidden(this.properties.zoneFilter, choosingPlayer) && this.selector.hasAnyCardFilter) {
             this.properties.optional = true;
             this.selector.optional = true;
             this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle();
@@ -169,8 +169,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 
-    public static allZonesAreHidden(locationFilter: LocationFilter | LocationFilter[], controller: RelativePlayer): boolean {
-        return locationFilter && Helpers.asArray(locationFilter).every((location) => EnumHelpers.isHidden(location, controller));
+    public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
+        return zoneFilter && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
     }
 
     private cancel(targetResults) {
@@ -211,22 +211,22 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     /**
-     * Checks whether the target's provided location filters have at least one legal location for the provided
-     * card types. This is to catch situations in which a mismatched location and card type was accidentally
+     * Checks whether the target's provided zone filters have at least one legal zone for the provided
+     * card types. This is to catch situations in which a mismatched zone and card type was accidentally
      * provided, which would cause target resolution to always silently fail to find any legal targets.
      */
-    private validateLocationLegalForTarget(properties) {
-        if (!properties.locationFilter || !properties.cardTypeFilter) {
+    private validateZoneLegalForTarget(properties) {
+        if (!properties.zoneFilter || !properties.cardTypeFilter) {
             return;
         }
 
         for (const type of Array.isArray(properties.cardTypeFilter) ? properties.cardTypeFilter : [properties.cardTypeFilter]) {
-            const legalLocations = Helpers.defaultLegalLocationsForCardTypeFilter(type);
-            if (legalLocations.some((location) => EnumHelpers.cardLocationMatches(location, properties.locationFilter))) {
+            const legalZones = Helpers.defaultLegalZonesForCardTypeFilter(type);
+            if (legalZones.some((zone) => EnumHelpers.cardZoneMatches(zone, properties.zoneFilter))) {
                 return;
             }
         }
 
-        Contract.fail(`Target location filters '${properties.locationFilter}' for ability has no overlap with legal locations for target card types '${properties.cardTypeFilter}', so target resolution is guaranteed to find no legal targets`);
+        Contract.fail(`Target zone filters '${properties.zoneFilter}' for ability has no overlap with legal zones for target card types '${properties.cardTypeFilter}', so target resolution is guaranteed to find no legal targets`);
     }
 }

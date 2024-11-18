@@ -1,4 +1,4 @@
-import { CardType, Location } from './core/Constants';
+import { CardType, ZoneName } from './core/Constants';
 import { BaseCard } from './core/card/BaseCard';
 import { LeaderCard } from './core/card/LeaderCard';
 import { Card } from './core/card/Card';

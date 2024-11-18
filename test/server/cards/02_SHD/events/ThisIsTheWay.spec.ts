@@ -22,8 +22,8 @@ describe('This is the Way', function () {
                 context.player1.clickPrompt(context.devotion.title);
                 context.player1.clickPrompt(context.sabineWren.title);
                 expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Sabine Wren');
-                expect(context.sabineWren).toBeInLocation('hand');
-                expect(context.devotion).toBeInLocation('hand');
+                expect(context.sabineWren).toBeInZone('hand');
+                expect(context.devotion).toBeInZone('hand');
 
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 6);
                 expect(context.supercommandoSquad).toBeInBottomOfDeck(context.player1, 6);
@@ -44,7 +44,7 @@ describe('This is the Way', function () {
                 context.player1.clickPrompt(context.devotion.title);
                 context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Devotion');
-                expect(context.devotion).toBeInLocation('hand');
+                expect(context.devotion).toBeInZone('hand');
 
                 expect(context.sabineWren).toBeInBottomOfDeck(context.player1, 7);
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 7);

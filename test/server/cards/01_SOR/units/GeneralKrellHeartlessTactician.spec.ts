@@ -27,7 +27,7 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
                 context.player1.clickPrompt('Draw a card');
-                expect(context.syndicateLackeys).toBeInLocation('discard');
+                expect(context.syndicateLackeys).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(startingHandSize + 1);
 
                 // CASE 2: friendly leader dies, draw card
@@ -36,7 +36,7 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
                 context.player1.clickPrompt('Draw a card');
-                expect(context.leiaOrgana).toBeInLocation('base');
+                expect(context.leiaOrgana).toBeInZone('base');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);
 
                 // CASE 3: unit played while Krell is on the field gains the effect
@@ -48,21 +48,21 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
                 context.player1.clickPrompt('Draw a card');
-                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);   // hand size goes down by 1 from playing the marine
 
                 // CASE 4: Krell dies, no card
                 context.player2.passAction();
                 context.player1.clickCard(context.generalKrell);
                 context.player1.clickCard(context.atatSuppressor);
-                expect(context.generalKrell).toBeInLocation('discard');
+                expect(context.generalKrell).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);
 
                 // CASE 5: friendly unit dies after Krell, no card
                 context.player2.passAction();
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.avenger);
-                expect(context.allianceXwing).toBeInLocation('discard');
+                expect(context.allianceXwing).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);
             });
         });

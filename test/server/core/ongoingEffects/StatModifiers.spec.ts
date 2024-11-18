@@ -69,8 +69,8 @@ describe('Stat modifying effects', function() {
 
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.generalDodonna);
-                expect(context.generalDodonna).toBeInLocation('discard');
-                expect(context.battlefieldMarine).toBeInLocation('discard');
+                expect(context.generalDodonna).toBeInZone('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
             });
         });
 
@@ -104,7 +104,7 @@ describe('Stat modifying effects', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.jedhaAgitator);
-                expect(context.jedhaAgitator).toBeInLocation('discard');
+                expect(context.jedhaAgitator).toBeInZone('discard');
             });
         });
     });
