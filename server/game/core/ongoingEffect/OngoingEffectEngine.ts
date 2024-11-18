@@ -1,7 +1,7 @@
 import { Duration, EffectName, EventName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
-import type OngoingEffect from './OngoingEffect';
-import type OngoingEffectSource from './OngoingEffectSource';
+import type { OngoingEffect } from './OngoingEffect';
+import type { OngoingEffectSource } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
 
@@ -92,18 +92,8 @@ export class OngoingEffectEngine {
         this.unapplyAndRemove(
             (effect) =>
                 effect.matchTarget === card &&
-                effect.duration !== Duration.Persistent &&
-                !effect.canChangeZoneOnce &&
-                (!effect.canChangeZoneNTimes || effect.canChangeZoneNTimes === 0)
+                effect.duration !== Duration.Persistent
         );
-        for (const effect of this.effects) {
-            if (effect.matchTarget === card && effect.canChangeZoneOnce) {
-                effect.canChangeZoneOnce = false;
-            }
-            if (effect.matchTarget === card && effect.canChangeZoneNTimes > 0) {
-                effect.canChangeZoneNTimes--;
-            }
-        }
     }
 
     public resolveEffects(prevStateChanged = false, loops = 0) {
