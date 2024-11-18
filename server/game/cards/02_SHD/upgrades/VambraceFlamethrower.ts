@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { Location, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import { Card } from '../../../core/card/Card';
 
 export default class VambraceFlamethrower extends UpgradeCard {
@@ -22,7 +22,7 @@ export default class VambraceFlamethrower extends UpgradeCard {
                 canChooseNoTargets: false,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
             })
         });
     }

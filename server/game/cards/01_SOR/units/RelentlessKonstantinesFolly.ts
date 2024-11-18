@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, RelativePlayer, WildcardLocation } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardZoneName } from '../../../core/Constants';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
@@ -22,7 +22,7 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'The first event played by each opponent each round loses all abilities',
             ongoingEffect: AbilityHelper.ongoingEffects.blankEventCard(),
-            targetLocationFilter: WildcardLocation.Any,
+            targetZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: CardType.Event,
             matchTarget: (card) => this.isFirstEventPlayedByThisOpponentThisPhase(card)

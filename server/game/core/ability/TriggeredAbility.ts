@@ -38,7 +38,7 @@ interface IEventRegistration {
  *           {@link CardAbilityStep.executeGameActions}
  * limit   - optional AbilityLimit object that represents the max number of uses
  *           for the reaction as well as when it resets.
- * location - string or array of strings indicating the location the card should
+ * zone - string or array of strings indicating the zone the card should
  *            be in in order to activate the reaction. Defaults to 'play area'.
  */
 

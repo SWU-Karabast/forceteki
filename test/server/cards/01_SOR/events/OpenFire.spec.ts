@@ -27,7 +27,7 @@ describe('Open Fire', function() {
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer.isUpgraded()).toBe(false);
                 expect(context.cartelSpacer.damage).toBe(0);
-                expect(context.cartelSpacer).toBeInLocation('space arena', context.player2);
+                expect(context.cartelSpacer).toBeInZone('spaceArena', context.player2);
             });
 
             it('can damage a unit without a shield, dealing damage to the unit with health to spare', function () {

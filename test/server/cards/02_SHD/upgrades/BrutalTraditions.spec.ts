@@ -36,7 +36,7 @@ describe('Brutal Traditions', function() {
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.atst);
 
-                expect(context.brutalTraditions).toBeInLocation('discard');
+                expect(context.brutalTraditions).toBeInZone('discard');
                 expect(context.player1).toBeAbleToSelect(context.brutalTraditions);
                 expect(context.player1.currentActionTargets).toContain(context.brutalTraditions);
 
@@ -46,7 +46,7 @@ describe('Brutal Traditions', function() {
 
                 // remove it with confiscate
                 context.player2.clickCard(context.confiscate);
-                expect(context.brutalTraditions).toBeInLocation('discard');
+                expect(context.brutalTraditions).toBeInZone('discard');
                 expect(context.player1.currentActionTargets).toContain(context.brutalTraditions);
 
                 // CASE 2: Should not be able to be played in the next turn.

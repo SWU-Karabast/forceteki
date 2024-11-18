@@ -23,7 +23,7 @@ describe('Force Choke', function() {
 
                 context.player1.clickCard(context.kraytDragon);
                 expect(context.kraytDragon.damage).toBe(5);
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.player1.handSize).toBe(1);
             });
 
@@ -31,14 +31,14 @@ describe('Force Choke', function() {
                 const { context } = contextRef;
 
                 context.player1.setLeaderStatus({ card: 'darth-vader#dark-lord-of-the-sith', deployed: true });
-                expect(context.darthVader).toBeInLocation('ground arena');
+                expect(context.darthVader).toBeInZone('groundArena');
 
                 context.player1.clickCard(context.forceChoke);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.kraytDragon, context.darthVader, context.consularSecurityForce]);
 
                 context.player1.clickCard(context.consularSecurityForce);
                 expect(context.consularSecurityForce.damage).toBe(5);
-                expect(context.player1.countExhaustedResources()).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
                 expect(context.player2.handSize).toBe(1);
             });
         });

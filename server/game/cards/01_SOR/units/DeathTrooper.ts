@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class DeathTrooper extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,13 +17,13 @@ export default class DeathTrooper extends NonLeaderUnitCard {
                 myGroundUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
-                    locationFilter: Location.GroundArena,
+                    zoneFilter: ZoneName.GroundArena,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 },
                 theirGroundUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
-                    locationFilter: Location.GroundArena,
+                    zoneFilter: ZoneName.GroundArena,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 }
             },

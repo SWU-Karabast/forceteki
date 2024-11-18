@@ -16,14 +16,14 @@ describe('Search Your Feelings', function() {
 
                 // Play card
                 context.player1.clickCard(context.searchYourFeelings);
-                expect(context.searchYourFeelings).toBeInLocation('discard');
+                expect(context.searchYourFeelings).toBeInZone('discard');
                 expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, context.cartelSpacer.title, context.cellBlockGuard.title,
                     context.pykeSentinel.title, context.volunteerSoldier.title, 'Take nothing']);
 
                 // Choose card
                 context.player1.clickPrompt(context.battlefieldMarine.title);
                 expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toBeInLocation('hand');
+                expect(context.battlefieldMarine).toBeInZone('hand');
                 expect(context.player1.deck.length).toBe(4);
             });
 
@@ -32,7 +32,7 @@ describe('Search Your Feelings', function() {
 
                 // Play card
                 context.player1.clickCard(context.searchYourFeelings);
-                expect(context.searchYourFeelings).toBeInLocation('discard');
+                expect(context.searchYourFeelings).toBeInZone('discard');
                 expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, context.cartelSpacer.title, context.cellBlockGuard.title,
                     context.pykeSentinel.title, context.volunteerSoldier.title, 'Take nothing']);
 
@@ -50,7 +50,7 @@ describe('Search Your Feelings', function() {
 
                 // Play card
                 context.player1.clickCard(context.searchYourFeelings);
-                expect(context.searchYourFeelings).toBeInLocation('discard');
+                expect(context.searchYourFeelings).toBeInZone('discard');
                 expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, 'Take nothing']);
 
                 // Choose card
@@ -66,7 +66,7 @@ describe('Search Your Feelings', function() {
 
                 // Play card
                 context.player1.clickCard(context.searchYourFeelings);
-                expect(context.searchYourFeelings).toBeInLocation('discard');
+                expect(context.searchYourFeelings).toBeInZone('discard');
 
                 // Nothing happens since there are no cards in deck
                 expect(context.player2).toBeActivePlayer();

@@ -24,7 +24,7 @@ describe('Takedown', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.isbAgent, context.cartelSpacer, context.bobaFett, context.sabineWren]);
 
                 context.player1.clickCard(context.isbAgent);
-                expect(context.isbAgent).toBeInLocation('discard');
+                expect(context.isbAgent).toBeInZone('discard');
             });
 
             it('should defeat an ally', function () {
@@ -34,7 +34,7 @@ describe('Takedown', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.isbAgent, context.cartelSpacer, context.bobaFett, context.sabineWren]);
 
                 context.player1.clickCard(context.pykeSentinel);
-                expect(context.pykeSentinel).toBeInLocation('discard');
+                expect(context.pykeSentinel).toBeInZone('discard');
             });
 
             it('should defeat a leader', function () {
@@ -57,7 +57,7 @@ describe('Takedown', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.isbAgent, context.cartelSpacer, context.bobaFett, context.sabineWren]);
 
                 context.player1.clickCard(context.atst);
-                expect(context.atst).toBeInLocation('discard');
+                expect(context.atst).toBeInZone('discard');
             });
         });
     });

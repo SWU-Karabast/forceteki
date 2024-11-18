@@ -35,7 +35,7 @@ describe('Imperial Interceptor', function() {
                 // Play Imperial Interceptor
                 context.player1.clickCard(context.imperialInterceptor);
                 context.player1.clickCard(context.imperialInterceptor);
-                expect(context.imperialInterceptor).toBeInLocation('discard');
+                expect(context.imperialInterceptor).toBeInZone('discard');
             });
 
             it('should be able to be passed', function () {

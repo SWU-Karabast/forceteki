@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, TargetMode } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, TargetMode } from '../../../core/Constants';
 
 export default class LandoCalrissianResponsibleBusinessman extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class LandoCalrissianResponsibleBusinessman extends NonLeaderUnit
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 2,
-                locationFilter: Location.Resource,
+                zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             }

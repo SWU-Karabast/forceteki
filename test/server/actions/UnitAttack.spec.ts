@@ -59,8 +59,8 @@ describe('Basic attack', function() {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.enfysNest);
 
-                expect(context.wampa).toBeInLocation('discard');
-                expect(context.enfysNest).toBeInLocation('discard');
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.enfysNest).toBeInZone('discard');
             });
 
             it('another unit and both are defeated, both should be in discard', function () {
@@ -69,8 +69,8 @@ describe('Basic attack', function() {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.enfysNest);
 
-                expect(context.wampa).toBeInLocation('discard');
-                expect(context.enfysNest).toBeInLocation('discard');
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.enfysNest).toBeInZone('discard');
             });
 
             it('base with non-lethal damage, base should be damaged and attacker should be exhausted', function () {

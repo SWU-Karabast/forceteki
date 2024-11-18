@@ -33,7 +33,7 @@ jobs:
           uses: actions/cache@v3
           with:
             path: ./test/json
-            key: sor-shd-manual-v05-getcardfixes
+            key: sor-shd-manual-v06-quotationmark
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
 

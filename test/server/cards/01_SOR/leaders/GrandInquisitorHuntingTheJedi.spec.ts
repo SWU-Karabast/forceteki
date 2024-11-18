@@ -42,7 +42,7 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
                 context.player1.clickCard(context.deathStarStormtrooper);
 
                 // check stormtrooper is dead and no one is ready
-                expect(context.deathStarStormtrooper.location).toBe('discard');
+                expect(context.deathStarStormtrooper.zoneName).toBe('discard');
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
                 expect(context.scoutBikePursuer.damage).toBe(0);
@@ -96,7 +96,7 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
                 context.player1.clickCard(context.deathStarStormtrooper);
 
                 // check stormtrooper is dead and no one is ready
-                expect(context.deathStarStormtrooper.location).toBe('discard');
+                expect(context.deathStarStormtrooper.zoneName).toBe('discard');
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
                 expect(context.scoutBikePursuer.damage).toBe(0);

@@ -41,7 +41,7 @@ describe('Vigilant Honor Guards', function() {
                 // Honor Guards automatically selected due to sentinel
                 expect(context.player2).toBeActivePlayer();
                 expect(context.vigilantHonorGuards.damage).toBe(3);
-                expect(context.consularSecurityForce).toBeInLocation('discard');
+                expect(context.consularSecurityForce).toBeInZone('discard');
             });
         });
     });

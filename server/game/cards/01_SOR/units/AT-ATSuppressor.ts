@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location } from '../../../core/Constants';
+import { ZoneName } from '../../../core/Constants';
 
 export default class AtAtSuppressor extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,8 +14,8 @@ export default class AtAtSuppressor extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Exhaust all ground units',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
-                const opponentGroundUnits = context.source.controller.opponent.getUnitsInPlay(Location.GroundArena);
-                const friendlyGroundUnits = context.source.controller.getUnitsInPlay(Location.GroundArena);
+                const opponentGroundUnits = context.source.controller.opponent.getUnitsInPlay(ZoneName.GroundArena);
+                const friendlyGroundUnits = context.source.controller.getUnitsInPlay(ZoneName.GroundArena);
 
                 return { target: opponentGroundUnits.concat(friendlyGroundUnits) };
             })

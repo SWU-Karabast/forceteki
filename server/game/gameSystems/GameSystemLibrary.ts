@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { Location, PlayType, WildcardLocation } from '../core/Constants';
+import { ZoneName, PlayType, WildcardZoneName } from '../core/Constants';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
@@ -162,7 +162,7 @@ export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityCont
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'bottom'>(
             propertyFactory,
-            { destination: Location.Deck, bottom: true }
+            { destination: ZoneName.Deck, bottom: true }
         )
     );
 }
@@ -171,7 +171,7 @@ export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'bottom'>(
             propertyFactory,
-            { destination: Location.Deck, bottom: false }
+            { destination: ZoneName.Deck, bottom: false }
         )
     );
 }
@@ -180,7 +180,7 @@ export function moveToDeck<TContext extends AbilityContext = AbilityContext>(pro
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: Location.Deck }
+            { destination: ZoneName.Deck }
         )
     );
 }
@@ -260,7 +260,7 @@ export function returnToHand<TContext extends AbilityContext = AbilityContext>(p
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: Location.Hand }
+            { destination: ZoneName.Hand }
         )
     );
 }

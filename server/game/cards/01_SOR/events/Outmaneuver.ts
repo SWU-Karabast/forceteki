@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { Arena, Location, TargetMode } from '../../../core/Constants';
+import { Arena, ZoneName, TargetMode } from '../../../core/Constants';
 
 export default class Outmaneuver extends EventCard {
     protected override getImplementationId() {
@@ -17,8 +17,8 @@ export default class Outmaneuver extends EventCard {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose an arena',
                 choices: {
-                    ['Ground']: this.eventEffect(Location.GroundArena),
-                    ['Space']: this.eventEffect(Location.SpaceArena),
+                    ['Ground']: this.eventEffect(ZoneName.GroundArena),
+                    ['Space']: this.eventEffect(ZoneName.SpaceArena),
                 }
             }
         });

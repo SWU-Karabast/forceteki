@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { GameEvent } from '../core/event/GameEvent';
-import { EventName, Location, MetaEventName } from '../core/Constants';
+import { EventName, ZoneName, MetaEventName } from '../core/Constants';
 import { LookAtSystem } from './LookAtSystem';
 import { MoveCardSystem } from './MoveCardSystem';
 
@@ -70,7 +70,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         // create a new card event
         const moveCardEvent = new MoveCardSystem({
             bottom: bottom,
-            destination: Location.Deck,
+            destination: ZoneName.Deck,
             target: card
         }).generateEvent(context);
         events.push(moveCardEvent);

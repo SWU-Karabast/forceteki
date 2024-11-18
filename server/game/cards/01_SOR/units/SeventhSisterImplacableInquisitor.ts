@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Location, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { DamageType } from '../../../core/Constants';
 
 
@@ -25,7 +25,7 @@ export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
-                locationFilter: Location.GroundArena,
+                zoneFilter: ZoneName.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 }),
             },
         });

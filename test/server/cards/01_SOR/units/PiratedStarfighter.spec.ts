@@ -11,8 +11,8 @@ describe('Pirated Starfighter', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.piratedStarfighter);
-            expect(context.piratedStarfighter).toBeInLocation('hand');
-            expect(context.player1.countExhaustedResources()).toBe(2);
+            expect(context.piratedStarfighter).toBeInZone('hand');
+            expect(context.player1.exhaustedResourceCount).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
 
@@ -30,8 +30,8 @@ describe('Pirated Starfighter', function () {
             context.player1.clickCard(context.piratedStarfighter);
             expect(context.player1).toBeAbleToSelectExactly([context.piratedStarfighter, context.pykeSentinel, context.seasonedShoretrooper]);
             context.player1.clickCard(context.pykeSentinel);
-            expect(context.pykeSentinel).toBeInLocation('hand');
-            expect(context.piratedStarfighter).toBeInLocation('space arena');
+            expect(context.pykeSentinel).toBeInZone('hand');
+            expect(context.piratedStarfighter).toBeInZone('spaceArena');
         });
     });
 });

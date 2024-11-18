@@ -40,7 +40,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
         if (!card.canBeDamaged()) {
             return false;
         }
-        if (!EnumHelpers.isAttackableLocation(card.location)) {
+        if (!EnumHelpers.isAttackableZone(card.zoneName)) {
             return false;
         }
         if (properties.isCost && (properties.amount === 0 || card.damage === 0)) {

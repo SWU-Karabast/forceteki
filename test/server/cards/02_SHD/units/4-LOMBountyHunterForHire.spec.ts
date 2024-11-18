@@ -30,7 +30,7 @@ describe('4-LOM, Bounty Hunter for Hire', function () {
                 expect(context.zuckuss.damage).toBe(3);
 
                 // consular security force should be killed as zuckuss have +1/+1
-                expect(context.consularSecurityForce.location).toBe('discard');
+                expect(context.consularSecurityForce.zoneName).toBe('discard');
                 expect(context.zuckuss.getPower()).toBe(7);
                 expect(context.zuckuss.getHp()).toBe(7);
 

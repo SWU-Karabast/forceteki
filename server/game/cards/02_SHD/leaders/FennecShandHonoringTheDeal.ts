@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { CardType, KeywordName, Location } from '../../../core/Constants';
+import { CardType, KeywordName, ZoneName } from '../../../core/Constants';
 
 export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
                 cardTypeFilter: CardType.BasicUnit,
-                locationFilter: Location.Hand,
+                zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
@@ -34,7 +34,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
                 cardTypeFilter: CardType.BasicUnit,
-                locationFilter: Location.Hand,
+                zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({

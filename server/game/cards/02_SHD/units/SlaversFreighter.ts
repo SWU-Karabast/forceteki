@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardLocation } from '../../../core/Constants';
+import { WildcardZoneName } from '../../../core/Constants';
 
 export default class SlaversFreighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class SlaversFreighter extends NonLeaderUnitCard {
             title: 'You may ready another unit with power equal to or less than the number of upgrades on enemy units',
             optional: true,
             targetResolver: {
-                locationFilter: WildcardLocation.AnyArena,
+                zoneFilter: WildcardZoneName.AnyArena,
                 cardCondition: (card, context) => {
                     const opponentUpgradeCount = context.source.controller.opponent.getUnitsInPlay().reduce(
                         (total, unit) => total + unit.upgrades.length,

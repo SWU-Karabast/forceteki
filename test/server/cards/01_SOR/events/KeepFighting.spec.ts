@@ -27,7 +27,7 @@ describe('Keep Fighting', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.sabineWren, context.imperialInterceptor]);
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.pykeSentinel.exhausted).toBeFalse();
-                expect(context.keepFighting.location).toBe('discard');
+                expect(context.keepFighting.zoneName).toBe('discard');
                 context.player2.passAction();
 
                 // attack again with pyke sentinel
@@ -43,7 +43,7 @@ describe('Keep Fighting', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.keepFighting);
-                expect(context.keepFighting.location).toBe('discard');
+                expect(context.keepFighting.zoneName).toBe('discard');
                 context.player2.passAction();
             });
         });
