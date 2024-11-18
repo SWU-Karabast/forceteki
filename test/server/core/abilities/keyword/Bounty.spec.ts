@@ -73,6 +73,7 @@ describe('Bounty', function() {
             });
 
             // TODO CAPTURE: add Bounty resolution tests with Capture
+            // TODO: check that bounty does not happen when the card is returned to hand, for both printed and attached bounties
 
             it('is on the field, it should be targetable by abilities filtering for Bounty', function () {
                 contextRef.setupTest({
