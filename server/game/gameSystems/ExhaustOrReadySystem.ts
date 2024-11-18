@@ -13,6 +13,7 @@ export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = Abi
     public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (
             !EnumHelpers.isArena(card.zoneName) &&
+            card.zoneName !== ZoneName.Resource &&
             !(card.isLeader() && card.zoneName === ZoneName.Base)
         ) {
             return false;
