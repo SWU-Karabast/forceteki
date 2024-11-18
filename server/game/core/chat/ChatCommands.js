@@ -1,5 +1,5 @@
 const GameSystems = require('../../gameSystems/GameSystemLibrary');
-const { ZoneName, CardType, RelativePlayer, WildcardZoneName } = require('../Constants.js');
+const { RelativePlayer, DeckZoneDestination, WildcardZoneName } = require('../Constants.js');
 
 class ChatCommands {
     constructor(game) {
@@ -72,8 +72,8 @@ class ChatCommands {
             zone: WildcardZoneName.Any,
             controller: RelativePlayer.Self,
             onSelect: (p, card) => {
-                const cardInitialZone = card.zoneName;
-                GameSystems.moveCard({ target: card, bottom: true, destination: ZoneName.Deck }).resolve(player, this.game.getFrameworkContext());
+                const cardInitialZone = card.zone;
+                GameSystems.moveCard({ target: card, destination: DeckZoneDestination.DeckBottom }).resolve(player, this.game.getFrameworkContext());
                 this.game.addMessage('{0} uses a command to move {1} from their {2} to the bottom of their {3}.', player, card, cardInitialZone);
                 return true;
             }

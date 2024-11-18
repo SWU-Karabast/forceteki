@@ -36,7 +36,7 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
             }
 
             // Discard each card in the player's hand
-            for (const card of player.getCardPile(ZoneName.Hand)) {
+            for (const card of player.getCardsInZone(ZoneName.Hand)) {
                 const discardCardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
                 events.push(discardCardEvent);
             }

@@ -4,7 +4,6 @@ import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSyste
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import { CardType, PlayType, MetaEventName } from '../core/Constants';
-import { isTokenOrPlayable } from '../core/card/CardTypes';
 import * as GameSystemLibrary from './GameSystemLibrary';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { PlayUnitAction } from '../actions/PlayUnitAction';
@@ -57,7 +56,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
-        if (!(isTokenOrPlayable(card))) {
+        if (!card.isTokenOrPlayable() || card.isToken()) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

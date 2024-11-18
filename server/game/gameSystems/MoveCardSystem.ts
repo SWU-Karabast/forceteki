@@ -1,11 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardWithExhaustProperty } from '../core/card/CardTypes';
-import { CardType, EventName, GameStateChangeRequired, ZoneName, WildcardCardType } from '../core/Constants';
-import * as Contract from '../core/utils/Contract';
+import { CardType, EventName, GameStateChangeRequired, ZoneName, MoveZoneDestination, DeckZoneDestination, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers.js';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import * as Contract from '../core/utils/Contract';
 
 /**
  * Properties for moving a card within the game.
@@ -20,9 +19,8 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
  * @property bottom - Indicates whether the card should be placed at the bottom of the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Exclude<ZoneName, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
+    destination?: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
-    bottom?: boolean;
 }
 
 // TODO: since there are already some more specific for moving to arena, hand, etc., what's the remaining use case for this? and can we rename it to be more specific?
@@ -34,7 +32,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     protected override defaultProperties: IMoveCardProperties = {
         destination: null,
         shuffle: false,
-        bottom: false,
     };
 
     public eventHandler(event: any, additionalProperties = {}): void {
@@ -46,8 +43,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             // event.cardStateWhenMoved = card.createSnapshot();
             const card = event.card as Card;
 
-            const player = event.changePlayer && card.controller.opponent ? card.controller.opponent : card.controller;
-            player.moveCard(card, event.destination, event.options);
+            card.moveTo(event.destination);
 
             // TODO: use ShuffleDeckSystem instead
             if (event.destination === ZoneName.Deck && event.shuffle) {
@@ -68,14 +64,14 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
                 return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
             }
             return ['return {0} to their hand', [properties.target]];
-        } else if (properties.destination === ZoneName.Deck) {
+        } else if (EnumHelpers.isDeckMoveZone(properties.destination)) {
             if (properties.shuffle) {
                 return ['shuffle {0} into their deck', [properties.target]];
             }
-            return ['move {0} to the {1} of their deck', [properties.target, properties.bottom ? 'bottom' : 'top']];
+            return ['move {0} to the {1} of their deck', [properties.target, properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top']];
         }
         return [
-            'move {0} to ' + (properties.bottom ? 'the bottom of ' : '') + 'their {1}',
+            'move {0} to ' + (properties.destination === DeckZoneDestination.DeckBottom ? 'the bottom of ' : '') + 'their {1}',
             [properties.target, properties.destination]
         ];
     }
@@ -95,7 +91,6 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         event.destination = properties.destination;
         event.shuffle = properties.shuffle;
-        event.options = { bottom: !!properties.bottom };
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
