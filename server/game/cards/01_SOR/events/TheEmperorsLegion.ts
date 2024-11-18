@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 import { EventCard } from '../../../core/card/EventCard';
-import { Location } from '../../../core/Constants';
+import { ZoneName } from '../../../core/Constants';
 
 export default class TheEmperorsLegion extends EventCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
@@ -24,7 +24,7 @@ export default class TheEmperorsLegion extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => {
                 const friendlyUnitsDefeatedThisPhaseInDiscard =
                     this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller)
-                        .filter((card) => card.location === Location.Discard);
+                        .filter((card) => card.zoneName === ZoneName.Discard);
                 return { target: friendlyUnitsDefeatedThisPhaseInDiscard };
             })
         });
