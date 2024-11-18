@@ -13,6 +13,7 @@ export class Deck {
 
     public prepare(player: Player) {
         const result = {
+            // there isn't a type that excludes tokens b/c tokens inherit from non-token types, so we manually check that that deck cards aren't tokens
             deckCards: [] as TokenOrPlayableCard[],
             outOfPlayCards: [],
             outsideTheGameCards: [] as Card[],
@@ -27,7 +28,7 @@ export class Deck {
             for (let i = 0; i < count; i++) {
                 const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
                 const deckCard: Card = new CardConstructor(player, card);
-                Contract.assertTrue(deckCard.isTokenOrPlayable());
+                Contract.assertTrue(deckCard.isTokenOrPlayable() && !deckCard.isToken());
                 result.deckCards.push(deckCard);
             }
         }

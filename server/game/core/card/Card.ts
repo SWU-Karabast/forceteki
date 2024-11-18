@@ -331,7 +331,7 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is in a zone where it can legally be exhausted.
+     * Returns true if the card is in a playable card (not deployable) or a token
      */
     public isTokenOrPlayable(): this is TokenOrPlayableCard {
         return false;
@@ -500,13 +500,13 @@ export class Card extends OngoingEffectSource {
             case MoveToDeckZoneName.DeckBottom:
             case MoveToDeckZoneName.DeckTop:
                 this._zone = this.owner.deckZone;
-                Contract.assertTrue(this.isTokenOrPlayable());
+                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
                 this._zone.addCard(this, zoneName);
                 break;
 
             case ZoneName.Discard:
                 this._zone = this.owner.discardZone;
-                Contract.assertTrue(this.isTokenOrPlayable());
+                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
                 this._zone.addCard(this);
                 break;
 
@@ -518,7 +518,7 @@ export class Card extends OngoingEffectSource {
 
             case ZoneName.Hand:
                 this._zone = this.owner.handZone;
-                Contract.assertTrue(this.isTokenOrPlayable());
+                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
                 this._zone.addCard(this);
                 break;
 
@@ -530,7 +530,7 @@ export class Card extends OngoingEffectSource {
 
             case ZoneName.Resource:
                 this._zone = this.controller.resourceZone;
-                Contract.assertTrue(this.isTokenOrPlayable());
+                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
                 this._zone.addCard(this);
                 break;
 

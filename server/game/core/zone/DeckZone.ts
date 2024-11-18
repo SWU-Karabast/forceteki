@@ -55,6 +55,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
     }
 
     public addCard(card: TokenOrPlayableCard, zone: MoveToDeckZoneName) {
+        Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
         Contract.assertEqual(card.controller, this.owner, `Attempting to add card ${card.internalName} to ${this} but its controller is ${card.controller}`);
 
         switch (zone) {
@@ -74,7 +75,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
     }
 
     public removeCard(card: Card) {
-        Contract.assertTrue(card.isTokenOrPlayable());
+        Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
 
         const cardIdx = this.deck.indexOf(card);
 
