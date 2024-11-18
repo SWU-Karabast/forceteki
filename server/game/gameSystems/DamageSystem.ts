@@ -83,14 +83,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     private getDamageAmountFromEvent(event: any): number {
         if (event.amount != null) {
-            switch (typeof event.amount) {
-                case 'number':
-                    return event.amount;
-                case 'function':
-                    return event.amount(event.card);
-                default:
-                    Contract.fail(`Unexpected type ${typeof event.amount}`);
-            }
+            return event.amount;
         }
 
         Contract.assertHasProperty(event, 'sourceEventForExcessDamage', 'Damage event does not have damage amount or source event to get excess damage amount from');
@@ -238,7 +231,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         };
 
         event.damageSource = abilityDamageSource;
-        event.amount = properties.amount;
+        event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently

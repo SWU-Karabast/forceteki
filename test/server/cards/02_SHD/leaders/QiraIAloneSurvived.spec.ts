@@ -15,9 +15,10 @@ describe('Qi\'ra, I Alone Survived', function() {
                 });
             });
 
-            it('should damage a friendly unit and give it a shield', function() {
+            it('should damage a friendly unit and give it a shield if it isn\'t dead', function() {
                 const { context } = contextRef;
 
+                // test ability with target that survives the damage
                 context.player1.clickCard(context.qira);
                 expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.deathStarStormtrooper]);
                 context.player1.clickCard(context.scoutBikePursuer);
@@ -26,11 +27,12 @@ describe('Qi\'ra, I Alone Survived', function() {
                 expect(context.scoutBikePursuer.damage).toBe(2);
                 expect(context.scoutBikePursuer).toHaveExactUpgradeNames(['shield']);
                 expect(context.player2).toBeActivePlayer();
-            });
 
-            it('should damage (and kill) a friendly unit with 3 power or less', function() {
-                const { context } = contextRef;
+                // reset
+                context.player2.clickPrompt('Pass');
+                context.qira.exhausted = false;
 
+                // test ability with target that dies
                 context.player1.clickCard(context.qira);
                 expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.deathStarStormtrooper]);
                 context.player1.clickCard(context.deathStarStormtrooper);
@@ -59,7 +61,7 @@ describe('Qi\'ra, I Alone Survived', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.qira);
-                context.player1.clickPrompt('Deploy Qi’ra');
+                context.player1.clickPrompt('Deploy Qi\'ra');
 
                 expect(context.qira.damage).toBe(4); // leader
                 expect(context.deathStarStormtrooper.damage).toBe(0); // 1 HP

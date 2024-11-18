@@ -17,16 +17,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
-        switch (typeof event.healAmount) {
-            case 'number':
-                event.damageRemoved = event.card.removeDamage(event.healAmount);
-                break;
-            case 'function':
-                event.damageRemoved = event.card.removeDamage(event.healAmount(event.card));
-                break;
-            default:
-                Contract.fail(`Unexpected type ${typeof event.healAmount}`);
-        }
+        event.damageRemoved = event.card.removeDamage(event.healAmount);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -55,6 +46,6 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.healAmount = amount;
+        event.healAmount = typeof amount === 'function' ? (amount as (Event) => number)(card) : amount;
     }
 }
