@@ -12,7 +12,6 @@ import { TriggerHandlingMode } from '../core/event/EventWindow';
 import { CostAdjuster, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
-    target?: Card;
     ignoredRequirements?: string[];
 
     /** By default, the system will inherit the `optional` property from the activating ability. Use this to override the behavior. */
