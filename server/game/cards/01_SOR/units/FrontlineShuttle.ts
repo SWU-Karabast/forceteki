@@ -19,7 +19,7 @@ export default class FrontlineShuttle extends NonLeaderUnitCard {
             }),
             initiateAttack: {
                 targetCondition: (target) => target.isUnit(),
-                ignoredRequirements: ['cost']
+                allowExhaustedAttacker: true
             }
         });
     }
