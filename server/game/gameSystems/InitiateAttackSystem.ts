@@ -13,6 +13,7 @@ export interface IInitiateAttackProperties<TContext extends AbilityContext = Abi
     ignoredRequirements?: string[];
     attackerCondition?: (card: Card, context: TContext) => boolean;
     isAmbush?: boolean;
+    allowExhaustedAttacker?: boolean;
 
     /** By default, the system will inherit the `optional` property from the activating ability. Use this to override the behavior. */
     optional?: boolean;
@@ -29,7 +30,8 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
     protected override readonly defaultProperties: IInitiateAttackProperties = {
         ignoredRequirements: [],
         attackerCondition: () => true,
-        isAmbush: false
+        isAmbush: false,
+        allowExhaustedAttacker: false
     };
 
     public eventHandler(event, additionalProperties): void {

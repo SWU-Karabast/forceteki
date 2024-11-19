@@ -5,10 +5,10 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import * as CardHelpers from '../core/card/CardHelpers';
-import { CardWithDamageProperty } from '../core/card/CardTypes';
+import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 
 export interface IHealProperties extends ICardTargetSystemProperties {
-    amount: number;
+    amount: number | ((card: UnitCard) => number);
 }
 
 export class HealSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IHealProperties> {
@@ -46,6 +46,6 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.healAmount = amount;
+        event.healAmount = typeof amount === 'function' ? (amount as (Event) => number)(card) : amount;
     }
 }

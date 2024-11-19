@@ -1,3 +1,4 @@
+const { ZoneName, DeckZoneDestination } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
 const Player = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
@@ -32,12 +33,11 @@ class PlayerInteractionWrapper {
      * be moved into their proper starting zones for the test.
      */
     moveAllNonBaseZonesToRemoved() {
-        this.player.spaceArena.forEach((card) => this.moveCard(card, 'removedFromGame'));
-        this.player.groundArena.forEach((card) => this.moveCard(card, 'removedFromGame'));
-        this.player.resources.forEach((card) => this.moveCard(card, 'removedFromGame'));
-        this.player.discard.forEach((card) => this.moveCard(card, 'removedFromGame'));
-        this.player.hand.forEach((card) => this.moveCard(card, 'removedFromGame'));
-        this.player.drawDeck.forEach((card) => this.moveCard(card, 'removedFromGame'));
+        this.player.getArenaCards().forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.resourceZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.discardZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
     }
 
     get hand() {
@@ -264,7 +264,7 @@ class PlayerInteractionWrapper {
     }
 
     setDeck(newContents = [], prevZones = ['any']) {
-        this.player.drawDeck = [];
+        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
         newContents.reverse().forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.moveCard(card, 'deck');
@@ -444,17 +444,6 @@ class PlayerInteractionWrapper {
 
     exhaustResources(number) {
         this.player.exhaustResources(number);
-    }
-
-    putIntoPlay(card) {
-        if (typeof card === 'string') {
-            card = this.findCardByName(card);
-        }
-        if (card.zoneName !== 'play area') {
-            this.player.moveCard(card, 'play area');
-        }
-        card.facedown = false;
-        return card;
     }
 
     hasPrompt(title) {
@@ -644,7 +633,7 @@ class PlayerInteractionWrapper {
         if (typeof card === 'string') {
             card = this.mixedListToCardList([card], searchZones)[0];
         }
-        this.player.moveCard(card, targetZone);
+        card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         this.game.continue();
         return card;
     }

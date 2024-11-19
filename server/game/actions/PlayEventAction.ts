@@ -44,7 +44,7 @@ export class PlayEventAction extends PlayCardAction {
             playType: context.playType,
             onPlayCardSource: context.onPlayCardSource,
             resolver: this,
-            handler: () => context.source.controller.moveCard(context.source, ZoneName.Discard)
+            handler: () => context.source.moveTo(ZoneName.Discard)
         });
 
         const events = [cardPlayedEvent];

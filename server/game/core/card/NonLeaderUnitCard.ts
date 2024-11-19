@@ -7,6 +7,7 @@ import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import { TokenOrPlayableCard } from './CardTypes';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 
@@ -33,7 +34,11 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         return actions;
     }
 
-    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
+        return true;
+    }
+
+    protected override initializeForCurrentZone(prevZone?: ZoneName): void {
         super.initializeForCurrentZone(prevZone);
 
         switch (this.zoneName) {

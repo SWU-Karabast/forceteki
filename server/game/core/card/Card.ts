@@ -1,10 +1,10 @@
-import { IActionAbilityProps, IConstantAbilityProps } from '../../Interfaces';
+import { IActionAbilityProps, IConstantAbilityProps, Zone } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, ZoneName, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, ZoneName, MoveZoneDestination, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import { CardAbility } from '../ability/CardAbility';
@@ -13,7 +13,7 @@ import { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstan
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
-import type { TokenCard, UnitCard, CardWithDamageProperty } from './CardTypes';
+import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
@@ -58,7 +58,7 @@ export class Card extends OngoingEffectSource {
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
-    private _zoneName: ZoneName;
+    private _zone: Zone;
     private nextAbilityIdx = 0;
 
 
@@ -77,7 +77,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public get zoneName(): ZoneName {
-        return this._zoneName;
+        return this._zone?.name;
     }
 
     public get traits(): Set<Trait> {
@@ -86,6 +86,14 @@ export class Card extends OngoingEffectSource {
 
     public get type(): CardType {
         return this.printedType;
+    }
+
+    public get zone(): Zone {
+        return this._zone;
+    }
+
+    protected set zone(zone: Zone) {
+        this._zone = zone;
     }
 
     // *********************************************** CONSTRUCTOR ***********************************************
@@ -113,12 +121,6 @@ export class Card extends OngoingEffectSource {
         this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
             this.internalName);
-
-        if (this.isToken()) {
-            this._zoneName = ZoneName.OutsideTheGame;
-        } else {
-            this._zoneName = ZoneName.Deck;
-        }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
     }
@@ -329,6 +331,13 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
+     * Returns true if the card is in a playable card (not deployable) or a token
+     */
+    public isTokenOrPlayable(): this is TokenOrPlayableCard {
+        return false;
+    }
+
+    /**
      * Returns true if the card is a type that can legally have triggered abilities.
      * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
      */
@@ -434,7 +443,9 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* ZONE MANAGEMENT *******************************************
-    public moveTo(targetZone: ZoneName) {
+    public moveTo(targetZone: MoveZoneDestination) {
+        Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
+
         const originalZone = this.zoneName;
 
         if (originalZone === targetZone) {
@@ -442,9 +453,20 @@ export class Card extends OngoingEffectSource {
         }
 
         this.cleanupBeforeMove(targetZone);
-        const prevZone = this._zoneName;
-        this._zoneName = targetZone;
-        this.initializeForCurrentZone(prevZone);
+
+        const prevZone = this._zone;
+
+        if (prevZone != null) {
+            if (prevZone.name === ZoneName.Base) {
+                Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${prevZone}`);
+                prevZone.removeLeader();
+            } else {
+                prevZone.removeCard(this);
+            }
+        }
+
+        this.addSelfToZone(targetZone);
+        this.initializeForCurrentZone(prevZone.name);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
@@ -455,11 +477,79 @@ export class Card extends OngoingEffectSource {
         this.game.registerMovedCard(this);
     }
 
+    public initializeZone(zone: Zone) {
+        Contract.assertIsNullLike(this._zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
+
+        this._zone = zone;
+
+        this.initializeForStartZone();
+        this.initializeForCurrentZone(null);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected initializeForStartZone(): void {}
+
+    private addSelfToZone(zoneName: MoveZoneDestination) {
+        switch (zoneName) {
+            case ZoneName.Base:
+                this._zone = this.owner.baseZone;
+                Contract.assertTrue(this.isLeader());
+                this._zone.setLeader(this);
+                break;
+
+            case DeckZoneDestination.DeckBottom:
+            case DeckZoneDestination.DeckTop:
+                this._zone = this.owner.deckZone;
+                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+                this._zone.addCard(this, zoneName);
+                break;
+
+            case ZoneName.Discard:
+                this._zone = this.owner.discardZone;
+                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+                this._zone.addCard(this);
+                break;
+
+            case ZoneName.GroundArena:
+                this._zone = this.game.groundArena;
+                Contract.assertTrue(this.canBeInPlay());
+                this._zone.addCard(this);
+                break;
+
+            case ZoneName.Hand:
+                this._zone = this.owner.handZone;
+                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+                this._zone.addCard(this);
+                break;
+
+            case ZoneName.OutsideTheGame:
+                this._zone = this.owner.outsideTheGameZone;
+                Contract.assertTrue(this.isTokenOrPlayable());
+                this._zone.addCard(this);
+                break;
+
+            case ZoneName.Resource:
+                this._zone = this.controller.resourceZone;
+                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+                this._zone.addCard(this);
+                break;
+
+            case ZoneName.SpaceArena:
+                this._zone = this.game.spaceArena;
+                Contract.assertTrue(this.canBeInPlay());
+                this._zone.addCard(this);
+                break;
+
+            default:
+                Contract.fail(`Unknown zone enum value: ${zoneName}`);
+        }
+    }
+
     /**
      * Deals with any engine effects of leaving the current zone before the move happens
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextZone: ZoneName) {}
+    protected cleanupBeforeMove(nextZone: MoveZoneDestination) {}
 
     /**
      * Updates the card's abilities for its current zone after being moved.
@@ -475,7 +565,7 @@ export class Card extends OngoingEffectSource {
      *
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
-    protected initializeForCurrentZone(prevZone: ZoneName) {
+    protected initializeForCurrentZone(prevZone?: ZoneName) {
         this.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
@@ -511,7 +601,6 @@ export class Card extends OngoingEffectSource {
                 break;
 
             case ZoneName.Discard:
-            case ZoneName.RemovedFromGame:
             case ZoneName.OutsideTheGame:
                 this.controller = this.owner;
                 this._facedown = false;
