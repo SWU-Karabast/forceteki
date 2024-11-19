@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import { PlayType, Aspect, CardTypeFilter } from '../Constants';
+import { PlayType, Aspect, CardTypeFilter, CardType, WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
@@ -92,7 +92,7 @@ export class CostAdjuster {
         }
 
         this.match = properties.match;
-        this.cardTypeFilter = properties.cardTypeFilter;
+        this.cardTypeFilter = properties.cardTypeFilter ?? WildcardCardType.Any;
         this.attachTargetCondition = properties.attachTargetCondition;
 
         this.playingTypes =
