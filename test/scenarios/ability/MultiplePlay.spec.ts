@@ -20,7 +20,7 @@ describe('Abilities', function() {
                 context.secondWaylay = context.player2.hand[1];
             });
 
-            it('should only trigger once after the unit was removed from play and played again', function () {
+            it('on attack ability should trigger only once after the unit was removed from play and played again', function () {
                 const { context } = contextRef;
 
                 // CASE 1: we test the on attack ability
@@ -38,14 +38,18 @@ describe('Abilities', function() {
 
                 // check board state
                 expect(context.player1.hand.length).toBe(1);
+            });
 
-                // CASE 2: on play should trigger only once
+            it('on play ability should trigger only once after the unit was removed from play and played again', function() {
+                const { context } = contextRef;
+                context.player1.passAction();
+
                 context.player2.clickCard(context.secondWaylay);
                 context.player2.clickCard(context.patrollingVwing);
                 context.player1.clickCard(context.patrollingVwing);
 
                 // check board state
-                expect(context.player1.hand.length).toBe(2);
+                expect(context.player1.hand.length).toBe(1);
             });
         });
 
@@ -67,41 +71,48 @@ describe('Abilities', function() {
                 context.secondWaylay = context.player2.hand[0];
             });
 
-            it('should only trigger once after the unit was removed from play and played again', function () {
-                const { context } = contextRef;
+            it('negative constant effects should only trigger once after the unit was removed from play and played again',
+                function () {
+                    const { context } = contextRef;
 
-                // check pre-board state to see if both effects work
-                context.player1.passAction();
-                expect(context.battlefieldMarine.getPower()).toBe(2);
-                expect(context.battlefieldMarine.getHp()).toBe(2);
+                    // check pre-board state to see if both effects work
+                    context.player1.passAction();
+                    expect(context.battlefieldMarine.getPower()).toBe(2);
+                    expect(context.battlefieldMarine.getHp()).toBe(2);
 
-                // CASE 1: we test the negative constant abilities
-                context.player2.clickCard(context.secondWaylay);
-                context.player2.clickCard(context.supremeLeaderSnoke);
+                    context.player2.clickCard(context.secondWaylay);
+                    context.player2.clickCard(context.supremeLeaderSnoke);
 
-                // check board state
-                expect(context.battlefieldMarine.getPower()).toBe(4);
-                expect(context.battlefieldMarine.getHp()).toBe(4);
+                    // check board state
+                    expect(context.battlefieldMarine.getPower()).toBe(4);
+                    expect(context.battlefieldMarine.getHp()).toBe(4);
 
-                // play snoke and check board state
-                context.player1.clickCard(context.supremeLeaderSnoke);
-                expect(context.battlefieldMarine.getPower()).toBe(2);
-                expect(context.battlefieldMarine.getHp()).toBe(2);
+                    // play snoke and check board state
+                    context.player1.clickCard(context.supremeLeaderSnoke);
+                    expect(context.battlefieldMarine.getPower()).toBe(2);
+                    expect(context.battlefieldMarine.getHp()).toBe(2);
+                });
 
-                // CASE 2: we test the positive constant abilities
-                context.player2.passAction();
-                context.player1.clickCard(context.firstWaylay);
-                context.player1.clickCard(context.generalDodonna);
+            it('positive constant effects should only trigger once after the unit was removed from play and played again',
+                function () {
+                    const { context } = contextRef;
 
-                // check board state
-                expect(context.battlefieldMarine.getPower()).toBe(1);
-                expect(context.battlefieldMarine.getHp()).toBe(1);
+                    // check pre-board state to see if both effects work
+                    expect(context.battlefieldMarine.getPower()).toBe(2);
+                    expect(context.battlefieldMarine.getHp()).toBe(2);
 
-                // play general dodonna and check board state
-                context.player2.clickCard(context.generalDodonna);
-                expect(context.battlefieldMarine.getPower()).toBe(2);
-                expect(context.battlefieldMarine.getHp()).toBe(2);
-            });
+                    context.player1.clickCard(context.firstWaylay);
+                    context.player1.clickCard(context.generalDodonna);
+
+                    // check board state
+                    expect(context.battlefieldMarine.getPower()).toBe(1);
+                    expect(context.battlefieldMarine.getHp()).toBe(1);
+
+                    // play general dodonna and check board state
+                    context.player2.clickCard(context.generalDodonna);
+                    expect(context.battlefieldMarine.getPower()).toBe(2);
+                    expect(context.battlefieldMarine.getHp()).toBe(2);
+                });
         });
         describe('cost reduction', function () {
             beforeEach(function () {

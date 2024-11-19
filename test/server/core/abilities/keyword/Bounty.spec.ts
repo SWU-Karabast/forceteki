@@ -101,7 +101,7 @@ describe('Bounty', function() {
                 context.covetousRivals.exhausted = false;
             });
 
-            it('should not trigger twice when removed from play and played again.', function () {
+            it('leaves play it should not trigger the bounty twice', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -110,7 +110,6 @@ describe('Bounty', function() {
                     },
                     player2: {
                         groundArena: ['hylobon-enforcer'],
-                        spaceArena: ['cartel-turncoat'],
                         hand: ['waylay'],
                     }
                 });
@@ -119,24 +118,34 @@ describe('Bounty', function() {
                 context.firstWaylay = context.player1.hand[0];
                 context.secondWaylay = context.player2.hand[0];
 
-                // CASE 1: check that the bounty isn't triggered when removed from play
+                // check that the bounty isn't triggered when removed from play
                 context.player1.clickCard(context.firstWaylay);
                 context.player1.clickCard(context.hylobonEnforcer);
 
                 // return atst to hand without collecting bounty
                 expect(context.player2).toBeActivePlayer();
                 context.player2.clickCard(context.secondWaylay);
-                context.player2.clickCard(context.atst);
-
                 expect(context.player1).toBeActivePlayer();
-                context.player1.passAction();
+            });
 
-                // CASE 2: We now defeat it to check it doesn't trigger twice.
+            it('should not trigger twice when removed from play', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['waylay'],
+                        groundArena: ['atst']
+                    },
+                    player2: {
+                        groundArena: ['hylobon-enforcer'],
+                    }
+                });
+
+                // We now defeat it to check it doesn't trigger twice.
+                const { context } = contextRef;
+                context.player1.clickCard(context.waylay);
+                context.player1.clickCard(context.hylobonEnforcer);
+
                 context.player2.clickCard(context.hylobonEnforcer);
-                context.player1.clickCard(context.atst);
-                context.player2.passAction();
-                context.atst.exhausted = false;
-
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.hylobonEnforcer);
 
