@@ -1027,7 +1027,7 @@ class Player extends GameObject {
     }
 
     getSummaryForZone(zone, activePlayer, hideWhenFaceup) {
-        return this.getCardsInZone(zone.name).map((card) => {
+        return this.getCardsInZone(zone).map((card) => {
             return card.getSummary(activePlayer, hideWhenFaceup);
         });
     }
@@ -1105,7 +1105,7 @@ class Player extends GameObject {
         let { email, password, ...safeUser } = this.user;
         let state = {
             cardPiles: {
-                hand: this.getSummaryForHand(this.hand, activePlayer, false),
+                hand: this.getSummaryForZone(ZoneName.Hand, activePlayer, false),
                 outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer),
                 resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
