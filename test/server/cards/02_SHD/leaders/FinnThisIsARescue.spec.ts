@@ -21,14 +21,28 @@ describe('Finn, This is a Rescue', function () {
             it('should defeat a friendly upgrade and give a shield token', function () {
                 const { context } = contextRef;
 
+                // For all scenarios, ensure an opponent's upgrade is attached. We should
+                // never be able to choose this upgrade for Finn's ability.
+                context.player1.passAction();
+                context.player2.clickCard(context.topTarget);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'top-target']);
+
                 // Scenario 1: Defeat a friendly upgrade on a friendly unit
                 context.player1.clickCard(context.finn);
                 expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield', 'top-target']);
                 expect(context.jediLightsaber).toBeInZone('discard');
-
-                context.finn.exhausted = false;
                 context.player2.passAction();
+                // Finn should be exhausted
+                expect(context.finn).not.toHaveAvailableActionWhenClickedBy(context.player1);
+
+                // A bit of a hack to get the shield token. Since multiple shield tokens are
+                // created, we want to ensure we get the correct one in the scenario below.
+                context.shield = context.battlefieldMarine.upgrades.filter((u) => u.name === 'Shield')[0];
+
+                // Reset
+                context.finn.exhausted = false;
 
                 // Scenario 2: Defeat a friendly upgrade on an opponent's unit
                 context.player1.clickCard(context.entrenched);
@@ -37,28 +51,13 @@ describe('Finn, This is a Rescue', function () {
                 context.player2.passAction();
                 context.player1.clickCard(context.finn);
                 // There are now two friendly upgrades (entrenched and shield token), so we are prompted to select one
+                expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.shield]);
                 context.player1.clickCard(context.entrenched);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.wampa).toHaveExactUpgradeNames(['shield']);
                 expect(context.entrenched).toBeInZone('discard');
-            });
-
-            it('should not defeat an opponent\'s upgrade', function () {
-                const { context } = contextRef;
-
-                context.player1.passAction();
-
-                context.player2.clickCard(context.topTarget);
-                context.player2.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'top-target']);
-
-                context.player1.clickCard(context.finn);
-                expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield', 'top-target']);
-                expect(context.jediLightsaber).toBeInZone('discard');
 
                 context.player2.passAction();
-
                 // Finn should be exhausted
                 expect(context.finn).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
@@ -94,12 +93,19 @@ describe('Finn, This is a Rescue', function () {
                     }
                 };
 
+                // For all scenarios, ensure an opponent's upgrade is attached. We should
+                // never be able to choose this upgrade for Finn's ability.
+                context.player1.passAction();
+                context.player2.clickCard(context.topTarget);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'top-target']);
+
                 // Scenario 1: Pass on defeating an upgrade on attack
                 context.player1.clickCard(context.finn);
                 context.player1.clickCard(context.wampa);
                 context.player1.passAction();
                 expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'top-target']);
                 expect(context.wampa.damage).toBe(4);
 
                 reset();
@@ -109,7 +115,7 @@ describe('Finn, This is a Rescue', function () {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickPrompt('Defeat a friendly upgrade on a unit');
                 expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield', 'top-target']);
                 expect(context.jediLightsaber).toBeInZone('discard');
                 expect(context.wampa.damage).toBe(4);
 
@@ -123,30 +129,13 @@ describe('Finn, This is a Rescue', function () {
 
                 context.player2.passAction();
 
-                // // Attack with Finn
+                // Attack with Finn
                 context.player1.clickCard(context.finn);
                 context.player1.clickCard(context.p2Base);
                 context.player1.clickCard(context.entrenched);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst).toHaveExactUpgradeNames(['shield']);
                 expect(context.entrenched).toBeInZone('discard');
-            });
-
-            it('should not defeat an opponent\'s upgrade', function () {
-                const { context } = contextRef;
-
-                context.player1.passAction();
-
-                context.player2.clickCard(context.topTarget);
-                context.player2.clickCard(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'top-target']);
-
-                context.player1.clickCard(context.finn);
-                context.player1.clickCard(context.wampa);
-                context.player1.clickPrompt('Defeat a friendly upgrade on a unit');
-                expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield', 'top-target']);
-                expect(context.jediLightsaber).toBeInZone('discard');
             });
         });
     });
