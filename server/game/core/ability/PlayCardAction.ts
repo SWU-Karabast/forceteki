@@ -26,7 +26,7 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjuster: CostAdjuster;
 
     public constructor(properties: IPlayCardActionProperties) {
-        const propertiesWithDefaults = { ...{ title: 'Play this card', playType: PlayType.PlayFromHand, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, additionalCosts: [] }, ...properties };
+        const propertiesWithDefaults = { title: 'Play this card', playType: PlayType.PlayFromHand, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, additionalCosts: [], ...properties };
         super(
             propertiesWithDefaults.card,
             PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType),
