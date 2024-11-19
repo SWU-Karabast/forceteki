@@ -6,17 +6,29 @@ import { exhaustSelf } from '../costs/CostLibrary.js';
 import * as GameSystemLibrary from '../gameSystems/GameSystemLibrary.js';
 import { Card } from '../core/card/Card';
 import { AttackStepsSystem, IAttackProperties } from '../gameSystems/AttackStepsSystem.js';
+import { GameSystemCost } from '../core/cost/GameSystemCost.js';
+import { ExhaustSystem } from '../gameSystems/ExhaustSystem.js';
+
+interface IInitiateAttackProperties extends IAttackProperties {
+    allowExhaustedAttacker?: boolean;
+}
 
 /**
  * Implements the action for a player to initiate an attack from a unit.
  * Calls {@link AttackStepsSystem} to resolve the attack.
  *
- * Default behaviors can be overridden by passing in an {@link IAttackProperties} object.
+ * Default behaviors can be overridden by passing in an {@link IInitiateAttackProperties} object.
  * See {@link GameSystemLibrary.attack} for using it in abilities.
  */
 export class InitiateAttackAction extends PlayerAction {
-    public constructor(card: Card, private attackProperties?: IAttackProperties) {
-        super(card, 'Attack', [exhaustSelf()], {
+    private allowExhaustedAttacker: boolean;
+
+    public constructor(card: Card, private attackProperties?: IInitiateAttackProperties) {
+        const exhaustCost = attackProperties?.allowExhaustedAttacker
+            ? new GameSystemCost(new ExhaustSystem({ isCost: true }), true)
+            : exhaustSelf();
+
+        super(card, 'Attack', [exhaustCost], {
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
             zoneFilter: WildcardZoneName.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'
@@ -39,6 +51,7 @@ export class InitiateAttackAction extends PlayerAction {
         if (!this.targetResolvers[0].hasLegalTarget(context)) {
             return 'target';
         }
+
         return super.meetsRequirements(context, ignoredRequirements);
     }
 

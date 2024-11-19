@@ -48,7 +48,7 @@ export class PlayUpgradeAction extends PlayCardAction {
         ) {
             return 'restriction';
         }
-        return super.meetsRequirements(context);
+        return super.meetsRequirements(context, ignoredRequirements);
     }
 
     public override displayMessage(context: AbilityContext) {
