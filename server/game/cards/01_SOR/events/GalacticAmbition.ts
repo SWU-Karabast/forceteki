@@ -1,5 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
-import { Aspect, CardType, Location } from '../../../core/Constants';
+import { Aspect, CardType, ZoneName } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
@@ -15,7 +15,7 @@ export default class GalacticAmbition extends EventCard {
         this.setEventAbility({
             title: 'Play a non-Heroism unit from your hand for free',
             targetResolver: {
-                locationFilter: Location.Hand,
+                zoneFilter: ZoneName.Hand,
                 cardTypeFilter: CardType.BasicUnit,
                 cardCondition: (card) => !card.hasSomeAspect(Aspect.Heroism),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({

@@ -38,7 +38,7 @@ export class EventCard extends EventCardParent {
         const actions = super.getActions();
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayEventAction(this, PlayType.Smuggle));
+            actions.push(new PlayEventAction({ card: this, playType: PlayType.Smuggle }));
         }
         return actions;
     }

@@ -22,15 +22,15 @@ describe('Alliance Dispatcher', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper, context.jawaScavenger, context.swoopRacer]);
                 context.player1.clickCard(context.jawaScavenger);
                 expect(context.allianceDispatcher.exhausted).toBe(true);
-                expect(context.jawaScavenger).toBeInLocation('ground arena');
-                expect(context.player1.countExhaustedResources()).toBe(0);
+                expect(context.jawaScavenger).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
 
                 context.player2.passAction();
 
                 // cost discount from Dispatcher should be gone
                 context.player1.clickCard(context.swoopRacer);
-                expect(context.swoopRacer).toBeInLocation('ground arena');
-                expect(context.player1.countExhaustedResources()).toBe(3);
+                expect(context.swoopRacer).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(3);
 
                 context.player2.passAction();
                 context.allianceDispatcher.exhausted = false;
@@ -40,8 +40,8 @@ describe('Alliance Dispatcher', function() {
                 context.player1.clickCard(context.allianceDispatcher);
                 context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
                 // Consortium Starviper is automatically selected as it is the only choice
-                expect(context.consortiumStarviper).toBeInLocation('space arena');
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.consortiumStarviper).toBeInZone('spaceArena');
+                expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -56,8 +56,8 @@ describe('Alliance Dispatcher', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.swoopRacer);
-                expect(context.swoopRacer).toBeInLocation('ground arena');
-                expect(context.player1.countExhaustedResources()).toBe(3);
+                expect(context.swoopRacer).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(3);
             });
         });
     });

@@ -1,6 +1,6 @@
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { Aspect, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class ReyKeepingThePast extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -21,7 +21,7 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
             title: 'You may heal 2 damage from a unit. If it’s a non-Heroism unit, give a Shield token to it',
             optional: true,
             targetResolver: {
-                controller: RelativePlayer.Any,
+                controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.heal({ amount: 2 }),

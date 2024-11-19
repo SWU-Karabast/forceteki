@@ -17,12 +17,12 @@ describe('Galactic Ambition', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.galacticAmbition);
-                expect(context.player1.countExhaustedResources()).toBe(7);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.player1).toBeAbleToSelectExactly([context.supremeLeaderSnoke, context.bountyGuildInitiate]);
                 context.player1.clickCard(context.supremeLeaderSnoke);
 
-                expect(context.supremeLeaderSnoke).toBeInLocation('ground arena');
-                expect(context.player1.countExhaustedResources()).toBe(7);
+                expect(context.supremeLeaderSnoke).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.p1Base.damage).toBe(8);
             });
         });

@@ -4,7 +4,6 @@ import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSyste
 import { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import { CardType, PlayType, MetaEventName } from '../core/Constants';
-import * as GameSystemLibrary from './GameSystemLibrary';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import { PlayUnitAction } from '../actions/PlayUnitAction';
 import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
@@ -13,6 +12,7 @@ import { TriggerHandlingMode } from '../core/event/EventWindow';
 import { CostAdjuster, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
+    target?: Card;
     ignoredRequirements?: string[];
 
     /** By default, the system will inherit the `optional` property from the activating ability. Use this to override the behavior. */
@@ -55,7 +55,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        event.playCardAbility = this.generatePlayCardAbility(target, this.properties.playType);
+        event.playCardAbility = this.generatePlayCardAbility(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
     }
 
@@ -68,26 +68,26 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             return false;
         }
 
-        const playCardAbility = this.generatePlayCardAbility(card, this.properties.playType, this.makeCostAdjuster(properties.costAdjusterProperties, context));
+        const playCardAbility = this.generatePlayCardAbility(card, properties, context);
         const newContext = playCardAbility.createContext(context.player);
 
         return !playCardAbility.meetsRequirements(newContext, properties.ignoredRequirements);
     }
 
-    private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: AbilityContext) {
+    private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: TContext) {
         return properties ? new CostAdjuster(context.game, context.source, properties) : null;
     }
 
     /**
      * Generate a play card ability for the specified card.
      */
-    private generatePlayCardAbility(card: Card, playType: PlayType, costAdjusterForThisAction = null) {
-        const properties = { card, playType, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, costAdjuster: costAdjusterForThisAction };
-        switch (card.type) {
-            case CardType.BasicUnit: return new PlayUnitAction(Object.assign(properties, { entersReady: this.properties.entersReady }));
-            case CardType.BasicUpgrade: return new PlayUpgradeAction(properties);
-            case CardType.Event: return new PlayEventAction(properties);
-            default: Contract.fail(`Attempted to play a card with invalid type ${card.type} as part of an ability`);
+    private generatePlayCardAbility(card: Card, properties: IPlayCardProperties, context: TContext) {
+        const actionProperties = { card, playType: properties.playType, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, costAdjuster: this.makeCostAdjuster(properties.adjustCost, context) };
+        switch (actionProperties.card.type) {
+            case CardType.BasicUnit: return new PlayUnitAction({ ...actionProperties, entersReady: properties.entersReady });
+            case CardType.BasicUpgrade: return new PlayUpgradeAction(actionProperties);
+            case CardType.Event: return new PlayEventAction(actionProperties);
+            default: Contract.fail(`Attempted to play a card with invalid type ${actionProperties.card.type} as part of an ability`);
         }
     }
 }
