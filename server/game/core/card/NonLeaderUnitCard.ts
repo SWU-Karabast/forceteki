@@ -7,6 +7,7 @@ import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import { TokenOrPlayableCard } from './CardTypes';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 
@@ -17,7 +18,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         // superclasses check that we are a unit, check here that we are a non-leader unit
         Contract.assertFalse(this.printedType === CardType.Leader);
 
-        this.defaultActions.push(new PlayUnitAction(this));
+        this.defaultActions.push(new PlayUnitAction({ card: this }));
     }
 
     public override isNonLeaderUnit(): this is NonLeaderUnitCard {
@@ -28,12 +29,16 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         const actions = super.getActions();
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayUnitAction(this, PlayType.Smuggle));
+            actions.push(new PlayUnitAction({ card: this, playType: PlayType.Smuggle }));
         }
         return actions;
     }
 
-    protected override initializeForCurrentZone(prevZone: ZoneName): void {
+    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
+        return true;
+    }
+
+    protected override initializeForCurrentZone(prevZone?: ZoneName): void {
         super.initializeForCurrentZone(prevZone);
 
         switch (this.zoneName) {

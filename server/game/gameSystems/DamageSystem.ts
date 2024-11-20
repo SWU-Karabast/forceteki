@@ -24,7 +24,7 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 /** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
     type?: DamageType.Ability;    // this is optional so it can be the default property type
-    amount: number;
+    amount: number | ((card: UnitCard) => number);
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -231,7 +231,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         };
 
         event.damageSource = abilityDamageSource;
-        event.amount = properties.amount;
+        event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently

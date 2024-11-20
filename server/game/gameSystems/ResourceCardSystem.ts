@@ -27,20 +27,22 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
     };
 
     public eventHandler(event: any, additionalProperties = {}): void {
-        // TODO: remove this completely if determinmed we don't need card snapshots
+        // TODO: remove this completely if determined we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
 
         const card = event.card as Card;
-        const player = event.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
 
-        player.moveCard(card, ZoneName.Resource);
+        // TODO TAKE CONTROL: change controller on being resourced logic
+        // const player = event.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
+
+        card.moveTo(ZoneName.Resource);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IResourceCardProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         if (Array.isArray(properties.target)) {
-            Contract.assertTrue(properties.target.length === 1, 'Resourcing more than 1 card is not yet supported');
+            Contract.assertTrue(properties.target.length <= 1, 'Resourcing more than 1 card is not yet supported');
         }
         return properties;
     }

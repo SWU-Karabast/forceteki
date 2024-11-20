@@ -1,13 +1,21 @@
 import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
-import { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
-import { PlayCardAction, PlayCardContext } from '../core/ability/PlayCardAction.js';
+import { PlayCardAction, PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
 
+export interface IPlayUnitActionProperties extends IPlayCardActionProperties {
+    entersReady?: boolean;
+}
+
 export class PlayUnitAction extends PlayCardAction {
-    public constructor(card: Card, playType: PlayType = PlayType.PlayFromHand, private entersReady: boolean = false) {
-        super(card, 'Play this unit', playType);
+    private entersReady: boolean;
+
+    public constructor(properties: IPlayUnitActionProperties) {
+        super({ ...properties, title: 'Play this unit' });
+
+        // default to false
+        this.entersReady = !!properties.entersReady;
     }
 
     public override executeHandler(context: PlayCardContext): void {
@@ -28,11 +36,14 @@ export class PlayUnitAction extends PlayCardAction {
             context.player,
             context.source,
         );
-        const effect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
-        const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
+
+        // TODO TAKE CONTROL
+        const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
+        const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
+        const entersReady = this.entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady);
 
         const events = [
-            putIntoPlay({ target: context.source, controller: player, entersReady: this.entersReady }).generateEvent(context),
+            putIntoPlay({ target: context.source, controller: player, entersReady: entersReady }).generateEvent(context),
             cardPlayedEvent
         ];
 
