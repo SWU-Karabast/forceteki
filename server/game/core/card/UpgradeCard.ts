@@ -37,7 +37,7 @@ export class UpgradeCard extends UpgradeCardParent {
         super(owner, cardData);
         Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
 
-        this.defaultActions.push(new PlayUpgradeAction(this));
+        this.defaultActions.push(new PlayUpgradeAction({ card: this }));
     }
 
     public override isUpgrade(): this is UpgradeCard {
@@ -48,7 +48,7 @@ export class UpgradeCard extends UpgradeCardParent {
         const actions = super.getActions();
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayUpgradeAction(this, PlayType.Smuggle));
+            actions.push(new PlayUpgradeAction({ card: this, playType: PlayType.Smuggle }));
         }
         return actions;
     }
