@@ -8,7 +8,7 @@ describe('Wrecker, Boom!', function() {
                         hand: ['wrecker#boom'],
                         leader: 'sabine-wren#galvanized-revolutionary',
                         groundArena: ['greedo#slow-on-the-draw'],
-                        resources: ['wampa', 'battlefield-marine', 'wild-rancor', 'protector', 'devotion', 'restored-arc170']
+                        resources: ['superlaser-technician', 'battlefield-marine', 'wild-rancor', 'protector', 'devotion', 'restored-arc170']
                     },
                     player2: {
                         groundArena: ['atst'],
@@ -23,7 +23,7 @@ describe('Wrecker, Boom!', function() {
                 context.player1.clickCard(context.wrecker);
 
                 // select a resource to defeat
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
+                expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.devotion);
@@ -32,21 +32,24 @@ describe('Wrecker, Boom!', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.greedo, context.wrecker, context.atst]);
                 context.player1.clickCard(context.atst);
 
+                expect(context.player1.resources.length).toBe(5);
+                expect(context.devotion).toBeInZone('discard');
                 expect(context.atst.damage).toBe(5);
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should deal 5 damage to a ground unit if we do not defeat a resource', function () {
+            it('should not deal 5 damage to a ground unit if we do not defeat a resource', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.wrecker);
 
                 // select a resource to defeat
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
+                expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toHaveChooseNoTargetButton();
 
                 // as we pass nothing happen
+                expect(context.player1.resources.length).toBe(6);
                 context.player1.clickPrompt('Pass ability');
                 expect(context.player2).toBeActivePlayer();
             });
