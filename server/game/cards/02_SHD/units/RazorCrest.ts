@@ -12,7 +12,7 @@ export default class RazorCrest extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'Return an upgrade from your discard pile',
+            title: 'Return an upgrade from your discard pile to your hand.',
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,

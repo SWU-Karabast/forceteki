@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName } from '../../../core/Constants';
+import {NonLeaderUnitCard} from '../../../core/card/NonLeaderUnitCard';
+import {RelativePlayer, ZoneName} from '../../../core/Constants';
 
 export default class FrontierTrader extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,10 +12,11 @@ export default class FrontierTrader extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'You may return a resource you control to your hand. If you do, you may put the top card of your deck into play as a resource.',
+            title: 'Return a resource you control to your hand.',
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.Resource,
+                controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: (context) => ({

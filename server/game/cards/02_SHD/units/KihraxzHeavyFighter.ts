@@ -12,16 +12,16 @@ export default class KihraxzHeavyFighter extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addOnAttackAbility({
-            title: 'You may exhaust another friendly unit. If you do, this unit gets +3/+0 for this attack.',
+            title: 'Exhaust another unit.',
+            optional: true,
             targetResolver: {
-                optional: true,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => context.source !== card,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             },
             ifYouDo: {
-                title: 'get +3/+0 for this attack',
+                title: 'This unit gets +3/+0 for this attack',
                 immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                     target: context.source,
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 }),

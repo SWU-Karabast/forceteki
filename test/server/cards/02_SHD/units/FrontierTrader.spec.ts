@@ -9,14 +9,18 @@ describe('Frontier Trader', function() {
                     player1: {
                         hand: ['frontier-trader'],
                         deck: ['wampa', 'battlefield-marine', 'atst', 'atst'],
-                        resources: ['armed-to-the-teeth',
+                        resources: [
+                            'armed-to-the-teeth',
                             'covert-strength',
                             'chewbacca#pykesbane',
-                            'battlefield-marine', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst',
+                            'battlefield-marine',
+                            'atst',
                             'collections-starhopper',
-                            'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'
                         ],
                         base: 'chopper-base'
+                    },
+                    player2: {
+                        resources: ['death-trooper', 'occupier-siege-tank']
                     }
                 });
             });
@@ -26,7 +30,17 @@ describe('Frontier Trader', function() {
 
                 context.player1.clickCard(context.frontierTrader);
                 expect(context.player1).toHavePassAbilityButton();
+                // Should be able to select only player1 resources
+                expect(context.player1).toBeAbleToSelectExactly([
+                    'armed-to-the-teeth',
+                    'covert-strength',
+                    'chewbacca#pykesbane',
+                    'battlefield-marine',
+                    'atst',
+                    'collections-starhopper'
+                ]);
                 context.player1.clickCard(context.collectionsStarhopper);
+                expect(context.player1).toHavePassAbilityPrompt('Put the top card of your deck into play as a resource.');
                 context.player1.clickPrompt('Put the top card of your deck into play as a resource.');
                 expect(context.collectionsStarhopper).toBeInZone(ZoneName.Hand);
                 expect(context.wampa).toBeInZone(ZoneName.Resource);
