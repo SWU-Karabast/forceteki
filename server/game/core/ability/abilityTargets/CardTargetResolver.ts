@@ -94,8 +94,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
                 GameStateChangeRequired.MustFullyOrPartiallyResolve
             ))
         ) {
+            targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || false;
             return;
         }
+
+        targetResults.hasEffectiveTargets = true;
 
         // if there's only one target available, automatically select it without prompting
         if (context.player.autoSingleTarget && legalTargets.length === 1) {
