@@ -42,8 +42,8 @@ describe('Rogue Squadron Skirmisher', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greedo]);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.battlefieldMarine.zoneName).toBe('hand');
-                expect(context.greedo.zoneName).toBe('discard');
+                expect(context.battlefieldMarine).toBeInZone('hand');
+                expect(context.greedo).toBeInZone('discard');
 
                 expect(context.player2).toBeActivePlayer();
             });
