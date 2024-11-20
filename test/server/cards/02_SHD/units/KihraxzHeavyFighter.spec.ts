@@ -35,7 +35,6 @@ describe('Kihraxz Heavy Fighter', function () {
                 // CASE 2: should do normal attack if no unit can be exhausted
                 reset();
                 context.player1.clickCard(context.kihraxzHeavyFighter);
-                // context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.devastatorInescapable.damage).toBe(3);
             });
