@@ -6,16 +6,37 @@ import { KeywordName, PhaseName, PlayType, Stage } from '../Constants';
 import { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
+import { TriggerHandlingMode } from '../event/EventWindow.js';
+import { CostAdjuster } from '../cost/CostAdjuster';
+
+export interface IPlayCardActionProperties {
+    card: Card;
+    title?: string;
+    playType?: PlayType;
+    triggerHandlingMode?: TriggerHandlingMode;
+    costAdjuster?: CostAdjuster;
+    targetResolver?: IActionTargetResolver;
+    additionalCosts?: ICost[];
+}
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
-    protected playType: PlayType;
+    protected readonly playType: PlayType;
+    public readonly costAdjuster: CostAdjuster;
 
-    public constructor(card: Card, title: string, playType: PlayType, additionalCosts: ICost[] = [], targetResolver: IActionTargetResolver = null) {
-        super(card, PlayCardAction.getTitle(title, playType), additionalCosts.concat(CostLibrary.payPlayCardResourceCost(playType)), targetResolver);
+    public constructor(properties: IPlayCardActionProperties) {
+        const propertiesWithDefaults = { title: 'Play this card', playType: PlayType.PlayFromHand, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, additionalCosts: [], ...properties };
+        super(
+            propertiesWithDefaults.card,
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType),
+            propertiesWithDefaults.additionalCosts.concat(CostLibrary.payPlayCardResourceCost(propertiesWithDefaults.playType)),
+            propertiesWithDefaults.targetResolver,
+            propertiesWithDefaults.triggerHandlingMode
+        );
 
-        this.playType = playType;
+        this.playType = propertiesWithDefaults.playType;
+        this.costAdjuster = propertiesWithDefaults.costAdjuster;
     }
 
     private static getTitle(title: string, playType: PlayType): string {
@@ -63,7 +84,7 @@ export abstract class PlayCardAction extends PlayerAction {
         });
     }
 
-    public override isCardPlayed(): boolean {
+    public override isCardPlayed(): this is PlayCardAction {
         return true;
     }
 
