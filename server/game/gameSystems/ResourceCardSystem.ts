@@ -32,6 +32,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
         const card = event.card as Card;
         Contract.assertTrue(card.isTokenOrPlayable());
+        Contract.assertFalse(card.isToken());
 
         if (event.resourceControllingPlayer !== card.controller) {
             card.takeControl(event.resourceControllingPlayer, ZoneName.Resource);

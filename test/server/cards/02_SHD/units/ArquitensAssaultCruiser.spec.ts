@@ -19,7 +19,7 @@ describe('Arquitens Assault Cruiser', function() {
                 });
             });
 
-            it('will ready him if he attacks and defeats a unit', function () {
+            it('will resource a unit for the Arquitens controller if Arquitens attacks and defeats it', function () {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {

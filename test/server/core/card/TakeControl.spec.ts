@@ -29,7 +29,7 @@ describe('Take control of a card', function() {
 
                 expect(context.lomPyke.controller).toBe(context.player1Object);
                 expect(context.lomPyke).toHaveExactUpgradeNames(['academy-training']);
-                expect(context.academyTraining.controller).toBe(context.player2Object); // TODO THIS PR: Finn
+                expect(context.academyTraining.controller).toBe(context.player2Object);
                 expect(context.lomPyke.exhausted).toBeTrue();
                 expect(context.lomPyke.damage).toBe(1);
 

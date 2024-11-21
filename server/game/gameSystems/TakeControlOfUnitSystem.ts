@@ -10,8 +10,7 @@ export interface ITakeControlProperties extends ICardTargetSystemProperties {
 }
 
 /**
- * Used for taking control of a unit, upgrade, or resource without making any other change.
- * For taking control while moving / resourcing / playing etc., see the `underControlOf` property of the relevant system.
+ * Used for taking control of a unit in the arena
  */
 export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ITakeControlProperties = ITakeControlProperties> extends CardTargetSystem<TContext, TProperties> {
     public override readonly name = 'ready';

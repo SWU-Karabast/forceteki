@@ -1,6 +1,6 @@
 describe('Emperor Palpatine, Galactic Ruler', function() {
     integration(function(contextRef) {
-        it('Palpatine\'s undeployed ability should deal 1 damage and draw a card at the cost of defeating a friendly, exhausting self, and paying 1 resource', function () {
+        it('Palpatine\'s undeployed ability should deal 1 damage and draw a card at the cost of defeating a friendly unit, exhausting self, and paying 1 resource', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
