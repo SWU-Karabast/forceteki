@@ -5,11 +5,11 @@ describe('Palpatine\'s Return', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        base: 'dagobah-swamp',
+                        base: 'administrators-tower',
                         leader: 'grand-moff-tarkin#oversector-governor',
                         hand: ['palpatines-return'],
                         discard: ['supreme-leader-snoke#shadow-ruler', 'avenger#hunting-star-destroyer', 'waylay', 'foundling'],
-                        resources: 21
+                        resources: 25
                     },
                     player2: {
                         discard: ['wampa']
@@ -30,7 +30,7 @@ describe('Palpatine\'s Return', function() {
 
                 let exhaustedResourcesBeforeAction = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.supremeLeaderSnoke);
-                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAction);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAction + 2); // 2 for out of aspect Snoke
                 expect(context.supremeLeaderSnoke).toBeInZone('groundArena', context.player1);
 
                 reset();
@@ -39,7 +39,7 @@ describe('Palpatine\'s Return', function() {
                 exhaustedResourcesBeforeAction = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.palpatinesReturn);
 
-                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAction + 9);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAction + 6 + 5); // 6 for Palpatine's Return, 5 for out of aspect Avenger
                 expect(context.avenger).toBeInZone('spaceArena', context.player1);
 
                 reset();
