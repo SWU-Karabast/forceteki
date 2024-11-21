@@ -28,7 +28,7 @@ describe('You\'re My Only Hope', function() {
                 context.player1.clickCard(context.youreMyOnlyHope);
                 // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
                 expect(context.getChatLogs(1)).toContain('You\'re My Only Hope sees AT-ST');
-                expect(context.player1).toHavePassAbilityPrompt('Play it, it costs 5 less');
+                expect(context.player1).toHavePassAbilityPrompt('Play AT-ST, it costs 5 less');
 
                 const deckBeforeAction = context.player1.deck;
                 context.player1.passAction();
@@ -41,10 +41,10 @@ describe('You\'re My Only Hope', function() {
                 context.player1.clickCard(context.youreMyOnlyHope);
                 // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
                 expect(context.getChatLogs(1)).toContain('You\'re My Only Hope sees AT-ST');
-                expect(context.player1).toHavePassAbilityPrompt('Play it, it costs 5 less');
+                expect(context.player1).toHavePassAbilityPrompt('Play AT-ST, it costs 5 less');
 
                 let exhaustedResourcesBeforeAction = context.player1.exhaustedResourceCount;
-                context.player1.clickPrompt('Play it, it costs 5 less');
+                context.player1.clickPrompt('Play AT-ST, it costs 5 less');
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAction + 3);
                 expect(context.atst).toBeInZone('groundArena', context.player1);
 
@@ -55,10 +55,10 @@ describe('You\'re My Only Hope', function() {
                 context.player2.clickCard(context.blackOne);
                 context.player1.clickCard(context.youreMyOnlyHope);
                 expect(context.getChatLogs(1)).toContain('You\'re My Only Hope sees Wampa');
-                expect(context.player1).toHavePassAbilityPrompt('Play it for free');
+                expect(context.player1).toHavePassAbilityPrompt('Play Wampa for free');
 
                 exhaustedResourcesBeforeAction = context.player1.exhaustedResourceCount;
-                context.player1.clickPrompt('Play it for free');
+                context.player1.clickPrompt('Play Wampa for free');
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAction);
                 expect(context.wampa).toBeInZone('groundArena', context.player1);
 

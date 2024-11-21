@@ -18,8 +18,8 @@ export default class YoureMyOnlyHope extends EventCard {
             })),
             ifYouDo: (ifYouDoContext) => ({
                 title: ifYouDoContext.source.controller.base.remainingHp <= 5
-                    ? 'Play it for free'
-                    : 'Play it, it costs 5 less',
+                    ? `Play ${ifYouDoContext.source.controller.getTopCardOfDeck().title} for free`
+                    : `Play ${ifYouDoContext.source.controller.getTopCardOfDeck().title}, it costs 5 less`,
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.base.remainingHp <= 5,
