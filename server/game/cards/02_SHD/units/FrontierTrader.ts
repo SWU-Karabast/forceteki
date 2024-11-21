@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import {NonLeaderUnitCard} from '../../../core/card/NonLeaderUnitCard';
-import {RelativePlayer, ZoneName} from '../../../core/Constants';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class FrontierTrader extends NonLeaderUnitCard {
     protected override getImplementationId() {

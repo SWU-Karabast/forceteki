@@ -12,7 +12,7 @@ describe('Kihraxz Heavy Fighter', function () {
                         spaceArena: ['devastator#inescapable']
                     }
                 });
-                const {context} = contextRef;
+                const { context } = contextRef;
 
                 const reset = (passAction = true) => {
                     if (context.kihraxzHeavyFighter.zoneName === 'discard') {
@@ -43,7 +43,7 @@ describe('Kihraxz Heavy Fighter', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: [{card: 'battlefield-marine', exhausted: true}, {
+                        groundArena: [{ card: 'battlefield-marine', exhausted: true }, {
                             card: 'pyke-sentinel',
                             exhausted: true
                         }],
@@ -53,7 +53,7 @@ describe('Kihraxz Heavy Fighter', function () {
                         spaceArena: ['devastator#inescapable']
                     }
                 });
-                const {context} = contextRef;
+                const { context } = contextRef;
 
                 context.player1.clickCard(context.kihraxzHeavyFighter);
                 // context.player1.clickPrompt('Exhaust another unit.');
