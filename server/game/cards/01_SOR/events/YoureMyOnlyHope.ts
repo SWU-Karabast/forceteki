@@ -16,8 +16,8 @@ export default class YoureMyOnlyHope extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
                 target: context.source.controller.getTopCardOfDeck()
             })),
-            then: (thenContext) => ({
-                title: thenContext.source.controller.base.remainingHp <= 5
+            ifYouDo: (ifYouDoContext) => ({
+                title: ifYouDoContext.source.controller.base.remainingHp <= 5
                     ? 'Play it for free'
                     : 'Play it, it costs 5 less',
                 optional: true,
