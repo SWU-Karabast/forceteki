@@ -37,6 +37,6 @@ describe('Evacuate', function() {
 
                 // TODO CAPTURE: test that captured units are returned to the arena and not to hand
             });
-        }); 
+        });
     });
 });
