@@ -10,6 +10,7 @@ export class HandZone extends SimpleZone<TokenOrPlayableCard> {
     public constructor(owner: Player) {
         super(owner);
 
+        this.hiddenForPlayers = RelativePlayer.Opponent;
         this.name = ZoneName.Hand;
     }
 }

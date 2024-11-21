@@ -13,6 +13,7 @@ export class OutsideTheGameZone extends SimpleZone<Card> {
     public constructor(owner: Player) {
         super(owner);
 
+        this.hiddenForPlayers = null;
         this.name = ZoneName.OutsideTheGame;
     }
 }

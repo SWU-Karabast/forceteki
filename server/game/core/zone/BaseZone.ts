@@ -31,6 +31,7 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
     public constructor(owner: Player, base: BaseCard, leader: LeaderCard) {
         super(owner);
 
+        this.hiddenForPlayers = null;
         this.name = ZoneName.Base;
 
         this.base = base;
