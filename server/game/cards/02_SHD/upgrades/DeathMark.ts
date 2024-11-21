@@ -15,9 +15,7 @@ export default class DeathMark extends UpgradeCard {
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Draw 2 cards',
-                immediateEffect: AbilityHelper.immediateEffects.draw({
-                    amount: 2
-                }),
+                immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             }
         });
     }
