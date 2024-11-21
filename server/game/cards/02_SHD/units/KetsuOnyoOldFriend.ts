@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { DamageType } from '../../../core/Constants';
 
 export default class KetsuOnyoOldFriend extends NonLeaderUnitCard {
@@ -13,7 +12,8 @@ export default class KetsuOnyoOldFriend extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'When this unit deals combat damage to a base: You may defeat an upgrade that costs 2 or less.',
+            title: 'You may defeat an upgrade that costs 2 or less.',
+            optional: true,
             when: {
                 onDamageDealt: (event, _context) =>
                     // TODO: refactor damage enum types to account for the fact that overwhelm is combat damage
