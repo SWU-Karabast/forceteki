@@ -616,6 +616,10 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
+    getCardsInZone(zone) {
+        return this.player.getCardsInZone(zone);
+    }
+
     dragCard(card, targetZone) {
         this.game.drop(this.player.name, card.uuid, card.zoneName, targetZone);
         this.game.continue();
