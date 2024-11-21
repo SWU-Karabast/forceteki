@@ -10,6 +10,7 @@ export enum ZoneName {
     OutsideTheGame = 'outsideTheGame',
     Resource = 'resource',
     SpaceArena = 'spaceArena',
+    Capture = 'capture'
 }
 
 export enum DeckZoneDestination {
