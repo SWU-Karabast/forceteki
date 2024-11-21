@@ -630,6 +630,7 @@ class PlayerInteractionWrapper {
      * card object, if card parameter is a String
      */
     moveCard(card, targetZone, searchZones = 'any') {
+        // TODO: Check that space units can not be added to ground arena and vice versa
         if (typeof card === 'string') {
             card = this.mixedListToCardList([card], searchZones)[0];
         }
