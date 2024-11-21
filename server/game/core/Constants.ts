@@ -201,6 +201,7 @@ export enum EventName {
     OnCardDiscarded = 'onCardDiscarded',
     OnCardsDiscardedFromHand = 'onCardsDiscardedFromHand',
     OnCardsDrawn = 'onCardsDrawn',
+    OnClaimInitiative = 'onClaimInitiative',
     OnDamageDealt = 'onDamageDealt',
     OnDamageRemoved = 'onDamageRemoved',
     OnDeckSearch = 'onDeckSearch',
@@ -225,7 +226,7 @@ export enum EventName {
     OnStatusTokenDiscarded = 'onStatusTokenDiscarded',
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
-    OnClaimInitiative = 'onClaimInitiative',
+    OnTakeControl = 'onTakeControl',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
 }
