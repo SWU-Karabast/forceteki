@@ -638,20 +638,29 @@ var customMatchers = {
     },
     toBeInZone: function () {
         return {
-            compare: function (card, zoneName, player = null) {
+            compare: function (card, zone, player = null) {
                 if (typeof card === 'string') {
                     throw new TestSetupError('This expectation requires a card object, not a name');
                 }
                 let result = {};
 
-                const pileOwningPlayer = player?.player || card.owner;
+                const zoneOwningPlayer = player || card.controller;
 
-                result.pass = card.zoneName === zoneName;
+                const correctProperty = card.zoneName === zone;
+                const correctPile = zoneOwningPlayer.getCardsInZone(zone).includes(card);
+
+                if (correctProperty !== correctPile) {
+                    result.pass = false;
+                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${zoneOwningPlayer.name}'`;
+                    return result;
+                }
+
+                result.pass = correctProperty && correctPile;
 
                 if (result.pass) {
-                    result.message = `Expected ${card.internalName} not to be in zone '${zoneName}' but it is`;
+                    result.message = `Expected ${card.internalName} not to be in zone '${zone}' but it is`;
                 } else {
-                    result.message = `Expected ${card.internalName} to be in zone '${zoneName}' but it is in zone '${card.zoneName}'`;
+                    result.message = `Expected ${card.internalName} to be in zone '${zone}' but it is in zone '${card.zoneName}'`;
                 }
 
                 return result;
