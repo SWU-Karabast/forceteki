@@ -12,6 +12,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
+            // TODO: how do we want to handle prompts for targeting costs (i.e. the defeat unit cost)?
             title: 'Deal 1 damage to a unit and draw a card',
             cost: [
                 AbilityHelper.costs.abilityResourceCost(1),
