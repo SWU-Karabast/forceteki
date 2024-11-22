@@ -113,13 +113,6 @@ export class CardAbility extends CardAbilityStep {
                 .map((effect) => effect(context));
             costs = costs.concat(...additionalTriggerCosts);
         }
-        // if (!context.subResolution && playCosts && context.player.hasOngoingEffect(EffectName.AdditionalPlayCost)) {
-        //     const additionalPlayCosts = context.player
-        //         .getOngoingEffectValues(EffectName.AdditionalPlayCost)
-        //         .map((effect) => effect(context));
-        //     console.log("toto2", additionalPlayCosts.length, playCosts)
-        //     return costs.concat(...additionalPlayCosts);
-        // }
         return costs;
     }
 
