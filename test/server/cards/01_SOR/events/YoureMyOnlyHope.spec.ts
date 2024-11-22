@@ -30,10 +30,8 @@ describe('You\'re My Only Hope', function() {
                 expect(context.getChatLogs(1)).toContain('You\'re My Only Hope sees AT-ST');
                 expect(context.player1).toHavePassAbilityPrompt('Play AT-ST, it costs 5 less');
 
-                const deckBeforeAction = context.player1.deck;
                 context.player1.passAction();
-                expect(context.player1.deck).toEqual(deckBeforeAction);
-                expect(context.atst).not.toBeInZone('groundArena', context.player1);
+                expect(context.atst).toBeInZone('deck', context.player1);
 
                 reset();
 
