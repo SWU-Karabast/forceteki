@@ -84,7 +84,7 @@ describe('Unexpected Escape', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.discerningVeteran, context.tielnFighter, context.pykeSentinel]);
                 context.player1.clickCard(context.tielnFighter);
                 expect(context.player1).toHavePassSingleTargetPrompt('Rescue a captured card guarded by that unit', context.wingLeader);
-                context.player1.clickPrompt('Rescue a captured card guarded by that unit');
+                context.player1.clickPrompt('Rescue a captured card guarded by that unit -> Wing Leader');
 
                 expect(context.tielnFighter.exhausted).toBeTrue();
                 expect(context.wingLeader).not.toBeCapturedBy(context.tielnFighter);

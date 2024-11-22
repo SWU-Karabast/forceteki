@@ -184,9 +184,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {
+        const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.title;
+
         context.game.promptWithHandlerMenu(context.player, {
-            activePromptTitle: `Trigger the effect '${this.properties.activePromptTitle}' on target '${target.title}' or pass`,
-            choices: [this.properties.activePromptTitle, 'Pass'],
+            activePromptTitle: `Trigger the effect '${effectName}' on target '${target.title}' or pass`,
+            choices: [`${effectName} -> ${target.title}`, 'Pass'],
             handlers: [
                 () => this.setTargetResult(context, target),
                 // eslint-disable-next-line @typescript-eslint/no-empty-function
