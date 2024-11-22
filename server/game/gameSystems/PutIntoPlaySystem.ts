@@ -1,7 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, EventName, KeywordName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import {
+    AbilityRestriction, EffectName,
+    EventName,
+    KeywordName,
+    RelativePlayer,
+    WildcardCardType,
+    ZoneName
+} from '../core/Constants';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
@@ -22,10 +28,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         entersReady: false
     };
 
-
     public eventHandler(event, additionalProperties = {}): void {
-        const player = this.getPutIntoPlayPlayer(event.context);
-
         let finalController = event.context.player;
         if (event.controller === RelativePlayer.Opponent) {
             finalController = finalController.opponent;
@@ -80,7 +83,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
-        event.status = entersReady ? 'ready' : event.status;
+        event.status = entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady) ? 'ready' : event.status;
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext) {
