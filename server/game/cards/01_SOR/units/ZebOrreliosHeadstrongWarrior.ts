@@ -24,10 +24,10 @@ export default class ZebOrreliosHeadstrongWarrior extends NonLeaderUnitCard {
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },
+            optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.GroundArena,
-                optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) =>
                         // TODO CHECK UNIQUE ID WHEN IT'S DONE
