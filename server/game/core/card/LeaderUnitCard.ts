@@ -9,6 +9,7 @@ import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityPr
 import * as Helpers from '../utils/Helpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Contract from '../utils/Contract';
+import { CaptureZone } from '../zone/CaptureZone';
 
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
@@ -110,6 +111,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this.setActiveAttackEnabled(true);
                 this.setUpgradesEnabled(true);
                 this.exhausted = false;
+                this.setCaptureZoneEnabled(true);
                 break;
 
             case ZoneName.Base:
@@ -118,6 +120,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
                 this.exhausted = prevZone ? EnumHelpers.isArena(prevZone) : false;
+                this.setCaptureZoneEnabled(false);
                 break;
         }
     }

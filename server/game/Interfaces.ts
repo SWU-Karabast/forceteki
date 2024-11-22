@@ -22,6 +22,7 @@ import { OutsideTheGameZone } from './core/zone/OutsideTheGameZone';
 import { ResourceZone } from './core/zone/ResourceZone';
 import { GroundArenaZone } from './core/zone/GroundArenaZone';
 import { SpaceArenaZone } from './core/zone/SpaceArenaZone';
+import { CaptureZone } from './core/zone/CaptureZone';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -167,6 +168,7 @@ export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordNa
 
 export type Zone =
   | BaseZone
+  | CaptureZone
   | DeckZone
   | DiscardZone
   | GroundArenaZone

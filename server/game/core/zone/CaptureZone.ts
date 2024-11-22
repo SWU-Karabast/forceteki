@@ -1,3 +1,4 @@
+import { Card } from '../card/Card';
 import { TokenOrPlayableCard, UnitCard } from '../card/CardTypes';
 import { ZoneName, RelativePlayer } from '../Constants';
 import Player from '../Player';
@@ -9,7 +10,9 @@ export class CaptureZone extends SimpleZone<TokenOrPlayableCard> {
     public override readonly hiddenForPlayers: null;
     public override readonly name: ZoneName.Capture;
 
-    public constructor(owner: Player, captor: UnitCard) {
+    public constructor(owner: Player, captor: Card) {
+        Contract.assertTrue(captor.isUnit(), `Attempting to create a capture zone with card ${captor.internalName} but it is not a unit card`);
+
         super(owner);
 
         this.hiddenForPlayers = null;
@@ -19,9 +22,10 @@ export class CaptureZone extends SimpleZone<TokenOrPlayableCard> {
     }
 
     public override addCard(card: TokenOrPlayableCard) {
+        Contract.assertFalse(this._cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
         Contract.assertTrue(card.isNonLeaderUnit(), `Attempting to add card ${card.internalName} to ${this} but it is not a non-leader unit card`);
 
-        super.addCard(card);
+        this._cards.push(card);
     }
 
     public override toString() {

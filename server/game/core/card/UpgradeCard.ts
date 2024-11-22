@@ -75,10 +75,9 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public attachTo(newParentCard: UnitCard) {
         Contract.assertTrue(newParentCard.isUnit());
-        Contract.assertTrue(newParentCard.isInPlay());
 
         // this assert needed for type narrowing or else the moveTo fails
-        Contract.assertTrue(newParentCard.zoneName !== ZoneName.Deck);
+        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
 
         if (this._parentCard) {
             this.unattach();

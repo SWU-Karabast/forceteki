@@ -22,7 +22,7 @@ export enum DeckZoneDestination {
  * Helper type used when a passed ZoneName represents a move destination.
  * Used to account for moving to top or bottom of deck.
  */
-export type MoveZoneDestination = Exclude<ZoneName, ZoneName.Deck> | DeckZoneDestination.DeckBottom | DeckZoneDestination.DeckTop;
+export type MoveZoneDestination = Exclude<ZoneName, ZoneName.Deck | ZoneName.Capture> | DeckZoneDestination.DeckBottom | DeckZoneDestination.DeckTop;
 
 export enum WildcardZoneName {
     Any = 'any',
@@ -187,6 +187,7 @@ export enum EventName {
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
     OnBeginRound = 'onBeginRound',
+    OnCapture = 'onCapture',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardDefeated = 'onCardDefeated',

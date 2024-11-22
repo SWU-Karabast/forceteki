@@ -1,12 +1,13 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { CardType, CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, WildcardCardType } from '../Constants';
+import { CardType, CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, WildcardCardType, MoveZoneDestination } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
+import { UnitCard } from '../card/CardTypes';
 // import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
@@ -213,19 +214,19 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     /**
-     * Manages special rules for cards leaving play. Should be called as the handler for systems
-     * that move a card out of the play areas (arenas).
+     * Manages special rules for units leaving play. Should be called as the handler for systems
+     * that move a unit out of the arena.
      */
-    protected leavesPlayEventHandler(event, additionalProperties = {}): void {
+    protected leavesPlayEventHandler(card: UnitCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
         // tokens and leaders are defeated if they move out of an arena zone
         if (
-            (event.card.isToken() || event.card.isLeader()) &&
-            !EnumHelpers.isArena(event.destination)
+            (card.isToken() || card.isLeader()) &&
+            !EnumHelpers.isArena(destination)
         ) {
-            // TODO: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
-            event.context.game.actions.defeat({ target: event.card }).resolve();
+            // TODO TOKEN UNITS: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
+            context.game.actions.defeat({ target: card }).resolve(null, context);
+        } else {
+            defaultMoveAction();
         }
-
-        event.card.moveTo(event.destination);
     }
 }

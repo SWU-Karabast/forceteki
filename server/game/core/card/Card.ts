@@ -23,6 +23,7 @@ import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployabl
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import { CaptureZone } from '../zone/CaptureZone';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -455,35 +456,51 @@ export class Card extends OngoingEffectSource {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const originalZone = this.zoneName;
-
         if (originalZone === targetZone) {
             return;
         }
 
-        this.cleanupBeforeMove(targetZone);
-
-        const prevZone = this._zone;
-
-        if (prevZone != null) {
-            if (prevZone.name === ZoneName.Base) {
-                Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${prevZone}`);
-                prevZone.removeLeader();
-            } else {
-                prevZone.removeCard(this);
-            }
-        }
+        const prevZone = this.zoneName;
+        this.removeFromCurrentZone();
 
         if (resetController) {
             this._controller = this.owner;
         }
 
         this.addSelfToZone(targetZone);
-        this.initializeForCurrentZone(prevZone.name);
+
+        this.postMoveSteps(prevZone);
+    }
+
+    public moveToCaptureZone(targetZone: CaptureZone) {
+        Contract.assertNotNullLike(this._zone, `Attempting to capture card ${this.internalName} before initializing zone`);
+
+        const prevZone = this.zoneName;
+        this.removeFromCurrentZone();
+
+        Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+        targetZone.addCard(this);
+        this._zone = targetZone;
+
+        this.postMoveSteps(prevZone);
+    }
+
+    private removeFromCurrentZone() {
+        if (this._zone.name === ZoneName.Base) {
+            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this._zone}`);
+            this._zone.removeLeader();
+        } else {
+            this._zone.removeCard(this);
+        }
+    }
+
+    private postMoveSteps(movedFromZone: ZoneName) {
+        this.initializeForCurrentZone(movedFromZone);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
-            originalZone: originalZone,
-            newZone: targetZone
+            originalZone: movedFromZone,
+            newZone: this.zoneName
         });
 
         this.game.registerMovedCard(this);
@@ -558,12 +575,6 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Deals with any engine effects of leaving the current zone before the move happens
-     */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextZone: MoveZoneDestination) {}
-
-    /**
      * Updates the card's abilities for its current zone after being moved.
      * Called from {@link Game.resolveGameState} after event resolution.
      */
@@ -609,6 +620,12 @@ export class Card extends OngoingEffectSource {
             case ZoneName.Hand:
                 this._controller = this.owner;
                 this._facedown = false;
+                this.hiddenForController = false;
+                break;
+
+            case ZoneName.Capture:
+                this._controller = this.owner;
+                this._facedown = true;
                 this.hiddenForController = false;
                 break;
 

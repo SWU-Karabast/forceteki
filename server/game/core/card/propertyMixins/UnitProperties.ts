@@ -15,7 +15,7 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
-import type { UnitCard } from '../CardTypes';
+import type { TokenOrPlayableCard, UnitCard } from '../CardTypes';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import type Game from '../../Game';
@@ -23,6 +23,7 @@ import { GameEvent } from '../../event/GameEvent';
 import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
+import { CaptureZone } from '../../zone/CaptureZone';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -70,11 +71,17 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         // ************************************* FIELDS AND PROPERTIES *************************************
         public readonly defaultArena: Arena;
 
+        protected _captureZone?: CaptureZone = null;
         protected _upgrades?: UpgradeCard[] = null;
 
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
+
+        public get captureZone() {
+            this.assertPropertyEnabled(this._captureZone, 'captureZone');
+            return this._captureZone;
+        }
 
         public get upgrades(): UpgradeCard[] {
             this.assertPropertyEnabled(this._upgrades, 'upgrades');
@@ -129,12 +136,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return true;
         }
 
-        protected setUpgradesEnabled(enabledStatus: boolean) {
-            this._upgrades = enabledStatus ? [] : null;
+        protected setCaptureZoneEnabled(enabledStatus: boolean) {
+            this._captureZone = enabledStatus ? new CaptureZone(this.owner, this) : null;
         }
 
         protected override setDamageEnabled(enabledStatus: boolean): void {
             super.setDamageEnabled(enabledStatus);
+        }
+
+        protected setUpgradesEnabled(enabledStatus: boolean) {
+            this._upgrades = enabledStatus ? [] : null;
         }
 
         // ***************************************** ATTACK HELPERS *****************************************
