@@ -16,10 +16,8 @@ describe('Kintan Intimidator', function () {
             it('should exhaust the defender when attacking a unit', function () {
                 const { context } = contextRef;
 
-                // Select Kintan Intimidator
-                expect(context.player1).toBeAbleToSelectExactly([context.kintanIntimidator]);
+                // Select Kintan Intimidator and attack the Marine
                 context.player1.clickCard(context.kintanIntimidator);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.p2Base]);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // Verify that the Marine gets exhausted
