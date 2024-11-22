@@ -13,14 +13,12 @@ export default class MigsMayfeldTriggerman extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'You may deal 2 damage to a unit or base.',
             limit: AbilityHelper.limit.perRound(1),
+            optional: true,
             when: {
                 onCardsDiscardedFromHand: (event, context) => true,
             },
             targetResolver: {
-                optional: true,
-                immediateEffect: AbilityHelper.immediateEffects.damage(() => ({
-                    amount: 2,
-                }))
+                immediateEffect: AbilityHelper.immediateEffects.damage(() => ({ amount: 2 }))
             }
         });
     }
