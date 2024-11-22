@@ -85,6 +85,7 @@ declare namespace jasmine {
         toBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toAllBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
+        toBeCapturedBy(card: any): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;

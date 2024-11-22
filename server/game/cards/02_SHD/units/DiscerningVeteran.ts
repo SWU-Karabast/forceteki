@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class DiscerningVeteran extends NonLeaderUnitCard {
     protected override getImplementationId() {

@@ -18,7 +18,8 @@ describe('Discerning Veteran', function() {
 
                 context.player1.clickCard(context.discerningVeteran);
 
-                expect(context.wampa.zoneName).toBe('capture');
+                // Wampa auto-selected as only legal target
+                expect(context.wampa).toBeCapturedBy(context.discerningVeteran);
             });
         });
     });
