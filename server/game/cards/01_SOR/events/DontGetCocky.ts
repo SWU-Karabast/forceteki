@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { AbilityContext } from '../../../core/ability/AbilityContext';
 import { EventCard } from '../../../core/card/EventCard';
-import { TargetMode, WildcardCardType } from '../../../core/Constants';
+import { GameStateChangeRequired, TargetMode, WildcardCardType } from '../../../core/Constants';
 import { ISelectTargetResolver } from '../../../TargetInterfaces';
 import { GameSystem } from '../../../core/gameSystem/GameSystem';
 import { IThenAbilityPropsWithSystems } from '../../../Interfaces';
@@ -20,7 +20,7 @@ export default class DontGetCocky extends EventCard {
             title: 'Choose a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                mustChangeGameState: false
+                mustChangeGameState: GameStateChangeRequired.None
             },
             then: (unitChosenContext) => ({
                 title: 'Reveal the top card of your deck',
