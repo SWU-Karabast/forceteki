@@ -16,7 +16,7 @@ describe('Kintan Intimidator', function () {
             it('should exhaust the defender when attacking a unit', function () {
                 const { context } = contextRef;
 
-                // When Kintan Intimidator attacks the enemy phase, nothing gets exhausted
+                // When Kintan Intimidator attacks the enemy base, nothing gets exhausted
                 context.player1.clickCard(context.kintanIntimidator);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
