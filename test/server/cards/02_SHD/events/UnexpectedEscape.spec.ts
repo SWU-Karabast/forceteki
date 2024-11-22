@@ -22,13 +22,16 @@ describe('Unexpected Escape', function() {
             context.player2.clickCard(context.takeCaptive);
             // Take Captive automatically resolves
 
-            expect(context.wampa).toBeCapturedBy(context.discerningVeteran);
-            expect(context.atst).toBeCapturedBy(context.discerningVeteran);
-
             context.discerningVeteran.exhausted = false;
             context.player1.clickCard(context.unexpectedEscape);
-            expect(context.discerningVeteran.exhausted).toBeTrue();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.discerningVeteran.exhausted).toBeTrue();
+            expect(context.wampa).not.toBeCapturedBy(context.discerningVeteran);
+            expect(context.wampa).toBeInZone('groundArena');
+            expect(context.wampa.exhausted).toBeTrue();
+            expect(context.atst).toBeCapturedBy(context.discerningVeteran);
         });
     });
 });

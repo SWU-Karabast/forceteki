@@ -10,7 +10,7 @@ class BaseCardSelector {
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
-        this.captureZones = properties.captureZones;
+        this.unitsCapturedBy = properties.unitsCapturedBy;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
@@ -60,13 +60,16 @@ class BaseCardSelector {
         }
 
         // get cards from capture zones, if any
-        const concreteCaptureZones = Helpers.asArray(
-            typeof this.captureZones === 'function'
-                ? this.captureZones(context)
-                : this.captureZones
+        const concreteCaptors = Helpers.asArray(
+            typeof this.unitsCapturedBy === 'function'
+                ? this.unitsCapturedBy(context)
+                : this.unitsCapturedBy
         );
-        for (const captureZone of concreteCaptureZones) {
-            possibleCards = possibleCards.concat(captureZone.cards);
+        for (const captor of concreteCaptors) {
+            Contract.assertTrue(captor.isUnit(), `Attempting to target capture zone for ${captor.internalName} but it is not a unit`);
+            Contract.assertTrue(captor.isInPlay(), `Attempting to target capture zone for ${captor.internalName} but it is in non-play zone ${captor.zoneName}`);
+
+            possibleCards = possibleCards.concat(captor.captureZone.cards);
         }
 
         return possibleCards;
@@ -116,7 +119,7 @@ class BaseCardSelector {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter)) {
+        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter) && card.zoneName !== ZoneName.Capture) {
             return false;
         }
         if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {

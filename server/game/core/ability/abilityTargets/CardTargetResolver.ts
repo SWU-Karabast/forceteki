@@ -173,7 +173,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
-        return zoneFilter && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
+        return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
     }
 
     private cancel(targetResults) {
