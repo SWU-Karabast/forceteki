@@ -77,11 +77,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
         // Check if the card is leaving play
         if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
-        } else {
-            super.updateEvent(event, card, context, additionalProperties);
         }
     }
 

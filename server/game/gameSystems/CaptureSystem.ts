@@ -24,7 +24,7 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
     }
 
     public override canAffect(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (!card.canBeInPlay() || !card.isInPlay()) {
+        if (!card.isUnit() || !card.isInPlay()) {
             return false;
         }
 
@@ -51,6 +51,7 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
         this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
     }
 }

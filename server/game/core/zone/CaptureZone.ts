@@ -1,12 +1,12 @@
+import { InPlayCard } from '../card/baseClasses/InPlayCard';
 import { Card } from '../card/Card';
-import { TokenOrPlayableCard, UnitCard } from '../card/CardTypes';
-import { ZoneName, RelativePlayer } from '../Constants';
+import { ZoneName } from '../Constants';
 import Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { SimpleZone } from './SimpleZone';
 
-export class CaptureZone extends SimpleZone<TokenOrPlayableCard> {
-    public readonly captor: UnitCard;
+export class CaptureZone extends SimpleZone<InPlayCard> {
+    public readonly captor: InPlayCard;
     public override readonly hiddenForPlayers: null;
     public override readonly name: ZoneName.Capture;
 
@@ -21,7 +21,7 @@ export class CaptureZone extends SimpleZone<TokenOrPlayableCard> {
         this.captor = captor;
     }
 
-    public override addCard(card: TokenOrPlayableCard) {
+    public override addCard(card: InPlayCard) {
         Contract.assertFalse(this._cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
         Contract.assertTrue(card.isNonLeaderUnit(), `Attempting to add card ${card.internalName} to ${this} but it is not a non-leader unit card`);
 

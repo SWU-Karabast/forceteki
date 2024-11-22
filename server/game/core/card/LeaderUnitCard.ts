@@ -9,7 +9,6 @@ import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityPr
 import * as Helpers from '../utils/Helpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Contract from '../utils/Contract';
-import { CaptureZone } from '../zone/CaptureZone';
 
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 

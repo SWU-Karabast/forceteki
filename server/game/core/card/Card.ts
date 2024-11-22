@@ -56,8 +56,8 @@ export class Card extends OngoingEffectSource {
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
-    private _zone: Zone;
     private nextAbilityIdx = 0;
+    private _zone: Zone;
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
@@ -472,20 +472,7 @@ export class Card extends OngoingEffectSource {
         this.postMoveSteps(prevZone);
     }
 
-    public moveToCaptureZone(targetZone: CaptureZone) {
-        Contract.assertNotNullLike(this._zone, `Attempting to capture card ${this.internalName} before initializing zone`);
-
-        const prevZone = this.zoneName;
-        this.removeFromCurrentZone();
-
-        Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
-        targetZone.addCard(this);
-        this._zone = targetZone;
-
-        this.postMoveSteps(prevZone);
-    }
-
-    private removeFromCurrentZone() {
+    protected removeFromCurrentZone() {
         if (this._zone.name === ZoneName.Base) {
             Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this._zone}`);
             this._zone.removeLeader();
@@ -494,7 +481,7 @@ export class Card extends OngoingEffectSource {
         }
     }
 
-    private postMoveSteps(movedFromZone: ZoneName) {
+    protected postMoveSteps(movedFromZone: ZoneName) {
         this.initializeForCurrentZone(movedFromZone);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
@@ -780,43 +767,11 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Deals with the engine effects of leaving play, making sure all statuses are removed. Anything which changes
-     * the state of the card should be here. This is also called in some strange corner cases e.g. for upgrades
-     * which aren't actually in play themselves when their parent (which is in play) leaves play.
+     * Deals with some cleanup when a card leaves play
      */
-    public leavesPlay() {
-        // TODO: reuse this for capture logic
-        // // Remove any cards underneath from the game
-        // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
-        // if (cardsUnderneath.length > 0) {
-        //     cardsUnderneath.forEach((card) => {
-        //         this.controller.moveCard(card, ZoneName.RemovedFromGame);
-        //     });
-        //     this.game.addMessage(
-        //         '{0} {1} removed from the game due to {2} leaving play',
-        //         cardsUnderneath,
-        //         cardsUnderneath.length === 1 ? 'is' : 'are',
-        //         this
-        //     );
-        // }
-    }
-
-    // TODO CAPTURE: will probably need to leverage or modify the below "child card" methods (see basecard.ts in L5R for reference)
-    // originally these were for managing province cards
-
-    // protected addChildCard(card, zone) {
-    //     this.childCards.push(card);
-    //     this.controller.moveCard(card, zone);
-    // }
-
-    // protected removeChildCard(card, zone) {
-    //     if (!card) {
-    //         return;
-    //     }
-
-    //     this.childCards = this.childCards.filter((a) => a !== card);
-    //     this.controller.moveCard(card, zone);
-    // }
+    // TODO THIS PR: migrate this to InPlayCard.ts
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public leavesPlay() {}
 
     // createSnapshot() {
     //     const clone = new Card(this.owner, this.cardData);

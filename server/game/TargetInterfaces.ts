@@ -48,6 +48,9 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
 
+    /** If provided, every listed unit will have its capture zone included for targeting */
+    unitsCapturedBy?: Card | Card[] | ((context: TContext) => (Card | Card[]));
+
     /** Filter cards by their controller */
     controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
 

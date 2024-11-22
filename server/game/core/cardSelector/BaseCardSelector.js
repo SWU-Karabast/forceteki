@@ -1,6 +1,7 @@
 const { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } = require('../Constants');
 const Contract = require('../utils/Contract');
 const EnumHelpers = require('../utils/EnumHelpers');
+const Helpers = require('../utils/Helpers');
 
 // TODO: once converted to TS, make this abstract.
 class BaseCardSelector {
@@ -9,6 +10,7 @@ class BaseCardSelector {
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
+        this.captureZones = properties.captureZones;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
@@ -56,6 +58,17 @@ class BaseCardSelector {
                 (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player.opponent)), possibleCards
             );
         }
+
+        // get cards from capture zones, if any
+        const concreteCaptureZones = Helpers.asArray(
+            typeof this.captureZones === 'function'
+                ? this.captureZones(context)
+                : this.captureZones
+        );
+        for (const captureZone of concreteCaptureZones) {
+            possibleCards = possibleCards.concat(captureZone.cards);
+        }
+
         return possibleCards;
     }
 

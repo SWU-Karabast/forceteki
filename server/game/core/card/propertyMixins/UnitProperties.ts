@@ -78,6 +78,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
 
+        public get capturedUnits() {
+            this.assertPropertyEnabled(this._captureZone, 'capturedUnits');
+            return this._captureZone.cards;
+        }
+
         public get captureZone() {
             this.assertPropertyEnabled(this._captureZone, 'captureZone');
             return this._captureZone;
@@ -90,6 +95,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public isAttacking(): boolean {
             return (this as Card) === (this.activeAttack?.attacker as Card);
+        }
+
+        public isCaptured(): boolean {
+            return this.zoneName === ZoneName.Capture;
         }
 
         public isUpgraded(): boolean {
@@ -148,7 +157,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._upgrades = enabledStatus ? [] : null;
         }
 
-        // ***************************************** ATTACK HELPERS *****************************************
+        // ***************************************** MISC HELPERS *****************************************
         /**
          * Check if there are any effect restrictions preventing this unit from attacking the passed target.
          * Returns true if so.
@@ -159,6 +168,19 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             return false;
+        }
+
+        public moveToCaptureZone(targetZone: CaptureZone) {
+            Contract.assertNotNullLike(this.zone, `Attempting to capture card ${this.internalName} before initializing zone`);
+
+            const prevZone = this.zoneName;
+            this.removeFromCurrentZone();
+
+            Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+            targetZone.addCard(this);
+            this.zone = targetZone;
+
+            this.postMoveSteps(prevZone);
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
@@ -498,20 +520,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public override leavesPlay() {
             this.unregisterWhenPlayedKeywords();
-            // TODO CAPTURE: use this for capture logic
-            // // Remove any cards underneath from the game
-            // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
-            // if (cardsUnderneath.length > 0) {
-            //     cardsUnderneath.forEach((card) => {
-            //         this.controller.moveCard(card, ZoneName.RemovedFromGame);
-            //     });
-            //     this.game.addMessage(
-            //         '{0} {1} removed from the game due to {2} leaving play',
-            //         cardsUnderneath,
-            //         cardsUnderneath.length === 1 ? 'is' : 'are',
-            //         this
-            //     );
-            // }
 
             super.leavesPlay();
         }

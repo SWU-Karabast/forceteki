@@ -53,7 +53,6 @@ export class UpgradeCard extends UpgradeCardParent {
         return actions;
     }
 
-    // TODO CAPTURE: we may need to use the "parent" concept for captured cards as well
     /** The card that this card is underneath */
     public get parentCard(): UnitCard {
         Contract.assertNotNullLike(this._parentCard);

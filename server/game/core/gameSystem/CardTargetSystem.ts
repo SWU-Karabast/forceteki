@@ -167,33 +167,20 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
-        super.updateEvent(event, card, context, additionalProperties);
-        event.destination = properties.destination || ZoneName.Discard;
+        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card} but is in zone ${card.zone}`);
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
                 player: context.player,
                 card
             });
-            const contingentEvents = [onCardLeavesPlayEvent];
+            let contingentEvents = [onCardLeavesPlayEvent];
 
-            if (event.card.zoneName !== ZoneName.Resource) {
-                // add events to defeat any upgrades attached to this card. the events will be added as "contingent events"
-                // in the event window, so they'll resolve in the same window but after the primary event
-                for (const upgrade of (event.card.upgrades ?? []) as UpgradeCard[]) {
-                    if (upgrade.isInPlay()) {
-                        const attachmentEvent = context.game.actions
-                            .defeat({ target: upgrade })
-                            .generateEvent(context.game.getFrameworkContext());
-                        attachmentEvent.order = event.order - 1;
-                        const previousCondition = attachmentEvent.condition;
-                        attachmentEvent.condition = (attachmentEvent) =>
-                            previousCondition(attachmentEvent) && upgrade.parentCard === event.card;
-                        attachmentEvent.isContingent = true;
-                        contingentEvents.push(attachmentEvent);
-                    }
-                }
+            if (card.isUnit()) {
+                // add events to defeat any upgrades attached to this card and free any captured units. the events will
+                // be added as "contingent events" in the event window, so they'll resolve in the same window but after the primary event
+                contingentEvents = contingentEvents.concat(this.generateUpgradeDefeatEvents(card, context, event));
+                contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
             }
 
             return contingentEvents;
@@ -211,6 +198,45 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         //         );
         //     }
         // };
+    }
+
+    private generateUpgradeDefeatEvents(card: UnitCard, context: TContext, event: any): any[] {
+        const defeatEvents = [];
+
+        for (const upgrade of card.upgrades) {
+            const defeatEvent = context.game.actions
+                .defeat({ target: upgrade })
+                .generateEvent(context.game.getFrameworkContext());
+
+            defeatEvent.order = event.order - 1;
+
+            // TODO THIS PR: can we remove this?
+            const previousCondition = defeatEvent.condition;
+            defeatEvent.condition = (defeatEvent) =>
+                previousCondition(defeatEvent) && upgrade.parentCard === event.card;
+
+            defeatEvent.isContingent = true;
+            defeatEvents.push(defeatEvent);
+        }
+
+        return defeatEvents;
+    }
+
+    private generateRescueEvents(card: UnitCard, context: TContext, event: any): any[] {
+        const rescueEvents = [];
+
+        for (const captured of card.capturedUnits) {
+            const rescueEvent = context.game.actions
+                .rescue({ target: captured })
+                .generateEvent(context.game.getFrameworkContext());
+
+            rescueEvent.order = event.order - 1;
+
+            rescueEvent.isContingent = true;
+            rescueEvents.push(rescueEvent);
+        }
+
+        return rescueEvents;
     }
 
     /**
