@@ -56,23 +56,6 @@ export default class DontGetCocky extends EventCard {
         };
     }
 
-    private choiceAfterReveal(cardsRevealedCount: number, thenContext: AbilityContext): ISelectTargetResolver<AbilityContext> {
-        const targetResolver: ISelectTargetResolver<AbilityContext> = {
-            mode: TargetMode.Select,
-            choices: {
-                ['Reveal another card']: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.getTopCardsOfDeck(7)[cardsRevealedCount] })),
-                ['Stop revealing cards']: this.afterStopRevealingEffect(cardsRevealedCount, thenContext)
-            }
-        };
-        if (cardsRevealedCount > 1) {
-            const previousTargetResolverName = 'choiceAfterCard'.concat((cardsRevealedCount - 1).toString());
-            targetResolver.dependsOn = previousTargetResolverName;
-            targetResolver.condition = (context) => context.selects[previousTargetResolverName] === 'Reveal another card';
-        }
-
-        return targetResolver;
-    }
-
     private afterStopRevealingEffect(cardsRevealedCount: number, contextWithUnitTarget: AbilityContext): GameSystem<AbilityContext> {
         return AbilityHelper.immediateEffects.simultaneous((context) => {
             const totalCost = context.source.controller.getTopCardsOfDeck(cardsRevealedCount).reduce((total, card) => total + card.printedCost, 0);
@@ -86,14 +69,6 @@ export default class DontGetCocky extends EventCard {
                 AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.source.controller.getTopCardsOfDeck(cardsRevealedCount) })
             ];
         });
-    }
-
-    private findHowManyCardsWereRevealed(context: AbilityContext) {
-        for (const selectTargetResolverResult of context.selects) {
-            if (selectTargetResolverResult === 'Stop revealing cards') {
-                return;
-            }
-        }
     }
 }
 
