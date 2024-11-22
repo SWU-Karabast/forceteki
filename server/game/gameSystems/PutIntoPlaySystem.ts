@@ -24,7 +24,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
 
     public eventHandler(event, additionalProperties = {}): void {
-        const player = this.getPutIntoPlayPlayer(event.context);
+        const player = this.getPutIntoPlayPlayer(event.context, event.card);
 
         let finalController = event.context.player;
         if (event.controller === RelativePlayer.Opponent) {
@@ -41,7 +41,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
         // TODO TAKE CONTROL: fix this, see if other similar systems have the same logic
         // moveCard sets all this stuff and only works if the owner is moving cards, so we're switching it around
-        if (event.card.controller !== finalController) {
+        if (finalController && event.card.controller !== finalController) {
             event.card.controller = finalController;
             // event.card.setDefaultController(event.card.controller);
             event.card.owner.cardsInPlay.splice(event.card.owner.cardsInPlay.indexOf(event.card), 1);
@@ -56,7 +56,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     public override canAffect(card: Card, context: TContext): boolean {
         const contextCopy = context.copy({ source: card });
-        const player = this.getPutIntoPlayPlayer(contextCopy);
+        const player = this.getPutIntoPlayPlayer(contextCopy, card);
         if (!super.canAffect(card, context)) {
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
@@ -83,7 +83,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.status = entersReady ? 'ready' : event.status;
     }
 
-    private getPutIntoPlayPlayer(context: AbilityContext) {
-        return context.player;
+    private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
+        return context.player || card.owner;
     }
 }
