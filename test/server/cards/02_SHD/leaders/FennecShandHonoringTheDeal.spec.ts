@@ -97,6 +97,12 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 expect(context.moddedCohort.exhausted).toBeTrue();
                 expect(context.moddedCohort.damage).toBe(3);
                 expect(context.battlefieldMarine.zoneName).toBe('discard');
+
+context.player2.passAction();
+context.player1.clickCard(context.allianceXwing);
+context.player2.passAction();
+                expect(context.fennecShand).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.player1).toBeActivePlayer();
             });
         });
 
@@ -109,7 +115,6 @@ describe('Fennec Shand, Honoring the Deal', function () {
                         hand: ['reinforcement-walker'],
                         resources: 8
                     },
-                    player2: { }
                 });
             });
 
@@ -117,9 +122,9 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fennecShand);
-                expect(context.player1).not.toHaveAvailableActionWhenClickedBy(context.player1);
-                expect(context.player2).toBeActivePlayer();
+                context.player2.passAction();
                 expect(context.fennecShand.exhausted).toBeTrue();
+                expect(context.fennecShand).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.p2Base.damage).toBe(4);
             });
         });

@@ -28,7 +28,7 @@ describe('Han Solo, Worth the Risk', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.hanSolo);
-                // play vanguard infantry automatically
+                context.player1.clickCard(context.vanguardInfantry)
 
                 // choose which unit to give an experience token (vanguard infantry when defeated ability)
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.colonelYularen]);
@@ -44,7 +44,7 @@ describe('Han Solo, Worth the Risk', function () {
         });
 
         describe('Han Solo\'s leader deployed ability', function () {
-            beforeEach(function () {
+            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -54,11 +54,8 @@ describe('Han Solo, Worth the Risk', function () {
                         base: { card: 'echo-base', damage: 5 },
                     },
                 });
-            });
 
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
                 const { context } = contextRef;
-
 
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickPrompt('Attack');
@@ -75,7 +72,7 @@ describe('Han Solo, Worth the Risk', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.hanSolo);
-                // play vanguard infantry automatically
+                context.player1.clickCard(context.vanguardInfantry)
 
                 // choose which unit to give an experience token (vanguard infantry when defeated ability)
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.colonelYularen, context.hanSolo]);
@@ -86,6 +83,29 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.vanguardInfantry).toBeInZone('discard');
                 expect(context.hanSolo).toHaveExactUpgradeNames(['experience']);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player2.passAction();
+                expect(context.hanSolo).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hanSolo);
+                context.player2.passAction();
+                expect(context.hanSolo.exhausted).toBeTrue();
+                expect(context.hanSolo).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });
