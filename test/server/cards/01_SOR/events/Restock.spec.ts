@@ -20,13 +20,15 @@ describe('Restock', function() {
                 // play restock
                 context.player1.clickCard(context.restock);
 
-                expect(context.player1).toHaveExactPromptButtons(['Your discard', 'Opponent discard']);
-                context.player1.clickPrompt('Your discard');
-
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.battlefieldMarine, context.resupply, context.restock]);
+                // can select both discards
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.battlefieldMarine, context.resupply, context.restock, context.consularSecurityForce, context.specforceSoldier, context.echoBaseDefender]);
 
                 // select cards
                 context.player1.clickCard(context.resupply);
+
+                // once we choose, only one discard available
+                expect(context.player1).toBeAbleToSelectExactly([context.restock, context.pykeSentinel, context.atst, context.battlefieldMarine, context.resupply]);
+
                 context.player1.clickCard(context.restock);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.atst);
@@ -47,13 +49,15 @@ describe('Restock', function() {
                 // play restock
                 context.player1.clickCard(context.restock);
 
-                expect(context.player1).toHaveExactPromptButtons(['Your discard', 'Opponent discard']);
-                context.player1.clickPrompt('Opponent discard');
-
-                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.specforceSoldier, context.echoBaseDefender]);
+                // can select both discards
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.battlefieldMarine, context.resupply, context.restock, context.consularSecurityForce, context.specforceSoldier, context.echoBaseDefender]);
 
                 // select cards
                 context.player1.clickCard(context.consularSecurityForce);
+
+                // once we choose, only one discard available
+                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.specforceSoldier, context.echoBaseDefender]);
+
                 context.player1.clickCard(context.specforceSoldier);
                 context.player1.clickCard(context.echoBaseDefender);
                 context.player1.clickPrompt('Done');
