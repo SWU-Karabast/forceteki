@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, WildcardRelativePlayer, ZoneName } from '../../../core/Constants';
+import { TargetMode, WildcardRelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class Restock extends EventCard {
     protected override getImplementationId() {
