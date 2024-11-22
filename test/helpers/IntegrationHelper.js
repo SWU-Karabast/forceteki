@@ -556,6 +556,28 @@ var customMatchers = {
             }
         };
     },
+    toHavePassSingleTargetPrompt: function () {
+        return {
+            compare: function (player, abilityText, target) {
+                var result = {};
+
+                if (abilityText == null || target == null) {
+                    throw new TestSetupError('toHavePassSingleTargetPrompt requires the target and abilityText parameters');
+                }
+
+                const passPromptText = `Trigger the effect '${abilityText}' on target '${target.title}' or pass`;
+                result.pass = player.hasPrompt(passPromptText);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player)}`;
+                }
+
+                return result;
+            }
+        };
+    },
     toBeInBottomOfDeck: function () {
         return {
             compare: function (card, player, numCards) {

@@ -18,6 +18,10 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     private immediateEffect: GameSystem;
     private selector: any;
 
+    public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
+        return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
+    }
+
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
 
@@ -100,8 +104,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
 
         targetResults.hasEffectiveTargets = true;
 
-        // if there's only one target available, automatically select it without prompting
+        // if there's only one target available...
         if (context.player.autoSingleTarget && legalTargets.length === 1) {
+            // ...and we are an optional resolver, prompt the player if they want to resolve
+            if (this.selector.optional) {
+                this.promptForSingleOptionalTarget(context, legalTargets[0]);
+                return;
+            }
+
+            // ...and we are a non-optional resolver, auto-select
             this.setTargetResult(context, legalTargets[0]);
             return;
         }
@@ -172,8 +183,16 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 
-    public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
-        return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
+    private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {
+        context.game.promptWithHandlerMenu(context.player, {
+            activePromptTitle: `Trigger the effect '${this.properties.activePromptTitle}' on target '${target.title}' or pass`,
+            choices: [this.properties.activePromptTitle, 'Pass'],
+            handlers: [
+                () => this.setTargetResult(context, target),
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
+                () => {}
+            ]
+        });
     }
 
     private cancel(targetResults) {

@@ -83,7 +83,8 @@ describe('Unexpected Escape', function() {
                 context.player1.clickCard(context.unexpectedEscape);
                 expect(context.player1).toBeAbleToSelectExactly([context.discerningVeteran, context.tielnFighter, context.pykeSentinel]);
                 context.player1.clickCard(context.tielnFighter);
-                expect(context.player1).toHavePrompt('Rescue a nonLeaderUnit');
+                expect(context.player1).toHavePassSingleTargetPrompt('Rescue a captured card guarded by that unit', context.wingLeader);
+                context.player1.clickPrompt('Rescue a captured card guarded by that unit');
 
                 expect(context.tielnFighter.exhausted).toBeTrue();
                 expect(context.wingLeader).not.toBeCapturedBy(context.tielnFighter);
@@ -96,7 +97,23 @@ describe('Unexpected Escape', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // TODO THIS PR: add a test confirming the pass button for one target works
+            it('will allow bypassing selection of the only captured unit', function() {
+                const { context } = contextRef;
+
+                // Play Unexpected Escape and target TIE/LN fighter, moves to optionally rescue the guarded Wing Leader
+                context.player1.clickCard(context.unexpectedEscape);
+                expect(context.player1).toBeAbleToSelectExactly([context.discerningVeteran, context.tielnFighter, context.pykeSentinel]);
+                context.player1.clickCard(context.tielnFighter);
+                expect(context.player1).toHavePassSingleTargetPrompt('Rescue a captured card guarded by that unit', context.wingLeader);
+                context.player1.clickPrompt('Pass');
+
+                expect(context.tielnFighter.exhausted).toBeTrue();
+                expect(context.atst).toBeCapturedBy(context.discerningVeteran);
+                expect(context.wampa).toBeCapturedBy(context.discerningVeteran);
+                expect(context.wingLeader).toBeCapturedBy(context.tielnFighter);
+
+                expect(context.player2).toBeActivePlayer();
+            });
 
             it('will exhaust a unit with no captured cards', function() {
                 const { context } = contextRef;

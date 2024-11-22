@@ -21,6 +21,7 @@ export default class UnexpectedEscape extends EventCard {
                 },
                 rescue: {
                     dependsOn: 'exhaust',
+                    activePromptTitle: 'Rescue a captured card guarded by that unit',
                     optional: true,
                     zoneFilter: [],
                     unitsCapturedBy: (context) => context.targets['exhaust'],
