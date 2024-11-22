@@ -2,7 +2,6 @@ import AbilityHelper from '../../../AbilityHelper';
 import { AbilityContext } from '../../../core/ability/AbilityContext';
 import { EventCard } from '../../../core/card/EventCard';
 import { GameStateChangeRequired, TargetMode, WildcardCardType } from '../../../core/Constants';
-import { ISelectTargetResolver } from '../../../TargetInterfaces';
 import { GameSystem } from '../../../core/gameSystem/GameSystem';
 import { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import * as Contract from '../../../core/utils/Contract';
