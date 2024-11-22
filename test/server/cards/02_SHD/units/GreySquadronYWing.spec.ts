@@ -11,8 +11,6 @@ describe('Grey squadron Y-Wing', function() {
                     player2: {
                         groundArena: ['battlefield-marine'],
                         spaceArena: ['cartel-spacer'],
-                        base: { card: 'echo-base', damage: 0 }
-
                     }
                 });
             });
@@ -21,10 +19,12 @@ describe('Grey squadron Y-Wing', function() {
                 const { context } = contextRef;
                 context.player1.clickCard(context.greySquadronYwing);
                 context.player1.clickCard(context.cartelSpacer);
+                expect(context.player1).toHaveExactPromptButtons(['Deal 2 damage to an opponent\s base or unit they control (they choose which)', 'Pass']);
+                context.player1.clickPrompt('Deal 2 damage to an opponent\s base or unit they control (they choose which)');
                 expect(context.player2).toHavePrompt('Choose a card');
-                expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.battlefieldMarine, context.echoBase]);
-                context.player2.clickCard(context.echoBase);
-                expect(context.echoBase.damage).toEqual(2);
+                expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.battlefieldMarine, context.p2Base]);
+                context.player2.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toEqual(2);
             });
         });
     });

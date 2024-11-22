@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class GreySquadronYWing extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -12,13 +12,14 @@ export default class GreySquadronYWing extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addOnAttackAbility({
-            title: 'An opponent chooses a unit or base they control. You may deal 2 damage to it',
+            title: 'Deal 2 damage to an opponent\s base or unit they control (they choose which)',
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 choosingPlayer: RelativePlayer.Opponent,
-                cardCondition: (card, context) => card.isUnit() || card.isBase(),
+                cardTypeFilter: [WildcardCardType.Unit, CardType.Base],
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
-            }
+            },
+            optional: true,
         });
     }
 }
