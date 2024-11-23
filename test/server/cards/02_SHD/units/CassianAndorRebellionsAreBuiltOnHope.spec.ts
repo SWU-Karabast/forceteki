@@ -7,7 +7,6 @@ describe('Cassian Andor, Rebellions Are Built On Hope', function() {
                     player1: {
                         hand: ['cassian-andor#rebellions-are-built-on-hope'],
                     },
-                    player2: {}
                 });
             });
 
@@ -25,9 +24,8 @@ describe('Cassian Andor, Rebellions Are Built On Hope', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        resources: ['cassian-andor#rebellions-are-built-on-hope', 'battlefield-marine', 'echo-base-defender', 'tech#source-of-insight', 'daring-raid', 'krayt-dragon', 'atst', 'covert-strength', 'commission', 'hunting-nexu'],
+                        resources: ['cassian-andor#rebellions-are-built-on-hope', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
                     },
-                    player2: {}
                 });
             });
 
