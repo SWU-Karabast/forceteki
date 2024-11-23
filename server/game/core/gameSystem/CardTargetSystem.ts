@@ -235,8 +235,13 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     /**
-     * Manages special rules for units leaving play. Should be called as the handler for systems
-     * that move a unit out of the arena.
+     * Manages special rules for units leaving play, such as leaders or tokens.
+     * Should be called as the handler for systems that move a unit out of the arena.
+     *
+     * @param card Card leaving play
+     * @param destination Zone the card is being moved to
+     * @param context context
+     * @param defaultMoveAction A handler that will move the card to its destination if none of the special cases apply
      */
     protected leavesPlayEventHandler(card: UnitCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
         // tokens and leaders are defeated if they move out of an arena zone

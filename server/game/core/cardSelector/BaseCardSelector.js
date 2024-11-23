@@ -59,6 +59,12 @@ class BaseCardSelector {
             );
         }
 
+        possibleCards = this.filterCaptureZones(possibleCards, context);
+
+        return possibleCards;
+    }
+
+    filterCaptureZones(possibleCards, context) {
         // get cards from capture zones, if any
         const concreteCaptors = Helpers.asArray(
             typeof this.filterCapturedBy === 'function'
@@ -66,20 +72,20 @@ class BaseCardSelector {
                 : this.filterCapturedBy
         );
 
-        if (concreteCaptors.length !== 0) {
-            if (!this.zoneFilter.includes(ZoneName.Capture)) {
-                Contract.fail('Cannot use the \'filterCapturedBy\' property without specifying \'ZoneName.Capture\' in the zoneFilter');
-            }
-
-            for (const captor of concreteCaptors) {
-                Contract.assertTrue(captor.isUnit(), `Attempting to target capture zone for ${captor.internalName} but it is not a unit`);
-                Contract.assertTrue(captor.isInPlay(), `Attempting to target capture zone for ${captor.internalName} but it is in non-play zone ${captor.zoneName}`);
-            }
-
-            possibleCards = possibleCards.filter((card) => card.zoneName !== ZoneName.Capture || concreteCaptors.includes(card.getCaptor()));
+        if (concreteCaptors.length === 0) {
+            return possibleCards;
         }
 
-        return possibleCards;
+        if (!this.zoneFilter.includes(ZoneName.Capture)) {
+            Contract.fail('Cannot use the \'filterCapturedBy\' property without specifying \'ZoneName.Capture\' in the zoneFilter');
+        }
+
+        for (const captor of concreteCaptors) {
+            Contract.assertTrue(captor.isUnit(), `Attempting to target capture zone for ${captor.internalName} but it is not a unit`);
+            Contract.assertTrue(captor.isInPlay(), `Attempting to target capture zone for ${captor.internalName} but it is in non-play zone ${captor.zoneName}`);
+        }
+
+        return possibleCards.filter((card) => card.zoneName !== ZoneName.Capture || concreteCaptors.includes(card.getCaptor()));
     }
 
     getCardsForPlayerZones(zone, player, game) {

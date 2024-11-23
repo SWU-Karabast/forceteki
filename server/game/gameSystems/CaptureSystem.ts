@@ -8,6 +8,8 @@ import { UnitCard } from '../core/card/CardTypes';
 import * as Contract from '../core/utils/Contract';
 
 export interface ICaptureProperties extends ICardTargetSystemProperties {
+
+    /** Defaults to context.source, if used in an event must be provided explicitly */
     captor?: UnitCard;
 }
 
