@@ -93,15 +93,15 @@ export abstract class PlayCardAction extends PlayerAction {
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
-    public override getCosts(context, playCosts = true) {
-        const costs = super.getCosts(context, playCosts);
-        if (!context.subResolution && playCosts && context.player.hasOngoingEffect(EffectName.AdditionalPlayCost)) {
+    public override getCosts(context) {
+        const costs = super.getCosts(context);
+        if (context.player.hasOngoingEffect(EffectName.AdditionalPlayCost)) {
             const additionalPlayCosts = context.player
                 .getOngoingEffectValues(EffectName.AdditionalPlayCost)
                 .map((effect) => effect(context))
                 // filter out any undefined or null cost
                 .filter((cost) => cost);
-            return costs.concat(...additionalPlayCosts);
+            return costs.concat(additionalPlayCosts);
         }
         return costs;
     }
