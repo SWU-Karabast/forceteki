@@ -99,23 +99,6 @@ export class CardAbility extends CardAbilityStep {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    public override getCosts(context, playCosts = true, triggerCosts = true) {
-        let costs = super.getCosts(context, playCosts);
-        if (!context.subResolution && triggerCosts && context.player.hasOngoingEffect(EffectName.AdditionalTriggerCost)) {
-            const additionalTriggerCosts = context.player
-                .getOngoingEffectValues(EffectName.AdditionalTriggerCost)
-                .map((effect) => effect(context));
-            costs = costs.concat(...additionalTriggerCosts);
-        }
-        if (!context.subResolution && triggerCosts && context.source.hasOngoingEffect(EffectName.AdditionalTriggerCost)) {
-            const additionalTriggerCosts = context.source
-                .getOngoingEffectValues(EffectName.AdditionalTriggerCost)
-                .map((effect) => effect(context));
-            costs = costs.concat(...additionalTriggerCosts);
-        }
-        return costs;
-    }
-
     public getAdjustedCost(context) {
         const resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
