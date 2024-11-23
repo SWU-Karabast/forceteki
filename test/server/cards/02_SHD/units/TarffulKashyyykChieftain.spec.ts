@@ -10,6 +10,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                     player2: {
                         groundArena: ['wampa', 'volunteer-soldier', 'wroshyr-tree-tender', 'atst'],
                         spaceArena: ['cartel-spacer'],
+                        leader: 'qira#i-alone-survived',
                     }
                 });
             });
@@ -64,6 +65,15 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 context.player1.clickCard(context.atst);
 
                 expect(context.atst.damage).toBe(3);
+
+                // Scenario 6: non-combat damage does not trigger Tarfful's ability
+                context.player1.passAction();
+
+                context.player2.clickCard(context.qira);
+                context.player2.clickPrompt('Deploy Qi\'ra');
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1).toHavePrompt('Choose an action');
 
                 // TODO: Add test with Maul unit redirecting damage to a friendly wookiee underworld unit
             });
