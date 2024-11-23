@@ -72,7 +72,7 @@ import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSy
 import { DiscardFromDeckSystem, IDiscardFromDeckProperties } from './DiscardFromDeckSystem';
 import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
 import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
-import { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
+import { AggregateSystem, ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
 import { ITakeControlProperties, TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
@@ -410,7 +410,7 @@ export function selectCard<TContext extends AbilityContext = AbilityContext>(pro
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>): GameSystem {
 //     return new SelectTokenAction(propertyFactory);
 // }
-export function sequential<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>): GameSystem<TContext> {
+export function sequential<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>): AggregateSystem<TContext> {
     return new SequentialSystem<TContext>(gameSystems);
 } // takes an array of gameActions, not a propertyFactory
 export function simultaneous<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = null): GameSystem<TContext> {
