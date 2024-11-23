@@ -12,9 +12,9 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                         resources: 4,
                     },
                     player2: {
-                        groundArena: ['wampa'], 
+                        groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
-                        base: { card: 'capital-city'}
+                        base: { card: 'capital-city' }
                     },
                 });
                 const { context } = contextRef;
@@ -45,15 +45,15 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 expect(context.cassianAndor).toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.cassianAndor.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
-                
+
                 context.cassianAndor.exhausted = false;
                 context.player2.passAction();
 
-                 // Deal 3+ damage using abilities now -- use two daring raids at the top of the hand
+                // Deal 3+ damage using abilities now -- use two daring raids at the top of the hand
                 context.player1.clickCard(context.player1.hand[0]);
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
- 
+
                 // Select the remaining daring-raid
                 context.player1.clickCard(context.player1.hand[0]);
                 context.player1.clickCard(context.p2Base);
@@ -64,7 +64,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 // Expect this ability have activated now - so it should draw the top card from the deck
                 expect(context.cassianAndor).toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.cassianAndor.exhausted).toBeTrue();
-                expect(context.player1.exhaustedResourceCount).toBe(4); 
+                expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.player1.hand).toContain(context.openFire);
             });
         });
@@ -85,10 +85,10 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
-                        base: { card: 'capital-city'}
+                        base: { card: 'capital-city' }
                     },
                 });
-                
+
                 const { context } = contextRef;
 
                 expect(context.player1.hand).toHaveSize(1);
@@ -118,11 +118,11 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 // Select daring-raid to deal damage via ability
                 context.player1.clickCard(context.daringRaid);
                 context.player1.clickCard(context.p2Base);
-                
+
                 context.player2.passAction();
 
                 // Expect to have spent daring-raid and gained red three
-                expect(context.player1.hand).toHaveSize(2); 
+                expect(context.player1.hand).toHaveSize(2);
                 expect(context.player1.hand).toContain(context.redThree);
             });
         });
