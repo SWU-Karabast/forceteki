@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardZoneName, ZoneName } from '../../../core/Constants';
 
 export default class UnexpectedEscape extends EventCard {
     protected override getImplementationId() {
@@ -23,8 +23,8 @@ export default class UnexpectedEscape extends EventCard {
                     dependsOn: 'exhaust',
                     activePromptTitle: 'Rescue a captured card guarded by that unit',
                     optional: true,
-                    zoneFilter: [],
-                    unitsCapturedBy: (context) => context.targets['exhaust'],
+                    zoneFilter: ZoneName.Capture,
+                    filterCapturedBy: (context) => context.targets['exhaust'],
                     immediateEffect: AbilityHelper.immediateEffects.rescue()
                 }
             }

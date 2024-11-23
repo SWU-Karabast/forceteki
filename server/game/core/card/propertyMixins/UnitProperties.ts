@@ -99,6 +99,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._upgrades;
         }
 
+        public getCaptor(): UnitCard | null {
+            if (this.zone.name !== ZoneName.Capture) {
+                return null;
+            }
+
+            return this.zone.captor as UnitCard;
+        }
+
         public isAttacking(): boolean {
             return (this as Card) === (this.activeAttack?.attacker as Card);
         }

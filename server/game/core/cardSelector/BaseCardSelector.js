@@ -10,7 +10,7 @@ class BaseCardSelector {
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
-        this.unitsCapturedBy = properties.unitsCapturedBy;
+        this.filterCapturedBy = properties.filterCapturedBy;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
@@ -50,32 +50,39 @@ class BaseCardSelector {
         let possibleCards = [];
         if (controllerProp !== RelativePlayer.Opponent) {
             possibleCards = this.zoneFilter.reduce(
-                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player)), possibleCards
+                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player, context.game)), possibleCards
             );
         }
         if (controllerProp !== RelativePlayer.Self && context.player.opponent) {
             possibleCards = this.zoneFilter.reduce(
-                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player.opponent)), possibleCards
+                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player.opponent, context.game)), possibleCards
             );
         }
 
         // get cards from capture zones, if any
         const concreteCaptors = Helpers.asArray(
-            typeof this.unitsCapturedBy === 'function'
-                ? this.unitsCapturedBy(context)
-                : this.unitsCapturedBy
+            typeof this.filterCapturedBy === 'function'
+                ? this.filterCapturedBy(context)
+                : this.filterCapturedBy
         );
-        for (const captor of concreteCaptors) {
-            Contract.assertTrue(captor.isUnit(), `Attempting to target capture zone for ${captor.internalName} but it is not a unit`);
-            Contract.assertTrue(captor.isInPlay(), `Attempting to target capture zone for ${captor.internalName} but it is in non-play zone ${captor.zoneName}`);
 
-            possibleCards = possibleCards.concat(captor.captureZone.cards);
+        if (concreteCaptors.length !== 0) {
+            if (!this.zoneFilter.includes(ZoneName.Capture)) {
+                Contract.fail('Cannot use the \'filterCapturedBy\' property without specifying \'ZoneName.Capture\' in the zoneFilter');
+            }
+
+            for (const captor of concreteCaptors) {
+                Contract.assertTrue(captor.isUnit(), `Attempting to target capture zone for ${captor.internalName} but it is not a unit`);
+                Contract.assertTrue(captor.isInPlay(), `Attempting to target capture zone for ${captor.internalName} but it is in non-play zone ${captor.zoneName}`);
+            }
+
+            possibleCards = possibleCards.filter((card) => card.zoneName !== ZoneName.Capture || concreteCaptors.includes(card.getCaptor()));
         }
 
         return possibleCards;
     }
 
-    getCardsForPlayerZones(zone, player) {
+    getCardsForPlayerZones(zone, player, game) {
         var cards;
         switch (zone) {
             case WildcardZoneName.Any:
@@ -85,8 +92,12 @@ class BaseCardSelector {
                 cards = player.getArenaCards();
                 break;
             case WildcardZoneName.AnyAttackable:
-                cards = player.getArenaCards();
+                cards = [].concat(player.getArenaCards());
                 cards = cards.concat(player.baseZone.cards);
+                break;
+            case ZoneName.Capture:
+                cards = game.allArenas.getUnitCards().flatMap((card) => card.capturedUnits);
+                cards = cards.filter((card) => card.owner === player);
                 break;
             default:
                 cards = player.getCardsInZone(zone);
