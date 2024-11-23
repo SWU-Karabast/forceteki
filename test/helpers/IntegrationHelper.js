@@ -565,8 +565,11 @@ var customMatchers = {
                     throw new TestSetupError('toHavePassSingleTargetPrompt requires the target and abilityText parameters');
                 }
 
+                // in certain cases the prompt may have additional text explaining the hidden zone rule
                 const passPromptText = `Trigger the effect '${abilityText}' on target '${target.title}' or pass`;
-                result.pass = player.hasPrompt(passPromptText);
+                const passPromptTextForHiddenZone = passPromptText + ' (because you are choosing from a hidden zone you may choose nothing)';
+
+                result.pass = player.hasPrompt(passPromptText) || player.hasPrompt(passPromptTextForHiddenZone);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
