@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { attack } from '../../../gameSystems/GameSystemLibrary';
 import { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
 
 export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard {
