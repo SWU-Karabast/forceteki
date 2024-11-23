@@ -1,4 +1,4 @@
-import { ICardTargetResolver } from '../../../TargetInterfaces';
+import { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
 import { AbilityContext } from '../AbilityContext';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
@@ -14,7 +14,7 @@ import { GameSystem } from '../../gameSystem/GameSystem';
 /**
  * Target resolver for selecting cards for the target of an effect.
  */
-export class CardTargetResolver extends TargetResolver<ICardTargetResolver<AbilityContext>> {
+export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<AbilityContext>> {
     private immediateEffect: GameSystem;
     private selector: any;
 
@@ -26,6 +26,10 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
 
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
+
+        if ('canChooseNoCards' in this.properties) {
+            this.properties.optional = this.properties.optional || this.properties.canChooseNoCards;
+        }
 
         this.selector = this.getSelector(properties);
         this.immediateEffect = properties.immediateEffect;
