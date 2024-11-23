@@ -26,7 +26,7 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
                     const damageDealtToBase = this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
                         context.source.controller,
                         (damage) => damage.target.isBase() && damage.target.controller !== context.source.controller
-                    ).reduce((sum, damage) => sum + damage.amount, 0)
+                    ).reduce((sum, damage) => sum + damage.amount, 0);
 
                     return damageDealtToBase >= 3;
                 },

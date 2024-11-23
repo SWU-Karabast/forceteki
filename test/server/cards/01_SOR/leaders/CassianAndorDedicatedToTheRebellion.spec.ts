@@ -28,15 +28,15 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 expect(context.cassianAndor).toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.cassianAndor.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
-                
+
                 context.cassianAndor.exhausted = false;
                 context.player2.passAction();
-                
+
                 // Select the a-wing to deal 3 damage to base
                 context.player1.clickCard(context.greenSquadronAwing);
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
-                
+
                 // Expect this ability have activated now - so it should draw the top card from the deck
                 expect(context.cassianAndor).toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.cassianAndor.exhausted).toBeTrue();
@@ -50,7 +50,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        deck: ['k2so#cassians-counterpart','red-three#unstoppable'],
+                        deck: ['k2so#cassians-counterpart', 'red-three#unstoppable'],
                         groundArena: ['yoda#old-master'],
                         spaceArena: ['green-squadron-awing'],
                         leader: { card: 'cassian-andor#dedicated-to-the-rebellion', deployed: true },
@@ -70,7 +70,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 const { context } = contextRef;
 
                 expect(context.player1.hand).toHaveSize(0);
-                
+
                 // Select yoda to deal damage (less than 3 for sanity check) to base
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.p2Base);
@@ -88,9 +88,8 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 // No card draw should have happened due to once per round limit -- state should be the same
                 expect(context.player1.hand).toHaveSize(1);
                 expect(context.player1.hand).toContain(context.k2so);
-                expect(context.player1.exhaustedResourceCount).toBe(0); 
+                expect(context.player1.exhaustedResourceCount).toBe(0);
             });
-
         });
     });
 });
