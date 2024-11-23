@@ -75,7 +75,8 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player1).toHavePrompt('Choose an action');
 
-                // TODO: Add test with Maul unit redirecting damage to a friendly wookiee underworld unit
+                // TODO: Add test with SHD Maul unit redirecting damage to a friendly wookiee underworld unit
+                // TODO: Add test with TWI Maul unit dealing damage to multiple friendly wooikee at the same time
             });
         });
     });
