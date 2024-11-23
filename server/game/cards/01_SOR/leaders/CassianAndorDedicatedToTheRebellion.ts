@@ -24,9 +24,9 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
                     const damageDealtToBase = this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
-                        context.source.controller,
-                        (damage) => damage.target.isBase() && damage.target.controller !== context.source.controller
-                    ).reduce((sum, damage) => sum + damage.amount, 0);
+                            context.source.controller,
+                            (damage) => damage.target.isBase() 
+                        ).reduce((sum, damage) => sum + damage.amount, 0);
 
                     return damageDealtToBase >= 3;
                 },
@@ -41,8 +41,8 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
             title: 'When you deal damage to an enemy base: You may draw a card. Use this ability only once each round.',
             when: {
                 onDamageDealt: (event, context) =>
-                    event.damageSource.attack.target.isBase() &&
-                    event.damageSource.attack.target.controller !== context.source.controller
+                    event.card.isBase() &&
+                    event.damageSource.player == context.source.controller
             },
             immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller })),
             limit: AbilityHelper.limit.perRound(1)
