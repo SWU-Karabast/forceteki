@@ -39,7 +39,8 @@ describe('Alliance Dispatcher', function() {
                 context.player1.setResourceCount(2);
                 context.player1.clickCard(context.allianceDispatcher);
                 context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
-                // Consortium Starviper is automatically selected as it is the only choice
+                expect(context.player1).toHavePassSingleTargetPrompt('Play a unit from your hand. It costs 1 less', context.consortiumStarviper);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 less -> Consortium Starviper');
                 expect(context.consortiumStarviper).toBeInZone('spaceArena');
                 expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.player2).toBeActivePlayer();
