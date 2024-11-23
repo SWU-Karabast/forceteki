@@ -3,7 +3,7 @@ import { AbilityContext } from '../AbilityContext';
 import * as Contract from '../../utils/Contract';
 import { GameSystem } from '../../gameSystem/GameSystem';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
-import { GameStateChangeRequired, RelativePlayer, Stage } from '../../Constants';
+import { RelativePlayer, Stage } from '../../Constants';
 import type Player from '../../Player';
 
 /**
@@ -14,9 +14,6 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
     protected dependentCost = null;
 
     public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility) {
-        if (!this.properties.mustChangeGameState) {
-            this.properties.mustChangeGameState = GameStateChangeRequired.MustFullyOrPartiallyResolve;
-        }
         if (this.properties.dependsOn) {
             const dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
 

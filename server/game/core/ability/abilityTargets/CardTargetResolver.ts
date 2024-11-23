@@ -94,7 +94,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
                 target,
                 this.getContextCopy(target, context),
                 {},
-                this.properties.mustChangeGameState
+                GameStateChangeRequired.MustFullyOrPartiallyResolve
             ))
         ) {
             targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || false;
