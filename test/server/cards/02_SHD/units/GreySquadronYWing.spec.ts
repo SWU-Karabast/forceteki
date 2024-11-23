@@ -19,9 +19,8 @@ describe('Grey squadron Y-Wing', function() {
                 const { context } = contextRef;
                 context.player1.clickCard(context.greySquadronYwing);
                 context.player1.clickCard(context.cartelSpacer);
-                expect(context.player1).toHaveExactPromptButtons(['Deal 2 damage to an opponent\s base or unit they control (they choose which)', 'Pass']);
+                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to an opponent\s base or unit they control (they choose which)');
                 context.player1.clickPrompt('Deal 2 damage to an opponent\s base or unit they control (they choose which)');
-                expect(context.player2).toHavePrompt('Choose a card');
                 expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.battlefieldMarine, context.p2Base]);
                 context.player2.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toEqual(2);
