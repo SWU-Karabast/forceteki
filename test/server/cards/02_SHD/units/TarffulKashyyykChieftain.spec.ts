@@ -8,7 +8,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                         groundArena: ['tarfful#kashyyyk-chieftain', 'liberated-slaves', 'isb-agent'],
                     },
                     player2: {
-                        groundArena: ['wampa', 'specforce-soldier', 'wroshyr-tree-tender', 'atst'],
+                        groundArena: ['wampa', 'volunteer-soldier', 'wroshyr-tree-tender', 'atst'],
                         spaceArena: ['cartel-spacer'],
                     }
                 });
@@ -21,10 +21,10 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 context.player1.clickCard(context.liberatedSlaves);
                 context.player1.clickCard(context.wroshyrTreeTender);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.specforceSoldier, context.wroshyrTreeTender, context.atst]);
-                context.player1.clickCard(context.specforceSoldier);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.volunteerSoldier, context.wroshyrTreeTender, context.atst]);
+                context.player1.clickCard(context.volunteerSoldier);
 
-                expect(context.specforceSoldier).toBeInZone('discard', context.player2);
+                expect(context.volunteerSoldier.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
 
                 // Scenario 2: a friendly wookie unit is attacked and does not survive
@@ -38,7 +38,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 context.player1.clickCard(context.tarfful);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.wroshyrTreeTender, context.atst]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.volunteerSoldier, context.wroshyrTreeTender, context.atst]);
                 context.player1.clickCard(context.atst);
 
                 expect(context.atst).toBeInZone('discard', context.player2);
