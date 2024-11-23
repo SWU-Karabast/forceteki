@@ -51,6 +51,8 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
 
                 expect(context.isbAgent).toBeInZone('groundArena', context.player1);
                 expect(context.player1).toBeActivePlayer();
+
+                // TODO: Add test with Maul unit redirecting damage to a friendly wookiee underworld unit
             });
         });
     });
