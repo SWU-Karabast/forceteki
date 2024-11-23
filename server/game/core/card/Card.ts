@@ -432,7 +432,6 @@ export class Card extends OngoingEffectSource {
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
         return (
-            !this.facedown &&
             (ignoredRequirements.includes('triggeringRestrictions') ||
               !this.hasRestriction(AbilityRestriction.TriggerAbilities, context))
         );

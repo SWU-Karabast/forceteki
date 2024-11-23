@@ -16,7 +16,7 @@ export interface ICaptureProperties extends ICardTargetSystemProperties {
  */
 export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ICaptureProperties = ICaptureProperties> extends CardTargetSystem<TContext, TProperties> {
     public override readonly name = 'capture';
-    public override readonly eventName = EventName.OnCapture;
+    public override readonly eventName = EventName.OnCardCaptured;
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
     public eventHandler(event): void {
