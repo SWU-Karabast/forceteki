@@ -556,6 +556,31 @@ var customMatchers = {
             }
         };
     },
+    toHavePassSingleTargetPrompt: function () {
+        return {
+            compare: function (player, abilityText, target) {
+                var result = {};
+
+                if (abilityText == null || target == null) {
+                    throw new TestSetupError('toHavePassSingleTargetPrompt requires the target and abilityText parameters');
+                }
+
+                // in certain cases the prompt may have additional text explaining the hidden zone rule
+                const passPromptText = `Trigger the effect '${abilityText}' on target '${target.title}' or pass`;
+                const passPromptTextForHiddenZone = passPromptText + ' (because you are choosing from a hidden zone you may choose nothing)';
+
+                result.pass = player.hasPrompt(passPromptText) || player.hasPrompt(passPromptTextForHiddenZone);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player)}`;
+                }
+
+                return result;
+            }
+        };
+    },
     toBeInBottomOfDeck: function () {
         return {
             compare: function (card, player, numCards) {
@@ -642,6 +667,9 @@ var customMatchers = {
                 if (typeof card === 'string') {
                     throw new TestSetupError('This expectation requires a card object, not a name');
                 }
+                if (zone === 'capture') {
+                    throw new TestSetupError('Do not use toBeInZone to check for capture zone, use to toBeCapturedBy instead');
+                }
                 let result = {};
 
                 const zoneOwningPlayer = player || card.controller;
@@ -661,6 +689,34 @@ var customMatchers = {
                     result.message = `Expected ${card.internalName} not to be in zone '${zone}' but it is`;
                 } else {
                     result.message = `Expected ${card.internalName} to be in zone '${zone}' but it is in zone '${card.zoneName}'`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toBeCapturedBy: function () {
+        return {
+            compare: function (card, captor) {
+                if (typeof card === 'string' || typeof captor === 'string') {
+                    throw new TestSetupError('This expectation requires a card object, not a name');
+                }
+                let result = {};
+
+                if (card.zoneName !== 'capture') {
+                    result.pass = false;
+                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding capture zone for ${captor.internalName}'`;
+                    return result;
+                }
+
+                const correctPile = captor.captureZone;
+
+                result.pass = captor.captureZone.hasCard(card);
+
+                if (result.pass) {
+                    result.message = `Expected ${card.internalName} not to be captured by ${captor.internalName} but it is`;
+                } else {
+                    result.message = `Expected ${card.internalName} to be captured by ${captor.internalName} but it is in zone '${card.zone}'`;
                 }
 
                 return result;
