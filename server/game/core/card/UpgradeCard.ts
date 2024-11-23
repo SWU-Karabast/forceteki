@@ -106,14 +106,6 @@ export class UpgradeCard extends UpgradeCardParent {
         return true;
     }
 
-    public override leavesPlay() {
-        if (this._parentCard) {
-            this.unattach();
-        }
-
-        super.leavesPlay();
-    }
-
     /**
      * Helper that adds an effect that applies to the attached unit. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).

@@ -765,13 +765,6 @@ export class Card extends OngoingEffectSource {
         return total;
     }
 
-    /**
-     * Deals with some cleanup when a card leaves play
-     */
-    // TODO THIS PR: migrate this to InPlayCard.ts
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public leavesPlay() {}
-
     // createSnapshot() {
     //     const clone = new Card(this.owner, this.cardData);
 

@@ -210,11 +210,6 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
 
             defeatEvent.order = event.order - 1;
 
-            // TODO THIS PR: can we remove this?
-            const previousCondition = defeatEvent.condition;
-            defeatEvent.condition = (defeatEvent) =>
-                previousCondition(defeatEvent) && upgrade.parentCard === event.card;
-
             defeatEvent.isContingent = true;
             defeatEvents.push(defeatEvent);
         }

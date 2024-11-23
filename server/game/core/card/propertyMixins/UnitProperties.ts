@@ -572,11 +572,5 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             this._upgrades.push(upgrade);
         }
-
-        public override leavesPlay() {
-            this.unregisterWhenPlayedKeywords();
-
-            super.leavesPlay();
-        }
     };
 }
