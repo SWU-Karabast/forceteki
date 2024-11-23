@@ -52,6 +52,19 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 expect(context.isbAgent).toBeInZone('groundArena', context.player1);
                 expect(context.player1).toBeActivePlayer();
 
+                // Scenario 5: a friendly wookiee unit is attacked and survives
+                context.player1.moveCard(context.liberatedSlaves, 'groundArena');
+                context.player1.passAction();
+
+                context.player2.moveCard(context.atst, 'groundArena');
+                context.player2.clickCard(context.volunteerSoldier);
+                context.player2.clickCard(context.liberatedSlaves);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.wroshyrTreeTender, context.atst]);
+                context.player1.clickCard(context.atst);
+
+                expect(context.atst.damage).toBe(3);
+
                 // TODO: Add test with Maul unit redirecting damage to a friendly wookiee underworld unit
             });
         });
