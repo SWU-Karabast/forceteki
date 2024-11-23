@@ -37,7 +37,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
                 
-                // Expect this ability have activated now - so activate it and click it
+                // Expect this ability have activated now - so it should draw the top card from the deck
                 expect(context.cassianAndor).toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.cassianAndor.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(2);
@@ -71,7 +71,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
 
                 expect(context.player1.hand).toHaveSize(0);
                 
-                // Select yoda to deal damage (less than 3) to base
+                // Select yoda to deal damage (less than 3 for sanity check) to base
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.p2Base);
 
@@ -81,10 +81,11 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
 
                 context.player2.passAction();
 
+                // Deal more damage to base to see if another event will trigger - it shouldn't
                 context.player1.clickCard(context.greenSquadronAwing);
                 context.player1.clickCard(context.p2Base);
 
-                // No card draw should have happened due to limit -- state should be the same
+                // No card draw should have happened due to once per round limit -- state should be the same
                 expect(context.player1.hand).toHaveSize(1);
                 expect(context.player1.hand).toContain(context.k2so);
                 expect(context.player1.exhaustedResourceCount).toBe(0); 
