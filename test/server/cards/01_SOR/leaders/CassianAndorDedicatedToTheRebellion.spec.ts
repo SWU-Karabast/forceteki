@@ -8,13 +8,12 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                         hand: ['daring-raid', 'daring-raid'],
                         deck: ['k2so#cassians-counterpart', 'open-fire'],
                         spaceArena: ['green-squadron-awing'],
-                        leader: { card: 'cassian-andor#dedicated-to-the-rebellion', deployed: false },
+                        leader: 'cassian-andor#dedicated-to-the-rebellion',
                         resources: 4,
                     },
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
-                        base: { card: 'capital-city' }
                     },
                 });
                 const { context } = contextRef;
@@ -39,7 +38,6 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 expect(context.player1.hand).toContain(context.k2so);
 
                 context.moveToNextActionPhase();
-                context.player1.readyResources(4);
 
                 // Expect this ability to be a no-op again since its a new action phase
                 expect(context.cassianAndor).toHaveAvailableActionWhenClickedBy(context.player1);
@@ -79,13 +77,11 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                         groundArena: ['yoda#old-master'],
                         spaceArena: ['green-squadron-awing'],
                         leader: { card: 'cassian-andor#dedicated-to-the-rebellion', deployed: true },
-                        base: { card: 'dagobah-swamp' },
                         resources: 4,
                     },
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
-                        base: { card: 'capital-city' }
                     },
                 });
 
