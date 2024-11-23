@@ -2,11 +2,14 @@ import axios, { all } from 'axios';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import express from 'express';
+import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import socketio from 'socket.io';
 
 import { logger } from '../logger';
 import Game from '../game/core/Game';
+import { Lobby } from './Lobby';
 import type Player from '../game/core/Player';
 // import type PendingGame from './PendingGame';
 import Socket from '../socket';
@@ -15,7 +18,7 @@ import { spec } from 'node:test/reporters';
 import defaultGameSettings from './defaultGame';
 
 export class GameServer {
-    private games = new Map<string, Game>();
+    private lobbies = new Map<string, Lobby>();
     private protocol = 'https';
     private host = env.gameNodeHost;
     private io: socketio.Server;
@@ -23,8 +26,11 @@ export class GameServer {
     private shortCardData: any;
 
     public constructor() {
+        const app = express();
+        app.use(express.json());
         let privateKey: undefined | string;
         let certificate: undefined | string;
+
         try {
             // privateKey = fs.readFileSync(env.gameNodeKeyPath).toString();
             // certificate = fs.readFileSync(env.gameNodeCertPath).toString();
@@ -34,9 +40,18 @@ export class GameServer {
 
         const server =
             !privateKey || !certificate
-                ? http.createServer()
+                ? http.createServer(app)
                 : https.createServer({ key: privateKey, cert: certificate });
 
+                
+        const corsOptions = {
+            origin: ['http://localhost:3000', 'https://your-production-domain.com'],
+            methods: ['GET', 'POST'],
+            credentials: true, // Allow cookies or authorization headers
+        };
+        app.use(cors(corsOptions));
+        this.setupAppRoutes(app);
+                
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
@@ -53,98 +68,43 @@ export class GameServer {
         });
 
         this.io.on('connection', (socket) => this.onConnection(socket));
-
-        // TODO: Once we have lobbies this will be called from there.
-        this.onStartGame();
     }
 
-    public debugDump() {
-        const games = [];
-        for (const game of this.games.values()) {
-            const players = [];
-            for (const player of Object.values<any>(game.playersAndSpectators)) {
-                return {
-                    name: player.name,
-                    left: player.left,
-                    disconnected: player.disconnected,
-                    id: player.id,
-                    spectator: game.isSpectator(player)
-                };
-            }
-            games.push({
-                name: game.name,
-                players: players,
-                id: game.id,
-                started: game.started,
-                startedAt: game.startedAt
-            });
-        }
-
-        return {
-            games: games,
-            gameCount: this.games.size
-        };
+    private setupAppRoutes(app: express.Application) {
+        app.get('/api/create-game', (req, res) => {
+            res.send('OK');
+        });
     }
 
-    // TODO: Review this to make sure we're getting the info we need for debugging
-    public handleError(game: Game, e: Error) {
-        logger.error(e);
 
-        const gameState = game.getState();
-        const debugData: any = {};
+    // public debugDump() {
+    //     const games = [];
+    //     for (const game of this.games.values()) {
+    //         const players = [];
+    //         for (const player of Object.values<any>(game.playersAndSpectators)) {
+    //             return {
+    //                 name: player.name,
+    //                 left: player.left,
+    //                 disconnected: player.disconnected,
+    //                 id: player.id,
+    //                 spectator: game.isSpectator(player)
+    //             };
+    //         }
+    //         games.push({
+    //             name: game.name,
+    //             players: players,
+    //             id: game.id,
+    //             started: game.started,
+    //             startedAt: game.startedAt
+    //         });
+    //     }
 
-        if (e.message.includes('Maximum call stack')) {
-            // debugData.badSerializaton = detectBinary(gameState);
-        } else {
-            debugData.game = gameState;
-            debugData.game.players = undefined;
+    //     return {
+    //         games: games,
+    //         gameCount: this.games.size
+    //     };
+    // }
 
-            debugData.messages = game.messages;
-            debugData.game.messages = undefined;
-
-            debugData.pipeline = game.pipeline.getDebugInfo();
-            // debugData.effectEngine = game.effectEngine.getDebugInfo();
-
-            for (const player of game.getPlayers()) {
-                debugData[player.name] = player.getState(player);
-            }
-        }
-
-        if (game) {
-            game.addMessage(
-                'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
-            );
-        }
-    }
-
-    public runAndCatchErrors(game: Game, func: () => void) {
-        try {
-            func();
-        } catch (e) {
-            this.handleError(game, e);
-
-            this.sendGameState(game);
-        }
-    }
-
-    public findGameForUser(username: string): undefined | Game {
-        for (const game of this.games.values()) {
-            const player = game.playersAndSpectators[username];
-            if (player && !player.left) {
-                return game;
-            }
-        }
-
-        return undefined;
-    }
-
-    public sendGameState(game: Game): void {
-        for (const player of Object.values<Player>(game.getPlayersAndSpectators())) {
-            if (player.socket && !player.left && !player.disconnected) {
-                player.socket.send('gamestate', game.getState(player.name));
-            }
-        }
-    }
 
     // handshake(socket: socketio.Socket, next: () => void) {
     //     // if (socket.handshake.query.token && socket.handshake.query.token !== 'undefined') {
@@ -173,20 +133,20 @@ export class GameServer {
     }
 
     // TODO: Once we have lobbies this will take in game details. Not sure if we end up doing that through L5R's PendingGame or not.
-    public onStartGame(): void {
-        const game = new Game(defaultGameSettings, { router: this, shortCardData: this.shortCardData });
-        this.games.set(defaultGameSettings.id, game);
+    // public onStartGame(): void {
+    //     const game = new Game(defaultGameSettings, { router: this, shortCardData: this.shortCardData });
+    //     this.games.set(defaultGameSettings.id, game);
 
 
-        game.started = true;
-        // for (const player of Object.values<Player>(pendingGame.players)) {
-        //     game.selectDeck(player.name, player.deck);
-        // }
-        game.selectDeck('Order66', defaultGameSettings.players[0].deck);
-        game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
+    //     game.started = true;
+    //     // for (const player of Object.values<Player>(pendingGame.players)) {
+    //     //     game.selectDeck(player.name, player.deck);
+    //     // }
+    //     game.selectDeck('Order66', defaultGameSettings.players[0].deck);
+    //     game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
 
-        game.initialise();
-    }
+    //     game.initialise();
+    // }
 
     // onSpectator(pendingGame: PendingGame, user) {
     //     const game = this.games.get(pendingGame.id);
@@ -230,15 +190,15 @@ export class GameServer {
     //     this.sendGameState(game);
     // }
 
-    public onCloseGame(gameId) {
-        const game = this.games.get(gameId);
-        if (!game) {
-            return;
-        }
+    // public onCloseGame(gameId) {
+    //     const game = this.games.get(gameId);
+    //     if (!game) {
+    //         return;
+    //     }
 
-        this.games.delete(gameId);
-        // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-    }
+    //     this.games.delete(gameId);
+    //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
+    // }
 
     public onCardData(cardData) {
         this.titleCardData = cardData.titleCardData;
@@ -256,52 +216,47 @@ export class GameServer {
             return;
         }
 
-        const game = this.findGameForUser(ioSocket.request.user.username);
-        if (!game) {
+        if (!this.lobbies.has(user.username)) {
             logger.info('No game for', ioSocket.request.user.username, 'disconnecting');
             ioSocket.disconnect();
             return;
         }
+        const lobby = this.lobbies.get(user.username);
 
         const socket = new Socket(ioSocket);
 
-        const player = game.playersAndSpectators[socket.user.username];
-        if (!player) {
-            return;
-        }
+        // const player = game.playersAndSpectators[socket.user.username];
+        // if (!player) {
+        //     return;
+        // }
 
-        player.lobbyId = player.id;
-        player.id = socket.id;
-        if (player.disconnected) {
-            logger.info(`user ${socket.user.username} reconnected to game`);
-            game.reconnect(socket, player.name);
-        }
+        // player.id = socket.id;
+        // if (player.disconnected) {
+        //     logger.info(`user ${socket.user.username} reconnected to game`);
+        //     game.reconnect(socket, player.name);
+        // }
 
-        socket.joinChannel(game.id);
+        socket.joinChannel(lobby.id);
 
-        player.socket = socket;
+        // player.socket = socket;
 
-        if (!game.isSpectator(player)) {
-            game.addMessage('{0} has connected to the game server', player);
-        }
+        // if (!game.isSpectator(player)) {
+        //     game.addMessage('{0} has connected to the game server', player);
+        // }
 
-        this.sendGameState(game);
+        // this.sendGameState(game);
 
-        socket.registerEvent('game', this.onGameMessage.bind(this));
+        // socket.registerEvent('game', this.onGameMessage.bind(this));
         socket.on('disconnect', this.onSocketDisconnected.bind(this));
     }
 
     public onSocketDisconnected(socket, reason) {
-        const game = this.findGameForUser(socket.user.username);
-        if (!game) {
-            return;
-        }
 
-        logger.info(`user ${socket.user.username} disconnected from a game: ${reason}`);
+        // logger.info(`user ${socket.user.username} disconnected from a game: ${reason}`);
 
-        const isSpectator = game.isSpectator(game.playersAndSpectators[socket.user.username]);
+        // const isSpectator = game.isSpectator(game.playersAndSpectators[socket.user.username]);
 
-        game.disconnect(socket.user.username);
+        // game.disconnect(socket.user.username);
 
         // if (game.isEmpty()) {
         //     this.games.delete(game.id);
@@ -316,59 +271,36 @@ export class GameServer {
         //     // });
         // }
 
-        this.sendGameState(game);
+        // this.sendGameState(game);
     }
 
-    public onLeaveGame(socket) {
-        const game = this.findGameForUser(socket.user.username);
-        if (!game) {
-            return;
-        }
+    // public onLeaveGame(socket) {
+    //     const game = this.findGameForUser(socket.user.username);
+    //     if (!game) {
+    //         return;
+    //     }
 
-        const isSpectator = game.isSpectator(game.playersAndSpectators[socket.user.username]);
+    //     const isSpectator = game.isSpectator(game.playersAndSpectators[socket.user.username]);
 
-        game.leave(socket.user.username);
+    //     game.leave(socket.user.username);
 
-        // this.zmqSocket.send('PLAYERLEFT', {
-        //     gameId: game.id,
-        //     game: game.getSaveState(),
-        //     player: socket.user.username,
-        //     spectator: isSpectator
-        // });
+    //     // this.zmqSocket.send('PLAYERLEFT', {
+    //     //     gameId: game.id,
+    //     //     game: game.getSaveState(),
+    //     //     player: socket.user.username,
+    //     //     spectator: isSpectator
+    //     // });
 
-        socket.send('cleargamestate');
-        socket.leaveChannel(game.id);
+    //     socket.send('cleargamestate');
+    //     socket.leaveChannel(game.id);
 
-        // if (game.isEmpty()) {
-        //     this.games.delete(game.id);
+    //     // if (game.isEmpty()) {
+    //     //     this.games.delete(game.id);
 
-        //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-        // }
+    //     //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
+    //     // }
 
-        this.sendGameState(game);
-    }
+    //     this.sendGameState(game);
+    // }
 
-    public onGameMessage(socket, command, ...args) {
-        const game = this.findGameForUser(socket.user.username);
-        if (!game) {
-            return;
-        }
-
-        if (command === 'leavegame') {
-            return this.onLeaveGame(socket);
-        }
-
-        if (!game[command] || typeof game[command] !== 'function') {
-            return;
-        }
-
-        this.runAndCatchErrors(game, () => {
-            game.stopNonChessClocks();
-            game[command](socket.user.username, ...args);
-
-            game.continue();
-
-            this.sendGameState(game);
-        });
-    }
 }
