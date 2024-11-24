@@ -28,7 +28,7 @@ describe('Han Solo, Worth the Risk', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.hanSolo);
-                context.player1.clickCard(context.vanguardInfantry)
+                context.player1.clickCard(context.vanguardInfantry);
 
                 // choose which unit to give an experience token (vanguard infantry when defeated ability)
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.colonelYularen]);
@@ -72,7 +72,7 @@ describe('Han Solo, Worth the Risk', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.hanSolo);
-                context.player1.clickCard(context.vanguardInfantry)
+                context.player1.clickCard(context.vanguardInfantry);
 
                 // choose which unit to give an experience token (vanguard infantry when defeated ability)
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.colonelYularen, context.hanSolo]);
@@ -84,9 +84,12 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.hanSolo).toHaveExactUpgradeNames(['experience']);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
+                // empty hand
                 context.player2.passAction();
                 context.player1.clickCard(context.greenSquadronAwing);
                 context.player2.passAction();
+
+                // hand is empty, can not use han solo ability to soft pass
                 expect(context.hanSolo).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.player1).toBeActivePlayer();
             });
