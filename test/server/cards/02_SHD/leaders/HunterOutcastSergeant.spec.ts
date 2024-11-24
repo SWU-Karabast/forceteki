@@ -1,7 +1,7 @@
 describe('Hunter, Outcast Sergeant', function () {
     integration(function (contextRef) {
         describe('Hunter\'s leader undeployed ability', function () {
-            it('should give +1/+0 to a friendly unit when play a unit with keyword (first unit play)', function () {
+            it('should reveal a resource and bring back to hand if it share a name with a friendly unit in play and resource the top card', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -37,7 +37,7 @@ describe('Hunter, Outcast Sergeant', function () {
         });
 
         describe('Hunter\'s leader deployed ability', function () {
-            it('should give +1/+0 to a friendly unit when play a unit with keyword (first unit play)', function () {
+            it('should reveal a resource and bring back to hand if it share a name with a friendly unit in play and resource the top card', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {

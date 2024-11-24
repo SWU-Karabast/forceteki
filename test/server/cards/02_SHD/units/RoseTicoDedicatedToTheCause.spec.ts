@@ -18,7 +18,7 @@ describe('Rose Tico, Dedicated to the Cause', function () {
                 });
             });
 
-            it('should defeat a friendly upgrade and give a shield token', function () {
+            it('should defeat a shield on a friendly unit and give 2 experience tokens', function () {
                 const { context } = contextRef;
                 const myShields = context.player1.findCardsByName('shield');
                 const roseTicoShield = myShields.find((s) => s.parentCard === context.roseTico);
