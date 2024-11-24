@@ -81,6 +81,12 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         event.damageDealt = event.card.addDamage(eventDamageAmount, event.damageSource);
 
+        // excess damage can be "used up" by effects such as Overwhelm, making it unavailable for other effects such Blizzard Assault AT-AT
+        // see unofficial dev ruling at https://nexus.cascadegames.com/resources/Rules_Clarifications/
+        if (event.sourceEventForExcessDamage) {
+            event.sourceEventForExcessDamage.availableExcessDamage = 0;
+        }
+
         event.availableExcessDamage = eventDamageAmount - event.damageDealt;
     }
 
@@ -92,16 +98,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertHasProperty(event, 'sourceEventForExcessDamage', 'Damage event does not have damage amount or source event to get excess damage amount from');
         Contract.assertHasProperty(event.sourceEventForExcessDamage, 'availableExcessDamage', 'Damage event is missing excess damage amount');
 
-        const availableExcessDamage = event.sourceEventForExcessDamage.availableExcessDamage;
-
-        if (availableExcessDamage === 0) {
-            return 0;
-        }
-
-        // excess damage can be "used up" by effects such as Overwhelm, making it unavailable for other effects such Blizzard Assault AT-AT
-        // see unofficial dev ruling at https://nexus.cascadegames.com/resources/Rules_Clarifications/
-        event.sourceEventForExcessDamage.availableExcessDamage = 0;
-        return availableExcessDamage;
+        return event.sourceEventForExcessDamage.availableExcessDamage;
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
@@ -153,9 +150,13 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
                 Contract.fail(`Unexpected damage type: ${properties['type']}`);
         }
 
-        // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
-        const damageAmount = event.amount ?? event.sourceEventForExcessDamage?.availableExcessDamage ?? 0;
-        event.willDefeat = card.canBeDamaged() && card.damage + damageAmount >= card.getHp();
+        if (card.canBeDamaged()) {
+            const damageAmount = this.getDamageAmountFromEvent(event);
+            event.availableExcessDamage = damageAmount - Math.min(damageAmount, card.remainingHp);
+
+            // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
+            event.willDefeat = damageAmount >= card.remainingHp;
+        }
     }
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
