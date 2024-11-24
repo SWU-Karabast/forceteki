@@ -6,8 +6,7 @@ describe('Reckless Gunslinger', function () {
                     phase: 'action',
                     player1: {
                         hand: ['reckless-gunslinger']
-                    },
-                    player2: {}
+                    }
                 });
             });
 
