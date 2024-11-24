@@ -8,14 +8,10 @@ import jwt from 'jsonwebtoken';
 import socketio from 'socket.io';
 
 import { logger } from '../logger';
-import Game from '../game/core/Game';
+
 import { Lobby } from './Lobby';
-import type Player from '../game/core/Player';
-// import type PendingGame from './PendingGame';
 import Socket from '../socket';
 import * as env from '../env';
-import { spec } from 'node:test/reporters';
-import defaultGameSettings from './defaultGame';
 
 export class GameServer {
     private lobbies = new Map<string, Lobby>();
@@ -43,7 +39,7 @@ export class GameServer {
                 ? http.createServer(app)
                 : https.createServer({ key: privateKey, cert: certificate });
 
-                
+
         const corsOptions = {
             origin: ['http://localhost:3000', 'https://your-production-domain.com'],
             methods: ['GET', 'POST'],
@@ -51,7 +47,7 @@ export class GameServer {
         };
         app.use(cors(corsOptions));
         this.setupAppRoutes(app);
-                
+
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
@@ -71,9 +67,19 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
-        app.get('/api/create-game', (req, res) => {
-            res.send('OK');
+        app.post('/api/create-lobby', (req, res) => {
+            if (this.createLobby(req.body.user)) {
+                res.status(200).json({ success: true });
+            } else {
+                res.status(400).json({ success: false });
+            }
         });
+    }
+
+    private createLobby(user: string) {
+        const lobby = new Lobby();
+        this.lobbies.set(user, lobby);
+        return true;
     }
 
 
@@ -120,17 +126,17 @@ export class GameServer {
     //     next();
     // }
 
-    public gameWon(game: Game, reason: string, winner: Player): void {
-        // const saveState = game.getSaveState();
-        // // this.zmqSocket.send('GAMEWIN', { game: saveState, winner: winner.name, reason: reason });
+    // public gameWon(game: Game, reason: string, winner: Player): void {
+    // const saveState = game.getSaveState();
+    // // this.zmqSocket.send('GAMEWIN', { game: saveState, winner: winner.name, reason: reason });
 
-        // void axios
-        //     .post(
-        //         `https://l5r-analytics-engine-production.up.railway.app/api/game-report/${env.environment}`,
-        //         saveState
-        //     )
-        //     .catch(() => {});
-    }
+    // void axios
+    //     .post(
+    //         `https://l5r-analytics-engine-production.up.railway.app/api/game-report/${env.environment}`,
+    //         saveState
+    //     )
+    //     .catch(() => {});
+    // }
 
     // TODO: Once we have lobbies this will take in game details. Not sure if we end up doing that through L5R's PendingGame or not.
     // public onStartGame(): void {
@@ -225,6 +231,8 @@ export class GameServer {
 
         const socket = new Socket(ioSocket);
 
+        lobby.addParticipant(user.username, socket);
+
         // const player = game.playersAndSpectators[socket.user.username];
         // if (!player) {
         //     return;
@@ -236,7 +244,6 @@ export class GameServer {
         //     game.reconnect(socket, player.name);
         // }
 
-        socket.joinChannel(lobby.id);
 
         // player.socket = socket;
 
@@ -244,13 +251,18 @@ export class GameServer {
         //     game.addMessage('{0} has connected to the game server', player);
         // }
 
-        // this.sendGameState(game);
-
-        // socket.registerEvent('game', this.onGameMessage.bind(this));
-        socket.on('disconnect', this.onSocketDisconnected.bind(this));
+        socket.on('disconnect', () => this.onSocketDisconnected(user.username));
     }
 
-    public onSocketDisconnected(socket, reason) {
+    public onSocketDisconnected(username: string) {
+        if (!this.lobbies.has(username)) {
+            return;
+        }
+
+        const lobby = this.lobbies.get(username);
+
+        lobby.removeParticipant(username);
+        this.lobbies.delete(username);
 
         // logger.info(`user ${socket.user.username} disconnected from a game: ${reason}`);
 
@@ -302,5 +314,4 @@ export class GameServer {
 
     //     this.sendGameState(game);
     // }
-
 }
