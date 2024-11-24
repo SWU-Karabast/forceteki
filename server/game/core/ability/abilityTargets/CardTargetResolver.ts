@@ -64,10 +64,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     protected override hasLegalTarget(context: AbilityContext) {
-        const optional = this.selector.optional
-        const enoughTargets = this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
-        // console.log(optional, enoughTargets, this.properties);
-        return optional || enoughTargets;
+        return this.selector.optional || this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
     private getAllLegalTargets(context: AbilityContext): Card[] {
@@ -81,9 +78,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         let choosingFromHidden = false;
         const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
         if (CardTargetResolver.allZonesAreHidden(this.properties.zoneFilter, choosingPlayer) && this.selector.hasAnyCardFilter) {
-            console.log(context.properties.limit);
-            this.properties.optional = this.properties.optional || this.selector.optional || !context.ability.isAction() || context.ability.cost.length > 0;
-            this.selector.optional =this.properties.optional; //true;
+            this.properties.optional = true;
+            this.selector.optional = true;
             this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle();
             this.selector.defaultActivePromptTitle = () => this.selector.oldDefaultActivePromptTitle.concat(' ' + CardTargetResolver.choosingFromHiddenPrompt);
             choosingFromHidden = true;

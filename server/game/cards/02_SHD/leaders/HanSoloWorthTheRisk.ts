@@ -19,16 +19,15 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
-                canChooseNoCards: false,
-                immediateEffect: /*AbilityHelper.immediateEffects.sequential([*/
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
-                    })//,
-                    // AbilityHelper.immediateEffects.damage((context) => ({
-                    //     amount: 2,
-                    //     target: context.target
-                    // }))
-              //  ])
+                    }),
+                    AbilityHelper.immediateEffects.damage((context) => ({
+                        amount: 2,
+                        target: context.target
+                    }))
+                ])
             }
         });
     }
@@ -40,16 +39,15 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
-                canChooseNoCards: false,
-                immediateEffect:// AbilityHelper.immediateEffects.sequential([
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
-                    })//,
-                    // AbilityHelper.immediateEffects.damage((context) => ({
-                    //     amount: 2,
-                    //     target: context.target
-                    // }))
-                // ])
+                    }),
+                    AbilityHelper.immediateEffects.damage((context) => ({
+                        amount: 2,
+                        target: context.target
+                    }))
+                ])
             }
         });
     }
