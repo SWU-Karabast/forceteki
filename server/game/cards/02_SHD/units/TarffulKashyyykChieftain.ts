@@ -16,9 +16,8 @@ export default class TarffulKashyyykChieftain extends NonLeaderUnitCard {
             when: {
                 onDamageDealt: (event, context) =>
                     event.type === DamageType.Combat &&
+                    !event.willDefeat &&
                     event.card.hasSomeTrait(Trait.Wookiee) &&
-                    event.isResolved &&
-                    event.card.canBeInPlay() && event.card.isInPlay() && !event.card.pendingDefeat &&
                     event.card.controller === context.source.controller
             },
             targetResolver: {

@@ -149,6 +149,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             default:
                 Contract.fail(`Unexpected damage type: ${properties['type']}`);
         }
+
+        // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
+        const damageAmount = event.amount ?? event.sourceEventForExcessDamage?.availableExcessDamage ?? 0;
+        event.willDefeat = card.canBeDamaged() && card.damage + damageAmount >= card.getHp();
     }
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
