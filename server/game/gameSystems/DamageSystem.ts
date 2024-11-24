@@ -25,6 +25,9 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
     type?: DamageType.Ability;    // this is optional so it can be the default property type
     amount: number | ((card: UnitCard) => number);
+
+    /** The source of the damage, if different from the card that triggered the ability */
+    source?: Card;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -229,8 +232,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
         const abilityDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
-            player: context.player,
-            card: context.source,
+            player: properties.source?.controller ?? context.player,
+            card: properties.source ?? context.source,
             event
         };
 

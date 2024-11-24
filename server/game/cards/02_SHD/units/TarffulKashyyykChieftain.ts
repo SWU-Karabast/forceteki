@@ -25,7 +25,8 @@ export default class TarffulKashyyykChieftain extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: context.event.amount
+                    amount: context.event.amount,
+                    source: context.event.card
                 }))
             }
         });
