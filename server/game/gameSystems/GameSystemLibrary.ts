@@ -75,6 +75,7 @@ import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './D
 import { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
 import { ITakeControlProperties, TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
+import { IPlayModalCardProperties, PlayModalCardSystem } from './PlayModalCardSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -144,7 +145,7 @@ export function giveExperience<TContext extends AbilityContext = AbilityContext>
 export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveShieldProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new GiveShieldSystem<TContext>(propertyFactory);
 }
-export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>): GameSystem<TContext> {
+export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
 }
 export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookAtProperties, TContext> = {}): GameSystem<TContext> {
@@ -189,6 +190,10 @@ export function playCardFromHand<TContext extends AbilityContext = AbilityContex
     // TODO: implement a "nested" property in PlayCardSystem that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
     // playType automatically defaults to PlayFromHand
     return new PlayCardSystem(propertyFactory);
+}
+
+export function playModalCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayModalCardProperties, TContext>): PlayModalCardSystem<TContext> {
+    return new PlayModalCardSystem<TContext>(propertyFactory);
 }
 export function exhaustResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustResourcesProperties, TContext>): GameSystem<TContext> {
     return new ExhaustResourcesSystem<TContext>(propertyFactory);

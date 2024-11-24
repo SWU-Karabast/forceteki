@@ -193,6 +193,7 @@ export enum EventName {
     OnCardLeavesPlay = 'onCardLeavesPlay',
     OnCardMoved = 'onCardMoved',
     OnCardPlayed = 'onCardPlayed',
+    OnPlayModalCard = 'onPlayModalCard',
     OnCardReadied = 'onCardReadied',
     OnCardResourced = 'onCardResourced',
     OnCardReturnedToHand = 'onCardReturnedToHand',
