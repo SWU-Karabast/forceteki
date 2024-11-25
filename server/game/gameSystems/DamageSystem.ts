@@ -150,13 +150,13 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
                 Contract.fail(`Unexpected damage type: ${properties['type']}`);
         }
 
-        if (card.canBeDamaged()) {
-            const damageAmount = this.getDamageAmountFromEvent(event);
-            event.availableExcessDamage = damageAmount - Math.min(damageAmount, card.remainingHp);
+        Contract.assertTrue(card.canBeDamaged());
 
-            // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
-            event.willDefeat = damageAmount >= card.remainingHp;
-        }
+        const damageAmount = this.getDamageAmountFromEvent(event);
+        event.availableExcessDamage = damageAmount - Math.min(damageAmount, card.remainingHp);
+
+        // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
+        event.willDefeat = damageAmount >= card.remainingHp;
     }
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
