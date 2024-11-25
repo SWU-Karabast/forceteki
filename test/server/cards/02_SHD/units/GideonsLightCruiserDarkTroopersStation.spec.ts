@@ -85,7 +85,7 @@ describe('Gideon\'s Light Cruiser, Dark Troopers\' Station', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.phaseiiiDarkTrooper]);
                 expect(context.player1).not.toHavePassAbilityButton();
 
-                // play scout bike pursuer
+                // play phase 3 dark trooper
                 context.player1.clickCard(context.phaseiiiDarkTrooper);
 
                 // unit should be played as free
@@ -97,9 +97,10 @@ describe('Gideon\'s Light Cruiser, Dark Troopers\' Station', function () {
                 context.player1.moveCard(context.gideonsLightCruiser, 'hand');
                 context.player2.passAction();
 
-                // play gideon's light cruiser again, phase 3 trooper should be played automatically
+                // play gideon's light cruiser again, can play scout bike pursuer or pass (as we play it from hand)
                 context.player1.clickCard(context.gideonsLightCruiser);
-                context.player1.clickPrompt('');
+                expect(context.player1).toHavePassSingleTargetPrompt('If you control Moff Gideon, play a Villainy unit that costs 3 or less from your hand or discard pile for free.', context.scoutBikePursuer);
+                context.player1.clickPrompt('If you control Moff Gideon, play a Villainy unit that costs 3 or less from your hand or discard pile for free. -> Scout Bike Pursuer');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.scoutBikePursuer).toBeInZone('groundArena');

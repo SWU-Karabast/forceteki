@@ -48,7 +48,7 @@ describe('Rose Tico, Dedicated to the Cause', function () {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.roseTico).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
-                expect(context.atst).toHaveExactUpgradeNames(['shield','shield']);
+                expect(context.atst).toHaveExactUpgradeNames(['shield', 'shield']);
                 expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['shield', 'shield']);
             });
         });
