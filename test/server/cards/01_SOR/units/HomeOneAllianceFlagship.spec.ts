@@ -6,11 +6,12 @@ describe('Home One', function () {
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
-                        spaceArena: ['home-one#alliance-flagship'],
+                        spaceArena: ['home-one#alliance-flagship', 'alliance-xwing'],
                         base: { card: 'echo-base', damage: 10 },
                     },
                     player2: {
-                        groundArena: ['rugged-survivors', 'cargo-juggernaut']
+                        groundArena: ['rugged-survivors', 'cargo-juggernaut'],
+                        spaceArena: ['bright-hope#the-last-transport']
                     }
                 });
             });
@@ -27,7 +28,20 @@ describe('Home One', function () {
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.p1Base.damage).toBe(9);
 
-                expect(context.player2).toBeActivePlayer();
+                context.player2.passAction();
+
+                // should give Restore 1 for space units as well
+                context.player1.clickCard(context.allianceXwing);
+
+                expect(context.p1Base.damage).toBe(8);
+
+                context.player2.clickCard(context.brightHope);
+                context.player2.clickCard(context.p1Base);
+
+                // enemy units shouldn't have restore 1, p2 base damage should still be 3
+                expect(context.p2Base.damage).toBe(3);
+
+                expect(context.player1).toBeActivePlayer();
             });
         });
 
@@ -41,7 +55,7 @@ describe('Home One', function () {
                         base: 'echo-base',
                         leader: 'han-solo#audacious-smuggler',
                         discard: ['echo-base-defender', 'crafty-smuggler', 'chewbacca#loyal-companion'],
-                        resources: 11
+                        resources: 8
                     },
                     player2: {
                         groundArena: ['rugged-survivors', 'cargo-juggernaut']
@@ -54,10 +68,7 @@ describe('Home One', function () {
 
                 context.player1.clickCard(context.homeOne);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender, context.chewbacca]);
-
-                context.player1.clickCard(context.echoBaseDefender);
-
+                // should skip prompt if only one valid target is found
                 expect(context.echoBaseDefender).toBeInZone('groundArena');
 
                 // should only exhaust resources up to home one's cost
@@ -68,6 +79,8 @@ describe('Home One', function () {
 
             it('should play a heroic unit that costs more than 3 resources from the discard pile with discount', function () {
                 const { context } = contextRef;
+
+                context.player1.setResourceCount(11);
 
                 context.player1.clickCard(context.homeOne);
 
@@ -83,7 +96,6 @@ describe('Home One', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
-
 
         describe('Home One\'s when played ability', function () {
             beforeEach(function () {
