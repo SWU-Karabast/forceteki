@@ -125,7 +125,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     protected override processTargets(target: Card | Card[]) {
-        if (this.properties.shuffleTargets && Array.isArray(target)) {
+        if (this.properties?.shuffleTargets && Array.isArray(target)) {
             shuffleArray(target);
         }
         return target;
