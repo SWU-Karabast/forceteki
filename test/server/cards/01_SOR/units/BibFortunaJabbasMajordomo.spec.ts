@@ -16,6 +16,17 @@ describe('Bib Fortuna', function() {
             it('should allow the controller to play an event with a discount of 1', function () {
                 const { context } = contextRef;
 
+                const reset = (passAction = true) => {
+                    context.bibFortuna.exhausted = false;
+                    context.player1.moveCard(context.repair, 'hand');
+                    context.player1.moveCard(context.confiscate, 'hand');
+                    context.player1.readyResources(5);
+                    if (passAction) {
+                        context.player2.passAction();
+                    }
+                };
+
+                // CASE 1: Controller plays an event with 1 discount
                 context.player1.clickCard(context.bibFortuna);
 
                 expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play an event from your hand. It costs 1 less.']);
@@ -29,20 +40,17 @@ describe('Bib Fortuna', function() {
                 expect(context.bibFortuna.exhausted).toBe(true);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
-
                 context.player2.passAction();
 
                 // cost discount from bib fortuna should be gone
                 context.player1.clickCard(context.confiscate);
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
-                context.player2.passAction();
-                context.bibFortuna.exhausted = false;
-            });
+                expect(context.player2).toBeActivePlayer();
 
-            it('should not give the next unit played by the controller a discount after the controller declines to play a unit with the ability', function() {
-                const { context } = contextRef;
+                reset();
 
+                // CASE 2: Controller skips playing an event, discount should not be applied
                 context.player1.clickCard(context.bibFortuna);
 
                 context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
@@ -59,15 +67,16 @@ describe('Bib Fortuna', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();
-            });
 
-            it('should be able to select and play an event that costs exactly 1 more than ready resources', function() {
-                const { context } = contextRef;
+                reset();
+
+                // CASE 3: Controller should be able to select and play an event that costs exactly 1 more than ready resources
                 context.player1.setResourceCount(0);
 
                 context.player1.clickCard(context.bibFortuna);
 
                 context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+                expect(context.player1).toBeAbleToSelectExactly([context.repair, context.confiscate]);
                 context.player1.clickCard(context.repair);
                 // selects target for repair
                 context.player1.clickCard(context.capitalCity);
