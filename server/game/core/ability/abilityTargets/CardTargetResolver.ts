@@ -97,8 +97,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
         // if there are legal targets but this wouldn't have a gamestate-changing effect on any of them, we can just shortcut and skip selection
         // (unless there are dependent targets that might care about the targeting result)
+        // also, some complex implementations(e.g. Don't Get Cocky) use a targetResolver with no immediateEffect to have the player choose a target for referencing later
+        // these will appear to have no effect on any target, but should not be skipped
         if (
             !this.dependentTarget &&
+            this.immediateEffect &&
             !legalTargets.some((target) => this.immediateEffect.canAffect(
                 target,
                 this.getContextCopy(target, context),
