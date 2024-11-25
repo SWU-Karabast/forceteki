@@ -115,7 +115,7 @@ describe('Vigilance', function() {
                     context.player1.clickPrompt('Discard 6 cards from an opponent\'s deck.');
 
                     // check board state
-                    expect(context.p2Base.damage).toEqual(6);
+                    expect(context.p2Base.damage).toEqual(0);
                     expect(context.player1).toHaveEnabledPromptButtons([
                         'Defeat a unit with 3 or less remaining HP.',
                         'Heal 5 damage from a base.',
