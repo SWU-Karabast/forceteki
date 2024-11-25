@@ -7,6 +7,7 @@ describe('Rose Tico, Dedicated to the Cause', function () {
                     player1: {
                         groundArena: [
                             'wampa',
+                            'lom-pyke#dealer-in-truths',
                             { card: 'battlefield-marine', upgrades: ['jedi-lightsaber'] },
                             { card: 'rose-tico#dedicated-to-the-cause', upgrades: ['shield', 'experience'] },
                         ],
@@ -20,8 +21,19 @@ describe('Rose Tico, Dedicated to the Cause', function () {
 
             it('should defeat a shield on a friendly unit and give 2 experience tokens', function () {
                 const { context } = contextRef;
-                const myShields = context.player1.findCardsByName('shield');
-                const roseTicoShield = myShields.find((s) => s.parentCard === context.roseTico);
+                const roseTicoShield = context.roseTico.upgrades.find((card) => card.isShield());
+
+                context.player1.clickCard(context.lomPyke);
+                context.player1.clickCard(context.p2Base);
+
+                // add shield on enemy unit with lom pyke
+                context.player1.clickPrompt('Give a Shield token to an enemy unit');
+                // atst is automatically choose
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                context.player2.passAction();
+
+                const myShields = context.player1.findCardsByName('shield').filter((shield) => shield.parentCard.controller === context.player1.player);
 
                 context.player1.clickCard(context.roseTico);
                 context.player1.clickCard(context.p2Base);
@@ -36,8 +48,8 @@ describe('Rose Tico, Dedicated to the Cause', function () {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.roseTico).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
-                expect(context.atst).toHaveExactUpgradeNames(['shield']);
-                expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['shield']);
+                expect(context.atst).toHaveExactUpgradeNames(['shield','shield']);
+                expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['shield', 'shield']);
             });
         });
     });

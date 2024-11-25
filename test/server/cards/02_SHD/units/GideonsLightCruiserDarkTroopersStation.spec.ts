@@ -86,11 +86,11 @@ describe('Gideon\'s Light Cruiser, Dark Troopers\' Station', function () {
                 expect(context.player1).not.toHavePassAbilityButton();
 
                 // play scout bike pursuer
-                context.player1.clickCard(context.scoutBikePursuer);
+                context.player1.clickCard(context.phaseiiiDarkTrooper);
 
                 // unit should be played as free
                 expect(context.player2).toBeActivePlayer();
-                expect(context.scoutBikePursuer).toBeInZone('groundArena');
+                expect(context.phaseiiiDarkTrooper).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(8);
 
                 // reset
@@ -99,9 +99,10 @@ describe('Gideon\'s Light Cruiser, Dark Troopers\' Station', function () {
 
                 // play gideon's light cruiser again, phase 3 trooper should be played automatically
                 context.player1.clickCard(context.gideonsLightCruiser);
+                context.player1.clickPrompt('');
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.phaseiiiDarkTrooper).toBeInZone('groundArena');
+                expect(context.scoutBikePursuer).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(16);
             });
         });

@@ -19,7 +19,7 @@ export default class RoseTicoDedicatedToTheCause extends NonLeaderUnitCard {
                 cardCondition: (card, context) => card.isShield() && card.parentCard.controller === context.source.controller,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     // TODO: this is a hack to store the parent card of the upgrade before it's defeated.
-                    // once last known state is implemented, we need to read the upgrade's parent card from that (same for on-attack)
+                    // once last known state is implemented, we need to read the upgrade's parent card from that
                     AbilityHelper.immediateEffects.handler((context) => ({
                         handler: () => context.targets.upgradeParentCard = context.target.parentCard
                     })),
