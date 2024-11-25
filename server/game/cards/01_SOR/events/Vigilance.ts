@@ -29,7 +29,7 @@ export default class Vigilance extends EventCard {
                         cardCondition: (card: any) => card.getHp() <= 3,
                         innerSystem: AbilityHelper.immediateEffects.defeat()
                     }),
-                    ['Give a Shield token to a unit']: AbilityHelper.immediateEffects.selectCard({
+                    ['Give a Shield token to a unit.']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
                         innerSystem: AbilityHelper.immediateEffects.giveShield()
                     }),
