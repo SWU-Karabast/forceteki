@@ -40,6 +40,7 @@ export class PlayUnitAction extends PlayCardAction {
         // TODO TAKE CONTROL
         const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
         const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
+
         const entersReady = this.entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady);
 
         const events = [

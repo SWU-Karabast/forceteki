@@ -107,5 +107,78 @@ describe('Capture mechanic', function() {
             expect(context.battlefieldMarine.exhausted).toBeTrue();
             expect(context.academyTraining).toBeInZone('discard');
         });
+
+        describe('When multiple units are guarding captured units', function() {
+            beforeEach(function() {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['take-captive', 'evacuate', 'superlaser-blast'],
+                        groundArena: ['wampa', 'atst'],
+                        spaceArena: ['wing-leader']
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel'],
+                        spaceArena: ['tieln-fighter'],
+                        hand: ['discerning-veteran', 'take-captive']
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1TakeCaptive = context.player1.findCardByName('take-captive');
+                const p2TakeCaptive = context.player2.findCardByName('take-captive');
+
+                // SETUP: Discerning Veteran captures two cards, Wing Leader captures one, Pyke Sentinel zero
+                context.player1.clickCard(p1TakeCaptive);
+                context.player1.clickCard(context.wingLeader);
+
+                context.player2.clickCard(context.discerningVeteran);
+                context.player2.clickCard(context.wampa);
+
+                context.player1.passAction();
+
+                // Take Captive automatically selects AT-ST
+                context.player2.clickCard(p2TakeCaptive);
+                context.player2.clickCard(context.discerningVeteran);
+            });
+
+            it('and all units in the arena are returned to hand, all captured units are rescued', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.evacuate);
+
+                // check captured units are rescued
+                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.wampa.exhausted).toBeTrue();
+                expect(context.atst).toBeInZone('groundArena');
+                expect(context.atst.exhausted).toBeTrue();
+                expect(context.tielnFighter).toBeInZone('spaceArena');
+                expect(context.tielnFighter.exhausted).toBeTrue();
+
+                // check previous arena units are returned to hand
+                expect(context.wingLeader).toBeInZone('hand');
+                expect(context.pykeSentinel).toBeInZone('hand');
+                expect(context.discerningVeteran).toBeInZone('hand');
+            });
+
+            it('and all units in the arena are defeated, all captured units are rescued', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.superlaserBlast);
+
+                // check captured units are rescued
+                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.wampa.exhausted).toBeTrue();
+                expect(context.atst).toBeInZone('groundArena');
+                expect(context.atst.exhausted).toBeTrue();
+                expect(context.tielnFighter).toBeInZone('spaceArena');
+                expect(context.tielnFighter.exhausted).toBeTrue();
+
+                // check previous arena units are returned to hand
+                expect(context.wingLeader).toBeInZone('discard');
+                expect(context.pykeSentinel).toBeInZone('discard');
+                expect(context.discerningVeteran).toBeInZone('discard');
+            });
+        });
     });
 });

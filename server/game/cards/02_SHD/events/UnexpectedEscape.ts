@@ -16,11 +16,11 @@ export default class UnexpectedEscape extends EventCard {
             targetResolvers: {
                 exhaust: {
                     zoneFilter: WildcardZoneName.AnyArena,
-                    controller: RelativePlayer.Opponent,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 },
                 rescue: {
                     dependsOn: 'exhaust',
+                    // TODO: make activePromptTitle able to be a function so we can put the name of the capturing unit in the title
                     activePromptTitle: 'Rescue a captured card guarded by that unit',
                     optional: true,
                     zoneFilter: ZoneName.Capture,

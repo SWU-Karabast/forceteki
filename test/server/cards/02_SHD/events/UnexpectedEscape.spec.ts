@@ -5,35 +5,35 @@ describe('Unexpected Escape', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['unexpected-escape'],
+                        hand: ['take-captive', 'unexpected-escape'],
                         groundArena: ['wampa', 'atst'],
-                        spaceArena: ['wing-leader']
+                        spaceArena: ['tieln-fighter']
                     },
                     player2: {
                         groundArena: ['pyke-sentinel'],
-                        spaceArena: ['tieln-fighter'],
-                        hand: ['discerning-veteran', 'take-captive', 'take-captive']
+                        spaceArena: ['wing-leader'],
+                        hand: ['discerning-veteran', 'take-captive']
                     }
                 });
 
                 const { context } = contextRef;
-                const [takeCaptive1, takeCaptive2] = context.player2.findCardsByName('take-captive');
+                const p1TakeCaptive = context.player1.findCardByName('take-captive');
+                const p2TakeCaptive = context.player2.findCardByName('take-captive');
 
-                // SETUP: Discerning Veteran captures two cards, TIE/LN Fighter captures one, Pyke Sentinel zero
-                context.player1.passAction();
+                // SETUP: P2 Discerning Veteran captures two cards, P1 TIE/LN captures one, P2 Pyke Sentinel zero
+                context.player1.clickCard(p1TakeCaptive);
+                context.player1.clickCard(context.tielnFighter);
+
                 context.player2.clickCard(context.discerningVeteran);
                 context.player2.clickCard(context.wampa);
 
                 context.player1.passAction();
-                context.player2.clickCard(takeCaptive1);
-                context.player2.clickCard(context.discerningVeteran);
+
                 // Take Captive automatically selects AT-ST
+                context.player2.clickCard(p2TakeCaptive);
+                context.player2.clickCard(context.discerningVeteran);
 
-                context.player1.passAction();
-                context.player2.clickCard(takeCaptive2);
-                // Take Captive automatically resolves to TIE/LN capturing Wing Leader
-
-                context.discerningVeteran.exhausted = false;
+                // Discerning Veteran stays exhausted
             });
 
             it('can select one of multiple captured units to rescue and exhaust the captor', function() {
