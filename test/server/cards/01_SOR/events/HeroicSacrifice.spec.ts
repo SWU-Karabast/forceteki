@@ -10,7 +10,7 @@ describe('Heroic Sacrifice', function() {
                         spaceArena: ['tieln-fighter']
                     },
                     player2: {
-                        groundArena: ['sundari-peacekeeper', 'atst'],
+                        groundArena: ['sundari-peacekeeper', 'atst', { card: 'crafty-smuggler', upgrades: ['shield'] }],
                     }
                 });
             });
@@ -25,11 +25,33 @@ describe('Heroic Sacrifice', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.tielnFighter]);
 
                 context.player1.clickCard(context.isbAgent);
-                expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.atst, context.p2Base]);
+                expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.atst, context.craftySmuggler, context.p2Base]);
 
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.isbAgent).toBeInZone('discard');
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should draw a card and attack with a unit giving +2/+0 for this attack and not defeat unit if no combat damage is dealt', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heroicSacrifice);
+
+                expect(context.player1.handSize).toBe(1);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.tielnFighter]);
+
+                context.player1.clickCard(context.isbAgent);
+                expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.atst, context.craftySmuggler, context.p2Base]);
+
+                context.player1.clickCard(context.craftySmuggler);
+
+                expect(context.craftySmuggler.upgrades.length).toBe(0);
+                expect(context.craftySmuggler).toBeInZone('groundArena');
+
+                expect(context.isbAgent).toBeInZone('groundArena');
 
                 expect(context.player2).toBeActivePlayer();
             });
