@@ -11,7 +11,6 @@ import {
 } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers.js';
-import { shuffleArray } from '../core/utils/Helpers.js';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 
@@ -25,12 +24,12 @@ import * as Contract from '../core/utils/Contract';
  *
  * @property destination - The target zone for the card. Excludes discard pile, space arena, ground arena, and resources.
  * @property shuffle - Indicates whether the card should be shuffled into the destination.
- * @property shuffleTargets - Indicates whether all targets should be shuffled before added into the destination.
+ * @property shuffleMovedCards - Indicates whether all targets should be shuffled before added into the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
     destination?: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
-    shuffleTargets?: boolean;
+    shuffleMovedCards?: boolean;
 }
 
 // TODO: since there are already some more specific for moving to arena, hand, etc., what's the remaining use case for this? and can we rename it to be more specific?
@@ -125,8 +124,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     protected override processTargets(target: Card | Card[]) {
-        if (this.properties?.shuffleTargets && Array.isArray(target)) {
-            shuffleArray(target);
+        if (this.properties?.shuffleMovedCards && Array.isArray(target)) {
+            Helpers.shuffleArray(target);
         }
         return target;
     }

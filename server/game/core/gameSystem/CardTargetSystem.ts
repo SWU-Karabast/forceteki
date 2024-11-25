@@ -1,13 +1,19 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { CardType, CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, WildcardCardType } from '../Constants';
+import {
+    CardTypeFilter,
+    EffectName,
+    EventName,
+    GameStateChangeRequired,
+    WildcardCardType,
+    ZoneName
+} from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
-// import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -230,6 +236,10 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         event.card.moveTo(event.destination);
     }
 
+    /**
+     * You can override this method in case you need to make operations on targets before queuing events
+     * (for example you can look MoveCardSystem.ts for shuffleMovedCards part)
+     */
     protected processTargets(target: Card | Card[]) {
         return target;
     }

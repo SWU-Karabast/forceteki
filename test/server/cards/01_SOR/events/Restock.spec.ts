@@ -1,6 +1,6 @@
-describe('Restock', function() {
-    integration(function(contextRef) {
-        describe('Restock\'s ability', function() {
+describe('Restock', function () {
+    integration(function (contextRef) {
+        describe('Restock\'s ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -66,6 +66,28 @@ describe('Restock', function() {
                 expect(context.consularSecurityForce).toBeInBottomOfDeck(context.player2, 3);
                 expect(context.specforceSoldier).toBeInBottomOfDeck(context.player2, 3);
                 expect(context.echoBaseDefender).toBeInBottomOfDeck(context.player2, 3);
+            });
+
+            it('can return no card', function () {
+                const { context } = contextRef;
+
+                // play restock
+                context.player1.clickCard(context.restock);
+
+                // can select both discards
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.battlefieldMarine, context.resupply, context.restock, context.consularSecurityForce, context.specforceSoldier, context.echoBaseDefender]);
+
+                context.player1.clickPrompt('Done');
+
+                // no cards selected, all cards should be in discard
+                expect(context.pykeSentinel).toBeInZone('discard');
+                expect(context.atst).toBeInZone('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.resupply).toBeInZone('discard');
+                expect(context.restock).toBeInZone('discard');
+                expect(context.consularSecurityForce).toBeInZone('discard');
+                expect(context.specforceSoldier).toBeInZone('discard');
+                expect(context.echoBaseDefender).toBeInZone('discard');
             });
         });
     });
