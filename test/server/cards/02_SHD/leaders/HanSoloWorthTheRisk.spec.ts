@@ -30,6 +30,7 @@ describe('Han Solo, Worth the Risk', function () {
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.vanguardInfantry);
 
+                // TODO FIX TRIGGER WINDOW (YULAREN & VANGUARD INFANTRY SHOULD BE ON THE SAME WINDOW)
                 // choose which unit to give an experience token (vanguard infantry when defeated ability)
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.colonelYularen]);
                 context.player1.clickCard(context.cantinaBraggart);
@@ -74,6 +75,7 @@ describe('Han Solo, Worth the Risk', function () {
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.vanguardInfantry);
 
+                // TODO FIX TRIGGER WINDOW (YULAREN & VANGUARD INFANTRY SHOULD BE ON THE SAME WINDOW)
                 // choose which unit to give an experience token (vanguard infantry when defeated ability)
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.colonelYularen, context.hanSolo]);
                 context.player1.clickCard(context.hanSolo);
@@ -94,7 +96,7 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+            it('should not play a unit from our hand if hand is empty (as first action)', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
