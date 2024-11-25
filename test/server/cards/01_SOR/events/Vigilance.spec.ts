@@ -7,8 +7,10 @@ describe('Vigilance', function() {
                     player1: {
                         hand: ['vigilance'],
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer'],
-                        groundArena: ['wampa', 'battlefield-marine'],
-                        base: { card: 'echo-base', damage: 6 }
+                        groundArena: [{ card: 'wampa', damage: 2 }, 'battlefield-marine'],
+                        spaceArena: [{ card: 'restored-arc170', upgrades: ['entrenched'] }],
+                        base: { card: 'echo-base', damage: 6 },
+
                     },
                     player2: {
                         groundArena: ['viper-probe-droid'],
@@ -44,7 +46,13 @@ describe('Vigilance', function() {
                 context.player1.clickPrompt('Give a shield token to a unit.');
 
                 // check available selectors
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.viperProbeDroid, context.darthVader, context.battlefieldMarine]);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.wampa,
+                    context.viperProbeDroid,
+                    context.darthVader,
+                    context.battlefieldMarine,
+                    context.restoredArc170,
+                ]);
                 context.player1.clickCard(context.wampa);
 
                 // check board state
@@ -64,7 +72,7 @@ describe('Vigilance', function() {
                     'Give a Shield token to a unit.'
                 ]);
                 context.player1.clickPrompt('Defeat a unit with 3 or less remaining HP.');
-                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.battlefieldMarine]);
+                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.battlefieldMarine, context.wampa]);
                 context.player1.clickCard(context.viperProbeDroid);
 
                 // check board state
@@ -100,7 +108,7 @@ describe('Vigilance', function() {
                 });
             });
 
-            it('discards 6 cards from an opponent\'s deck dealing 6 damage to his base and heal 0 damage from base.',
+            it('discards 6 cards from an opponent\'s deck dealing 0 damage to his base and heal 0 damage from base.',
                 function () {
                     const { context } = contextRef;
                     context.player1.clickCard(context.vigilance);

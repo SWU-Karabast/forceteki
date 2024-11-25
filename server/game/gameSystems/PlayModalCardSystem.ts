@@ -1,64 +1,71 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { GameEvent } from '../core/event/GameEvent';
-import { EventName } from '../core/Constants';
+import { MetaEventName } from '../core/Constants';
 import { IChoicesInterface } from '../TargetInterfaces';
+import { GameSystem } from '../core/gameSystem/GameSystem';
+import type Player from '../core/Player';
 
 export interface IPlayModalCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountOfChoices: number;
     choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
 }
 
-export class PlayModalCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPlayModalCardProperties> {
-    public override readonly name = 'playModalCardSystem';
-    protected override readonly eventName = EventName.OnPlayModalCard;
+export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPlayModalCardProperties> {
+    public override readonly name = 'ChooseModalEffectsSystem';
+    protected override readonly eventName = MetaEventName.ChooseModalEffects;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext): void {
         const properties = this.generatePropertiesFromContext(context);
-        let listOfChoices = properties.choices;
-        if (typeof properties.choices === 'function') {
-            listOfChoices = properties.choices(context);
-        }
+        const listOfAvailableEffects =
+            typeof properties.choices === 'function'
+                ? properties.choices(context)
+                : properties.choices;
 
         // recursively calls the function and removes handlers from the list until the player can't make anymore choices.
-        const choiceHandler = (player, choices, amountOfChoices: number) => {
+        const choiceHandler = (
+            player: Player,
+            listOfAvailableEffects: IChoicesInterface,
+            amountOfChoices: number
+        ) => {
             if (amountOfChoices === 0) {
                 return;
             }
             // setup the choices for the modal card
             context.game.promptWithHandlerMenu(player, {
                 activePromptTitle: `Choose ${amountOfChoices} of the following`,
-                choices: Object.keys(choices),
-                handlers: Object.entries(choices).map((choice) => () => this.pushEvent(
+                choices: Object.keys(listOfAvailableEffects),
+                handlers: Object.entries(listOfAvailableEffects).map((selectedEffect: [string, GameSystem]) => () => this.pushEvent(
                     events,
-                    choice,
+                    selectedEffect[0],
+                    selectedEffect[1],
                     context,
                     amountOfChoices,
-                    choices,
+                    listOfAvailableEffects,
                     choiceHandler
                 ))
             });
         };
-        choiceHandler(context.player, listOfChoices, properties.amountOfChoices);
+        choiceHandler(context.player, listOfAvailableEffects, properties.amountOfChoices);
     }
 
     // Helper method for pushing the correct event into the events array.
     private pushEvent(
         events: GameEvent[],
-        choice: any,
+        selectedPrompt: string,
+        selectedSystem: GameSystem,
         context: TContext,
         amountOfChoices: number,
-        choices,
-        choiceHandler: (player: any, choices: IChoicesInterface, amountOfChoices: number) => void,
+        listOfAvailableEffects: IChoicesInterface,
+        choiceHandler: (player: Player, choices: IChoicesInterface, amountOfChoices: number) => void,
     ) {
-        const [prompt, gameSystem] = choice;
         // Add generate event to perform the gameSystem selected
         context.game.queueSimpleStep(() => {
             const eventsForThisAction = [];
-            gameSystem.queueGenerateEventGameSteps(eventsForThisAction, context);
+            selectedSystem.queueGenerateEventGameSteps(eventsForThisAction, context);
             context.game.queueSimpleStep(() => {
                 for (const event of eventsForThisAction) {
                     events.push(event);
@@ -67,11 +74,11 @@ export class PlayModalCardSystem<TContext extends AbilityContext = AbilityContex
                 if (amountOfChoices !== 1) {
                     context.game.openEventWindow(eventsForThisAction);
                 }
-            }, `open event window for playModalCard system ${gameSystem.name}`);
-        }, `check and add events for playModalCard system ${gameSystem.name}`);
+            }, `open event window for playModalCard system ${selectedSystem.name}`);
+        }, `check and add events for playModalCard system ${selectedSystem.name}`);
 
         // remove the selected choice from the list
-        const { [prompt]: removedKey, ...reducedListOfChoices } = choices;
-        choiceHandler(context.player, reducedListOfChoices, (amountOfChoices - 1));
+        const { [selectedPrompt]: removedKey, ...reducedListOfAvailableEffects } = listOfAvailableEffects;
+        choiceHandler(context.player, reducedListOfAvailableEffects, (amountOfChoices - 1));
     }
 }

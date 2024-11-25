@@ -193,7 +193,6 @@ export enum EventName {
     OnCardLeavesPlay = 'onCardLeavesPlay',
     OnCardMoved = 'onCardMoved',
     OnCardPlayed = 'onCardPlayed',
-    OnPlayModalCard = 'onPlayModalCard',
     OnCardReadied = 'onCardReadied',
     OnCardResourced = 'onCardResourced',
     OnCardReturnedToHand = 'onCardReturnedToHand',
@@ -248,7 +247,8 @@ export enum MetaEventName {
     ReplacementEffect = 'replacementEffect',
     SelectCard = 'selectCard',
     Sequential = 'sequential',
-    Simultaneous = 'simultaneous'
+    Simultaneous = 'simultaneous',
+    ChooseModalEffects = 'ChooseModalEffects'
 }
 
 export enum AbilityType {

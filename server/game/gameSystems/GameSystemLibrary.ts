@@ -75,7 +75,7 @@ import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './D
 import { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
 import { ITakeControlProperties, TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
-import { IPlayModalCardProperties, PlayModalCardSystem } from './PlayModalCardSystem';
+import { ChooseModalEffectsSystem, IPlayModalCardProperties } from './PlayModalCardSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -192,8 +192,8 @@ export function playCardFromHand<TContext extends AbilityContext = AbilityContex
     return new PlayCardSystem(propertyFactory);
 }
 
-export function playModalCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayModalCardProperties, TContext>): PlayModalCardSystem<TContext> {
-    return new PlayModalCardSystem<TContext>(propertyFactory);
+export function ChooseModalEffects<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayModalCardProperties, TContext>) {
+    return new ChooseModalEffectsSystem<TContext>(propertyFactory);
 }
 export function exhaustResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustResourcesProperties, TContext>): GameSystem<TContext> {
     return new ExhaustResourcesSystem<TContext>(propertyFactory);
