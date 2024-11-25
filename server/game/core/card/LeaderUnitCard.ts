@@ -42,6 +42,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     public override initializeForStartZone(): void {
+        super.initializeForStartZone();
+
         // leaders are always in a zone where they are allowed to be exhausted
         this.setExhaustEnabled(true);
         this.resolveAbilitiesForNewZone();

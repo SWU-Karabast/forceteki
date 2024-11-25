@@ -501,8 +501,10 @@ export class Card extends OngoingEffectSource {
         this.initializeForCurrentZone(null);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected initializeForStartZone(): void {}
+
+    protected initializeForStartZone(): void {
+        this._controller = this.owner;
+    }
 
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
@@ -580,44 +582,37 @@ export class Card extends OngoingEffectSource {
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
             case ZoneName.GroundArena:
-                this._controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Base:
-                this._controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Resource:
-                this._controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Deck:
-                this._controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = true;
                 break;
 
             case ZoneName.Hand:
-                this._controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Capture:
-                this._controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Discard:
             case ZoneName.OutsideTheGame:
-                this._controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;

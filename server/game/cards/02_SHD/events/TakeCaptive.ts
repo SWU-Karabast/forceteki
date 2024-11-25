@@ -21,7 +21,6 @@ export default class TakeCaptive extends EventCard {
                 },
                 captureUnit: {
                     dependsOn: 'friendlyUnit',
-                    cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     controller: RelativePlayer.Opponent,
                     cardCondition: (card, context) => card.zoneName === context.targets['friendlyUnit'].zoneName,
                     immediateEffect: AbilityHelper.immediateEffects.capture((context) => ({ captor: context.targets['friendlyUnit'] }))

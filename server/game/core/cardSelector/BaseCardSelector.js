@@ -10,7 +10,7 @@ class BaseCardSelector {
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
-        this.filterCapturedBy = properties.filterCapturedBy;
+        this.capturedByFilter = properties.capturedByFilter;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
@@ -67,9 +67,9 @@ class BaseCardSelector {
     filterCaptureZones(possibleCards, context) {
         // get cards from capture zones, if any
         const concreteCaptors = Helpers.asArray(
-            typeof this.filterCapturedBy === 'function'
-                ? this.filterCapturedBy(context)
-                : this.filterCapturedBy
+            typeof this.capturedByFilter === 'function'
+                ? this.capturedByFilter(context)
+                : this.capturedByFilter
         );
 
         if (concreteCaptors.length === 0) {
@@ -77,7 +77,7 @@ class BaseCardSelector {
         }
 
         if (!this.zoneFilter.includes(ZoneName.Capture)) {
-            Contract.fail('Cannot use the \'filterCapturedBy\' property without specifying \'ZoneName.Capture\' in the zoneFilter');
+            Contract.fail('Cannot use the \'capturedByFilter\' property without specifying \'ZoneName.Capture\' in the zoneFilter');
         }
 
         for (const captor of concreteCaptors) {

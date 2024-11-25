@@ -63,7 +63,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     zoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** If zoneFilter includes ZoneName.Capture, use this to filter down to only the capture zones of specific units. Otherwise, all captured units in the arena will be targeted. */
-    filterCapturedBy?: Card | Card[] | ((context: TContext) => (Card | Card[]));
+    capturedByFilter?: Card | Card[] | ((context: TContext) => (Card | Card[]));
 
     /** Filter cards by their controller */
     controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
