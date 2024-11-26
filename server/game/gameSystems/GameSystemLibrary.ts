@@ -75,7 +75,7 @@ import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './D
 import { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
 import { ITakeControlProperties, TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
-import { ChooseModalEffectsSystem, IPlayModalCardProperties } from './PlayModalCardSystem';
+import { ChooseModalEffectsSystem, IPlayModalCardProperties } from './ChooseModalEffectsSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';

@@ -108,7 +108,7 @@ describe('Vigilance', function() {
                 });
             });
 
-            it('discards 6 cards from an opponent\'s deck dealing 0 damage to his base and heal 0 damage from base.',
+            it('discarding 6 cards from an opponent\'s empty deck and healing damage from a base with full HP does nothing.',
                 function () {
                     const { context } = contextRef;
                     context.player1.clickCard(context.vigilance);

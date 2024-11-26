@@ -238,6 +238,7 @@ export enum EventName {
 export enum MetaEventName {
     AttackSteps = 'attackSteps',
     Conditional = 'conditional',
+    ChooseModalEffects = 'ChooseModalEffects',
     DistributeDamage = 'distributeDamage',
     DistributeHealing = 'distributeHealing',
     ExecuteHandler = 'executeHandler',
@@ -248,7 +249,6 @@ export enum MetaEventName {
     SelectCard = 'selectCard',
     Sequential = 'sequential',
     Simultaneous = 'simultaneous',
-    ChooseModalEffects = 'ChooseModalEffects'
 }
 
 export enum AbilityType {

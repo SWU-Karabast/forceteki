@@ -29,21 +29,21 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         const choiceHandler = (
             player: Player,
             listOfAvailableEffects: IChoicesInterface,
-            amountOfChoices: number
+            amountOfRemainingChoices: number
         ) => {
-            if (amountOfChoices === 0) {
+            if (amountOfRemainingChoices === 0) {
                 return;
             }
             // setup the choices for the modal card
             context.game.promptWithHandlerMenu(player, {
-                activePromptTitle: `Choose ${amountOfChoices} of the following`,
+                activePromptTitle: `Choose ${amountOfRemainingChoices} of the following`,
                 choices: Object.keys(listOfAvailableEffects),
                 handlers: Object.entries(listOfAvailableEffects).map((selectedEffect: [string, GameSystem]) => () => this.pushEvent(
                     events,
                     selectedEffect[0],
                     selectedEffect[1],
                     context,
-                    amountOfChoices,
+                    amountOfRemainingChoices,
                     listOfAvailableEffects,
                     choiceHandler
                 ))
@@ -58,7 +58,7 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         selectedPrompt: string,
         selectedSystem: GameSystem,
         context: TContext,
-        amountOfChoices: number,
+        amountOfRemainingChoices: number,
         listOfAvailableEffects: IChoicesInterface,
         choiceHandler: (player: Player, choices: IChoicesInterface, amountOfChoices: number) => void,
     ) {
@@ -71,7 +71,7 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
                     events.push(event);
                 }
                 // If this isn't the last choice open a seperate event window
-                if (amountOfChoices !== 1) {
+                if (amountOfRemainingChoices !== 1) {
                     context.game.openEventWindow(eventsForThisAction);
                 }
             }, `open event window for playModalCard system ${selectedSystem.name}`);
@@ -79,6 +79,6 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
 
         // remove the selected choice from the list
         const { [selectedPrompt]: removedKey, ...reducedListOfAvailableEffects } = listOfAvailableEffects;
-        choiceHandler(context.player, reducedListOfAvailableEffects, (amountOfChoices - 1));
+        choiceHandler(context.player, reducedListOfAvailableEffects, (amountOfRemainingChoices - 1));
     }
 }
