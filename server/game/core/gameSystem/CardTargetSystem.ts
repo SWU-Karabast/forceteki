@@ -1,6 +1,13 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { CardType, CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, WildcardCardType, MoveZoneDestination } from '../Constants';
+import {
+    CardTypeFilter,
+    EffectName,
+    EventName,
+    GameStateChangeRequired,
+    WildcardCardType,
+    ZoneName
+} from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -8,7 +15,6 @@ import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { UnitCard } from '../card/CardTypes';
-// import { LoseFateAction } from './LoseFateAction';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -31,7 +37,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
-        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
+        let { target } = this.generatePropertiesFromContext(context, additionalProperties);
+        target = this.processTargets(target);
         for (const card of Helpers.asArray(target)) {
             let allCostsPaid = true;
             const additionalCosts = card
@@ -254,5 +261,13 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         } else {
             defaultMoveAction();
         }
+    }
+
+    /**
+     * You can override this method in case you need to make operations on targets before queuing events
+     * (for example you can look MoveCardSystem.ts for shuffleMovedCards part)
+     */
+    protected processTargets(target: Card | Card[]) {
+        return target;
     }
 }

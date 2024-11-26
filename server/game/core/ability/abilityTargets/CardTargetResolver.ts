@@ -64,7 +64,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     protected override hasLegalTarget(context: AbilityContext) {
-        return this.selector.optional || this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
+        return this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
     private getAllLegalTargets(context: AbilityContext): Card[] {

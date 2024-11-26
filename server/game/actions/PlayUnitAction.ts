@@ -41,10 +41,8 @@ export class PlayUnitAction extends PlayCardAction {
         const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
         const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 
-        const entersReady = this.entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady);
-
         const events = [
-            putIntoPlay({ target: context.source, controller: player, entersReady: entersReady }).generateEvent(context),
+            putIntoPlay({ target: context.source, controller: player, entersReady: this.entersReady }).generateEvent(context),
             cardPlayedEvent
         ];
 
