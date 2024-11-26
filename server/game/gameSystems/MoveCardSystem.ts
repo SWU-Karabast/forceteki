@@ -46,7 +46,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public eventHandler(event: any, additionalProperties = {}): void {
         // Check if the card is leaving play
         if (EnumHelpers.isArena(event.card.zoneName) && !EnumHelpers.isArena(event.destination)) {
-            this.leavesPlayEventHandler(event, additionalProperties);
+            this.leavesPlayEventHandler(event.card, event.destination, event.context, () => event.card.moveTo(event.destination));
         } else {
             // TODO: remove this completely if determined we don't need card snapshots
             // event.cardStateWhenMoved = card.createSnapshot();
@@ -86,11 +86,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
         // Check if the card is leaving play
         if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
-        } else {
-            super.updateEvent(event, card, context, additionalProperties);
         }
     }
 

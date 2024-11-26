@@ -94,11 +94,10 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
-        // TODO maybe refactor addLeavesPlayPropertiesToEvent without calling super.updateEvent()
+        super.updateEvent(event, card, context, additionalProperties);
+
         if (card.zoneName !== ZoneName.Resource) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
-        } else {
-            super.updateEvent(event, card, context, additionalProperties);
         }
     }
 }
