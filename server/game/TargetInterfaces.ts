@@ -9,13 +9,11 @@ import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 /* eslint @stylistic/lines-around-comment: off */
 
 // ********************************************** EXPORTED TYPES **********************************************
-export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
-  | ICardTargetResolver<TContext>
-  | ISelectTargetResolver<TContext>
-  | IDropdownListTargetResolver<TContext>
-  | IPlayerTargetResolver<TContext>;
-
-export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> = Record<string, ITriggeredAbilityTargetResolver<TContext> & ITriggeredAbilityTargetResolver<TContext>>;
+export type ICardTargetResolver<TContext extends AbilityContext> =
+  | ICardExactlyUpToTargetResolver<TContext>
+  | ICardExactlyUpToVariableTargetResolver<TContext>
+  | ICardMaxStatTargetResolver<TContext>
+  | CardSingleUnlimitedTargetResolver<TContext>;
 
 export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> =
   | ICardTargetResolver<TContext>
@@ -23,13 +21,29 @@ export type IActionTargetResolver<TContext extends AbilityContext = AbilityConte
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
-export type IActionTargetsResolver<TContext extends AbilityContext = AbilityContext> = Record<string, IActionTargetResolver<TContext>>;
+export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
+  | ICardTargetResolver<TContext>
+  | ISelectTargetResolver<TContext>
+  | IDropdownListTargetResolver<TContext>
+  | IPlayerTargetResolver<TContext>;
 
-export type ICardTargetResolver<TContext extends AbilityContext> =
-  | ICardExactlyUpToTargetResolver<TContext>
-  | ICardExactlyUpToVariableTargetResolver<TContext>
-  | ICardMaxStatTargetResolver<TContext>
-  | CardSingleUnlimitedTargetResolver<TContext>;
+export type ICardTargetsResolver<TContext extends AbilityContext> = ICardTargetResolver<TContext> & { optional?: boolean };
+
+export type IActionTargetsResolverInner<TContext extends AbilityContext = AbilityContext> =
+  | ICardTargetsResolver<TContext>
+  | ISelectTargetResolver<TContext>
+  | IDropdownListTargetResolver<TContext>
+  | IPlayerTargetResolver<TContext>;
+
+export type ITriggeredAbilityTargetsResolverInner<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
+  | ICardTargetsResolver<TContext>
+  | ISelectTargetResolver<TContext>
+  | IDropdownListTargetResolver<TContext>
+  | IPlayerTargetResolver<TContext>;
+
+export type IActionTargetsResolver<TContext extends AbilityContext = AbilityContext> = Record<string, IActionTargetsResolverInner<TContext>>;
+
+export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> = Record<string, ITriggeredAbilityTargetsResolverInner<TContext>>;
 
 export interface ISelectTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     mode: TargetMode.Select;
@@ -47,6 +61,9 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
 export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
+
+    /** If zoneFilter includes ZoneName.Capture, use this to filter down to only the capture zones of specific units. Otherwise, all captured units in the arena will be targeted. */
+    capturedByFilter?: Card | Card[] | ((context: TContext) => (Card | Card[]));
 
     /** Filter cards by their controller */
     controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
@@ -72,12 +89,12 @@ export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> 
 interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     zoneFilter?: ZoneFilter | ZoneFilter[];
-    optional?: boolean;
     cardCondition?: (card: Card, context?: TContext) => boolean;
 }
 
 interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode: TargetMode.Exactly | TargetMode.UpTo;
+    canChooseNoCards?: boolean;
     numCards: number;
     sameDiscardPile?: boolean;
 }
@@ -85,6 +102,7 @@ interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extend
 interface ICardExactlyUpToVariableTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode: TargetMode.ExactlyVariable | TargetMode.UpToVariable;
     numCardsFunc: (context: TContext) => number;
+    canChooseNoCards?: boolean;
 }
 
 interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
@@ -92,6 +110,7 @@ interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends IC
     numCards: number;
     cardStat: (card: Card) => number;
     maxStat: () => number;
+    canChooseNoCards?: boolean;
 }
 
 interface CardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {

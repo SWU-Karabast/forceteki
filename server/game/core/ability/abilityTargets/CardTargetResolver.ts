@@ -1,10 +1,10 @@
-import { ICardTargetResolver } from '../../../TargetInterfaces';
+import { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
 import { AbilityContext } from '../AbilityContext';
 import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { Card } from '../../card/Card';
-import { Stage, EffectName, ZoneFilter, RelativePlayer, GameStateChangeRequired } from '../../Constants';
+import { Stage, EffectName, ZoneFilter, RelativePlayer, GameStateChangeRequired, ZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
@@ -14,12 +14,22 @@ import { GameSystem } from '../../gameSystem/GameSystem';
 /**
  * Target resolver for selecting cards for the target of an effect.
  */
-export class CardTargetResolver extends TargetResolver<ICardTargetResolver<AbilityContext>> {
+export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<AbilityContext>> {
     private immediateEffect: GameSystem;
     private selector: any;
 
+    private static choosingFromHiddenPrompt = '(because you are choosing from a hidden zone you may choose nothing)';
+
+    public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
+        return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
+    }
+
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
+
+        if ('canChooseNoCards' in this.properties) {
+            this.properties.optional = this.properties.optional || this.properties.canChooseNoCards;
+        }
 
         this.selector = this.getSelector(properties);
         this.immediateEffect = properties.immediateEffect;
@@ -37,7 +47,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
-            return (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
+            return (!this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
               (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState));
         };
@@ -54,7 +64,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     protected override hasLegalTarget(context: AbilityContext) {
-        return this.selector.optional || this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
+        return this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
     private getAllLegalTargets(context: AbilityContext): Card[] {
@@ -62,17 +72,6 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
     }
 
     protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        // A player can always choose not to pick a card from a zone that is hidden from their opponents
-        // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
-        // TODO: test if picking a card from an opponent's usually hidden zone(e.g. opponent's hand) works as expected(the if block here should be skipped)
-        const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
-        if (CardTargetResolver.allZonesAreHidden(this.properties.zoneFilter, choosingPlayer) && this.selector.hasAnyCardFilter) {
-            this.properties.optional = true;
-            this.selector.optional = true;
-            this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle();
-            this.selector.defaultActivePromptTitle = () => this.selector.oldDefaultActivePromptTitle.concat(' (because you are choosing from a hidden zone you may choose nothing)');
-        }
-
         const legalTargets = this.selector.getAllLegalTargets(context, player);
         if (legalTargets.length === 0) {
             if (context.stage === Stage.PreTarget) {
@@ -83,10 +82,27 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
             return;
         }
 
+        // A player can always choose not to pick a card from a zone that is hidden from their opponents
+        // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
+        // TODO: test if picking a card from an opponent's usually hidden zone(e.g. opponent's hand) works as expected(the if block here should be skipped)
+        let choosingFromHidden = false;
+        const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
+        const zones = new Set<ZoneName>(legalTargets.map((card) => card.zoneName));
+        if (CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)) {
+            this.properties.optional = true;
+            this.selector.optional = true;
+            this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle();
+            this.selector.defaultActivePromptTitle = () => this.selector.oldDefaultActivePromptTitle.concat(' ' + CardTargetResolver.choosingFromHiddenPrompt);
+            choosingFromHidden = true;
+        }
+
         // if there are legal targets but this wouldn't have a gamestate-changing effect on any of them, we can just shortcut and skip selection
         // (unless there are dependent targets that might care about the targeting result)
+        // also, some complex implementations(e.g. Don't Get Cocky) use a targetResolver with no immediateEffect to have the player choose a target for referencing later
+        // these will appear to have no effect on any target, but should not be skipped
         if (
             !this.dependentTarget &&
+            this.immediateEffect &&
             !legalTargets.some((target) => this.immediateEffect.canAffect(
                 target,
                 this.getContextCopy(target, context),
@@ -100,8 +116,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
 
         targetResults.hasEffectiveTargets = true;
 
-        // if there's only one target available, automatically select it without prompting
+        // if there's only one target available...
         if (context.player.autoSingleTarget && legalTargets.length === 1) {
+            // ...and we are an optional resolver, prompt the player if they want to resolve
+            if (this.selector.optional) {
+                this.promptForSingleOptionalTarget(context, legalTargets[0], choosingFromHidden);
+                return;
+            }
+
+            // ...and we are a non-optional resolver, auto-select
             this.setTargetResult(context, legalTargets[0]);
             return;
         }
@@ -172,8 +195,20 @@ export class CardTargetResolver extends TargetResolver<ICardTargetResolver<Abili
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 
-    public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
-        return zoneFilter && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
+    private promptForSingleOptionalTarget(context: AbilityContext, target: Card, choosingFromHidden: boolean) {
+        const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.title;
+
+        const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${choosingFromHidden ? ' ' + CardTargetResolver.choosingFromHiddenPrompt : ''}`;
+
+        context.game.promptWithHandlerMenu(context.player, {
+            activePromptTitle,
+            choices: [`${effectName} -> ${target.title}`, 'Pass'],
+            handlers: [
+                () => this.setTargetResult(context, target),
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
+                () => {}
+            ]
+        });
     }
 
     private cancel(targetResults) {

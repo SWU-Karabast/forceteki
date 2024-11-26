@@ -72,8 +72,65 @@ describe('Bounty', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // TODO CAPTURE: add Bounty resolution tests with Capture
-            // TODO: check that bounty does not happen when the card is returned to hand, for both printed and attached bounties
+            it('is captured, the ability should resolve under the opponent\'s control', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['hylobon-enforcer']
+                    },
+                    player2: {
+                        hand: ['discerning-veteran']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                // capture Hylobon Enforced with Discerning Veteran
+                context.player2.clickCard(context.discerningVeteran);
+                expect(context.hylobonEnforcer).toBeCapturedBy(context.discerningVeteran);
+
+                expect(context.player2).toHavePassAbilityPrompt('Bounty: Draw a card');
+                context.player2.clickPrompt('Bounty: Draw a card');
+
+                expect(context.player1.handSize).toBe(0);
+                expect(context.player2.handSize).toBe(1);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('gained from an effect is captured, the ability should resolve under the opponent\'s control', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            { card: 'battlefield-marine', upgrades: ['top-target'] },
+                            { card: 'atst', damage: 5 }
+                        ]
+                    },
+                    player2: {
+                        hand: ['discerning-veteran']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                // capture Battlefield Marine with Discerning Veteran
+                context.player2.clickCard(context.discerningVeteran);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeCapturedBy(context.discerningVeteran);
+                expect(context.topTarget).toBeInZone('discard');
+
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.discerningVeteran, context.atst]);
+                expect(context.player2).toHavePassAbilityButton();
+                context.player2.clickCard(context.atst);
+                expect(context.atst.damage).toBe(1);
+
+                expect(context.player1).toBeActivePlayer();
+            });
 
             it('is on the field, it should be targetable by abilities filtering for Bounty', function () {
                 contextRef.setupTest({

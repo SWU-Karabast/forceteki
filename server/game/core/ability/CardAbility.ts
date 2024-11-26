@@ -26,7 +26,7 @@ export class CardAbility extends CardAbilityStep {
 
         this.title = properties.title;
         this.abilityCost = this.cost;
-        this.printedAbility = properties.printedAbility === false ? false : true;
+        this.printedAbility = properties.printedAbility !== false;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;
@@ -97,29 +97,6 @@ export class CardAbility extends CardAbilityStep {
         }
 
         return super.meetsRequirements(context, ignoredRequirements);
-    }
-
-    public override getCosts(context, playCosts = true, triggerCosts = true) {
-        let costs = super.getCosts(context, playCosts);
-        if (!context.subResolution && triggerCosts && context.player.hasOngoingEffect(EffectName.AdditionalTriggerCost)) {
-            const additionalTriggerCosts = context.player
-                .getOngoingEffectValues(EffectName.AdditionalTriggerCost)
-                .map((effect) => effect(context));
-            costs = costs.concat(...additionalTriggerCosts);
-        }
-        if (!context.subResolution && triggerCosts && context.source.hasOngoingEffect(EffectName.AdditionalTriggerCost)) {
-            const additionalTriggerCosts = context.source
-                .getOngoingEffectValues(EffectName.AdditionalTriggerCost)
-                .map((effect) => effect(context));
-            costs = costs.concat(...additionalTriggerCosts);
-        }
-        if (!context.subResolution && playCosts && context.player.hasOngoingEffect(EffectName.AdditionalPlayCost)) {
-            const additionalPlayCosts = context.player
-                .getOngoingEffectValues(EffectName.AdditionalPlayCost)
-                .map((effect) => effect(context));
-            return costs.concat(...additionalPlayCosts);
-        }
-        return costs;
     }
 
     public getAdjustedCost(context) {
