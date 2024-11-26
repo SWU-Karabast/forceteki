@@ -89,7 +89,8 @@ describe('Capture mechanic', function() {
                 },
                 player2: {
                     groundArena: ['wampa'],
-                    hand: ['discerning-veteran', 'vanquish']
+                    hand: ['discerning-veteran', 'vanquish'],
+                    leader: { card: 'han-solo#worth-the-risk', deployed: true, exhausted: true },
                 }
             });
 
@@ -97,21 +98,29 @@ describe('Capture mechanic', function() {
 
             context.player1.passAction();
 
-            // capture Battlefield Marine with Discerning Veteran
-            context.player2.clickCard(context.discerningVeteran);
+            // use Han Solo to play Discerning Veteran which captures Battlefield Marine
+            context.player2.clickCard(context.hanSolo);
+            context.player2.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it. -> Discerning Veteran');
+            expect(context.battlefieldMarine).toBeCapturedBy(context.discerningVeteran);
+
+            // player 1 flip Palpatine to take control of Discerning Veteran and confirm all state
+            context.player1.clickCard(context.emperorPalpatine);
+            expect(context.discerningVeteran.capturedUnits.length).toBe(1);
+            expect(context.discerningVeteran.capturedUnits[0]).toBe(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeCapturedBy(context.discerningVeteran);
 
             context.player2.passAction();
 
-            // capture AT-ST with Discerning Veteran
+            // capture player 2's Wampa with controlled Discerning Veteran
             context.player1.clickCard(context.takeCaptive);
-            expect(context.atst).toBeCapturedBy(context.discerningVeteran);
+            context.player1.clickCard(context.discerningVeteran);
             expect(context.wampa).toBeCapturedBy(context.discerningVeteran);
 
-            // defeat Discerning Veteran, both units rescued
+            // defeat Discerning Veteran, both units rescued and returned to their owner's arena
             context.player2.clickCard(context.vanquish);
-            expect(context.atst).toBeInZone('groundArena');
-            expect(context.wampa).toBeInZone('groundArena');
-            expect(context.atst.exhausted).toBeTrue();
+            expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+            expect(context.wampa).toBeInZone('groundArena', context.player2);
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
             expect(context.wampa.exhausted).toBeTrue();
         });
 
