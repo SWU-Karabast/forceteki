@@ -30,7 +30,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
 
         const lastingEffectRestrictions = event.card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
         const { effect, ...otherProperties } = properties;
-        const effectProperties = Object.assign({ matchTarget: event.card, zoneFilter: WildcardZoneName.Any }, otherProperties);
+        const effectProperties = Object.assign({ matchTarget: event.card, zoneFilter: WildcardZoneName.Any, isLastingEffect: true }, otherProperties);
         let effects = effect.map((factory) =>
             factory(event.context.game, event.context.source, effectProperties)
         );
