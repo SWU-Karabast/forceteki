@@ -9,7 +9,7 @@ describe('Consortium Star Viper', function () {
                         base: { card: 'dagobah-swamp', damage: 5 },
                     },
                     player2: {
-                        groundArena: ['atst', 'battlefield-marine', 'partisan-insurgent'],
+                        groundArena: ['atst'],
                     }
                 });
 
