@@ -15,6 +15,7 @@ import * as env from '../env';
 
 export class GameServer {
     private lobbies = new Map<string, Lobby>();
+    private userLobbyMap = new Map<string, string>();
     private protocol = 'https';
     private host = env.gameNodeHost;
     private io: socketio.Server;
@@ -78,7 +79,10 @@ export class GameServer {
 
     private createLobby(user: string) {
         const lobby = new Lobby();
-        this.lobbies.set(user, lobby);
+        this.lobbies.set(lobby.id, lobby);
+        // Using default user for now
+        this.userLobbyMap.set('Order66', lobby.id);
+        this.userLobbyMap.set('ThisIsTheWay', lobby.id);
         return true;
     }
 
@@ -222,16 +226,16 @@ export class GameServer {
             return;
         }
 
-        if (!this.lobbies.has(user.username)) {
-            logger.info('No game for', ioSocket.request.user.username, 'disconnecting');
+        if (!this.userLobbyMap.has(user.username)) {
+            logger.info('No lobby for', ioSocket.request.user.username, 'disconnecting');
             ioSocket.disconnect();
             return;
         }
-        const lobby = this.lobbies.get(user.username);
-
+        const lobbyId = this.userLobbyMap.get(user.username);
+        const lobby = this.lobbies.get(lobbyId);
         const socket = new Socket(ioSocket);
 
-        lobby.addParticipant(user.username, socket);
+        lobby.addLobbyUser(user.username, socket);
 
         // const player = game.playersAndSpectators[socket.user.username];
         // if (!player) {
@@ -251,17 +255,18 @@ export class GameServer {
         //     game.addMessage('{0} has connected to the game server', player);
         // }
 
-        socket.on('disconnect', () => this.onSocketDisconnected(user.username));
+        // socket.on('disconnect', () => this.onSocketDisconnected(user.username));
     }
 
     public onSocketDisconnected(username: string) {
-        if (!this.lobbies.has(username)) {
+        if (!this.userLobbyMap.has(username)) {
             return;
         }
 
-        const lobby = this.lobbies.get(username);
+        const lobbyId = this.userLobbyMap.get(username);
+        const lobby = this.lobbies.get(lobbyId);
 
-        lobby.removeParticipant(username);
+        lobby.removeLobbyUser(username);
         this.lobbies.delete(username);
 
         // logger.info(`user ${socket.user.username} disconnected from a game: ${reason}`);

@@ -4,10 +4,17 @@ import { v4 as uuid } from 'uuid';
 import Socket from '../socket';
 import defaultGameSettings from './defaultGame';
 
+interface LobbyUser {
+    id: string;
+    state: 'connected' | 'disconnected';
+    socket: Socket | null;
+}
+
 export class Lobby {
     private readonly _id: string;
     private game: Game;
-    private participants = new Map<string, Socket>();
+    // switch partic
+    private users: LobbyUser[] = [];
 
     public constructor() {
         this._id = uuid();
@@ -17,22 +24,33 @@ export class Lobby {
         return this._id;
     }
 
-    public addParticipant(id: string, socket: Socket): void {
-        this.participants.set(id, socket);
+    public addLobbyUser(id: string, socket: Socket): void {
+        const existingUser = this.users.find((u) => u.id === id);
+
         socket.registerEvent('startGame', () => this.onStartGame());
-        socket.registerEvent('game', (command, ...args) => this.onGameMessage(socket, command, ...args));
+        socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
+        // socket.on('disconnect', () => {this.disconnectLobbyUser(id)});
+        // figuring out how to properly mark a user disconnected
+        // maybe we neeed to be using socket.data
+        if (existingUser) {
+            existingUser.state = 'connected';
+            existingUser.socket = socket;
+        } else {
+            this.users.push({ id: id, state: 'connected', socket });
+        }
+
 
         if (this.game) {
             this.sendGameState(this.game);
         }
     }
 
-    public removeParticipant(id: string): void {
-        this.participants.delete(id);
+    public removeLobbyUser(id: string): void {
+        this.users = this.users.filter((u) => u.id !== id);
     }
 
     public isLobbyEmpty(): boolean {
-        return this.participants.size === 0;
+        return this.users.length === 0;
     }
 
     private onStartGame(): void {
@@ -116,8 +134,10 @@ export class Lobby {
     }
 
     public sendGameState(game: Game): void {
-        for (const [participant, socket] of this.participants) {
-            socket.send('gamestate', game.getState(participant));
+        for (const user of this.users) {
+            if (user.state === 'connected' && user.socket) {
+                user.socket.send('gamestate', game.getState(user.id));
+            }
         }
     }
 }
