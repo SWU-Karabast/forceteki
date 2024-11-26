@@ -23,6 +23,7 @@ import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployabl
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import { CaptureZone } from '../zone/CaptureZone';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -55,8 +56,8 @@ export class Card extends OngoingEffectSource {
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
-    private _zone: Zone;
     private nextAbilityIdx = 0;
+    private _zone: Zone;
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
@@ -431,7 +432,6 @@ export class Card extends OngoingEffectSource {
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
         return (
-            !this.facedown &&
             (ignoredRequirements.includes('triggeringRestrictions') ||
               !this.hasRestriction(AbilityRestriction.TriggerAbilities, context))
         );
@@ -455,35 +455,38 @@ export class Card extends OngoingEffectSource {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const originalZone = this.zoneName;
-
         if (originalZone === targetZone) {
             return;
         }
 
-        this.cleanupBeforeMove(targetZone);
-
-        const prevZone = this._zone;
-
-        if (prevZone != null) {
-            if (prevZone.name === ZoneName.Base) {
-                Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${prevZone}`);
-                prevZone.removeLeader();
-            } else {
-                prevZone.removeCard(this);
-            }
-        }
+        const prevZone = this.zoneName;
+        this.removeFromCurrentZone();
 
         if (resetController) {
             this._controller = this.owner;
         }
 
         this.addSelfToZone(targetZone);
-        this.initializeForCurrentZone(prevZone.name);
+
+        this.postMoveSteps(prevZone);
+    }
+
+    protected removeFromCurrentZone() {
+        if (this._zone.name === ZoneName.Base) {
+            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this._zone}`);
+            this._zone.removeLeader();
+        } else {
+            this._zone.removeCard(this);
+        }
+    }
+
+    protected postMoveSteps(movedFromZone: ZoneName) {
+        this.initializeForCurrentZone(movedFromZone);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
-            originalZone: originalZone,
-            newZone: targetZone
+            originalZone: movedFromZone,
+            newZone: this.zoneName
         });
 
         this.game.registerMovedCard(this);
@@ -498,8 +501,10 @@ export class Card extends OngoingEffectSource {
         this.initializeForCurrentZone(null);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected initializeForStartZone(): void {}
+
+    protected initializeForStartZone(): void {
+        this._controller = this.owner;
+    }
 
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
@@ -558,12 +563,6 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Deals with any engine effects of leaving the current zone before the move happens
-     */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextZone: MoveZoneDestination) {}
-
-    /**
      * Updates the card's abilities for its current zone after being moved.
      * Called from {@link Game.resolveGameState} after event resolution.
      */
@@ -583,38 +582,37 @@ export class Card extends OngoingEffectSource {
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
             case ZoneName.GroundArena:
-                this._controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Base:
-                this._controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Resource:
-                this._controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Deck:
-                this._controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = true;
                 break;
 
             case ZoneName.Hand:
-                this._controller = this.owner;
                 this._facedown = false;
+                this.hiddenForController = false;
+                break;
+
+            case ZoneName.Capture:
+                this._facedown = true;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Discard:
             case ZoneName.OutsideTheGame:
-                this._controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
@@ -761,45 +759,6 @@ export class Card extends OngoingEffectSource {
 
         return total;
     }
-
-    /**
-     * Deals with the engine effects of leaving play, making sure all statuses are removed. Anything which changes
-     * the state of the card should be here. This is also called in some strange corner cases e.g. for upgrades
-     * which aren't actually in play themselves when their parent (which is in play) leaves play.
-     */
-    public leavesPlay() {
-        // TODO: reuse this for capture logic
-        // // Remove any cards underneath from the game
-        // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
-        // if (cardsUnderneath.length > 0) {
-        //     cardsUnderneath.forEach((card) => {
-        //         this.controller.moveCard(card, ZoneName.RemovedFromGame);
-        //     });
-        //     this.game.addMessage(
-        //         '{0} {1} removed from the game due to {2} leaving play',
-        //         cardsUnderneath,
-        //         cardsUnderneath.length === 1 ? 'is' : 'are',
-        //         this
-        //     );
-        // }
-    }
-
-    // TODO CAPTURE: will probably need to leverage or modify the below "child card" methods (see basecard.ts in L5R for reference)
-    // originally these were for managing province cards
-
-    // protected addChildCard(card, zone) {
-    //     this.childCards.push(card);
-    //     this.controller.moveCard(card, zone);
-    // }
-
-    // protected removeChildCard(card, zone) {
-    //     if (!card) {
-    //         return;
-    //     }
-
-    //     this.childCards = this.childCards.filter((a) => a !== card);
-    //     this.controller.moveCard(card, zone);
-    // }
 
     // createSnapshot() {
     //     const clone = new Card(this.owner, this.cardData);

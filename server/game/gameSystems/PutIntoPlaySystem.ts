@@ -1,7 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, EventName, KeywordName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import {
+    AbilityRestriction, EffectName,
+    EventName,
+    KeywordName,
+    RelativePlayer,
+    WildcardCardType,
+    ZoneName
+} from '../core/Constants';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { Card } from '../core/card/Card';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
@@ -22,30 +28,18 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         entersReady: false
     };
 
-
     public eventHandler(event, additionalProperties = {}): void {
-        const player = this.getPutIntoPlayPlayer(event.context);
-
-        let finalController = event.context.player;
-        if (event.controller === RelativePlayer.Opponent) {
-            finalController = finalController.opponent;
-        }
-
         event.card.moveTo(event.card.defaultArena);
+
+        // TODO TAKE CONTROL
+        if (event.controller !== RelativePlayer.Self) {
+            throw new Error(`Attempting to put ${event.card.internalName} into play for opponent, which is not implemented yet`);
+        }
 
         if (event.status === 'ready') {
             event.card.ready();
         } else {
             event.card.exhaust();
-        }
-
-        // TODO TAKE CONTROL: fix this, see if other similar systems have the same logic
-        // moveCard sets all this stuff and only works if the owner is moving cards, so we're switching it around
-        if (event.card.controller !== finalController) {
-            event.card.controller = finalController;
-            // event.card.setDefaultController(event.card.controller);
-            event.card.owner.cardsInPlay.splice(event.card.owner.cardsInPlay.indexOf(event.card), 1);
-            event.card.controller.cardsInPlay.push(event.card);
         }
     }
 
@@ -56,7 +50,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     public override canAffect(card: Card, context: TContext): boolean {
         const contextCopy = context.copy({ source: card });
-        const player = this.getPutIntoPlayPlayer(contextCopy);
+        const player = this.getPutIntoPlayPlayer(contextCopy, card);
         if (!super.canAffect(card, context)) {
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
@@ -80,10 +74,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
-        event.status = entersReady ? 'ready' : event.status;
+        event.status = entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady) ? 'ready' : event.status;
     }
 
-    private getPutIntoPlayPlayer(context: AbilityContext) {
-        return context.player;
+    private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
+        return context.player || card.owner;
     }
 }
