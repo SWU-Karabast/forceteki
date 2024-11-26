@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
+    "concurrently": "^9.1.0",
     "cpy-cli": "^5.0.0",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
