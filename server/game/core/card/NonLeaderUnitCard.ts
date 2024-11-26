@@ -8,6 +8,7 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { TokenOrPlayableCard } from './CardTypes';
+import { CaptureZone } from '../zone/CaptureZone';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 
@@ -48,6 +49,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
                 this.setDamageEnabled(true);
                 this.setExhaustEnabled(true);
                 this.setUpgradesEnabled(true);
+                this.setCaptureZoneEnabled(true);
                 break;
 
             case ZoneName.Resource:
@@ -55,6 +57,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
                 this.setDamageEnabled(false);
                 this.setExhaustEnabled(true);
                 this.setUpgradesEnabled(false);
+                this.setCaptureZoneEnabled(false);
                 break;
 
             default:
@@ -62,6 +65,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
                 this.setDamageEnabled(false);
                 this.setExhaustEnabled(false);
                 this.setUpgradesEnabled(false);
+                this.setCaptureZoneEnabled(false);
                 break;
         }
     }

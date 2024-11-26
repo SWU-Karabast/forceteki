@@ -1,6 +1,7 @@
 const { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } = require('../Constants');
 const Contract = require('../utils/Contract');
 const EnumHelpers = require('../utils/EnumHelpers');
+const Helpers = require('../utils/Helpers');
 
 // TODO: once converted to TS, make this abstract.
 class BaseCardSelector {
@@ -9,6 +10,7 @@ class BaseCardSelector {
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
+        this.capturedByFilter = properties.capturedByFilter;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.sameDiscardPile = !!properties.sameDiscardPile;
@@ -48,18 +50,45 @@ class BaseCardSelector {
         let possibleCards = [];
         if (controllerProp !== RelativePlayer.Opponent) {
             possibleCards = this.zoneFilter.reduce(
-                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player)), possibleCards
+                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player, context.game)), possibleCards
             );
         }
         if (controllerProp !== RelativePlayer.Self && context.player.opponent) {
             possibleCards = this.zoneFilter.reduce(
-                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player.opponent)), possibleCards
+                (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player.opponent, context.game)), possibleCards
             );
         }
+
+        possibleCards = this.filterCaptureZones(possibleCards, context);
+
         return possibleCards;
     }
 
-    getCardsForPlayerZones(zone, player) {
+    filterCaptureZones(possibleCards, context) {
+        // get cards from capture zones, if any
+        const concreteCaptors = Helpers.asArray(
+            typeof this.capturedByFilter === 'function'
+                ? this.capturedByFilter(context)
+                : this.capturedByFilter
+        );
+
+        if (concreteCaptors.length === 0) {
+            return possibleCards;
+        }
+
+        if (!this.zoneFilter.includes(ZoneName.Capture)) {
+            Contract.fail('Cannot use the \'capturedByFilter\' property without specifying \'ZoneName.Capture\' in the zoneFilter');
+        }
+
+        for (const captor of concreteCaptors) {
+            Contract.assertTrue(captor.isUnit(), `Attempting to target capture zone for ${captor.internalName} but it is not a unit`);
+            Contract.assertTrue(captor.isInPlay(), `Attempting to target capture zone for ${captor.internalName} but it is in non-play zone ${captor.zoneName}`);
+        }
+
+        return possibleCards.filter((card) => card.zoneName !== ZoneName.Capture || concreteCaptors.includes(card.getCaptor()));
+    }
+
+    getCardsForPlayerZones(zone, player, game) {
         var cards;
         switch (zone) {
             case WildcardZoneName.Any:
@@ -69,8 +98,12 @@ class BaseCardSelector {
                 cards = player.getArenaCards();
                 break;
             case WildcardZoneName.AnyAttackable:
-                cards = player.getArenaCards();
+                cards = [].concat(player.getArenaCards());
                 cards = cards.concat(player.baseZone.cards);
+                break;
+            case ZoneName.Capture:
+                cards = game.allArenas.getUnitCards().flatMap((card) => card.capturedUnits);
+                cards = cards.filter((card) => card.owner === player);
                 break;
             default:
                 cards = player.getCardsInZone(zone);
@@ -103,7 +136,7 @@ class BaseCardSelector {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter)) {
+        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter) && card.zoneName !== ZoneName.Capture) {
             return false;
         }
         if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {
