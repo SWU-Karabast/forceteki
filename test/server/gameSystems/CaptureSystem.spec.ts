@@ -79,6 +79,42 @@ describe('Capture mechanic', function() {
             expect(context.wampa.exhausted).toBeTrue();
         });
 
+        it('When a unit with captives is taken control of and defeated, the captives should return to their owner\'s control', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['take-captive'],
+                    leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    hand: ['discerning-veteran', 'vanquish']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.passAction();
+
+            // capture Battlefield Marine with Discerning Veteran
+            context.player2.clickCard(context.discerningVeteran);
+
+            context.player2.passAction();
+
+            // capture AT-ST with Discerning Veteran
+            context.player1.clickCard(context.takeCaptive);
+            expect(context.atst).toBeCapturedBy(context.discerningVeteran);
+            expect(context.wampa).toBeCapturedBy(context.discerningVeteran);
+
+            // defeat Discerning Veteran, both units rescued
+            context.player2.clickCard(context.vanquish);
+            expect(context.atst).toBeInZone('groundArena');
+            expect(context.wampa).toBeInZone('groundArena');
+            expect(context.atst.exhausted).toBeTrue();
+            expect(context.wampa.exhausted).toBeTrue();
+        });
+
         it('When a unit is captured that has upgrades and its own captured unit, the upgrades are defeated and the unit is rescued', function () {
             contextRef.setupTest({
                 phase: 'action',
