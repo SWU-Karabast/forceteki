@@ -13,7 +13,7 @@ export default class Vigilance extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Vigilance modal ability:',
-            immediateEffect: AbilityHelper.immediateEffects.ChooseModalEffects({
+            immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 2,
                 choices: (context) => ({
                     ['Discard 6 cards from an opponent\'s deck.']: AbilityHelper.immediateEffects.discardFromDeck({

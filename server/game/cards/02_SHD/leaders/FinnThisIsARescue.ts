@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class FinnThisIsARescue extends LeaderUnitCard {
     protected override getImplementationId () {
@@ -13,7 +13,7 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
     protected override setupLeaderSideAbilities () {
         this.addActionAbility({
             title: 'Defeat a friendly upgrade on a unit',
-            cost: [AbilityHelper.costs.exhaustSelf()],
+            cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
                 cardCondition: (card, context) => card.controller === context.source.controller,
