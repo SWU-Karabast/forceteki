@@ -3,6 +3,7 @@
 
 export enum ZoneName {
     Base = 'base',
+    Capture = 'capture',
     Deck = 'deck',
     Discard = 'discard',
     GroundArena = 'groundArena',
@@ -21,7 +22,7 @@ export enum DeckZoneDestination {
  * Helper type used when a passed ZoneName represents a move destination.
  * Used to account for moving to top or bottom of deck.
  */
-export type MoveZoneDestination = Exclude<ZoneName, ZoneName.Deck> | DeckZoneDestination.DeckBottom | DeckZoneDestination.DeckTop;
+export type MoveZoneDestination = Exclude<ZoneName, ZoneName.Deck | ZoneName.Capture> | DeckZoneDestination.DeckBottom | DeckZoneDestination.DeckTop;
 
 export enum WildcardZoneName {
     Any = 'any',
@@ -188,6 +189,7 @@ export enum EventName {
     OnBeginRound = 'onBeginRound',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
+    OnCardCaptured = 'onCardCaptured',
     OnCardDefeated = 'onCardDefeated',
     OnCardExhausted = 'onCardExhausted',
     OnCardLeavesPlay = 'onCardLeavesPlay',
@@ -219,6 +221,7 @@ export enum EventName {
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
     OnReadyResources = 'onReadyResources',
+    OnRescue = 'onRescue',
     OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
     OnRoundEnded = 'onRoundEnded',
     OnRoundEndedCleanup = 'onRoundEndedCleanup',

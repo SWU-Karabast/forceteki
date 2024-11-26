@@ -47,7 +47,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
-            return (!this.dependentTarget || this.dependentTarget.hasLegalTarget(contextCopy)) &&
+            return (!this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
               (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState));
         };
@@ -64,7 +64,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     protected override hasLegalTarget(context: AbilityContext) {
-        return this.selector.optional || this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
+        return this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
     private getAllLegalTargets(context: AbilityContext): Card[] {

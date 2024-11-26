@@ -33,6 +33,8 @@ export function countUniqueAspects(cards: Card | Card[]): number {
     return aspects.size;
 }
 
+// TODO: remove this
+/** @deprecated Use `shuffleArray` instead */
 export function shuffle<T>(array: T[]): T[] {
     const shuffleArray = [...array];
     for (let i = shuffleArray.length - 1; i > 0; i--) {
