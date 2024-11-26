@@ -36,7 +36,7 @@ describe('Aggression', function () {
                 context.player1.clickPrompt(damagePrompt);
 
                 // should damage a unit
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.restoredArc170, context.atst, context.greenSquadronAwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.restoredArc170, context.atst, context.greenSquadronAwing]);
                 context.player1.clickCard(context.atst);
 
                 expect(context.atst.damage).toBe(4);
@@ -52,6 +52,7 @@ describe('Aggression', function () {
                 // ready a unit with 3 or less power
                 context.player1.clickPrompt(readyPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170, context.battlefieldMarine]);
+                context.player1.clickCard(context.restoredArc170);
                 expect(context.restoredArc170.exhausted).toBeFalse();
 
                 expect(context.player1).toHaveEnabledPromptButtons([defeatPrompt, drawPrompt, damagePrompt]);
