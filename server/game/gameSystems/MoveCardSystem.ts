@@ -1,9 +1,17 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EventName, GameStateChangeRequired, ZoneName, MoveZoneDestination, DeckZoneDestination, WildcardCardType } from '../core/Constants';
+import {
+    CardType,
+    DeckZoneDestination,
+    EventName,
+    GameStateChangeRequired,
+    MoveZoneDestination,
+    WildcardCardType,
+    ZoneName
+} from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers.js';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 
 /**
@@ -16,11 +24,12 @@ import * as Contract from '../core/utils/Contract';
  *
  * @property destination - The target zone for the card. Excludes discard pile, space arena, ground arena, and resources.
  * @property shuffle - Indicates whether the card should be shuffled into the destination.
- * @property bottom - Indicates whether the card should be placed at the bottom of the destination.
+ * @property shuffleMovedCards - Indicates whether all targets should be shuffled before added into the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
     destination?: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
+    shuffleMovedCards?: boolean;
 }
 
 // TODO: since there are already some more specific for moving to arena, hand, etc., what's the remaining use case for this? and can we rename it to be more specific?
@@ -37,7 +46,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public eventHandler(event: any, additionalProperties = {}): void {
         // Check if the card is leaving play
         if (EnumHelpers.isArena(event.card.zoneName) && !EnumHelpers.isArena(event.destination)) {
-            this.leavesPlayEventHandler(event, additionalProperties);
+            this.leavesPlayEventHandler(event.card, event.destination, event.context, () => event.card.moveTo(event.destination));
         } else {
             // TODO: remove this completely if determined we don't need card snapshots
             // event.cardStateWhenMoved = card.createSnapshot();
@@ -77,11 +86,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
         // Check if the card is leaving play
         if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
-        } else {
-            super.updateEvent(event, card, context, additionalProperties);
         }
     }
 
@@ -112,5 +121,12 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         // Call the super implementation
         return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+    }
+
+    protected override processTargets(target: Card | Card[]) {
+        if (this.properties?.shuffleMovedCards && Array.isArray(target)) {
+            Helpers.shuffleArray(target);
+        }
+        return target;
     }
 }

@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
-export default class AquitensAssaultCruiser extends NonLeaderUnitCard {
+export default class ArquitensAssaultCruiser extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '1086021299',
@@ -24,4 +24,4 @@ export default class AquitensAssaultCruiser extends NonLeaderUnitCard {
     }
 }
 
-AquitensAssaultCruiser.implemented = true;
+ArquitensAssaultCruiser.implemented = true;
