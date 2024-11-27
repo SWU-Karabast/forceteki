@@ -16,7 +16,7 @@ export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard
             title: 'Name a card.',
             targetResolver: {
                 mode: TargetMode.DropdownList,
-                options: this.game.allCardTitles,
+                options: this.game.playableCardTitles,
                 condition: (context) => context.source.controller.opponent.hand.length > 0   // skip ability if opponent has no cards in hand
             },
             then: (thenContext) => ({

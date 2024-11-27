@@ -18,7 +18,7 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 const falcon2 = context.player2.findCardByName('millennium-falcon#landos-pride');
 
                 context.player1.clickCard(context.chimaera);
-                expect(context.player1).toHaveExactDropdownListOptions(context.getAllCardTitles());
+                expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
                 context.player1.chooseListOption('Millennium Falcon');
                 expect(context.getChatLogs(1)).toContain('player1 reveals Wampa, Millennium Falcon, Millennium Falcon, Vanquish due to Chimaera');
                 expect(context.player2).toBeAbleToSelectExactly([falcon1, falcon2]);
@@ -49,7 +49,7 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 const falcon2 = context.player2.findCardByName('millennium-falcon#landos-pride');
 
                 context.player1.clickCard(context.chimaera);
-                expect(context.player1).toHaveExactDropdownListOptions(context.getAllCardTitles());
+                expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
                 context.player1.chooseListOption('Wampa');
                 expect(context.getChatLogs(1)).toContain('player1 reveals Wampa, Millennium Falcon, Millennium Falcon, Vanquish due to Chimaera');
 
@@ -78,7 +78,7 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 const falcon2 = context.player2.findCardByName('millennium-falcon#landos-pride');
 
                 context.player1.clickCard(context.chimaera);
-                expect(context.player1).toHaveExactDropdownListOptions(context.getAllCardTitles());
+                expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
                 context.player1.chooseListOption('Resupply');
                 expect(context.getChatLogs(1)).toContain('player1 reveals Wampa, Millennium Falcon, Millennium Falcon, Vanquish due to Chimaera');
 

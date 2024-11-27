@@ -4,7 +4,7 @@ const Game = require('../../server/game/core/Game.js');
 const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
-const cardMap = require('../json/_cardMap.json');
+const playableCardTitles = require('../json/_playableCardTitles.json');
 
 class GameFlowWrapper {
     constructor() {
@@ -21,7 +21,7 @@ class GameFlowWrapper {
                 { id: '111', user: Settings.getUserWithDefaultsSet({ username: 'player1' }) },
                 { id: '222', user: Settings.getUserWithDefaultsSet({ username: 'player2' }) }
             ],
-            allCardTitles: this.getAllCardTitles()
+            playableCardTitles: this.getPlayableCardTitles()
         };
         this.game = new Game(details, { router: gameRouter });
         this.game.started = true;
@@ -33,12 +33,8 @@ class GameFlowWrapper {
         this.allPlayers = [this.player1, this.player2];
     }
 
-    getAllCardTitles() {
-        return cardMap.map((elem) => elem.title);
-    }
-
-    getAllCardTitlesSubtitles() {
-        return cardMap.map((elem) => `${elem.title}${elem.subtitle ? ' ' + elem.subtitle : ''}`);
+    getPlayableCardTitles() {
+        return playableCardTitles;
     }
 
     allPlayersInInitiativeOrder() {

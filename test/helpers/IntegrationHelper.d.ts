@@ -27,7 +27,7 @@ interface SwuTestContext {
 
     advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
-    getAllCardTitles();
+    getPlayableCardTitles();
     getChatLog(numbBack = 0);
     getChatLogs(numbBack = 1, inOrder = false);
     getPromptedPlayer(title: string);

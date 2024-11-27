@@ -19,7 +19,7 @@ const deckBuilder = new DeckBuilder();
 const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
     'allPlayersInInitiativeOrder',
-    'getAllCardTitles',
+    'getPlayableCardTitles',
     'getChatLog',
     'getChatLogs',
     'getPromptedPlayer',

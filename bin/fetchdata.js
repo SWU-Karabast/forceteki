@@ -107,6 +107,7 @@ function getCardData(page, progressBar) {
 
 function getUniqueCards(cards) {
     const cardMap = [];
+    const playableCardTitlesSet = new Set();
     const seenNames = [];
     var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
@@ -127,11 +128,19 @@ function getUniqueCards(cards) {
 
         seenNames.push(card.internalName);
         cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle });
+
+        if (!card.types.includes('token') && !card.types.includes('leader') && !card.types.includes('base')) {
+            playableCardTitlesSet.add(card.title);
+        }
+
         uniqueCardsMap.set(card.internalName, card);
     }
 
+    const playableCardTitles = Array.from(playableCardTitlesSet);
+    playableCardTitles.sort();
+
     const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
-    return { uniqueCards, cardMap, duplicatesWithSetCode };
+    return { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode };
 }
 
 async function main() {
@@ -156,7 +165,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, duplicatesWithSetCode } = getUniqueCards(cards);
+    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode } = getUniqueCards(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -177,6 +186,7 @@ async function main() {
     // }
 
     fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
