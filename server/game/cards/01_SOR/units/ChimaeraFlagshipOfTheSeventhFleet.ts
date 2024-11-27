@@ -13,14 +13,14 @@ export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard
 
     public override setupCardAbilities() {
         this.addOnAttackAbility({
-            title: 'Name a card.',
+            title: 'Name a card',
             targetResolver: {
                 mode: TargetMode.DropdownList,
                 options: this.game.playableCardTitles,
                 condition: (context) => context.source.controller.opponent.hand.length > 0   // skip ability if opponent has no cards in hand
             },
             then: (thenContext) => ({
-                title: 'An opponent reveals their hand and discards a card with that name from it.',
+                title: 'An opponent reveals their hand and discards a card with that name from it',
                 thenCondition: (context) => context.source.controller.opponent.hand.length > 0,   // skip ability if opponent has no cards in hand
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.opponent.hand })),
