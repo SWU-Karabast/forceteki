@@ -3,6 +3,7 @@ export class Spectator {
     menuTitle = 'Spectator mode';
     name: string;
     emailHash: string;
+    lobbyId?: string;
 
     constructor(
         public id: string,

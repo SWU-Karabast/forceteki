@@ -37,6 +37,7 @@ class Player extends GameObject {
         this.socket = null;
         this.disconnected = false;
         this.left = false;
+        this.lobbyId = null;
 
         this.dynastyDeck = _([]);
         this.conflictDeck = _([]);

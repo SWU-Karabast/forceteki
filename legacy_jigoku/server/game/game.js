@@ -1399,6 +1399,7 @@ class Game extends EventEmitter {
                 emailHash: player.emailHash,
                 faction: player.faction.value,
                 id: player.id,
+                lobbyId: player.lobbyId,
                 left: player.left,
                 name: player.name,
                 owner: player.owner
@@ -1421,6 +1422,7 @@ class Game extends EventEmitter {
             spectators: this.getSpectators().map((spectator) => {
                 return {
                     id: spectator.id,
+                    lobbyId: spectator.lobbyId,
                     name: spectator.name
                 };
             })
