@@ -17,19 +17,20 @@ const deckBuilder = new DeckBuilder();
 
 // TODO: why not just call these directly
 const ProxiedGameFlowWrapperMethods = [
+    'advancePhases',
     'allPlayersInInitiativeOrder',
-    'startGame',
+    'getAllCardTitles',
+    'getChatLog',
+    'getChatLogs',
+    'getPromptedPlayer',
     'keepStartingHand',
-    'skipSetupPhase',
-    'selectInitiativePlayer',
     'moveToNextActionPhase',
     'moveToRegroupPhase',
-    'advancePhases',
-    'getPromptedPlayer',
     'nextPhase',
+    'selectInitiativePlayer',
     'setDamage',
-    'getChatLogs',
-    'getChatLog'
+    'skipSetupPhase',
+    'startGame'
 ];
 
 var customMatchers = {

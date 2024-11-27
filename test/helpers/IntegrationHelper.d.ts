@@ -25,19 +25,20 @@ interface SwuTestContext {
     p2Base: BaseCard;
     p2Leader: LeaderCard;
 
+    advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
-    startGame();
+    getAllCardTitles();
+    getChatLog(numbBack = 0);
+    getChatLogs(numbBack = 1, inOrder = false);
+    getPromptedPlayer(title: string);
     keepStartingHand();
-    skipSetupPhase();
-    selectInitiativePlayer(player: PlayerInteractionWrapper);
     moveToNextActionPhase();
     moveToRegroupPhase();
-    advancePhases(endphase);
-    getPromptedPlayer(title: string);
     nextPhase();
-    getChatLogs(numbBack = 1, inOrder = false);
-    getChatLog(numbBack = 0);
+    selectInitiativePlayer(player: PlayerInteractionWrapper);
     setDamage(card: CardWithDamageProperty, amount: number);
+    skipSetupPhase();
+    startGame();
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;
