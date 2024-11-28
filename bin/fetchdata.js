@@ -56,6 +56,14 @@ function filterValues(card) {
 
     let filteredObj = filterAttributes(card.attributes);
 
+    if (card.attributes.upgradeHp != null) {
+        filteredObj.hp = card.attributes.upgradeHp;
+    }
+
+    if (card.attributes.upgradePower != null) {
+        filteredObj.power = card.attributes.upgradePower;
+    }
+
     filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
 
     populateMissingData(card.attributes, filteredObj.id);
@@ -73,6 +81,10 @@ function filterValues(card) {
     // tokens use a different numbering scheme, can ignore for now
     if (!filteredObj.types.includes('token')) {
         filteredObj.setId.number = card.attributes.cardNumber;
+    }
+
+    if (filteredObj.title.includes('Enticing')) {
+        const a = 1;
     }
 
     let internalName = filteredObj.title;
