@@ -11,6 +11,7 @@ import * as Contract from '../core/utils/Contract';
 
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: Derivable<number, Player>;
+    random?: boolean;
 
     /* TODO: Add reveal system to when card type filter or card condition exists, as this is required to keep the
     in order to keep the player honest in a in-person game */
@@ -71,6 +72,12 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
 
             if (amount >= availableHand.length) {
                 this.generateEventsForCards(availableHand, context, events, additionalProperties);
+                continue;
+            }
+
+            if (properties.random) {
+                const randomCards = Helpers.getRandomArrayElements(availableHand, amount);
+                this.generateEventsForCards(randomCards, context, events, additionalProperties);
                 continue;
             }
 
