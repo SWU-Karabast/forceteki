@@ -52,7 +52,6 @@ class Player extends GameObject {
         this.socket = null;
         this.disconnected = false;
         this.left = false;
-        this.lobbyId = null;
 
         this.handZone = new HandZone(this);
         this.resourceZone = new ResourceZone(this);
