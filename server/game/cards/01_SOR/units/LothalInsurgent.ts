@@ -21,7 +21,7 @@ export default class LothalInsurgent extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Heal 2 damage from another unit',
+            title: 'The opponent draws a discard and discards a random card',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
                     const otherFriendlyCardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCardsPlayed(

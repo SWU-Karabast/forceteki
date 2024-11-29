@@ -19,7 +19,7 @@ export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProp
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
 }
 
-export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
+export class DiscardCardsFromHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
     protected override defaultProperties: IDiscardCardsFromHandProperties = {
         amount: 1,
         cardCondition: () => true
@@ -33,7 +33,7 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['make {0} discard {1} cards', [properties.target, properties.amount]];
+        return ['make {0} {1}discard {2} cards', [properties.target, properties.random ? 'randomly ' : '', properties.amount]];
     }
 
     public override canAffect(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
