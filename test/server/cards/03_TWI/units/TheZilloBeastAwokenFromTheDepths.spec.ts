@@ -1,6 +1,6 @@
 describe('The Zillo Beast, Awoken from the Depths', function() {
     integration(function(contextRef) {
-        it('The Zillo Beast\'s when played ability give all enemy ground units -5/-0 for the phase', function () {
+        it('The Zillo Beast\'s when played ability should give all enemy ground units -5/-0 for the phase', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
@@ -35,6 +35,39 @@ describe('The Zillo Beast, Awoken from the Depths', function() {
             context.moveToNextActionPhase();
             expect(context.atst.getPower()).toBe(6);
             expect(context.atatSuppressor.getPower()).toBe(8);
+        });
+
+        it('The Zillo Beast\'s triggered ability should heal 5 damage from itself at the start of the regroup phase', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    groundArena: ['the-zillo-beast#awoken-from-the-depths']
+                },
+                player2: {
+                    groundArena: [{ card: 'reinforcement-walker', upgrades: ['entrenched'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Zillo Beast attacks upgraded Reinforcement Walker, takes 9 damage
+            context.player1.clickCard(context.theZilloBeast);
+            context.player1.clickCard(context.reinforcementWalker);
+
+            // Zillo Beast heals at start of regroup phase
+            expect(context.theZilloBeast.damage).toBe(9);
+            context.moveToRegroupPhase();
+            expect(context.theZilloBeast.damage).toBe(4);
+
+            context.player1.clickPrompt('Done');
+            context.player2.clickPrompt('Done');
+
+            // defeat Zillo Beast with Reinforcement Walker
+            context.player1.clickCard(context.theZilloBeast);
+            context.player1.clickCard(context.reinforcementWalker);
+
+            // go to regroup phase to confirm nothing breaks
+            context.moveToRegroupPhase();
         });
     });
 });
