@@ -12,7 +12,7 @@ export default class DisablingFangFighter extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'You may defeat an upgrade.',
+            title: 'Defeat an upgrade.',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
