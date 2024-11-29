@@ -11,6 +11,7 @@ import * as Contract from '../core/utils/Contract';
 
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: Derivable<number, Player>;
+    random?: boolean;
 
     /* TODO: Add reveal system to when card type filter or card condition exists, as this is required to keep the
     in order to keep the player honest in a in-person game */
@@ -18,7 +19,7 @@ export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProp
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
 }
 
-export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
+export class DiscardCardsFromHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
     protected override defaultProperties: IDiscardCardsFromHandProperties = {
         amount: 1,
         cardCondition: () => true
@@ -32,7 +33,7 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['make {0} discard {1} cards', [properties.target, properties.amount]];
+        return ['make {0} {1}discard {2} cards', [properties.target, properties.random ? 'randomly ' : '', properties.amount]];
     }
 
     public override canAffect(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -71,6 +72,12 @@ export class DiscardCardsFromHand<TContext extends AbilityContext = AbilityConte
 
             if (amount >= availableHand.length) {
                 this.generateEventsForCards(availableHand, context, events, additionalProperties);
+                continue;
+            }
+
+            if (properties.random) {
+                const randomCards = Helpers.getRandomArrayElements(availableHand, amount);
+                this.generateEventsForCards(randomCards, context, events, additionalProperties);
                 continue;
             }
 
