@@ -30,7 +30,7 @@ export default class HeroicSacrifice extends EventCard {
                                             event.damageSource.attack.attacker === context.source &&
                                             event.damageSource.damageDealtBy === context.source)
                                     },
-                                    immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({ target: context.source })),
+                                    immediateEffect: AbilityHelper.immediateEffects.defeat(),
                                 })
                             },
                         ],
