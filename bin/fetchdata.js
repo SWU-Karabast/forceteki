@@ -46,7 +46,7 @@ function filterValues(card) {
     }
 
     // filtering out C24 for now since we do not handle variants
-    if (card.attributes.expansion.data.attributes.code === 'TWI' || card.attributes.expansion.data.attributes.code === 'C24') {
+    if (card.attributes.expansion.data.attributes.code === 'C24') {
         return null;
     }
 
@@ -81,10 +81,6 @@ function filterValues(card) {
     // tokens use a different numbering scheme, can ignore for now
     if (!filteredObj.types.includes('token')) {
         filteredObj.setId.number = card.attributes.cardNumber;
-    }
-
-    if (filteredObj.title.includes('Enticing')) {
-        const a = 1;
     }
 
     let internalName = filteredObj.title;
