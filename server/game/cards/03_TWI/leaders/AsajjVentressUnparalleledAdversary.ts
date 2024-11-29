@@ -33,7 +33,7 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addOnAttackAbility({
-            title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
+            title: 'If you played an event this phase, this unit gets +1/+0 for this attack and deals combat damage before the defender',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.cardsPlayedThisPhaseWatcher.getCardsPlayed((entry) => entry.playedBy === context.source.controller && entry.card.isEvent()).length > 0,
                 onTrue: AbilityHelper.immediateEffects.cardLastingEffect({
