@@ -31,8 +31,10 @@ export default class MaximumFirePower extends EventCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (_, context) => (context.player.getUnitsInPlay(WildcardZoneName.AnyArena,
                         (card) => card.hasSomeTrait(Trait.Imperial)).length > 0),
-                    immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
-                        ({ amount: context.targets.firstImperial.getPower() })),
+                    immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                        amount: context.targets.firstImperial.getPower(),
+                        source: context.targets.firstImperial,
+                    })),
                 }
             },
             then: (thenContext) => ({
@@ -42,8 +44,11 @@ export default class MaximumFirePower extends EventCard {
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial) && card !== thenContext.targets.firstImperial,
-                    immediateEffect: AbilityHelper.immediateEffects.damage((damageContext) =>
-                        ({ target: thenContext.targets.damageTarget, amount: damageContext.target.getPower() })),
+                    immediateEffect: AbilityHelper.immediateEffects.damage((damageContext) => ({
+                        target: thenContext.targets.damageTarget,
+                        amount: damageContext.target.getPower(),
+                        source: damageContext.target,
+                    })),
                 }
             })
         });

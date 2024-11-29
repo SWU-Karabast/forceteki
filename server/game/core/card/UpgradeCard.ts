@@ -53,7 +53,6 @@ export class UpgradeCard extends UpgradeCardParent {
         return actions;
     }
 
-    // TODO CAPTURE: we may need to use the "parent" concept for captured cards as well
     /** The card that this card is underneath */
     public get parentCard(): UnitCard {
         Contract.assertNotNullLike(this._parentCard);
@@ -75,10 +74,9 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public attachTo(newParentCard: UnitCard) {
         Contract.assertTrue(newParentCard.isUnit());
-        Contract.assertTrue(newParentCard.isInPlay());
 
         // this assert needed for type narrowing or else the moveTo fails
-        Contract.assertTrue(newParentCard.zoneName !== ZoneName.Deck);
+        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
 
         if (this._parentCard) {
             this.unattach();
@@ -106,14 +104,6 @@ export class UpgradeCard extends UpgradeCardParent {
         }
 
         return true;
-    }
-
-    public override leavesPlay() {
-        if (this._parentCard) {
-            this.unattach();
-        }
-
-        super.leavesPlay();
     }
 
     /**

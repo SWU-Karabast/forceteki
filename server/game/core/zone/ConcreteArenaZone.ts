@@ -30,6 +30,8 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
     public constructor(owner: Game, player1: Player, player2: Player) {
         super(owner);
 
+        this.hiddenForPlayers = null;
+
         this._cards.set(player1, []);
         this._cards.set(player2, []);
     }

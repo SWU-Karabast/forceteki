@@ -26,6 +26,7 @@ export class ResourceZone extends SimpleZone<TokenOrPlayableCard> {
     public constructor(owner: Player) {
         super(owner);
 
+        this.hiddenForPlayers = RelativePlayer.Opponent;
         this.name = ZoneName.Resource;
     }
 }

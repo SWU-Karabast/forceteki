@@ -1,8 +1,7 @@
 import { InPlayCard } from '../card/baseClasses/InPlayCard';
-import { Card } from '../card/Card';
 import { UnitCard } from '../card/CardTypes';
 import { UpgradeCard } from '../card/UpgradeCard';
-import { ZoneName, WildcardCardType } from '../Constants';
+import { WildcardCardType } from '../Constants';
 import Game from '../Game';
 import Player from '../Player';
 import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
