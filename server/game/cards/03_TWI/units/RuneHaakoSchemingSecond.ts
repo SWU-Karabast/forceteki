@@ -20,7 +20,8 @@ export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
+            title: 'If a friendly unit was defeated this phase, you may give a unit –1/–1 for this phase',
+            optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({

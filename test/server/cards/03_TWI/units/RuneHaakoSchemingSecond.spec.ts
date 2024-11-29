@@ -48,6 +48,7 @@ describe('Rune Haako, Scheming Second', function () {
                 // play rune haako, should select all units
                 context.player1.clickCard(context.runeHaako);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.runeHaako]);
+                expect(context.player1).toHavePassAbilityButton();
 
                 // give -1/-1 to green squadron a-wing
                 context.player1.clickCard(context.greenSquadronAwing);
