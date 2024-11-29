@@ -10,7 +10,8 @@ describe('The Mandalorian\'s Rifle', function () {
                         spaceArena: ['green-squadron-awing']
                     },
                     player2: {
-                        groundArena: ['wampa', { card: 'atst', exhausted: true }, { card: 'scout-bike-pursuer', exhausted: true }]
+                        groundArena: ['wampa', { card: 'atst', exhausted: true }, { card: 'scout-bike-pursuer', exhausted: true }],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     }
                 });
 
@@ -40,7 +41,8 @@ describe('The Mandalorian\'s Rifle', function () {
                         groundArena: ['the-mandalorian#wherever-i-go-he-goes', 'battlefield-marine'],
                     },
                     player2: {
-                        groundArena: ['wampa', { card: 'atst', exhausted: true }, { card: 'scout-bike-pursuer', exhausted: true }]
+                        groundArena: ['wampa', { card: 'atst', exhausted: true }, { card: 'scout-bike-pursuer', exhausted: true }],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     }
                 });
 
@@ -68,7 +70,8 @@ describe('The Mandalorian\'s Rifle', function () {
                         leader: { card: 'the-mandalorian#sworn-to-the-creed', deployed: true }
                     },
                     player2: {
-                        groundArena: ['wampa', { card: 'atst', exhausted: true }, { card: 'scout-bike-pursuer', exhausted: true }]
+                        groundArena: ['wampa', { card: 'atst', exhausted: true }, { card: 'scout-bike-pursuer', exhausted: true }],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     }
                 });
 
