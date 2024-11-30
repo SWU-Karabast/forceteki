@@ -71,7 +71,7 @@ import { IPlayerLastingEffectProperties, PlayerLastingEffectSystem } from './Pla
 import { IPlayerPhaseLastingEffectProperties, PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
 import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
 import { DiscardFromDeckSystem, IDiscardFromDeckProperties } from './DiscardFromDeckSystem';
-import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
+import { DiscardCardsFromHandSystem, IDiscardCardsFromHandProperties } from './DiscardCardsFromHandSystem';
 import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
 import { AggregateSystem, ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
@@ -309,9 +309,9 @@ export function takeControlOfUnit<TContext extends AbilityContext = AbilityConte
 // //////////////
 // // PLAYER
 // //////////////
-export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHand<TContext> {
+export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHandSystem<TContext> {
     // TODO: Once we support discarding from opponents hand, add logic only allow the target to discard from their own hand here
-    return new DiscardCardsFromHand<TContext>(propertyFactory);
+    return new DiscardCardsFromHandSystem<TContext>(propertyFactory);
 }
 
 /**
