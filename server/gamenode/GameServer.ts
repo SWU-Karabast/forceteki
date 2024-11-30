@@ -16,6 +16,7 @@ import * as env from '../env';
 export class GameServer {
     private lobbies = new Map<string, Lobby>();
     private userLobbyMap = new Map<string, string>();
+
     private protocol = 'https';
     private host = env.gameNodeHost;
     private io: socketio.Server;
@@ -75,6 +76,36 @@ export class GameServer {
                 res.status(400).json({ success: false });
             }
         });
+
+        app.get('/api/unfilled-lobbies', (_, res) => {
+            const unfilledLobbies = Array.from(this.getActiveGameLobbies().entries()).map(([id, lobby]) => ({
+                id,
+                name: `Game #${id}`,
+            }));
+            res.json(unfilledLobbies);
+        });
+
+        app.post('/api/join-lobby', (req, res) => {
+            const { lobbyId, userId } = req.body;
+
+            const lobby = this.lobbies.get(lobbyId);
+            if (!lobby) {
+                return res.status(404).json({ success: false, message: 'Lobby not found' });
+            }
+
+            // Add the user to the lobby
+            if (lobby.isLobbyFilled()) {
+                return res.status(400).json({ success: false, message: 'Lobby is full' });
+            }
+            this.userLobbyMap.set(userId, lobby.id);
+            return res.status(200).json({ success: true });
+        });
+    }
+
+    private getActiveGameLobbies() {
+        return new Map(
+            Array.from(this.lobbies.entries()).filter(([_, lobby]) => !lobby.isLobbyFilled())
+        );
     }
 
     private createLobby(user: string) {
@@ -82,10 +113,9 @@ export class GameServer {
         this.lobbies.set(lobby.id, lobby);
         // Using default user for now
         this.userLobbyMap.set('Order66', lobby.id);
-        this.userLobbyMap.set('ThisIsTheWay', lobby.id);
+        // this.userLobbyMap.set('ThisIsTheWay', lobby.id);
         return true;
     }
-
 
     // public debugDump() {
     //     const games = [];
@@ -217,6 +247,7 @@ export class GameServer {
 
     public onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
+        console.log(user.username);
         if (user) {
             ioSocket.request.user = user;
         }
@@ -236,6 +267,7 @@ export class GameServer {
         const socket = new Socket(ioSocket);
 
         lobby.addLobbyUser(user.username, socket);
+        socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.username, reason));
 
         // const player = game.playersAndSpectators[socket.user.username];
         // if (!player) {
@@ -254,20 +286,40 @@ export class GameServer {
         // if (!game.isSpectator(player)) {
         //     game.addMessage('{0} has connected to the game server', player);
         // }
-
-        // socket.on('disconnect', () => this.onSocketDisconnected(user.username));
     }
 
-    public onSocketDisconnected(username: string) {
-        if (!this.userLobbyMap.has(username)) {
+    public onSocketDisconnected(id: string, reason: string) {
+        if (!this.userLobbyMap.has(id)) {
             return;
         }
-
-        const lobbyId = this.userLobbyMap.get(username);
+        const lobbyId = this.userLobbyMap.get(id);
         const lobby = this.lobbies.get(lobbyId);
+        if (reason === 'client namespace disconnect') {
+            this.userLobbyMap.delete(id);
+            lobby.removeLobbyUser(id);
+        } else if (reason === 'ping timeout' || reason === 'transport close') {
+            lobby.setUserDisconnected(id);
 
-        lobby.removeLobbyUser(username);
-        this.lobbies.delete(username);
+            setTimeout(() => {
+                // Check if the user is still disconnected after the timer
+                if (lobby.getUserState(id) === 'disconnected') {
+                    this.userLobbyMap.delete(id);
+                    lobby.removeLobbyUser(id);
+
+                    // Check if lobby is empty
+                    if (lobby.isLobbyEmpty()) {
+                        // Start the cleanup process
+                        this.lobbies.delete(lobbyId);
+                    }
+                }
+            }, 1000);
+        }
+
+        // check if lobby is empty
+        if (lobby.isLobbyEmpty()) {
+            // TODO start the cleanup process
+            this.lobbies.delete(lobbyId);
+        }
 
         // logger.info(`user ${socket.user.username} disconnected from a game: ${reason}`);
 
