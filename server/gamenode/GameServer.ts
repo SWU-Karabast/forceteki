@@ -247,7 +247,6 @@ export class GameServer {
 
     public onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
-        console.log(user.username);
         if (user) {
             ioSocket.request.user = user;
         }
@@ -299,7 +298,6 @@ export class GameServer {
             lobby.removeLobbyUser(id);
         } else if (reason === 'ping timeout' || reason === 'transport close') {
             lobby.setUserDisconnected(id);
-
             setTimeout(() => {
                 // Check if the user is still disconnected after the timer
                 if (lobby.getUserState(id) === 'disconnected') {
@@ -313,7 +311,7 @@ export class GameServer {
                         this.lobbies.delete(lobbyId);
                     }
                 }
-            }, 1000);
+            }, 30000);
         }
 
         // check if lobby is empty
