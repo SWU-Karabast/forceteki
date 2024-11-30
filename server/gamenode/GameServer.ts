@@ -93,10 +93,10 @@ export class GameServer {
                 return res.status(404).json({ success: false, message: 'Lobby not found' });
             }
 
-            // Add the user to the lobby
             if (lobby.isLobbyFilled()) {
                 return res.status(400).json({ success: false, message: 'Lobby is full' });
             }
+            // Add the user to the lobby
             this.userLobbyMap.set(userId, lobby.id);
             return res.status(200).json({ success: true });
         });
