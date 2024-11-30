@@ -22,7 +22,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
 }
 
-// TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilties with another function(s)
+// TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilities with another function(s)
 /**
  * This system is a helper for playing cards from abilities (see {@link GameSystemLibrary.playCard}).
  */

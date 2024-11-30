@@ -154,7 +154,22 @@ export class GameEvent {
     }
 
     public generateContingentEvents(): any[] {
-        return this.contingentEventsGenerator ? this.contingentEventsGenerator() : [];
+        const contingentEvents = this.contingentEventsGenerator ? this.contingentEventsGenerator() : [];
+
+        // recursively generate contingent events in case the new contingent events also have contingent events
+        let i = 0;
+        while (i < contingentEvents.length) {
+            if (i > 1000) {
+                throw new Error(`Infinite loop detected in contingent event generation in event ${this.name}. Last event in list: ${contingentEvents[i].name}`);
+            }
+
+            const newContingentEvents = contingentEvents[i].generateContingentEvents();
+            contingentEvents.push(...newContingentEvents);
+
+            i++;
+        }
+
+        return contingentEvents;
     }
 
     public addCleanupHandler(handler) {

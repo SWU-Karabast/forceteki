@@ -39,10 +39,8 @@
     "jsonwebtoken": "^9.0.2",
     "mkdirp": "^3.0.1",
     "node-ts": "^6.1.0",
-    "nodemon": "^3.1.5",
     "path": "^0.12.7",
     "socket.io": "^4.7.5",
-    "ts-node": "^10.9.2",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.0.1",
     "underscore": "^1.13.6",
@@ -54,7 +52,10 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
-    "concurrently": "^9.0.1",
-    "cpy-cli": "^5.0.0"
+    "concurrently": "^9.1.0",
+    "cpy-cli": "^5.0.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "tsc-watch": "^6.2.1"
   }
 }

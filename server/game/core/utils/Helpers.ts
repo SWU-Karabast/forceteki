@@ -33,6 +33,8 @@ export function countUniqueAspects(cards: Card | Card[]): number {
     return aspects.size;
 }
 
+// TODO: remove this
+/** @deprecated Use `shuffleArray` instead */
 export function shuffle<T>(array: T[]): T[] {
     const shuffleArray = [...array];
     for (let i = shuffleArray.length - 1; i > 0; i--) {
@@ -91,4 +93,18 @@ export function asArray<T>(val: T | T[]): T[] {
     }
 
     return Array.isArray(val) ? val : [val];
+}
+
+export function getRandomArrayElements(array: any[], nValues: number) {
+    Contract.assertTrue(nValues <= array.length, `Attempting to retrieve ${nValues} random elements from an array of length ${array.length}`);
+
+    const chosenItems = [];
+    for (let i = 0; i < nValues; i++) {
+        const index = Math.floor(Math.random() * array.length);
+        const choice = array.splice(index, 1)[0];
+
+        chosenItems.push(choice);
+    }
+
+    return chosenItems;
 }

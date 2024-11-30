@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName, WildcardCardType } from '../../../core/Constants';
+import { ZoneName } from '../../../core/Constants';
 
 export default class KoskaReeves extends NonLeaderUnitCard {
     protected override getImplementationId () {
