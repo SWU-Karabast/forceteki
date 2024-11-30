@@ -11,7 +11,7 @@ describe('Street Gang Recruiter', function () {
                     },
                     player2: {
                         groundArena: ['luke-skywalker#jedi-knight'],
-                        discard: ['lukes-lightsaber']
+                        discard: ['lukes-lightsaber', 'maz-kanata#pirate-queen']
                     }
                 });
 
@@ -36,7 +36,7 @@ describe('Street Gang Recruiter', function () {
                     },
                     player2: {
                         groundArena: ['luke-skywalker#jedi-knight'],
-                        discard: ['lukes-lightsaber']
+                        discard: ['lukes-lightsaber', 'maz-kanata#pirate-queen']
                     }
                 });
 
