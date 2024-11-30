@@ -78,7 +78,7 @@ export class GameServer {
         });
 
         app.get('/api/unfilled-lobbies', (_, res) => {
-            const unfilledLobbies = Array.from(this.getActiveGameLobbies().entries()).map(([id, lobby]) => ({
+            const unfilledLobbies = Array.from(this.getActiveGameLobbies().entries()).map(([id, _]) => ({
                 id,
                 name: `Game #${id}`,
             }));
