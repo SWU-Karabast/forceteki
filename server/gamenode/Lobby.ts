@@ -62,6 +62,10 @@ export class Lobby {
         return this.users.length === 0;
     }
 
+    public cleanLobby(): void {
+        this.game = null;
+    }
+
     private onStartGame(): void {
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;

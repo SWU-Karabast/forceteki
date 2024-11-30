@@ -309,6 +309,7 @@ export class GameServer {
                     // Check if lobby is empty
                     if (lobby.isLobbyEmpty()) {
                         // Start the cleanup process
+                        lobby.cleanLobby();
                         this.lobbies.delete(lobbyId);
                     }
                 }
@@ -317,7 +318,8 @@ export class GameServer {
 
         // check if lobby is empty
         if (lobby.isLobbyEmpty()) {
-            // TODO start the cleanup process
+            // cleanup process
+            lobby.cleanLobby();
             this.lobbies.delete(lobbyId);
         }
 
