@@ -12,7 +12,7 @@ export default class FightersForFreedom extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addTriggeredAbility({
-            title: 'When you play another aggression card: You may deal 1 damage to a base',
+            title: 'Deal 1 damage to a base',
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.hasSomeAspect(Aspect.Aggression) &&
