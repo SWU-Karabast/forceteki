@@ -12,7 +12,7 @@ export default class ConsortiumStarViper extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addConstantAbility({
-            title: 'While you have the initiative, this unit gains Restore 2. (When this unit attacks, heal 2 damage from your base.)',
+            title: 'While you have the initiative, this unit gains Restore 2.',
             condition: (context) => context.source.controller.hasInitiative(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 2 }),
         });
