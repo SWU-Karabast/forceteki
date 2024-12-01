@@ -12,7 +12,7 @@ export default class OnTopOfThings extends UpgradeCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Attached unit can not be attacked this phase (unless it has Sentinel)',
+            title: 'Attached unit can not be attacked this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.source.parentCard,
                 effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
