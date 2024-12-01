@@ -274,6 +274,7 @@ export enum Aspect {
 export enum KeywordName {
     Ambush = 'ambush',
     Bounty = 'bounty',
+    Coordinate = 'coordinate',
     Grit = 'grit',
     Overwhelm = 'overwhelm',
     Raid = 'raid',

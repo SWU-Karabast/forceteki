@@ -20,6 +20,7 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
+            // } else if (keywordName === KeywordName.Bounty || keywordName === KeywordName.Coordinate) {
         } else if (keywordName === KeywordName.Bounty) {
             if (isKeywordEnabled(keywordName, cardText, cardName)) {
                 keywords.push(new KeywordWithAbilityDefinition(keywordName));
@@ -67,6 +68,7 @@ export function createBountyAbilityFromProps(properties: Omit<ITriggeredAbilityP
 export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Ambush]: false,
     [KeywordName.Bounty]: false,
+    [KeywordName.Coordinate]: false,
     [KeywordName.Grit]: false,
     [KeywordName.Overwhelm]: false,
     [KeywordName.Raid]: true,
@@ -165,6 +167,8 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Ambush/g;
         case KeywordName.Bounty:
             return /(?:^|(?:\n))Bounty/g;
+        case KeywordName.Coordinate:
+            return /(?:^|(?:\n))Coordinate/g;
         case KeywordName.Grit:
             return /(?:^|(?:\n))Grit/g;
         case KeywordName.Overwhelm:
