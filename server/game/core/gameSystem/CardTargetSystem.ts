@@ -251,11 +251,6 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
      * @param defaultMoveAction A handler that will move the card to its destination if none of the special cases apply
      */
     protected leavesPlayEventHandler(card: UnitCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
-        // Attached upgrades should be unattached before moved
-        if (card.isUpgrade() && card.isAttached()) {
-            card.unattach();
-        }
-
         // tokens and leaders are defeated if they move out of an arena zone
         if (
             (card.isToken() || card.isLeader()) &&
@@ -264,6 +259,11 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             // TODO TOKEN UNITS: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
             context.game.actions.defeat({ target: card }).resolve(null, context);
         } else {
+            // Attached upgrades should be unattached before moved
+            if (card.isUpgrade() && card.isAttached()) {
+                card.unattach();
+            }
+
             defaultMoveAction();
         }
     }

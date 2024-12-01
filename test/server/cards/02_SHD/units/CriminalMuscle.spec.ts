@@ -56,7 +56,7 @@ describe('Criminal Muscle', function () {
 
                 context.player1.clickCard(context.experience);
                 expect(context.lukeSkywalkerJediKnight.upgrades.length).toBe(1);
-                expect(context.experience).toBeInZone('out-of-play', context.player2);
+                expect(context.experience).toBeInZone('outsideTheGame', context.player2);
             });
         });
     });

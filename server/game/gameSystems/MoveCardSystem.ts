@@ -105,18 +105,21 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
 
+        // Token cards can be attempted to be moved anywhere
+        if (!card.isToken()) {
         // Ensure that we have a valid destination and that the card can be moved there
-        Contract.assertTrue(
-            destination && context.player.isLegalZoneForCardType(card.type, destination),
-            `${destination} is not a valid zone for ${card.type}`
-        );
-
-        // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
-        if (destination === ZoneName.Hand) {
             Contract.assertTrue(
-                [ZoneName.Discard, ZoneName.Resource].includes(card.zoneName) || EnumHelpers.isArena(card.zoneName),
-                `Cannot use MoveCardSystem to return a card to hand from ${card.zoneName}`
+                destination && context.player.isLegalZoneForCardType(card.type, destination),
+                `${destination} is not a valid zone for ${card.type}`
             );
+
+            // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
+            if (destination === ZoneName.Hand) {
+                Contract.assertTrue(
+                    [ZoneName.Discard, ZoneName.Resource].includes(card.zoneName) || EnumHelpers.isArena(card.zoneName),
+                    `Cannot use MoveCardSystem to return a card to hand from ${card.zoneName}`
+                );
+            }
         }
 
         // Call the super implementation
