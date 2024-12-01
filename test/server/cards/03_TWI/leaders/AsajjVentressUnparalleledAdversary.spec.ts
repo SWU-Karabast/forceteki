@@ -55,80 +55,57 @@ describe('Asajj Ventress, Unparalleled Adversary', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        leader: { card: 'asajj-ventress#unparalleled-adversary', deployed: true },
-                    },
-                    player2: {
-                        groundArena: ['battlefield-marine'],
-                    },
-                });
-            });
-
-            it('should not have +1/+0 and deals before defender as we do not play any event this phase', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.asajjVentress);
-                context.player1.clickCard(context.battlefieldMarine);
-
-                expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toBeInZone('discard');
-                expect(context.asajjVentress.damage).toBe(3);
-            });
-        });
-
-        describe('Asajj Ventress\'s leader deployed ability', function () {
-            beforeEach(function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        leader: { card: 'asajj-ventress#unparalleled-adversary', deployed: true },
-                    },
-                    player2: {
-                        hand: ['resupply'],
-                        groundArena: ['battlefield-marine'],
-                        hasInitiative: true,
-                    },
-                });
-            });
-
-            it('should not have +1/+0 and deals before defender as we do not play any event this phase (even if opponent play an event)', function () {
-                const { context } = contextRef;
-
-                context.player2.clickCard(context.resupply);
-                context.player1.clickCard(context.asajjVentress);
-                context.player1.clickCard(context.battlefieldMarine);
-
-                expect(context.player2).toBeActivePlayer();
-                expect(context.battlefieldMarine).toBeInZone('discard');
-                expect(context.asajjVentress.damage).toBe(3);
-            });
-        });
-
-        describe('Asajj Ventress\'s leader deployed ability', function () {
-            beforeEach(function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
                         hand: ['smugglers-aid'],
                         leader: { card: 'asajj-ventress#unparalleled-adversary', deployed: true },
                     },
                     player2: {
-                        groundArena: ['cloud-city-wing-guard'],
+                        hand: ['resupply'],
+                        groundArena: ['battlefield-marine', 'consular-security-force', 'wilderness-fighter'],
                     },
                 });
             });
 
-            it('should have +1/+0 and deals before defender as we play an event this phase', function () {
+            it('should have +1/+0 and deals before defender if we had play an event this phase', function () {
                 const { context } = contextRef;
 
-                // play an event
+                function reset() {
+                    context.asajjVentress.exhausted = false;
+                    context.setDamage(context.asajjVentress, 0);
+                }
+
+                context.player1.clickCard(context.asajjVentress);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // no event played : nothing happen
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.asajjVentress.damage).toBe(3);
+
+                reset();
+
+                // opponent play an event
+                context.player2.clickCard(context.resupply);
+
+                context.player1.clickCard(context.asajjVentress);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // we do not have played an event : nothing happen
+                expect(context.consularSecurityForce.damage).toBe(3);
+                expect(context.asajjVentress.damage).toBe(3);
+
+                reset();
+                context.player2.passAction();
+
+                // we play an event
                 context.player1.clickCard(context.smugglersAid);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.asajjVentress);
-                // cloud city guard is automatically choose
+                context.player1.clickCard(context.wildernessFighter);
 
+                // we had play an event : asajj get +1/+0 on attack and deals damage before defender
                 expect(context.player2).toBeActivePlayer();
-                expect(context.cloudCityWingGuard).toBeInZone('discard');
+                expect(context.wildernessFighter).toBeInZone('discard');
                 expect(context.asajjVentress.damage).toBe(0);
                 expect(context.asajjVentress.getPower()).toBe(3);
             });

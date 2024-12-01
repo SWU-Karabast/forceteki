@@ -3,6 +3,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import { Duration } from '../../../core/Constants';
+import Player from '../../../core/Player';
 
 export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -24,7 +25,7 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             initiateAttack: {
                 attackerLastingEffects: {
-                    condition: (context) => this.cardsPlayedThisPhaseWatcher.getCardsPlayed((entry) => entry.playedBy === context.attacker.controller && entry.card.isEvent()).length > 0,
+                    condition: (context) => this.hadPlayAnEventThisPhase(context.attacker.controller),
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
                 }
             }
@@ -35,7 +36,7 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
         this.addOnAttackAbility({
             title: 'If you played an event this phase, this unit gets +1/+0 for this attack and deals combat damage before the defender',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.cardsPlayedThisPhaseWatcher.getCardsPlayed((entry) => entry.playedBy === context.source.controller && entry.card.isEvent()).length > 0,
+                condition: (context) => this.hadPlayAnEventThisPhase(context.source.controller),
                 onTrue: AbilityHelper.immediateEffects.cardLastingEffect({
                     duration: Duration.UntilEndOfAttack,
                     effect: [AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
@@ -44,6 +45,10 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
+    }
+
+    private hadPlayAnEventThisPhase(controller: Player) {
+        return this.cardsPlayedThisPhaseWatcher.getCardsPlayed((entry) => entry.playedBy === controller && entry.card.isEvent()).length > 0;
     }
 }
 
