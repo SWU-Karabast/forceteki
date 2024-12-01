@@ -43,12 +43,15 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
     }
 
     private isFirstClonePlayedByControllerThisPhase(card) {
-        const clonesPlayedByThisPlayerThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
-            playedCardEntry.playedBy === card.controller &&
-            playedCardEntry.card.hasSomeTrait(Trait.Clone) &&
-            playedCardEntry.card !== card
-        );
-        return card.hasSomeTrait(Trait.Clone) && clonesPlayedByThisPlayerThisPhase.length === 0;
+        if (card.hasSomeTrait(Trait.Clone)) {
+            const clonesPlayedByThisPlayerThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
+                playedCardEntry.playedBy === card.controller &&
+                playedCardEntry.card.hasSomeTrait(Trait.Clone) &&
+                playedCardEntry.card !== card
+            );
+            return clonesPlayedByThisPlayerThisPhase.length === 0;
+        }
+        return false;
     }
 }
 
