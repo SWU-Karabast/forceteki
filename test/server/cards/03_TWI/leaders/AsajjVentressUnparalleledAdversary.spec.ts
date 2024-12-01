@@ -1,6 +1,6 @@
 describe('Asajj Ventress, Unparalleled Adversary', function () {
     integration(function (contextRef) {
-        describe('Asajj Ventress\'s leader ability', function () {
+        describe('Asajj Ventress\'s leader undeployed ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',

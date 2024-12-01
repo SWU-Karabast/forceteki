@@ -25,7 +25,7 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             initiateAttack: {
                 attackerLastingEffects: {
-                    condition: (context) => this.hadPlayAnEventThisPhase(context.attacker.controller),
+                    condition: (context) => this.hasPlayedAnEventThisPhase(context.attacker.controller),
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
                 }
             }
@@ -36,7 +36,7 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
         this.addOnAttackAbility({
             title: 'If you played an event this phase, this unit gets +1/+0 for this attack and deals combat damage before the defender',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.hadPlayAnEventThisPhase(context.source.controller),
+                condition: (context) => this.hasPlayedAnEventThisPhase(context.source.controller),
                 onTrue: AbilityHelper.immediateEffects.cardLastingEffect({
                     duration: Duration.UntilEndOfAttack,
                     effect: [AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
@@ -47,8 +47,8 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
         });
     }
 
-    private hadPlayAnEventThisPhase(controller: Player) {
-        return this.cardsPlayedThisPhaseWatcher.getCardsPlayed((entry) => entry.playedBy === controller && entry.card.isEvent()).length > 0;
+    private hasPlayedAnEventThisPhase(controller: Player) {
+        return this.cardsPlayedThisPhaseWatcher.someCardsPlayed((entry) => entry.playedBy === controller && entry.card.isEvent());
     }
 }
 
