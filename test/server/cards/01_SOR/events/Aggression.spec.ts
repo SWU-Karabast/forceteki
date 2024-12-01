@@ -72,6 +72,35 @@ describe('Aggression', function () {
 
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('ready a unit with 3 or less power and defeat up to 2 upgrades', function () {
+                const { context } = contextRef;
+                context.player1.clickCard(context.aggression);
+
+                expect(context.player1).toHaveEnabledPromptButtons([drawPrompt, defeatPrompt, readyPrompt, damagePrompt]);
+
+                // ready a unit with 3 or less power
+                context.player1.clickPrompt(readyPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170, context.battlefieldMarine]);
+                context.player1.clickCard(context.restoredArc170);
+                expect(context.restoredArc170.exhausted).toBeFalse();
+
+                expect(context.player1).toHaveEnabledPromptButtons([defeatPrompt, drawPrompt, damagePrompt]);
+
+                // defeat up to 2 upgrades
+                context.player1.clickPrompt(defeatPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.shield, context.experience, context.entrenched]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+
+                // can choose no targets
+                context.player1.clickPrompt('Choose no target');
+
+                expect(context.restoredArc170.isUpgraded()).toBeTrue();
+                expect(context.atst.isUpgraded()).toBeTrue();
+                expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['entrenched']);
+
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
