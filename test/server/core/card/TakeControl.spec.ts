@@ -6,28 +6,15 @@ describe('Take control of a card', function() {
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
-                        groundArena: ['battlefield-marine'],
-                        leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
+                        groundArena: [{ card: 'lom-pyke#dealer-in-truths', damage: 1, exhausted: true, upgrades: [{ card: 'academy-training', owner: 'player2' }], owner: 'player2' }],
+                        leader: { card: 'emperor-palpatine#galactic-ruler', deployed: true },
                     },
                     player2: {
-                        groundArena: [
-                            { card: 'lom-pyke#dealer-in-truths', damage: 1, exhausted: true, upgrades: ['academy-training'] },
-                            'wampa', 'atat-suppressor'
-                        ],
+                        groundArena: ['wampa', 'atat-suppressor'],
                         hand: ['strike-true', 'vanquish', 'take-captive'],
                         leader: 'finn#this-is-a-rescue'
                     }
                 });
-
-                const { context } = contextRef;
-
-                // Lom Pyke captures Battlefield Marine to confirm that captured units remain captured
-                context.player1.passAction();
-                context.player2.clickCard(context.takeCaptive);
-                context.player2.clickCard(context.lomPyke);
-
-                // flip Palpatine to take control of Lom Pyke
-                context.player1.clickCard(context.emperorPalpatine);
             });
 
             it('it should keep all state', function () {
@@ -39,10 +26,7 @@ describe('Take control of a card', function() {
                 expect(context.lomPyke.exhausted).toBeTrue();
                 expect(context.lomPyke.damage).toBe(1);
 
-                // check capture status
-                expect(context.lomPyke.capturedUnits.length).toBe(1);
-                expect(context.lomPyke.capturedUnits[0]).toBe(context.battlefieldMarine);
-                expect(context.battlefieldMarine).toBeCapturedBy(context.lomPyke);
+                context.player1.passAction();
 
                 // activate Finn, then Academy Training is automatically targeted since it is still friendly
                 context.player2.setResourceCount(3);
@@ -56,7 +40,6 @@ describe('Take control of a card', function() {
 
                 // player 2 cannot attack with lost unit
                 expect(context.lomPyke).not.toHaveAvailableActionWhenClickedBy(context.player2);
-                context.player2.passAction();
 
                 // attack with Lom Pyke to confirm that:
                 // - player 1 can attack with him
@@ -87,6 +70,8 @@ describe('Take control of a card', function() {
             it('and it is defeated by an ability, it should go to its owner\'s discard', function () {
                 const { context } = contextRef;
 
+                context.player1.passAction();
+
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.lomPyke);
                 expect(context.lomPyke).toBeInZone('discard', context.player2);
@@ -94,6 +79,8 @@ describe('Take control of a card', function() {
 
             it('and it is defeated by damage, it should go to its owner\'s discard', function () {
                 const { context } = contextRef;
+
+                context.player1.passAction();
 
                 context.player2.clickCard(context.atatSuppressor);
                 context.player2.clickCard(context.lomPyke);
@@ -103,11 +90,52 @@ describe('Take control of a card', function() {
             it('and it is returned to hand, it should return to its owner\'s hand', function () {
                 const { context } = contextRef;
 
-                context.player2.passAction();
-
                 context.player1.clickCard(context.waylay);
                 context.player1.clickCard(context.lomPyke);
                 expect(context.lomPyke).toBeInZone('hand', context.player2);
+            });
+        });
+
+        describe('When a player takes control of a unit in the arena', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['waylay'],
+                        groundArena: ['battlefield-marine'],
+                        leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atat-suppressor', { card: 'lom-pyke#dealer-in-truths', damage: 1, exhausted: true, upgrades: ['academy-training'] }],
+                        hand: ['strike-true', 'vanquish', 'take-captive'],
+                        leader: 'finn#this-is-a-rescue'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Lom Pyke captures Battlefield Marine to confirm that captured units remain captured
+                context.player1.passAction();
+                context.player2.clickCard(context.takeCaptive);
+                context.player2.clickCard(context.lomPyke);
+
+                // flip Palpatine to take control of Lom Pyke
+                context.player1.clickCard(context.emperorPalpatine);
+            });
+
+            it('it should keep captured cards', function () {
+                const { context } = contextRef;
+
+                expect(context.lomPyke.controller).toBe(context.player1Object);
+                expect(context.lomPyke).toHaveExactUpgradeNames(['academy-training']);
+                expect(context.academyTraining.controller).toBe(context.player2Object);
+                expect(context.lomPyke.exhausted).toBeTrue();
+                expect(context.lomPyke.damage).toBe(1);
+
+                // check capture status
+                expect(context.lomPyke.capturedUnits.length).toBe(1);
+                expect(context.lomPyke.capturedUnits[0]).toBe(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeCapturedBy(context.lomPyke);
             });
         });
 

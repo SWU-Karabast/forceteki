@@ -218,7 +218,9 @@ class PlayerInteractionWrapper {
             if (!options.card) {
                 throw new TestSetupError('You must provide a card name');
             }
-            var card = this.findCardByName(options.card, prevZones);
+            const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.nameField;
+
+            var card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
 
             if (card.isUnit() && card.defaultArena !== arenaName) {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
@@ -226,6 +228,11 @@ class PlayerInteractionWrapper {
 
             // Move card to play
             this.moveCard(card, arenaName);
+
+            if (opponentControlled) {
+                card.takeControl(card.owner.opponent);
+            }
+
             // Set exhausted state (false by default)
             if (options.exhausted != null) {
                 options.exhausted ? card.exhaust() : card.ready();
@@ -237,18 +244,24 @@ class PlayerInteractionWrapper {
                 card.damage = options.damage;
             }
 
+            // TODO Rework the card ownership logic when building decks in tests
+            // if (options.owner != null) {
+            //     card.owner = this.game.getPlayerByName(options.owner);
+            // }
+
             // Get the upgrades
             if (options.upgrades) {
-                options.upgrades.forEach((upgradeName) => {
+                options.upgrades.forEach((upgrade) => {
+                    const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
                     const isToken = ['shield', 'experience'].includes(upgradeName);
-                    let upgrade;
+                    let upgradeCard;
                     if (isToken) {
-                        upgrade = this.game.generateToken(this.player, upgradeName);
+                        upgradeCard = this.game.generateToken(this.player, upgradeName);
                     } else {
-                        upgrade = this.findCardByName(upgradeName, prevZones);
+                        upgradeCard = this.findCardByName(upgradeName, prevZones);
                     }
 
-                    upgrade.attachTo(card);
+                    upgradeCard.attachTo(card);
                 });
             }
             if (options.damage !== undefined) {
@@ -304,6 +317,15 @@ class PlayerInteractionWrapper {
             var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
             card.exhausted = false;
+        });
+    }
+
+    attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
+        opponentOwnedUpgrades.forEach((upgrade) => {
+            const upgradeCard = this.findCardByName(upgrade.card, 'any', 'opponent');
+            const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.nameField;
+            const attachTo = attachedCardAlsoOpponentControlled ? this.findCardByName(upgrade.attachedTo, 'any', 'opponent') : this.findCardByName(upgrade.attachedTo);
+            upgradeCard.attachTo(attachTo);
         });
     }
 
