@@ -15,12 +15,12 @@ describe('Compassionate Senator', function () {
 
                 const { context } = contextRef;
 
-                // attack echo base defender with battlefield marine
-                context.player2.clickCard(context.battlefieldMarine);
-
-                // echo base defender should survive with 1 hp because yularen
-                expect(context.echoBaseDefender).toBeInZone('groundArena');
-                expect(context.echoBaseDefender.remainingHp).toBe(1);
+                expect(context.echoBaseDefender.getPower()).toBe(4);
+                expect(context.echoBaseDefender.getHp()).toBe(4);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.admiralYularen.getPower()).toBe(2);
+                expect(context.admiralYularen.getHp()).toBe(5);
             });
         });
     });

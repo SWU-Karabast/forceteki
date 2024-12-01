@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect } from '../../../core/Constants';
+import { Aspect, RelativePlayer } from '../../../core/Constants';
 
 export default class AdmiralYularenAdvisingCaution extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,6 +13,7 @@ export default class AdmiralYularenAdvisingCaution extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'Each other friendly Heroism unit gets +0/+1',
+            targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 1 })
         });

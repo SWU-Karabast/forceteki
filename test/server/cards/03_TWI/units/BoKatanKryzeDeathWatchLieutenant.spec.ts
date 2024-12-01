@@ -7,12 +7,20 @@ describe('Bo-Katan Kryze, Death Watch Lieutenant', function () {
                     player1: {
                         groundArena: ['bokatan-kryze#death-watch-lieutenant', 'battlefield-marine'],
                     },
+                    player2: {
+                        hand: ['rivals-fall'],
+                    }
                 });
 
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bokatanKryze);
                 expect(context.p2Base.damage).toBe(3);
+                expect(context.bokatanKryze.getPower()).toBe(3);
+
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.bokatanKryze.getPower()).toBe(2);
             });
 
             it('should get saboteur and overwhelm as we control a mandalorian unit', function () {
@@ -23,6 +31,7 @@ describe('Bo-Katan Kryze, Death Watch Lieutenant', function () {
                         spaceArena: ['disabling-fang-fighter']
                     },
                     player2: {
+                        hand: ['rivals-fall'],
                         groundArena: ['echo-base-defender', 'jedha-agitator'],
                     }
                 });
@@ -32,6 +41,17 @@ describe('Bo-Katan Kryze, Death Watch Lieutenant', function () {
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.jedhaAgitator);
                 expect(context.p2Base.damage).toBe(1);
+
+                context.bokatanKryze.exhausted = false;
+
+                // kill other mandalorian
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.disablingFangFighter);
+
+                // bo katan loose saboteur & overwhelm, echo base defender should be attack automatically
+                context.player1.clickCard(context.bokatanKryze);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.echoBaseDefender.damage).toBe(2);
             });
         });
     });
