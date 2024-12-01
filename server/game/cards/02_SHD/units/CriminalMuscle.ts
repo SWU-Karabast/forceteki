@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class CriminalMuscle extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,7 +15,8 @@ export default class CriminalMuscle extends NonLeaderUnitCard {
             title: 'Return a non-unique upgrade to its owner\'s hand.',
             optional: true,
             targetResolver: {
-                cardCondition: (card) => card.isUpgrade() && !card.unique,
+                cardCondition: (card) => !card.unique,
+                cardTypeFilter: WildcardCardType.Upgrade,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             }
         });

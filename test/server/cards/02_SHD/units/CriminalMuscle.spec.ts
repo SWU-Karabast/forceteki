@@ -33,7 +33,7 @@ describe('Criminal Muscle', function () {
                 expect(context.frozenInCarbonite).toBeInZone('hand', context.player1);
             });
 
-            it('should return an token upgrade to out of play arena', function () {
+            it('should defeat a token upgrade instead of returning to hand', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {

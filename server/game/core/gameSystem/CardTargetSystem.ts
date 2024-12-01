@@ -260,7 +260,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             context.game.actions.defeat({ target: card }).resolve(null, context);
         } else {
             // Attached upgrades should be unattached before moved
-            if (card.isUpgrade() && card.isAttached()) {
+            if (card.isUpgrade()) {
+                Contract.assertTrue(card.isAttached(), `Upgrade card ${card} should be attached to parent before being unattached.`);
+
                 card.unattach();
             }
 
