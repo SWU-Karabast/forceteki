@@ -43,7 +43,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
     }
 
     private isFirstClonePlayedByControllerThisPhase(card) {
-        return !this.cardsPlayedThisPhaseWatcher.someCardsPlayed((playedCardEntry) =>
+        return card.hasSomeTrait(Trait.Clone) && !this.cardsPlayedThisPhaseWatcher.someCardsPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&
             playedCardEntry.card.hasSomeTrait(Trait.Clone) &&
             playedCardEntry.card !== card
