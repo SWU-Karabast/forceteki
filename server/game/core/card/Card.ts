@@ -809,6 +809,7 @@ export class Card extends OngoingEffectSource {
 
         const state = {
             id: this.cardData.id,
+            setId: this.cardData.setId,
             controlled: this.owner !== this.controller,
             // facedown: this.isFacedown(),
             zone: this.zoneName,
@@ -820,7 +821,7 @@ export class Card extends OngoingEffectSource {
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,
-            // types: this.types,
+            type: this.type,
             uuid: this.uuid,
             ...selectionState
         };
