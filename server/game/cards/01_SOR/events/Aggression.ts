@@ -21,7 +21,6 @@ export default class Aggression extends EventCard {
                     ['Defeat up to 2 upgrades']: AbilityHelper.immediateEffects.selectCard({
                         mode: TargetMode.UpTo,
                         numCards: 2,
-                        canChooseNoCards: true,
                         cardTypeFilter: WildcardCardType.Upgrade,
                         innerSystem: AbilityHelper.immediateEffects.defeat(),
                     }),

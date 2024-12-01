@@ -19,7 +19,6 @@ export default class Restock extends EventCard {
                 zoneFilter: ZoneName.Discard,
                 controller: WildcardRelativePlayer.Any,
                 sameDiscardPile: true,
-                canChooseNoCards: true,
                 immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck({ shuffleMovedCards: true })
             }
         });

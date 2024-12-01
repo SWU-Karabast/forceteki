@@ -78,8 +78,9 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
             properties.canChooseNoCards = properties.canChooseNoCards ?? true;
         } else {
-            // should not use this property if mode is not UpTo(Variable)
-            properties.canChooseNoCards = false;
+            if (properties.canChooseNoCards === true) {
+                Contract.fail('Cannot use canChooseNoCards if mode is not UpTo or UpToVariable');
+            }
         }
 
         return properties;
