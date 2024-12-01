@@ -23,9 +23,27 @@ describe('Morgan Elsbeth, Keeper of Many Secrets', function () {
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.wampa);
 
-                // wampa should be defeated and we should had draw a card
+                // wampa should be defeated, and we should had draw a card
                 expect(context.player2).toBeActivePlayer();
                 expect(context.wampa).toBeInZone('discard');
+                expect(context.player1.hand.length).toBe(1);
+
+                context.morganElsbeth.exhausted = false;
+                context.player2.passAction();
+
+                context.player1.clickCard(context.morganElsbeth);
+                context.player1.clickCard(context.p2Base);
+
+                // choice between ability and restore 1
+                context.player1.clickPrompt('Defeat another friendly unit. If you do, draw a card.');
+
+                // can pass
+                expect(context.player1).toHavePassAbilityPrompt('Defeat another friendly unit. If you do, draw a card.');
+                context.player1.clickPrompt('Pass');
+
+                // we pass, atst should be alive, and we should not have draw
+                expect(context.player2).toBeActivePlayer();
+                expect(context.atst).toBeInZone('groundArena');
                 expect(context.player1.hand.length).toBe(1);
             });
         });
