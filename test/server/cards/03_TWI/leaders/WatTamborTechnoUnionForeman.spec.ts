@@ -1,6 +1,6 @@
 describe('Wat Tambor, Techno Union Foreman', function () {
     integration(function (contextRef) {
-        describe('Wat Tambor\'s leader ability', function () {
+        describe('Wat Tambor\'s leader undeployed ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -14,13 +14,6 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                         groundArena: ['admiral-yularen#advising-caution'],
                     },
                 });
-            });
-
-            it('should not give +2/+2 to a unit if no friendly unit was defeat this phase', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.watTambor);
-                expect(context.player2).toBeActivePlayer();
             });
 
             it('should give +2/+2 to a unit this phase because a friendly unit was defeat this phase', function () {
@@ -56,6 +49,12 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 context.moveToNextActionPhase();
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
+
+                context.player1.clickCard(context.watTambor);
+
+                // no friendly unit has died this phase, nothing happen
+                expect(context.player2).toBeActivePlayer();
+                expect(context.watTambor.exhausted).toBeTrue();
             });
         });
 
@@ -74,26 +73,14 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 });
             });
 
-            it('should not give +2/+2 to a unit because no friendly unit was defeat this phase', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.watTambor);
-                context.player1.clickCard(context.p2Base);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should not give +2/+2 to a unit because no friendly unit was defeat this phase (will kill a unit)', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.watTambor);
-                context.player1.clickCard(context.allianceDispatcher);
-                expect(context.player2).toBeActivePlayer();
-            });
-
             it('should give +2/+2 to a unit for the phase because a friendly unit was defeat this phase', function () {
                 const { context } = contextRef;
 
-                context.player1.passAction();
+                // no unit killed, on attack ability should not trigger
+                context.player1.clickCard(context.watTambor);
+                context.player1.clickCard(context.allianceDispatcher);
+                expect(context.player2).toBeActivePlayer();
+                context.watTambor.exhausted = false;
 
                 // yularen kill our guardian of the whills
                 context.player2.clickCard(context.admiralYularen);
@@ -102,7 +89,7 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 // wat tambor should give +2/+2 to any unit
                 context.player1.clickCard(context.watTambor);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.admiralYularen, context.allianceDispatcher]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.admiralYularen]);
                 expect(context.player1).toHavePassAbilityButton();
 
                 // give +2/+2 to battlefield marine
