@@ -50,9 +50,9 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
-                    const opponentUnitsLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.getCardsLeftPlayControlledByPlayer({ controller: context.source.controller.opponent, filter: (entry) => entry.card.isUnit() });
+                    const opponentHasUnitsThatLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.someCardsLeftPlayControlledByPlayer({ controller: context.source.controller.opponent, filter: (entry) => entry.card.isUnit() });
                     const playerHasResourcesToReady = context.source.controller.resources.some((resource) => resource.exhausted);
-                    return opponentUnitsLeftPlayThisPhase.length > 0 && playerHasResourcesToReady;
+                    return opponentHasUnitsThatLeftPlayThisPhase && playerHasResourcesToReady;
                 },
                 onTrue: AbilityHelper.immediateEffects.readyResources({ amount: 2 }),
                 onFalse: AbilityHelper.immediateEffects.noAction(),
