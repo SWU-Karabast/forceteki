@@ -27,6 +27,7 @@ export default class RuleWithRespect extends EventCard {
                 zoneFilter: WildcardZoneName.AnyArena,
                 immediateEffect: AbilityHelper.immediateEffects.capture((context) => ({
                     captor: context.target,
+                    // TODO CHECK UNIQUE ID WHEN IT'S DONE
                     target: this.attacksThisPhaseWatcher.getAttackers((attack) =>
                         attack.target.isBase() &&
                         attack.defendingPlayer === context.source.controller &&
