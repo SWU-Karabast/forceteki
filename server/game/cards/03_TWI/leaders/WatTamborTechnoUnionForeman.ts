@@ -1,13 +1,13 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 import { GameSystem } from '../../../core/gameSystem/GameSystem';
 import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { WildcardCardType } from '../../../core/Constants';
+import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
-    private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
+    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -17,7 +17,7 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
-        this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase(registrar, this);
+        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
     protected override setupLeaderSideAbilities() {
@@ -45,9 +45,7 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
 
     private getWatTamborEffect(): GameSystem<TriggeredAbilityContext<this>> {
         return AbilityHelper.immediateEffects.conditional({
-            condition: (context) => {
-                return this.cardsLeftPlayThisPhaseWatcher.someCardsLeftPlayControlledByPlayer({ controller: context.source.controller, filter: (entry) => entry.card.isUnit() });
-            },
+            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitsControlledByPlayer(context.source.controller),
             onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                 effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
             }),
