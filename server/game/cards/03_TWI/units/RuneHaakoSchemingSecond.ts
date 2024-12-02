@@ -1,11 +1,11 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
+import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
-    private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
+    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -15,7 +15,7 @@ export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
-        this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase(registrar, this);
+        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
     public override setupCardAbilities() {
@@ -25,10 +25,7 @@ export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => {
-                        const friendlyUnitsLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.getCardsLeftPlayControlledByPlayer({ controller: context.source.controller, filter: (entry) => entry.card.isUnit() });
-                        return friendlyUnitsLeftPlayThisPhase.length > 0;
-                    },
+                    condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitsControlledByPlayer(context.source.controller),
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
                     }),

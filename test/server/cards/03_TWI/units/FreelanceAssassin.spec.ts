@@ -19,8 +19,8 @@ describe('Freelance Assassin', function () {
                 context.player1.clickCard(context.freelanceAssassin);
 
                 // have a prompt to pay 2 resources
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources. If you do, deal 2 damage to a unit.');
-                context.player1.clickPrompt('Pay 2 resources. If you do, deal 2 damage to a unit.');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
+                context.player1.clickPrompt('Pay 2 resources');
 
                 // deal 2 damage to a unit
                 expect(context.player1).toBeAbleToSelectExactly([context.freelanceAssassin, context.restoredArc170, context.battlefieldMarine]);
@@ -49,7 +49,7 @@ describe('Freelance Assassin', function () {
                 context.player1.clickCard(context.freelanceAssassin);
 
                 // have a prompt to pay 2 resources
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources. If you do, deal 2 damage to a unit.');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();

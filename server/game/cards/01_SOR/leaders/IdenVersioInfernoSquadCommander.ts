@@ -22,10 +22,7 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
             title: 'Heal 1 from base if an opponent\'s unit was defeated this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => {
-                    const opponentUnitsDefeatedThisPhase = this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller.opponent);
-                    return opponentUnitsDefeatedThisPhase.length > 0;
-                },
+                condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitsControlledByPlayer(context.source.controller.opponent),
                 onTrue: AbilityHelper.immediateEffects.heal((context) => {
                     return { amount: 1, target: context.source.controller.base };
                 }),

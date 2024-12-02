@@ -12,7 +12,7 @@ export default class FreelanceAssassin extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Pay 2 resources. If you do, deal 2 damage to a unit.',
+            title: 'Pay 2 resources',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
                 amount: 2,

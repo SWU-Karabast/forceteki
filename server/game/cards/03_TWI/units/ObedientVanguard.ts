@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class ObedientVanguard extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,8 @@ export default class ObedientVanguard extends NonLeaderUnitCard {
             title: 'Give a Trooper unit +2/+2 for this phase',
             optional: true,
             targetResolver: {
-                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Trooper),
+                cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card) => card.hasSomeTrait(Trait.Trooper),
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                 })
