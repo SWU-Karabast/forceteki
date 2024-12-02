@@ -134,7 +134,7 @@ export abstract class OngoingEffect {
             this.cancel();
             return stateChanged;
         } else if (typeof this.matchTarget === 'function') {
-            // HACK: type narrowing is not retained in filter call, so we cache it here as a work around.
+            // HACK: type narrowing is not retained in filter call, so we cache it here as a workaround.
             const matchTarget = this.matchTarget;
             // Get any targets which are no longer valid
             const invalidTargets = this.targets.filter((target) => !matchTarget(target, this.context) || !this.isValidTarget(target));
@@ -163,7 +163,7 @@ export abstract class OngoingEffect {
 
     public getDebugInfo() {
         return {
-            source: this.source.name,
+            source: this.source.title,
             targets: this.targets.map((target) => target.name).join(','),
             active: this.isEffectActive(),
             condition: this.condition(this.context),
