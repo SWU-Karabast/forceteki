@@ -77,12 +77,12 @@ export class GameServer {
             }
         });
 
-        app.get('/api/unfilled-lobbies', (_, res) => {
-            const unfilledLobbies = Array.from(this.getActiveGameLobbies().entries()).map(([id, _]) => ({
+        app.get('/api/available-lobbies', (_, res) => {
+            const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
                 id,
                 name: `Game #${id}`,
             }));
-            res.json(unfilledLobbies);
+            res.json(availableLobbies);
         });
 
         app.post('/api/join-lobby', (req, res) => {
@@ -102,7 +102,7 @@ export class GameServer {
         });
     }
 
-    private getActiveGameLobbies() {
+    private lobbiesWithOpenSeat() {
         return new Map(
             Array.from(this.lobbies.entries()).filter(([_, lobby]) => !lobby.isLobbyFilled())
         );
