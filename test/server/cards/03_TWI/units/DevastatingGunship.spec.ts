@@ -15,12 +15,16 @@ describe('Devastating Gunship', function () {
                 });
             });
 
-            it('should not give -1/-1 because no friendly was defeated this phase', function () {
+            it('should defeat an enemy unit with 2 or less remaining HP', function () {
                 const { context } = contextRef;
+
                 context.player1.clickCard(context.devastatingGunship);
+
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.lurkingTiePhantom]);
                 expect(context.player1).not.toHaveChooseNoTargetButton();
+
                 context.player1.clickCard(context.battlefieldMarine);
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toBeInZone('discard');
             });

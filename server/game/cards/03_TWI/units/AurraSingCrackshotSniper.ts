@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { ZoneName } from '../../../core/Constants';
 
 export default class AurraSingCrackshotSniper extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -11,9 +12,12 @@ export default class AurraSingCrackshotSniper extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Ready when an enemy unit attack base',
+            title: 'Ready when an enemy ground unit attack base',
             when: {
-                onAttackDeclared: (event, context) => event.attack.target === context.source.controller.base,
+                onAttackDeclared: (event, context) =>
+                    event.attack.attacker.controller !== context.source.controller &&
+                    event.attack.attacker.zoneName === ZoneName.GroundArena &&
+                    event.attack.target === context.source.controller.base,
             },
             immediateEffect: AbilityHelper.immediateEffects.ready(),
         });

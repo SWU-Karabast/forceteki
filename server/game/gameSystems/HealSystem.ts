@@ -17,7 +17,9 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
     public eventHandler(event): void {
-        event.damageRemoved = event.card.removeDamage(event.healAmount);
+        if (!event.card.hasRestriction(AbilityRestriction.BeHealed, event.context)) {
+            event.damageRemoved = event.card.removeDamage(event.healAmount);
+        }
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -35,9 +37,6 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
             return false;
         }
         if (properties.isCost && (properties.amount === 0 || card.damage === 0)) {
-            return false;
-        }
-        if (card.hasRestriction(AbilityRestriction.BeHealed, context)) {
             return false;
         }
         return super.canAffect(card, context);

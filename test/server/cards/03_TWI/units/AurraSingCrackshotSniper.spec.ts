@@ -17,29 +17,23 @@ describe('Aurra Sing, Crackshot Sniper', function () {
             it('should ready when an enemy unit attacks my base', function () {
                 const { context } = contextRef;
 
-                // aurra sing attack, she should be exhausted
-                context.player1.clickCard(context.aurraSing);
-                context.player1.clickCard(context.p2Base);
-                expect(context.aurraSing.exhausted).toBeTrue();
+                context.aurraSing.exhausted = true;
+                context.player1.passAction();
 
                 // a ground enemy unit attack base, aurra sing ready
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.p1Base);
                 expect(context.aurraSing.exhausted).toBeFalse();
 
-                // aurra sing attack, she should be exhausted
-                context.player1.clickCard(context.aurraSing);
-                context.player1.clickCard(context.p2Base);
-                expect(context.aurraSing.exhausted).toBeTrue();
+                context.aurraSing.exhausted = true;
+                context.player1.passAction();
 
-                // a space enemy unit attack base, aurra sing ready
+                // a space enemy unit attack base, aurra sing should be exhausted
                 context.player2.clickCard(context.imperialInterceptor);
-                expect(context.aurraSing.exhausted).toBeFalse();
-
-                // aurra sing attack, she should be exhausted
-                context.player1.clickCard(context.aurraSing);
-                context.player1.clickCard(context.p2Base);
                 expect(context.aurraSing.exhausted).toBeTrue();
+
+                context.aurraSing.exhausted = true;
+                context.player1.passAction();
 
                 // wampa do not attack base, aurra sing should be exhausted
                 context.player2.clickCard(context.wampa);

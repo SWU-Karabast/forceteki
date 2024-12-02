@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer } from '../../../core/Constants';
 
 export default class EnfysNestChampionOfJustice extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,8 +20,7 @@ export default class EnfysNestChampionOfJustice extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Opponent,
-                cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                cardCondition: (card, context) => card.isUnit() && card.getPower() < context.source.getPower(),
+                cardCondition: (card, context) => card.isNonLeaderUnit() && card.getPower() < context.source.getPower(),
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             }
         });

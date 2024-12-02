@@ -1,15 +1,15 @@
-describe('Compassionate Senator', function () {
+describe('Admiral Yularen, Advising Caution', function () {
     integration(function (contextRef) {
-        describe('Compassionate Senator\'s ability', function () {
-            it('should heal 2 damage from a unit or a base', function () {
+        describe('Admiral Yularen\'s ability', function () {
+            it('should give +0/+1 to each other friendly heroism unit', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['echo-base-defender', 'admiral-yularen#advising-caution'],
+                        groundArena: ['echo-base-defender', 'admiral-yularen#advising-caution', 'wampa'],
+                        spaceArena: ['green-squadron-awing']
                     },
                     player2: {
                         groundArena: ['battlefield-marine'],
-                        hasInitiative: true,
                     }
                 });
 
@@ -21,6 +21,10 @@ describe('Compassionate Senator', function () {
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.admiralYularen.getPower()).toBe(2);
                 expect(context.admiralYularen.getHp()).toBe(5);
+                expect(context.wampa.getPower()).toBe(4);
+                expect(context.wampa.getHp()).toBe(5);
+                expect(context.greenSquadronAwing.getPower()).toBe(1);
+                expect(context.greenSquadronAwing.getHp()).toBe(4);
             });
         });
     });

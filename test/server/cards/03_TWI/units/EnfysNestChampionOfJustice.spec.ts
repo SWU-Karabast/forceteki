@@ -6,6 +6,7 @@ describe('Enfys Nest, Champion of Justice', function () {
                     phase: 'action',
                     player1: {
                         hand: ['enfys-nest#champion-of-justice', 'academy-training'],
+                        groundArena: ['consular-security-force']
                     },
                     player2: {
                         groundArena: ['battlefield-marine', 'wampa', 'atst', 'maul#shadow-collective-visionary']

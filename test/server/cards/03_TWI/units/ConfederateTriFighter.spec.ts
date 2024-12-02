@@ -5,6 +5,7 @@ describe('Confederate Tri-Fighter', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
+                        hand: ['repair'],
                         groundArena: ['admiral-ackbar#brilliant-strategist'],
                         spaceArena: ['confederate-trifighter'],
                         base: { card: 'echo-base', damage: 5 }
@@ -41,6 +42,15 @@ describe('Confederate Tri-Fighter', function () {
                 expect(context.p2Base.damage).toBe(5);
 
                 reset();
+
+                // play repair
+                context.player1.clickCard(context.repair);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.admiralAckbar, context.yoda, context.confederateTrifighter, context.corellianFreighter]);
+                context.player1.clickCard(context.p1Base);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p1Base.damage).toBe(5);
+
+                context.player2.passAction();
 
                 // kill confederate tri-fighter, base healing should work
                 context.player1.clickCard(context.confederateTrifighter);
