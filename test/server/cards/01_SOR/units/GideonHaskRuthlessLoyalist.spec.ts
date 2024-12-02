@@ -50,8 +50,6 @@ describe('Gideon Hask, Ruthless Loyalist', function () {
                 context.player1.clickCard(context.gideonHask);
                 context.player1.clickPrompt('You');
                 context.player1.clickPrompt('Pass');
-                expect(context.player2).toBeAbleToSelectExactly([context.atst]);
-                context.player2.clickCard(context.atst);
                 expect(context.atst).toHaveExactUpgradeNames(['experience']);
             });
         });
