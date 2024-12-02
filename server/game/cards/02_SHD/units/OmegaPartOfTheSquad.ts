@@ -4,6 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import ChimaeraFlagshipOfTheSeventhFleet from '../../01_SOR/units/ChimaeraFlagshipOfTheSeventhFleet';
 
 export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -43,6 +44,9 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
     }
 
     private isFirstClonePlayedByControllerThisPhase(card) {
+        if (!card.hasSomeTrait(Trait.Clone)) {
+            return false;
+        }
         const clonesPlayedByThisPlayerThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&
             playedCardEntry.card.hasSomeTrait(Trait.Clone) &&
