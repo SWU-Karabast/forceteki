@@ -64,6 +64,7 @@ export class Lobby {
 
     public cleanLobby(): void {
         this.game = null;
+        this.users = [];
     }
 
     private onStartGame(): void {
