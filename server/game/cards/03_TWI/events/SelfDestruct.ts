@@ -12,7 +12,7 @@ export default class SelfDestruct extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Defeat a friendly unit. If you do, deal 4 damage to a unit.',
+            title: 'Defeat a friendly unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,

@@ -5,18 +5,21 @@ describe('Hello There', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['hello-there', 'green-squadron-awing'],
-                        groundArena: ['pyke-sentinel'],
+                        hand: ['hello-there', 'green-squadron-awing', 'pyke-sentinel'],
                     },
                     player2: {
-                        hand: ['atst'],
-                        groundArena: ['consular-security-force'],
+                        hand: ['atst', 'consular-security-force'],
                     }
                 });
             });
 
             it('should apply -4/-4 to a unit which entered play this phase', function () {
                 const { context } = contextRef;
+
+                context.player1.clickCard(context.pykeSentinel);
+                context.player2.clickCard(context.consularSecurityForce);
+
+                context.moveToNextActionPhase();
 
                 // play a-wing & opponent plays atst
                 context.player1.clickCard(context.greenSquadronAwing);
