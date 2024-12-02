@@ -31,7 +31,7 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
     }
 
     private isFirstEventPlayedByThisOpponentThisPhase(card) {
-        return card.controller !== this.controller && card.type === CardType.Event && !this.cardsPlayedThisPhaseWatcher.someCardsPlayed((playedCardEntry) =>
+        return card.controller !== this.controller && card.type === CardType.Event && !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&
             playedCardEntry.card.type === CardType.Event &&
             playedCardEntry.card !== card);

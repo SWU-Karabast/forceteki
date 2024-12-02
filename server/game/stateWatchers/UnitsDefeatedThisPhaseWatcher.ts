@@ -37,10 +37,8 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /** Check if there is some units controlled by player that was defeated this phase */
-    public someDefeatedUnitsControlledByPlayer(controller: Player): boolean {
-        return this.getCurrentValue()
-            .filter((entry) => entry.controlledBy === controller)
-            .length > 0;
+    public someDefeatedUnitControlledByPlayer(controller: Player): boolean {
+        return this.getDefeatedUnitsControlledByPlayer(controller).length > 0;
     }
 
     protected override setupWatcher() {

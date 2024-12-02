@@ -55,7 +55,7 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
     }
 
     private villainyCardPlayedThisPhase(context): boolean {
-        return this.cardsPlayedThisPhaseWatcher.someCardsPlayed((playedCardEntry) =>
+        return this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === context.source.controller &&
             playedCardEntry.card.hasSomeAspect(Aspect.Villainy)
         );
