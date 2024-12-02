@@ -251,6 +251,13 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             // TODO TOKEN UNITS: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
             context.game.actions.defeat({ target: card }).resolve(null, context);
         } else {
+            // Attached upgrades should be unattached before moved
+            if (card.isUpgrade()) {
+                Contract.assertTrue(card.isAttached(), `Attempting to unattach upgrade card ${card} due to leaving play but it is already unattached.`);
+
+                card.unattach();
+            }
+
             defaultMoveAction();
         }
     }
