@@ -7,7 +7,6 @@ const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
-const { set } = require('zod');
 
 const pathToJSON = path.join(__dirname, '../test/json/');
 
