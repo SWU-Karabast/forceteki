@@ -51,7 +51,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
-            return (!this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
+            return (this.immediateEffect || !this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
               (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState));
         };
