@@ -3,7 +3,6 @@ import { StateWatcherName } from '../core/Constants';
 import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import Player from '../core/Player';
 import { TokenOrPlayableCard } from '../core/card/CardTypes';
-import Game from '../core/Game';
 import { Card } from '../core/card/Card';
 
 export interface PlayedCardEntry {
