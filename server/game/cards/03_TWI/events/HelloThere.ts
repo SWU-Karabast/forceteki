@@ -23,7 +23,7 @@ export default class HelloThere extends EventCard {
             title: 'Choose a unit that entered play this phase. It gets -4/-4 for this phase.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => this.cardsPlayedThisPhaseWatcher.someCardsPlayed((entry) => entry.card === card),
+                cardCondition: (card) => this.cardsPlayedThisPhaseWatcher.someCardPlayed((entry) => entry.card === card),
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: -4 })
                 })
