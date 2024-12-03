@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { Arena, CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
+import { AbilityType, Arena, CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -9,7 +9,7 @@ import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { UpgradeCard } from '../UpgradeCard';
 import { Card } from '../Card';
-import { ITriggeredAbilityProps } from '../../../Interfaces';
+import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { KeywordWithAbilityDefinition, KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -24,6 +24,9 @@ import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource'
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { CaptureZone } from '../../zone/CaptureZone';
+import { IAbilityWithType } from '../../ability/AbilityTypes';
+import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
+
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -83,6 +86,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _whenCapturedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
+        private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
 
         public get capturedUnits() {
             this.assertPropertyEnabled(this._captureZone, 'capturedUnits');
@@ -222,7 +226,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             // TODO: see if there's a better way using discriminating unions to avoid needing a cast when getting keyword instances
             Contract.assertTrue(bountyAbilityToAssign instanceof KeywordWithAbilityDefinition);
-            bountyAbilityToAssign.setAbilityProps(triggeredProperties);
+            bountyAbilityToAssign.setAbilityProps({ ...triggeredProperties, type: AbilityType.Triggered });
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
@@ -257,6 +261,42 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             return constantAbilities;
+        }
+
+        /** Register / un-register the effects for any abilities from keywords */
+        protected override updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) {
+            if (!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) {
+                Contract.assertIsNullLike(
+                    this._whileInPlayKeywordAbilities,
+                    `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+                );
+
+                this._whileInPlayKeywordAbilities = [];
+
+                for (const keywordInstance of this.getCoordinateAbilities()) {
+                    const gainedAbilityProps = keywordInstance.abilityProps;
+
+                    const coordinateKeywordAbilityProps: IConstantAbilityProps = {
+                        title: `Coordinate: ${gainedAbilityProps.title}`,
+                        condition: (context) => context.source.controller.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
+                        ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
+                    };
+
+                    const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
+                    coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
+
+                    this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
+                }
+            } else if (EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
+                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
+
+                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
+                    this.removeEffectFromEngine(keywordAbility.registeredEffects);
+                    keywordAbility.registeredEffects = [];
+                }
+
+                this._whileInPlayKeywordAbilities = null;
+            }
         }
 
         // *************************************** KEYWORD HELPERS ***************************************
@@ -383,9 +423,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             for (const bountyKeyword of bountyKeywords) {
                 const abilityProps = bountyKeyword.abilityProps;
 
+                Contract.assertTrue(abilityProps.type === AbilityType.Triggered, `Bounty abilities must be triggered abilities but instead found ${abilityProps.type}`);
+
+                const { type, ...abilityPropsWithoutType } = abilityProps;
+
                 const bountyAbility = this.createTriggeredAbility({
                     ...this.buildGeneralAbilityProps('keyword_bounty'),
-                    ...abilityProps
+                    ...abilityPropsWithoutType,
                 });
 
                 bountyAbility.registerEvents();
@@ -397,6 +441,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private getBountyAbilities() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Bounty)
+                .map((keyword) => keyword as KeywordWithAbilityDefinition);
+        }
+
+        private getCoordinateAbilities() {
+            return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Coordinate)
                 .map((keyword) => keyword as KeywordWithAbilityDefinition);
         }
 

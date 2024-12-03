@@ -242,14 +242,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
         this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
+        this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
 
         this.movedFromZone = null;
     }
 
+    public override registerMove(movedFromZone: ZoneName): void {
+        super.registerMove(movedFromZone);
+
+        this.movedFromZone = movedFromZone;
+    }
+
     protected override initializeForCurrentZone(prevZone?: ZoneName) {
         super.initializeForCurrentZone(prevZone);
-
-        this.movedFromZone = prevZone;
 
         if (EnumHelpers.isArena(this.zoneName)) {
             this.setPendingDefeatEnabled(true);
@@ -299,6 +304,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
             }
         }
     }
+
+    /** Register / un-register the effects for any abilities from keywords */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) { }
 
     protected override resetLimits() {
         super.resetLimits();

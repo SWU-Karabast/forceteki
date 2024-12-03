@@ -41,7 +41,9 @@ export function keywordFromProperties(properties: IKeywordProperties) {
     }
 
     if (properties.keyword === KeywordName.Bounty) {
-        return new KeywordWithAbilityDefinition(properties.keyword, createBountyAbilityFromProps(properties.ability));
+        const bountyAbilityProps = createBountyAbilityFromProps(properties.ability);
+
+        return new KeywordWithAbilityDefinition(properties.keyword, { ...bountyAbilityProps, type: AbilityType.Triggered });
     }
 
     // TODO SMUGGLE: add smuggle here for "gain smuggle" abilities

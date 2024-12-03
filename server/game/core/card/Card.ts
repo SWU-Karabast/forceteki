@@ -489,6 +489,10 @@ export class Card extends OngoingEffectSource {
             newZone: this.zoneName
         });
 
+        this.registerMove(movedFromZone);
+    }
+
+    protected registerMove(movedFromZone: ZoneName) {
         this.game.registerMovedCard(this);
     }
 
