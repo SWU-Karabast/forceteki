@@ -29,8 +29,6 @@ export class Lobby {
 
         socket.registerEvent('startGame', () => this.onStartGame());
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
-        // socket.on('disconnect', () => {this.disconnectLobbyUser(id)});
-        // figuring out how to properly mark a user disconnected
         // maybe we neeed to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
@@ -39,10 +37,21 @@ export class Lobby {
             this.users.push({ id: id, state: 'connected', socket });
         }
 
-
         if (this.game) {
             this.sendGameState(this.game);
         }
+    }
+
+    public setUserDisconnected(id: string): void {
+        this.users.find((u) => u.id === id).state = 'disconnected';
+    }
+
+    public getUserState(id: string): string {
+        return this.users.find((u) => u.id === id).state;
+    }
+
+    public isLobbyFilled(): boolean {
+        return this.users.length === 2;
     }
 
     public removeLobbyUser(id: string): void {
@@ -51,6 +60,11 @@ export class Lobby {
 
     public isLobbyEmpty(): boolean {
         return this.users.length === 0;
+    }
+
+    public cleanLobby(): void {
+        this.game = null;
+        this.users = [];
     }
 
     private onStartGame(): void {

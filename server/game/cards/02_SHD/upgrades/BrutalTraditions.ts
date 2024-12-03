@@ -21,7 +21,7 @@ export default class BrutalTraditions extends UpgradeCard {
     public override setupCardAbilities() {
         this.addActionAbility({
             title: 'If an enemy unit was defeated this phase, play this upgrade from your discard pile',
-            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitsControlledByPlayer(context.source.controller.opponent),
+            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.source.controller.opponent),
             immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay(),
             zoneFilter: ZoneName.Discard
         });
