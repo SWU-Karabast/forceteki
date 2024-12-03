@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import { RelativePlayer, TargetMode, ZoneFilter, CardTypeFilter, RelativePlayerFilter } from './core/Constants';
+import { CardTypeFilter, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
 import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
