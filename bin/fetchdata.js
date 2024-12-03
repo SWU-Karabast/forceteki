@@ -7,6 +7,7 @@ const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
+const { set } = require('zod');
 
 const pathToJSON = path.join(__dirname, '../test/json/');
 
@@ -51,8 +52,8 @@ function filterValues(card) {
     }
 
     // hacky way to strip the object down to just the attributes we want
-    const filterAttributes = ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules }) =>
-        ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules });
+    const filterAttributes = ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
+        ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
 
     let filteredObj = filterAttributes(card.attributes);
 
@@ -115,6 +116,7 @@ function getCardData(page, progressBar) {
 
 function getUniqueCards(cards) {
     const cardMap = [];
+    const setCodeMap = {};
     const playableCardTitlesSet = new Set();
     const seenNames = [];
     var duplicatesWithSetCode = {};
@@ -122,6 +124,18 @@ function getUniqueCards(cards) {
     const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3]]);
 
     for (const card of cards) {
+        // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data
+        if (!card.types.includes('token')) {
+            setCodeMap[`${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`] = card.id;
+            for (const reprint of card.reprints.data) {
+                const setCode = reprint.attributes.expansion.data.attributes.code;
+                if (setCode && setNumber.has(setCode)) {
+                    setCodeMap[`${setCode}_${String(reprint.attributes.cardNumber).padStart(3, '0')}`] = card.id;
+                }
+            }
+        }
+        delete card.reprints;
+
         if (seenNames.includes(card.internalName)) {
             if (duplicatesWithSetCode[card.internalName] === null) {
                 duplicatesWithSetCode[card.internalName] = cards.filter((c) => c.internalName === card.internalName)
@@ -148,7 +162,7 @@ function getUniqueCards(cards) {
     playableCardTitles.sort();
 
     const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
-    return { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode };
+    return { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap };
 }
 
 async function main() {
@@ -173,7 +187,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode } = getUniqueCards(cards);
+    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap } = getUniqueCards(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -195,6 +209,7 @@ async function main() {
 
     fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
