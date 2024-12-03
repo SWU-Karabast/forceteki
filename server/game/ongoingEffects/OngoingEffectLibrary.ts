@@ -94,6 +94,7 @@ export = {
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
     gainAbility: (properties: IActionAbilityPropsWithType | ITriggeredAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(properties)),
+    // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
     gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties) =>
         OngoingEffectBuilder.card.static(EffectName.GainKeyword,
             typeof keywordOrKeywordProperties === 'string'

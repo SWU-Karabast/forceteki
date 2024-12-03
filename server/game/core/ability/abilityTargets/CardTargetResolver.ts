@@ -4,7 +4,7 @@ import PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { Card } from '../../card/Card';
-import { Stage, EffectName, ZoneFilter, RelativePlayer, GameStateChangeRequired, ZoneName } from '../../Constants';
+import { EffectName, GameStateChangeRequired, RelativePlayer, Stage, TargetMode, ZoneFilter, ZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
@@ -27,6 +27,10 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
 
+        if (this.properties.mode === TargetMode.UpTo || this.properties.mode === TargetMode.UpToVariable) {
+            this.properties.canChooseNoCards = this.properties.canChooseNoCards ?? true;
+        }
+
         if ('canChooseNoCards' in this.properties) {
             this.properties.optional = this.properties.optional || this.properties.canChooseNoCards;
         }
@@ -47,7 +51,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
-            return (!this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
+            return (this.immediateEffect || !this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
               (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState));
         };
