@@ -23,13 +23,9 @@ export default class LothalInsurgent extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'The opponent draws a discard and discards a random card',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => {
-                    const otherFriendlyCardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCardsPlayed(
-                        (cardPlay) => cardPlay.playedBy === context.source.controller && cardPlay.card !== context.source
-                    );
-
-                    return otherFriendlyCardsPlayedThisPhase.length > 0;
-                },
+                condition: (context) => this.cardsPlayedThisWatcher.someCardPlayed(
+                    (cardPlay) => cardPlay.playedBy === context.source.controller && cardPlay.card !== context.source
+                ),
                 onTrue: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller.opponent })),
                     AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
