@@ -18,7 +18,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
                 });
             });
 
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+            it('should add a bounty to play a unit from our hand, it costs 1 resource less', function () {
                 const { context } = contextRef;
 
                 // add a bounty to battlefield marine
@@ -49,7 +49,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });
 
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+            it('should add a bounty to play a unit from our hand but expire at the end of phase', function () {
                 const { context } = contextRef;
 
                 // add a bounty to battlefield marine
@@ -79,7 +79,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+            it('should add a bounty which expire at the end of phase', function () {
                 const { context } = contextRef;
 
                 // add a bounty to battlefield marine
@@ -98,7 +98,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
         });
 
         describe('Jabba the Hutt\'s leader deployed ability', function () {
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+            it('should choose a friendly to capture a enemy non leader unit', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -147,7 +147,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
                 });
             });
 
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+            it('should add a bounty to play a unit from our hand, it costs 2 resource less', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbaTheHutt);
@@ -180,7 +180,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
 
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+            it('should add a bounty to play a unit from our hand but expire at the end of phase', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbaTheHutt);
@@ -210,7 +210,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
+            it('should add a bounty which expire at the end of phase', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbaTheHutt);
