@@ -7,6 +7,8 @@ import Player from './core/Player';
 import * as CardHelpers from './core/card/CardHelpers';
 import { TokenOrPlayableCard, TokenCard } from './core/card/CardTypes';
 import * as Contract from './core/utils/Contract';
+import setCodeMap from '../../test/json/_setCodeMap.json';
+
 
 export class Deck {
     public constructor(public data: any) {}
@@ -76,8 +78,11 @@ export class Deck {
             sideboard: [] as TokenOrPlayableCard[],
             allCards: [] as Card[]
         };
+        console.log(setCodeMap);
         const deckCards = this.data.deck.map(({ id, count }) => {
-            const cardData = cards.get(id);
+            console.log(id);
+            console.log(setCodeMap[id]);
+            const cardData = cards.get(setCodeMap[id]);
             if (!cardData) {
                 console.warn(`Card with ID ${id} not found.`);
             }
@@ -88,7 +93,7 @@ export class Deck {
         });
         const leader = [];
         if (this.data.leader) {
-            const cardData = cards.get(this.data.leader.id);
+            const cardData = cards.get(setCodeMap[this.data.leader.id]);
             if (!cardData) {
                 console.warn(`Leader card with ID ${this.data.leader.id} not found.`);
             }
@@ -99,7 +104,7 @@ export class Deck {
         }
         const base = [];
         if (this.data.base) {
-            const cardData = cards.get(this.data.base.id.split('_'));
+            const cardData = cards.get(setCodeMap[this.data.base.id]);
             if (!cardData) {
                 console.warn(`Base card with ID ${this.data.base.id} not found.`);
             }
@@ -109,7 +114,7 @@ export class Deck {
             });
         }
         const sideboardCards = this.data.sideboard.map(({ id, count }) => {
-            const cardData = cards.get(this.data.id);
+            const cardData = cards.get(setCodeMap[this.data.id]);
             if (!cardData) {
                 console.warn(`Sideboard card with ID ${id} not found.`);
             }
