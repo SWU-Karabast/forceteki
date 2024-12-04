@@ -48,10 +48,11 @@ describe('Capture mechanic', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['discerning-veteran', 'take-captive'],
+                    hand: ['discerning-veteran', 'legal-authority'],
                 },
                 player2: {
                     groundArena: ['wampa', 'atst'],
+                    spaceArena: ['green-squadron-awing'],
                     hand: ['vanquish']
                 }
             });
@@ -67,16 +68,20 @@ describe('Capture mechanic', function() {
             context.player2.passAction();
 
             // capture AT-ST with Discerning Veteran
-            context.player1.clickCard(context.takeCaptive);
-            expect(context.atst).toBeCapturedBy(context.discerningVeteran);
+            context.player1.clickCard(context.legalAuthority);
+            // discerning veteran and green squadron awing were chosen automatically
+            expect(context.greenSquadronAwing).toBeCapturedBy(context.discerningVeteran);
             expect(context.wampa).toBeCapturedBy(context.discerningVeteran);
 
             // defeat Discerning Veteran, both units rescued
             context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.discerningVeteran);
             expect(context.atst).toBeInZone('groundArena');
             expect(context.wampa).toBeInZone('groundArena');
-            expect(context.atst.exhausted).toBeTrue();
+            expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+            expect(context.atst.exhausted).toBeFalse();
             expect(context.wampa.exhausted).toBeTrue();
+            expect(context.greenSquadronAwing.exhausted).toBeTrue();
         });
 
         it('When a unit with captives is taken control of and defeated, the captives should return to their owner\'s control', function () {

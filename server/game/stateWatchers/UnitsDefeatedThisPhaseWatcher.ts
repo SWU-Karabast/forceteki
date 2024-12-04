@@ -36,6 +36,11 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
             .map((entry) => entry.unit);
     }
 
+    /** Check if there is some units controlled by player that was defeated this phase */
+    public someDefeatedUnitControlledByPlayer(controller: Player): boolean {
+        return this.getDefeatedUnitsControlledByPlayer(controller).length > 0;
+    }
+
     protected override setupWatcher() {
         // on card played, add the card to the player's list of cards played this phase
         this.addUpdater({
