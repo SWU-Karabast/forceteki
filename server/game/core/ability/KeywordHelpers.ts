@@ -20,8 +20,7 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
-            // } else if (keywordName === KeywordName.Bounty || keywordName === KeywordName.Coordinate) {
-        } else if (keywordName === KeywordName.Bounty) {
+        } else if (keywordName === KeywordName.Bounty || keywordName === KeywordName.Coordinate) {
             if (isKeywordEnabled(keywordName, cardText, cardName)) {
                 keywords.push(new KeywordWithAbilityDefinition(keywordName));
             }

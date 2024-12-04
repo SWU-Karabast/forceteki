@@ -11,17 +11,13 @@ export default class AnakinSkywalkerMaverickMentor extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities () {
-        this.addConstantAbility({
-            title: 'Coordinate: This unit gains On Attack: Draw a card',
-            condition: (context) => context.source.controller.getArenaUnits().length >= 3,
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
-                type: AbilityType.Triggered,
-                title: 'Draw a card',
-                when: {
-                    onAttackDeclared: (event, context) => event.attack.attacker === context.source
-                },
-                immediateEffect: AbilityHelper.immediateEffects.draw()
-            })
+        this.addCoordinateAbility({
+            type: AbilityType.Triggered,
+            title: 'Draw a card',
+            when: {
+                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+            },
+            immediateEffect: AbilityHelper.immediateEffects.draw()
         });
     }
 }

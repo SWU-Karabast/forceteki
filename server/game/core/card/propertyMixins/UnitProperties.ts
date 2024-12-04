@@ -9,7 +9,7 @@ import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import { UpgradeCard } from '../UpgradeCard';
 import { Card } from '../Card';
-import { IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { KeywordWithAbilityDefinition, KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -210,10 +210,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected addBountyAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen' | 'abilityController'>): void {
             const triggeredProperties = KeywordHelpers.createBountyAbilityFromProps(properties);
 
-            const bountyKeywordsWithoutImpl = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty && !keyword.isFullyImplemented);
+            const bountyKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty);
+            const bountyKeywordsWithoutImpl = bountyKeywords.filter((keyword) => !keyword.isFullyImplemented);
 
             if (bountyKeywordsWithoutImpl.length === 0) {
-                const bountyKeywordsWithImpl = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty && keyword.isFullyImplemented);
+                const bountyKeywordsWithImpl = bountyKeywords.filter((keyword) => keyword.isFullyImplemented);
 
                 if (bountyKeywordsWithImpl.length > 0) {
                     Contract.fail(`Attempting to add a bounty ability '${properties.title}' to ${this.internalName} but all instances of the Bounty keyword already have a definition`);
@@ -227,6 +228,27 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             // TODO: see if there's a better way using discriminating unions to avoid needing a cast when getting keyword instances
             Contract.assertTrue(bountyAbilityToAssign instanceof KeywordWithAbilityDefinition);
             bountyAbilityToAssign.setAbilityProps({ ...triggeredProperties, type: AbilityType.Triggered });
+        }
+
+        protected addCoordinateAbility(properties: IAbilityPropsWithType): void {
+            const coordinateKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Coordinate);
+            const coordinateKeywordsWithoutImpl = coordinateKeywords.filter((keyword) => !keyword.isFullyImplemented);
+
+            if (coordinateKeywordsWithoutImpl.length === 0) {
+                const coordinateKeywordsWithImpl = coordinateKeywords.filter((keyword) => keyword.isFullyImplemented);
+
+                if (coordinateKeywordsWithImpl.length > 0) {
+                    Contract.fail(`Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but all instances of the Coordinate keyword already have a definition`);
+                }
+
+                Contract.fail(`Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Coordinate keyword`);
+            }
+
+            const coordinateAbilityToAssign = coordinateKeywordsWithoutImpl[0];
+
+            // TODO: see if there's a better way using discriminating unions to avoid needing a cast when getting keyword instances
+            Contract.assertTrue(coordinateAbilityToAssign instanceof KeywordWithAbilityDefinition);
+            coordinateAbilityToAssign.setAbilityProps(properties);
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
@@ -258,6 +280,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     this._attackKeywordAbilities.filter((ability) => !(ability instanceof TriggeredAbility))
                         .map((ability) => ability as IConstantAbility)
                 );
+            }
+
+            // add any registered abilities from keywords effective while in play
+            if (this._whileInPlayKeywordAbilities !== null) {
+                constantAbilities = constantAbilities.concat(this._whileInPlayKeywordAbilities);
             }
 
             return constantAbilities;
