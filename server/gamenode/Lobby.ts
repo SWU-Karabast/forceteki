@@ -3,11 +3,13 @@ import type Player from '../game/core/Player';
 import { v4 as uuid } from 'uuid';
 import Socket from '../socket';
 import defaultGameSettings from './defaultGame';
+import { Deck } from '../game/Deck';
 
 interface LobbyUser {
     id: string;
     state: 'connected' | 'disconnected';
     socket: Socket | null;
+    deck: Deck | null;
 }
 
 export class Lobby {
@@ -24,17 +26,28 @@ export class Lobby {
         return this._id;
     }
 
+    public createLobbyUser(id: string, deck): void {
+        const existingUser = this.users.find((u) => u.id === id);
+        if (existingUser) {
+            existingUser.deck = deck;
+            return;
+        }
+        const newDeck = new Deck(deck);
+        newDeck.convertFromSwuDeck();
+        this.users.push(({ id: id, state: null, socket: null, deck: deck }));
+    }
+
     public addLobbyUser(id: string, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === id);
 
-        socket.registerEvent('startGame', () => this.onStartGame());
+        socket.registerEvent('startGame', (id) => this.onStartGame(id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         // maybe we neeed to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
         } else {
-            this.users.push({ id: id, state: 'connected', socket });
+            this.users.push({ id: id, state: 'connected', socket, deck: null });
         }
 
         if (this.game) {
@@ -67,15 +80,20 @@ export class Lobby {
         this.users = [];
     }
 
-    private onStartGame(): void {
+    private onStartGame(id: string): void {
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
-
+        const existingUser = this.users.find((u) => u.id === id);
         game.started = true;
         // for (const player of Object.values<Player>(pendingGame.players)) {
         //     game.selectDeck(player.name, player.deck);
         // }
-        game.selectDeck('Order66', defaultGameSettings.players[0].deck);
+
+        if (existingUser.deck) {
+            game.selectDeck(id, existingUser.deck.convertFromSwuDeck());
+        } else {
+            game.selectDeck(id, defaultGameSettings.players[0].deck);
+        }
         game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
 
         game.initialise();

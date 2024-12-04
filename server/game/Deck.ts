@@ -66,4 +66,74 @@ export class Deck {
 
         return result;
     }
+
+    public convertFromSwuDeck () {
+        const result = {
+            // there isn't a type that excludes tokens b/c tokens inherit from non-token types, so we manually check that that deck cards aren't tokens
+            deckCards: [] as TokenOrPlayableCard[],
+            base: [] as BaseCard[] | undefined,
+            leader: [] as LeaderCard[] | undefined,
+            sideboard: [] as TokenOrPlayableCard[],
+            allCards: [] as Card[]
+        };
+        const deckCards = this.data.deck.map(({ id, count }) => {
+            const cardData = cards.get(id);
+            if (!cardData) {
+                console.warn(`Card with ID ${id} not found.`);
+            }
+            return {
+                count,
+                card: cardData,
+            };
+        });
+        const leader = [];
+        if (this.data.leader) {
+            const cardData = cards.get(this.data.leader.id);
+            if (!cardData) {
+                console.warn(`Leader card with ID ${this.data.leader.id} not found.`);
+            }
+            leader.push({
+                count: this.data.leader.count,
+                card: cardData,
+            });
+        }
+        const base = [];
+        if (this.data.base) {
+            const cardData = cards.get(this.data.base.id.split('_'));
+            if (!cardData) {
+                console.warn(`Base card with ID ${this.data.base.id} not found.`);
+            }
+            base.push({
+                count: this.data.base.count,
+                card: cardData,
+            });
+        }
+        const sideboardCards = this.data.sideboard.map(({ id, count }) => {
+            const cardData = cards.get(this.data.id);
+            if (!cardData) {
+                console.warn(`Sideboard card with ID ${id} not found.`);
+            }
+            return {
+                count,
+                card: cardData,
+            };
+        });
+        result.deckCards = deckCards;
+        result.leader = leader;
+        result.base = base;
+        result.sideboard = sideboardCards;
+        result.allCards.push(...result.deckCards);
+
+        if (result.base) {
+            result.allCards.push(...result.base);
+        }
+        if (result.leader) {
+            result.allCards.push(...result.leader);
+        }
+        if (result.sideboard) {
+            result.allCards.push(...result.sideboard);
+        }
+
+        return result;
+    }
 }
