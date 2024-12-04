@@ -15,12 +15,14 @@ export default class ChooseSides extends EventCard {
             title: 'Choose a friendly non-leader unit and an enemy non-leader unit. Exchange control of those units.',
             targetResolvers: {
                 friendlyUnit: {
+                    activePromptTitle: 'Choose a friendly non-leader unit',
                     controller: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
                 },
                 enemyUnit: {
                     dependsOn: 'friendlyUnit',
+                    activePromptTitle: 'Choose an enemy non-leader unit',
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,

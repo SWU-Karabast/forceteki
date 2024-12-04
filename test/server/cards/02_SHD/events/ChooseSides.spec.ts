@@ -1,60 +1,94 @@
 describe('Choose Sides', function() {
     integration(function(contextRef) {
         describe('Choose Sides\'s event ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['choose-sides'],
-                        spaceArena: ['cartel-spacer'],
-                        leader: { card: 'boba-fett#daimyo', deployed: true },
-                        resources: 30,
-                    },
-                    player2: {
-                        hand: ['cantina-bouncer'],
-                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
-                    }
+            describe('when there are no enemy non-leader units in play', function() {
+                beforeEach(function() {
+                    contextRef.setupTest({
+                        phase: 'action',
+                        player1: {
+                            hand: ['choose-sides'],
+                            groundArena: ['echo#restored'],
+                            leader: { card: 'boba-fett#daimyo', deployed: true },
+                        },
+                        player2: {
+                            leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                        }
+                    });
+                });
+
+                it('does nothing', () => {
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.chooseSides);
+
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.echo.controller).toBe(context.player1Object);
                 });
             });
 
-            it('should exchange control of a friendly and enemy units', () => {
-                const { context } = contextRef;
+            describe('when there are no friendly non-leader units in play', function() {
+                beforeEach(function() {
+                    contextRef.setupTest({
+                        phase: 'action',
+                        player1: {
+                            hand: ['choose-sides'],
+                            leader: { card: 'boba-fett#daimyo', deployed: true },
+                        },
+                        player2: {
+                            groundArena: ['echo#restored'],
+                            leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                        }
+                    });
+                });
 
-                const reset = () => {
-                    context.player1.moveCard(context.chooseSides, 'hand');
-                };
+                it('does nothing', () => {
+                    const { context } = contextRef;
 
-                // Scenario 1: Only a friendly non-leader unit is in play
-                context.player1.clickCard(context.chooseSides);
+                    context.player1.clickCard(context.chooseSides);
 
-                expect(context.player2).toBeActivePlayer();
-                expect(context.cartelSpacer.controller).toBe(context.player1Object);
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.echo.controller).toBe(context.player2Object);
+                });
+            });
 
-                reset();
+            describe('when there are friendly and enemy non-leader units in play', function() {
+                beforeEach(function() {
+                    contextRef.setupTest({
+                        phase: 'action',
+                        player1: {
+                            hand: ['choose-sides'],
+                            groundArena: ['echo#restored'],
+                            spaceArena: ['cartel-spacer'],
+                            leader: { card: 'boba-fett#daimyo', deployed: true },
+                        },
+                        player2: {
+                            groundArena: ['echo#restored'],
+                            spaceArena: ['wing-leader'],
+                            leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                        }
+                    });
+                });
 
-                // Scenario 2: Only an enemey non-leader unit is in play
-                context.player2.clickCard(context.cantinaBouncer);
-                context.player2.clickCard(context.cartelSpacer);
+                it('exchanges control of a friendly and enemy non-leader unit', () => {
+                    const { context } = contextRef;
 
-                context.player1.clickCard(context.chooseSides);
+                    context.p1Echo = context.player1.findCardByName('echo#restored');
+                    context.p2Echo = context.player2.findCardByName('echo#restored');
 
-                expect(context.player2).toBeActivePlayer();
-                expect(context.cantinaBouncer.controller).toBe(context.player2Object);
+                    context.player1.clickCard(context.chooseSides);
+                    expect(context.player1).toHavePrompt('Choose a friendly non-leader unit');
+                    expect(context.player1).toBeAbleToSelectExactly([context.p1Echo, context.cartelSpacer]);
 
-                reset();
+                    context.player1.clickCard(context.p1Echo);
+                    expect(context.player1).toHavePrompt('Choose an enemy non-leader unit');
+                    expect(context.player1).toBeAbleToSelectExactly([context.p2Echo, context.wingLeader]);
 
-                // Scenario 3: Exchange control of a friendly and enemy non-leader units
-                context.player2.passAction();
-                context.player1.clickCard(context.cartelSpacer);
-                context.player2.passAction();
+                    context.player1.clickCard(context.p2Echo);
 
-                context.player1.clickCard(context.chooseSides);
-
-                expect(context.player2).toBeActivePlayer();
-                expect(context.cartelSpacer.controller).toBe(context.player2Object);
-                expect(context.cantinaBouncer.controller).toBe(context.player1Object);
-
-                reset();
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.p1Echo.controller).toBe(context.player2Object);
+                    expect(context.p2Echo.controller).toBe(context.player1Object);
+                });
             });
         });
     });
