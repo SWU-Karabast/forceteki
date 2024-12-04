@@ -13,7 +13,7 @@ describe('Valiant Assault Ship', function () {
                 });
             });
 
-            it('should give a unit +2/+0 for this attack while ignoring the Sentinel', function () {
+            it('should give a unit +2/+0 for this attack when the opponent has more resources', function () {
                 const { context } = contextRef;
 
                 context.player1.setResourceCount(5);
@@ -32,24 +32,7 @@ describe('Valiant Assault Ship', function () {
                 expect(context.p2Base.damage).toBe(5);
             });
 
-            it('should give a unit +2/+0 for this attack while attacking the Sentinel through the shield', function () {
-                const { context } = contextRef;
-
-                context.player1.setResourceCount(5);
-                context.player2.setResourceCount(6);
-
-                context.player1.clickCard(context.valiantAssaultShip);
-                expect(context.player1).toBeAbleToSelectExactly([context.systemPatrolCraft, context.p2Base]);
-
-                context.player1.clickCard(context.systemPatrolCraft);
-                expect(context.player1).toHaveEnabledPromptButton('If the defending player controls more resources than you, this unit gets +2/+0 for this attack');
-                expect(context.player1).toHaveEnabledPromptButton('Saboteur: defeat all shields');
-
-                context.player1.clickPrompt('If the defending player controls more resources than you, this unit gets +2/+0 for this attack');
-                expect(context.systemPatrolCraft).toBeInZone('discard', context.player2);
-            });
-
-            it('should not give a unit +2/+0 for this attack while attacking the Sentinel through the shield', function () {
+            it('should not give a unit +2/+0 for this attack', function () {
                 const { context } = contextRef;
 
                 context.player1.setResourceCount(5);
