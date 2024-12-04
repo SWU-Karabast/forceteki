@@ -209,8 +209,8 @@ export enum EventName {
     OnDeckShuffled = 'onDeckShuffled',
     OnDiscardFromDeck = 'onDiscardFromDeck',
     OnEffectApplied = 'onEffectApplied',
-    onExhaustResources = 'onExhaustResources',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
+    onExhaustResources = 'onExhaustResources',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
@@ -229,6 +229,7 @@ export enum EventName {
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnTakeControl = 'onTakeControl',
+    OnTokenCreated = 'onTokenCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
 }
