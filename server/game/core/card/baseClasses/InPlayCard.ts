@@ -9,6 +9,7 @@ import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
+import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -136,7 +137,70 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
     /**
-     * Adds a dynamically gained triggered ability to the unit and immediately registers its triggers. Used for "gain ability" effects.
+     * Adds a dynamically gained action ability to the card. Used for "gain ability" effects.
+     *
+     * Duplicates of the same gained action from duplicates of the same source card can be added,
+     * but only one will be presented to the user as an available action.
+     *
+     * @returns The uuid of the created action ability
+     */
+    public addGainedActionAbility(properties: IActionAbilityProps): string {
+        const addedAbility = this.createActionAbility(properties);
+        this.actionAbilities.push(addedAbility);
+
+        return addedAbility.uuid;
+    }
+
+    /** Removes a dynamically gained action ability */
+    public removeGainedActionAbility(removeAbilityUuid: string): void {
+        const updatedAbilityList = this.actionAbilities.filter((ability) => ability.uuid !== removeAbilityUuid);
+        Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
+
+        this.actionAbilities = updatedAbilityList;
+    }
+
+    /**
+     * Adds a dynamically gained constant ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+     *
+     * @returns The uuid of the created triggered ability
+     */
+    public addGainedConstantAbility(properties: IConstantAbilityProps): string {
+        const addedAbility = this.createConstantAbility(properties);
+        this.constantAbilities.push(addedAbility);
+        addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
+
+        return addedAbility.uuid;
+    }
+
+    /** Removes a dynamically gained constant ability and unregisters its effects */
+    public removeGainedConstantAbility(removeAbilityUuid: string): void {
+        let abilityToRemove: IConstantAbility = null;
+        const remainingAbilities: IConstantAbility[] = [];
+
+        for (const constantAbility of this.constantAbilities) {
+            if (constantAbility.uuid === removeAbilityUuid) {
+                if (abilityToRemove) {
+                    Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
+                }
+
+                abilityToRemove = constantAbility;
+            } else {
+                remainingAbilities.push(constantAbility);
+            }
+        }
+
+        if (abilityToRemove == null) {
+            Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
+        }
+
+        this.constantAbilities = remainingAbilities;
+
+        this.removeEffectFromEngine(abilityToRemove.registeredEffects);
+        abilityToRemove.registeredEffects = [];
+    }
+
+    /**
+     * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
      *
      * @returns The uuid of the created triggered ability
      */
@@ -178,14 +242,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
         this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
+        this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
 
         this.movedFromZone = null;
     }
 
+    public override registerMove(movedFromZone: ZoneName): void {
+        super.registerMove(movedFromZone);
+
+        this.movedFromZone = movedFromZone;
+    }
+
     protected override initializeForCurrentZone(prevZone?: ZoneName) {
         super.initializeForCurrentZone(prevZone);
-
-        this.movedFromZone = prevZone;
 
         if (EnumHelpers.isArena(this.zoneName)) {
             this.setPendingDefeatEnabled(true);
@@ -235,6 +304,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
             }
         }
     }
+
+    /** Register / un-register the effects for any abilities from keywords */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) { }
 
     protected override resetLimits() {
         super.resetLimits();

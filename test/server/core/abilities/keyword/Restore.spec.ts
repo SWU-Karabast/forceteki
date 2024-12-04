@@ -78,7 +78,5 @@ describe('Restore keyword', function() {
                 expect(context.regionalSympathizers.exhausted).toBe(true);
             });
         });
-
-        // TODO test that a card that attacked and then is bounced back to hand (i.e. Waylay) doesn't receive a second Restore instance
     });
 });
