@@ -12,7 +12,7 @@ export default class ValiantAssaultShip extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addOnAttackAbility({
-            title: 'If the defending player controls more resources than you, this unit gets +2/+0 for this attack.',
+            title: 'If the defending player controls more resources than you, this unit gets +2/+0 for this attack',
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
