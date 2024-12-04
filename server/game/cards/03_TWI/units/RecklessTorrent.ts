@@ -13,7 +13,7 @@ export default class RecklessTorrent extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addCoordinateAbility({
             type: AbilityType.Triggered,
-            title: 'Draw a card',
+            title: 'Deal 2 damage to a friendly unit and 2 damage to an enemy unit in the same arena',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source
             },

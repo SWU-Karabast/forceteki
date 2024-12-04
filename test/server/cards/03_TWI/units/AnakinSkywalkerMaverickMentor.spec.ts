@@ -15,14 +15,14 @@ describe('Anakin Skywalker, Maverick Mentor', function() {
 
             const { context } = contextRef;
 
-            // CASE 1: Coordinate online
+            // Coordinate online
             context.player1.clickCard(context.anakinSkywalker);
 
             expect(context.p2Base.damage).toBe(6);
             expect(context.player1.handSize).toBe(1);
             expect(context.wampa).toBeInZone('hand');
 
-            // CASE 2: Coordinate offline
+            // Coordinate offline
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.battlefieldMarine);
 
