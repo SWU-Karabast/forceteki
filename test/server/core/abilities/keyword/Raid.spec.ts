@@ -80,7 +80,5 @@ describe('Raid keyword', function() {
                 expect(context.p2Base.damage).toBe(4);
             });
         });
-
-        // TODO test that a card that attacked and then is bounced back to hand (i.e. Waylay) doesn't receive a second Raid buff
     });
 });

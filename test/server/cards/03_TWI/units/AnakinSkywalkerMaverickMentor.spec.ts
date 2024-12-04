@@ -6,36 +6,31 @@ describe('Anakin Skywalker, Maverick Mentor', function() {
                 player1: {
                     groundArena: ['anakin-skywalker#maverick-mentor', 'battlefield-marine'],
                     spaceArena: ['wing-leader'],
-                    deck: ['wampa']
+                    deck: ['wampa', 'atst']
+                },
+                player2: {
+                    hand: ['vanquish']
                 }
             });
 
             const { context } = contextRef;
 
+            // CASE 1: Coordinate online
             context.player1.clickCard(context.anakinSkywalker);
 
             expect(context.p2Base.damage).toBe(6);
             expect(context.player1.handSize).toBe(1);
             expect(context.wampa).toBeInZone('hand');
-        });
 
-        // TODO THIS PR: merge these tests
-        it('Anakin\'s on attack Coordinate ability should do nothing if fewer than 3 units', function () {
-            contextRef.setupTest({
-                phase: 'action',
-                player1: {
-                    groundArena: ['anakin-skywalker#maverick-mentor'],
-                    spaceArena: ['wing-leader'],
-                    deck: ['wampa']
-                }
-            });
+            // CASE 2: Coordinate offline
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.battlefieldMarine);
 
-            const { context } = contextRef;
-
+            context.anakinSkywalker.exhausted = false;
             context.player1.clickCard(context.anakinSkywalker);
 
-            expect(context.p2Base.damage).toBe(6);
-            expect(context.player1.handSize).toBe(0);
+            expect(context.p2Base.damage).toBe(12);
+            expect(context.player1.handSize).toBe(1);
         });
     });
 });
