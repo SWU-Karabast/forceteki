@@ -1,0 +1,60 @@
+describe('Guarding the Way', function () {
+    integration(function (contextRef) {
+        describe('Guarding the Way\'s ability', function () {
+            it('should give a unit Sentinel and +2/+2 for the phase', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['guarding-the-way'],
+                        groundArena: ['luke-skywalker#jedi-knight']
+                    },
+                    player2: {
+                        groundArena: ['chewbacca#pykesbane']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.guardingTheWay);
+                expect(context.player1).toBeAbleToSelectExactly([context.lukeSkywalkerJediKnight, context.chewbaccaPykesbane]);
+
+                context.player1.clickCard(context.lukeSkywalkerJediKnight);
+                expect(context.lukeSkywalkerJediKnight.getPower()).toBe(8);
+                expect(context.lukeSkywalkerJediKnight.getHp()).toBe(9);
+                expect(context.player2).toBeActivePlayer();
+
+                context.player2.clickCard(context.chewbaccaPykesbane);
+                expect(context.chewbaccaPykesbane.damage).toBe(8);
+                expect(context.lukeSkywalkerJediKnight.damage).toBe(4);
+
+                context.moveToNextActionPhase();
+                expect(context.lukeSkywalkerJediKnight.getPower()).toBe(6);
+                expect(context.lukeSkywalkerJediKnight.getHp()).toBe(7);
+            });
+
+            it('should give a unit Sentinel for the phase', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chewbacca#pykesbane']
+                    },
+                    player2: {
+                        hand: ['guarding-the-way'],
+                        groundArena: ['luke-skywalker#jedi-knight']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbaccaPykesbane);
+
+                context.player2.clickCard(context.guardingTheWay);
+                expect(context.player2).toBeAbleToSelectExactly([context.lukeSkywalkerJediKnight, context.chewbaccaPykesbane]);
+
+                context.player2.clickCard(context.lukeSkywalkerJediKnight);
+                expect(context.lukeSkywalkerJediKnight.getPower()).toBe(6);
+                expect(context.lukeSkywalkerJediKnight.getHp()).toBe(7);
+            });
+        });
+    });
+});
