@@ -28,19 +28,18 @@ export class Lobby {
 
     public createLobbyUser(id: string, deck): void {
         const existingUser = this.users.find((u) => u.id === id);
+        const newDeck = new Deck(deck);
+
         if (existingUser) {
-            existingUser.deck = deck;
+            existingUser.deck = newDeck;
             return;
         }
-        const newDeck = new Deck(deck);
-        newDeck.convertFromSwuDeck();
-        this.users.push(({ id: id, state: null, socket: null, deck: deck }));
+        this.users.push(({ id: id, state: null, socket: null, deck: newDeck }));
     }
 
     public addLobbyUser(id: string, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === id);
-
-        socket.registerEvent('startGame', (id) => this.onStartGame(id));
+        socket.registerEvent('startGame', () => this.onStartGame(id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         // maybe we neeed to be using socket.data
         if (existingUser) {
@@ -88,9 +87,8 @@ export class Lobby {
         // for (const player of Object.values<Player>(pendingGame.players)) {
         //     game.selectDeck(player.name, player.deck);
         // }
-
         if (existingUser.deck) {
-            game.selectDeck(id, existingUser.deck.convertFromSwuDeck());
+            game.selectDeck(id, existingUser.deck.prepare(game.playersAndSpectators[id]));
         } else {
             game.selectDeck(id, defaultGameSettings.players[0].deck);
         }
