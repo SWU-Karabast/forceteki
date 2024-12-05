@@ -1,20 +1,20 @@
-import { IActionAbilityPropsWithType, ITriggeredAbilityPropsWithType } from '../../../Interfaces';
+import { IAbilityPropsWithType } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
 import { AbilityType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
-export class GainAbility extends OngoingEffectValueWrapper<IActionAbilityPropsWithType | ITriggeredAbilityPropsWithType> {
+export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType> {
     public readonly abilityType: AbilityType;
-    public readonly properties: IActionAbilityPropsWithType | ITriggeredAbilityPropsWithType;
+    public readonly properties: IAbilityPropsWithType;
 
     private abilityIdentifier: string;
     private abilityUuidByTargetCard = new Map<InPlayCard, string>();
     private gainAbilitySource: Card;
     private source: Card;
 
-    public constructor(gainedAbilityProps: IActionAbilityPropsWithType | ITriggeredAbilityPropsWithType) {
+    public constructor(gainedAbilityProps: IAbilityPropsWithType) {
         super(Object.assign(gainedAbilityProps, { printedAbility: false }));
 
         this.abilityType = gainedAbilityProps.type;
@@ -49,6 +49,10 @@ export class GainAbility extends OngoingEffectValueWrapper<IActionAbilityPropsWi
                 this.abilityUuidByTargetCard.set(target, target.addGainedActionAbility(properties));
                 return;
 
+            case AbilityType.Constant:
+                this.abilityUuidByTargetCard.set(target, target.addGainedConstantAbility(properties));
+                return;
+
             case AbilityType.Triggered:
                 this.abilityUuidByTargetCard.set(target, target.addGainedTriggeredAbility(properties));
                 return;
@@ -64,6 +68,12 @@ export class GainAbility extends OngoingEffectValueWrapper<IActionAbilityPropsWi
         switch (this.abilityType) {
             case AbilityType.Action:
                 target.removeGainedActionAbility(this.abilityUuidByTargetCard.get(target));
+                this.abilityUuidByTargetCard.delete(target);
+                return;
+
+            case AbilityType.Constant:
+                target.removeGainedConstantAbility(this.abilityUuidByTargetCard.get(target));
+                this.abilityUuidByTargetCard.delete(target);
                 return;
 
             case AbilityType.Triggered:
