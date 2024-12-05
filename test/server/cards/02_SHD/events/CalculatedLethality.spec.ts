@@ -1,7 +1,7 @@
 describe('Calculated Lethality', function () {
     integration(function (contextRef) {
         describe('Calculated Lethality\'s ability', function () {
-            beforeEach(function () {
+            it('should defeat a unit that cost 3 or less and distribute experience equal to the number of upgrade on the defeated unit', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -19,9 +19,7 @@ describe('Calculated Lethality', function () {
                         ]
                     }
                 });
-            });
 
-            it('should defeat a unit that cost 3 or less and distribute experience equal to the number of upgrade on the defeated unit', function () {
                 const { context } = contextRef;
 
                 function reset() {
@@ -69,6 +67,7 @@ describe('Calculated Lethality', function () {
                 expect(context.fifthBrother).toBeInZone('discard');
                 expect(context.corellianFreighter).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
+            // TODO ADD A TEST WITH LURKIN TIE PHANTOM
         });
     });
 });

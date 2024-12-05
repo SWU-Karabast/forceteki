@@ -24,14 +24,13 @@ export default class CalculatedLethality extends EventCard {
                     AbilityHelper.immediateEffects.defeat()
                 ])
             },
-            ifYouDo: (ifYouDoContext) => ({
+            then: (thenContext) => ({
                 title: 'For each upgrade that was on that unit, give an Experience token to a friendly unit.',
                 immediateEffect: AbilityHelper.immediateEffects.distributeExperienceAmong({
-                    amountToDistribute: ifYouDoContext.targets.upgradeAmount,
+                    amountToDistribute: thenContext.targets.upgradeAmount,
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     canChooseNoTargets: false,
-                    canDistributeLess: false,
                 }),
             })
         });

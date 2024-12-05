@@ -1,7 +1,7 @@
 describe('Grenade Strike', function() {
     integration(function(contextRef) {
         describe('Grenade Strike\'s ability -', function() {
-            beforeEach(function () {
+            it('should deal 2 damage to a unit and 1 damage to another unit in the same arena', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -13,9 +13,7 @@ describe('Grenade Strike', function() {
                         spaceArena: ['corellian-freighter']
                     }
                 });
-            });
 
-            it('should deal 2 damage to a unit and 1 damage to another unit in the same arena', function() {
                 const { context } = contextRef;
 
                 function reset() {

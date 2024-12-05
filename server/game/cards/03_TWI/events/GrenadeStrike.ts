@@ -12,7 +12,7 @@ export default class GrenadeStrike extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Defeat a non-leader unit that costs 3 or less',
+            title: 'Deal 2 damage to a unit. You may deal 1 damage to another unit in the same arena.',
             targetResolvers: {
                 firstUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
