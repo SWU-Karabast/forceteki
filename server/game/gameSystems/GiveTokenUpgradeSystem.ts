@@ -2,9 +2,8 @@ import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import { CardTypeFilter, EventName, TokenName, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
     tokenType: TokenName;
@@ -13,21 +12,12 @@ export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties
 
 /** Base class for managing the logic for giving token upgrades to cards (currently shield and experience) */
 export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IGiveTokenUpgradeProperties> {
-    public override readonly eventName = EventName.OnUpgradeAttached;
+    public override readonly eventName = EventName.OnTokenCreated;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
 
-    public override eventHandler(event, additionalProperties = {}): void {
-        const cardReceivingTokenUpgrade = event.card;
-        const properties = this.generatePropertiesFromContext(event.context);
-
-        Contract.assertTrue(cardReceivingTokenUpgrade.isUnit());
-        Contract.assertTrue(cardReceivingTokenUpgrade.isInPlay());
-
-        for (let i = 0; i < properties.amount; i++) {
-            const tokenUpgrade = event.context.game.generateToken(event.context.source.controller, properties.tokenType);
-            tokenUpgrade.attachTo(cardReceivingTokenUpgrade);
-        }
-    }
+    // event handler doesn't do anything since the tokens were generated in updateEvent
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public override eventHandler(event, additionalProperties = {}): void { }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
@@ -58,5 +48,48 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
 
     public override checkEventCondition(event, additionalProperties): boolean {
         return this.canAffect(event.card, event.context, additionalProperties);
+    }
+
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        // generate the tokens here so they can be used in the contingent events
+        // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
+        event.generatedTokens = [];
+        for (let i = 0; i < properties.amount; i++) {
+            event.generatedTokens.push(event.context.game.generateToken(event.context.source.controller, properties.tokenType));
+        }
+
+        // add contingent events for attaching the generated upgrade token(s)
+        event.setContingentEventsGenerator((event) => {
+            const events = [];
+
+            for (let i = 0; i < properties.amount; i++) {
+                const attachUpgradeEvent = new AttachUpgradeSystem(() => ({
+                    upgrade: event.generatedTokens[i],
+                    target: card
+                })).generateEvent(event.context);
+
+                attachUpgradeEvent.order = event.order + 1;
+
+                events.push(attachUpgradeEvent);
+            }
+
+            return events;
+        });
+    }
+
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+        Contract.assertTrue(card.isUnit());
+        Contract.assertTrue(card.isInPlay());
+
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        event.amount = properties.amount;
+        event.tokenType = properties.tokenType;
     }
 }

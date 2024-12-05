@@ -489,6 +489,10 @@ export class Card extends OngoingEffectSource {
             newZone: this.zoneName
         });
 
+        this.registerMove(movedFromZone);
+    }
+
+    protected registerMove(movedFromZone: ZoneName) {
         this.game.registerMovedCard(this);
     }
 
@@ -623,29 +627,6 @@ export class Card extends OngoingEffectSource {
     }
 
     // ******************************************* MISC *******************************************
-    /**
-     * Adds a dynamically gained action ability to the unit. Used for "gain ability" effects.
-     *
-     * Duplicates of the same gained action from duplicates of the same source card can be added,
-     * but only one will be presented to the user as an available action.
-     *
-     * @returns The uuid of the created action ability
-     */
-    public addGainedActionAbility(properties: IActionAbilityProps): string {
-        const addedAbility = this.createActionAbility(properties);
-        this.actionAbilities.push(addedAbility);
-
-        return addedAbility.uuid;
-    }
-
-    /** Removes a dynamically gained action ability */
-    public removeGainedActionAbility(removeAbilityUuid: string): void {
-        const updatedAbilityList = this.actionAbilities.filter((ability) => ability.uuid !== removeAbilityUuid);
-        Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
-
-        this.actionAbilities = updatedAbilityList;
-    }
-
     protected assertPropertyEnabled(propertyVal: any, propertyName: string) {
         Contract.assertNotNullLike(propertyVal, this.buildPropertyDisabledStr(propertyName));
     }
