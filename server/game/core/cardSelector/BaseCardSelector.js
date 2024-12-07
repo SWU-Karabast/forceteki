@@ -14,7 +14,6 @@ class BaseCardSelector {
         this.capturedByFilter = properties.capturedByFilter;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
-        this.sameDiscardPile = !!properties.sameDiscardPile;
 
         if (!Array.isArray(properties.cardTypeFilter)) {
             this.cardTypeFilter = [properties.cardTypeFilter];
@@ -124,10 +123,6 @@ class BaseCardSelector {
             return false;
         }
 
-        if (this.sameDiscardPile && selectedCards.length > 0) {
-            return card.zoneName === selectedCards[0].zoneName && card.owner === selectedCards[0].owner;
-        }
-
         if (this.checkTarget && !card.canBeTargeted(context, selectedCards)) {
             return false;
         }
@@ -147,8 +142,8 @@ class BaseCardSelector {
     }
 
     cardConditionsAreSatisfied(card, selectedCards, context) {
-        const cardConditionPassed = (this.cardCondition) ? this.cardCondition(card, context) : true;
-        const multiSelectConditionPassed = (this.multiSelectCardCondition) ? this.multiSelectCardCondition(card, selectedCards, context) : true;
+        const cardConditionPassed = !this.cardCondition || this.cardCondition(card, context);
+        const multiSelectConditionPassed = !this.multiSelectCardCondition || this.multiSelectCardCondition(card, selectedCards, context);
         return cardConditionPassed && multiSelectConditionPassed;
     }
 

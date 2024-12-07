@@ -96,7 +96,6 @@ interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extend
     mode: TargetMode.Exactly | TargetMode.UpTo;
     canChooseNoCards?: boolean;
     numCards: number;
-    sameDiscardPile?: boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
