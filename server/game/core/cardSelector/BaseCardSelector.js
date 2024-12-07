@@ -7,6 +7,7 @@ const Helpers = require('../utils/Helpers');
 class BaseCardSelector {
     constructor(properties) {
         this.cardCondition = properties.cardCondition;
+        this.multiSelectCardCondition = properties.multiSelectCardCondition;
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
@@ -21,7 +22,7 @@ class BaseCardSelector {
     }
 
     get hasAnyCardFilter() {
-        return this.cardTypeFilter || this.cardCondition;
+        return this.cardTypeFilter || this.cardCondition || this.multiSelectCardCondition;
     }
 
     buildZoneFilter(property) {
@@ -142,7 +143,13 @@ class BaseCardSelector {
         if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {
             return false;
         }
-        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardCondition(card, context);
+        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardConditionsAreSatisfied(card, selectedCards, context);
+    }
+
+    cardConditionsAreSatisfied(card, selectedCards, context) {
+        const cardConditionPassed = (this.cardCondition) ? this.cardCondition(card, context) : true;
+        const multiSelectConditionPassed = (this.multiSelectCardCondition) ? this.multiSelectCardCondition(card, selectedCards, context) : true;
+        return cardConditionPassed && multiSelectConditionPassed;
     }
 
     getAllLegalTargets(context, choosingPlayer) {
