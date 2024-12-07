@@ -125,7 +125,7 @@ export class PlayableOrDeployableCard extends Card {
             this.zone.updateController(this);
 
             // register this transition with the engine so it can do uniqueness check if needed
-            this.game.registerMovedCard(this);
+            this.registerMove(this.zone.name);
         } else {
             this.moveTo(moveDestination, false);
         }

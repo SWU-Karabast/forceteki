@@ -928,7 +928,6 @@ global.integration = function (definitions) {
                 this.player1.moveAllNonBaseZonesToRemoved();
                 this.player2.moveAllNonBaseZonesToRemoved();
 
-
                 if (options.phase !== 'setup') {
                     // Resources
                     this.player1.setResourceCards(options.player1.resources, ['outsideTheGame']);
