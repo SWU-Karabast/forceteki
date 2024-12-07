@@ -22,6 +22,6 @@ export class DistributeExperienceSystem<TContext extends AbilityContext = Abilit
     }
 
     protected override canDistributeLessDefault(): boolean {
-        return this.properties.canDistributeLess || false;
+        return false;
     }
 }
