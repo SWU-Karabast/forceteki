@@ -1,0 +1,60 @@
+import { EventCard } from '../../../core/card/EventCard';
+import AbilityHelper from '../../../AbilityHelper';
+import { TargetMode, WildcardCardType } from '../../../core/Constants';
+import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import { Card } from '../../../core/card/Card';
+
+export default class BoldResistance extends EventCard {
+    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+
+    protected override getImplementationId() {
+        return {
+            id: '8022262805',
+            internalName: 'bold-resistance'
+        };
+    }
+
+
+    public override setupCardAbilities() {
+        this.setEventAbility({
+            title: 'Choose up to 3 units that share the same Trait. Each of those units gets +2/+0 for this phase.',
+            targetResolver: {
+                mode: TargetMode.UpTo,
+                numCards: 3,
+                cardTypeFilter: WildcardCardType.Unit,
+                multiSelectCardCondition: (card, selectedCards) => this.cardHasCommonTraitWithPreviouslySelected(card, selectedCards),
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
+                })
+            }
+        });
+    }
+
+    private cardHasCommonTraitWithPreviouslySelected(card: Card, selectedCards: Card[]) {
+        // Collect all the traits of the card in question first
+        const intersectingTraits = new BoldResistance.IntersectingSet(card.traits);
+
+        // Now intersect those traits with each previously selected card
+        for (const selectedCard of selectedCards) {
+            intersectingTraits.intersect(selectedCard.traits);
+            // If no traits remain, there is no common trait
+            if (intersectingTraits.size === 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // eslint-disable-next-line @stylistic/keyword-spacing
+    private static IntersectingSet = class<T> extends Set<T> {
+        public intersect(inputSet: Set<T>): void {
+            for (const item of this) {
+                if (!inputSet.has(item)) {
+                    this.delete(item);
+                }
+            }
+        }
+    };
+}
+
+BoldResistance.implemented = true;
