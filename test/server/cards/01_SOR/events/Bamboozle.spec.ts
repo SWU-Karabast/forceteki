@@ -6,6 +6,7 @@ describe('Bamboozle', function () {
                 player1: {
                     hand: ['bamboozle', 'wampa', 'crafty-smuggler', 'lothal-insurgent'],
                     groundArena: ['battlefield-marine'],
+                    leader: 'lando-calrissian#with-impeccable-taste'
                 },
                 player2: {
                     groundArena: [{ card: 'saw-gerrera#extremist', upgrades: ['entrenched', 'shield'] }],
