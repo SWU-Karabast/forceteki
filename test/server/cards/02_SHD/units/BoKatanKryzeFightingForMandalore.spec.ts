@@ -27,7 +27,7 @@ describe('Bo-KatanKryze', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('1 card drawn, if damage on opponents base is equal to 15 and own base is less than 15', function () {
+            it('1 card drawn if damage on opponents base is equal to 15 and own base is less than 15', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bokatanKryze);
