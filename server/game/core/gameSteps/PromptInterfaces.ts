@@ -2,7 +2,8 @@ import { Card } from '../card/Card';
 
 export enum StatefulPromptType {
     DistributeDamage = 'distributeDamage',
-    DistributeHealing = 'distributeHealing'
+    DistributeHealing = 'distributeHealing',
+    DistributeExperience = 'distributeExperience',
 }
 
 export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;
@@ -13,7 +14,7 @@ export interface IPromptPropertiesBase {
 }
 
 export interface IDistributeAmongTargetsPromptProperties extends IPromptPropertiesBase {
-    type: StatefulPromptType.DistributeDamage | StatefulPromptType.DistributeHealing;
+    type: StatefulPromptType;
     amount: number;
     source: Card;
     canChooseNoTargets: boolean;

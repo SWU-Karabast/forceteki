@@ -1,9 +1,8 @@
-import { AbilityContext } from '../../ability/AbilityContext';
 import Game from '../../Game';
 import Player from '../../Player';
 import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
-import { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptData, StatefulPromptType, IStatefulPromptResults } from '../PromptInterfaces';
+import { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IStatefulPromptResults, StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 /**
@@ -35,6 +34,9 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
                 break;
             case StatefulPromptType.DistributeHealing:
                 this.distributeType = 'healing';
+                break;
+            case StatefulPromptType.DistributeExperience:
+                this.distributeType = 'experience';
                 break;
             default:
                 Contract.fail(`Unknown prompt type: ${this.properties.type}`);

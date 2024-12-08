@@ -78,6 +78,7 @@ import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } fro
 import { IRescueProperties, RescueSystem } from './RescueSystem';
 import { ITakeControlProperties, TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
 import { ChooseModalEffectsSystem, IPlayModalCardProperties } from './ChooseModalEffectsSystem';
+import { DistributeExperienceSystem, IDistributeExperienceSystemProperties } from './DistributeExperienceSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -116,6 +117,9 @@ export function distributeDamageAmong<TContext extends AbilityContext = AbilityC
 }
 export function distributeHealingAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeHealingSystemProperties, TContext>) {
     return new DistributeHealingSystem<TContext>(propertyFactory);
+}
+export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
+    return new DistributeExperienceSystem<TContext>(propertyFactory);
 }
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
