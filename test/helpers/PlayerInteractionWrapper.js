@@ -500,6 +500,10 @@ class PlayerInteractionWrapper {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
     }
 
+    setDistributeExperiencePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeExperience');
+    }
+
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
         var currentPrompt = this.player.currentPrompt();
 
