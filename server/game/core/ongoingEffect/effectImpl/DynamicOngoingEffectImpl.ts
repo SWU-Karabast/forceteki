@@ -27,7 +27,10 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
         if (typeof oldValue === 'function' && typeof newValue === 'function') {
             return oldValue.toString() !== newValue.toString();
         }
-        if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+        if (
+            (Array.isArray(oldValue) && Array.isArray(newValue)) ||
+            (typeof oldValue === 'object' && typeof newValue === 'object')
+        ) {
             return JSON.stringify(oldValue) !== JSON.stringify(newValue);
         }
         return oldValue !== newValue;
