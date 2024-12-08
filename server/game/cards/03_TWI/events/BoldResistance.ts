@@ -5,15 +5,12 @@ import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedT
 import { Card } from '../../../core/card/Card';
 
 export default class BoldResistance extends EventCard {
-    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
-
     protected override getImplementationId() {
         return {
             id: '8022262805',
             internalName: 'bold-resistance'
         };
     }
-
 
     public override setupCardAbilities() {
         this.setEventAbility({
