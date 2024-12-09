@@ -2,6 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 import { Card } from '../../../core/card/Card';
+import * as Helpers from '../../../core/utils/Helpers';
 
 export default class BoldResistance extends EventCard {
     protected override getImplementationId() {
@@ -28,7 +29,7 @@ export default class BoldResistance extends EventCard {
 
     private cardHasCommonTraitWithPreviouslySelected(card: Card, selectedCards: Card[]) {
         // Collect all the traits of the card in question first
-        const intersectingTraits = new BoldResistance.IntersectingSet(card.traits);
+        const intersectingTraits = new Helpers.IntersectingSet(card.traits);
 
         // Now intersect those traits with each previously selected card
         for (const selectedCard of selectedCards) {
@@ -40,17 +41,6 @@ export default class BoldResistance extends EventCard {
         }
         return true;
     }
-
-    // eslint-disable-next-line @stylistic/keyword-spacing
-    private static IntersectingSet = class<T> extends Set<T> {
-        public intersect(inputSet: Set<T>): void {
-            for (const item of this) {
-                if (!inputSet.has(item)) {
-                    this.delete(item);
-                }
-            }
-        }
-    };
 }
 
 BoldResistance.implemented = true;

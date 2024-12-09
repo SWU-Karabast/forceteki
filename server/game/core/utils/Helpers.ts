@@ -108,3 +108,13 @@ export function getRandomArrayElements(array: any[], nValues: number) {
 
     return chosenItems;
 }
+
+export class IntersectingSet<T> extends Set<T> {
+    public intersect(inputSet: Set<T>): void {
+        for (const item of this) {
+            if (!inputSet.has(item)) {
+                this.delete(item);
+            }
+        }
+    }
+}
