@@ -88,7 +88,8 @@ export class Lobby {
         //     game.selectDeck(player.name, player.deck);
         // }
         if (existingUser.deck) {
-            game.selectDeck(id, existingUser.deck.prepare(game.playersAndSpectators[id]));
+            console.log(existingUser.deck);
+            game.selectDeck(id, existingUser.deck);
         } else {
             game.selectDeck(id, defaultGameSettings.players[0].deck);
         }
