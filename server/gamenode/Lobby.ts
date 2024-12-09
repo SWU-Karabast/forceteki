@@ -31,10 +31,10 @@ export class Lobby {
         const newDeck = new Deck(deck);
 
         if (existingUser) {
-            existingUser.deck = newDeck;
+            existingUser.deck = newDeck.data;
             return;
         }
-        this.users.push(({ id: id, state: null, socket: null, deck: newDeck }));
+        this.users.push(({ id: id, state: null, socket: null, deck: newDeck.data }));
     }
 
     public addLobbyUser(id: string, socket: Socket): void {
@@ -88,13 +88,13 @@ export class Lobby {
         //     game.selectDeck(player.name, player.deck);
         // }
         if (existingUser.deck) {
-            console.log(existingUser.deck);
             game.selectDeck(id, existingUser.deck);
+            game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
         } else {
-            game.selectDeck(id, defaultGameSettings.players[0].deck);
+            const existingUser = this.users.find((u) => u.id === 'Order66');
+            game.selectDeck('Order66', existingUser.deck);
+            game.selectDeck(id, defaultGameSettings.players[1].deck);
         }
-        game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
-
         game.initialise();
 
         this.sendGameState(game);
