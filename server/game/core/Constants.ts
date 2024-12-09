@@ -245,6 +245,7 @@ export enum MetaEventName {
     ChooseModalEffects = 'ChooseModalEffects',
     DistributeDamage = 'distributeDamage',
     DistributeHealing = 'distributeHealing',
+    DistributeExperience = 'distributeExperience',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     NoAction = 'noAction',
