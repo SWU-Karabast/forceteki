@@ -5,7 +5,7 @@ import { GameEvent } from '../core/event/GameEvent.js';
 
 export class PlayEventAction extends PlayCardAction {
     public constructor(properties: IPlayCardActionProperties) {
-        super({ ...properties, title: 'Play this event' });
+        super({ title: 'Play this event', ...properties });
     }
 
     public override executeHandler(context: PlayCardContext): void {
