@@ -22,13 +22,17 @@ describe('Ahsoka\'s Padawan Lightsaber', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.r2d2IgnoringProtocol]);
 
                 context.player1.clickCard(context.ahsokaTanoAlwaysReadyForTrouble);
-                expect(context.player1).toHavePassAbilityPrompt('Attack with Ahsoka Tano');
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.greenSquadronAwing]);
+                expect(context.player1).toHavePassAbilityButton();
 
-                context.player1.clickPrompt('Attack with Ahsoka Tano');
-                context.player1.clickCard(context.r2d2IgnoringProtocol);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.r2d2IgnoringProtocol, context.p2Base]);
                 expect(context.ahsokaTanoAlwaysReadyForTrouble).toHaveExactUpgradeNames(['ahsokas-padawan-lightsaber']);
-                expect(context.ahsokaTanoAlwaysReadyForTrouble.exhausted).toBe(true);
-                expect(context.r2d2IgnoringProtocol).toBeInZone('discard');
+                expect(context.ahsokaTanoAlwaysReadyForTrouble.exhausted).toBe(false);
+
+                context.player1.clickCard(context.p2Base);
+                expect(context.battlefieldMarine.exhausted).toBe(true);
+                expect(context.p2Base.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -39,9 +43,10 @@ describe('Ahsoka\'s Padawan Lightsaber', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.r2d2IgnoringProtocol]);
 
                 context.player1.clickCard(context.ahsokaTanoAlwaysReadyForTrouble);
-                expect(context.player1).toHavePassAbilityPrompt('Attack with Ahsoka Tano');
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.greenSquadronAwing]);
+                expect(context.player1).toHavePassAbilityButton();
 
-                context.player1.passAction();
+                context.player1.clickPrompt('Pass ability');
                 expect(context.ahsokaTanoAlwaysReadyForTrouble).toHaveExactUpgradeNames(['ahsokas-padawan-lightsaber']);
                 expect(context.ahsokaTanoAlwaysReadyForTrouble.exhausted).toBe(false);
                 expect(context.player2).toBeActivePlayer();
