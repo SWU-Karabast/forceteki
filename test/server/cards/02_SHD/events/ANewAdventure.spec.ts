@@ -49,5 +49,40 @@ describe('A New Adventure', function() {
                 expect(context.p1Base.damage).toBe(1);   // from Crumb ability
             });
         });
+
+        it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the onwer can play it for free', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['a-new-adventure'],
+                    groundArena: [{ card: 'salacious-crumb#obnoxious-pet', damage: 1 }, 'atat-suppressor'],
+                    spaceArena: ['cartel-spacer'],
+                    base: { card: 'echo-base', damage: 2 }
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    spaceArena: ['redemption#medical-frigate', 'patrolling-vwing'],
+                    leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P2 takes control of Crumb
+            context.player2.clickCard(context.emperorPalpatine);
+
+            context.player1.clickCard(context.aNewAdventure);
+            expect(context.player1).toBeAbleToSelectExactly([context.salaciousCrumb, context.cartelSpacer, context.wampa, context.patrollingVwing]);
+
+            context.player1.clickCard(context.salaciousCrumb);
+            expect(context.salaciousCrumb).toBeInZone('hand', context.player1);
+            expect(context.player1).toHavePassAbilityPrompt('Play Salacious Crumb for free');
+
+            context.player1.clickPrompt('Play Salacious Crumb for free');
+            expect(context.salaciousCrumb).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(6); // just the cost of A New Adventure (with aspect penalties)
+            expect(context.p1Base.damage).toBe(1);   // from Crumb ability
+        });
     });
 });

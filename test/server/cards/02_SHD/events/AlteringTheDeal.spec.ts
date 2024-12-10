@@ -10,7 +10,7 @@ describe('Altering the Deal', function() {
                 },
                 player2: {
                     groundArena: ['snowspeeder', 'specforce-soldier'],
-                    spaceArena: ['wing-leader'],
+                    spaceArena: ['ruthless-raider'],
                     hand: ['discerning-veteran', 'take-captive']
                 }
             });
@@ -24,7 +24,7 @@ describe('Altering the Deal', function() {
             // SETUP:
             // - P2 Discerning Veteran captures Wampa + AT-ST
             // - P1 Discerning Veteran captures Snowspeeder + SpecForce Soldier
-            // - P1 TIE/LN captures Wing Leader
+            // - P1 TIE/LN captures Ruthless Raider
             context.player1.clickCard(p1TakeCaptive1);
             context.player1.clickCard(context.tielnFighter);
 
@@ -46,9 +46,10 @@ describe('Altering the Deal', function() {
 
             // TEST: can't select friendly cards (Wampa, AT-ST) guarded by enemy unit
             context.player1.clickCard(context.alteringTheDeal);
-            expect(context.player1).toBeAbleToSelectExactly([context.wingLeader, context.snowspeeder, context.specforceSoldier]);
-            context.player1.clickCard(context.wingLeader);
-            expect(context.wingLeader).toBeInZone('discard');
+            expect(context.player1).toBeAbleToSelectExactly([context.ruthlessRaider, context.snowspeeder, context.specforceSoldier]);
+            context.player1.clickCard(context.ruthlessRaider);
+            expect(context.ruthlessRaider).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
