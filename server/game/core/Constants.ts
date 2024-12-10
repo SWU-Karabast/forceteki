@@ -259,6 +259,7 @@ export enum MetaEventName {
 export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
+    DelayedEffect = 'delayedEffect',
     Event = 'event',
     ReplacementEffect = 'replacementEffect',
     Triggered = 'triggered',

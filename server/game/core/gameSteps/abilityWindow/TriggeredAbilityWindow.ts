@@ -37,13 +37,15 @@ export class TriggeredAbilityWindow extends BaseStep {
 
     public constructor(
         game: Game,
-        private readonly eventWindow: EventWindow,
-        private readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect,
+        private readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
+        private readonly eventWindow?: EventWindow,
         private readonly eventsToExclude = []
     ) {
         super(game);
 
-        this.triggeringEvents = [...this.eventWindow.events];
+        if (eventWindow) {
+            this.triggeringEvents = [...this.eventWindow.events];
+        }
     }
 
     public addTriggeringEvents(newEvents: GameEvent[] = []) {
