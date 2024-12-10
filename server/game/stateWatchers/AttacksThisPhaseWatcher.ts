@@ -39,6 +39,11 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
             .map((entry) => entry.attacker);
     }
 
+    /** Return true if there is any attacks this phase which match the filter */
+    public someAttacks(filter: (entry: AttackEntry) => boolean): boolean {
+        return this.getAttackers(filter).length > 0;
+    }
+
     protected override setupWatcher() {
         this.addUpdater({
             when: {
