@@ -24,17 +24,28 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 3. Uniqueness management
  */
 export class InPlayCard extends PlayableOrDeployableCard {
+    protected _disableOngoingEffectsForDefeat? = null;
     protected _pendingDefeat? = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     private movedFromZone?: ZoneName = null;
 
     /**
+     * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
+     * Triggered abilities are not disabled until it leaves the field.
+     *
+     * Can only be true if pendingDefeat is also true.
+     */
+    public get disableOngoingEffectsForDefeat() {
+        this.assertPropertyEnabled(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
+        return this._disableOngoingEffectsForDefeat;
+    }
+
+    /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
      * and will be removed from the field after the current event window has finished the resolution step.
      *
-     * When this is true, most systems cannot target the card and any ongoing effects are disabled.
-     * Triggered abilities are not disabled until it leaves the field.
+     * When this is true, most systems cannot target the card.
      */
     public get pendingDefeat() {
         this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
@@ -58,6 +69,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     protected setPendingDefeatEnabled(enabledStatus: boolean) {
         this._pendingDefeat = enabledStatus ? false : null;
+        this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
     // ********************************************** ABILITY GETTERS **********************************************
@@ -324,6 +336,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
 
         this._pendingDefeat = true;
+        this._disableOngoingEffectsForDefeat = true;
     }
 
     public checkUnique() {
