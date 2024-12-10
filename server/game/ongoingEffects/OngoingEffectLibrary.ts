@@ -11,7 +11,7 @@ import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import { EffectName, PlayType, KeywordName } from '../core/Constants';
 import { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import { IAbilityPropsWithType, KeywordNameOrProperties } from '../Interfaces';
+import { IAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 import { CostAdjustType, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
@@ -84,7 +84,7 @@ export = {
     // canContributeWhileBowed: (properties) => OngoingEffectBuilder.card.static(EffectName.CanContributeWhileBowed, properties),
     // copyCard,
     // customDetachedCard: (properties) => OngoingEffectBuilder.card.detached(EffectName.CustomEffect, properties),
-    // delayedEffect: (properties) => OngoingEffectBuilder.card.static(EffectName.DelayedEffect, properties),
+    delayedEffect: (properties: ITriggeredAbilityProps) => OngoingEffectBuilder.card.static(EffectName.DelayedEffect, properties),
     // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
     // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
     // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),

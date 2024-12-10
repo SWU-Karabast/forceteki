@@ -899,9 +899,12 @@ global.integration = function (definitions) {
                     this.game.initiativePlayer = this.player2Object;
                 }
 
+                const player1OwnedCards = deckBuilder.getOwnedCards(1, options.player1, options.player2);
+                const player2OwnedCards = deckBuilder.getOwnedCards(2, options.player2, options.player1);
+
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
-                const [deck1, namedCards1] = deckBuilder.customDeck(1, options.player1, options.phase);
-                const [deck2, namedCards2] = deckBuilder.customDeck(2, options.player2, options.phase);
+                const [deck1, namedCards1, resources1, drawDeck1] = deckBuilder.customDeck(1, player1OwnedCards, options.phase);
+                const [deck2, namedCards2, resources2, drawDeck2] = deckBuilder.customDeck(2, player2OwnedCards, options.phase);
 
                 this.player1.selectDeck(deck1);
                 this.player2.selectDeck(deck2);
@@ -930,8 +933,8 @@ global.integration = function (definitions) {
 
                 if (options.phase !== 'setup') {
                     // Resources
-                    this.player1.setResourceCards(options.player1.resources, ['outsideTheGame']);
-                    this.player2.setResourceCards(options.player2.resources, ['outsideTheGame']);
+                    this.player1.setResourceCards(resources1, ['outsideTheGame']);
+                    this.player2.setResourceCards(resources2, ['outsideTheGame']);
 
                     // Arenas
                     this.player1.setGroundArenaUnits(options.player1.groundArena, ['outsideTheGame']);
@@ -948,6 +951,9 @@ global.integration = function (definitions) {
                     // Set Leader state (deployed, exhausted, etc.)
                     this.player1.setLeaderStatus(options.player1.leader);
                     this.player2.setLeaderStatus(options.player2.leader);
+
+                    this.player1.attachOpponentOwnedUpgrades(player2OwnedCards.opponentAttachedUpgrades);
+                    this.player2.attachOpponentOwnedUpgrades(player1OwnedCards.opponentAttachedUpgrades);
                 }
 
                 // Set Base damage
@@ -955,14 +961,15 @@ global.integration = function (definitions) {
                 this.player2.setBaseStatus(options.player2.base);
 
                 // Deck
-                this.player1.setDeck(options.player1.deck, ['outsideTheGame']);
-                this.player2.setDeck(options.player2.deck, ['outsideTheGame']);
+                this.player1.setDeck(drawDeck1, ['outsideTheGame']);
+                this.player2.setDeck(drawDeck2, ['outsideTheGame']);
 
                 // add named cards to this for easy reference (allows us to do "this.<cardName>")
                 // note that if cards map to the same property name (i.e., same title), then they won't be added
                 const cardNamesAsProperties = Util.convertNonDuplicateCardNamesToProperties(
                     [this.player1, this.player2],
-                    [namedCards1, namedCards2]
+                    [namedCards1, namedCards2],
+                    player1OwnedCards.opponentAttachedUpgrades.concat(player2OwnedCards.opponentAttachedUpgrades)
                 );
                 this.cardPropertyNames = newContext.cardPropertyNames = [];
                 cardNamesAsProperties.forEach((card) => {
