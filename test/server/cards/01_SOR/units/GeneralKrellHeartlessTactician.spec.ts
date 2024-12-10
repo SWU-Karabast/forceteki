@@ -104,7 +104,8 @@ describe('General Krell, Heartless Tactician', function() {
                     phase: 'action',
                     player1: {
                         hand: ['the-emperors-legion'],
-                        groundArena: ['battlefield-marine', 'general-krell#heartless-tactician', 'reputable-hunter']
+                        groundArena: ['battlefield-marine', 'general-krell#heartless-tactician', 'reputable-hunter'],
+                        base: 'echo-base'
                     },
                     player2: {
                         groundArena: ['wampa', 'atst'],
