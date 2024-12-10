@@ -83,18 +83,30 @@ export class Lobby {
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
         const existingUser = this.users.find((u) => u.id === id);
+        const opponent = this.users.find((u) => u.id !== id);
         game.started = true;
         // for (const player of Object.values<Player>(pendingGame.players)) {
         //     game.selectDeck(player.name, player.deck);
         // }
+
+        // fetch deck for existing user otherwise set default
         if (existingUser.deck) {
             game.selectDeck(id, existingUser.deck);
-            game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
         } else {
-            const existingUser = this.users.find((u) => u.id === 'Order66');
-            game.selectDeck('Order66', existingUser.deck);
-            game.selectDeck(id, defaultGameSettings.players[1].deck);
+            game.selectDeck(id, defaultGameSettings.players[0].deck);
         }
+
+        // if opponent exist fetch deck for opponent otherwise set it as default
+        if (opponent) {
+            if (opponent.deck) {
+                game.selectDeck(opponent.id, opponent.deck);
+            } else {
+                game.selectDeck(opponent.id, defaultGameSettings.players[0].deck);
+            }
+        } else {
+            game.selectDeck('ThisIsTheWay', defaultGameSettings.players[0].deck);
+        }
+
         game.initialise();
 
         this.sendGameState(game);
