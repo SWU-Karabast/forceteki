@@ -105,6 +105,19 @@ function formatPrompt(prompt, currentActionTargets) {
     );
 }
 
+function formatBothPlayerPrompts(testContext) {
+    if (!testContext) {
+        throw new TestSetupError('Null context passed to format method');
+    }
+
+    var result = '';
+    for (const player of [testContext.player1, testContext.player2]) {
+        result += `\n${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}`;
+    }
+
+    return result;
+}
+
 function getPlayerPromptState(player) {
     return {
         selectableCards: copySelectionArray(player.promptState.selectableCards),
@@ -170,5 +183,6 @@ module.exports = {
     getPlayerPromptState,
     promptStatesEqual,
     stringArraysEqual,
-    createStringForOptions
+    createStringForOptions,
+    formatBothPlayerPrompts
 };

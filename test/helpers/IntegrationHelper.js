@@ -76,7 +76,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -113,7 +113,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -144,7 +144,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -181,7 +181,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -212,7 +212,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -244,7 +244,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -275,7 +275,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -306,7 +306,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -330,7 +330,7 @@ var customMatchers = {
                     result.message = `Expected ${card.name} to be selectable by ${player.name} but it wasn't.`;
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -374,7 +374,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -418,7 +418,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -466,7 +466,7 @@ var customMatchers = {
                     result.message = message;
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -491,7 +491,7 @@ var customMatchers = {
                 result.pass = !promptStatesEqual(beforeClick, afterClick);
 
                 if (result.pass) {
-                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(player)}`;
+                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 } else {
                     result.message = `Expected ${card.name} to have an action available when clicked by ${player.name} but it did not.`;
                 }
@@ -513,6 +513,8 @@ var customMatchers = {
                 } else {
                     result.message = `Expected ${player.name} to be the active player but they were not.`;
                 }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -550,7 +552,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player)}`;
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
@@ -575,7 +577,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player)}`;
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
@@ -774,7 +776,7 @@ var customMatchers = {
                     result.message = `Expected ${player.name} to have this exact set of buttons: '${expectedButtons.join(', ')}'`;
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -799,7 +801,7 @@ var customMatchers = {
                     result.message = `Expected ${player.name} to have this exact list of options: '${Util.createStringForOptions(expectedOptions)}'`;
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -807,8 +809,8 @@ var customMatchers = {
     }
 };
 
-function generatePromptHelpMessage(player) {
-    return `Current prompt for ${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}`;
+function generatePromptHelpMessage(testContext) {
+    return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
 }
 
 function validatePlayerOptions(playerOptions, playerName, startPhase) {

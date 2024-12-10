@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType } = require('../Constants.js');
+const { Stage, AbilityType, RelativePlayer } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelper.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
@@ -119,8 +119,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
     getSubAbilityStep(context, resolvedAbilityEvents) {
         if (this.properties.then) {
             const then = this.getConcreteSubAbilityStep(this.properties.then, context);
+            const abilityController = this.getAbilityController(then, context);
             if (!then.thenCondition || then.thenCondition(context)) {
-                return new CardAbilityStep(this.game, this.card, then).createContext(context.player);
+                return new CardAbilityStep(this.game, this.card, then).createContext(abilityController);
             }
 
             return null;
@@ -145,17 +146,26 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
 
         const concreteIfAbility = this.getConcreteSubAbilityStep(ifAbility, context);
+        const abilityController = this.getAbilityController(concreteIfAbility, context);
 
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
         return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
-            ? new CardAbilityStep(this.game, this.card, concreteIfAbility).createContext(context.player)
+            ? new CardAbilityStep(this.game, this.card, concreteIfAbility).createContext(abilityController)
             : null;
     }
 
     getConcreteSubAbilityStep(subAbilityStep, context) {
         return typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
+    }
+
+    getAbilityController(subAbilityStep, context) {
+        if (subAbilityStep.abilityController) {
+            return subAbilityStep.abilityController === RelativePlayer.Self ? context.player : context.player.opponent;
+        }
+
+        return context.player;
     }
 
     /** @override */

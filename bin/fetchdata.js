@@ -68,7 +68,7 @@ function filterValues(card) {
 
     populateMissingData(card.attributes, filteredObj.id);
 
-    filteredObj.aspects = getAttributeNames(card.attributes.aspects);
+    filteredObj.aspects = getAttributeNames(card.attributes.aspects).concat(getAttributeNames(card.attributes.aspectDuplicates));
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);

@@ -117,7 +117,7 @@ export abstract class OngoingEffect {
         }
 
         // disable ongoing effects if the card is queued up to be defeated (e.g. due to combat or unique rule)
-        if ((this.source.isUnit() || this.source.isUpgrade()) && this.source.isInPlay() && this.source.pendingDefeat) {
+        if ((this.source.isUnit() || this.source.isUpgrade()) && this.source.isInPlay() && this.source.disableOngoingEffectsForDefeat) {
             return false;
         }
 
