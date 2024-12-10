@@ -96,13 +96,14 @@ interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extend
     mode: TargetMode.Exactly | TargetMode.UpTo;
     canChooseNoCards?: boolean;
     numCards: number;
-    sameDiscardPile?: boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
 interface ICardExactlyUpToVariableTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode: TargetMode.ExactlyVariable | TargetMode.UpToVariable;
     numCardsFunc: (context: TContext) => number;
     canChooseNoCards?: boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
 interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
