@@ -11,8 +11,7 @@ export default class RoyalGuardAttache extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'When Played: Deal 2 damage to this unit.',
-            optional: false,
+            title: 'Deal 2 damage to this unit.',
             when: {
                 onCardPlayed: (event, context) => event.card.controller === context.source.controller
             },
