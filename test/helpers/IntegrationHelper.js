@@ -825,12 +825,13 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
         'leader',
         'base',
         'deck',
-        'resource',
+        'resource'
     ];
     // list of approved property names for setup phase
     const setupPhase = [
         'leader',
-        'deck'
+        'deck',
+        'base'
     ];
 
     // Check for unknown properties
@@ -847,7 +848,8 @@ function validateTopLevelOptions(options) {
     const allowedPropertyNames = [
         'player1',
         'player2',
-        'phase'
+        'phase',
+        'autoSingleTarget'
     ];
 
     // Check for unknown properties
@@ -916,6 +918,10 @@ global.integration = function (definitions) {
                 } else if (options.player2.hasInitiative) {
                     this.game.initiativePlayer = this.player2Object;
                 }
+
+                const autoSingleTarget = options.autoSingleTarget ?? true;
+                this.player1Object.autoSingleTarget = autoSingleTarget;
+                this.player2Object.autoSingleTarget = autoSingleTarget;
 
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
                 const [deck1, namedCards1] = deckBuilder.customDeck(1, options.player1, options.phase);
