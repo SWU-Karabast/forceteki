@@ -10,7 +10,10 @@ describe('Jedi Lightsaber', function() {
                     player2: {
                         groundArena: ['atst', 'wampa', 'specforce-soldier'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

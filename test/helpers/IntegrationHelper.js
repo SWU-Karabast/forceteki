@@ -919,7 +919,7 @@ global.integration = function (definitions) {
                     this.game.initiativePlayer = this.player2Object;
                 }
 
-                const autoSingleTarget = options.autoSingleTarget ?? true;
+                const autoSingleTarget = !!options.autoSingleTarget;
                 this.player1Object.autoSingleTarget = autoSingleTarget;
                 this.player2Object.autoSingleTarget = autoSingleTarget;
 

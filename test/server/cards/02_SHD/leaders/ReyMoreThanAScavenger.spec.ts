@@ -11,7 +11,10 @@ describe('Rey, More Than a Scavenger', function () {
                     },
                     player2: {
                         spaceArena: ['grey-squadron-ywing']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -39,7 +42,10 @@ describe('Rey, More Than a Scavenger', function () {
                     },
                     player2: {
                         spaceArena: ['grey-squadron-ywing']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -88,7 +94,10 @@ describe('Rey, More Than a Scavenger', function () {
                     },
                     player2: {
                         spaceArena: ['grey-squadron-ywing']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

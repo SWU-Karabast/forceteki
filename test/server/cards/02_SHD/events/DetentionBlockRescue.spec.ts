@@ -11,7 +11,10 @@ describe('Detention Block Rescue', function() {
                     player2: {
                         hand: ['take-captive'],
                         groundArena: ['wampa', 'atst']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

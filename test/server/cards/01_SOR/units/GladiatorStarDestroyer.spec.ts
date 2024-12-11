@@ -11,7 +11,10 @@ describe('Gladiator Star Destroyer', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -12,7 +12,10 @@ describe('Upgrade cards', function() {
                     player2: {
                         spaceArena: ['bright-hope#the-last-transport'],
                         hand: ['confiscate']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

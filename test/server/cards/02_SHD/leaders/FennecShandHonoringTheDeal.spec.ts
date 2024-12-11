@@ -12,7 +12,10 @@ describe('Fennec Shand, Honoring the Deal', function () {
                     },
                     player2: {
                         groundArena: ['isb-agent'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -47,7 +50,10 @@ describe('Fennec Shand, Honoring the Deal', function () {
                     },
                     player2: {
                         groundArena: ['isb-agent', 'battlefield-marine'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -118,6 +124,9 @@ describe('Fennec Shand, Honoring the Deal', function () {
                         hand: ['reinforcement-walker'],
                         resources: 8
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
