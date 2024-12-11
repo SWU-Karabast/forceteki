@@ -843,6 +843,21 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
     }
 }
 
+function validateTopLevelOptions(options) {
+    const allowedPropertyNames = [
+        'player1',
+        'player2',
+        'phase'
+    ];
+
+    // Check for unknown properties
+    for (const prop of Object.keys(options)) {
+        if (!allowedPropertyNames.includes(prop)) {
+            throw new Error(`test setup options has an unknown property '${prop}'`);
+        }
+    }
+}
+
 beforeEach(function () {
     jasmine.addMatchers(customMatchers);
 });
@@ -892,6 +907,7 @@ global.integration = function (definitions) {
                 // validate supplied parameters
                 validatePlayerOptions(options.player1, 'player1', options.phase);
                 validatePlayerOptions(options.player2, 'player2', options.phase);
+                validateTopLevelOptions(options, ['player1', 'player2', 'phase']);
 
                 this.game.gameMode = GameMode.Premier;
 

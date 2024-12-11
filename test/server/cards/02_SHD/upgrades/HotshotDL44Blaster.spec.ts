@@ -7,9 +7,9 @@ describe('Hotshot DL-44 Blaster', function() {
                     player1: {
                         groundArena: ['battlefield-marine'],
                         spaceArena: ['collections-starhopper'],
-                        hand: ['hotshot-dl44-blaster']
-                    },
-                    base: 'tarkintown'
+                        hand: ['hotshot-dl44-blaster'],
+                        base: 'tarkintown'
+                    }
                 });
             });
 
