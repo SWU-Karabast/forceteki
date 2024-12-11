@@ -9,7 +9,10 @@ describe('Supercommando Squad', function() {
                     },
                     player2: {
                         groundArena: ['wampa', 'jedha-agitator'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

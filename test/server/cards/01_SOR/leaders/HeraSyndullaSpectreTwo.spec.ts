@@ -12,7 +12,10 @@ describe('Hera Syndulla, Spectre Two', function() {
                     },
                     player2: {
                         groundArena: ['pyke-sentinel']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -51,7 +54,10 @@ describe('Hera Syndulla, Spectre Two', function() {
                     },
                     player2: {
                         groundArena: ['pyke-sentinel', 'del-meeko#providing-overwatch']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -84,7 +90,10 @@ describe('Hera Syndulla, Spectre Two', function() {
                     player2: {
                         groundArena: ['pyke-sentinel'],
                         leader: { card: 'rey#more-than-a-scavenger', deployed: true }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

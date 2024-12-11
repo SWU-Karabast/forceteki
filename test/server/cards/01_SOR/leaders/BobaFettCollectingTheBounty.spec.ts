@@ -15,6 +15,9 @@ describe('Boba Fett, Collecting the Bounty', function() {
                         groundArena: ['viper-probe-droid', 'cell-block-guard', 'wampa'],
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -84,7 +87,10 @@ describe('Boba Fett, Collecting the Bounty', function() {
                     },
                     player2: {
                         groundArena: ['cell-block-guard'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

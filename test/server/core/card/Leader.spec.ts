@@ -111,7 +111,10 @@ describe('Leader cards', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['tie-advanced']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

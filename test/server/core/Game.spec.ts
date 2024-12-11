@@ -10,7 +10,10 @@ describe('Overall game mechanics', function() {
                     },
                     player2: {
                         base: { card: 'administrators-tower', damage: 29 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -35,7 +38,10 @@ describe('Overall game mechanics', function() {
                     },
                     player2: {
                         base: { card: 'administrators-tower', damage: 29 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
