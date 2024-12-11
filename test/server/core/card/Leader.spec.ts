@@ -95,6 +95,7 @@ describe('Leader cards', function() {
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.grandMoffTarkin);
                 expect(context.player1).not.toHaveEnabledPromptButton('Deploy Grand Moff Tarkin');
+                context.player1.clickCard(context.atst);
             });
         });
 

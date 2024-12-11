@@ -981,6 +981,30 @@ global.integration = function (definitions) {
             };
         });
 
+        afterEach(function() {
+            const { context } = contextRef;
+
+            if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
+                return;
+            }
+
+            const actionWindowMenuTitles = [
+                'Waiting for opponent to take an action or pass',
+                'Choose an action'
+            ];
+
+            const playersWithUnresolvedPrompts = [context.player1, context.player2]
+                .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));
+
+            if (playersWithUnresolvedPrompts.length > 0) {
+                let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
+                    `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
+                ).join('');
+
+                throw new TestSetupError(`The test ended with an unresolved prompt for one or both players. Unresolved prompts:\n${activePromptsText}`);
+            }
+        });
+
         definitions(contextRef);
     });
 };

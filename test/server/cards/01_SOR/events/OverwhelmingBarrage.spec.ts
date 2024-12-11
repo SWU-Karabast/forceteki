@@ -113,6 +113,7 @@ describe('Overwhelming Barrage', function() {
 
                 context.player1.clickCard(context.overwhelmingBarrage);
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
+                context.player1.clickPrompt('Choose no targets');
             });
         });
     });
