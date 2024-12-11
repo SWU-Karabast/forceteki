@@ -110,6 +110,7 @@ describe('Leia Organa, Alliance General', function() {
                 expect(context.sabineWren.damage).toBe(1);
                 expect(context.sundariPeacekeeper.damage).toBe(2);
                 expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
             });
         });
 

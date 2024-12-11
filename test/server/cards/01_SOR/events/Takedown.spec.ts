@@ -6,7 +6,7 @@ describe('Takedown', function() {
                     phase: 'action',
                     player1: {
                         hand: ['takedown', 'supreme-leader-snoke#shadow-ruler'],
-                        groundArena: ['pyke-sentinel', { card: 'gideon-hask#ruthless-loyalist', upgrades: ['entrenched'] }],
+                        groundArena: ['pyke-sentinel', { card: 'academy-defense-walker', upgrades: ['entrenched'] }],
                         leader: { card: 'boba-fett#daimyo', deployed: true, damage: 4 }
                     },
                     player2: {

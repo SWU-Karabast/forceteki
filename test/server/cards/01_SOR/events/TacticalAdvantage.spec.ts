@@ -6,10 +6,10 @@ describe('Tactical Advantage', function () {
                     phase: 'action',
                     player1: {
                         hand: ['tactical-advantage'],
-                        groundArena: [{ card: 'pyke-sentinel' }],
+                        groundArena: ['pyke-sentinel']
                     },
                     player2: {
-                        groundArena: ['wampa'],
+                        groundArena: ['wampa']
                     }
                 });
             });
