@@ -12,7 +12,10 @@ describe('Luke Skywalker, Faithful Friend', function() {
                     player2: {
                         hand: ['alliance-dispatcher'],
                         groundArena: ['specforce-soldier'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -67,7 +70,10 @@ describe('Luke Skywalker, Faithful Friend', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['tie-advanced']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

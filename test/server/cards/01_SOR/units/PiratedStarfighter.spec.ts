@@ -7,6 +7,9 @@ describe('Pirated Starfighter', function () {
                     hand: ['pirated-starfighter'],
                     base: 'chopper-base',
                 },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
 
@@ -23,7 +26,10 @@ describe('Pirated Starfighter', function () {
                     hand: ['pirated-starfighter'],
                     groundArena: ['pyke-sentinel', 'seasoned-shoretrooper'],
                     leader: { card: 'leia-organa#alliance-general', deployed: true }
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
 

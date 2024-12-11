@@ -9,7 +9,10 @@ describe('Morgan Elsbeth, Keeper of Many Secrets', function () {
                     },
                     player2: {
                         groundArena: ['battlefield-marine']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

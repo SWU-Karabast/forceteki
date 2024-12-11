@@ -9,7 +9,10 @@ describe('Hotshot DL-44 Blaster', function() {
                         spaceArena: ['collections-starhopper'],
                         hand: ['hotshot-dl44-blaster'],
                         base: 'tarkintown'
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -34,7 +37,10 @@ describe('Hotshot DL-44 Blaster', function() {
                         spaceArena: ['collections-starhopper'],
                         resources: ['hotshot-dl44-blaster', 'atst', 'atst', 'atst', 'atst', 'atst'],
                         base: 'administrators-tower'
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

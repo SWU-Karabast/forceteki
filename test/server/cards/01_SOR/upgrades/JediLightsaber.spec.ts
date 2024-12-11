@@ -81,7 +81,10 @@ describe('Jedi Lightsaber', function() {
                     },
                     player2: {
                         groundArena: ['consular-security-force']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -107,8 +110,9 @@ describe('Jedi Lightsaber', function() {
                         hand: ['jedi-lightsaber'],
                         groundArena: ['snowspeeder', 'battlefield-marine']
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

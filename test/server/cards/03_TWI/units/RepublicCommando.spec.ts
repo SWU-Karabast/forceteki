@@ -10,7 +10,10 @@ describe('Republic Commando', function() {
                     },
                     player2: {
                         groundArena: ['pyke-sentinel']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

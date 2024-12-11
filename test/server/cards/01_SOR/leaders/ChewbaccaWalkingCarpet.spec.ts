@@ -14,7 +14,10 @@ describe('Chewbacca, Walking Carpet', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

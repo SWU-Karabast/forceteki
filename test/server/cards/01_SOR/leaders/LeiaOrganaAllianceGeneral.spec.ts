@@ -12,7 +12,10 @@ describe('Leia Organa, Alliance General', function() {
                     player2: {
                         groundArena: ['sundari-peacekeeper'],
                         spaceArena: ['tie-advanced']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -126,7 +129,10 @@ describe('Leia Organa, Alliance General', function() {
                     player2: {
                         groundArena: ['sundari-peacekeeper'],
                         spaceArena: ['tie-advanced']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -151,7 +157,10 @@ describe('Leia Organa, Alliance General', function() {
                     player2: {
                         groundArena: ['sundari-peacekeeper'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

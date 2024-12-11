@@ -10,7 +10,10 @@ describe('Black One', function() {
                     },
                     player2: {
                         hand: ['vanquish', 'rivals-fall']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

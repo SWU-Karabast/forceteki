@@ -36,7 +36,10 @@ describe('Bo-Katan Kryze, Death Watch Lieutenant', function () {
                     player2: {
                         hand: ['rivals-fall'],
                         groundArena: ['echo-base-defender', 'jedha-agitator'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

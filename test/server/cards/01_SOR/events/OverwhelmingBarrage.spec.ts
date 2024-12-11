@@ -13,7 +13,10 @@ describe('Overwhelming Barrage', function() {
                         groundArena: ['atst'],
                         spaceArena: ['tieln-fighter'],
                         leader: { card: 'han-solo#audacious-smuggler', deployed: true }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -104,7 +107,10 @@ describe('Overwhelming Barrage', function() {
                     },
                     player2: {
                         groundArena: ['consular-security-force']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
