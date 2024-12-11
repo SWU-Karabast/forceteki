@@ -38,6 +38,7 @@ describe('Chewbacca, Walking Carpet', function() {
                 context.player1.passAction();
                 context.player2.clickCard(context.wampa);
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.liberatedSlaves]);
+                context.player2.clickCard(context.p1Base);
             });
 
             it('should not affect the cost of playing a unit', function () {

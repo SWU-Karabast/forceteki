@@ -34,6 +34,7 @@ describe('Gladiator Star Destroyer', function() {
                 context.player1.passAction();
                 context.player2.clickCard(context.wampa);
                 expect(context.player2).toBeAbleToSelectExactly([context.directorKrennic, context.p1Base]);
+                context.player2.clickCard(context.p1Base);
             });
         });
     });

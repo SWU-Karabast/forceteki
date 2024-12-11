@@ -33,6 +33,7 @@ describe('Supercommando Squad', function() {
 
                 // player 2 should be able to select base and unit because supercommando squad is not sentinel anymore
                 expect(context.player2).toBeAbleToSelectExactly([context.supercommandoSquad, context.p1Base]);
+                context.player2.clickCard(context.p1Base);
             });
         });
     });
