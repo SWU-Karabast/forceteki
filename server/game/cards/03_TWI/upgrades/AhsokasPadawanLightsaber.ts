@@ -18,11 +18,11 @@ export default class AhsokasPadawanLightsaber extends UpgradeCard {
             title: 'Attack with a unit',
             optional: true,
             targetResolver: {
-                immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
-                    condition: context.source.parentCard?.title === 'Ahsoka Tano',
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: (context) => context.source.parentCard?.title === 'Ahsoka Tano',
                     onTrue: AbilityHelper.immediateEffects.attack(),
                     onFalse: AbilityHelper.immediateEffects.noAction()
-                }))
+                })
             }
         });
     }

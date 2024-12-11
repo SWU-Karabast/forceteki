@@ -19,16 +19,16 @@ describe('Ahsoka\'s Padawan Lightsaber', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.ahsokasPadawanLightsaber);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.r2d2IgnoringProtocol]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTano, context.r2d2IgnoringProtocol]);
 
-                context.player1.clickCard(context.ahsokaTanoAlwaysReadyForTrouble);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.greenSquadronAwing]);
+                context.player1.clickCard(context.ahsokaTano);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTano, context.greenSquadronAwing]);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toBeAbleToSelectExactly([context.r2d2IgnoringProtocol, context.p2Base]);
-                expect(context.ahsokaTanoAlwaysReadyForTrouble).toHaveExactUpgradeNames(['ahsokas-padawan-lightsaber']);
-                expect(context.ahsokaTanoAlwaysReadyForTrouble.exhausted).toBe(false);
+                expect(context.ahsokaTano).toHaveExactUpgradeNames(['ahsokas-padawan-lightsaber']);
+                expect(context.ahsokaTano.exhausted).toBe(false);
 
                 context.player1.clickCard(context.p2Base);
                 expect(context.battlefieldMarine.exhausted).toBe(true);
@@ -36,27 +36,11 @@ describe('Ahsoka\'s Padawan Lightsaber', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('initiates an attack when played on Ahsoka Tano but player selects not to attack', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.ahsokasPadawanLightsaber);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.r2d2IgnoringProtocol]);
-
-                context.player1.clickCard(context.ahsokaTanoAlwaysReadyForTrouble);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.greenSquadronAwing]);
-                expect(context.player1).toHavePassAbilityButton();
-
-                context.player1.clickPrompt('Pass ability');
-                expect(context.ahsokaTanoAlwaysReadyForTrouble).toHaveExactUpgradeNames(['ahsokas-padawan-lightsaber']);
-                expect(context.ahsokaTanoAlwaysReadyForTrouble.exhausted).toBe(false);
-                expect(context.player2).toBeActivePlayer();
-            });
-
             it('does not initiates an attack when played on a unit that is not Ahsoka Tano', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.ahsokasPadawanLightsaber);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTanoAlwaysReadyForTrouble, context.r2d2IgnoringProtocol]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ahsokaTano, context.r2d2IgnoringProtocol]);
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['ahsokas-padawan-lightsaber']);
