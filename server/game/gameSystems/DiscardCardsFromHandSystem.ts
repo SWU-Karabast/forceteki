@@ -1,4 +1,4 @@
-import { CardTypeFilter, EventName, GameStateChangeRequired, ZoneName, RelativePlayer, TargetMode } from '../core/Constants';
+import { CardTypeFilter, EventName, GameStateChangeRequired, ZoneName, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
 import { AbilityContext } from '../core/ability/AbilityContext';
 import type Player from '../core/Player';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
@@ -22,6 +22,8 @@ export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProp
 export class DiscardCardsFromHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
     protected override defaultProperties: IDiscardCardsFromHandProperties = {
         amount: 1,
+        random: false,
+        cardTypeFilter: WildcardCardType.Any,
         cardCondition: () => true
     };
 
