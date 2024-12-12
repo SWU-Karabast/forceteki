@@ -10,7 +10,10 @@ describe('Coruscant Guard', function() {
                 },
                 player2: {
                     groundArena: ['hylobon-enforcer']
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;

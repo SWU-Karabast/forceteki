@@ -7,7 +7,9 @@ describe('Separatist Commando', function () {
                     player1: {
                         groundArena: ['separatist-commando', 'wartime-trade-official']
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -28,7 +30,10 @@ describe('Separatist Commando', function () {
                     },
                     player2: {
                         groundArena: ['wartime-trade-official']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

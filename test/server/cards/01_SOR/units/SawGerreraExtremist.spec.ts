@@ -10,7 +10,10 @@ describe('Saw Gerrera, Extremist', function () {
                 player2: {
                     hand: ['enforced-loyalty', 'vanquish', 'battlefield-marine'],
                     resources: ['smugglers-aid', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
 

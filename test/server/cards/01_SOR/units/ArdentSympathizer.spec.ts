@@ -10,7 +10,10 @@ describe('Ardent Sympathizer', function () {
                         },
                         player2: {
                             hasInitiative: true
-                        }
+                        },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
                 });
 
@@ -31,7 +34,9 @@ describe('Ardent Sympathizer', function () {
                             groundArena: ['ardent-sympathizer'],
                             hasInitiative: true
                         },
-                        player2: {}
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
                 });
 

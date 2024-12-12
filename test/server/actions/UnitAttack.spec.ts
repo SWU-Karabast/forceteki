@@ -26,6 +26,7 @@ describe('Basic attack', function() {
 
                 // can target opponent's ground units and base but not space units
                 expect(context.player1).toBeAbleToSelectExactly([context.frontierAtrt, context.enfysNest, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
             });
 
             it('from space arena to another unit in the space arena, attack should resolve correctly', function () {
@@ -98,6 +99,8 @@ describe('Basic attack', function() {
                 expect(context.player1).toHavePrompt('player1 has won the game!');
                 expect(context.player2).toHavePrompt('player1 has won the game!');
                 expect(context.player1).toBeActivePlayer();
+
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
     });

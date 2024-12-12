@@ -76,7 +76,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -113,7 +113,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -144,7 +144,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -181,7 +181,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -212,7 +212,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -244,7 +244,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -275,7 +275,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -306,7 +306,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(actual)}`;
+                result.message += `\n\n${generatePromptHelpMessage(actual.testContext)}`;
 
                 return result;
             }
@@ -330,7 +330,7 @@ var customMatchers = {
                     result.message = `Expected ${card.name} to be selectable by ${player.name} but it wasn't.`;
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -374,7 +374,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -418,7 +418,7 @@ var customMatchers = {
                     }
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -466,7 +466,7 @@ var customMatchers = {
                     result.message = message;
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -491,7 +491,7 @@ var customMatchers = {
                 result.pass = !promptStatesEqual(beforeClick, afterClick);
 
                 if (result.pass) {
-                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(player)}`;
+                    result.message = `Expected ${card.name} not to have an action available when clicked by ${player.name} but it has ability prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 } else {
                     result.message = `Expected ${card.name} to have an action available when clicked by ${player.name} but it did not.`;
                 }
@@ -513,6 +513,8 @@ var customMatchers = {
                 } else {
                     result.message = `Expected ${player.name} to be the active player but they were not.`;
                 }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -550,7 +552,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player)}`;
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
@@ -575,7 +577,7 @@ var customMatchers = {
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player)}`;
+                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
@@ -774,7 +776,7 @@ var customMatchers = {
                     result.message = `Expected ${player.name} to have this exact set of buttons: '${expectedButtons.join(', ')}'`;
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -799,7 +801,7 @@ var customMatchers = {
                     result.message = `Expected ${player.name} to have this exact list of options: '${Util.createStringForOptions(expectedOptions)}'`;
                 }
 
-                result.message += `\n\n${generatePromptHelpMessage(player)}`;
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
 
                 return result;
             }
@@ -807,8 +809,8 @@ var customMatchers = {
     }
 };
 
-function generatePromptHelpMessage(player) {
-    return `Current prompt for ${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}`;
+function generatePromptHelpMessage(testContext) {
+    return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
 }
 
 function validatePlayerOptions(playerOptions, playerName, startPhase) {
@@ -823,12 +825,13 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
         'leader',
         'base',
         'deck',
-        'resource',
+        'resource'
     ];
     // list of approved property names for setup phase
     const setupPhase = [
         'leader',
-        'deck'
+        'deck',
+        'base'
     ];
 
     // Check for unknown properties
@@ -837,6 +840,22 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
             throw new Error(`${playerName} has an unknown property '${prop}'`);
         } else if (!setupPhase.includes(prop) && startPhase === 'setup') {
             throw new Error(`${playerName} has an unknown property '${prop}'`);
+        }
+    }
+}
+
+function validateTopLevelOptions(options) {
+    const allowedPropertyNames = [
+        'player1',
+        'player2',
+        'phase',
+        'autoSingleTarget'
+    ];
+
+    // Check for unknown properties
+    for (const prop of Object.keys(options)) {
+        if (!allowedPropertyNames.includes(prop)) {
+            throw new Error(`test setup options has an unknown property '${prop}'`);
         }
     }
 }
@@ -890,6 +909,7 @@ global.integration = function (definitions) {
                 // validate supplied parameters
                 validatePlayerOptions(options.player1, 'player1', options.phase);
                 validatePlayerOptions(options.player2, 'player2', options.phase);
+                validateTopLevelOptions(options, ['player1', 'player2', 'phase']);
 
                 this.game.gameMode = GameMode.Premier;
 
@@ -898,6 +918,10 @@ global.integration = function (definitions) {
                 } else if (options.player2.hasInitiative) {
                     this.game.initiativePlayer = this.player2Object;
                 }
+
+                const autoSingleTarget = !!options.autoSingleTarget;
+                this.player1Object.autoSingleTarget = autoSingleTarget;
+                this.player2Object.autoSingleTarget = autoSingleTarget;
 
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
                 const [deck1, namedCards1] = deckBuilder.customDeck(1, options.player1, options.phase);
@@ -977,6 +1001,30 @@ global.integration = function (definitions) {
 
                 this.game.resolveGameState(true);
             };
+        });
+
+        afterEach(function() {
+            const { context } = contextRef;
+
+            if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
+                return;
+            }
+
+            const actionWindowMenuTitles = [
+                'Waiting for opponent to take an action or pass',
+                'Choose an action'
+            ];
+
+            const playersWithUnresolvedPrompts = [context.player1, context.player2]
+                .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));
+
+            if (playersWithUnresolvedPrompts.length > 0) {
+                let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
+                    `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
+                ).join('');
+
+                throw new TestSetupError(`The test ended with an unresolved prompt for one or both players. Unresolved prompts:\n${activePromptsText}`);
+            }
         });
 
         definitions(contextRef);

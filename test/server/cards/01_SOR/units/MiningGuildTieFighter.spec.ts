@@ -9,6 +9,9 @@ describe('Mining Guild TIE Fighter', function() {
                     player1: {
                         spaceArena: ['mining-guild-tie-fighter'],
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 context.player1.clickCard(context.miningGuildTieFighter);
@@ -40,6 +43,9 @@ describe('Mining Guild TIE Fighter', function() {
                         spaceArena: ['mining-guild-tie-fighter'],
                         resources: 1
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 context.player1.clickCard(context.miningGuildTieFighter);

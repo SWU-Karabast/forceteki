@@ -1,4 +1,4 @@
-describe('Drawing cards', function() {
+describe('Draw system', function() {
     integration(function (contextRef) {
         describe('When a player draws cards', function() {
             beforeEach(function () {
@@ -64,6 +64,8 @@ describe('Drawing cards', function() {
                 expect(context.player2).toHavePrompt('player1 has won the game!');
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player1).toBeActivePlayer();
+
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
     });

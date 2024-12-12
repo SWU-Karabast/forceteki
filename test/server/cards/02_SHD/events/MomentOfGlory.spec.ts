@@ -12,7 +12,10 @@ describe('Moment of Glory', function () {
                     player2: {
                         groundArena: ['wampa', 'atst'],
                         spaceArena: ['imperial-interceptor']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

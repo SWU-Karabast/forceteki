@@ -10,7 +10,10 @@ describe('Guarding the Way', function () {
                     },
                     player2: {
                         groundArena: ['chewbacca#pykesbane']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -43,7 +46,10 @@ describe('Guarding the Way', function () {
                     player2: {
                         hand: ['guarding-the-way'],
                         groundArena: ['luke-skywalker#jedi-knight']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

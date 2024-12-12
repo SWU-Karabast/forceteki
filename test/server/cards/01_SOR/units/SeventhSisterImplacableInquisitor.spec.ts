@@ -12,6 +12,9 @@ describe('Seventh Sister', function () {
                     leader: { card: 'boba-fett#daimyo', deployed: true },
                     base: 'chopper-base'
                 },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
 
@@ -51,6 +54,9 @@ describe('Seventh Sister', function () {
                     groundArena: ['wampa', 'pyke-sentinel'],
                     base: 'chopper-base'
                 },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
             context.player1.clickCard(context.seventhSisterImplacableInquisitor);
