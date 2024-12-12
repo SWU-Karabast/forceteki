@@ -864,6 +864,15 @@ beforeEach(function () {
     jasmine.addMatchers(customMatchers);
 });
 
+jasmine.getEnv().addReporter({
+    specStarted(result) {
+        jasmine.getEnv().currentSpec = result;
+    },
+    specDone() {
+        jasmine.getEnv().currentSpec = null;
+    }
+});
+
 global.integration = function (definitions) {
     describe('- integration -', function () {
         /**
@@ -1005,6 +1014,11 @@ global.integration = function (definitions) {
 
         afterEach(function() {
             const { context } = contextRef;
+
+            // if there were already failures in the test case, don't bother checking the prompts after
+            if (jasmine.getEnv().currentSpec.failedExpectations.length > 0) {
+                return;
+            }
 
             if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
                 return;
