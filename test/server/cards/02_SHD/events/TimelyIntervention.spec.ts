@@ -12,7 +12,10 @@ describe('Timely Intervention', function () {
                     },
                     player2: {
                         groundArena: ['isb-agent'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -46,7 +49,10 @@ describe('Timely Intervention', function () {
                     },
                     player2: {
                         groundArena: ['isb-agent'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

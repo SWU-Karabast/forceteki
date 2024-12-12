@@ -25,6 +25,8 @@ interface SwuTestContext {
     p2Base: BaseCard;
     p2Leader: LeaderCard;
 
+    allowTestToEndWithOpenPrompt: boolean;
+
     advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
     getPlayableCardTitles();

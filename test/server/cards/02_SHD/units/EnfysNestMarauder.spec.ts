@@ -12,7 +12,10 @@ describe('Enfys Nest, Marauder', function () {
                     player2: {
                         groundArena: ['consular-security-force', 'atst'],
                         hand: ['4lom#bounty-hunter-for-hire']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

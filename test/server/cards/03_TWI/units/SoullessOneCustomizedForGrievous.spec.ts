@@ -10,7 +10,10 @@ describe('Soulless One, Customized for Grievous', function () {
                 },
                 player2: {
                     groundArena: ['r2d2#ignoring-protocol']
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;

@@ -5,7 +5,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['rivals-fall', 'cantina-bouncer'],
+                        hand: ['rivals-fall', 'waylay'],
                         groundArena: ['death-star-stormtrooper'],
                         leader: 'boba-fett#collecting-the-bounty',
                         base: 'dagobah-swamp',
@@ -15,6 +15,9 @@ describe('Boba Fett, Collecting the Bounty', function() {
                         groundArena: ['viper-probe-droid', 'cell-block-guard', 'wampa'],
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -37,10 +40,10 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 // Case 2 - when returning an enemy unit to hand
                 reset();
 
-                context.player1.clickCard(context.cantinaBouncer);
+                context.player1.clickCard(context.waylay);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1.readyResourceCount).toBe(2);
+                expect(context.player1.readyResourceCount).toBe(4);
                 expect(context.bobaFett.exhausted).toBeTrue();
 
                 // Case 3 - when defeating an enemy leader unit
@@ -66,7 +69,6 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player1.moveCard(context.deathStarStormtrooper, 'groundArena');
 
                 context.player1.clickCard(context.rivalsFall);
-                context.player1.clickCard(context.deathStarStormtrooper);
 
                 expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.bobaFett.exhausted).toBeFalse();
@@ -85,7 +87,10 @@ describe('Boba Fett, Collecting the Bounty', function() {
                     },
                     player2: {
                         groundArena: ['cell-block-guard'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -17,7 +17,10 @@ describe('Calculated Lethality', function () {
                             { card: 'green-squadron-awing', upgrades: ['experience', 'shield'] },
                             'restored-arc170'
                         ]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
