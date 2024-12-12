@@ -11,7 +11,7 @@
     "lint": "eslint --quiet",
     "lint-fix": "eslint --quiet --fix",
     "lint-verbose": "eslint",
-    "get-cards": "node ./bin/fetchdata.js"
+    "get-cards": "node ./scripts/fetchdata.js"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.1.0",
