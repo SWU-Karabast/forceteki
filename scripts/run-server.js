@@ -2,7 +2,6 @@ const fs = require('fs/promises');
 const childProcess = require('child_process')
 
 const envPath = '.env'
-const gameNodePath = 'build/server/gamenode';
 
 async function createEnvFile() {
     const defaultEnvFields = {
@@ -32,17 +31,14 @@ async function fileExists(path) {
 async function runCommand() {
 
     const envFileExists = await fileExists(envPath)
-    const serverFileExists = await fileExists(gameNodePath);
 
     if (!envFileExists) {
         console.log("Creating .env file.");
         await createEnvFile();
     }
 
-    if (!serverFileExists) {
-        console.log("Building the server.");
-        childProcess.execSync('npm run build');
-    }
+    console.log("Building the server.");
+    childProcess.execSync('npm run build');
 
     const serverProcess = childProcess.spawn('node', ['./build/server/gamenode'])
 

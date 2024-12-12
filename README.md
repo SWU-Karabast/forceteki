@@ -33,6 +33,8 @@ npm run get-cards
 # rm -r build/  # needed if files are added / deleted / renamed between builds
 npm run build
 
+# run this to build and start the server. If you don't have an .env file, it'll create one.
+
 # run code linter (recommend configuring this automatically with Visual Studio Code)
 npm run lint
 npm run lint-verbose
