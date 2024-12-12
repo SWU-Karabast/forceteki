@@ -46,15 +46,14 @@ describe('Favorable Delegate', function () {
             it('should discard a card', function () {
                 const { context } = contextRef;
                 const handRoyalGuardAttache = context.player1.findCardByName('royal-guard-attache', 'hand');
-                const prompt = 'Discard a card from your hand.';
 
                 // Atacking Delegate to trigger the When defeated ability
                 context.player2.clickCard(context.maceWindu);
                 context.player2.clickCard(context.favorableDelegate);
 
-                // Trying to select the card to discard in my hand
-                expect(context.player1).toHavePrompt(prompt);
+                // Checking if card got discarded correctly
                 expect(context.player1.handSize).toBe(0);
+                expect(handRoyalGuardAttache).toBeInZone('discard');
                 expect(context.player1).toBeActivePlayer();
             });
 
