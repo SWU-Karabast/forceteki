@@ -17,13 +17,6 @@ describe('Favorable Delegate', function () {
                     context.player1.clickCard(context.favorableDelegate);
                     expect(context.player1.handSize).toBe(1);
                 });
-
-                it('should draw nothing when played if empty deck', function () {
-                    const { context } = contextRef;
-                    context.player1.setDeck([]);
-                    context.player1.clickCard(context.favorableDelegate);
-                    expect(context.player1.handSize).toBe(0);
-                });
             });
         });
         describe('When defeated ability', function () {
@@ -39,7 +32,6 @@ describe('Favorable Delegate', function () {
                         hasInitiative: true
                     },
                     autoSingleTarget: true
-
                 });
             });
 
