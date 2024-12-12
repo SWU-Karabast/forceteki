@@ -1,6 +1,7 @@
 {
   "type": "commonjs",
   "scripts": {
+    "start": "node scripts/run-server.js",
     "build": "node scripts/build-server.js",
     "build-test": "node scripts/build-test.js",
     "test": "node scripts/build-test.js && npm run jasmine",
