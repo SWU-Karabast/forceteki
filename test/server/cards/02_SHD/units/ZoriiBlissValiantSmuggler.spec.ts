@@ -1,7 +1,7 @@
 describe('Zorii Bliss', function() {
     integration(function(contextRef) {
         describe('Zorii Bliss\'s ability', function() {
-            beforeEach(function () {
+            it('draws a card on attack and discards a card at the start of the regroup phase even if zorii dies', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -13,9 +13,7 @@ describe('Zorii Bliss', function() {
                         hand: ['vanquish']
                     }
                 });
-            });
 
-            it('draws a card on attack and discards a card at the start of the regroup phase even if zorii dies', function () {
                 const { context } = contextRef;
 
                 // Attack with Zorii and draw a card; create delayed discard
@@ -52,7 +50,7 @@ describe('Zorii Bliss', function() {
         });
 
         describe('Zorii Bliss\'s ability', function() {
-            beforeEach(function () {
+            it('draws a card on attack and has no card to discard', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -64,9 +62,7 @@ describe('Zorii Bliss', function() {
                         hand: ['vanquish']
                     }
                 });
-            });
 
-            it('draws a card on attack and has no card to discard', function () {
                 const { context } = contextRef;
 
                 // Attack with Zorii and draw a card; create delayed discard

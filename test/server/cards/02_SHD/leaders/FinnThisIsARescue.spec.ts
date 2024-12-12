@@ -86,10 +86,6 @@ describe('Finn, This is a Rescue', function () {
                     }
                 };
 
-                // TODO - should we remove this comment now that ownership is handled in setup?
-                // For all scenarios, ensure an opponent's upgrade is attached. We should
-                // never be able to choose this upgrade for Finn's ability.
-
                 // Scenario 1: Pass on defeating an upgrade on attack
                 context.player1.clickCard(context.finn);
                 expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber, context.entrenched]);

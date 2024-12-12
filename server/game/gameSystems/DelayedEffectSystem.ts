@@ -28,7 +28,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     public override readonly effectDescription: string = 'apply a delayed effect';
 
     protected override defaultProperties: IDelayedEffectSystemProperties = {
-        title: '',
+        title: null,
         when: null,
         duration: Duration.Persistent,
         limit: AbilityHelper.limit.perGame(1),
@@ -53,25 +53,25 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
                 limit
             }) };
 
-        const delayedEffectTarget = properties.effectType === DelayedEffectType.Card ? event.context.target : event.context.source;
+        const delayedEffectSource = properties.effectType === DelayedEffectType.Card ? event.context.target : event.context.source;
 
         switch (duration) {
             case Duration.Persistent:
-                delayedEffectTarget.persistent(() => renamedProperties);
+                delayedEffectSource.persistent(() => renamedProperties);
                 break;
             case Duration.UntilEndOfAttack:
-                delayedEffectTarget.untilEndOfAttack(() => renamedProperties);
+                delayedEffectSource.untilEndOfAttack(() => renamedProperties);
                 break;
             case Duration.UntilEndOfPhase:
-                delayedEffectTarget.untilEndOfPhase(() => renamedProperties);
+                delayedEffectSource.untilEndOfPhase(() => renamedProperties);
                 break;
             case Duration.UntilEndOfRound:
-                delayedEffectTarget.untilEndOfRound(() => renamedProperties);
+                delayedEffectSource.untilEndOfRound(() => renamedProperties);
                 break;
             case Duration.Custom:
                 throw new Error(`Duration ${duration} not implemented yet`);
             default:
-                Contract.fail('Invalid Duration for DelayedEffect');
+                Contract.fail(`Invalid Duration ${duration} for DelayedEffect`);
         }
     }
 

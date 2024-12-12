@@ -318,12 +318,12 @@ class PlayerInteractionWrapper {
     }
 
     attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
-        opponentOwnedUpgrades.forEach((upgrade) => {
+        for (const upgrade of opponentOwnedUpgrades) {
             const upgradeCard = this.findCardByName(upgrade.card, 'any', 'opponent');
             const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.nameField;
             const attachTo = attachedCardAlsoOpponentControlled ? this.findCardByName(upgrade.attachedTo, 'any', 'opponent') : this.findCardByName(upgrade.attachedTo);
             upgradeCard.attachTo(attachTo);
-        });
+        }
     }
 
     get handSize() {

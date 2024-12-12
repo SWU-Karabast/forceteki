@@ -12,7 +12,7 @@ export class OngoingEffectSource extends GameObject {
     }
 
     /**
-     * Applies an effect which lasts until the end of the round.
+     * Applies an effect which persists.
      */
     public persistent(propertyFactory) {
         const properties = propertyFactory(AbilityHelper);
@@ -20,7 +20,7 @@ export class OngoingEffectSource extends GameObject {
     }
 
     /**
-     * Applies an effect which lasts until the end of the phase.
+     * Applies an effect which lasts until the end of the attack.
      */
     public untilEndOfAttack(propertyFactory) {
         const properties = propertyFactory(AbilityHelper);
