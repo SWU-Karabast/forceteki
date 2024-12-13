@@ -14,7 +14,7 @@ describe('Drop In', function () {
 
             const cloneTroopers = context.player1.findCardsByName('clone-trooper');
             expect(cloneTroopers.length).toBe(2);
-            // TODO THIS PR: zone check
+            expect(cloneTroopers).toAllBeInZone('groundArena');
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.exhausted)).toBeTrue();
             expect(context.player2.getArenaCards().length).toBe(0);
         });

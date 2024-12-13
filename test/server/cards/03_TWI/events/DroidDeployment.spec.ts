@@ -14,7 +14,7 @@ describe('Droid Deployment', function () {
 
             const battleDroids = context.player1.findCardsByName('battle-droid');
             expect(battleDroids.length).toBe(2);
-            // TODO THIS PR: zone check
+            expect(battleDroids).toAllBeInZone('groundArena');
             expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
             expect(context.player2.getArenaCards().length).toBe(0);
         });
