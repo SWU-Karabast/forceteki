@@ -864,6 +864,18 @@ beforeEach(function () {
     jasmine.addMatchers(customMatchers);
 });
 
+// this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
+if (!jasmine.getEnv().configuration().random) {
+    jasmine.getEnv().addReporter({
+        specStarted(result) {
+            jasmine.getEnv().currentSpec = result;
+        },
+        specDone() {
+            jasmine.getEnv().currentSpec = null;
+        }
+    });
+}
+
 global.integration = function (definitions) {
     describe('- integration -', function () {
         /**
@@ -1006,6 +1018,14 @@ global.integration = function (definitions) {
         afterEach(function() {
             const { context } = contextRef;
 
+            // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
+            const parallelMode = jasmine.getEnv().configuration().random;
+
+            // if there were already failures in the test case, don't bother checking the prompts after
+            if (!parallelMode && jasmine.getEnv().currentSpec.failedExpectations.length > 0) {
+                return;
+            }
+
             if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
                 return;
             }
@@ -1019,6 +1039,10 @@ global.integration = function (definitions) {
                 .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));
 
             if (playersWithUnresolvedPrompts.length > 0) {
+                if (parallelMode) {
+                    throw new TestSetupError('The test ended with an unresolved prompt for one or both players. If the test had other errors / failures, disregard this error. Run the test in non-parallel mode for additional details.');
+                }
+
                 let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
                     `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
                 ).join('');
