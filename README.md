@@ -34,7 +34,7 @@ npm run get-cards
 npm run build
 
 # run this to build and start the server. If you don't have an .env file, it'll create one.
-npm start
+npm run dev
 
 # run code linter (recommend configuring this automatically with Visual Studio Code)
 npm run lint
