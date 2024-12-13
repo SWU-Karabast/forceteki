@@ -28,7 +28,7 @@ const { cards } = require('../cards/Index.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
-const { EventName, ZoneName, TokenName, Trait, WildcardZoneName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
@@ -1187,7 +1187,7 @@ class Game extends EventEmitter {
      * @param {*} tokenCardsData object in the form `{ tokenName: tokenCardData }`
      */
     initialiseTokens(tokenCardsData) {
-        for (const tokenName of Object.values(TokenName)) {
+        for (const tokenName of Object.values(TokenUpgradeName)) {
             if (!(tokenName in tokenCardsData)) {
                 throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
             }
@@ -1203,11 +1203,11 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Creates a new shield token in an out of play zone owned by the player and
+     * Creates a new token in an out of play zone owned by the player and
      * adds it to all relevant card lists
      * @param {Player} player
-     * @param {TokenName} tokenName
-     * @returns {Shield}
+     * @param {import('./Constants.js').TokenName} tokenName
+     * @returns {Card}
      */
     generateToken(player, tokenName) {
         const token = this.tokenFactories[tokenName](player);

@@ -173,10 +173,12 @@ export enum WildcardCardType {
 
 export type CardTypeFilter = CardType | WildcardCardType;
 
-export enum TokenName {
+export enum TokenUpgradeName {
     Shield = 'shield',
     Experience = 'experience'
 }
+
+export type TokenName = TokenUpgradeName;
 
 // TODO: start removing these if they aren't used
 export enum EventName {
