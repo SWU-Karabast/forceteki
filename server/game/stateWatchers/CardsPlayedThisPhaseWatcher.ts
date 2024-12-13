@@ -3,7 +3,6 @@ import { StateWatcherName } from '../core/Constants';
 import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import Player from '../core/Player';
 import { TokenOrPlayableCard } from '../core/card/CardTypes';
-import Game from '../core/Game';
 import { Card } from '../core/card/Card';
 
 export interface PlayedCardEntry {
@@ -34,6 +33,11 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.card);
+    }
+
+    /** Check the list of played cards in the state if we found cards that match filters */
+    public someCardPlayed(filter: (entry: PlayedCardEntry) => boolean): boolean {
+        return this.getCardsPlayed(filter).length > 0;
     }
 
     protected override setupWatcher() {

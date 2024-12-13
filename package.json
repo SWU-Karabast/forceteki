@@ -11,7 +11,7 @@
     "lint": "eslint --quiet",
     "lint-fix": "eslint --quiet --fix",
     "lint-verbose": "eslint",
-    "get-cards": "node ./bin/fetchdata.js"
+    "get-cards": "node ./scripts/fetchdata.js"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.1.0",
@@ -55,6 +55,7 @@
     "concurrently": "^9.1.0",
     "cpy-cli": "^5.0.0",
     "nodemon": "^3.1.7",
+    "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "tsc-watch": "^6.2.1"
   }

@@ -2,13 +2,11 @@ import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { Aspect, CardType, WildcardRelativePlayer, WildcardZoneName, ZoneName, MoveZoneDestination } from '../../Constants';
+import { Aspect, CardType, MoveZoneDestination, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
-import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
-import { InPlayCard } from './InPlayCard';
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
@@ -125,7 +123,7 @@ export class PlayableOrDeployableCard extends Card {
             this.zone.updateController(this);
 
             // register this transition with the engine so it can do uniqueness check if needed
-            this.game.registerMovedCard(this);
+            this.registerMove(this.zone.name);
         } else {
             this.moveTo(moveDestination, false);
         }

@@ -9,7 +9,10 @@ describe('Simultaneous triggers', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'chewbacca#loyal-companion', exhausted: true }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -53,8 +56,6 @@ describe('Simultaneous triggers', function() {
         });
 
         describe('Two units with a when defeated ability killing each other', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
@@ -65,7 +66,10 @@ describe('Simultaneous triggers', function() {
                     player2: {
                         groundArena: ['vanguard-infantry', 'battlefield-marine'],
                         spaceArena: ['alliance-xwing']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

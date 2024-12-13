@@ -1,17 +1,9 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import {
-    CardTypeFilter,
-    EffectName,
-    EventName,
-    GameStateChangeRequired,
-    WildcardCardType,
-    ZoneName
-} from '../Constants';
+import { CardTypeFilter, EffectName, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { UnitCard } from '../card/CardTypes';
@@ -259,6 +251,13 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             // TODO TOKEN UNITS: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
             context.game.actions.defeat({ target: card }).resolve(null, context);
         } else {
+            // Attached upgrades should be unattached before moved
+            if (card.isUpgrade()) {
+                Contract.assertTrue(card.isAttached(), `Attempting to unattach upgrade card ${card} due to leaving play but it is already unattached.`);
+
+                card.unattach();
+            }
+
             defaultMoveAction();
         }
     }

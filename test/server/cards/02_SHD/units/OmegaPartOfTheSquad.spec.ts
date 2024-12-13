@@ -42,6 +42,9 @@ describe('Omega, Part of the Squad', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 context.player1.clickCard(context.secondOmega);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
+
+                // so we don't need to go all the way through the Omega ability again
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
 
@@ -51,7 +54,7 @@ describe('Omega, Part of the Squad', function() {
                     phase: 'action',
                     player1: {
                         groundArena: ['omega#part-of-the-squad'],
-                        hand: ['crosshair#following-orders', 'wolffe#suspicious-veteran'],
+                        hand: ['crosshair#following-orders', 'wolffe#suspicious-veteran', 'seasoned-shoretrooper'],
                         base: 'echo-base',
                         leader: 'hera-syndulla#spectre-two'
                     },
@@ -61,14 +64,21 @@ describe('Omega, Part of the Squad', function() {
             it('negates aspect penalties on the first clone played', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.crosshair);
+                // shore trooper first -- should be 4 due to aspect penalties
+                context.player1.clickCard(context.seasonedShoretrooper);
                 expect(context.player1.exhaustedResourceCount).toBe(4);
+
+                context.player2.passAction();
+
+                // crosshair next -- should be 4 resources as it ignores aspect penalties
+                context.player1.clickCard(context.crosshair);
+                expect(context.player1.exhaustedResourceCount).toBe(8);
 
                 context.player2.passAction();
 
                 // This should cost 4 due to aspect penalties
                 context.player1.clickCard(context.wolffe);
-                expect(context.player1.exhaustedResourceCount).toBe(8);
+                expect(context.player1.exhaustedResourceCount).toBe(12);
             });
         });
     });

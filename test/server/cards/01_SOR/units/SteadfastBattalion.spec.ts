@@ -8,7 +8,9 @@ describe('Steadfast Battalion', function () {
                         groundArena: ['steadfast-battalion', 'battlefield-marine'],
                         leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -33,7 +35,9 @@ describe('Steadfast Battalion', function () {
                     player1: {
                         groundArena: ['steadfast-battalion', 'battlefield-marine'],
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

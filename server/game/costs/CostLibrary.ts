@@ -1,19 +1,13 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { DamageType, PlayType } from '../core/Constants';
+import { DamageType, PlayType, ZoneName } from '../core/Constants';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
-import { ExecuteHandlerSystem } from '../gameSystems/ExecuteHandlerSystem';
 import { ISelectCardProperties } from '../gameSystems/SelectCardSystem';
-import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { Derivable, derive } from '../core/utils/Helpers';
-import { Card } from '../core/card/Card';
 import { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
-import Player from '../core/Player';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;
 
@@ -48,6 +42,13 @@ export function exhaustSelf<TContext extends AbilityContext = AbilityContext>():
  */
 export function defeat<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
     return getSelectCost(GameSystems.defeat<TContext>(), properties, 'Select card to defeat');
+}
+
+/**
+ * Cost that requires discard a card from hand that matches the passed condition predicate function.
+ */
+export function discardCardFromOwnHand<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
+    return getSelectCost(GameSystems.discardSpecificCard<TContext>(), { ...properties, zoneFilter: ZoneName.Hand }, 'Select card to discard');
 }
 
 /**

@@ -9,7 +9,10 @@ describe('Shielded keyword', function() {
                     },
                     player2: {
                         hand: ['waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -53,6 +56,4 @@ describe('Shielded keyword', function() {
             });
         });
     });
-
-    // TODO test that a card that is bounced back to hand (i.e. Waylay) doesn't receive a second Shield when replayed
 });

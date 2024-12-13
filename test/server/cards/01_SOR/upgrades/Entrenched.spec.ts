@@ -10,7 +10,10 @@ describe('Entrenched', function() {
                     },
                     player2: {
                         spaceArena: ['bright-hope#the-last-transport']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -41,7 +44,10 @@ describe('Entrenched', function() {
                     },
                     player2: {
                         spaceArena: ['tieln-fighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -209,8 +209,8 @@ export enum EventName {
     OnDeckShuffled = 'onDeckShuffled',
     OnDiscardFromDeck = 'onDiscardFromDeck',
     OnEffectApplied = 'onEffectApplied',
-    onExhaustResources = 'onExhaustResources',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
+    onExhaustResources = 'onExhaustResources',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
@@ -229,6 +229,7 @@ export enum EventName {
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnTakeControl = 'onTakeControl',
+    OnTokenCreated = 'onTokenCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
 }
@@ -244,6 +245,7 @@ export enum MetaEventName {
     ChooseModalEffects = 'ChooseModalEffects',
     DistributeDamage = 'distributeDamage',
     DistributeHealing = 'distributeHealing',
+    DistributeExperience = 'distributeExperience',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     NoAction = 'noAction',
@@ -274,6 +276,7 @@ export enum Aspect {
 export enum KeywordName {
     Ambush = 'ambush',
     Bounty = 'bounty',
+    Coordinate = 'coordinate',
     Grit = 'grit',
     Overwhelm = 'overwhelm',
     Raid = 'raid',

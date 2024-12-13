@@ -2,8 +2,8 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, ZoneFilter, MetaEventName, RelativePlayer, TargetMode, RelativePlayerFilter } from '../core/Constants';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { CardTypeFilter, EffectName, GameStateChangeRequired, MetaEventName, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from '../core/Constants';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
@@ -24,6 +24,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     selector?: BaseCardSelector;
     mode?: TargetMode;
     numCards?: number;
+    canChooseNoCards?: boolean;
     hidePromptIfSingleCard?: boolean;
     innerSystemProperties?: (card: Card) => any;
     cancelHandler?: () => void;
@@ -73,6 +74,15 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 ) && properties.cardCondition(card, context);
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
         }
+
+        if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
+            properties.canChooseNoCards = properties.canChooseNoCards ?? true;
+        } else {
+            if (properties.canChooseNoCards != null) {
+                Contract.fail('Cannot use canChooseNoCards if mode is not UpTo or UpToVariable');
+            }
+        }
+
         return properties;
     }
 
@@ -168,6 +178,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             return true;
         }
         const controller = typeof properties.controller === 'function' ? properties.controller(context) : properties.controller;
-        return CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && properties.selector.hasAnyCardFilter;
+        return properties.canChooseNoCards || (CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && properties.selector.hasAnyCardFilter);
     }
 }

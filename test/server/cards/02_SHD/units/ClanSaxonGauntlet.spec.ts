@@ -11,7 +11,10 @@ describe('Clan Saxon Gauntlet', function () {
                     player2: {
                         groundArena: ['battlefield-marine'],
                         spaceArena: ['green-squadron-awing', 'hwk290-freighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

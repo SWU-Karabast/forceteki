@@ -7,13 +7,13 @@ const Helpers = require('../utils/Helpers');
 class BaseCardSelector {
     constructor(properties) {
         this.cardCondition = properties.cardCondition;
+        this.multiSelectCardCondition = properties.multiSelectCardCondition;
         this.cardTypeFilter = properties.cardTypeFilter;
         this.optional = properties.optional;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
         this.capturedByFilter = properties.capturedByFilter;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
-        this.sameDiscardPile = !!properties.sameDiscardPile;
 
         if (!Array.isArray(properties.cardTypeFilter)) {
             this.cardTypeFilter = [properties.cardTypeFilter];
@@ -21,7 +21,7 @@ class BaseCardSelector {
     }
 
     get hasAnyCardFilter() {
-        return this.cardTypeFilter || this.cardCondition;
+        return this.cardTypeFilter || this.cardCondition || this.multiSelectCardCondition;
     }
 
     buildZoneFilter(property) {
@@ -123,10 +123,6 @@ class BaseCardSelector {
             return false;
         }
 
-        if (this.sameDiscardPile && selectedCards.length > 0) {
-            return card.zoneName === selectedCards[0].zoneName && card.owner === selectedCards[0].owner;
-        }
-
         if (this.checkTarget && !card.canBeTargeted(context, selectedCards)) {
             return false;
         }
@@ -142,7 +138,13 @@ class BaseCardSelector {
         if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {
             return false;
         }
-        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardCondition(card, context);
+        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardConditionsAreSatisfied(card, selectedCards, context);
+    }
+
+    cardConditionsAreSatisfied(card, selectedCards, context) {
+        const cardConditionPassed = !this.cardCondition || this.cardCondition(card, context);
+        const multiSelectConditionPassed = !this.multiSelectCardCondition || this.multiSelectCardCondition(card, selectedCards, context);
+        return cardConditionPassed && multiSelectConditionPassed;
     }
 
     getAllLegalTargets(context, choosingPlayer) {

@@ -9,7 +9,10 @@ describe('Sugi, Hired Guardian', function () {
                     },
                     player2: {
                         groundArena: ['wampa'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -34,7 +37,10 @@ describe('Sugi, Hired Guardian', function () {
                     },
                     player2: {
                         groundArena: ['wampa', { card: 'jedha-agitator', upgrades: ['protector'] }],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

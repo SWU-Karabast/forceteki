@@ -13,7 +13,10 @@ describe('Take Captive', function() {
                         groundArena: ['wampa', 'atst'],
                         spaceArena: ['cartel-spacer'],
                         leader: { card: 'boba-fett#daimyo', deployed: true }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -51,7 +54,10 @@ describe('Take Captive', function() {
                 player2: {
                     spaceArena: ['cartel-spacer', 'tie-advanced'],
                     leader: { card: 'boba-fett#daimyo', deployed: true }
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
