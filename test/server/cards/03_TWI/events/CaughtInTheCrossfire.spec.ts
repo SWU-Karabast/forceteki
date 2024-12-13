@@ -52,6 +52,8 @@ describe('Caught In The Crossfire', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.cartelSpacer.damage).toBe(1);
                 expect(context.headhunterSquadron.damage).toBe(2);
+
+                // TODO: Test with Bravado to confirm that the defeats are not attributed to the controller of Caught in the Crossfire
             });
         });
     });
