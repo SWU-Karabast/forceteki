@@ -17,6 +17,7 @@ export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProp
     in order to keep the player honest in a in-person game */
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
+    discardingPlayerType?: RelativePlayer; // Self for own hand, or opponent chooses
 }
 
 export class DiscardCardsFromHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
@@ -33,7 +34,10 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['make {0} {1}discard {2} cards', [properties.target, properties.random ? 'randomly ' : '', properties.amount]];
+        if (properties.discardingPlayerType === RelativePlayer.Self) {
+            return ['make {0} {1}discard {2} cards', [properties.target, properties.random ? 'randomly ' : '', properties.amount]];
+        }
+        return ['make {0} {1}discard {2} cards from {3}', [context.player, properties.random ? 'randomly ' : '', properties.amount, properties.target]];
     }
 
     public override canAffect(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -81,7 +85,10 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 continue;
             }
 
-            context.game.promptForSelect(player, {
+            // Select this player if its their own hand, or the active player from the context if its the 'opponent' choosing
+            const discardingPlayer = properties.discardingPlayerType === RelativePlayer.Self ? player : context.player;
+
+            context.game.promptForSelect(discardingPlayer, {
                 activePromptTitle: 'Choose ' + (amount === 1 ? 'a card' : amount + ' cards') + ' to discard',
                 context: context,
                 mode: TargetMode.Exactly,

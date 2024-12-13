@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { ZoneName, DeckZoneDestination, PlayType } from '../core/Constants';
+import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer } from '../core/Constants';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
@@ -310,7 +310,19 @@ export function takeControlOfUnit<TContext extends AbilityContext = AbilityConte
 // // PLAYER
 // //////////////
 export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHandSystem<TContext> {
-    // TODO: Once we support discarding from opponents hand, add logic only allow the target to discard from their own hand here
+    const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
+        const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
+        // Set `discardingPlayer` to `Self` if it's not explicitly defined to for own hand only
+        if (!properties.discardingPlayerType) {
+            properties.discardingPlayerType = RelativePlayer.Self;
+        }
+        return properties;
+    };
+
+    return new DiscardCardsFromHandSystem<TContext>(wrappedPropertyFactory);
+}
+
+export function discardCardsFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHandSystem<TContext> {
     return new DiscardCardsFromHandSystem<TContext>(propertyFactory);
 }
 
