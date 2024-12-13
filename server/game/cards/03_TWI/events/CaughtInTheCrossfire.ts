@@ -12,7 +12,7 @@ export default class CaughtInTheCrossfire extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Each player chooses a non-leader unit they control. Defeat those units.',
+            title: 'Choose 2 enemy units in the same arena. Each of those units deals damage equal to its power to the other.',
             targetResolvers: {
                 firstUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
