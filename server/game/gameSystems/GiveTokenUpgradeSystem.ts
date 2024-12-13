@@ -11,7 +11,7 @@ export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties
 
 /** Base class for managing the logic for giving token upgrades to cards (currently shield and experience) */
 export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IGiveTokenUpgradeProperties> {
-    public override readonly eventName = EventName.OnTokenCreated;
+    public override readonly eventName = EventName.OnTokensCreated;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
     protected override readonly defaultProperties: IGiveTokenUpgradeProperties = {
         amount: 1
@@ -59,7 +59,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
         for (let i = 0; i < properties.amount; i++) {
-            event.generatedTokens.push(event.context.game.generateToken(event.context.source.controller, this.getTokenType()));
+            event.generatedTokens.push(context.game.generateToken(context.source.controller, this.getTokenType()));
         }
 
         // add contingent events for attaching the generated upgrade token(s)
@@ -67,10 +67,10 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             const events = [];
 
             for (let i = 0; i < properties.amount; i++) {
-                const attachUpgradeEvent = new AttachUpgradeSystem(() => ({
+                const attachUpgradeEvent = new AttachUpgradeSystem({
                     upgrade: event.generatedTokens[i],
                     target: card
-                })).generateEvent(event.context);
+                }).generateEvent(event.context);
 
                 attachUpgradeEvent.order = event.order + 1;
 

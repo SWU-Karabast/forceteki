@@ -28,7 +28,7 @@ const { cards } = require('../cards/Index.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
@@ -1187,11 +1187,8 @@ class Game extends EventEmitter {
      * @param {*} tokenCardsData object in the form `{ tokenName: tokenCardData }`
      */
     initialiseTokens(tokenCardsData) {
-        for (const tokenName of Object.values(TokenUpgradeName)) {
-            if (!(tokenName in tokenCardsData)) {
-                throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
-            }
-        }
+        this.checkTokenDataProvided(TokenUpgradeName, tokenCardsData);
+        this.checkTokenDataProvided(TokenUnitName, tokenCardsData);
 
         this.tokenFactories = {};
 
@@ -1199,6 +1196,14 @@ class Game extends EventEmitter {
             const tokenConstructor = cards.get(cardData.id);
 
             this.tokenFactories[tokenName] = (player) => new tokenConstructor(player, cardData);
+        }
+    }
+
+    checkTokenDataProvided(tokenTypeNames, tokenCardsData) {
+        for (const tokenName of Object.values(tokenTypeNames)) {
+            if (!(tokenName in tokenCardsData)) {
+                throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
+            }
         }
     }
 

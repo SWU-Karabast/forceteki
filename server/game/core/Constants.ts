@@ -174,11 +174,16 @@ export enum WildcardCardType {
 export type CardTypeFilter = CardType | WildcardCardType;
 
 export enum TokenUpgradeName {
-    Shield = 'shield',
-    Experience = 'experience'
+    Experience = 'experience',
+    Shield = 'shield'
 }
 
-export type TokenName = TokenUpgradeName;
+export enum TokenUnitName {
+    BattleDroid = 'battleDroid',
+    CloneTrooper = 'cloneTrooper'
+}
+
+export type TokenName = TokenUpgradeName | TokenUnitName;
 
 // TODO: start removing these if they aren't used
 export enum EventName {
@@ -231,7 +236,7 @@ export enum EventName {
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnTakeControl = 'onTakeControl',
-    OnTokenCreated = 'onTokenCreated',
+    OnTokensCreated = 'OnTokensCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
 }
