@@ -6,7 +6,10 @@ describe('Clone Heavy Gunner', function() {
                 player1: {
                     groundArena: ['clone-heavy-gunner', 'battlefield-marine'],
                     hand: ['wing-leader']
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;

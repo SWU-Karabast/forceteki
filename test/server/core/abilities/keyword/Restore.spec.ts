@@ -9,7 +9,10 @@ describe('Restore keyword', function() {
                     },
                     player2: {
                         hand: ['waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -51,8 +54,9 @@ describe('Restore keyword', function() {
                     player1: {
                         groundArena: [{ card: 'regional-sympathizers', upgrades: ['devotion'] }],
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

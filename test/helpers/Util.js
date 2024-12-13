@@ -112,7 +112,7 @@ function formatBothPlayerPrompts(testContext) {
 
     var result = '';
     for (const player of [testContext.player1, testContext.player2]) {
-        result += `\n${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}`;
+        result += `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`;
     }
 
     return result;

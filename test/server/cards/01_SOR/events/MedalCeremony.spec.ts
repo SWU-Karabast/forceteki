@@ -12,7 +12,10 @@ describe('Medal Ceremony', function() {
                     player2: {
                         groundArena: ['wampa', 'consular-security-force'],
                         spaceArena: ['alliance-xwing']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -11,7 +11,10 @@ describe('Losing and gaining keywords', function() {
                     player2: {
                         groundArena: ['vigilant-honor-guards'],
                         hand: ['protector', 'protector', 'repair']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -41,6 +44,7 @@ describe('Losing and gaining keywords', function() {
 
                 context.player1.clickCard(context.consularSecurityForce);
                 expect(context.player1).toBeAbleToSelectExactly([context.vigilantHonorGuards, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
             });
 
             it('it should be able to gain the keyword again from a different source, lose it again(from a different ability instance), then gain it again from yet another source', function() {

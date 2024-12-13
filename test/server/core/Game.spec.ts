@@ -10,7 +10,10 @@ describe('Overall game mechanics', function() {
                     },
                     player2: {
                         base: { card: 'administrators-tower', damage: 29 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -21,6 +24,8 @@ describe('Overall game mechanics', function() {
                 context.player1.clickPrompt('Deal 1 damage to each base');
                 expect(context.player1).toHavePrompt('The game ended in a draw!');
                 expect(context.player2).toHavePrompt('The game ended in a draw!');
+
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
 
@@ -33,7 +38,10 @@ describe('Overall game mechanics', function() {
                     },
                     player2: {
                         base: { card: 'administrators-tower', damage: 29 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -44,6 +52,8 @@ describe('Overall game mechanics', function() {
                 expect(context.player1).toHavePrompt('player1 has won the game!');
                 expect(context.player2).toHavePrompt('player1 has won the game!');
                 expect(context.player1).toBeActivePlayer();
+
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
     });

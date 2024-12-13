@@ -12,7 +12,10 @@ describe('Guerilla Attack Pod', function () {
                     player2: {
                         groundArena: ['rugged-survivors'],
                         base: { card: 'echo-base', damage: 14 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

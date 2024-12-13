@@ -825,12 +825,13 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
         'leader',
         'base',
         'deck',
-        'resource',
+        'resource'
     ];
     // list of approved property names for setup phase
     const setupPhase = [
         'leader',
-        'deck'
+        'deck',
+        'base'
     ];
 
     // Check for unknown properties
@@ -839,6 +840,22 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
             throw new Error(`${playerName} has an unknown property '${prop}'`);
         } else if (!setupPhase.includes(prop) && startPhase === 'setup') {
             throw new Error(`${playerName} has an unknown property '${prop}'`);
+        }
+    }
+}
+
+function validateTopLevelOptions(options) {
+    const allowedPropertyNames = [
+        'player1',
+        'player2',
+        'phase',
+        'autoSingleTarget'
+    ];
+
+    // Check for unknown properties
+    for (const prop of Object.keys(options)) {
+        if (!allowedPropertyNames.includes(prop)) {
+            throw new Error(`test setup options has an unknown property '${prop}'`);
         }
     }
 }
@@ -892,6 +909,7 @@ global.integration = function (definitions) {
                 // validate supplied parameters
                 validatePlayerOptions(options.player1, 'player1', options.phase);
                 validatePlayerOptions(options.player2, 'player2', options.phase);
+                validateTopLevelOptions(options, ['player1', 'player2', 'phase']);
 
                 this.game.gameMode = GameMode.Premier;
 
@@ -900,6 +918,10 @@ global.integration = function (definitions) {
                 } else if (options.player2.hasInitiative) {
                     this.game.initiativePlayer = this.player2Object;
                 }
+
+                const autoSingleTarget = !!options.autoSingleTarget;
+                this.player1Object.autoSingleTarget = autoSingleTarget;
+                this.player2Object.autoSingleTarget = autoSingleTarget;
 
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
                 const [deck1, namedCards1] = deckBuilder.customDeck(1, options.player1, options.phase);
@@ -979,6 +1001,30 @@ global.integration = function (definitions) {
 
                 this.game.resolveGameState(true);
             };
+        });
+
+        afterEach(function() {
+            const { context } = contextRef;
+
+            if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
+                return;
+            }
+
+            const actionWindowMenuTitles = [
+                'Waiting for opponent to take an action or pass',
+                'Choose an action'
+            ];
+
+            const playersWithUnresolvedPrompts = [context.player1, context.player2]
+                .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));
+
+            if (playersWithUnresolvedPrompts.length > 0) {
+                let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
+                    `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
+                ).join('');
+
+                throw new TestSetupError(`The test ended with an unresolved prompt for one or both players. Unresolved prompts:\n${activePromptsText}`);
+            }
         });
 
         definitions(contextRef);

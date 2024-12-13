@@ -10,7 +10,9 @@ describe('Rebel Assault', function () {
                         spaceArena: ['green-squadron-awing'],
                         leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

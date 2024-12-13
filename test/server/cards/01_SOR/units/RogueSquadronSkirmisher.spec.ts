@@ -10,7 +10,10 @@ describe('Rogue Squadron Skirmisher', function () {
                     },
                     player2: {
                         groundArena: ['consular-security-force']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -59,7 +62,10 @@ describe('Rogue Squadron Skirmisher', function () {
                     },
                     player2: {
                         groundArena: ['consular-security-force']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

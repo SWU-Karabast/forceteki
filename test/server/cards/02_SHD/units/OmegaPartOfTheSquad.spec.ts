@@ -42,6 +42,9 @@ describe('Omega, Part of the Squad', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 context.player1.clickCard(context.secondOmega);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
+
+                // so we don't need to go all the way through the Omega ability again
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
 

@@ -64,7 +64,10 @@ describe('A New Adventure', function() {
                     spaceArena: ['redemption#medical-frigate', 'patrolling-vwing'],
                     leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
                     hasInitiative: true
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
