@@ -1,7 +1,7 @@
 describe('Caught In The Crossfire', function() {
     integration(function(contextRef) {
         describe('Caught In The Crossfire\'s event ability', function() {
-            beforeEach(function() {
+            it('should allow to pick 2 enemy units in the same arena and those units will deal damage to each other', () => {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -14,9 +14,6 @@ describe('Caught In The Crossfire', function() {
                         leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true }
                     }
                 });
-            });
-
-            it('should allow to pick 2 enemy units in the same arena and those units will deal damage to each other', () => {
                 const { context } = contextRef;
 
                 const reset = () => {

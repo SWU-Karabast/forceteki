@@ -1,7 +1,7 @@
 describe('Merciless Contest', function() {
     integration(function(contextRef) {
         describe('Merciless Contest\'s event ability', function() {
-            beforeEach(function() {
+            it('should defeat a non-leader unit picked by each player', () => {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -14,9 +14,6 @@ describe('Merciless Contest', function() {
                         leader: { card: 'boba-fett#daimyo', deployed: true }
                     }
                 });
-            });
-
-            it('should defeat a non-leader unit picked by each player', () => {
                 const { context } = contextRef;
 
                 const reset = () => {
