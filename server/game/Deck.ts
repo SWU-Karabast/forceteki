@@ -66,43 +66,4 @@ export class Deck {
 
         return result;
     }
-
-    public reconstructDeck() {
-        const result = {
-            // there isn't a type that excludes tokens b/c tokens inherit from non-token types, so we manually check that that deck cards aren't tokens
-            deckCards: [] as TokenOrPlayableCard[],
-            base: undefined as BaseCard | undefined,
-            leader: undefined as LeaderCard | undefined,
-            allCards: [] as Card[]
-        };
-        for (const { count, card } of this.data.deckCards ?? []) {
-            for (let i = 0; i < count; i++) {
-                result.deckCards.push(card);
-            }
-        }
-        // leader & base
-        for (const { count, card } of this.data.base ?? []) {
-            for (let i = 0; i < count; i++) {
-                if (card?.types.includes(CardType.Base)) {
-                    result.base = card;
-                }
-            }
-        }
-        for (const { count, card } of this.data.leader ?? []) {
-            for (let i = 0; i < count; i++) {
-                if (card?.types.includes(CardType.Leader)) {
-                    result.leader = card;
-                }
-            }
-        }
-        result.allCards.push(...result.deckCards);
-
-        if (result.base) {
-            result.allCards.push(result.base);
-        }
-        if (result.leader) {
-            result.allCards.push(result.leader);
-        }
-        return result;
-    }
 }

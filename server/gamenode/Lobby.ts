@@ -182,7 +182,6 @@ export class Lobby {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
                 user.socket.send('gamestate', game.getState(user.id));
-                console.log(user.deck);
                 user.socket.send('deckData', user.deck);
             }
         }
@@ -191,7 +190,8 @@ export class Lobby {
     public sendDeckInfo(): void {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
-                user.socket.send('deckData', user.deck.reconstructDeck());
+                console.log(user.deck);
+                user.socket.send('deckData', user.deck);
             }
         }
     }
