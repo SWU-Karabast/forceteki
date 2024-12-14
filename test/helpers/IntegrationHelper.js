@@ -675,18 +675,12 @@ var customMatchers = {
                 }
                 let result = {};
 
-                const zoneOwningPlayer = player || card.controller;
-
-                const correctProperty = card.zoneName === zone;
-                const correctPile = zoneOwningPlayer.getCardsInZone(zone).includes(card);
-
-                if (correctProperty !== correctPile) {
-                    result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${zoneOwningPlayer.name}'`;
+                if (!checkConsistentZoneState(card, result)) {
                     return result;
                 }
 
-                result.pass = correctProperty && correctPile;
+                const zoneOwningPlayer = player || card.controller;
+                result.pass = zoneOwningPlayer.getCardsInZone(zone).includes(card);
 
                 if (result.pass) {
                     result.message = `Expected ${card.internalName} not to be in zone '${zone}' but it is`;
@@ -712,18 +706,12 @@ var customMatchers = {
                 let cardsInWrongZone = [];
 
                 for (const card of cards) {
-                    const zoneOwningPlayer = player || card.controller;
-
-                    const correctProperty = card.zoneName === zone;
-                    const correctPile = zoneOwningPlayer.getCardsInZone(zone).includes(card);
-
-                    if (correctProperty !== correctPile) {
-                        result.pass = false;
-                        result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${zoneOwningPlayer.name}'`;
+                    if (!checkConsistentZoneState(card, result)) {
                         return result;
                     }
 
-                    if (!correctProperty) {
+                    const zoneOwningPlayer = player || card.controller;
+                    if (!zoneOwningPlayer.getCardsInZone(zone).includes(card)) {
                         cardsInWrongZone.push(card);
                         result.pass = false;
                     }
@@ -753,13 +741,9 @@ var customMatchers = {
                 }
                 let result = {};
 
-                if (card.zoneName !== 'capture') {
-                    result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding capture zone for ${captor.internalName}'`;
+                if (card.zoneName !== 'capture' && !checkConsistentZoneState(card, result)) {
                     return result;
                 }
-
-                const correctPile = captor.captureZone;
 
                 result.pass = captor.captureZone.hasCard(card);
 
@@ -909,6 +893,16 @@ function validateTopLevelOptions(options) {
             throw new Error(`test setup options has an unknown property '${prop}'`);
         }
     }
+}
+
+function checkConsistentZoneState(card, result) {
+    if (!card.controller.getCardsInZone(card.zoneName).includes(card)) {
+        result.pass = false;
+        result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${card.controller.name}'`;
+        return false;
+    }
+
+    return true;
 }
 
 beforeEach(function () {

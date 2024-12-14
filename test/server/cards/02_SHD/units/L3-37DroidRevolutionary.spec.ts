@@ -18,15 +18,14 @@ describe('L3-37, Droid Revolutionary ability', function() {
 
                 // SETUP: P1 Captures Wing Leader with Tie/LN
                 context.player1.clickCard(context.takeCaptive);
-
+                context.player1.clickCard(context.tielnFighter);
+                context.player1.clickCard(context.wingLeader);
                 expect(context.wingLeader).toBeCapturedBy(context.tielnFighter);
 
                 // P2 Rescues Wing Leader with L3-37
                 context.player2.clickCard(context.l337DroidRevolutionary);
-                expect(context.player2).toHavePassAbilityPrompt('Rescue a captured card');
-
-                context.player2.clickPrompt('Rescue a captured card');
                 expect(context.player2).toBeAbleToSelectExactly([context.wingLeader]);
+                expect(context.player2).toHavePassAbilityButton();
                 context.player2.clickCard(context.wingLeader);
                 expect(context.wingLeader).toBeInZone('spaceArena');
                 expect(context.l337DroidRevolutionary.isUpgraded()).toBeFalse(); // no shield
@@ -49,13 +48,15 @@ describe('L3-37, Droid Revolutionary ability', function() {
 
                 // SETUP: P1 Captures Wing Leader with Tie/LN
                 context.player1.clickCard(context.takeCaptive);
+                context.player1.clickCard(context.tielnFighter);
+                context.player1.clickCard(context.wingLeader);
 
                 expect(context.wingLeader).toBeCapturedBy(context.tielnFighter);
 
                 context.player2.clickCard(context.l337DroidRevolutionary);
-                expect(context.player2).toHavePassAbilityPrompt('Rescue a captured card');
-
-                context.player2.clickPrompt('Pass');
+                expect(context.player2).toBeAbleToSelectExactly([context.wingLeader]);
+                expect(context.player2).toHavePassAbilityButton();
+                context.player2.clickPrompt('Pass ability');
 
                 expect(context.wingLeader).toBeCapturedBy(context.tielnFighter);
                 expect(context.player1).toBeActivePlayer();
