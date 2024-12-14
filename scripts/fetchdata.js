@@ -50,7 +50,7 @@ function filterValues(card) {
     }
 
     // filtering out C24 for now since we do not handle variants
-    if (card.attributes.expansion.data.attributes.code === 'C24') {
+    if (card.attributes.expansion.data.attributes.code === 'C24' || card.attributes.expansion.data.attributes.code === 'JTL') {
         return null;
     }
 
