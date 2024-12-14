@@ -9,6 +9,7 @@ import { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptR
 import { DamageSystem } from './DamageSystem';
 import { HealSystem } from './HealSystem';
 import * as Contract from '../core/utils/Contract';
+import { GiveExperienceSystem } from './GiveExperienceSystem';
 
 export interface IDistributeAmongTargetsSystemProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountToDistribute: number | ((context: TContext) => number);
@@ -42,8 +43,8 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
         maxTargets: null,
     };
 
-    public abstract promptType: StatefulPromptType.DistributeDamage | StatefulPromptType.DistributeHealing;
-    protected abstract generateEffectSystem(target?: Card, amount?: number): DamageSystem | HealSystem;
+    public abstract promptType: StatefulPromptType;
+    protected abstract generateEffectSystem(target?: Card, amount?: number): DamageSystem | HealSystem | GiveExperienceSystem;
     protected abstract canDistributeLessDefault(): boolean;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -55,6 +56,11 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
             return;
         }
         const player = properties.player === RelativePlayer.Opponent ? context.player.opponent : context.player;
+        const amountToDistribute = this.getAmountToDistribute(properties.amountToDistribute, context);
+
+        if (amountToDistribute === 0) {
+            return;
+        }
 
         if (!properties.selector.hasEnoughTargets(context, player)) {
             return;
@@ -64,7 +70,6 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
 
         // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets
         if ((!properties.canChooseNoTargets && !context.ability.optional) && legalTargets.length === 1) {
-            const amountToDistribute = this.getAmountToDistribute(properties.amountToDistribute, context);
             events.push(this.generateEffectEvent(legalTargets[0], context, amountToDistribute));
             return;
         }
@@ -77,7 +82,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
             canDistributeLess: properties.canDistributeLess,
             maxTargets: properties.maxTargets,
             source: context.source,
-            amount: this.getAmountToDistribute(properties.amountToDistribute, context),
+            amount: amountToDistribute,
             resultsHandler: (results: IDistributeAmongTargetsPromptResults) =>
                 results.valueDistribution.forEach((amount, card) => events.push(this.generateEffectEvent(card, context, amount)))
         };
