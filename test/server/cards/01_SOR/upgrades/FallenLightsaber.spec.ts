@@ -10,7 +10,10 @@ describe('Fallen Lightsaber', function() {
                     player2: {
                         groundArena: ['snowspeeder', 'wampa'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -57,7 +60,10 @@ describe('Fallen Lightsaber', function() {
                     player2: {
                         groundArena: ['snowspeeder', 'wampa'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -85,8 +91,9 @@ describe('Fallen Lightsaber', function() {
                         hand: ['fallen-lightsaber'],
                         groundArena: ['snowspeeder', 'battlefield-marine']
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

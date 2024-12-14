@@ -10,7 +10,10 @@ describe('Outer Rim Headhunter', function () {
                     },
                     player2: {
                         groundArena: ['battlefield-marine', 'scout-bike-pursuer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -40,7 +43,10 @@ describe('Outer Rim Headhunter', function () {
                     },
                     player2: {
                         groundArena: ['battlefield-marine']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

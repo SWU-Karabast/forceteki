@@ -9,7 +9,10 @@ describe('Experience', function() {
                     },
                     player2: {
                         spaceArena: ['valiant-assault-ship']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -50,8 +53,9 @@ describe('Experience', function() {
                         hand: ['confiscate'],
                         spaceArena: [{ card: 'cartel-spacer', upgrades: ['experience'] }]
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -75,7 +79,10 @@ describe('Experience', function() {
                     },
                     player2: {
                         spaceArena: ['tieln-fighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

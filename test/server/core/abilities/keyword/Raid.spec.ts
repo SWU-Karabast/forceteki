@@ -10,7 +10,10 @@ describe('Raid keyword', function() {
                     player2: {
                         groundArena: ['battlefield-marine'],
                         hand: ['waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -68,8 +71,9 @@ describe('Raid keyword', function() {
                     player1: {
                         spaceArena: ['red-three#unstoppable', 'green-squadron-awing']
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

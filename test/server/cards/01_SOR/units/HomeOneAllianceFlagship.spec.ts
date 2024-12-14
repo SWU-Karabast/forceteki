@@ -12,7 +12,10 @@ describe('Home One', function () {
                     player2: {
                         groundArena: ['rugged-survivors', 'cargo-juggernaut'],
                         spaceArena: ['bright-hope#the-last-transport']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -59,7 +62,10 @@ describe('Home One', function () {
                     },
                     player2: {
                         groundArena: ['rugged-survivors', 'cargo-juggernaut']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -111,7 +117,10 @@ describe('Home One', function () {
                     },
                     player2: {
                         groundArena: ['rugged-survivors', 'cargo-juggernaut']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

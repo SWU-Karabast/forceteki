@@ -7,8 +7,10 @@ describe('Reinforcement Walker', function() {
                     player1: {
                         hand: ['reinforcement-walker'],
                         deck: ['alliance-xwing', 'echo-base-defender', 'attack-pattern-delta', 'battlefield-marine']
-
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -56,8 +58,10 @@ describe('Reinforcement Walker', function() {
                         player1: {
                             hand: ['reinforcement-walker'],
                             deck: ['alliance-xwing', 'echo-base-defender', 'attack-pattern-delta', 'battlefield-marine']
-
                         },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
 
                     const { context } = contextRef;
@@ -96,6 +100,9 @@ describe('Reinforcement Walker', function() {
                         hand: ['reinforcement-walker'],
                         deck: []
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -122,7 +129,10 @@ describe('Reinforcement Walker', function() {
                     },
                     player2: {
                         groundArena: ['battlefield-marine']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

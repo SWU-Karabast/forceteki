@@ -10,7 +10,10 @@ describe('Consortium Star Viper', function () {
                     },
                     player2: {
                         groundArena: ['atst'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

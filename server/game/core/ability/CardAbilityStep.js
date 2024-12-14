@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType } = require('../Constants.js');
+const { Stage, AbilityType, RelativePlayer } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelper.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
@@ -147,9 +147,10 @@ class CardAbilityStep extends PlayerOrCardAbility {
     /** "Sub-ability-steps" are subsequent steps after the initial ability effect, such as "then" or "if you do" */
     getSubAbilityStepContext(context, resolvedAbilityEvents = []) {
         if (this.properties.then) {
-            const thenProps = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
-            if (!thenProps.thenCondition || thenProps.thenCondition(context)) {
-                return this.buildSubAbilityStepContext(thenProps, context);
+            const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
+            const abilityController = this.getAbilityController(then, context);
+            if (!then.thenCondition || then.thenCondition(context)) {
+                return new CardAbilityStep(this.game, this.card, then).createContext(abilityController);
             }
 
             return null;
@@ -181,13 +182,14 @@ class CardAbilityStep extends PlayerOrCardAbility {
             return null;
         }
 
-        const concreteIfAbilityProps = this.getConcreteSubAbilityStepProperties(ifAbility, context);
+        const concreteIfAbility = this.getConcreteSubAbilityStepProperties(ifAbility, context);
+        const abilityController = this.getAbilityController(concreteIfAbility, context);
 
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
         return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
-            ? this.buildSubAbilityStepContext(concreteIfAbilityProps, context)
+            ? new CardAbilityStep(this.game, this.card, concreteIfAbility).createContext(abilityController)
             : null;
     }
 
@@ -197,6 +199,14 @@ class CardAbilityStep extends PlayerOrCardAbility {
 
     buildSubAbilityStepContext(subAbilityStepProps, context) {
         return new CardAbilityStep(this.game, this.card, subAbilityStepProps).createContext(context.player);
+    }
+
+    getAbilityController(subAbilityStep, context) {
+        if (subAbilityStep.abilityController) {
+            return subAbilityStep.abilityController === RelativePlayer.Self ? context.player : context.player.opponent;
+        }
+
+        return context.player;
     }
 
     /** @override */

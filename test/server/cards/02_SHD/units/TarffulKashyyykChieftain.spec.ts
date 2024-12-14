@@ -11,7 +11,10 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                         groundArena: ['wampa', 'volunteer-soldier', 'wroshyr-tree-tender', 'atst'],
                         spaceArena: ['cartel-spacer'],
                         leader: 'qira#i-alone-survived',
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

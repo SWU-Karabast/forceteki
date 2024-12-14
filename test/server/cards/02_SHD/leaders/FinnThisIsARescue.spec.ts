@@ -14,7 +14,10 @@ describe('Finn, This is a Rescue', function () {
                         hand: ['top-target'],
                         groundArena: ['wampa'],
                         resources: 5
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -77,7 +80,10 @@ describe('Finn, This is a Rescue', function () {
                         hand: ['top-target'],
                         groundArena: ['wampa', 'atst'],
                         resources: 5
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -8,7 +8,10 @@ describe('Coordinate keyword', function() {
                         groundArena: ['anakin-skywalker#maverick-mentor', 'clone-heavy-gunner'],
                         spaceArena: ['wing-leader'],
                         deck: ['wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -34,7 +37,10 @@ describe('Coordinate keyword', function() {
                     player2: {
                         groundArena: ['atst'],
                         spaceArena: ['tieln-fighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -61,7 +67,10 @@ describe('Coordinate keyword', function() {
                     },
                     player2: {
                         hand: ['waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -108,7 +117,10 @@ describe('Coordinate keyword', function() {
                     },
                     player2: {
                         hand: ['cantina-bouncer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

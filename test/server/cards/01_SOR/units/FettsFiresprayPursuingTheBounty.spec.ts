@@ -8,7 +8,9 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                         hand: ['fetts-firespray#pursuing-the-bounty'],
                         leader: 'boba-fett#daimyo'
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -37,7 +39,9 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                         hand: ['fetts-firespray#pursuing-the-bounty'],
                         leader: 'boba-fett#collecting-the-bounty'
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -68,7 +72,10 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                     },
                     player2: {
                         leader: 'chirrut-imwe#one-with-the-force'
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -92,7 +99,10 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                     },
                     player2: {
                         leader: 'chirrut-imwe#one-with-the-force'
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -116,7 +126,10 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                     },
                     player2: {
                         leader: 'chirrut-imwe#one-with-the-force'
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -140,7 +153,10 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                     },
                     player2: {
                         groundArena: ['battlefield-marine', 'echo-base-defender']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -186,7 +202,10 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
                             { card: 'battlefield-marine', exhausted: true },
                             { card: 'echo-base-defender', exhausted: true }
                         ]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
