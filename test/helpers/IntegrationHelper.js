@@ -364,13 +364,13 @@ var customMatchers = {
                     if (selectable.length === 1) {
                         result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
                     } else {
-                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${selectable.map((card) => card.name).join(', ')}`;
+                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${cardNamesToString(selectable)}`;
                     }
                 } else {
                     if (unselectable.length === 1) {
                         result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
                     } else {
-                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${unselectable.map((card) => card.name).join(', ')}`;
+                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${cardNamesToString(unselectable)}`;
                     }
                 }
 
@@ -408,13 +408,13 @@ var customMatchers = {
                     if (unselectable.length === 1) {
                         result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
                     } else {
-                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${unselectable.map((card) => card.name).join(', ')}`;
+                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${cardNamesToString(unselectable)}`;
                     }
                 } else {
                     if (selectable.length === 1) {
                         result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
                     } else {
-                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${selectable.map((card) => card.name).join(', ')}`;
+                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${cardNamesToString(selectable)}`;
                     }
                 }
 
@@ -450,18 +450,18 @@ var customMatchers = {
                 result.pass = unexpectedUnselectable.length === 0 && unexpectedSelectable.length === 0;
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${expectedSelectable.map((card) => card.name).join(', ')}`;
+                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${cardNamesToString(expectedSelectable)}`;
                 } else {
                     let message = '';
 
                     if (unexpectedUnselectable.length > 0) {
-                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${unexpectedUnselectable.map((card) => card.name).join(', ')}`;
+                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${cardNamesToString(unexpectedUnselectable)}`;
                     }
                     if (unexpectedSelectable.length > 0) {
                         if (message.length > 0) {
                             message += '\n';
                         }
-                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${unexpectedSelectable.map((card) => card.name).join(', ')}`;
+                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${cardNamesToString(unexpectedSelectable)}`;
                     }
                     result.message = message;
                 }
@@ -675,23 +675,58 @@ var customMatchers = {
                 }
                 let result = {};
 
-                const zoneOwningPlayer = player || card.controller;
-
-                const correctProperty = card.zoneName === zone;
-                const correctPile = zoneOwningPlayer.getCardsInZone(zone).includes(card);
-
-                if (correctProperty !== correctPile) {
-                    result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${zoneOwningPlayer.name}'`;
+                if (!checkConsistentZoneState(card, result)) {
                     return result;
                 }
 
-                result.pass = correctProperty && correctPile;
+                const zoneOwningPlayer = player || card.controller;
+                result.pass = zoneOwningPlayer.getCardsInZone(zone).includes(card);
 
                 if (result.pass) {
                     result.message = `Expected ${card.internalName} not to be in zone '${zone}' but it is`;
                 } else {
                     result.message = `Expected ${card.internalName} to be in zone '${zone}' but it is in zone '${card.zoneName}'`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toAllBeInZone: function () {
+        return {
+            compare: function (cards, zone, player = null) {
+                if (!Array.isArray(cards)) {
+                    throw new TestSetupError('This expectation requires an array of card objects');
+                }
+                if (zone === 'capture') {
+                    throw new TestSetupError('Do not use toBeInZone to check for capture zone, use to toBeCapturedBy instead');
+                }
+
+                let result = { pass: true };
+                let cardsInWrongZone = [];
+
+                for (const card of cards) {
+                    if (!checkConsistentZoneState(card, result)) {
+                        return result;
+                    }
+
+                    const zoneOwningPlayer = player || card.controller;
+                    if (!zoneOwningPlayer.getCardsInZone(zone).includes(card)) {
+                        cardsInWrongZone.push(card);
+                        result.pass = false;
+                    }
+                }
+
+                const playerStr = player ? ` for player ${player}` : '';
+
+                if (result.pass) {
+                    result.message = `Expected these cards not to be in zone ${zone}${playerStr} but they are: ${cardNamesToString(cards)}`;
+                } else {
+                    result.message = `Expected the following cards to be in zone ${zone}${playerStr} but they were not:`;
+
+                    for (const card of cardsInWrongZone) {
+                        result.message += `\n\t- ${card.internalName} is in zone ${card.zoneName}`;
+                    }
                 }
 
                 return result;
@@ -706,13 +741,9 @@ var customMatchers = {
                 }
                 let result = {};
 
-                if (card.zoneName !== 'capture') {
-                    result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding capture zone for ${captor.internalName}'`;
+                if (card.zoneName !== 'capture' && !checkConsistentZoneState(card, result)) {
                     return result;
                 }
-
-                const correctPile = captor.captureZone;
 
                 result.pass = captor.captureZone.hasCard(card);
 
@@ -813,6 +844,10 @@ function generatePromptHelpMessage(testContext) {
     return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
 }
 
+function cardNamesToString(cards) {
+    return cards.map((card) => card.name).join(', ');
+}
+
 function validatePlayerOptions(playerOptions, playerName, startPhase) {
     // list of approved property names
     const noneSetupPhase = [
@@ -860,9 +895,31 @@ function validateTopLevelOptions(options) {
     }
 }
 
+function checkConsistentZoneState(card, result) {
+    if (!card.controller.getCardsInZone(card.zoneName).includes(card)) {
+        result.pass = false;
+        result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${card.controller.name}'`;
+        return false;
+    }
+
+    return true;
+}
+
 beforeEach(function () {
     jasmine.addMatchers(customMatchers);
 });
+
+// this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
+if (!jasmine.getEnv().configuration().random) {
+    jasmine.getEnv().addReporter({
+        specStarted(result) {
+            jasmine.getEnv().currentSpec = result;
+        },
+        specDone() {
+            jasmine.getEnv().currentSpec = null;
+        }
+    });
+}
 
 global.integration = function (definitions) {
     describe('- integration -', function () {
@@ -1006,6 +1063,14 @@ global.integration = function (definitions) {
         afterEach(function() {
             const { context } = contextRef;
 
+            // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
+            const parallelMode = jasmine.getEnv().configuration().random;
+
+            // if there were already failures in the test case, don't bother checking the prompts after
+            if (!parallelMode && jasmine.getEnv().currentSpec.failedExpectations.length > 0) {
+                return;
+            }
+
             if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
                 return;
             }
@@ -1019,6 +1084,10 @@ global.integration = function (definitions) {
                 .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));
 
             if (playersWithUnresolvedPrompts.length > 0) {
+                if (parallelMode) {
+                    throw new TestSetupError('The test ended with an unresolved prompt for one or both players. If the test had other errors / failures, disregard this error. Run the test in non-parallel mode for additional details.');
+                }
+
                 let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
                     `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
                 ).join('');

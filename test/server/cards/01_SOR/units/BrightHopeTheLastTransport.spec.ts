@@ -46,8 +46,30 @@ describe('Bright Hope, The Last Transport', function() {
                 expect(context.specforceSoldier.zoneName).toBe('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
+        });
 
-            // TODO CHECK WITH TOKEN UNIT
+        it('Bright Hope, The Last Transport\'s ability should return a friendly token ground unit to hand and draw', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['bright-hope#the-last-transport', 'drop-in'],
+                    deck: ['atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.dropIn);
+            const cloneTroopers = context.player1.findCardsByName('clone-trooper');
+
+            context.player2.passAction();
+            context.player1.clickCard(context.brightHope);
+            expect(context.player1).toBeAbleToSelectExactly(cloneTroopers);
+
+            context.player1.clickCard(cloneTroopers[0]);
+            expect(cloneTroopers[0]).toBeInZone('outsideTheGame');
+            expect(context.player1.handSize).toBe(1);
+            expect(context.atst).toBeInZone('hand');
         });
     });
 });
