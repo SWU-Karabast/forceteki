@@ -243,21 +243,19 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
      * @param defaultMoveAction A handler that will move the card to its destination if none of the special cases apply
      */
     protected leavesPlayEventHandler(card: UnitCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
-        // tokens and leaders are defeated if they move out of an arena zone
-        if (
-            (card.isToken() || card.isLeader()) &&
-            !EnumHelpers.isArena(destination)
-        ) {
-            // TODO TOKEN UNITS: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
-            context.game.actions.defeat({ target: card }).resolve(null, context);
+        // Attached upgrades should be unattached before move
+        if (card.isUpgrade()) {
+            Contract.assertTrue(card.isAttached(), `Attempting to unattach upgrade card ${card} due to leaving play but it is already unattached.`);
+            card.unattach();
+        }
+
+        if (card.isLeader() && !EnumHelpers.isArena(destination)) {
+            // TODO: punting on this since no card could do it currently and it requires some work
+            throw new Error('Leaders leaving the arena due to a non-defeat effect is not yet implemented');
+        } else if (card.isToken() && !EnumHelpers.isArena(destination)) {
+            // tokens are removed from the game when they leave the arena
+            card.moveTo(ZoneName.OutsideTheGame);
         } else {
-            // Attached upgrades should be unattached before moved
-            if (card.isUpgrade()) {
-                Contract.assertTrue(card.isAttached(), `Attempting to unattach upgrade card ${card} due to leaving play but it is already unattached.`);
-
-                card.unattach();
-            }
-
             defaultMoveAction();
         }
     }
