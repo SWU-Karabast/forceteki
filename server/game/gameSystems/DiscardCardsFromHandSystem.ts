@@ -96,6 +96,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 mode: TargetMode.Exactly,
                 numCards: amount,
                 zoneFilter: ZoneName.Hand,
+                discardingPlayerType: properties.discardingPlayerType,
                 controller: player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent,
                 cardCondition: (card) => properties.cardCondition(card, context),
                 onSelect: (_player, cards) => {
