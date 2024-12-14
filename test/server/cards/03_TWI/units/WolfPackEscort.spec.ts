@@ -1,7 +1,7 @@
-describe('Wolf Pack Escort\'s', function () {
+describe('Wolf Pack Escort', function () {
     integration(function (contextRef) {
         describe('ability', function () {
-            it('should return card', function () {
+            beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -11,6 +11,9 @@ describe('Wolf Pack Escort\'s', function () {
                     },
                     autoSingleTarget: true
                 });
+            });
+
+            it('should return card to hand', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.wolfPackEscort);
@@ -21,6 +24,15 @@ describe('Wolf Pack Escort\'s', function () {
                 // Returning card to hand and checking it was returned
                 context.player1.clickCard(context.specforceSoldier);
                 expect(context.specforceSoldier).toBeInZone('hand');
+            });
+
+            it('can pass ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wolfPackEscort);
+                context.player1.clickPrompt('Pass ability');
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
