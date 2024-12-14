@@ -1,40 +1,51 @@
-describe('EncouragingLeadership', function () {
+describe('Encouraging Leadership', function () {
     integration(function (contextRef) {
-        describe('EncouragingLeadership\'s ability', function () {
-            it('Gives +1/+1 for this phase to allies', function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['encouraging-leadership'],
-                        spaceArena: ['green-squadron-awing'],
-                        groundArena: ['duchesss-champion', 'atst']
-                    },
-                    player2: {
-                        spaceArena: ['star-wing-scout'],
-                        groundArena: ['specforce-soldier'],
-                    },
-                });
-                const { context } = contextRef;
-
-                // Check if effect is applied to both units
-                context.player1.clickCard(context.encouragingLeadership);
-                expect(context.encouragingLeadership).toBeInZone('discard');
-                expect(context.atst.getPower()).toEqual(7);
-                expect(context.atst.getHp()).toEqual(8);
-                expect(context.greenSquadronAwing.getPower()).toEqual(2);
-
-                // Pass the phase
-                context.player2.passAction();
-                context.player1.passAction();
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
-
-                // Check if units power/hp is back to normal
-                expect(context.greenSquadronAwing.getPower()).toEqual(1);
-                expect(context.atst.getPower()).toEqual(6);
-                expect(context.atst.getHp()).toEqual(7);
-                expect(context.greenSquadronAwing.getPower()).toEqual(1);
+        it('should give +1/+1 for this phase to allies when played', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['wampa', 'encouraging-leadership'],
+                    spaceArena: ['green-squadron-awing'],
+                    groundArena: ['duchesss-champion', 'atst']
+                },
+                player2: {
+                    spaceArena: ['star-wing-scout'],
+                    groundArena: ['specforce-soldier'],
+                },
             });
+            const { context } = contextRef;
+
+            // Check if effect is applied to both units
+            context.player1.clickCard(context.encouragingLeadership);
+            expect(context.encouragingLeadership).toBeInZone('discard');
+
+            // Check if effect is applied to allies
+            expect(context.atst.getPower()).toEqual(7);
+            expect(context.atst.getHp()).toEqual(8);
+            expect(context.greenSquadronAwing.getPower()).toEqual(2);
+            expect(context.greenSquadronAwing.getHp()).toEqual(4);
+
+            // Check if effect is not applied to non-allies
+            expect(context.starWingScout.getPower()).toEqual(4);
+            expect(context.starWingScout.getHp()).toEqual(1);
+            expect(context.specforceSoldier.getPower()).toEqual(2);
+            expect(context.specforceSoldier.getHp()).toEqual(2);
+
+            // Check if effect is not applied to card played after the Encouraging Leadership
+            context.player2.passAction();
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa.getPower()).toEqual(4);
+            expect(context.wampa.getHp()).toEqual(5);
+
+            // Pass the phase
+            context.moveToRegroupPhase();
+
+            // Check if units power/hp is back to normal
+            expect(context.greenSquadronAwing.getPower()).toEqual(1);
+            expect(context.atst.getPower()).toEqual(6);
+            expect(context.atst.getHp()).toEqual(7);
+            expect(context.greenSquadronAwing.getPower()).toEqual(1);
+            expect(context.greenSquadronAwing.getHp()).toEqual(3);
         });
     });
 });
