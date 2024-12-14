@@ -12,9 +12,7 @@ export default class OnTheDoorstep extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Create 3 Battle Droid tokens and ready them',
-            immediateEffect: AbilityHelper.immediateEffects.createBattleDroid(
-                (context) => ({ amount: 3, target: context.source.controller, entersReady: true })
-            )
+            immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 3, entersReady: true })
         });
     }
 }

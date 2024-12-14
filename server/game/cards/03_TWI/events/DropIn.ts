@@ -12,9 +12,7 @@ export default class DropIn extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Create 2 Clone Trooper tokens',
-            immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper(
-                (context) => ({ amount: 2, target: context.source.controller })
-            )
+            immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper({ amount: 2 })
         });
     }
 }

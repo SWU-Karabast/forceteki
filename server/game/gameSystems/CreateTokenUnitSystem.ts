@@ -63,6 +63,10 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         });
     }
 
+    public override defaultTargets(context: TContext): Player[] {
+        return [context.player];
+    }
+
     public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: any): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
 

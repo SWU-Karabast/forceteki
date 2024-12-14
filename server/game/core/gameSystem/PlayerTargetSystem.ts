@@ -25,14 +25,17 @@ export abstract class PlayerTargetSystem<TContext extends AbilityContext = Abili
         return this.canAffect(event.player, event.context, additionalProperties);
     }
 
+    // override to force the argument type to be Player
     public override resolve(target: undefined | Player | Player[], context: TContext, triggerHandlingMode?: TriggerHandlingMode) {
         super.resolve(target, context, triggerHandlingMode);
     }
 
+    // override to force the argument type to be Player
     protected override updateEvent(event: GameEvent, player: Player, context: TContext, additionalProperties?: any): void {
         super.updateEvent(event, player, context, additionalProperties);
     }
 
+    // override to force the argument type to be Player
     protected override createEvent(player: Player, context: TContext, additionalProperties: any) {
         return super.createEvent(player, context, additionalProperties);
     }
