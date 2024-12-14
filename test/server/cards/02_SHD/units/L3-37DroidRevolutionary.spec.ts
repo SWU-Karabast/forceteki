@@ -26,6 +26,8 @@ describe('L3-37, Droid Revolutionary ability', function() {
                 expect(context.player2).toHavePassAbilityPrompt('Rescue a captured card');
 
                 context.player2.clickPrompt('Rescue a captured card');
+                expect(context.player2).toBeAbleToSelectExactly([context.wingLeader]);
+                context.player2.clickCard(context.wingLeader);
                 expect(context.wingLeader).toBeInZone('spaceArena');
                 expect(context.l337DroidRevolutionary.isUpgraded()).toBeFalse(); // no shield
             });
