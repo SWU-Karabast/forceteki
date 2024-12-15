@@ -46,6 +46,35 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
+    hasAnyLegalEffects(context, includeSubSteps = false) {
+        if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
+            return true;
+        }
+
+        if (this.targetResolvers.length > 0 && this.canResolveSomeTarget(context)) {
+            return true;
+        }
+
+        if (includeSubSteps) {
+            const subAbilityStepContext = this.getSubAbilityStepContext(context);
+            return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext);
+        }
+
+        return false;
+    }
+
+    /** @override */
+    meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
+        // if there is an ifYouDoNot clause, then lack of game state change just means we go down the "if you do not" path
+        // (unless thisStepOnly is true, in which case we ignore sub-steps)
+        if (this.properties.ifYouDoNot && !thisStepOnly) {
+            ignoredRequirements.push('gameStateChange');
+        }
+
+        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
+    }
+
+    /** @override */
     checkGameActionsForPotential(context) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
@@ -100,10 +129,10 @@ class CardAbilityStep extends PlayerOrCardAbility {
             let eventsToResolve = context.events.filter((event) => event.canResolve);
             if (eventsToResolve.length > 0) {
                 let window = this.openEventWindow(eventsToResolve);
-                window.setSubAbilityStep(() => this.getSubAbilityStep(context, eventsToResolve));
+                window.setSubAbilityStep(() => this.getSubAbilityStepContext(context, eventsToResolve));
             // if no events for the current step, skip directly to the "then" step (if any)
             } else {
-                const subAbilityStep = this.getSubAbilityStep(context, []);
+                const subAbilityStep = this.getSubAbilityStepContext(context, []);
                 if (!!subAbilityStep) {
                     this.game.resolveAbility(subAbilityStep);
                 }
@@ -116,9 +145,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** "Sub-ability-steps" are subsequent steps after the initial ability effect, such as "then" or "if you do" */
-    getSubAbilityStep(context, resolvedAbilityEvents) {
+    getSubAbilityStepContext(context, resolvedAbilityEvents = []) {
         if (this.properties.then) {
-            const then = this.getConcreteSubAbilityStep(this.properties.then, context);
+            const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
             const abilityController = this.getAbilityController(then, context);
             if (!then.thenCondition || then.thenCondition(context)) {
                 return new CardAbilityStep(this.game, this.card, then).createContext(abilityController);
@@ -127,25 +156,33 @@ class CardAbilityStep extends PlayerOrCardAbility {
             return null;
         }
 
-        // if there are no resolved events, we can skip past evaluating "if you do" conditions
-        if (resolvedAbilityEvents.length === 0) {
-            return null;
-        }
-
         let ifAbility;
         let effectShouldResolve;
 
         if (this.properties.ifYouDo) {
+            // if there are no resolved events, we can skip past evaluating "if you do" conditions
+            if (resolvedAbilityEvents.length === 0) {
+                return null;
+            }
+
             ifAbility = this.properties.ifYouDo;
             effectShouldResolve = true;
         } else if (this.properties.ifYouDoNot) {
+            // if there are no resolved events, "if you do not" check automatically succeeds
+            if (resolvedAbilityEvents.length === 0) {
+                return this.buildSubAbilityStepContext(
+                    this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
+                    context
+                );
+            }
+
             ifAbility = this.properties.ifYouDoNot;
             effectShouldResolve = false;
         } else {
             return null;
         }
 
-        const concreteIfAbility = this.getConcreteSubAbilityStep(ifAbility, context);
+        const concreteIfAbility = this.getConcreteSubAbilityStepProperties(ifAbility, context);
         const abilityController = this.getAbilityController(concreteIfAbility, context);
 
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
@@ -156,8 +193,12 @@ class CardAbilityStep extends PlayerOrCardAbility {
             : null;
     }
 
-    getConcreteSubAbilityStep(subAbilityStep, context) {
+    getConcreteSubAbilityStepProperties(subAbilityStep, context) {
         return typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
+    }
+
+    buildSubAbilityStepContext(subAbilityStepProps, context) {
+        return new CardAbilityStep(this.game, this.card, subAbilityStepProps).createContext(context.player);
     }
 
     getAbilityController(subAbilityStep, context) {

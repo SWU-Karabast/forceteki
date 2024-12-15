@@ -626,6 +626,10 @@ class PlayerInteractionWrapper {
         return this.player.getCardsInZone(zone);
     }
 
+    getArenaCards() {
+        return this.player.getArenaCards();
+    }
+
     dragCard(card, targetZone) {
         this.game.drop(this.player.name, card.uuid, card.zoneName, targetZone);
         this.game.continue();
