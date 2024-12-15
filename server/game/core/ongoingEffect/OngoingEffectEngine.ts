@@ -49,9 +49,6 @@ export class OngoingEffectEngine {
             } else {
                 const triggeringEvents = events.filter((event) => properties.when[event.name]);
                 if (triggeringEvents.length > 0) {
-                    if (properties.limit.isAtMax(effect.source.owner)) {
-                        effectsToRemove.push(effect);
-                    }
                     if (triggeringEvents.some((event) => properties.when[event.name](event, effect.context))) {
                         effectsToTrigger.push(effect);
                     }
@@ -82,8 +79,17 @@ export class OngoingEffectEngine {
                 }
             };
         });
-        if (effectsToRemove.length > 0) {
-            this.unapplyAndRemove((effect) => effectsToRemove.includes(effect));
+        for (const effect of this.effects.filter(
+            (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
+        )) {
+            const properties = effect.impl.getValue();
+            const triggeringEvents = events.filter((event) => properties.when[event.name]);
+
+            if (triggeringEvents.length > 0) {
+                if (properties.limit.isAtMax(effect.source.owner)) {
+                    effectsToRemove.push(effect);
+                }
+            }
         }
         if (effectTriggers.length > 0) {
             // TODO Implement the correct trigger window. We may need a subclass of TriggeredAbilityWindow for multiple simultaneous effects
@@ -91,27 +97,28 @@ export class OngoingEffectEngine {
                 trigger.handler();
             });
         }
+        if (effectsToRemove.length > 0) {
+            this.unapplyAndRemove((effect) => effectsToRemove.includes(effect));
+        }
     }
 
     public removeLastingEffects(card: OngoingEffectSource) {
         this.unapplyAndRemove(
-            (effect) => this.shouldRemove(card, effect)
+            (effect) => {
+                if (effect.duration !== Duration.Persistent) {
+                    return effect.matchTarget === card;
+                }
+
+                if (effect.impl.type === 'delayedEffect') {
+                    const effectImplValue = effect.impl.getValue();
+                    const limit = effectImplValue.limit;
+
+                    return limit.isAtMax(effect.source.controller);
+                }
+
+                return false;
+            }
         );
-    }
-
-    public shouldRemove(card: OngoingEffectSource, effect: OngoingEffect): boolean {
-        if (effect.duration !== Duration.Persistent) {
-            return effect.matchTarget === card;
-        }
-
-        if (effect.impl.type === 'delayedEffect') {
-            const effectImplValue = effect.impl.getValue();
-            const limit = effectImplValue.limit;
-
-            return limit.isAtMax(effect.source.controller);
-        }
-
-        return false;
     }
 
     public resolveEffects(prevStateChanged = false, loops = 0) {

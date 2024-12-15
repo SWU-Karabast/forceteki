@@ -1,12 +1,12 @@
-import AbilityHelper from '../AbilityHelper';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { IAbilityLimit } from '../core/ability/AbilityLimit';
+import { IAbilityLimit, perGame } from '../core/ability/AbilityLimit';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Duration, EventName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
+import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
 
 export enum DelayedEffectType {
     Card,
@@ -31,7 +31,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         title: null,
         when: null,
         duration: Duration.Persistent,
-        limit: AbilityHelper.limit.perGame(1),
+        limit: perGame(1),
         immediateEffect: null,
         effectType: null
     };
@@ -46,7 +46,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         const { title, when, duration, limit, immediateEffect, ...otherProperties } = properties;
 
         const renamedProperties = { ...otherProperties, ongoingEffect:
-            AbilityHelper.ongoingEffects.delayedEffect({
+            OngoingEffectLibrary.delayedEffect({
                 title,
                 when,
                 immediateEffect,
