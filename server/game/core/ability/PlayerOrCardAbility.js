@@ -139,7 +139,7 @@ class PlayerOrCardAbility {
      * @param {*} context
      * @returns {String}
      */
-    meetsRequirements(context, ignoredRequirements = []) {
+    meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
         // check legal targets exist
         // check costs can be paid
         // check for potential to change game state
@@ -160,27 +160,15 @@ class PlayerOrCardAbility {
             }
         }
 
-        if (this.immediateEffect && !this.checkGameActionsForPotential(context)) {
+        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context)) {
             return 'gameStateChange';
-        }
-
-        if (this.targetResolvers.length > 0 && !this.canResolveSomeTarget(context)) {
-            return 'target';
         }
 
         return '';
     }
 
-    hasAnyLegalEffects(context) {
-        if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
-            return true;
-        }
-
-        if (this.targetResolvers.length > 0 && this.canResolveSomeTarget(context)) {
-            return true;
-        }
-
-        return false;
+    hasAnyLegalEffects(context, includeSubSteps = false) {
+        return true;
     }
 
     checkGameActionsForPotential(context) {

@@ -4,7 +4,7 @@ const Player = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
-const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual } = require('./Util.js');
+const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual, formatBothPlayerPrompts } = require('./Util.js');
 
 class PlayerInteractionWrapper {
     /**
@@ -470,7 +470,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
-                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -483,7 +483,7 @@ class PlayerInteractionWrapper {
         var currentPrompt = this.player.currentPrompt();
         if (!currentPrompt.dropdownListOptions.includes(text)) {
             throw new TestSetupError(
-                `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -523,7 +523,7 @@ class PlayerInteractionWrapper {
         if (currentPrompt.buttons.length <= index) {
             throw new TestSetupError(
                 `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                }. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -532,7 +532,7 @@ class PlayerInteractionWrapper {
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
                 `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                }. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -551,7 +551,7 @@ class PlayerInteractionWrapper {
         if (!promptControl) {
             throw new TestSetupError(
                 `Couldn't click card '${cardName}' for ${this.player.name
-                } - unable to find control '${controlName}'. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                } - unable to find control '${controlName}'. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -566,7 +566,7 @@ class PlayerInteractionWrapper {
         let availableCards = this.currentActionTargets;
 
         if (!availableCards || availableCards.length < nCardsToChoose) {
-            throw new TestSetupError(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`);
+            throw new TestSetupError(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${formatBothPlayerPrompts(this.testContext)}`);
         }
 
         for (let i = 0; i < nCardsToChoose; i++) {
@@ -598,7 +598,7 @@ class PlayerInteractionWrapper {
         if (expectChange) {
             const afterClick = getPlayerPromptState(this.player);
             if (promptStatesEqual(beforeClick, afterClick)) {
-                throw new TestSetupError(`Expected player prompt state to change after clicking ${card.internalName} but it did not. Current prompt:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`);
+                throw new TestSetupError(`Nothing happened when ${this.player.name} clicked ${card.internalName} (prompt and board state did not change). Current prompts:\n${formatBothPlayerPrompts(this.testContext)}`);
             }
         }
 
@@ -624,6 +624,10 @@ class PlayerInteractionWrapper {
 
     getCardsInZone(zone) {
         return this.player.getCardsInZone(zone);
+    }
+
+    getArenaCards() {
+        return this.player.getArenaCards();
     }
 
     dragCard(card, targetZone) {

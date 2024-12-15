@@ -10,7 +10,10 @@ describe('Duchess\'s Champion', function () {
                     player2: {
                         groundArena: ['specforce-soldier'],
                         hasInitiative: true,
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -37,7 +40,10 @@ describe('Duchess\'s Champion', function () {
                         groundArena: ['specforce-soldier', 'battlefield-marine'],
                         spaceArena: ['green-squadron-awing'],
                         hasInitiative: true,
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

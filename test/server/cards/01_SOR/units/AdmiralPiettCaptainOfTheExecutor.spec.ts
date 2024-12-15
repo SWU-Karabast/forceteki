@@ -14,7 +14,10 @@ describe('Admiral Piett, Captain of the Executor\'s Folly', function() {
                         groundArena: ['wampa'],
                         spaceArena: ['redemption#medical-frigate'],
                         hand: ['atst']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

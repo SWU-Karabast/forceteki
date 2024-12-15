@@ -6,11 +6,12 @@ describe('Tactical Advantage', function () {
                     phase: 'action',
                     player1: {
                         hand: ['tactical-advantage'],
-                        groundArena: [{ card: 'pyke-sentinel' }],
+                        groundArena: ['pyke-sentinel']
                     },
                     player2: {
-                        groundArena: ['wampa'],
-                    }
+                        groundArena: ['wampa']
+                    },
+                    autoSingleTarget: false
                 });
             });
 
@@ -25,7 +26,7 @@ describe('Tactical Advantage', function () {
                 expect(context.pykeSentinel.getHp()).toBe(5);
 
                 context.player2.clickCard(context.wampa);
-                // pyke sentinel is automatically choose
+                context.player2.clickCard(context.pykeSentinel);
                 expect(context.wampa.damage).toBe(4);
                 expect(context.pykeSentinel.damage).toBe(4);
                 expect(context.pykeSentinel).toBeInZone('groundArena');

@@ -27,6 +27,10 @@ function populateMissingData(attributes, id) {
                 }
             };
             break;
+        case '8752877738': // shield
+            attributes.upgradeHp = 0;
+            attributes.upgradePower = 0;
+            break;
     }
 }
 
@@ -46,7 +50,7 @@ function filterValues(card) {
     }
 
     // filtering out C24 for now since we do not handle variants
-    if (card.attributes.expansion.data.attributes.code === 'C24') {
+    if (card.attributes.expansion.data.attributes.code === 'C24' || card.attributes.expansion.data.attributes.code === 'JTL') {
         return null;
     }
 
@@ -56,6 +60,10 @@ function filterValues(card) {
 
     let filteredObj = filterAttributes(card.attributes);
 
+    filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
+
+    populateMissingData(card.attributes, filteredObj.id);
+
     if (card.attributes.upgradeHp != null) {
         filteredObj.hp = card.attributes.upgradeHp;
     }
@@ -64,11 +72,7 @@ function filterValues(card) {
         filteredObj.power = card.attributes.upgradePower;
     }
 
-    filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
-
-    populateMissingData(card.attributes, filteredObj.id);
-
-    filteredObj.aspects = getAttributeNames(card.attributes.aspects);
+    filteredObj.aspects = getAttributeNames(card.attributes.aspects).concat(getAttributeNames(card.attributes.aspectDuplicates));
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);

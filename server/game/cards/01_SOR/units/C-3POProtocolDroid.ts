@@ -30,10 +30,10 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
                     (context) => ({ target: context.source.controller.getTopCardOfDeck() })
                 ),
                 then: {
-                    title: `Reveal and draw ${thenContext.source.controller.getTopCardOfDeck().title} from the top of your deck`,
+                    title: `Reveal and draw ${thenContext.source.controller.getTopCardOfDeck()?.title} from the top of your deck`,
                     optional: true,
                     immediateEffect: AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => parseInt(thenContext.select) === context.source.controller.getTopCardOfDeck().printedCost,
+                        condition: (context) => parseInt(thenContext.select) === context.source.controller.getTopCardOfDeck()?.printedCost,
                         onTrue: AbilityHelper.immediateEffects.simultaneous([
                             AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.getTopCardOfDeck() })),
                             AbilityHelper.immediateEffects.draw()

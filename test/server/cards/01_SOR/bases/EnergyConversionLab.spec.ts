@@ -12,7 +12,10 @@ describe('Energy Conversion Lab', function() {
                     player2: {
                         groundArena: ['isb-agent'],
                         spaceArena: ['tieln-fighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

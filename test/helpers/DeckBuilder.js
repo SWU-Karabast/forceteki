@@ -219,8 +219,10 @@ class DeckBuilder {
 
     getTokenData() {
         return {
+            battleDroid: this.getCard('battle-droid'),
+            cloneTrooper: this.getCard('clone-trooper'),
+            experience: this.getCard('experience'),
             shield: this.getCard('shield'),
-            experience: this.getCard('experience')
         };
     }
 

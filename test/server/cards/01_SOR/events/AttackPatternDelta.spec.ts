@@ -13,7 +13,10 @@ describe('Attack Pattern Delta', function() {
                         },
                         player2: {
                             groundArena: ['atst'],
-                        }
+                        },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
 
                     const { context } = contextRef;
@@ -80,6 +83,9 @@ describe('Attack Pattern Delta', function() {
                             hand: ['attack-pattern-delta'],
                             groundArena: ['battlefield-marine', 'wampa'],
                         },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
 
                     const { context } = contextRef;
@@ -106,6 +112,9 @@ describe('Attack Pattern Delta', function() {
                             hand: ['attack-pattern-delta'],
                             groundArena: ['wampa'],
                         },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
 
                     const { context } = contextRef;

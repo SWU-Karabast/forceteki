@@ -10,7 +10,10 @@ describe('Anakin Skywalker, Maverick Mentor', function() {
                 },
                 player2: {
                     hand: ['vanquish']
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;

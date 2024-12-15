@@ -11,7 +11,10 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
                     },
                     player2: {
                         deck: ['battlefield-marine', 'pyke-sentinel', 'underworld-thug', 'the-chaos-of-war', 'volunteer-soldier']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -42,7 +45,10 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
                     },
                     player2: {
                         deck: ['battlefield-marine', 'the-chaos-of-war', 'volunteer-soldier', 'pyke-sentinel', 'underworld-thug']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -78,7 +84,10 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
                     },
                     player2: {
                         deck: ['battlefield-marine', 'the-chaos-of-war']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -34,7 +34,7 @@ jobs:
           with:
             path: ./test/json
             # IMPORTANT: if you change the cache key name below, also change it in update-cache.yml
-            key: sor-shd-twi-manual-v08-addtwi
+            key: sor-shd-twi-manual-v10-shield
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
 
