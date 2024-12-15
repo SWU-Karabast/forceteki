@@ -70,6 +70,7 @@ export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Ambush]: false,
     [KeywordName.Bounty]: false,
     [KeywordName.Coordinate]: false,
+    [KeywordName.Exploit]: true,
     [KeywordName.Grit]: false,
     [KeywordName.Overwhelm]: false,
     [KeywordName.Raid]: true,
@@ -112,7 +113,7 @@ function isKeywordEnabled(keyword: KeywordName, cardText: string, cardName: stri
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
 function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: string, cardName: string): number | null {
-    Contract.assertTrue([KeywordName.Raid, KeywordName.Restore].includes(keyword));
+    Contract.assertTrue([KeywordName.Exploit, KeywordName.Raid, KeywordName.Restore].includes(keyword));
 
     const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);
@@ -170,6 +171,8 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Bounty/g;
         case KeywordName.Coordinate:
             return /(?:^|(?:\n))Coordinate/g;
+        case KeywordName.Exploit:
+            return /(?:^|(?:\n))Exploit ([\d]+)/g;
         case KeywordName.Grit:
             return /(?:^|(?:\n))Grit/g;
         case KeywordName.Overwhelm:

@@ -284,6 +284,8 @@ export enum KeywordName {
     Ambush = 'ambush',
     Bounty = 'bounty',
     Coordinate = 'coordinate',
+    /** @deprecated Not yet implemented */
+    Exploit = 'exploit',
     Grit = 'grit',
     Overwhelm = 'overwhelm',
     Raid = 'raid',
