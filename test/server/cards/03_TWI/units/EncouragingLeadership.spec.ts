@@ -31,7 +31,7 @@ describe('Encouraging Leadership', function () {
             expect(context.specforceSoldier.getPower()).toEqual(2);
             expect(context.specforceSoldier.getHp()).toEqual(2);
 
-
+            // Check that a unit with the buff can be defeated without causing any errors
             context.player2.passAction();
             context.player1.clickCard(context.imperialInterceptor);
             context.player1.clickCard(context.starWingScout);
