@@ -3,7 +3,7 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { CardType, ZoneName, RelativePlayer, WildcardZoneName } from '../../Constants';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import { IDecreaseEventCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
@@ -133,7 +133,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
-    protected addDecreaseCostAbility(properties: IDecreaseEventCostAbilityProps<this>): void {
+    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): void {
         this.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
     }
 
