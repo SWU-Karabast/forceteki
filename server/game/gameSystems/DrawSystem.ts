@@ -1,10 +1,7 @@
-import AbilityHelper from '../AbilityHelper';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
 import { EventName } from '../core/Constants';
 import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import Player from '../core/Player';
-import { GameEvent } from '../core/event/GameEvent';
 import { DamageSystem } from './DamageSystem';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
@@ -40,6 +37,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
+        event.cards = event.player.drawDeck.slice(0, amount);
         event.amount = amount;
     }
 

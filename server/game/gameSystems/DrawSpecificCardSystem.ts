@@ -4,7 +4,6 @@ import { CardType, EffectName, EventName, WildcardCardType, ZoneName } from '../
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem';
-import Player from '../core/Player';
 
 export interface IDrawSpecificCardProperties extends ICardTargetSystemProperties {
     switch?: boolean;
@@ -86,10 +85,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
-        const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        // add amount and player to have same properties than drawn event from DrawSystem
-        event.amount = Array.isArray(properties.target) ? properties.target.length : 1;
         event.player = context.player;
     }
 }

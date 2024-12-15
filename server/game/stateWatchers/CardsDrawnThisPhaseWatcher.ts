@@ -3,10 +3,12 @@ import { StateWatcherName } from '../core/Constants';
 import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import Player from '../core/Player';
 import { Card } from '../core/card/Card';
+import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
+import * as Contract from '../core/utils/Contract';
 
 export interface DrawnCardEntry {
     player: Player;
-    amount: number;
+    card: InPlayCard;
 }
 
 export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
@@ -26,7 +28,7 @@ export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
 
     /** Get the amount of cards drawn by a player this phase */
     public drawnCardsAmount(drawnBy: Player): number {
-        return this.getCurrentValue().find((e) => e.player === drawnBy)?.amount || 0;
+        return this.getCurrentValue().filter((e) => e.player === drawnBy).length;
     }
 
     protected override setupWatcher() {
@@ -36,12 +38,21 @@ export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
                 onCardsDrawn: () => true,
             },
             update: (currentState: DrawnCardEntry[], event: any) => {
-                const entry = currentState.find((entry) => entry.player === event.player);
-                if (entry != null) {
-                    entry.amount += event.amount;
+                Contract.assertTrue(event.cards != null || event.card != null);
+                if (event.cards != null) {
+                    if (event.cards.length > 0) {
+                        for (const card of event.cards) {
+                            currentState = currentState.concat({
+                                player: event.player,
+                                card: card,
+                            });
+                        }
+                    }
                     return currentState;
+                } else if (event.card != null) {
+                    return currentState.concat({ player: event.player, card: event.card });
                 }
-                return currentState.concat({ player: event.player, amount: event.amount });
+                return currentState;
             }
         });
     }
