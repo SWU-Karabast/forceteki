@@ -276,8 +276,9 @@ export class TriggeredAbilityWindow extends BaseStep {
             return;
         }
 
-        const anyWithLegalTargets = [...this.unresolved].map(([player, triggeredAbilityList]) => triggeredAbilityList).flat()
-            .some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext));
+        const anyWithLegalTargets = this.canAnyAbilitiesResolve(
+            [...this.unresolved].map(([player, triggeredAbilityList]) => triggeredAbilityList).flat()
+        );
 
         if (!anyWithLegalTargets) {
             this.unresolved = new Map();
@@ -291,7 +292,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     }
 
     private canAnyAbilitiesResolve(triggeredAbilities: TriggeredAbilityContext[]) {
-        return triggeredAbilities.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext));
+        return triggeredAbilities.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, true));
     }
 
     // TODO: separate class and correct logic for replacement effect windows
