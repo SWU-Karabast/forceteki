@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, KeywordName, Trait } from '../../../core/Constants';
+import { KeywordName, Trait } from '../../../core/Constants';
 
 export default class OutspokenRepresentative extends NonLeaderUnitCard {
     protected override getImplementationId () {

@@ -1,6 +1,6 @@
 describe('Outspoken Representative', function () {
     integration(function (contextRef) {
-        it('should gain Sentinel', function () {
+        it('should gain Sentinel and create a Clone Trooper token when defeated', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
@@ -23,21 +23,9 @@ describe('Outspoken Representative', function () {
             context.player1.clickCard(context.cloneHeavyGunner);
             context.player2.clickCard(context.volunteerSoldier);
             expect(context.player2).toBeAbleToSelectExactly([context.outspokenRepresentative]);
+
+            // Check if clone token is created when defeated
             context.player2.clickCard(context.outspokenRepresentative);
-        });
-        it('should create a Clone Trooper token when defeated', function () {
-            contextRef.setupTest({
-                phase: 'action',
-                player1: {
-                    groundArena: ['outspoken-representative'],
-                },
-                player2: {
-                    groundArena: ['battlefield-marine'],
-                },
-            });
-            const { context } = contextRef;
-            context.player1.clickCard(context.outspokenRepresentative);
-            context.player1.clickCard(context.battlefieldMarine);
             const cloneTroopers = context.player1.findCardsByName('clone-trooper');
             expect(cloneTroopers.length).toBe(1);
         });
