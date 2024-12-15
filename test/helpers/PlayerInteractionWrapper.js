@@ -220,7 +220,7 @@ class PlayerInteractionWrapper {
             if (!options.card) {
                 throw new TestSetupError('You must provide a card name');
             }
-            const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.nameField;
+            const opponentControlled = options.hasOwnProperty('ownerAndController') && options.ownerAndController !== this.player.nameField;
 
             var card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
 

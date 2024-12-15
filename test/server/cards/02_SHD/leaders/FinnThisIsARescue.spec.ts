@@ -6,11 +6,11 @@ describe('Finn, This is a Rescue', function () {
                     phase: 'action',
                     player1: {
                         leader: { card: 'finn#this-is-a-rescue', deployed: false },
-                        groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber', { card: 'top-target', owner: 'player2' }] }],
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber', { card: 'top-target', ownerAndController: 'player2' }] }],
                         resources: 4
                     },
                     player2: {
-                        groundArena: [{ card: 'wampa', upgrades: [{ card: 'entrenched', owner: 'player1' }] }],
+                        groundArena: [{ card: 'wampa', upgrades: [{ card: 'entrenched', ownerAndController: 'player1' }] }],
                         resources: 5
                     },
 
@@ -61,11 +61,11 @@ describe('Finn, This is a Rescue', function () {
                     phase: 'action',
                     player1: {
                         leader: { card: 'finn#this-is-a-rescue', deployed: true },
-                        groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber', { card: 'top-target', owner: 'player2' }] }],
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber', { card: 'top-target', ownerAndController: 'player2' }] }],
                         resources: 5
                     },
                     player2: {
-                        groundArena: ['wampa', { card: 'atst', upgrades: [{ card: 'entrenched', owner: 'player1' }] }, 'pyke-sentinel'],
+                        groundArena: ['wampa', { card: 'atst', upgrades: [{ card: 'entrenched', ownerAndController: 'player1' }] }, 'pyke-sentinel'],
                         resources: 5
                     },
 

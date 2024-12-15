@@ -6,7 +6,7 @@ describe('Take control system', function() {
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
-                        groundArena: [{ card: 'lom-pyke#dealer-in-truths', damage: 1, exhausted: true, upgrades: [{ card: 'academy-training', owner: 'player2' }], owner: 'player2' }],
+                        groundArena: [{ card: 'lom-pyke#dealer-in-truths', damage: 1, exhausted: true, upgrades: [{ card: 'academy-training', ownerAndController: 'player2' }], ownerAndController: 'player2' }],
                         leader: { card: 'emperor-palpatine#galactic-ruler', deployed: true },
                     },
                     player2: {

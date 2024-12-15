@@ -53,7 +53,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
                 limit
             }) };
 
-        const delayedEffectSource = properties.effectType === DelayedEffectType.Card ? event.context.target : event.context.source;
+        const delayedEffectSource = event.sourceCard;
 
         switch (duration) {
             case Duration.Persistent:
@@ -75,6 +75,12 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         }
     }
 
+    public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: any): void {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        event.sourceCard = this.getDelayedEffectSource(event, context, additionalProperties);
+        Contract.assertNotNullLike(properties.immediateEffect, 'Immediate Effect cannot be null');
+    }
+
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.immediateEffect != null;
@@ -89,5 +95,10 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
     protected override isTargetTypeValid(target: any): boolean {
         return false;
+    }
+
+    private getDelayedEffectSource (event: any, context: TContext, additionalProperties?: any) {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        return properties.effectType === DelayedEffectType.Card ? event.context.target : event.context.source;
     }
 }

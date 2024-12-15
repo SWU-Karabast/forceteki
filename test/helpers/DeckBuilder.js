@@ -41,15 +41,15 @@ class DeckBuilder {
         let opponentAttachedUpgrades = [];
 
         if ((arena === 'groundArena' || arena === 'anyArena') && playerOptions.groundArena) {
-            const playerControlled = playerOptions.groundArena.filter((card) => !card.hasOwnProperty('owner') && !card.owner?.endsWith(playerNumber));
-            const oppControlled = oppOptions.groundArena?.filter((card) => card.hasOwnProperty('owner') && card.owner?.endsWith(playerNumber));
+            const playerControlled = playerOptions.groundArena.filter((card) => !card.hasOwnProperty('ownerAndController') && !card.ownerAndController?.endsWith(playerNumber));
+            const oppControlled = oppOptions.groundArena?.filter((card) => card.hasOwnProperty('ownerAndController') && card.ownerAndController?.endsWith(playerNumber));
             playerCards.groundArena = (playerControlled || []).concat((oppControlled || []));
 
             opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerOptions.groundArena, playerNumber, oppOptions.groundArena, playerCards));
         }
         if ((arena === 'spaceArena' || arena === 'anyArena') && playerOptions.spaceArena) {
-            const playerControlled = playerOptions.spaceArena.filter((card) => !card.hasOwnProperty('owner') && !card.owner?.endsWith(playerNumber));
-            const oppControlled = oppOptions.spaceArena?.filter((card) => card.hasOwnProperty('owner') && card.owner?.endsWith(playerNumber));
+            const playerControlled = playerOptions.spaceArena.filter((card) => !card.hasOwnProperty('ownerAndController') && !card.ownerAndController?.endsWith(playerNumber));
+            const oppControlled = oppOptions.spaceArena?.filter((card) => card.hasOwnProperty('ownerAndController') && card.ownerAndController?.endsWith(playerNumber));
             playerCards.spaceArena = (playerControlled || []).concat((oppControlled || []));
 
             opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerOptions.spaceArena, playerNumber, oppOptions.spaceArena, playerCards));
@@ -66,10 +66,10 @@ class DeckBuilder {
         oppArena?.forEach((card) => {
             if (typeof card !== 'string' && card.hasOwnProperty('upgrades')) {
                 card.upgrades.forEach((upgrade) => {
-                    if (typeof upgrade !== 'string' && upgrade.hasOwnProperty('owner') && upgrade.owner.endsWith(playerNumber)) {
+                    if (typeof upgrade !== 'string' && upgrade.hasOwnProperty('ownerAndController') && upgrade.ownerAndController.endsWith(playerNumber)) {
                         let oppUpgrade = { attachedTo: card.card, ...upgrade };
-                        if (card.hasOwnProperty('owner')) {
-                            oppUpgrade.attachedToOwner = card.owner;
+                        if (card.hasOwnProperty('ownerAndController')) {
+                            oppUpgrade.attachedToOwner = card.ownerAndController;
                         }
                         opponentAttachedUpgrades = opponentAttachedUpgrades.concat(oppUpgrade);
                         card.upgrades.splice(card.upgrades.indexOf(upgrade), 1); // Dirty

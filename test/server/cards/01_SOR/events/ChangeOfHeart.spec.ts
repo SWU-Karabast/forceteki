@@ -6,12 +6,12 @@ describe('Change of Heart', function() {
                     phase: 'action',
                     player1: {
                         hand: ['change-of-heart'],
-                        groundArena: [{ card: 'pyke-sentinel', owner: 'player2' }],
+                        groundArena: [{ card: 'pyke-sentinel', ownerAndController: 'player2' }],
                         spaceArena: ['cartel-spacer']
                     },
                     player2: {
                         hand: ['vanquish'],
-                        groundArena: [{ card: 'battlefield-marine', owner: 'player1' }, 'wampa']
+                        groundArena: [{ card: 'battlefield-marine', ownerAndController: 'player1' }, 'wampa']
                     }
                 });
             });
