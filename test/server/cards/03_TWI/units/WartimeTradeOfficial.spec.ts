@@ -1,6 +1,6 @@
 describe('Wartime Trade Official', function () {
     integration(function (contextRef) {
-        beforeEach(function () {
+        it('should create a Battle Droid token when defeated', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
@@ -11,9 +11,6 @@ describe('Wartime Trade Official', function () {
                     hasInitiative: true,
                 },
             });
-        });
-
-        it('should create a Battle Droid token when defeated', function () {
             const { context } = contextRef;
 
             context.player2.clickCard(context.maceWindu);
