@@ -76,6 +76,11 @@ export class Lobby {
         return this.users.length === 0;
     }
 
+    public setDeck(id: string, deck: any): void {
+        const player = this.users.find((u) => u.id === id);
+        player.deck = deck;
+    }
+
     public cleanLobby(): void {
         this.game = null;
         this.users = [];
@@ -190,7 +195,6 @@ export class Lobby {
     public sendDeckInfo(): void {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
-                console.log(user.deck);
                 user.socket.send('deckData', user.deck);
             }
         }
