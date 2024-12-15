@@ -27,5 +27,26 @@ describe('Pau City', function () {
             expect(context.nalaSe.getPower()).toBe(1);
             expect(context.nalaSe.getHp()).toBe(7);
         });
+
+        it('Pau City\'s ability should crash if there is not leader', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    groundArena: ['battlefield-marine'],
+                    base: 'pau-city',
+                    leader: 'captain-rex#fighting-for-his-brothers',
+                },
+                player2: {
+                    leader: 'nala-se#clone-engineer'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(3);
+            expect(context.p1Base.getHp()).toBe(26);
+        });
     });
 });

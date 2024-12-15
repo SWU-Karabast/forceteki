@@ -26,7 +26,11 @@ export default class SabineWrenYouCanCountOnMe extends NonLeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'If it doesn\'t share an aspect with your base, deal 2 damage to a ground unit',
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => !ifYouDoContext.events[0].card.aspects.includes(context.source.controller.base.aspects[0]),
+                    condition: (context) => {
+                        const cardAspects: Aspect[] = ifYouDoContext.events[0].card.aspects;
+                        const baseAspects: Aspect[] = context.source.controller.base.aspects;
+                        return !cardAspects.some((cardAspect) => baseAspects.includes(cardAspect));
+                    },
                     onTrue: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: RelativePlayer.Opponent,

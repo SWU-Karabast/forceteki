@@ -11,7 +11,7 @@ export default class RepublicDefenseCarrier extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addDecreaseCostAbility({
             title: 'This unit costs 1 resource less to play for each unit controlled by the opponent who controls the most units',
-            amount: (_, player) => player.opponent.getArenaUnits().length,
+            amount: (_card, player) => player.opponent.getArenaUnits().length,
         });
     }
 }

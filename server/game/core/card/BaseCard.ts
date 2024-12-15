@@ -42,6 +42,7 @@ export class BaseCard extends BaseCardParent {
         return super.getActionAbilities();
     }
 
+    // TODO TYPE REFACTOR: this method is duplicated
     protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
         const ability = this.createConstantAbility(properties);
         ability.registeredEffects = this.addEffectToEngine(ability);

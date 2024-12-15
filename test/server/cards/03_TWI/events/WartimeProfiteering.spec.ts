@@ -1,7 +1,7 @@
 describe('Wartime Profiteering', function () {
     integration(function (contextRef) {
         describe('Wartime Profiteering\'s ability', function () {
-            it('should ook at cards from the top of your deck equal to the number of units that were defeated this phase, draw 1 and put the others on the bottom of your deck in a random order', function () {
+            it('should look at cards from the top of your deck equal to the number of units that were defeated this phase, draw 1 and put the others on the bottom of your deck in a random order', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -39,6 +39,13 @@ describe('Wartime Profiteering', function () {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.yoda).toBeInZone('hand');
                 expect(context.atst).toBeInBottomOfDeck(context.player1, 1);
+
+                context.player1.moveCard(context.wartimeProfiteering, 'hand');
+                context.moveToNextActionPhase();
+
+                // no unit dead, event does nothing
+                context.player1.clickCard(context.wartimeProfiteering);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

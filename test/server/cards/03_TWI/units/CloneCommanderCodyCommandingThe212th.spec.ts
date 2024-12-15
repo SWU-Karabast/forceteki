@@ -37,6 +37,9 @@ describe('Clone Commander Cody, Commanding the 212th', function () {
                 expect(context.cloneCommanderCody.getPower()).toBe(4);
                 expect(context.cloneCommanderCody.getHp()).toBe(4);
 
+                expect(context.distantPatroller.getPower()).toBe(2);
+                expect(context.distantPatroller.getHp()).toBe(1);
+
                 context.player1.clickCard(context.greenSquadronAwing);
                 context.player1.clickCard(context.distantPatroller);
 
