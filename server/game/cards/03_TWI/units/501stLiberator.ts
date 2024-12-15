@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { Trait, ZoneName } from '../../../core/Constants';
 
 export default class _501stLiberator extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -12,12 +12,16 @@ export default class _501stLiberator extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'If you control another Republic unit, you may heal 3 damage from a base.',
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.isTraitInPlay(Trait.Republic, context.source),
-                onTrue: AbilityHelper.immediateEffects.heal((context) => ({ amount: 3, target: context.source.controller.base })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
-            }),
+            title: 'you may heal 3 damage from a base.',
+            optional: true,
+            targetResolver: {
+                zoneFilter: ZoneName.Base,
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: (context) => context.source.controller.isTraitInPlay(Trait.Republic, context.source),
+                    onTrue: AbilityHelper.immediateEffects.heal({ amount: 3 }),
+                    onFalse: AbilityHelper.immediateEffects.noAction()
+                }),
+            }
         });
     }
 }

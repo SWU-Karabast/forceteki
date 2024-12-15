@@ -12,9 +12,9 @@ export default class PetitionTheSenate extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'If you control 3 or more Official units, draw 3 cards.',
+            title: 'Draw 3 cards.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.getOtherUnitsInPlayWithTrait(context.source, Trait.Official).length >= 3,
+                condition: (context) => context.source.controller.getUnitsInPlayWithTrait(Trait.Official).length >= 3,
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 3 }),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })

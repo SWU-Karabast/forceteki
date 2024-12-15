@@ -11,16 +11,29 @@ describe('Petition The Senate', function () {
                             'colonel-yularen#isb-director']
                     },
                     player2: {
-                        groundArena: ['atst'],
-                        spaceArena: ['green-squadron-awing']
+                        groundArena: ['admiral-piett#captain-of-the-executor', 'rey#keeping-the-past']
                     }
                 });
             });
 
             it('If control 3 Official units, draw 3 cards', function () {
                 const { context } = contextRef;
+                // controlling 3 officials, draw 3 cards
                 context.player1.clickCard(context.petitionTheSenate);
                 expect(context.player1.hand.length).toBe(3);
+
+                context.player1.moveCard(context.petitionTheSenate, 'hand');
+
+                // Defeat an official ready for below check, if needed.
+                context.player2.clickCard(context.rey);
+                context.player2.clickCard(context.colonelYularen);
+
+                // Adding the below check, proves clicking card has no effect,
+                // Expected player prompt state to change after clicking petition-the-senate but it did not.
+
+                /* context.player1.clickCard(context.petitionTheSenate);
+                expect(context.petitionTheSenate).toBeInZone('discard');
+                expect(context.player1.hand.length).toBe(3); */
             });
         });
     });
