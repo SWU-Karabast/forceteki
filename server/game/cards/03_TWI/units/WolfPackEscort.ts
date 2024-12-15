@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, RelativePlayer, Trait } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class WolfPackEscort extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -12,10 +12,10 @@ export default class WolfPackEscort extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'You may return a friendly non-leader, non-Vehicle unit to its owner\'s hand.',
+            title: 'Return a friendly non-leader, non-Vehicle unit to its owner\'s hand.',
             optional: true,
             targetResolver: {
-                cardTypeFilter: CardType.BasicUnit,
+                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => !card.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
