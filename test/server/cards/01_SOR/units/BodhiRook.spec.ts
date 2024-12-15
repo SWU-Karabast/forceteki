@@ -6,6 +6,8 @@ describe('Bodhi Rook', function () {
                     phase: 'action',
                     player1: {
                         hand: ['bodhi-rook#imperial-defector', 'open-fire'],
+                        leader: 'jyn-erso#resisting-oppression', // double-yellow to not pay 7 for each bodhi
+                        base: 'chopper-base',
                         groundArena: ['wampa'],
                     },
                     player2: {
@@ -14,10 +16,28 @@ describe('Bodhi Rook', function () {
                 });
                 const { context } = contextRef;
 
+                // Default test, gives the player two options
                 context.player1.clickCard(context.bodhiRook);
                 expect(context.player1).toBeAbleToSelectAllOf([context.waylay, context.protector]);
                 context.player1.clickCard(context.waylay);
                 expect(context.waylay).toBeInZone('discard');
+
+                context.player2.passAction();
+
+                // Only one possible choice -- does the player still get to select?
+                context.player1.moveCard(context.bodhiRook, 'hand');
+                context.player1.clickCard(context.bodhiRook);
+                //expect(context.player1).toBeAbleToSelectAllOf([context.protector]);
+               // context.player1.clickCard(context.protector); // this might have auto-resolved here
+                expect(context.protector).toBeInZone('discard');
+
+                // No choice here, but the player still needs an opponent hand reveal
+                context.player2.passAction();
+
+                context.player1.moveCard(context.bodhiRook, 'hand');
+                context.player1.clickCard(context.bodhiRook); // Broken here -- state does not change, but we have a reveal here, so it still has to happen..
+                expect(context.player1).toHaveChooseNoTargetButton();
+
 
                 /*
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
