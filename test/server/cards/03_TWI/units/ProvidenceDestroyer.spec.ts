@@ -16,7 +16,6 @@ describe('Providence Destroyer', function() {
 
                 const { context } = contextRef;
 
-
                 context.player1.clickCard(context.providenceDestroyer);
                 context.player1.clickCard(context.p2Base);
 
