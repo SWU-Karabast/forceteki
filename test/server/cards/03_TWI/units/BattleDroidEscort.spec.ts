@@ -25,7 +25,6 @@ describe('Battle Droid Escort', function() {
                 expect(battleDroids).toAllBeInZone('groundArena');
                 expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
 
-
                 context.player2.clickCard(context.powerOfTheDarkSide);
                 context.player1.clickCard(context.battleDroidEscort);
                 expect(context.battleDroidEscort).toBeInZone('discard');
