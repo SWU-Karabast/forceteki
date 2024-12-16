@@ -266,6 +266,7 @@ export enum MetaEventName {
 export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
+    DelayedEffect = 'delayedEffect',
     Event = 'event',
     ReplacementEffect = 'replacementEffect',
     Triggered = 'triggered',
@@ -284,6 +285,8 @@ export enum KeywordName {
     Ambush = 'ambush',
     Bounty = 'bounty',
     Coordinate = 'coordinate',
+    /** @deprecated Not yet implemented */
+    Exploit = 'exploit',
     Grit = 'grit',
     Overwhelm = 'overwhelm',
     Raid = 'raid',
