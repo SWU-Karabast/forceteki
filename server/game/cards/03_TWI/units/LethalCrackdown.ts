@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { CardType, RelativePlayer, WildcardRelativePlayer } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class LethalCrackdown extends EventCard {
     protected override getImplementationId () {
@@ -14,9 +14,7 @@ export default class LethalCrackdown extends EventCard {
         this.setEventAbility({
             title: 'Defeat a non-leader unit. Deal damage to your base equal to that unit\'s power.',
             targetResolver: {
-                cardTypeFilter: CardType.BasicUnit,
-                controller: WildcardRelativePlayer.Any,
-                choosingPlayer: RelativePlayer.Self,
+                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.handler((context) => ({
                         handler: () => context.targets.powerParentCard = context.target.getPower(),
