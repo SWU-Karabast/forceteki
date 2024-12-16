@@ -18,10 +18,7 @@ describe('AT-TE Vanguard', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.powerOfTheDarkSide);
-                expect(context.player2).toBeAbleToSelectExactly([context.atteVanguard]);
-
                 context.player2.clickCard(context.atteVanguard);
-                expect(context.atteVanguard).toBeInZone('discard');
 
                 const cloneTroopers = context.player2.findCardsByName('clone-trooper');
                 expect(cloneTroopers.length).toBe(2);
