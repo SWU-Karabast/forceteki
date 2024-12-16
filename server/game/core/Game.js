@@ -27,8 +27,6 @@ const { cards } = require('../cards/Index.js');
 // const MenuCommands = require('./MenuCommands');
 
 const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName } = require('./Constants.js');
-const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
-const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');

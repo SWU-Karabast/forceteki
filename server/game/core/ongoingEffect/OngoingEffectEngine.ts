@@ -105,15 +105,15 @@ export class OngoingEffectEngine {
     public removeLastingEffects(card: OngoingEffectSource) {
         this.unapplyAndRemove(
             (effect) => {
-                if (effect.duration !== Duration.Persistent) {
-                    return effect.matchTarget === card;
-                }
-
                 if (effect.impl.type === 'delayedEffect') {
                     const effectImplValue = effect.impl.getValue();
                     const limit = effectImplValue.limit;
 
                     return limit.isAtMax(effect.source.controller);
+                }
+
+                if (effect.duration !== Duration.Persistent) {
+                    return effect.matchTarget === card;
                 }
 
                 return false;

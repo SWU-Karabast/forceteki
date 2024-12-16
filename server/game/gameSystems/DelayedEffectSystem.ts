@@ -37,7 +37,6 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     };
 
     public eventHandler(event: any, additionalProperties: any): void {
-        const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
         // TODO Remove this if we don't need it
         // if (!properties.ability) {
         //     properties.ability = event.context.ability;
@@ -46,7 +45,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         const delayedEffectSource = event.sourceCard;
 
         const renamedProperties = event.renamedProperties;
-        const duration = properties.duration;
+        const duration = renamedProperties.duration;
 
         switch (duration) {
             case Duration.Persistent:
@@ -73,7 +72,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         event.sourceCard = this.getDelayedEffectSource(event, context, additionalProperties);
         Contract.assertNotNullLike(properties.immediateEffect, 'Immediate Effect cannot be null');
 
-        const { title, when, duration, limit, immediateEffect, ...otherProperties } = properties;
+        const { title, when, limit, immediateEffect, ...otherProperties } = properties;
 
         const renamedProperties = { ...otherProperties, ongoingEffect:
             OngoingEffectLibrary.delayedEffect({
