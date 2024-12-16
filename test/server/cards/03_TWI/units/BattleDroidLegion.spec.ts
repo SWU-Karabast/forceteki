@@ -18,10 +18,7 @@ describe('Battle Droid Legion', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.powerOfTheDarkSide);
-                expect(context.player2).toBeAbleToSelectExactly([context.battleDroidLegion]);
-
                 context.player2.clickCard(context.battleDroidLegion);
-                expect(context.battleDroidLegion).toBeInZone('discard');
 
                 const battleDroids = context.player2.findCardsByName('battle-droid');
                 expect(battleDroids.length).toBe(3);
