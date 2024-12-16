@@ -4,8 +4,8 @@ describe('Creative Thinking', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['creative-thinking'],
-                    groundArena: ['battlefield-marine'],
+                    hand: ['creative-thinking', 'waylay'],
+                    groundArena: [{ card: 'battlefield-marine', exhausted: true }],
                 },
                 player2: {
                     spaceArena: ['cartel-spacer'],
@@ -30,6 +30,11 @@ describe('Creative Thinking', function () {
             // Scenario 2: Does not exhaust a non-unique unit and create a Clone Trooper token
             context.player2.clickCard(context.bobaFett);
             context.player2.clickCard(context.battlefieldMarine);
+
+            context.player1.clickCard(context.waylay);
+            context.player1.clickCard(context.cartelSpacer);
+
+            context.player2.passAction();
 
             context.player1.moveCard(context.creativeThinking, 'hand');
             context.player1.clickCard(context.creativeThinking);

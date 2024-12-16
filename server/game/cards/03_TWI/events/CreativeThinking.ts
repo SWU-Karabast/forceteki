@@ -17,7 +17,7 @@ export default class CreativeThinking extends EventCard {
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: WildcardZoneName.AnyArena,
-                    cardCondition: (card) => !card.unique && card.canBeExhausted() && !card.exhausted,
+                    cardCondition: (card) => !card.unique,
                     innerSystem: AbilityHelper.immediateEffects.exhaust(),
                 }),
                 AbilityHelper.immediateEffects.createCloneTrooper((context) => ({ target: context.source.controller })),
