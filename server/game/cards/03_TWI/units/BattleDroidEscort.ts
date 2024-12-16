@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
-export default class BattleDroidLegion extends NonLeaderUnitCard {
+export default class BattleDroidEscort extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '5584601885',
@@ -21,4 +21,4 @@ export default class BattleDroidLegion extends NonLeaderUnitCard {
     }
 }
 
-BattleDroidLegion.implemented = true;
+BattleDroidEscort.implemented = true;
