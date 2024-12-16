@@ -11,7 +11,7 @@ import { Card } from '../Card';
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
 
-export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
+export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
@@ -139,7 +139,7 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
-    protected generateDecreaseCostAbilityProps(properties: IDecreaseEventCostAbilityProps<this>): IConstantAbilityProps {
+    protected generateDecreaseCostAbilityProps(properties: IDecreaseCostAbilityProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = {
