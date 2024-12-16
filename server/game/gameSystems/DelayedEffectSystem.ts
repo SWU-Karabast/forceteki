@@ -43,17 +43,10 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         //     properties.ability = event.context.ability;
         // }
 
-        const { title, when, duration, limit, immediateEffect, ...otherProperties } = properties;
-
-        const renamedProperties = { ...otherProperties, ongoingEffect:
-            OngoingEffectLibrary.delayedEffect({
-                title,
-                when,
-                immediateEffect,
-                limit
-            }) };
-
         const delayedEffectSource = event.sourceCard;
+
+        const renamedProperties = event.renamedProperties;
+        const duration = properties.duration;
 
         switch (duration) {
             case Duration.Persistent:
@@ -79,6 +72,18 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         event.sourceCard = this.getDelayedEffectSource(event, context, additionalProperties);
         Contract.assertNotNullLike(properties.immediateEffect, 'Immediate Effect cannot be null');
+
+        const { title, when, duration, limit, immediateEffect, ...otherProperties } = properties;
+
+        const renamedProperties = { ...otherProperties, ongoingEffect:
+            OngoingEffectLibrary.delayedEffect({
+                title,
+                when,
+                immediateEffect,
+                limit
+            }) };
+
+        event.renamedProperties = renamedProperties;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
