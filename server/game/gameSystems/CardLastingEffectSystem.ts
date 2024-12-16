@@ -23,22 +23,17 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     };
 
     public eventHandler(event, additionalProperties): void {
-        const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
-        if (!properties.ability) {
-            properties.ability = event.context.ability;
-        }
+        let effects = event.effectFactories.map((factory) =>
+            factory(event.context.game, event.context.source, event.effectProperties)
+        );
 
         const lastingEffectRestrictions = event.card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
-        const { effect, ...otherProperties } = properties;
-        const effectProperties = Object.assign({ matchTarget: event.card, zoneFilter: WildcardZoneName.Any, isLastingEffect: true }, otherProperties);
-        let effects = effect.map((factory) =>
-            factory(event.context.game, event.context.source, effectProperties)
-        );
         effects = effects.filter(
             (props) =>
                 props.impl.canBeApplied(event.card) &&
                 !lastingEffectRestrictions.some((condition) => condition(props.impl))
         );
+
         for (const effect of effects) {
             event.context.game.ongoingEffectEngine.add(effect);
         }
@@ -53,18 +48,36 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return properties;
     }
 
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+
+        const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
+
+        event.effectFactories = effectFactories;
+        event.effectProperties = effectProperties;
+    }
+
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        properties.effect = properties.effect.map((factory) => factory(context.game, context.source, { ...properties, isLastingEffect: true }));
+        const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
+
+        const effects = effectFactories.map((factory) => factory(context.game, context.source, effectProperties));
 
         const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
         return (
             super.canAffect(card, context) &&
-              properties.effect.some(
+              effects.some(
                   (props) =>
                       props.impl.canBeApplied(card) &&
                       !lastingEffectRestrictions.some((condition) => condition(props.effect))
               )
         );
+    }
+
+    private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties = {}) {
+        const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        const effectProperties = { matchTarget: card, zoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties };
+
+        return { effectFactories: effect, effectProperties };
     }
 }
