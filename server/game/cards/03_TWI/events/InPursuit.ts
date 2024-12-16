@@ -1,6 +1,6 @@
-import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { EventCard } from '../../../core/card/EventCard';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class InPursuit extends EventCard {
     protected override getImplementationId() {
@@ -14,27 +14,17 @@ export default class InPursuit extends EventCard {
         this.setEventAbility({
             title: 'Exhaust a friendly unit. If you do, exhaust an enemy unit.',
             optional: true,
-            targetResolvers: {
-                friendlyUnit: {
-                    activePromptTitle: 'Choose a friendly unit',
-                    controller: RelativePlayer.Self,
-                    cardTypeFilter: WildcardCardType.Unit,
-                    zoneFilter: WildcardZoneName.AnyArena,
-                },
-                enemyUnit: {
-                    dependsOn: 'friendlyUnit',
-                    activePromptTitle: 'Choose an enemy unit',
+            targetResolver: {
+                controller: RelativePlayer.Self,
+                cardCondition: (card) => card.isUnit() && !card.exhausted,
+                immediateEffect: AbilityHelper.immediateEffects.exhaust()
+            },
+            ifYouDo: {
+                title: 'Choose an enemy unit',
+                targetResolver: {
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.Unit,
-                    zoneFilter: WildcardZoneName.AnyArena,
-                    immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.exhaust((context) => ({
-                            target: context.targets.friendlyUnit
-                        })),
-                        AbilityHelper.immediateEffects.exhaust((context) => ({
-                            target: context.targets.enemyUnit
-                        })),
-                    ])
+                    immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }
             }
         });
