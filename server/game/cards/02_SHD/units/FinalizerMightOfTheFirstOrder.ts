@@ -3,9 +3,9 @@ import * as Contract from '../../../core/utils/Contract';
 import * as Helpers from '../../../core/utils/Helpers.js';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { Card } from '../../../core/card/Card';
-import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import { AbilityContext } from '../../../core/ability/AbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 
 export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -33,7 +33,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
             },
             then: (chosenUnitsContext) => ({
                 title: 'Each of those units captures an enemy non-leader unit in the same arena',
-                immediateEffect: AbilityHelper.immediateEffects.sequential(
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous(
                     Helpers.asArray(chosenUnitsContext.target).map((target) =>
                         AbilityHelper.immediateEffects.selectCard({
                             activePromptTitle: `Choose a unit to capture with ${target.title}`,
@@ -41,6 +41,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
                             cardTypeFilter: WildcardCardType.NonLeaderUnit,
                             zoneFilter: target.zoneName,
                             controller: RelativePlayer.Opponent,
+                            cardCondition: (card, context) => !this.capturedCardsFromContext(context).has(card),
                             innerSystem: AbilityHelper.immediateEffects.capture({ captor: target })
                         })
                     )
@@ -49,7 +50,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
         });
     }
 
-    private countOpponentNonLeaderUnitsInPlay(context: TriggeredAbilityContext, zoneName: ZoneName | WildcardZoneName.AnyArena): number {
+    private countOpponentNonLeaderUnitsInPlay(context: AbilityContext, zoneName: ZoneName | WildcardZoneName.AnyArena): number {
         Contract.assertTrue(EnumHelpers.isArena(zoneName), `Zone ${zoneName} must be an arena`);
         return context.source.controller.opponent.getUnitsInPlay(
             zoneName,
@@ -59,6 +60,10 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
 
     private countSelectedCardsInZone(selectedCards: Card[], zoneName: ZoneName): number {
         return selectedCards.filter((selectedCard) => selectedCard.zoneName === zoneName).length;
+    }
+
+    private capturedCardsFromContext(context: AbilityContext): Set<Card> {
+        return new Set(context.events.filter((event) => event.name === EventName.OnCardCaptured).map((event) => event.card));
     }
 }
 
