@@ -15,8 +15,8 @@ describe('Wartime Trade Official', function () {
 
             context.player2.clickCard(context.maceWindu);
             context.player2.clickCard(context.wartimeTradeOfficial);
-            const battleDroid = context.player1.findCardsByName('battle-droid');
-            expect(battleDroid.length).toBe(1);
+            const battleDroid = context.player1.findCardByName('battle-droid');
+            expect(battleDroid).toBeInZone('groundArena');
         });
     });
 });

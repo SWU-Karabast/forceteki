@@ -26,8 +26,8 @@ describe('Outspoken Representative', function () {
 
             // Check if clone token is created when defeated
             context.player2.clickCard(context.outspokenRepresentative);
-            const cloneTroopers = context.player1.findCardsByName('clone-trooper');
-            expect(cloneTroopers.length).toBe(1);
+            const cloneTrooper = context.player1.findCardByName('clone-trooper');
+            expect(cloneTrooper).toBeInZone('groundArena');
         });
     });
 });

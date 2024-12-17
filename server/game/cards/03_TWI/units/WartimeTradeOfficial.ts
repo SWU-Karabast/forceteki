@@ -12,7 +12,7 @@ export default class WartimeTradeOfficial extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenDefeatedAbility({
             title: 'Create a Battle Droid token.',
-            immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 1 })
+            immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });
     }
 }

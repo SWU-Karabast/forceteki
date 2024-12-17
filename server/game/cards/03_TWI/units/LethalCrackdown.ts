@@ -12,22 +12,21 @@ export default class LethalCrackdown extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Defeat a non-leader unit. Deal damage to your base equal to that unit\'s power.',
+            title: 'Defeat a non-leader unit.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.handler((context) => ({
-                        handler: () => context.targets.powerParentCard = context.target.getPower(),
+                        handler: () => context.targets.cardPower = context.target.getPower(),
                     })),
                     AbilityHelper.immediateEffects.defeat()
                 ]),
-
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: 'Deal damage to your base equal to the played unit\'s cost',
+                title: 'Deal damage to your base equal to that unit\'s power.',
                 immediateEffect: AbilityHelper.immediateEffects.damage({
                     target: ifYouDoContext.source.controller.base,
-                    amount: ifYouDoContext.targets.powerParentCard
+                    amount: ifYouDoContext.targets.cardPower
                 })
             })
         });

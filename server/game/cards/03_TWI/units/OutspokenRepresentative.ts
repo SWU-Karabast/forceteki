@@ -16,9 +16,10 @@ export default class OutspokenRepresentative extends NonLeaderUnitCard {
             condition: (context) => context.source.controller.isTraitInPlay(Trait.Republic, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel })
         });
+
         this.addWhenDefeatedAbility({
             title: 'Create a Clone Trooper token.',
-            immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper({ amount: 1 })
+            immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });
     }
 }
