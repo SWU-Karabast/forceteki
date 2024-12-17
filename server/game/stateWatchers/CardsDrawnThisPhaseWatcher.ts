@@ -3,12 +3,11 @@ import { StateWatcherName } from '../core/Constants';
 import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import Player from '../core/Player';
 import { Card } from '../core/card/Card';
-import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 import * as Contract from '../core/utils/Contract';
 
 export interface DrawnCardEntry {
     player: Player;
-    card: InPlayCard;
+    card: Card;
 }
 
 export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
@@ -39,17 +38,16 @@ export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
             },
             update: (currentState: DrawnCardEntry[], event: any) => {
                 Contract.assertTrue(event.cards != null || event.card != null);
-                if (event.cards != null) {
-                    if (event.cards.length > 0) {
-                        for (const card of event.cards) {
-                            currentState = currentState.concat({
-                                player: event.player,
-                                card: card,
-                            });
-                        }
+                if (event.cards != null && event.cards.length > 0) {
+                    for (const card of event.cards) {
+                        currentState = currentState.concat({
+                            player: event.player,
+                            card: card,
+                        });
                     }
                     return currentState;
-                } else if (event.card != null) {
+                }
+                if (event.card != null) {
                     return currentState.concat({ player: event.player, card: event.card });
                 }
                 return currentState;

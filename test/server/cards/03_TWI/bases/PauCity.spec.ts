@@ -28,7 +28,7 @@ describe('Pau City', function () {
             expect(context.nalaSe.getHp()).toBe(7);
         });
 
-        it('Pau City\'s ability should crash if there is not leader', function () {
+        it('Pau City\'s ability should not crash if there is not leader', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
