@@ -11,3 +11,4 @@ build/
 .idea/
 test/**/json/
 .env
+*.zip
