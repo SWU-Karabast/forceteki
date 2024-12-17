@@ -18,7 +18,7 @@ describe('Jesse, Hard-Fighting Patriot', function () {
 
                 const battleDroids = context.player2.findCardsByName('battle-droid');
                 expect(battleDroids.length).toBe(2);
-                expect(battleDroids).toAllBeIngit Zone('groundArena');
+                expect(battleDroids).toAllBeInZone('groundArena');
                 expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
             });
         });
