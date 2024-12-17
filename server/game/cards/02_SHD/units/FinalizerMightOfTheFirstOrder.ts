@@ -1,5 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as Contract from '../../../core/utils/Contract';
 import * as Helpers from '../../../core/utils/Helpers.js';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { Card } from '../../../core/card/Card';
 import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
@@ -48,8 +50,9 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
     }
 
     private countOpponentNonLeaderUnitsInPlay(context: TriggeredAbilityContext, zoneName: ZoneName | WildcardZoneName.AnyArena): number {
+        Contract.assertTrue(EnumHelpers.isArena(zoneName), `Zone ${zoneName} must be an arena`);
         return context.source.controller.opponent.getUnitsInPlay(
-            zoneName as ZoneName.GroundArena | ZoneName.SpaceArena | WildcardZoneName.AnyArena,
+            zoneName,
             (card) => card.isNonLeaderUnit()
         ).length;
     }

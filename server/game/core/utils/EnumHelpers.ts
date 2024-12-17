@@ -20,7 +20,7 @@ export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
 
-export const isArena = (zone: ZoneFilter) => {
+export const isArena = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneName.SpaceArena | WildcardZoneName.AnyArena => {
     switch (zone) {
         case ZoneName.GroundArena:
         case ZoneName.SpaceArena:
