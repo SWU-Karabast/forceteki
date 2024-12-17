@@ -23,10 +23,10 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
 
 /** Records the "last known information" of a card before it left the arena, in case ability text needs to refer back to it. See SWU 8.12. */
 export interface ILastKnownInformation {
-    power: number;
-    hp: number;
-    arena: ZoneName.GroundArena | ZoneName.SpaceArena;
     controller: Player;
+    arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
+    power?: number;
+    hp?: number;
     damage?: number;
     parentCard?: UnitCard;
     upgrades?: UpgradeCard[];
@@ -44,8 +44,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
     public eventHandler(event): void {
         const card: Card = event.card;
-
-        event.lastKnownInformation = this.buildLastKnownInformation(card);
 
         if (card.zoneName !== ZoneName.Resource && card.isUpgrade()) {
             card.unattach();
@@ -117,11 +115,27 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (card.zoneName !== ZoneName.Resource) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         }
+
+        // build last known information for the card before event window resolves to ensure that no state has yet changed
+        event.setPreResolutionEffect((event) => {
+            event.lastKnownInformation = this.buildLastKnownInformation(card);
+        });
     }
 
     private buildLastKnownInformation(card: Card): ILastKnownInformation {
         Contract.assertTrue(card.canBeInPlay());
-        Contract.assertTrue(card.zoneName === ZoneName.GroundArena || card.zoneName === ZoneName.SpaceArena);
+        Contract.assertTrue(
+            card.zoneName === ZoneName.GroundArena ||
+            card.zoneName === ZoneName.SpaceArena ||
+            card.zoneName === ZoneName.Resource
+        );
+
+        if (card.zoneName === ZoneName.Resource) {
+            return {
+                controller: card.controller,
+                arena: card.zoneName
+            };
+        }
 
         if (card.isUnit()) {
             return {

@@ -21,7 +21,7 @@ export class GameEvent {
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
-    private preResolutionEffect = () => true;
+    private _preResolutionEffect = null;
     private replacementEvent: any = null;
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
@@ -170,6 +170,18 @@ export class GameEvent {
         }
 
         return contingentEvents;
+    }
+
+    public setPreResolutionEffect(preResolutionEffect: (event) => void) {
+        Contract.assertIsNullLike(this._preResolutionEffect, 'Attempting to set preResolutionEffect but it already has a value');
+
+        this._preResolutionEffect = preResolutionEffect;
+    }
+
+    public preResolutionEffect() {
+        if (this._preResolutionEffect) {
+            this._preResolutionEffect(this);
+        }
     }
 
     public addCleanupHandler(handler) {

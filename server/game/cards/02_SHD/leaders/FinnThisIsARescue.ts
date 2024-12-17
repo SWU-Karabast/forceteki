@@ -21,7 +21,9 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give a Shield token to that unit',
-                immediateEffect: AbilityHelper.immediateEffects.giveShield({ target: ifYouDoContext.events[0].lastKnownInformation.parentCard }),
+                immediateEffect: AbilityHelper.immediateEffects.giveShield({
+                    target: ifYouDoContext.events[0].lastKnownInformation.parentCard
+                }),
             })
         });
     }
@@ -37,7 +39,9 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give a Shield token to that unit',
-                immediateEffect: AbilityHelper.immediateEffects.giveShield({ target: ifYouDoContext.events[0].lastKnownInformation.parentCard }),
+                immediateEffect: AbilityHelper.immediateEffects.giveShield({
+                    target: ifYouDoContext.events[0].lastKnownInformation.parentCard
+                }),
             })
         });
     }
