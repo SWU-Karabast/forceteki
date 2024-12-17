@@ -11,7 +11,10 @@ describe('Chopper, Metal Menace', function() {
                     player2: {
                         deck: ['battlefield-marine', 'pyke-sentinel', 'underworld-thug', 'the-chaos-of-war', 'volunteer-soldier'],
                         resources: 5
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -42,7 +45,10 @@ describe('Chopper, Metal Menace', function() {
                     player2: {
                         deck: ['the-chaos-of-war', 'battlefield-marine', 'pyke-sentinel', 'underworld-thug', 'volunteer-soldier'],
                         resources: 5
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -71,7 +77,10 @@ describe('Chopper, Metal Menace', function() {
                     player2: {
                         deck: [],
                         resources: 5
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

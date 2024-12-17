@@ -1,4 +1,4 @@
-describe('Capture mechanic', function() {
+describe('Capture system', function() {
     integration(function (contextRef) {
         describe('When a unit is captured', function() {
             beforeEach(function () {
@@ -10,7 +10,10 @@ describe('Capture mechanic', function() {
                     player2: {
                         groundArena: ['wampa'],
                         hand: ['vanquish', 'waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -48,12 +51,16 @@ describe('Capture mechanic', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['discerning-veteran', 'take-captive'],
+                    hand: ['discerning-veteran', 'legal-authority'],
                 },
                 player2: {
                     groundArena: ['wampa', 'atst'],
+                    spaceArena: ['green-squadron-awing'],
                     hand: ['vanquish']
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
@@ -67,16 +74,20 @@ describe('Capture mechanic', function() {
             context.player2.passAction();
 
             // capture AT-ST with Discerning Veteran
-            context.player1.clickCard(context.takeCaptive);
-            expect(context.atst).toBeCapturedBy(context.discerningVeteran);
+            context.player1.clickCard(context.legalAuthority);
+            // discerning veteran and green squadron awing were chosen automatically
+            expect(context.greenSquadronAwing).toBeCapturedBy(context.discerningVeteran);
             expect(context.wampa).toBeCapturedBy(context.discerningVeteran);
 
             // defeat Discerning Veteran, both units rescued
             context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.discerningVeteran);
             expect(context.atst).toBeInZone('groundArena');
             expect(context.wampa).toBeInZone('groundArena');
-            expect(context.atst.exhausted).toBeTrue();
+            expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+            expect(context.atst.exhausted).toBeFalse();
             expect(context.wampa.exhausted).toBeTrue();
+            expect(context.greenSquadronAwing.exhausted).toBeTrue();
         });
 
         it('When a unit with captives is taken control of and defeated, the captives should return to their owner\'s control', function () {
@@ -91,7 +102,10 @@ describe('Capture mechanic', function() {
                     groundArena: ['wampa'],
                     hand: ['discerning-veteran', 'vanquish'],
                     leader: { card: 'han-solo#worth-the-risk', deployed: true, exhausted: true },
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
@@ -134,7 +148,10 @@ describe('Capture mechanic', function() {
                 player2: {
                     groundArena: [{ card: 'wampa', upgrades: ['academy-training'] }],
                     hand: ['take-captive']
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
@@ -166,7 +183,10 @@ describe('Capture mechanic', function() {
                         groundArena: ['pyke-sentinel'],
                         spaceArena: ['tieln-fighter'],
                         hand: ['discerning-veteran', 'take-captive']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

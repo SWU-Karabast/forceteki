@@ -3,12 +3,13 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import { CardType, ZoneName, RelativePlayer, WildcardZoneName } from '../../Constants';
 import Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import { IDecreaseEventCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import { Card } from '../Card';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
+import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -23,17 +24,28 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 3. Uniqueness management
  */
 export class InPlayCard extends PlayableOrDeployableCard {
+    protected _disableOngoingEffectsForDefeat? = null;
     protected _pendingDefeat? = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     private movedFromZone?: ZoneName = null;
 
     /**
+     * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
+     * Triggered abilities are not disabled until it leaves the field.
+     *
+     * Can only be true if pendingDefeat is also true.
+     */
+    public get disableOngoingEffectsForDefeat() {
+        this.assertPropertyEnabled(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
+        return this._disableOngoingEffectsForDefeat;
+    }
+
+    /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
      * and will be removed from the field after the current event window has finished the resolution step.
      *
-     * When this is true, most systems cannot target the card and any ongoing effects are disabled.
-     * Triggered abilities are not disabled until it leaves the field.
+     * When this is true, most systems cannot target the card.
      */
     public get pendingDefeat() {
         this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
@@ -57,6 +69,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     protected setPendingDefeatEnabled(enabledStatus: boolean) {
         this._pendingDefeat = enabledStatus ? false : null;
+        this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
     // ********************************************** ABILITY GETTERS **********************************************
@@ -120,7 +133,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
-    protected addDecreaseCostAbility(properties: IDecreaseEventCostAbilityProps<this>): void {
+    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): void {
         this.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
     }
 
@@ -136,7 +149,70 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
     /**
-     * Adds a dynamically gained triggered ability to the unit and immediately registers its triggers. Used for "gain ability" effects.
+     * Adds a dynamically gained action ability to the card. Used for "gain ability" effects.
+     *
+     * Duplicates of the same gained action from duplicates of the same source card can be added,
+     * but only one will be presented to the user as an available action.
+     *
+     * @returns The uuid of the created action ability
+     */
+    public addGainedActionAbility(properties: IActionAbilityProps): string {
+        const addedAbility = this.createActionAbility(properties);
+        this.actionAbilities.push(addedAbility);
+
+        return addedAbility.uuid;
+    }
+
+    /** Removes a dynamically gained action ability */
+    public removeGainedActionAbility(removeAbilityUuid: string): void {
+        const updatedAbilityList = this.actionAbilities.filter((ability) => ability.uuid !== removeAbilityUuid);
+        Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
+
+        this.actionAbilities = updatedAbilityList;
+    }
+
+    /**
+     * Adds a dynamically gained constant ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+     *
+     * @returns The uuid of the created triggered ability
+     */
+    public addGainedConstantAbility(properties: IConstantAbilityProps): string {
+        const addedAbility = this.createConstantAbility(properties);
+        this.constantAbilities.push(addedAbility);
+        addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
+
+        return addedAbility.uuid;
+    }
+
+    /** Removes a dynamically gained constant ability and unregisters its effects */
+    public removeGainedConstantAbility(removeAbilityUuid: string): void {
+        let abilityToRemove: IConstantAbility = null;
+        const remainingAbilities: IConstantAbility[] = [];
+
+        for (const constantAbility of this.constantAbilities) {
+            if (constantAbility.uuid === removeAbilityUuid) {
+                if (abilityToRemove) {
+                    Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
+                }
+
+                abilityToRemove = constantAbility;
+            } else {
+                remainingAbilities.push(constantAbility);
+            }
+        }
+
+        if (abilityToRemove == null) {
+            Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
+        }
+
+        this.constantAbilities = remainingAbilities;
+
+        this.removeEffectFromEngine(abilityToRemove.registeredEffects);
+        abilityToRemove.registeredEffects = [];
+    }
+
+    /**
+     * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
      *
      * @returns The uuid of the created triggered ability
      */
@@ -178,14 +254,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
         // where we maybe wouldn't reset events / effects / limits?
         this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
         this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
+        this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
 
         this.movedFromZone = null;
     }
 
+    public override registerMove(movedFromZone: ZoneName): void {
+        super.registerMove(movedFromZone);
+
+        this.movedFromZone = movedFromZone;
+    }
+
     protected override initializeForCurrentZone(prevZone?: ZoneName) {
         super.initializeForCurrentZone(prevZone);
-
-        this.movedFromZone = prevZone;
 
         if (EnumHelpers.isArena(this.zoneName)) {
             this.setPendingDefeatEnabled(true);
@@ -236,6 +317,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
         }
     }
 
+    /** Register / un-register the effects for any abilities from keywords */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) { }
+
     protected override resetLimits() {
         super.resetLimits();
 
@@ -251,6 +336,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
 
         this._pendingDefeat = true;
+        this._disableOngoingEffectsForDefeat = true;
     }
 
     public checkUnique() {

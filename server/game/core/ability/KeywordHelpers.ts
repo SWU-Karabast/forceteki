@@ -20,7 +20,7 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
-        } else if (keywordName === KeywordName.Bounty) {
+        } else if (keywordName === KeywordName.Bounty || keywordName === KeywordName.Coordinate) {
             if (isKeywordEnabled(keywordName, cardText, cardName)) {
                 keywords.push(new KeywordWithAbilityDefinition(keywordName));
             }
@@ -40,7 +40,9 @@ export function keywordFromProperties(properties: IKeywordProperties) {
     }
 
     if (properties.keyword === KeywordName.Bounty) {
-        return new KeywordWithAbilityDefinition(properties.keyword, createBountyAbilityFromProps(properties.ability));
+        const bountyAbilityProps = createBountyAbilityFromProps(properties.ability);
+
+        return new KeywordWithAbilityDefinition(properties.keyword, { ...bountyAbilityProps, type: AbilityType.Triggered });
     }
 
     // TODO SMUGGLE: add smuggle here for "gain smuggle" abilities
@@ -67,6 +69,8 @@ export function createBountyAbilityFromProps(properties: Omit<ITriggeredAbilityP
 export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Ambush]: false,
     [KeywordName.Bounty]: false,
+    [KeywordName.Coordinate]: false,
+    [KeywordName.Exploit]: true,
     [KeywordName.Grit]: false,
     [KeywordName.Overwhelm]: false,
     [KeywordName.Raid]: true,
@@ -109,7 +113,7 @@ function isKeywordEnabled(keyword: KeywordName, cardText: string, cardName: stri
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
 function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: string, cardName: string): number | null {
-    Contract.assertTrue([KeywordName.Raid, KeywordName.Restore].includes(keyword));
+    Contract.assertTrue([KeywordName.Exploit, KeywordName.Raid, KeywordName.Restore].includes(keyword));
 
     const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);
@@ -165,6 +169,10 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Ambush/g;
         case KeywordName.Bounty:
             return /(?:^|(?:\n))Bounty/g;
+        case KeywordName.Coordinate:
+            return /(?:^|(?:\n))Coordinate/g;
+        case KeywordName.Exploit:
+            return /(?:^|(?:\n))Exploit ([\d]+)/g;
         case KeywordName.Grit:
             return /(?:^|(?:\n))Grit/g;
         case KeywordName.Overwhelm:

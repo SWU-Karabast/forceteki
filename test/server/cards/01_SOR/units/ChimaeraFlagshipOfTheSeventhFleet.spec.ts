@@ -9,7 +9,10 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                     },
                     player2: {
                         hand: ['vanquish', 'millennium-falcon#piece-of-junk', 'millennium-falcon#landos-pride', 'wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -40,7 +43,10 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                     },
                     player2: {
                         hand: ['vanquish', 'millennium-falcon#piece-of-junk', 'millennium-falcon#landos-pride', 'wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -69,7 +75,10 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                     },
                     player2: {
                         hand: ['vanquish', 'millennium-falcon#piece-of-junk', 'millennium-falcon#landos-pride', 'wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
