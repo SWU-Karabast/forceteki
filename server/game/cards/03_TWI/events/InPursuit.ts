@@ -12,15 +12,14 @@ export default class InPursuit extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Exhaust a friendly unit. If you do, exhaust an enemy unit.',
-            optional: true,
+            title: 'Exhaust a friendly unit.',
             targetResolver: {
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card.isUnit() && !card.exhausted,
+                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             },
             ifYouDo: {
-                title: 'Choose an enemy unit',
+                title: 'Exhaust an enemy unit',
                 targetResolver: {
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.Unit,
