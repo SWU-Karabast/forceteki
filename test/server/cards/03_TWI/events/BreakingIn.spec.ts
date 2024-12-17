@@ -21,7 +21,7 @@ describe('Breaking In', function () {
             context.player1.clickCard(context.p2Base);
             expect(context.p2Base.damage).toBe(5);
 
-            // second to attack to confirm the effect is gone
+            // second attack to confirm the effect is gone
             context.player2.passAction();
             context.battlefieldMarine.exhausted = false;
             context.player1.clickCard(context.battlefieldMarine);
