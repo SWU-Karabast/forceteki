@@ -1,7 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import { UnitCard } from '../core/card/CardTypes';
+import { UpgradeCard } from '../core/card/UpgradeCard';
 import { EventName, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import { DamageSourceType, DefeatSourceType, IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 
@@ -18,6 +21,17 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
     defeatSource?: IDamageSource | DefeatSourceType.Ability;
 }
 
+/** Records the "last known information" of a card before it left the arena, in case ability text needs to refer back to it. See SWU 8.12. */
+export interface ILastKnownInformation {
+    controller: Player;
+    arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
+    power?: number;
+    hp?: number;
+    damage?: number;
+    parentCard?: UnitCard;
+    upgrades?: UpgradeCard[];
+}
+
 export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IDefeatCardPropertiesBase = IDefeatCardProperties> extends CardTargetSystem<TContext, TProperties> {
     public override readonly name = 'defeat';
     public override readonly eventName = EventName.OnCardDefeated;
@@ -29,17 +43,19 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     };
 
     public eventHandler(event): void {
-        if (event.card.zoneName !== ZoneName.Resource && event.card.isUpgrade()) {
-            event.card.unattach();
+        const card: Card = event.card;
+
+        if (card.zoneName !== ZoneName.Resource && card.isUpgrade()) {
+            card.unattach();
         }
 
-        if (event.card.isToken()) {
+        if (card.isToken()) {
             // move the token out of the play area so that effect cleanup happens, then remove it from all card lists
-            event.card.moveTo(ZoneName.OutsideTheGame);
-        } else if (event.card.isLeader()) {
-            event.card.undeploy();
+            card.moveTo(ZoneName.OutsideTheGame);
+        } else if (card.isLeaderUnit()) {
+            card.undeploy();
         } else {
-            event.card.moveTo(ZoneName.Discard);
+            card.moveTo(ZoneName.Discard);
         }
     }
 
@@ -99,5 +115,49 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (card.zoneName !== ZoneName.Resource) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         }
+
+        // build last known information for the card before event window resolves to ensure that no state has yet changed
+        event.setPreResolutionEffect((event) => {
+            event.lastKnownInformation = this.buildLastKnownInformation(card);
+        });
+    }
+
+    private buildLastKnownInformation(card: Card): ILastKnownInformation {
+        Contract.assertTrue(card.canBeInPlay());
+        Contract.assertTrue(
+            card.zoneName === ZoneName.GroundArena ||
+            card.zoneName === ZoneName.SpaceArena ||
+            card.zoneName === ZoneName.Resource
+        );
+
+        if (card.zoneName === ZoneName.Resource) {
+            return {
+                controller: card.controller,
+                arena: card.zoneName
+            };
+        }
+
+        if (card.isUnit()) {
+            return {
+                power: card.getPower(),
+                hp: card.getHp(),
+                arena: card.zoneName,
+                controller: card.controller,
+                damage: card.damage,
+                upgrades: card.upgrades
+            };
+        }
+
+        if (card.isUpgrade()) {
+            return {
+                power: card.getPower(),
+                hp: card.getHp(),
+                arena: card.zoneName,
+                controller: card.controller,
+                parentCard: card.parentCard
+            };
+        }
+
+        Contract.fail(`Unexpected card type: ${card.type}`);
     }
 }
