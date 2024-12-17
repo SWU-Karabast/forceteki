@@ -24,8 +24,9 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 3. Uniqueness management
  */
 export class InPlayCard extends PlayableOrDeployableCard {
-    protected _disableOngoingEffectsForDefeat? = null;
-    protected _pendingDefeat? = null;
+    protected _disableOngoingEffectsForDefeat?: boolean = null;
+    protected _mostRecentInPlayId = -1;
+    protected _pendingDefeat?: boolean = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     private movedFromZone?: ZoneName = null;
@@ -39,6 +40,20 @@ export class InPlayCard extends PlayableOrDeployableCard {
     public get disableOngoingEffectsForDefeat() {
         this.assertPropertyEnabled(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
         return this._disableOngoingEffectsForDefeat;
+    }
+
+    public get inPlayId() {
+        this.assertPropertyEnabledBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
+        return this._mostRecentInPlayId;
+    }
+
+    public get mostRecentInPlayId() {
+        this.assertPropertyEnabledBoolean(
+            !EnumHelpers.isArena(this.zoneName) && this.zone.hiddenForPlayers == null,
+            'mostRecentInPlayId'
+        );
+
+        return this._mostRecentInPlayId;
     }
 
     /**
@@ -270,6 +285,11 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         if (EnumHelpers.isArena(this.zoneName)) {
             this.setPendingDefeatEnabled(true);
+
+            // increment to a new in-play id if we're entering play, indicating that we are now a new "copy" of this card (SWU 8.6.4)
+            if (!EnumHelpers.isArena(prevZone)) {
+                this._mostRecentInPlayId += 1;
+            }
         } else {
             this.setPendingDefeatEnabled(false);
         }

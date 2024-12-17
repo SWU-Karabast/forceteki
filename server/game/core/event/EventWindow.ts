@@ -190,11 +190,11 @@ export class EventWindow extends BaseStepWithPipeline {
         }
 
         for (const event of eventsToResolve) {
-            // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
+            // need to checkCondition here to ensure the event won't fizzle due to another event's resolution
             event.checkCondition();
             if (event.canResolve) {
-                this.game.emit(event.name, event);
                 event.executeHandler();
+                this.game.emit(event.name, event);
 
                 this.resolvedEvents.push(event);
             }

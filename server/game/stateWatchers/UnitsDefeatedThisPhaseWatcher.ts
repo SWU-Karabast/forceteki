@@ -8,7 +8,13 @@ import { Card } from '../core/card/Card';
 // TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
     unit: UnitCard;
+    inPlayId: number;
     controlledBy: Player;
+}
+
+interface InPlayUnit {
+    unit: UnitCard;
+    inPlayId: number;
 }
 
 export type IUnitsDefeatedThisPhase = DefeatedUnitEntry[];
@@ -36,9 +42,22 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
             .map((entry) => entry.unit);
     }
 
+    /** Get the list of the specified player's units that were defeated */
+    public getDefeatedUnitsControlledByPlayerNew(controller: Player): InPlayUnit[] {
+        return this.getCurrentValue()
+            .filter((entry) => entry.controlledBy === controller)
+            .map((entry) => ({ unit: entry.unit, inPlayId: entry.inPlayId }));
+    }
+
+    public wasDefeatedThisPhase(card: UnitCard) {
+        return this.getCurrentValue().some(
+            (entry) => entry.unit === card && entry.inPlayId === (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId)
+        );
+    }
+
     /** Check if there is some units controlled by player that was defeated this phase */
     public someDefeatedUnitControlledByPlayer(controller: Player): boolean {
-        return this.getDefeatedUnitsControlledByPlayer(controller).length > 0;
+        return this.getCurrentValue().filter((entry) => entry.controlledBy === controller).length > 0;
     }
 
     protected override setupWatcher() {
@@ -48,7 +67,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
                 onCardDefeated: (context) => context.card.isUnit(),
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
-                currentState.concat({ unit: event.card, controlledBy: event.card.controller })
+                currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller })
         });
     }
 
