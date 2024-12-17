@@ -1,16 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { AbilityRestriction, CardType, CardTypeFilter, Duration, EventName, KeywordName, ZoneName, MetaEventName, WildcardCardType, WildcardZoneName } from '../core/Constants';
+import { AbilityRestriction, CardType, CardTypeFilter, Duration, EffectName, KeywordName, MetaEventName, WildcardCardType, ZoneName } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
-import { EffectName } from '../core/Constants';
 import { AttackFlow } from '../core/attack/AttackFlow';
-import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { damage } from './GameSystemLibrary.js';
 import type { Card } from '../core/card/Card';
 import { isArray } from 'underscore';
 import { GameEvent } from '../core/event/GameEvent';
-import { ICardLastingEffectProperties, CardLastingEffectSystem } from './CardLastingEffectSystem';
+import { CardLastingEffectSystem } from './CardLastingEffectSystem';
 import * as Contract from '../core/utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 import * as Helpers from '../core/utils/Helpers';
@@ -117,8 +114,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
 
         const attackerZone = properties.attacker.zoneName === ZoneName.GroundArena ? ZoneName.GroundArena : ZoneName.SpaceArena;
-        const canTargetGround = attackerZone === ZoneName.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
-        const canTargetSpace = attackerZone === ZoneName.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
+        const canTargetGround = attackerZone === ZoneName.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena) || this.attackerGainsEffect(targetCard, context, EffectName.CanAttackGroundArenaFromSpaceArena, additionalProperties);
+        const canTargetSpace = attackerZone === ZoneName.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena) || this.attackerGainsEffect(targetCard, context, EffectName.CanAttackSpaceArenaFromGroundArena, additionalProperties);
         if (
             targetCard.zoneName !== attackerZone &&
             targetCard.zoneName !== ZoneName.Base &&
@@ -210,9 +207,10 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         attack: Attack) {
         // create events for all effects to be generated
         const effectEvents: GameEvent[] = [];
-        const effectsRegistered =
-            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents) ||
-            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), attack.target, context, attack, effectEvents);
+        const effectsRegistered = [
+            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents),
+            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), attack.target, context, attack, effectEvents)
+        ].some((result) => result);
 
         if (effectsRegistered) {
             context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for attack effects');
@@ -239,8 +237,16 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
+    private attackerGainsSaboteur(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any) {
+        return this.attackerGains(attackTarget, context, additionalProperties, (effect) => effect.impl.type === EffectName.GainKeyword && (effect.impl.valueWrapper.value as KeywordInstance).name === KeywordName.Saboteur);
+    }
+
+    private attackerGainsEffect(attackTarget: CardWithDamageProperty, context: TContext, effect: EffectName, additionalProperties?: any) {
+        return this.attackerGains(attackTarget, context, additionalProperties, (e) => e.impl.type === effect);
+    }
+
     /** Checks if there are any lasting effects that would give the attacker Saboteur, for the purposes of targeting */
-    private attackerGainsSaboteur(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any): boolean {
+    private attackerGains(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any, predicate = (e) => false): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const attackerLastingEffects = Helpers.asArray(properties.attackerLastingEffects);
@@ -261,10 +267,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             const applicableEffects = effectSystem.getApplicableEffects(properties.attacker, context);
 
             for (const effect of applicableEffects) {
-                if (
-                    effect.impl.type === EffectName.GainKeyword &&
-                    (effect.impl.valueWrapper.value as KeywordInstance).name === KeywordName.Saboteur
-                ) {
+                if (predicate(effect)) {
                     return true;
                 }
             }
