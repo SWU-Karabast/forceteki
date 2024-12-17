@@ -17,11 +17,11 @@ export class GameEvent {
     public condition = (event) => true;
     public order = 0;
     public isContingent = false;
-    public preResolutionEffect = () => true;
 
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
+    private preResolutionEffect = () => true;
     private replacementEvent: any = null;
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
