@@ -146,7 +146,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
                 damage: card.damage,
                 upgrades: card.upgrades
             };
-        } else if (card.isUpgrade()) {
+        }
+
+        if (card.isUpgrade()) {
             return {
                 power: card.getPower(),
                 hp: card.getHp(),
