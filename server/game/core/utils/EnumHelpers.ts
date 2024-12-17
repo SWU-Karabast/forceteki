@@ -20,6 +20,7 @@ export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
 
+// TODO: Use type predicates in similar functions in this file to enable type narrowing
 export const isArena = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneName.SpaceArena | WildcardZoneName.AnyArena => {
     switch (zone) {
         case ZoneName.GroundArena:

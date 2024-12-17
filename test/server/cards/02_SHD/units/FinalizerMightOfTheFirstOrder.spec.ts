@@ -39,14 +39,19 @@ describe('Finalizer, Might of the First Order', function() {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickPrompt('Done');
 
+                // Capture 4-LOM, which is currently alive because of the presence of Zuckuss
                 expect(context.player1).toHavePrompt('Choose a unit to capture with Iden Versio');
                 expect(context.player1).toBeAbleToSelectExactly([context.steadfastBattalion, context.battlefieldMarine, context.zuckuss, context._4lom]);
                 context.player1.clickCard(context._4lom);
 
+                // Capture Zuckuss, which is currently alive because of the presence of 4-LOM
                 expect(context.player1).toHavePrompt('Choose a unit to capture with Wampa');
                 expect(context.player1).toBeAbleToSelectExactly([context.steadfastBattalion, context.battlefieldMarine, context.zuckuss]);
                 context.player1.clickCard(context.zuckuss);
 
+                // Verify that all the units have been captured correctly.
+                // Note that this is implicitly testing that the units are captured simultaneously,
+                // if that wasn't true then 4-LOM and/or Zuckuss would have been defeated
                 expect(context.avenger).toBeCapturedBy(context.cartelSpacer);
                 expect(context._4lom).toBeCapturedBy(context.idenVersio);
                 expect(context.zuckuss).toBeCapturedBy(context.wampa);
