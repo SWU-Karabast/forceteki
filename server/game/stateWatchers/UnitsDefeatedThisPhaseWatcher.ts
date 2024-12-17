@@ -49,9 +49,11 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
             .map((entry) => ({ unit: entry.unit, inPlayId: entry.inPlayId }));
     }
 
-    public wasDefeatedThisPhase(card: UnitCard) {
+    public wasDefeatedThisPhase(card: UnitCard, inPlayId?: number): boolean {
+        const inPlayIdToCheck = inPlayId ?? (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
+
         return this.getCurrentValue().some(
-            (entry) => entry.unit === card && entry.inPlayId === (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId)
+            (entry) => entry.unit === card && entry.inPlayId === inPlayIdToCheck
         );
     }
 
