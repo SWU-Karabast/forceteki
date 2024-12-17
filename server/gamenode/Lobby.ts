@@ -64,7 +64,7 @@ export class Lobby {
         const source = args[0]; // [<'Deck'|'Sideboard>'<cardID>]
         const cardID = args[1];
 
-        Contract.assertTrue(source === 'Deck' || source === 'Sideboard');
+        Contract.assertTrue(source === 'Deck' || source === 'Sideboard', `source isn't 'Deck' or 'Sideboard' but ${source}`);
         // Determine the arrays we are moving between
         const sourceArray = source === 'Deck' ? userDeck.deckCards : userDeck.sideboard;
         const targetArray = source === 'Deck' ? userDeck.sideboard : userDeck.deckCards;
@@ -80,7 +80,7 @@ export class Lobby {
         sourceEntry.count -= 1;
 
         // If count is now zero, remove it from the source array
-        Contract.assertTrue(sourceEntry.count >= 0);
+        Contract.assertNonNegative(sourceEntry.count, sourceEntry);
         if (sourceEntry.count === 0) {
             sourceArray.splice(sourceIndex, 1);
         }
