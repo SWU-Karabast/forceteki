@@ -11,7 +11,7 @@ describe('Finalizer, Might of the First Order', function() {
                         leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
                     },
                     player2: {
-                        groundArena: ['steadfast-battalion', 'battlefield-marine', 'isb-agent', 'superlaser-technician'],
+                        groundArena: ['steadfast-battalion', 'battlefield-marine', { card: 'zuckuss#bounty-hunter-for-hire', damage: 6 }, { card: '4lom#bounty-hunter-for-hire', damage: 4 }],
                         spaceArena: ['avenger#hunting-star-destroyer'],
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
                     }
@@ -40,16 +40,16 @@ describe('Finalizer, Might of the First Order', function() {
                 context.player1.clickPrompt('Done');
 
                 expect(context.player1).toHavePrompt('Choose a unit to capture with Iden Versio');
-                expect(context.player1).toBeAbleToSelectExactly([context.steadfastBattalion, context.battlefieldMarine, context.isbAgent, context.superlaserTechnician]);
-                context.player1.clickCard(context.superlaserTechnician);
+                expect(context.player1).toBeAbleToSelectExactly([context.steadfastBattalion, context.battlefieldMarine, context.zuckuss, context._4lom]);
+                context.player1.clickCard(context._4lom);
 
                 expect(context.player1).toHavePrompt('Choose a unit to capture with Wampa');
-                expect(context.player1).toBeAbleToSelectExactly([context.steadfastBattalion, context.battlefieldMarine, context.isbAgent]);
-                context.player1.clickCard(context.isbAgent);
+                expect(context.player1).toBeAbleToSelectExactly([context.steadfastBattalion, context.battlefieldMarine, context.zuckuss]);
+                context.player1.clickCard(context.zuckuss);
 
                 expect(context.avenger).toBeCapturedBy(context.cartelSpacer);
-                expect(context.superlaserTechnician).toBeCapturedBy(context.idenVersio);
-                expect(context.isbAgent).toBeCapturedBy(context.wampa);
+                expect(context._4lom).toBeCapturedBy(context.idenVersio);
+                expect(context.zuckuss).toBeCapturedBy(context.wampa);
             });
 
             it('does nothing if there are no units to be captured', function () {
