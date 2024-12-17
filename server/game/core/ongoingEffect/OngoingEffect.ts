@@ -2,7 +2,7 @@ import { IOngoingEffectProps, WhenType } from '../../Interfaces';
 import { AbilityContext } from '../ability/AbilityContext';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { Card } from '../card/Card';
-import { Duration, ZoneFilter, RelativePlayer, WildcardZoneName } from '../Constants';
+import { Duration, ZoneFilter, RelativePlayer, WildcardZoneName, EffectName } from '../Constants';
 import Game from '../Game';
 import { GameObject } from '../GameObject';
 import Player from '../Player';
@@ -112,7 +112,7 @@ export abstract class OngoingEffect {
     }
 
     public isEffectActive() {
-        if (this.duration !== Duration.Persistent) {
+        if (this.duration !== Duration.Persistent || this.impl.type === EffectName.DelayedEffect) {
             return true;
         }
 
