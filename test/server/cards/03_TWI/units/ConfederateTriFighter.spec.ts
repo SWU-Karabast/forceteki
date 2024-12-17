@@ -15,7 +15,10 @@ describe('Confederate Tri-Fighter', function () {
                         groundArena: ['yoda#old-master'],
                         spaceArena: ['corellian-freighter'],
                         base: { card: 'capital-city', damage: 5 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

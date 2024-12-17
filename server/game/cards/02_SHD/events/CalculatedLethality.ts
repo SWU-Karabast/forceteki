@@ -15,20 +15,13 @@ export default class CalculatedLethality extends EventCard {
             title: 'Defeat a non-leader unit that costs 3 or less',
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 3,
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    // TODO: this is a hack to store data before it's defeated.
-                    // once last known state is implemented, we need to read data from that
-                    AbilityHelper.immediateEffects.handler((context) => ({
-                        handler: () => context.targets.upgradeAmount = context.target.upgrades.length
-                    })),
-                    AbilityHelper.immediateEffects.defeat()
-                ])
+                immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             then: (thenContext) => ({
                 title: 'For each upgrade that was on that unit, give an Experience token to a friendly unit.',
-                thenCondition: () => thenContext.targets.upgradeAmount != null,
+                thenCondition: () => thenContext.events?.length > 0,
                 immediateEffect: AbilityHelper.immediateEffects.distributeExperienceAmong({
-                    amountToDistribute: thenContext.targets.upgradeAmount,
+                    amountToDistribute: thenContext.events[0].lastKnownInformation.upgrades.length,
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     canChooseNoTargets: false,

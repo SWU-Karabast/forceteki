@@ -70,7 +70,7 @@ export class GameServer {
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', (req, res) => {
-            if (this.createLobby(req.body.user)) {
+            if (this.createLobby(req.body.user, req.body.deck)) {
                 res.status(200).json({ success: true });
             } else {
                 res.status(400).json({ success: false });
@@ -108,10 +108,12 @@ export class GameServer {
         );
     }
 
-    private createLobby(user: string) {
+    private createLobby(user: string, deck: any) {
         const lobby = new Lobby();
         this.lobbies.set(lobby.id, lobby);
         // Using default user for now
+        // set the user
+        lobby.createLobbyUser('Order66', deck);
         this.userLobbyMap.set('Order66', lobby.id);
         // this.userLobbyMap.set('ThisIsTheWay', lobby.id);
         return true;
@@ -264,7 +266,6 @@ export class GameServer {
         const lobbyId = this.userLobbyMap.get(user.username);
         const lobby = this.lobbies.get(lobbyId);
         const socket = new Socket(ioSocket);
-
         lobby.addLobbyUser(user.username, socket);
         socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.username, reason));
 

@@ -9,7 +9,10 @@ describe('Bounty', function() {
                     },
                     player2: {
                         groundArena: ['wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -36,7 +39,10 @@ describe('Bounty', function() {
                     },
                     player2: {
                         groundArena: ['wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -57,7 +63,10 @@ describe('Bounty', function() {
                     player1: {
                         hand: ['vanquish'],
                         groundArena: ['hylobon-enforcer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -80,7 +89,10 @@ describe('Bounty', function() {
                     },
                     player2: {
                         hand: ['discerning-veteran']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -111,7 +123,10 @@ describe('Bounty', function() {
                     },
                     player2: {
                         hand: ['discerning-veteran']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -142,7 +157,10 @@ describe('Bounty', function() {
                     player2: {
                         groundArena: ['wampa', 'hylobon-enforcer'],
                         spaceArena: ['cartel-turncoat']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -169,7 +187,10 @@ describe('Bounty', function() {
                     player2: {
                         groundArena: ['hylobon-enforcer'],
                         hand: ['waylay'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -195,7 +216,10 @@ describe('Bounty', function() {
                     },
                     player2: {
                         groundArena: ['hylobon-enforcer'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 // We now defeat it to check it doesn't trigger twice.

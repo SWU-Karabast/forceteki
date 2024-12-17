@@ -22,6 +22,8 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
     ) {
         super(game);
 
+        Contract.assertNonNegative(properties.amount);
+
         if (!properties.waitingPromptTitle) {
             properties.waitingPromptTitle = 'Waiting for opponent to choose targets for ' + properties.source.name;
         }

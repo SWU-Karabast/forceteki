@@ -364,13 +364,13 @@ var customMatchers = {
                     if (selectable.length === 1) {
                         result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
                     } else {
-                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${selectable.map((card) => card.name).join(', ')}`;
+                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${cardNamesToString(selectable)}`;
                     }
                 } else {
                     if (unselectable.length === 1) {
                         result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
                     } else {
-                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${unselectable.map((card) => card.name).join(', ')}`;
+                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${cardNamesToString(unselectable)}`;
                     }
                 }
 
@@ -408,13 +408,13 @@ var customMatchers = {
                     if (unselectable.length === 1) {
                         result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
                     } else {
-                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${unselectable.map((card) => card.name).join(', ')}`;
+                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${cardNamesToString(unselectable)}`;
                     }
                 } else {
                     if (selectable.length === 1) {
                         result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
                     } else {
-                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${selectable.map((card) => card.name).join(', ')}`;
+                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${cardNamesToString(selectable)}`;
                     }
                 }
 
@@ -450,18 +450,18 @@ var customMatchers = {
                 result.pass = unexpectedUnselectable.length === 0 && unexpectedSelectable.length === 0;
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${expectedSelectable.map((card) => card.name).join(', ')}`;
+                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${cardNamesToString(expectedSelectable)}`;
                 } else {
                     let message = '';
 
                     if (unexpectedUnselectable.length > 0) {
-                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${unexpectedUnselectable.map((card) => card.name).join(', ')}`;
+                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${cardNamesToString(unexpectedUnselectable)}`;
                     }
                     if (unexpectedSelectable.length > 0) {
                         if (message.length > 0) {
                             message += '\n';
                         }
-                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${unexpectedSelectable.map((card) => card.name).join(', ')}`;
+                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${cardNamesToString(unexpectedSelectable)}`;
                     }
                     result.message = message;
                 }
@@ -675,23 +675,58 @@ var customMatchers = {
                 }
                 let result = {};
 
-                const zoneOwningPlayer = player || card.controller;
-
-                const correctProperty = card.zoneName === zone;
-                const correctPile = zoneOwningPlayer.getCardsInZone(zone).includes(card);
-
-                if (correctProperty !== correctPile) {
-                    result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${zoneOwningPlayer.name}'`;
+                if (!checkConsistentZoneState(card, result)) {
                     return result;
                 }
 
-                result.pass = correctProperty && correctPile;
+                const zoneOwningPlayer = player || card.controller;
+                result.pass = zoneOwningPlayer.getCardsInZone(zone).includes(card);
 
                 if (result.pass) {
                     result.message = `Expected ${card.internalName} not to be in zone '${zone}' but it is`;
                 } else {
                     result.message = `Expected ${card.internalName} to be in zone '${zone}' but it is in zone '${card.zoneName}'`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toAllBeInZone: function () {
+        return {
+            compare: function (cards, zone, player = null) {
+                if (!Array.isArray(cards)) {
+                    throw new TestSetupError('This expectation requires an array of card objects');
+                }
+                if (zone === 'capture') {
+                    throw new TestSetupError('Do not use toBeInZone to check for capture zone, use to toBeCapturedBy instead');
+                }
+
+                let result = { pass: true };
+                let cardsInWrongZone = [];
+
+                for (const card of cards) {
+                    if (!checkConsistentZoneState(card, result)) {
+                        return result;
+                    }
+
+                    const zoneOwningPlayer = player || card.controller;
+                    if (!zoneOwningPlayer.getCardsInZone(zone).includes(card)) {
+                        cardsInWrongZone.push(card);
+                        result.pass = false;
+                    }
+                }
+
+                const playerStr = player ? ` for player ${player}` : '';
+
+                if (result.pass) {
+                    result.message = `Expected these cards not to be in zone ${zone}${playerStr} but they are: ${cardNamesToString(cards)}`;
+                } else {
+                    result.message = `Expected the following cards to be in zone ${zone}${playerStr} but they were not:`;
+
+                    for (const card of cardsInWrongZone) {
+                        result.message += `\n\t- ${card.internalName} is in zone ${card.zoneName}`;
+                    }
                 }
 
                 return result;
@@ -706,13 +741,9 @@ var customMatchers = {
                 }
                 let result = {};
 
-                if (card.zoneName !== 'capture') {
-                    result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding capture zone for ${captor.internalName}'`;
+                if (card.zoneName !== 'capture' && !checkConsistentZoneState(card, result)) {
                     return result;
                 }
-
-                const correctPile = captor.captureZone;
 
                 result.pass = captor.captureZone.hasCard(card);
 
@@ -813,6 +844,10 @@ function generatePromptHelpMessage(testContext) {
     return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
 }
 
+function cardNamesToString(cards) {
+    return cards.map((card) => card.name).join(', ');
+}
+
 function validatePlayerOptions(playerOptions, playerName, startPhase) {
     // list of approved property names
     const noneSetupPhase = [
@@ -825,12 +860,13 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
         'leader',
         'base',
         'deck',
-        'resource',
+        'resource'
     ];
     // list of approved property names for setup phase
     const setupPhase = [
         'leader',
-        'deck'
+        'deck',
+        'base'
     ];
 
     // Check for unknown properties
@@ -843,9 +879,47 @@ function validatePlayerOptions(playerOptions, playerName, startPhase) {
     }
 }
 
+function validateTopLevelOptions(options) {
+    const allowedPropertyNames = [
+        'player1',
+        'player2',
+        'phase',
+        'autoSingleTarget'
+    ];
+
+    // Check for unknown properties
+    for (const prop of Object.keys(options)) {
+        if (!allowedPropertyNames.includes(prop)) {
+            throw new Error(`test setup options has an unknown property '${prop}'`);
+        }
+    }
+}
+
+function checkConsistentZoneState(card, result) {
+    if (!card.controller.getCardsInZone(card.zoneName).includes(card)) {
+        result.pass = false;
+        result.message = `Card ${card.internalName} has inconsistent zone state, card.zoneName is '${card.zoneName}' but it is not in the corresponding pile for ${card.controller.name}'`;
+        return false;
+    }
+
+    return true;
+}
+
 beforeEach(function () {
     jasmine.addMatchers(customMatchers);
 });
+
+// this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
+if (!jasmine.getEnv().configuration().random) {
+    jasmine.getEnv().addReporter({
+        specStarted(result) {
+            jasmine.getEnv().currentSpec = result;
+        },
+        specDone() {
+            jasmine.getEnv().currentSpec = null;
+        }
+    });
+}
 
 global.integration = function (definitions) {
     describe('- integration -', function () {
@@ -892,6 +966,7 @@ global.integration = function (definitions) {
                 // validate supplied parameters
                 validatePlayerOptions(options.player1, 'player1', options.phase);
                 validatePlayerOptions(options.player2, 'player2', options.phase);
+                validateTopLevelOptions(options, ['player1', 'player2', 'phase']);
 
                 this.game.gameMode = GameMode.Premier;
 
@@ -901,9 +976,16 @@ global.integration = function (definitions) {
                     this.game.initiativePlayer = this.player2Object;
                 }
 
+                const player1OwnedCards = deckBuilder.getOwnedCards(1, options.player1, options.player2);
+                const player2OwnedCards = deckBuilder.getOwnedCards(2, options.player2, options.player1);
+
+                const autoSingleTarget = !!options.autoSingleTarget;
+                this.player1Object.autoSingleTarget = autoSingleTarget;
+                this.player2Object.autoSingleTarget = autoSingleTarget;
+
                 // pass decklists to players. they are initialized into real card objects in the startGame() call
-                const [deck1, namedCards1] = deckBuilder.customDeck(1, options.player1, options.phase);
-                const [deck2, namedCards2] = deckBuilder.customDeck(2, options.player2, options.phase);
+                const [deck1, namedCards1, resources1, drawDeck1] = deckBuilder.customDeck(1, player1OwnedCards, options.phase);
+                const [deck2, namedCards2, resources2, drawDeck2] = deckBuilder.customDeck(2, player2OwnedCards, options.phase);
 
                 this.player1.selectDeck(deck1);
                 this.player2.selectDeck(deck2);
@@ -932,8 +1014,8 @@ global.integration = function (definitions) {
 
                 if (options.phase !== 'setup') {
                     // Resources
-                    this.player1.setResourceCards(options.player1.resources, ['outsideTheGame']);
-                    this.player2.setResourceCards(options.player2.resources, ['outsideTheGame']);
+                    this.player1.setResourceCards(resources1, ['outsideTheGame']);
+                    this.player2.setResourceCards(resources2, ['outsideTheGame']);
 
                     // Arenas
                     this.player1.setGroundArenaUnits(options.player1.groundArena, ['outsideTheGame']);
@@ -950,6 +1032,9 @@ global.integration = function (definitions) {
                     // Set Leader state (deployed, exhausted, etc.)
                     this.player1.setLeaderStatus(options.player1.leader);
                     this.player2.setLeaderStatus(options.player2.leader);
+
+                    this.player1.attachOpponentOwnedUpgrades(player2OwnedCards.opponentAttachedUpgrades);
+                    this.player2.attachOpponentOwnedUpgrades(player1OwnedCards.opponentAttachedUpgrades);
                 }
 
                 // Set Base damage
@@ -957,14 +1042,15 @@ global.integration = function (definitions) {
                 this.player2.setBaseStatus(options.player2.base);
 
                 // Deck
-                this.player1.setDeck(options.player1.deck, ['outsideTheGame']);
-                this.player2.setDeck(options.player2.deck, ['outsideTheGame']);
+                this.player1.setDeck(drawDeck1, ['outsideTheGame']);
+                this.player2.setDeck(drawDeck2, ['outsideTheGame']);
 
                 // add named cards to this for easy reference (allows us to do "this.<cardName>")
                 // note that if cards map to the same property name (i.e., same title), then they won't be added
                 const cardNamesAsProperties = Util.convertNonDuplicateCardNamesToProperties(
                     [this.player1, this.player2],
-                    [namedCards1, namedCards2]
+                    [namedCards1, namedCards2],
+                    player1OwnedCards.opponentAttachedUpgrades.concat(player2OwnedCards.opponentAttachedUpgrades)
                 );
                 this.cardPropertyNames = newContext.cardPropertyNames = [];
                 cardNamesAsProperties.forEach((card) => {
@@ -979,6 +1065,42 @@ global.integration = function (definitions) {
 
                 this.game.resolveGameState(true);
             };
+        });
+
+        afterEach(function() {
+            const { context } = contextRef;
+
+            // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
+            const parallelMode = jasmine.getEnv().configuration().random;
+
+            // if there were already failures in the test case, don't bother checking the prompts after
+            if (!parallelMode && jasmine.getEnv().currentSpec.failedExpectations.length > 0) {
+                return;
+            }
+
+            if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
+                return;
+            }
+
+            const actionWindowMenuTitles = [
+                'Waiting for opponent to take an action or pass',
+                'Choose an action'
+            ];
+
+            const playersWithUnresolvedPrompts = [context.player1, context.player2]
+                .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));
+
+            if (playersWithUnresolvedPrompts.length > 0) {
+                if (parallelMode) {
+                    throw new TestSetupError('The test ended with an unresolved prompt for one or both players. If the test had other errors / failures, disregard this error. Run the test in non-parallel mode for additional details.');
+                }
+
+                let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
+                    `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
+                ).join('');
+
+                throw new TestSetupError(`The test ended with an unresolved prompt for one or both players. Unresolved prompts:\n${activePromptsText}`);
+            }
         });
 
         definitions(contextRef);

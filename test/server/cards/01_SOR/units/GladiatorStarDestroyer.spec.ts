@@ -11,7 +11,10 @@ describe('Gladiator Star Destroyer', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -34,6 +37,7 @@ describe('Gladiator Star Destroyer', function() {
                 context.player1.passAction();
                 context.player2.clickCard(context.wampa);
                 expect(context.player2).toBeAbleToSelectExactly([context.directorKrennic, context.p1Base]);
+                context.player2.clickCard(context.p1Base);
             });
         });
     });

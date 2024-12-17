@@ -11,7 +11,10 @@ describe('Mystic Reflection', function() {
                     player2: {
                         groundArena: ['specforce-soldier'],
                         spaceArena: ['green-squadron-awing'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

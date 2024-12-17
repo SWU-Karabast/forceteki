@@ -4,12 +4,13 @@ const TestSetupError = require('./TestSetupError.js');
  * helper for generating a list of property names and card objects to add to the test context.
  * this is so that we can access things as "this.<cardName>"
  */
-function convertNonDuplicateCardNamesToProperties(players, cardNames) {
+function convertNonDuplicateCardNamesToProperties(players, cardNames, controlSwapped = []) {
     let mapToPropertyNamesWithCards = (cardNames, player) => cardNames.map((cardName) =>
         internalNameToPropertyNames(cardName).map((propertyName) => {
+            const isControlSwapped = controlSwapped.filter((card) => card.card === cardName && card.ownerAndController !== player.player.nameField);
             return {
                 propertyName: propertyName,
-                cardObj: player.findCardByName(cardName)
+                cardObj: (isControlSwapped.length > 0) ? player.findCardByName(cardName, 'any', 'opponent') : player.findCardByName(cardName)
             };
         })
     ).flat();
@@ -112,7 +113,7 @@ function formatBothPlayerPrompts(testContext) {
 
     var result = '';
     for (const player of [testContext.player1, testContext.player2]) {
-        result += `\n${player.name}:\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}`;
+        result += `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`;
     }
 
     return result;
