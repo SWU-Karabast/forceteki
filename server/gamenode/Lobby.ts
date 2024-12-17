@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 import Socket from '../socket';
 import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
-import * as Contract from "../game/core/utils/Contract";
+import * as Contract from '../game/core/utils/Contract';
 
 interface LobbyUser {
     id: string;
