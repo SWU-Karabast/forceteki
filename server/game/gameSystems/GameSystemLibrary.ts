@@ -73,7 +73,7 @@ export function attachUpgrade<TContext extends AbilityContext = AbilityContext>(
 export function attack<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IInitiateAttackProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new InitiateAttackSystem<TContext>(propertyFactory);
 }
-export function capture<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICaptureProperties, TContext> = {}): GameSystem<TContext> {
+export function capture<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICaptureProperties, TContext> = {}) {
     return new CaptureSystem<TContext>(propertyFactory);
 }
 export function cardLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardLastingEffectProperties, TContext>): GameSystem<TContext> {
