@@ -9,7 +9,8 @@ describe('Pillage', function() {
                     },
                     player2: {
                         hand: ['alliance-xwing', 'battlefield-marine', 'imperial-interceptor', 'wampa']
-                    }
+                    },
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -43,7 +44,8 @@ describe('Pillage', function() {
                     },
                     player2: {
                         hand: ['imperial-interceptor']
-                    }
+                    },
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -63,6 +65,7 @@ describe('Pillage', function() {
                     player1: {
                         hand: ['pillage'],
                     },
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -81,6 +84,7 @@ describe('Pillage', function() {
                     player1: {
                         hand: ['pillage', 'alliance-xwing', 'battlefield-marine', 'imperial-interceptor', 'wampa'],
                     },
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

@@ -47,6 +47,14 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             const properties = this.generatePropertiesFromContext(context, additionalProperties);
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && EnumHelpers.cardTypeMatches(card.type, properties.cardTypeFilter));
 
+            // Select this player if its their own hand, or the active player from the context if its the 'opponent' choosing
+            const discardingPlayer = properties.discardingPlayerType === RelativePlayer.Self ? player : context.player;
+
+            // Since this is an opponent discarding -- any possible card in hand makes the hand 'canAffect' true
+            if (!discardingPlayer.autoSingleTarget && player.hand.length > 0) {
+                return true;
+            }
+
             if (mustChangeGameState !== GameStateChangeRequired.None && (availableHand.length === 0 || properties.amount === 0)) {
                 return false;
             }
@@ -67,16 +75,19 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         for (const player of properties.target as Player[]) {
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
 
+            // Select this player if its their own hand, or the active player from the context if its the 'opponent' choosing
+            const discardingPlayer = properties.discardingPlayerType === RelativePlayer.Self ? player : context.player;
+
             Contract.assertNonNegative(derive(properties.amount, player));
 
             const amount = Math.min(availableHand.length, derive(properties.amount, player));
 
-            if (amount === 0) {
+            if (amount === 0 && discardingPlayer.autoSingleTarget) {
                 events.push(this.generateEvent(context, additionalProperties));
                 continue;
             }
 
-            if (amount >= availableHand.length) {
+            if (amount >= availableHand.length && discardingPlayer.autoSingleTarget) {
                 this.generateEventsForCards(availableHand, context, events, additionalProperties);
                 continue;
             }
@@ -86,9 +97,6 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 this.generateEventsForCards(randomCards, context, events, additionalProperties);
                 continue;
             }
-
-            // Select this player if its their own hand, or the active player from the context if its the 'opponent' choosing
-            const discardingPlayer = properties.discardingPlayerType === RelativePlayer.Self ? player : context.player;
 
             context.game.promptForSelect(discardingPlayer, {
                 activePromptTitle: 'Choose ' + (amount === 1 ? 'a card' : amount + ' cards') + ' to discard',

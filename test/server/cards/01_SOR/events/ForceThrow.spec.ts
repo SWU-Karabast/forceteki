@@ -12,7 +12,8 @@ describe('Force Throw', function() {
                         hand: ['karabast', 'battlefield-marine'],
                         groundArena: ['specforce-soldier', 'atst'],
                         spaceArena: ['tieln-fighter']
-                    }
+                    },
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -49,7 +50,8 @@ describe('Force Throw', function() {
                     player2: {
                         hand: ['karabast', 'battlefield-marine'],
                         groundArena: ['specforce-soldier', 'atst', 'ezra-bridger#resourceful-troublemaker']
-                    }
+                    },
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -73,7 +75,8 @@ describe('Force Throw', function() {
                     player2: {
                         hand: ['karabast', 'battlefield-marine'],
                         groundArena: ['specforce-soldier', 'atst', 'ezra-bridger#resourceful-troublemaker']
-                    }
+                    },
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -93,7 +96,8 @@ describe('Force Throw', function() {
                     },
                     player2: {
                         groundArena: ['atst']
-                    }
+                    },
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
