@@ -22,21 +22,26 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         ability: null
     };
 
-    public eventHandler(event, additionalProperties): void {
+    public eventHandler(event, additionalProperties?): void {
         let effects = event.effectFactories.map((factory) =>
             factory(event.context.game, event.context.source, event.effectProperties)
         );
 
-        const lastingEffectRestrictions = event.card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
-        effects = effects.filter(
-            (props) =>
-                props.impl.canBeApplied(event.card) &&
-                !lastingEffectRestrictions.some((condition) => condition(props.impl))
-        );
+        effects = this.filterApplicableEffects(event.card, effects);
 
         for (const effect of effects) {
             event.context.game.ongoingEffectEngine.add(effect);
         }
+    }
+
+    public getApplicableEffects(card: Card, context: TContext) {
+        const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context);
+
+        const effects = effectFactories.map((factory) =>
+            factory(context.game, context.source, effectProperties)
+        );
+
+        return this.filterApplicableEffects(card, effects);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): ICardLastingEffectProperties {
@@ -62,15 +67,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
 
         const effects = effectFactories.map((factory) => factory(context.game, context.source, effectProperties));
 
-        const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
-        return (
-            super.canAffect(card, context) &&
-              effects.some(
-                  (props) =>
-                      props.impl.canBeApplied(card) &&
-                      !lastingEffectRestrictions.some((condition) => condition(props.effect))
-              )
-        );
+        return super.canAffect(card, context) && this.filterApplicableEffects(card, effects).length > 0;
     }
 
     private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties = {}) {
@@ -79,5 +76,14 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         const effectProperties = { matchTarget: card, zoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties };
 
         return { effectFactories: effect, effectProperties };
+    }
+
+    private filterApplicableEffects(card: Card, effects: any[]) {
+        const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
+        return effects.filter(
+            (props) =>
+                props.impl.canBeApplied(card) &&
+                !lastingEffectRestrictions.some((condition) => condition(props.impl))
+        );
     }
 }

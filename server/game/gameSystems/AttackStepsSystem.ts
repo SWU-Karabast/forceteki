@@ -14,6 +14,7 @@ import { ICardLastingEffectProperties, CardLastingEffectSystem } from './CardLas
 import * as Contract from '../core/utils/Contract';
 import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 import * as Helpers from '../core/utils/Helpers';
+import { KeywordInstance } from '../core/ability/KeywordInstance';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
     condition?: (attack: Attack, context: TContext) => boolean;
@@ -91,8 +92,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
     /** This method is checking whether cards are a valid target for an attack. */
     public override canAffect(targetCard: Card, context: TContext, additionalProperties = {}): boolean {
-        if (!('printedHp' in targetCard)) {
-            return false; // cannot attack cards without printed HP
+        if (!targetCard.canBeDamaged()) {
+            return false;
         }
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -127,7 +128,11 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return false; // can only attack same arena or base unless an effect allows otherwise
         }
 
-        if (!properties.attacker.hasSomeKeyword(KeywordName.Saboteur)) { // If not Saboteur, do a Sentinel check
+        // If not Saboteur, do a Sentinel check
+        const attackerHasSaboteur =
+            properties.attacker.hasSomeKeyword(KeywordName.Saboteur) ||
+            this.attackerGainsSaboteur(targetCard, context, additionalProperties);
+        if (!attackerHasSaboteur) {
             if (targetCard.controller.getUnitsInPlay(attackerZone, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
                 return targetCard.hasSomeKeyword(KeywordName.Sentinel);
             }
@@ -221,16 +226,54 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
 
         for (const lastingEffect of lastingEffects) {
-            const lastingEffectProperties = typeof lastingEffect === 'function' ? lastingEffect(context, attack) : lastingEffect;
-
-            const effectSystem = new CardLastingEffectSystem(Object.assign({}, lastingEffectProperties, {
-                duration: Duration.UntilEndOfAttack,
-                target: target,
-                condition: lastingEffectProperties.condition == null ? null : (context: TContext) => lastingEffectProperties.condition(attack, context)
-            }));
+            const effectSystem = this.buildCardLastingEffectSystem(lastingEffect, context, attack, target);
             effectSystem.queueGenerateEventGameSteps(effectEvents, context);
         }
 
         return true;
+    }
+
+    private attackerGainsSaboteur(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any): boolean {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        const attackerLastingEffects = Helpers.asArray(properties.attackerLastingEffects);
+        if (attackerLastingEffects.length === 0) {
+            return false;
+        }
+
+        // construct a hypothetical attack in case it's required for evaluating a condition on the lasting effect
+        const attack = new Attack(
+            context.game,
+            properties.attacker as UnitCard,
+            attackTarget,
+            properties.isAmbush
+        );
+
+        for (const attackerLastingEffect of attackerLastingEffects) {
+            const effectSystem = this.buildCardLastingEffectSystem(attackerLastingEffect, context, attack, attackTarget);
+            const applicableEffects = effectSystem.getApplicableEffects(properties.attacker, context);
+
+            for (const effect of applicableEffects) {
+                if (
+                    effect.impl.type === EffectName.GainKeyword &&
+                    (effect.impl.valueWrapper.value as KeywordInstance).name === KeywordName.Saboteur
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private buildCardLastingEffectSystem(lastingEffect: IAttackLastingEffectPropertiesOrFactory<TContext>, context: TContext, attack: Attack, target: Card) {
+        const lastingEffectProperties = typeof lastingEffect === 'function' ? lastingEffect(context, attack) : lastingEffect;
+
+        return new CardLastingEffectSystem({
+            ...lastingEffectProperties,
+            duration: Duration.UntilEndOfAttack,
+            target: target,
+            condition: lastingEffectProperties.condition == null ? null : (context: TContext) => lastingEffectProperties.condition(attack, context)
+        });
     }
 }
