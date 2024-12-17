@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import Socket from '../socket';
 import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
+import * as Contract from "../game/core/utils/Contract";
 
 interface LobbyUser {
     id: string;
@@ -41,7 +42,7 @@ export class Lobby {
         const existingUser = this.users.find((u) => u.id === id);
         socket.registerEvent('startGame', () => this.onStartGame(id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
-        socket.registerEvent('updateDeck', (socket, command, ...args) => this.updateDeck(socket, command, ...args));
+        socket.registerEvent('updateDeck', (socket, ...args) => this.updateDeck(socket, ...args));
         // maybe we neeed to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
@@ -57,21 +58,20 @@ export class Lobby {
         }
     }
 
-    private updateDeck(socket, command, ...args) {
+    private updateDeck(socket: Socket, ...args) {
         const activeUser = this.users.find((u) => u.id === socket.user.username);
         const userDeck = activeUser.deck.data;
-        const [cardID] = args; // ['cardID']
+        const source = args[0]; // [<'Deck'|'Sideboard>'<cardID>]
+        const cardID = args[1];
 
+        Contract.assertTrue(source === 'Deck' || source === 'Sideboard');
         // Determine the arrays we are moving between
-        const sourceArray = command === 'Deck' ? userDeck.deckCards : userDeck.sideboard;
-        const targetArray = command === 'Deck' ? userDeck.sideboard : userDeck.deckCards;
+        const sourceArray = source === 'Deck' ? userDeck.deckCards : userDeck.sideboard;
+        const targetArray = source === 'Deck' ? userDeck.sideboard : userDeck.deckCards;
 
         // Find the card in the source array
         const sourceIndex = sourceArray.findIndex((item) => item.card.id === cardID);
-        if (sourceIndex === -1) {
-            console.log(`Card with UUID ${cardID} not found in source ${command}`);
-            return;
-        }
+        Contract.assertTrue(sourceIndex !== -1);
 
         // Extract the card entry from the source
         const sourceEntry = sourceArray[sourceIndex];
@@ -80,7 +80,8 @@ export class Lobby {
         sourceEntry.count -= 1;
 
         // If count is now zero, remove it from the source array
-        if (sourceEntry.count <= 0) {
+        Contract.assertTrue(sourceEntry.count >= 0);
+        if (sourceEntry.count === 0) {
             sourceArray.splice(sourceIndex, 1);
         }
 
@@ -92,7 +93,7 @@ export class Lobby {
             // Card not in target array, add a new entry
             targetArray.push({
                 count: 1,
-                card: sourceEntry.card || sourceEntry.card // If we removed from source, we need to ensure we still have the card data
+                card: sourceEntry.card
             });
         } else {
             // Card already exists in target, just increment the count
