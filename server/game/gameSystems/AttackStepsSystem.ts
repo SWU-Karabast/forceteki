@@ -60,15 +60,15 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     public eventHandler(event, additionalProperties): void {
         const context = event.context;
         const target = event.target;
+        const attacker = event.attacker;
 
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        Contract.assertTrue(properties.attacker.isUnit());
-        if (!properties.attacker.isInPlay() || !EnumHelpers.isAttackableZone(target.zoneName)) {
+        Contract.assertTrue(attacker.isUnit());
+        if (!attacker.isInPlay() || !EnumHelpers.isAttackableZone(target.zoneName)) {
             context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
             return;
         }
 
-        this.registerAttackEffects(context, properties, event.attack);
+        this.registerAttackEffects(context, event.attackerLastingEffects, event.defenderLastingEffects, event.attack);
 
         const attack = event.attack;
         context.game.queueStep(new AttackFlow(context, attack));
@@ -185,13 +185,15 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         Contract.assertTrue(event.target.isUnit() || event.target.isBase(), `Attack target card '${event.target.internalName}' is not a unit or base`);
 
         event.attacker = properties.attacker;
-
         event.attack = new Attack(
             context.game,
             properties.attacker as UnitCard,
             event.target as CardWithDamageProperty,
             properties.isAmbush
         );
+
+        event.attackerLastingEffects = properties.attackerLastingEffects;
+        event.defenderLastingEffects = properties.defenderLastingEffects;
     }
 
     public override checkEventCondition(event, additionalProperties): boolean {
@@ -201,12 +203,16 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     // TODO ATTACKS: change attack effects so that they check the specific attack they are affecting,
     // in case we have have a situation when multiple attacks are happening in parallel but an effect
     // only applies to one of them.
-    private registerAttackEffects(context: TContext, properties: IAttackProperties, attack: Attack) {
+    private registerAttackEffects(
+        context: TContext,
+        attackerLastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[],
+        defenderLastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[],
+        attack: Attack) {
         // create events for all effects to be generated
         const effectEvents: GameEvent[] = [];
         const effectsRegistered =
-            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(properties.attackerLastingEffects), attack.attacker, context, attack, effectEvents) ||
-            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(properties.defenderLastingEffects), attack.target, context, attack, effectEvents);
+            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents) ||
+            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), attack.target, context, attack, effectEvents);
 
         if (effectsRegistered) {
             context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for attack effects');
@@ -233,6 +239,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
+    /** Checks if there are any lasting effects that would give the attacker Saboteur, for the purposes of targeting */
     private attackerGainsSaboteur(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 

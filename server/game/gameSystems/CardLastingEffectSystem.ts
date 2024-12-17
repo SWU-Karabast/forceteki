@@ -34,6 +34,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         }
     }
 
+    /** Returns the effects that would be applied to {@link card} by this system's configured lasting effects */
     public getApplicableEffects(card: Card, context: TContext) {
         const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context);
 
