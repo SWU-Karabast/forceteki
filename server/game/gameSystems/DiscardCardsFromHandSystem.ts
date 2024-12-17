@@ -50,7 +50,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             // Select this player if its their own hand, or the active player from the context if its the 'opponent' choosing
             const discardingPlayer = properties.discardingPlayerType === RelativePlayer.Self ? player : context.player;
 
-            // Since this is an opponent discarding -- any possible card in hand makes the hand 'canAffect' true
+            // Since autoTarget is off any possible card in hand makes the hand 'canAffect' true
             if (!discardingPlayer.autoSingleTarget && player.hand.length > 0) {
                 return true;
             }
