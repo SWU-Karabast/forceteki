@@ -31,16 +31,17 @@ export class Lobby {
         const newDeck = new Deck(deck);
 
         if (existingUser) {
-            existingUser.deck = newDeck.data;
+            existingUser.deck = newDeck;
             return;
         }
-        this.users.push(({ id: id, state: null, socket: null, deck: newDeck.data }));
+        this.users.push(({ id: id, state: null, socket: null, deck: newDeck }));
     }
 
     public addLobbyUser(id: string, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === id);
         socket.registerEvent('startGame', () => this.onStartGame(id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
+        socket.registerEvent('updateDeck', (socket, command, ...args) => this.updateDeck(socket, command, ...args));
         // maybe we neeed to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
@@ -54,6 +55,52 @@ export class Lobby {
         } else {
             this.sendDeckInfo();
         }
+    }
+
+    private updateDeck(socket, command, ...args) {
+        const activeUser = this.users.find((u) => u.id === socket.user.username);
+        const userDeck = activeUser.deck.data;
+        const [cardID] = args; // ['cardID']
+
+        // Determine the arrays we are moving between
+        const sourceArray = command === 'Deck' ? userDeck.deckCards : userDeck.sideboard;
+        const targetArray = command === 'Deck' ? userDeck.sideboard : userDeck.deckCards;
+
+        // Find the card in the source array
+        const sourceIndex = sourceArray.findIndex((item) => item.card.id === cardID);
+        if (sourceIndex === -1) {
+            console.log(`Card with UUID ${cardID} not found in source ${command}`);
+            return;
+        }
+
+        // Extract the card entry from the source
+        const sourceEntry = sourceArray[sourceIndex];
+
+        // Decrement the count in the source entry
+        sourceEntry.count -= 1;
+
+        // If count is now zero, remove it from the source array
+        if (sourceEntry.count <= 0) {
+            sourceArray.splice(sourceIndex, 1);
+        }
+
+        // Add this card to the target array
+        // Check if the card already exists in the target
+        const targetIndex = targetArray.findIndex((item) => item.card.id === cardID);
+
+        if (targetIndex === -1) {
+            // Card not in target array, add a new entry
+            targetArray.push({
+                count: 1,
+                card: sourceEntry.card || sourceEntry.card // If we removed from source, we need to ensure we still have the card data
+            });
+        } else {
+            // Card already exists in target, just increment the count
+            targetArray[targetIndex].count += 1;
+        }
+
+        socket.user.deck = userDeck;
+        socket.send('deckData', socket.user.deck);
     }
 
     public setUserDisconnected(id: string): void {
@@ -76,11 +123,6 @@ export class Lobby {
         return this.users.length === 0;
     }
 
-    public setDeck(id: string, deck: any): void {
-        const player = this.users.find((u) => u.id === id);
-        player.deck = deck;
-    }
-
     public cleanLobby(): void {
         this.game = null;
         this.users = [];
@@ -98,7 +140,7 @@ export class Lobby {
 
         // fetch deck for existing user otherwise set default
         if (existingUser.deck) {
-            game.selectDeck(id, existingUser.deck);
+            game.selectDeck(id, existingUser.deck.data);
         } else {
             game.selectDeck(id, defaultGameSettings.players[0].deck);
         }
@@ -106,7 +148,7 @@ export class Lobby {
         // if opponent exist fetch deck for opponent otherwise set it as default
         if (opponent) {
             if (opponent.deck) {
-                game.selectDeck(opponent.id, opponent.deck);
+                game.selectDeck(opponent.id, opponent.deck.data);
             } else {
                 game.selectDeck(opponent.id, defaultGameSettings.players[0].deck);
             }
@@ -187,7 +229,7 @@ export class Lobby {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
                 user.socket.send('gamestate', game.getState(user.id));
-                user.socket.send('deckData', user.deck);
+                user.socket.send('deckData', user.deck.data);
             }
         }
     }
@@ -195,7 +237,7 @@ export class Lobby {
     public sendDeckInfo(): void {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
-                user.socket.send('deckData', user.deck);
+                user.socket.send('deckData', user.deck.data);
             }
         }
     }

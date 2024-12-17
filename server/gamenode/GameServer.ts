@@ -98,22 +98,12 @@ export class GameServer {
             this.userLobbyMap.set(userId, lobby.id);
             return res.status(200).json({ success: true });
         });
-        app.post('/api/submit-deck', (req, res) => {
-            this.updateDeck(req.body.user, req.body.deck);
-            res.status(200).json({ success: true });
-        });
     }
 
     private lobbiesWithOpenSeat() {
         return new Map(
             Array.from(this.lobbies.entries()).filter(([_, lobby]) => !lobby.isLobbyFilled())
         );
-    }
-
-    private updateDeck(user: string, deck: any) {
-        const lobbyId = this.userLobbyMap.get(user);
-        const lobby = this.lobbies.get(lobbyId);
-        lobby.setDeck(user, deck);
     }
 
     private createLobby(user: string, deck: any) {
