@@ -24,7 +24,10 @@ export default class TheEmperorsLegion extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => {
                 const friendlyUnitsDefeatedThisPhaseInDiscard =
                     this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayerNew(context.source.controller)
-                        .filter(({ unit, inPlayId }) => unit.zoneName === ZoneName.Discard && unit.mostRecentInPlayId === inPlayId)
+                        .filter(({ unit, inPlayId: defeatedInPlayId }) =>
+                            unit.zoneName === ZoneName.Discard &&
+                            unit.mostRecentInPlayId === defeatedInPlayId
+                        )
                         .map(({ unit }) => unit);
 
                 return { target: friendlyUnitsDefeatedThisPhaseInDiscard };
