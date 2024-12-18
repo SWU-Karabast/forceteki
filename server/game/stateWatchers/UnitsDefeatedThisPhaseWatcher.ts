@@ -49,6 +49,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
             .map((entry) => ({ unit: entry.unit, inPlayId: entry.inPlayId }));
     }
 
+    /** Check if a specific copy of a unit was defeated this phase */
     public wasDefeatedThisPhase(card: UnitCard, inPlayId?: number): boolean {
         const inPlayIdToCheck = inPlayId ?? (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
 
