@@ -5,7 +5,7 @@ const TestSetupError = require('./TestSetupError.js');
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
-const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base'];
+const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base', 'opponentAttachedUpgrades'];
 const deckFillerCard = 'underworld-thug';
 const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
@@ -35,6 +35,51 @@ class DeckBuilder {
         return cards;
     }
 
+    getOwnedCards(playerNumber, playerOptions, oppOptions, arena = 'anyArena') {
+        let { groundArena, spaceArena, ...playerCards } = playerOptions;
+
+        let opponentAttachedUpgrades = [];
+
+        if ((arena === 'groundArena' || arena === 'anyArena') && playerOptions.groundArena) {
+            const playerControlled = playerOptions.groundArena.filter((card) => !card.hasOwnProperty('ownerAndController') && !card.ownerAndController?.endsWith(playerNumber));
+            const oppControlled = oppOptions.groundArena?.filter((card) => card.hasOwnProperty('ownerAndController') && card.ownerAndController?.endsWith(playerNumber));
+            playerCards.groundArena = (playerControlled || []).concat((oppControlled || []));
+
+            opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerOptions.groundArena, playerNumber, oppOptions.groundArena, playerCards));
+        }
+        if ((arena === 'spaceArena' || arena === 'anyArena') && playerOptions.spaceArena) {
+            const playerControlled = playerOptions.spaceArena.filter((card) => !card.hasOwnProperty('ownerAndController') && !card.ownerAndController?.endsWith(playerNumber));
+            const oppControlled = oppOptions.spaceArena?.filter((card) => card.hasOwnProperty('ownerAndController') && card.ownerAndController?.endsWith(playerNumber));
+            playerCards.spaceArena = (playerControlled || []).concat((oppControlled || []));
+
+            opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerOptions.spaceArena, playerNumber, oppOptions.spaceArena, playerCards));
+        }
+
+        playerCards.opponentAttachedUpgrades = opponentAttachedUpgrades;
+
+        return playerCards;
+    }
+
+    getOpponentAttachedUpgrades(arena, playerNumber, oppArena, playerCards) {
+        let opponentAttachedUpgrades = [];
+
+        oppArena?.forEach((card) => {
+            if (typeof card !== 'string' && card.hasOwnProperty('upgrades')) {
+                card.upgrades.forEach((upgrade) => {
+                    if (typeof upgrade !== 'string' && upgrade.hasOwnProperty('ownerAndController') && upgrade.ownerAndController.endsWith(playerNumber)) {
+                        let oppUpgrade = { attachedTo: card.card, ...upgrade };
+                        if (card.hasOwnProperty('ownerAndController')) {
+                            oppUpgrade.attachedToOwner = card.ownerAndController;
+                        }
+                        opponentAttachedUpgrades = opponentAttachedUpgrades.concat(oppUpgrade);
+                        card.upgrades.splice(card.upgrades.indexOf(upgrade), 1); // Dirty
+                    }
+                });
+            }
+        });
+        return opponentAttachedUpgrades;
+    }
+
     customDeck(playerNumber, playerCards = {}, phase) {
         if (Array.isArray(playerCards.leader)) {
             throw new TestSetupError('Test leader must not be specified as an array');
@@ -47,6 +92,7 @@ class DeckBuilder {
         let inPlayCards = [];
 
         const namedCards = this.getAllNamedCards(playerCards);
+        let resources = [];
 
         allCards.push(this.getLeaderCard(playerCards, playerNumber));
         allCards.push(this.getBaseCard(playerCards, playerNumber));
@@ -54,14 +100,17 @@ class DeckBuilder {
         // if user didn't provide explicit resource cards, create default ones to be added to deck
         // if the phase is setup the playerCards.resources becomes []
         if (phase !== 'setup') {
-            playerCards.resources = this.padCardListIfNeeded(playerCards.resources, defaultResourceCount);
+            resources = this.padCardListIfNeeded(playerCards.resources, defaultResourceCount);
         } else {
-            playerCards.resources = [];
+            resources = [];
         }
         playerCards.deck = this.padCardListIfNeeded(playerCards.deck, defaultDeckSize);
 
-        allCards.push(...playerCards.resources);
+        allCards.push(...resources);
         allCards.push(...playerCards.deck);
+        playerCards.opponentAttachedUpgrades.forEach((card) => {
+            allCards.push(card.card);
+        });
 
         /**
          * Create the deck from cards in test - deck consists of cards in decks,
@@ -81,7 +130,7 @@ class DeckBuilder {
         // Collect all the cards together
         allCards = allCards.concat(inPlayCards);
 
-        return [this.buildDeck(allCards), namedCards];
+        return [this.buildDeck(allCards), namedCards, resources, playerCards.deck];
     }
 
     getAllNamedCards(playerObject) {
@@ -113,7 +162,9 @@ class DeckBuilder {
             playerEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(card)));
         } else if ('card' in playerEntry) {
             namedCards.push(playerEntry.card);
-            namedCards = namedCards.concat(this.getUpgradesFromCard(playerEntry));
+            if (playerEntry.hasOwnProperty('upgrades')) {
+                namedCards = namedCards.concat(this.getUpgradesFromCard(playerEntry));
+            }
         } else {
             throw new TestSetupError(`Unknown test card specifier format: '${playerEntry}'`);
         }
@@ -188,7 +239,13 @@ class DeckBuilder {
                         !['shield', 'experience'].includes(upgrade)
                     );
 
-                    inPlayCards.push(...nonTokenUpgrades);
+                    for (const upgrade of nonTokenUpgrades) {
+                        if (typeof upgrade === 'string') {
+                            inPlayCards.push(upgrade);
+                        } else {
+                            inPlayCards.push(upgrade.card);
+                        }
+                    }
                 }
             }
         }
@@ -219,8 +276,10 @@ class DeckBuilder {
 
     getTokenData() {
         return {
+            battleDroid: this.getCard('battle-droid'),
+            cloneTrooper: this.getCard('clone-trooper'),
+            experience: this.getCard('experience'),
             shield: this.getCard('shield'),
-            experience: this.getCard('experience')
         };
     }
 
