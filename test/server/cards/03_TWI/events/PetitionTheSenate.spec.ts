@@ -27,13 +27,12 @@ describe('Petition The Senate', function () {
                 // Defeat an official ready for below check, if needed.
                 context.player2.clickCard(context.rey);
                 context.player2.clickCard(context.colonelYularen);
+                context.player2.clickCard(context.admiralPiett);
 
-                // Adding the below check, proves clicking card has no effect,
-                // Expected player prompt state to change after clicking petition-the-senate but it did not.
-
-                /* context.player1.clickCard(context.petitionTheSenate);
+                // controlling less than 3 officials
+                context.player1.clickCard(context.petitionTheSenate);
                 expect(context.petitionTheSenate).toBeInZone('discard');
-                expect(context.player1.hand.length).toBe(3); */
+                expect(context.player1.hand.length).toBe(3);
             });
         });
     });
