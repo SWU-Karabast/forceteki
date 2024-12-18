@@ -1,7 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { KeywordName, Trait } from '../../../core/Constants';
-import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class SwordAndShieldManeuver extends EventCard {
     protected override getImplementationId() {

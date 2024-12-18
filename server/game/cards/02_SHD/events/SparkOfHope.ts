@@ -26,11 +26,8 @@ export default class SparkOfHope extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
-                // TODO CHECK UNIQUE ID WHEN IT'S DONE
                 cardCondition: (card) =>
-                    this.unitsDefeatedThisPhaseWatcher.getCurrentValue()
-                        .map((e) => e.unit)
-                        .includes(card as UnitCard),
+                    card.isUnit() && this.unitsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card),
                 immediateEffect: AbilityHelper.immediateEffects.resourceCard()
             }
         });

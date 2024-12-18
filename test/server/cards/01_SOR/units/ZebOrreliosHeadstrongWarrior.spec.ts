@@ -1,7 +1,7 @@
 describe('Zeb Orrelios, Headstrong Warrior', function () {
     integration(function (contextRef) {
         describe('Zeb Orrelios\'s ability', function () {
-            beforeEach(function () {
+            it('should deal 4 damage to a ground unit when he kill someone and survives', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -12,9 +12,7 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                         groundArena: ['superlaser-technician', 'consular-security-force', 'steadfast-battalion'],
                     }
                 });
-            });
 
-            it('should deal 4 damage to a ground unit when he kill someone and survives', function () {
                 const { context } = contextRef;
 
                 function reset(opponentPass = true) {
@@ -57,10 +55,9 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 context.player1.clickCard(context.steadfastBattalion);
                 expect(context.player2).toBeActivePlayer();
             });
-        });
 
-        describe('Zeb Orrelios\'s ability', function () {
-            beforeEach(function () {
+
+            it('should deal 4 damage to a ground unit when zeb attacks and kill with on attack abilities', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -70,9 +67,7 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                         groundArena: ['battlefield-marine', 'wampa']
                     }
                 });
-            });
 
-            it('should deal 4 damage to a ground unit when zeb attacks and kill with on attack abilities', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.zebOrrelios);
@@ -92,6 +87,36 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 expect(context.wampa.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
             });
+        });
+
+        it('should do nothing if the defender was previously defeated and played again before his attack', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['rivals-fall'],
+                    groundArena: [{ card: 'escort-skiff', damage: 3 }, 'zeb-orrelios#headstrong-warrior'],
+                },
+                player2: {
+                    hand: ['the-emperors-legion'],
+                    groundArena: ['consular-security-force'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // kill consular security done
+            context.player1.clickCard(context.rivalsFall);
+            context.player1.clickCard(context.consularSecurityForce);
+
+            // play again consular security force
+            context.player2.clickCard(context.theEmperorsLegion);
+            context.player1.passAction();
+            context.player2.clickCard(context.consularSecurityForce);
+
+            // Zeb doesn't defeat, nothing happens
+            context.player1.clickCard(context.zebOrrelios);
+            context.player1.clickCard(context.consularSecurityForce);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

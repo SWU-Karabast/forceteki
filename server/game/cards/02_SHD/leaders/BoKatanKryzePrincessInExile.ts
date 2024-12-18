@@ -25,7 +25,10 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (_) => this.attacksThisPhaseWatcher.getAttackers((attack) => attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
+                    condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
+                        controller: context.source.controller,
+                        filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)
+                    }),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                     onFalse: AbilityHelper.immediateEffects.noAction(),
                 })
@@ -49,7 +52,10 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     innerSystem: AbilityHelper.immediateEffects.conditional({
                         optional: true,
-                        condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)).length > 0,
+                        condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
+                            controller: context.source.controller,
+                            filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)
+                        }),
                         onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                         onFalse: AbilityHelper.immediateEffects.noAction(),
                     })

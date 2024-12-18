@@ -7,6 +7,7 @@ import { Card } from '../core/card/Card';
 
 export interface PlayedCardEntry {
     card: TokenOrPlayableCard;
+    inPlayId?: number;
     playedBy: Player;
 }
 
@@ -47,7 +48,11 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
                 onCardPlayed: () => true,
             },
             update: (currentState: ICardsPlayedThisPhase, event: any) =>
-                currentState.concat({ card: event.card, playedBy: event.card.controller })
+                currentState.concat({
+                    card: event.card,
+                    inPlayId: event.card.canBeInPlay() ? event.card.inPlayId : null,
+                    playedBy: event.card.controller
+                })
         });
     }
 
