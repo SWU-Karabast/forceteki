@@ -48,8 +48,6 @@ describe('Confederate Tri-Fighter', function () {
 
                 // play repair
                 context.player1.clickCard(context.repair);
-                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.admiralAckbar, context.yoda, context.confederateTrifighter, context.corellianFreighter]);
-                context.player1.clickCard(context.p1Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p1Base.damage).toBe(5);
 

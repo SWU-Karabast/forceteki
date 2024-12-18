@@ -59,7 +59,7 @@ class UnlimitedAbilityLimit implements IAbilityLimit {
     }
 }
 
-class PerGameAbilityLimit implements IAbilityLimit {
+export class PerGameAbilityLimit implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
     private useCount = new Map<string, number>();
