@@ -42,11 +42,20 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return this._disableOngoingEffectsForDefeat;
     }
 
+    /**
+     * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.6.4).
+     * This in-play id is used to distinguish copies of the card - every time it enters play, the id is incremented.
+     * If the card is no longer in play, this property is not available and {@link mostRecentInPlayId} should be used instead.
+     */
     public get inPlayId() {
         this.assertPropertyEnabledBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
         return this._mostRecentInPlayId;
     }
 
+    /**
+     * If the card is in a non-hidden, non-arena zone, this property is the most recent value of {@link inPlayId} for the card.
+     * This is used to determine e.g. if a card in the discard pile was defeated this phase.
+     */
     public get mostRecentInPlayId() {
         this.assertPropertyEnabledBoolean(
             !EnumHelpers.isArena(this.zoneName) && this.zone.hiddenForPlayers == null,
