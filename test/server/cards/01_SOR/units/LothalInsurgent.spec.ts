@@ -103,7 +103,6 @@ describe('Lothal Insurgent', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        // TODO: this currently doesn't work because we don't implement the unique rule properly, it should active the ability again from a previous play of itself
         it('Lothal Insurgent\'s ability causes the opponent to draw and discard the drawn card if it was previously played this phase and the opponent\'s hand is empty', function () {
             contextRef.setupTest({
                 phase: 'action',
