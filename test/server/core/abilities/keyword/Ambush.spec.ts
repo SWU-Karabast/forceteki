@@ -12,7 +12,10 @@ describe('Ambush keyword', function() {
                         groundArena: ['consular-security-force', 'snowspeeder'],
                         spaceArena: ['cartel-spacer'],
                         hand: ['waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -45,7 +48,10 @@ describe('Ambush keyword', function() {
                     player2: {
                         groundArena: ['consular-security-force'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -74,7 +80,10 @@ describe('Ambush keyword', function() {
                     },
                     player2: {
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -97,7 +106,10 @@ describe('Ambush keyword', function() {
                         groundArena: ['consular-security-force', 'snowspeeder'],
                         spaceArena: ['cartel-spacer'],
                         hand: ['waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

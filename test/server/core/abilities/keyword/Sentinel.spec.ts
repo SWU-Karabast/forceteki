@@ -11,7 +11,10 @@ describe('Sentinel keyword', function() {
                     player2: {
                         groundArena: ['echo-base-defender', 'battlefield-marine', 'wookiee-warrior'],
                         spaceArena: ['system-patrol-craft', 'seventh-fleet-defender', 'imperial-interceptor'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -52,7 +55,10 @@ describe('Sentinel keyword', function() {
                     player2: {
                         groundArena: ['echo-base-defender', 'pyke-sentinel', 'battlefield-marine', 'wookiee-warrior'],
                         spaceArena: ['system-patrol-craft', 'seventh-fleet-defender', 'imperial-interceptor']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -79,7 +85,10 @@ describe('Sentinel keyword', function() {
                     player2: {
                         groundArena: ['r2d2#ignoring-protocol', 'echo-base-defender'],
                         spaceArena: ['pirated-starfighter', 'corellian-freighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -120,7 +129,10 @@ describe('Sentinel keyword', function() {
                     player2: {
                         groundArena: ['r2d2#ignoring-protocol', 'echo-base-defender'],
                         spaceArena: ['pirated-starfighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -146,7 +158,10 @@ describe('Sentinel keyword', function() {
                     },
                     player2: {
                         groundArena: ['wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

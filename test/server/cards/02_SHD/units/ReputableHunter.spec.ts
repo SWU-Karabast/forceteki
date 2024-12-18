@@ -8,7 +8,10 @@ describe('Reputable Hunter', function() {
                         hand: ['reputable-hunter'],
                         groundArena: ['hylobon-enforcer'],
                         base: 'energy-conversion-lab',
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
                 const { context } = contextRef;
 
@@ -27,7 +30,10 @@ describe('Reputable Hunter', function() {
                     },
                     player2: {
                         groundArena: ['battlefield-marine'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
                 const { context } = contextRef;
 

@@ -43,8 +43,8 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         event.amount = amount;
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, player: Player, context: TContext, additionalProperties): void {
+        super.updateEvent(event, player, context, additionalProperties);
 
         // TODO: convert damage on draw to be a real replacement effect once we have partial replacement working
         event.setContingentEventsGenerator((event) => {

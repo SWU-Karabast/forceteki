@@ -13,6 +13,9 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                     player2: {
                         groundArena: ['admiral-yularen#advising-caution'],
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -70,6 +73,9 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                     player2: {
                         groundArena: ['admiral-yularen#advising-caution', 'alliance-dispatcher'],
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

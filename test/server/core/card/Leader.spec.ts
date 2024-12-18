@@ -95,6 +95,7 @@ describe('Leader cards', function() {
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.grandMoffTarkin);
                 expect(context.player1).not.toHaveEnabledPromptButton('Deploy Grand Moff Tarkin');
+                context.player1.clickCard(context.atst);
             });
         });
 
@@ -110,7 +111,10 @@ describe('Leader cards', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['tie-advanced']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

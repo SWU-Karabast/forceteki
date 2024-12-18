@@ -60,7 +60,7 @@ export class CardAbility extends CardAbilityStep {
         Contract.fail(`Unknown card type for card: ${card.internalName}`);
     }
 
-    public override meetsRequirements(context, ignoredRequirements = []) {
+    public override meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
         let canPlayerTrigger: boolean;
         switch (this.abilityController) {
             case RelativePlayer.Self:
@@ -96,7 +96,7 @@ export class CardAbility extends CardAbilityStep {
             return 'limit';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 
     public getAdjustedCost(context) {

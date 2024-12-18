@@ -9,7 +9,10 @@ describe('Valiant Assault Ship', function () {
                     },
                     player2: {
                         spaceArena: [{ card: 'system-patrol-craft', upgrades: ['shield'] }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

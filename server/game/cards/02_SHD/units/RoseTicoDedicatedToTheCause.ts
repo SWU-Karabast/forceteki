@@ -17,19 +17,12 @@ export default class RoseTicoDedicatedToTheCause extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
                 cardCondition: (card, context) => card.isShield() && card.parentCard.controller === context.source.controller,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    // TODO: this is a hack to store the parent card of the upgrade before it's defeated.
-                    // once last known state is implemented, we need to read the upgrade's parent card from that
-                    AbilityHelper.immediateEffects.handler((context) => ({
-                        handler: () => context.targets.upgradeParentCard = context.target.parentCard
-                    })),
-                    AbilityHelper.immediateEffects.defeat()
-                ]),
+                immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
-            ifYouDo: (context) => ({
+            ifYouDo: (ifYouDoContext) => ({
                 title: 'Give 2 Experience tokens to that unit',
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience({
-                    target: context.targets.upgradeParentCard,
+                    target: ifYouDoContext.events[0].lastKnownInformation.parentCard,
                     amount: 2
                 })
             })

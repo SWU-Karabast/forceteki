@@ -12,7 +12,10 @@ describe('Upgrade cards', function() {
                     player2: {
                         spaceArena: ['bright-hope#the-last-transport'],
                         hand: ['confiscate']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -73,7 +76,10 @@ describe('Upgrade cards', function() {
                     },
                     player2: {
                         groundArena: ['atat-suppressor']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -98,7 +104,10 @@ describe('Upgrade cards', function() {
                     player2: {
                         groundArena: ['supreme-leader-snoke#shadow-ruler'],
                         hand: ['confiscate']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -132,7 +141,10 @@ describe('Upgrade cards', function() {
                         hand: ['entrenched'],
                         groundArena: [{ card: 'death-trooper', damage: 1 }, 'wampa'],
                         base: { card: 'dagobah-swamp', damage: 5 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

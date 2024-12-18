@@ -11,7 +11,10 @@ describe('Rule With Respect', function() {
                         groundArena: ['wampa', 'atst'],
                         spaceArena: ['cartel-spacer'],
                         leader: { card: 'boba-fett#daimyo', deployed: true }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

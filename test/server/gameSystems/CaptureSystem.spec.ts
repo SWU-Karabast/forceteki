@@ -1,4 +1,4 @@
-describe('Capture mechanic', function() {
+describe('Capture system', function() {
     integration(function (contextRef) {
         describe('When a unit is captured', function() {
             beforeEach(function () {
@@ -10,7 +10,10 @@ describe('Capture mechanic', function() {
                     player2: {
                         groundArena: ['wampa'],
                         hand: ['vanquish', 'waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -54,7 +57,10 @@ describe('Capture mechanic', function() {
                     groundArena: ['wampa', 'atst'],
                     spaceArena: ['green-squadron-awing'],
                     hand: ['vanquish']
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
@@ -96,7 +102,10 @@ describe('Capture mechanic', function() {
                     groundArena: ['wampa'],
                     hand: ['discerning-veteran', 'vanquish'],
                     leader: { card: 'han-solo#worth-the-risk', deployed: true, exhausted: true },
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
@@ -139,7 +148,10 @@ describe('Capture mechanic', function() {
                 player2: {
                     groundArena: [{ card: 'wampa', upgrades: ['academy-training'] }],
                     hand: ['take-captive']
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
@@ -171,7 +183,10 @@ describe('Capture mechanic', function() {
                         groundArena: ['pyke-sentinel'],
                         spaceArena: ['tieln-fighter'],
                         hand: ['discerning-veteran', 'take-captive']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

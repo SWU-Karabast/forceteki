@@ -48,7 +48,10 @@ describe('I Had No Choice', function() {
                         player2: {
                             groundArena: [],
                             leader: { card: 'darth-vader#dark-lord-of-the-sith', deployed: true }
-                        }
+                        },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
                 });
 
