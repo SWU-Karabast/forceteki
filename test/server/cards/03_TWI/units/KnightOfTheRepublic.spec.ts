@@ -9,7 +9,7 @@ describe('Knight of the Republic', function() {
 
                     },
                     player2: {
-                        groundArena: ['knight-of-the-republic']
+                        groundArena: ['knight-of-the-republic', 'royal-guard-attache']
                     }
                 });
             });
@@ -22,8 +22,18 @@ describe('Knight of the Republic', function() {
 
                 const cloneTroopers = context.player2.findCardsByName('clone-trooper');
                 expect(cloneTroopers.length).toBe(1);
-                expect(cloneTroopers).toAllBeInZone('groundArena');
+                expect(cloneTroopers).toAllBeInZone('groundArena', context.player2);
                 expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.exhausted)).toBeTrue();
+            });
+
+            it('should not create a Clone Tropper when a different unit is attacked', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.droidCommando);
+                context.player1.clickCard(context.royalGuardAttache);
+
+                const cloneTroopers = context.player2.findCardsByName('clone-trooper');
+                expect(cloneTroopers.length).toBe(0);
             });
         });
     });
