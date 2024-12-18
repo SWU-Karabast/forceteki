@@ -10,11 +10,8 @@ export default class DroidCohort extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
-        this.addGainTriggeredAbilityTargetingAttached({
+        this.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'Create a Battle Droid token.',
-            when: {
-                onCardDefeated: (event, context) => event.card.parentCard === context.source
-            },
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });
     }
