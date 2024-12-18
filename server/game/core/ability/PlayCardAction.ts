@@ -84,7 +84,7 @@ export abstract class PlayCardAction extends PlayerAction {
         });
     }
 
-    public override isCardPlayed(): this is PlayCardAction {
+    public override isPlayCardAbility(): this is PlayCardAction {
         return true;
     }
 

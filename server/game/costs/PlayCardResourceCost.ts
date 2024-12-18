@@ -35,7 +35,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     }
 
     private costAdjusterFromAbility(context: TContext) {
-        Contract.assertTrue(context.ability.isCardPlayed());
+        Contract.assertTrue(context.ability.isPlayCardAbility());
         return context.ability.costAdjuster;
     }
 

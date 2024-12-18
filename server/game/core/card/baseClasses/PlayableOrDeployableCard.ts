@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
+import { PlayCardAction } from '../../ability/PlayCardAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import { Aspect, CardType, MoveZoneDestination, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
@@ -61,6 +62,13 @@ export class PlayableOrDeployableCard extends Card {
 
     public override getActions(): PlayerOrCardAbility[] {
         return this.defaultActions.concat(super.getActions());
+    }
+
+    // TODO: "underControlOf" is not yet generally supported
+    public getLegalPlayCardActions(underControlOf: Player = null): PlayCardAction[] {
+        return this.getActions()
+            .filter((action) => action.isPlayCardAbility())
+            .filter((action) => action.meetsRequirements(action.createContext(underControlOf ?? this.controller)) === '');
     }
 
     public exhaust() {
