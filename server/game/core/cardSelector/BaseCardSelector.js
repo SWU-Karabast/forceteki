@@ -14,6 +14,7 @@ class BaseCardSelector {
         this.capturedByFilter = properties.capturedByFilter;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
+        this.discardingPlayerType = properties.discardingPlayerType;
 
         if (!Array.isArray(properties.cardTypeFilter)) {
             this.cardTypeFilter = [properties.cardTypeFilter];
@@ -135,7 +136,10 @@ class BaseCardSelector {
         if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter) && card.zoneName !== ZoneName.Capture) {
             return false;
         }
-        if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {
+        if ((this.discardingPlayerType == null || this.discardingPlayerType === RelativePlayer.Self) && card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {
+            return false;
+        }
+        if ((this.discardingPlayerType && this.discardingPlayerType === RelativePlayer.Opponent) && (card.zoneName === ZoneName.Hand && card.controller !== context.player.opponent)) {
             return false;
         }
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardConditionsAreSatisfied(card, selectedCards, context);
