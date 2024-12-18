@@ -402,6 +402,7 @@ export enum AbilityRestriction {
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
