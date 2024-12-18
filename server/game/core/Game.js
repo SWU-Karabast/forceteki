@@ -17,9 +17,7 @@ const SelectCardPrompt = require('./gameSteps/prompts/SelectCardPrompt.js');
 const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
-const InitiateCardAbilityEvent = require('./event/InitiateCardAbilityEvent.js');
 const { EventWindow, TriggerHandlingMode } = require('./event/EventWindow');
-const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAbilityEventWindow.js');
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
@@ -28,9 +26,7 @@ const { cards } = require('../cards/Index.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
-const { EventName, ZoneName, TokenName, Trait, WildcardZoneName } = require('./Constants.js');
-const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
-const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -889,13 +885,6 @@ class Game extends EventEmitter {
         return resolver;
     }
 
-    openSimultaneousEffectWindow(choices) {
-        throw new Error('Simultaneous effects not implemented yet');
-        // let window = new SimultaneousEffectWindow(this);
-        // choices.forEach((choice) => window.addToWindow(choice));
-        // this.queueStep(window);
-    }
-
     /**
      * Creates a game GameEvent, and opens a window for it.
      * @param {String} eventName
@@ -1187,11 +1176,8 @@ class Game extends EventEmitter {
      * @param {*} tokenCardsData object in the form `{ tokenName: tokenCardData }`
      */
     initialiseTokens(tokenCardsData) {
-        for (const tokenName of Object.values(TokenName)) {
-            if (!(tokenName in tokenCardsData)) {
-                throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
-            }
-        }
+        this.checkTokenDataProvided(TokenUpgradeName, tokenCardsData);
+        this.checkTokenDataProvided(TokenUnitName, tokenCardsData);
 
         this.tokenFactories = {};
 
@@ -1202,12 +1188,20 @@ class Game extends EventEmitter {
         }
     }
 
+    checkTokenDataProvided(tokenTypeNames, tokenCardsData) {
+        for (const tokenName of Object.values(tokenTypeNames)) {
+            if (!(tokenName in tokenCardsData)) {
+                throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
+            }
+        }
+    }
+
     /**
-     * Creates a new shield token in an out of play zone owned by the player and
+     * Creates a new token in an out of play zone owned by the player and
      * adds it to all relevant card lists
      * @param {Player} player
-     * @param {TokenName} tokenName
-     * @returns {Shield}
+     * @param {import('./Constants.js').TokenName} tokenName
+     * @returns {Card}
      */
     generateToken(player, tokenName) {
         const token = this.tokenFactories[tokenName](player);

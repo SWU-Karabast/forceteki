@@ -137,7 +137,7 @@ export class EventWindow extends BaseStepWithPipeline {
                 this._triggeredAbilityWindow = this.parentWindow.triggeredAbilityWindow;
                 break;
             case TriggerHandlingMode.ResolvesTriggers:
-                this._triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
+                this._triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, AbilityType.Triggered, this);
                 break;
             case TriggerHandlingMode.CannotHaveTriggers:
                 this._triggeredAbilityWindow = null;
@@ -158,7 +158,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        const replacementEffectWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.ReplacementEffect);
+        const replacementEffectWindow = new TriggeredAbilityWindow(this.game, AbilityType.ReplacementEffect, this);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
     }
