@@ -26,8 +26,7 @@ export default class TheEmperorsLegion extends EventCard {
                     this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayerNew(context.source.controller)
                         .filter(({ unit, inPlayId: defeatedInPlayId }) =>
                             unit.zoneName === ZoneName.Discard &&
-                            unit.mostRecentInPlayId === defeatedInPlayId
-                        )
+                            unit.mostRecentInPlayId === defeatedInPlayId)
                         .map(({ unit }) => unit);
 
                 return { target: friendlyUnitsDefeatedThisPhaseInDiscard };
