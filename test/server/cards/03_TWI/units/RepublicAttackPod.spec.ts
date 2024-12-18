@@ -11,6 +11,7 @@ describe('Republic Attack Pod', function() {
                         resources: 6
                     },
                     player2: {
+                        hand: ['waylay'],
                         groundArena: ['greedo#slow-on-the-draw', 'rey#keeping-the-past'],
                     }
                 });
@@ -18,8 +19,8 @@ describe('Republic Attack Pod', function() {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.player2.passAction();
-                    context.player1.moveCard(context.republicAttackPod, 'hand');
+                    context.player2.clickCard(context.waylay);
+                    context.player2.clickCard(context.republicAttackPod);
                     context.player1.readyResources(6);
                 };
 

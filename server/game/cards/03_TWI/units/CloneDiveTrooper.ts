@@ -16,7 +16,7 @@ export default class CloneDiveTrooper extends NonLeaderUnitCard {
             type: AbilityType.Constant,
             title: 'While this unit is attacking, the defender gets -2/-0.',
             targetController: RelativePlayer.Opponent,
-            matchTarget: (card) => card.isUnit() && card.isInPlay() && card.isDefending(),
+            matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isDefending() && card.activeAttack.attacker === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
         });
     }

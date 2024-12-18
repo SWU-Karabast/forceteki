@@ -7,7 +7,8 @@ describe('Clone Dive Trooper', function() {
                     groundArena: ['clone-dive-trooper', 'battlefield-marine', 'compassionate-senator'],
                 },
                 player2: {
-                    groundArena: ['pyke-sentinel', 'greedo#slow-on-the-draw']
+                    groundArena: ['admiral-yularen#advising-caution', 'rey#keeping-the-past'],
+                    hand: ['vanquish']
                 }
             });
 
@@ -15,18 +16,21 @@ describe('Clone Dive Trooper', function() {
 
             // Coordinate online
             context.player1.clickCard(context.cloneDiveTrooper);
-            context.player1.clickCard(context.pykeSentinel);
+            context.player1.clickCard(context.admiralYularen);
             expect(context.cloneDiveTrooper).toBeInZone('groundArena');
             expect(context.cloneDiveTrooper.damage).toBe(0);
-            expect(context.pykeSentinel.damage).toBe(2);
+            expect(context.admiralYularen.damage).toBe(2);
             context.player2.passAction();
 
-            context.player1.moveCard('battlefield-marine', 'discard');
-            context.cloneDiveTrooper.exhausted = false;
+            // testing that other units dont benefit from the +2 on attack
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.rey);
+            expect(context.rey.damage).toBe(3);
+            context.moveToNextActionPhase();
 
             // coordinate offline
             context.player1.clickCard(context.cloneDiveTrooper);
-            context.player1.clickCard(context.pykeSentinel);
+            context.player1.clickCard(context.admiralYularen);
             expect(context.cloneDiveTrooper).toBeInZone('discard');
         });
     });
