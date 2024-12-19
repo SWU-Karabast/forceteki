@@ -40,6 +40,10 @@ export class PlayUpgradeAction extends PlayCardAction {
         context.game.openEventWindow(events, this.triggerHandlingMode);
     }
 
+    public override clone(overrideProperties: IPlayCardActionProperties) {
+        return new PlayUpgradeAction({ ...this.createdWithProperties, ...overrideProperties });
+    }
+
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
             context.player.hasRestriction(AbilityRestriction.PlayUpgrade, context) ||

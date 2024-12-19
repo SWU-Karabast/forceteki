@@ -21,6 +21,10 @@ export class PlayEventAction extends PlayCardAction {
         context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 
+    public override clone(overrideProperties: IPlayCardActionProperties) {
+        return new PlayEventAction({ ...this.createdWithProperties, ...overrideProperties });
+    }
+
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
             context.player.hasRestriction(AbilityRestriction.PlayEvent, context) ||

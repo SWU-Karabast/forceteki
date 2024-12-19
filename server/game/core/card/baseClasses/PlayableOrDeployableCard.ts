@@ -65,10 +65,8 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     // TODO: "underControlOf" is not yet generally supported
-    public getLegalPlayCardActions(underControlOf: Player = null): PlayCardAction[] {
-        return this.getActions()
-            .filter((action) => action.isPlayCardAbility())
-            .filter((action) => action.meetsRequirements(action.createContext(underControlOf ?? this.controller)) === '');
+    public getPlayCardActions(): PlayCardAction[] {
+        return this.getActions().filter((action) => action.isPlayCardAbility());
     }
 
     public exhaust() {

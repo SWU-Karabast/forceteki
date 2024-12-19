@@ -22,8 +22,10 @@ export interface IPlayCardActionProperties {
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
-    protected readonly playType: PlayType;
+    public readonly playType: PlayType;
     public readonly costAdjuster: CostAdjuster;
+
+    protected readonly createdWithProperties: IPlayCardActionProperties;
 
     public constructor(properties: IPlayCardActionProperties) {
         const propertiesWithDefaults = { title: 'Play this card', playType: PlayType.PlayFromHand, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, additionalCosts: [], ...properties };
@@ -37,6 +39,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
         this.playType = propertiesWithDefaults.playType;
         this.costAdjuster = propertiesWithDefaults.costAdjuster;
+        this.createdWithProperties = { ...properties };
     }
 
     private static getTitle(title: string, playType: PlayType): string {
@@ -47,6 +50,8 @@ export abstract class PlayCardAction extends PlayerAction {
                 return title;
         }
     }
+
+    public abstract clone(overrideProperties: IPlayCardActionProperties): PlayCardAction;
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
