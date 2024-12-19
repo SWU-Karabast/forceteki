@@ -59,5 +59,32 @@ describe('Vanguard Ace', function() {
 
             // TODO TAKE CONTROL: check that state watchers still work if the card is played by the opponent
         });
+
+        it('Vanguard Ace\'s ability counts a previous play of itself this phase', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['vanguard-ace'],
+                },
+                player2: {
+                    deck: ['atst'],
+                    hand: ['waylay']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // play Vanguard Ace, no ability trigger
+            context.player1.clickCard(context.vanguardAce);
+            expect(context.vanguardAce.isUpgraded()).toBe(false);
+
+            // Waylay it back to hand
+            context.player2.clickCard(context.waylay);
+            context.player2.clickCard(context.vanguardAce);
+
+            // play Vanguard Ace again, ability triggers for one experience
+            context.player1.clickCard(context.vanguardAce);
+            expect(context.vanguardAce).toHaveExactUpgradeNames(['experience']);
+        });
     });
 });
