@@ -18,7 +18,7 @@ export default class SawGerreraExtremist extends NonLeaderUnitCard {
             sourceZoneFilter: ZoneName.GroundArena,
             ongoingEffect: OngoingEffectBuilder.player.static(EffectName.AdditionalPlayCost, (context) => {
                 if (context.ability.card.isEvent()) {
-                    return AbilityHelper.costs.dealDamage(2, { cardTypeFilter: CardType.Base });
+                    return AbilityHelper.costs.dealDamageSpecific(2, context.player.base);
                 }
                 return undefined;
             })
