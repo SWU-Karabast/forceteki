@@ -5,7 +5,7 @@ describe('Knight of the Republic', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['droid-commando']
+                        groundArena: ['droid-commando', 'warrior-drone']
 
                     },
                     player2: {
@@ -17,23 +17,23 @@ describe('Knight of the Republic', function() {
             it('should create a Clone Trooper token when attacked', function () {
                 const { context } = contextRef;
 
+                // Should create a Clone Tropper token when Knight of the Republic is attacked
                 context.player1.clickCard(context.droidCommando);
                 context.player1.clickCard(context.knightOfTheRepublic);
 
-                const cloneTroopers = context.player2.findCardsByName('clone-trooper');
+                let cloneTroopers = context.player2.findCardsByName('clone-trooper');
                 expect(cloneTroopers.length).toBe(1);
                 expect(cloneTroopers).toAllBeInZone('groundArena', context.player2);
                 expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.exhausted)).toBeTrue();
-            });
 
-            it('should not create a Clone Tropper when a different unit is attacked', function () {
-                const { context } = contextRef;
+                context.moveToNextActionPhase();
 
-                context.player1.clickCard(context.droidCommando);
+                // Should not create a Clone Trooper token when any another unit is attacked
+                context.player1.clickCard(context.warriorDrone);
                 context.player1.clickCard(context.royalGuardAttache);
 
-                const cloneTroopers = context.player2.findCardsByName('clone-trooper');
-                expect(cloneTroopers.length).toBe(0);
+                cloneTroopers = context.player2.findCardsByName('clone-trooper');
+                expect(cloneTroopers.length).toBe(1);
             });
         });
     });

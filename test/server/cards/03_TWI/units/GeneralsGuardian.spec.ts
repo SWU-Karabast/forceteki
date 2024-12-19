@@ -5,7 +5,7 @@ describe('General\'s Guardian', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['coruscant-guard']
+                        groundArena: ['coruscant-guard', 'advanced-recon-commando']
 
                     },
                     player2: {
@@ -17,23 +17,23 @@ describe('General\'s Guardian', function() {
             it('should create a Battle Droid token when attacked', function () {
                 const { context } = contextRef;
 
+                // Should create a Battle Droid token when General's Guardian is attacked
                 context.player1.clickCard(context.coruscantGuard);
                 context.player1.clickCard(context.generalsGuardian);
 
-                const battleDroids = context.player2.findCardsByName('battle-droid');
+                let battleDroids = context.player2.findCardsByName('battle-droid');
                 expect(battleDroids.length).toBe(1);
                 expect(battleDroids).toAllBeInZone('groundArena', context.player2);
                 expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
-            });
 
-            it('should not create a Battle Droid when a different unit is attacked', function () {
-                const { context } = contextRef;
+                context.moveToNextActionPhase();
 
-                context.player1.clickCard(context.coruscantGuard);
+                // Should not create a Battle Droid token when any another unit is attacked
+                context.player1.clickCard(context.advancedReconCommando);
                 context.player1.clickCard(context.droidCommando);
 
-                const battleDroids = context.player2.findCardsByName('battle-droid');
-                expect(battleDroids.length).toBe(0);
+                battleDroids = context.player2.findCardsByName('battle-droid');
+                expect(battleDroids.length).toBe(1);
             });
         });
     });
