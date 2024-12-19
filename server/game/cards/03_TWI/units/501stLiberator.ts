@@ -12,7 +12,7 @@ export default class _501stLiberator extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'you may heal 3 damage from a base.',
+            title: 'Heal 3 damage from a base.',
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.Base,
