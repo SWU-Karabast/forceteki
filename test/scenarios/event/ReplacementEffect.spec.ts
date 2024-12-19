@@ -13,13 +13,14 @@ describe('Replacement effect', function() {
                 });
             });
 
-            it('one shield is removed', function () {
+            it('one shield is removed and the cost is considered paid', function () {
                 const { context } = contextRef;
 
                 expect(context.doctorPershing).toHaveExactUpgradeNames(['shield', 'shield']);
 
                 context.player1.clickCard(context.doctorPershing);
                 context.player1.clickPrompt('Draw a card');
+                context.player1.clickCard(context.doctorPershing);
 
                 expect(context.doctorPershing.damage).toBe(0);
                 expect(context.doctorPershing).toHaveExactUpgradeNames(['shield']);

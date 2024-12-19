@@ -14,7 +14,10 @@ describe('Finalizer, Might of the First Order', function() {
                         groundArena: ['steadfast-battalion', 'battlefield-marine', { card: 'zuckuss#bounty-hunter-for-hire', damage: 6 }, { card: '4lom#bounty-hunter-for-hire', damage: 4 }],
                         spaceArena: ['avenger#hunting-star-destroyer'],
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
                 const { context } = contextRef;
 
