@@ -25,6 +25,7 @@ export class SetupPhase extends Phase {
         const firstPlayer = randomItem(this.game.getPlayers());
 
         this.game.promptWithHandlerMenu(firstPlayer, {
+            promptType: 'initiative',
             activePromptTitle: 'You won the flip. Do you want to start with initiative:',
             source: 'Choose Initiative Player',
             choices: ['Yes', 'No'],

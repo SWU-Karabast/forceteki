@@ -60,7 +60,8 @@ export class ResourcePrompt extends AllPlayerPrompt {
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',
-            promptUuid: this.uuid
+            promptUuid: this.uuid,
+            promptType: 'resource'
         };
     }
 
