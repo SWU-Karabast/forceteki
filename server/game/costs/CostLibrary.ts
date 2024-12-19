@@ -53,6 +53,13 @@ export function defeatSpecific<TContext extends AbilityContext = AbilityContext>
     return new GameSystemCost<TContext>(GameSystems.defeat<TContext>({ target }));
 }
 
+/**
+ * Cost that requires defeating the card that initiated the ability
+ */
+export function defeatSelf<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
+    return new GameSystemCost<TContext>(GameSystems.defeat<TContext>());
+}
+
 // TODO THIS PR: add isCost: true to all of these
 /**
  * Cost that requires discard a card from hand that matches the passed condition predicate function.

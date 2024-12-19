@@ -13,7 +13,7 @@ export default class FrontlineShuttle extends NonLeaderUnitCard {
     protected override setupCardAbilities() {
         this.addActionAbility({
             title: 'Attack with a unit, even if it’s exhausted. It can’t attack bases for this attack.',
-            cost: (context) => AbilityHelper.costs.defeatSpecific(context.source),
+            cost: AbilityHelper.costs.defeatSelf(),
             initiateAttack: {
                 targetCondition: (target) => target.isUnit(),
                 allowExhaustedAttacker: true
