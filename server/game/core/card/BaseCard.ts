@@ -5,7 +5,7 @@ import * as Contract from '../utils/Contract';
 import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
 import AbilityHelper from '../../AbilityHelper';
-import { IActionAbilityProps, IEpicActionProps } from '../../Interfaces';
+import { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
 const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
@@ -40,6 +40,13 @@ export class BaseCard extends BaseCardParent {
         }
 
         return super.getActionAbilities();
+    }
+
+    // TODO TYPE REFACTOR: this method is duplicated
+    protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
+        const ability = this.createConstantAbility(properties);
+        ability.registeredEffects = this.addEffectToEngine(ability);
+        this.constantAbilities.push(ability);
     }
 
     protected setEpicActionAbility(properties: IEpicActionProps<this>): void {

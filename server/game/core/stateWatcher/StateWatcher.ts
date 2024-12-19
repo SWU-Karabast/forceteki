@@ -28,7 +28,7 @@ export abstract class StateWatcher<TState> {
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {
         when: {
-            onPhaseEnded: (event) => event.phase === PhaseName.Action
+            onPhaseEnded: () => true,
         }
     };
 
