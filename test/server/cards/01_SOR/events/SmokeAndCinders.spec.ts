@@ -9,7 +9,8 @@ describe('Smoke and Cinders', function() {
                     },
                     player2: {
                         hand: ['gamorrean-guards']
-                    }
+                    },
+                    autoSingleTarget: true
                 });
             });
 
