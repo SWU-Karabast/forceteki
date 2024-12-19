@@ -408,6 +408,7 @@ class PlayerInteractionWrapper {
 
     findCardByName(name, zones = 'any', side) {
         var cards = this.filterCardsByName(name, zones, side);
+        // TODO: Update to throw exception when returning more or less than 1 card. This will require updates to the test suite.git
         if (cards.length === 0) {
             throw new TestSetupError('Could not find any matching cards');
         }
