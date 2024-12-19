@@ -64,5 +64,52 @@ describe('The Emprerors Legion', function () {
             expect(context.player1.exhaustedResourceCount).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should only affect units that were defeated as their most recent in-play copy', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['the-emperors-legion', 'the-emperors-legion'],
+                    groundArena: ['atst', 'wampa']
+                },
+                player2: {
+                    hand: ['superlaser-blast', 'waylay', 'force-throw', 'vanquish'],
+                    resources: 30,
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            const [emperorsLegion1, emperorsLegion2] = context.player1.findCardsByName('the-emperors-legion');
+
+            // both units are defeated and returned to hand
+            context.player2.clickCard(context.superlaserBlast);
+            context.player1.clickCard(emperorsLegion1);
+            expect(context.atst).toBeInZone('hand');
+            expect(context.wampa).toBeInZone('hand');
+
+            // play AT-ST, then it gets waylaid and discarded (so this copy was never defeated)
+            context.player2.passAction();
+            context.player1.clickCard(context.atst);
+            context.player2.clickCard(context.waylay);
+            context.player2.clickCard(context.atst);
+
+            context.player1.passAction();
+            context.player2.clickCard(context.forceThrow);
+            context.player2.clickPrompt('Opponent');
+            context.player1.clickCard(context.atst);
+
+            // play Wampa then defeat it, so it now has two separately defeated copies this phase
+            context.player1.clickCard(context.wampa);
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.wampa);
+
+            // play the second copy of The Emperor's Legion, only the Wampa should be returned to hand
+            // (and not cause an error due to two defeated copies)
+            context.player1.clickCard(emperorsLegion2);
+            expect(context.atst).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('hand');
+        });
     });
 });

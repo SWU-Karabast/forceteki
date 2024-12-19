@@ -1,7 +1,7 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stage, AbilityType, RelativePlayer } = require('../Constants.js');
-const AttackHelper = require('../attack/AttackHelper.js');
+const AttackHelper = require('../attack/AttackHelpers.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
 
