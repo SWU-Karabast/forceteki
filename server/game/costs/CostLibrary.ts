@@ -7,6 +7,8 @@ import { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
+import { CardWithDamageProperty } from '../core/card/CardTypes';
+import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;
@@ -45,6 +47,14 @@ export function defeat<TContext extends AbilityContext = AbilityContext>(propert
 }
 
 /**
+ * Cost that requires defeating a specific card.
+ */
+export function defeatSpecific<TContext extends AbilityContext = AbilityContext>(target: InPlayCard): ICost<TContext> {
+    return new GameSystemCost<TContext>(GameSystems.defeat<TContext>({ target }));
+}
+
+// TODO THIS PR: add isCost: true to all of these
+/**
  * Cost that requires discard a card from hand that matches the passed condition predicate function.
  */
 export function discardCardFromOwnHand<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
@@ -57,6 +67,13 @@ export function discardCardFromOwnHand<TContext extends AbilityContext = Ability
  */
 export function dealDamage<TContext extends AbilityContext = AbilityContext>(amount: number, properties: SelectCostProperties<TContext>): ICost<TContext> {
     return getSelectCost(GameSystems.damage<TContext>({ type: DamageType.Ability, amount: amount }), properties, `Select card to deal ${amount} damage to`);
+}
+
+/**
+ * Cost that requires dealing the given amount of damage to the specified target.
+ */
+export function dealDamageSpecific<TContext extends AbilityContext = AbilityContext>(amount: number, target: CardWithDamageProperty): ICost<TContext> {
+    return new GameSystemCost<TContext>(GameSystems.damage<TContext>({ type: DamageType.Ability, amount: amount, target }));
 }
 
 /**
