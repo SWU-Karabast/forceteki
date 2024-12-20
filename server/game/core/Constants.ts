@@ -436,3 +436,9 @@ export enum GameStateChangeRequired {
      */
     MustFullyResolve = 'mustFullyResolve',
 }
+
+export enum PromptType {
+    Initiative = 'initiative',
+    Resource = 'resource',
+    ActionWindow = 'actionWindow',
+}

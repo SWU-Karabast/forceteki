@@ -17,7 +17,8 @@ export interface ICost<TContext extends AbilityContext = AbilityContext> {
 
     selectCardName?(player: Player, cardName: string, context: TContext): boolean;
     promptsPlayer?: boolean;
-    dependsOn?: string;
+    // TODO: do we still need dependsOn for costs? what would be the use case?
+    // dependsOn?: string;
     isPrintedResourceCost?: boolean;
     isPlayCost?: boolean;
     canIgnoreForTargeting?: boolean;

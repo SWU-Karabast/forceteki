@@ -7,10 +7,14 @@ import { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
+import { CardWithDamageProperty } from '../core/card/CardTypes';
+import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;
 
+// TODO: we need to update the various cost generators to automatically inject { isCost: true } using additionalProperties so we don't have
+// to do it explicitly in each method. However, that requires doing a pass to make sure that additionalProperties is being respected everywhere.
 function getSelectCost<TContext extends AbilityContext = AbilityContext>(
     gameSystem: CardTargetSystem<TContext>,
     properties: undefined | SelectCostProperties<TContext>,
@@ -41,14 +45,29 @@ export function exhaustSelf<TContext extends AbilityContext = AbilityContext>():
  * predicate function.
  */
 export function defeat<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
-    return getSelectCost(GameSystems.defeat<TContext>(), properties, 'Select card to defeat');
+    return getSelectCost(GameSystems.defeat<TContext>(), { ...properties, isCost: true }, 'Select card to defeat');
 }
 
+/**
+ * Cost that requires defeating a specific card.
+ */
+export function defeatSpecific<TContext extends AbilityContext = AbilityContext>(target: InPlayCard): ICost<TContext> {
+    return new GameSystemCost<TContext>(GameSystems.defeat<TContext>({ target, isCost: true }));
+}
+
+/**
+ * Cost that requires defeating the card that initiated the ability
+ */
+export function defeatSelf<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
+    return new GameSystemCost<TContext>(GameSystems.defeat<TContext>({ isCost: true }));
+}
+
+// TODO THIS PR: add isCost: true to all of these
 /**
  * Cost that requires discard a card from hand that matches the passed condition predicate function.
  */
 export function discardCardFromOwnHand<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
-    return getSelectCost(GameSystems.discardSpecificCard<TContext>(), { ...properties, zoneFilter: ZoneName.Hand }, 'Select card to discard');
+    return getSelectCost(GameSystems.discardSpecificCard<TContext>(), { ...properties, zoneFilter: ZoneName.Hand, isCost: true }, 'Select card to discard');
 }
 
 /**
@@ -56,7 +75,14 @@ export function discardCardFromOwnHand<TContext extends AbilityContext = Ability
  * the passed condition predicate function.
  */
 export function dealDamage<TContext extends AbilityContext = AbilityContext>(amount: number, properties: SelectCostProperties<TContext>): ICost<TContext> {
-    return getSelectCost(GameSystems.damage<TContext>({ type: DamageType.Ability, amount: amount }), properties, `Select card to deal ${amount} damage to`);
+    return getSelectCost(GameSystems.damage<TContext>({ type: DamageType.Ability, amount: amount, isCost: true }), properties, `Select card to deal ${amount} damage to`);
+}
+
+/**
+ * Cost that requires dealing the given amount of damage to the specified target.
+ */
+export function dealDamageSpecific<TContext extends AbilityContext = AbilityContext>(amount: number, target: CardWithDamageProperty): ICost<TContext> {
+    return new GameSystemCost<TContext>(GameSystems.damage<TContext>({ type: DamageType.Ability, amount: amount, target, isCost: true }));
 }
 
 /**
