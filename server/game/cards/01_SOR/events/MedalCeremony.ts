@@ -27,7 +27,7 @@ export default class MedalCeremony extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience(),
                 cardCondition: (card, context) => {
                     const rebelUnitsAttackedThisPhase =
-                        this.attacksThisPhaseWatcher.getAttackers((attack) => attack.attacker.hasSomeTrait(Trait.Rebel));
+                        this.attacksThisPhaseWatcher.getAttackersInPlay((attack) => attack.attacker.hasSomeTrait(Trait.Rebel));
                     return rebelUnitsAttackedThisPhase.includes(card);
                 }
             }

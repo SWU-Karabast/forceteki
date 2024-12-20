@@ -4,6 +4,7 @@ import type Player from '../../Player';
 import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
+import { PromptType } from '../../Constants';
 
 export class ResourcePrompt extends AllPlayerPrompt {
     protected selectedCards = new Map<string, Card[]>();
@@ -60,7 +61,8 @@ export class ResourcePrompt extends AllPlayerPrompt {
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',
-            promptUuid: this.uuid
+            promptUuid: this.uuid,
+            promptType: PromptType.Resource
         };
     }
 

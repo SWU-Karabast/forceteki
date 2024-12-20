@@ -113,7 +113,7 @@ export class GameServer {
         // set the user
         lobby.createLobbyUser('Order66', deck);
         this.userLobbyMap.set('Order66', lobby.id);
-        // this.userLobbyMap.set('ThisIsTheWay', lobby.id);
+        this.userLobbyMap.set('ThisIsTheWay', lobby.id);
         return true;
     }
 
