@@ -1,5 +1,5 @@
 const { UiPrompt } = require('./prompts/UiPrompt.js');
-const { RelativePlayer, WildcardZoneName } = require('../Constants.js');
+const { RelativePlayer, WildcardZoneName, PromptType } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
 const Contract = require('../utils/Contract');
 
@@ -107,7 +107,7 @@ class ActionWindow extends UiPrompt {
             buttons: buttons,
             promptTitle: this.title,
             promptUuid: this.uuid,
-            promptType: 'actionWindow'
+            promptType: PromptType.ActionWindow
         };
     }
 
