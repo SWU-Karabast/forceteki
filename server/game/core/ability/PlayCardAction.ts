@@ -8,13 +8,14 @@ import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjuster } from '../cost/CostAdjuster';
+import * as Helpers from '../utils/Helpers';
 
 export interface IPlayCardActionProperties {
     card: Card;
     title?: string;
     playType?: PlayType;
     triggerHandlingMode?: TriggerHandlingMode;
-    costAdjuster?: CostAdjuster;
+    costAdjusters?: CostAdjuster | CostAdjuster[];
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
 }
@@ -23,12 +24,20 @@ export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
     public readonly playType: PlayType;
-    public readonly costAdjuster: CostAdjuster;
+    public readonly costAdjusters: CostAdjuster[];
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
     public constructor(properties: IPlayCardActionProperties) {
-        const propertiesWithDefaults = { title: 'Play this card', playType: PlayType.PlayFromHand, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, additionalCosts: [], ...properties };
+        const propertiesWithDefaults = {
+            // TODO THIS PR: update title to include card name
+            title: 'Play this card',
+            playType: PlayType.PlayFromHand,
+            triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
+            additionalCosts: [],
+            ...properties
+        };
+
         super(
             propertiesWithDefaults.card,
             PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType),
@@ -38,7 +47,7 @@ export abstract class PlayCardAction extends PlayerAction {
         );
 
         this.playType = propertiesWithDefaults.playType;
-        this.costAdjuster = propertiesWithDefaults.costAdjuster;
+        this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
         this.createdWithProperties = { ...properties };
     }
 
