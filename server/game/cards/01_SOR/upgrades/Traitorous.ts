@@ -21,7 +21,7 @@ export default class Traitorous extends UpgradeCard {
                     target: context.event.parentCard,
                     newController: context.source.owner
                 })),
-                onFalse: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true }),
+                onFalse: AbilityHelper.immediateEffects.noAction(),
             })
         });
 
