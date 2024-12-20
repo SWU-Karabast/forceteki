@@ -12,7 +12,7 @@ export class PlayUnitAction extends PlayCardAction {
     private entersReady: boolean;
 
     public constructor(properties: IPlayUnitActionProperties) {
-        super({ ...properties, title: 'Play this unit' });
+        super(properties);
 
         // default to false
         this.entersReady = !!properties.entersReady;

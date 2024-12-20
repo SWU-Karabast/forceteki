@@ -4,10 +4,6 @@ import { PlayCardContext, PlayCardAction, IPlayCardActionProperties } from '../c
 import { GameEvent } from '../core/event/GameEvent.js';
 
 export class PlayEventAction extends PlayCardAction {
-    public constructor(properties: IPlayCardActionProperties) {
-        super({ title: 'Play this event', ...properties });
-    }
-
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());
 

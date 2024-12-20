@@ -23,9 +23,9 @@ describe('Bamboozle', function () {
             };
 
             context.player1.clickCard(context.bamboozle);
-            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play this event', 'Play Bamboozle by discarding a Cunning card']);
+            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Bamboozle', 'Play Bamboozle by discarding a Cunning card']);
             // play bamboozle with resource
-            context.player1.clickPrompt('Play this event');
+            context.player1.clickPrompt('Play Bamboozle');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.sawGerrera]);
 
             // exhaust green squadron awing, nothing to return in hand
@@ -117,7 +117,7 @@ describe('Bamboozle', function () {
 
             // expect to see both play actions, choose the discard mode
             context.player1.clickCard(context.bamboozle);
-            expect(context.player1).toHaveExactPromptButtons(['Play this event', 'Play Bamboozle by discarding a Cunning card']);
+            expect(context.player1).toHaveExactPromptButtons(['Play Bamboozle', 'Play Bamboozle by discarding a Cunning card']);
             context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
 
             // can discard only cunning card
@@ -138,7 +138,7 @@ describe('Bamboozle', function () {
             context.player1.clickCard(context.bibFortuna);
             context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
             context.player1.clickCard(context.bamboozle);
-            context.player1.clickPrompt('Play this event');
+            context.player1.clickPrompt('Play Bamboozle');
 
             // choose to exhaust a-wing
             context.player1.clickCard(context.greenSquadronAwing);
@@ -167,5 +167,7 @@ describe('Bamboozle', function () {
             // no resource exhausted since the last action
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
+
+        // TODO TECH: add test for Bamboozle in Smuggle to make sure its alternate play mode doesn't work there
     });
 });

@@ -30,8 +30,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
     public constructor(properties: IPlayCardActionProperties) {
         const propertiesWithDefaults = {
-            // TODO THIS PR: update title to include card name
-            title: 'Play this card',
+            title: `Play ${properties.card.title}`,
             playType: PlayType.PlayFromHand,
             triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
             additionalCosts: [],
