@@ -50,7 +50,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
                 handlers: availablePlayCardAbilities.map((action) => (() => this.resolvePlayCardAbility(action, event)))
             });
         } else {
-            Contract.fail('No legal play card abilities found for event');
+            Contract.fail(`No legal play card abilities found for card ${event.card.internalName}`);
         }
     }
 
