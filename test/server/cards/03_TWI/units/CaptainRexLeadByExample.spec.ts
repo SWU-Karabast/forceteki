@@ -5,10 +5,6 @@ describe('Captain Rex Lead by Example', function() {
                 phase: 'action',
                 player1: {
                     hand: ['captain-rex#lead-by-example'],
-
-                },
-                player2: {
-                    groundArena: ['battlefield-marine']
                 }
             });
 
@@ -20,10 +16,7 @@ describe('Captain Rex Lead by Example', function() {
             expect(cloneTroopers.length).toBe(2);
             expect(cloneTroopers).toAllBeInZone('groundArena');
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.exhausted)).toBeTrue();
-
-            // No Clone Trooper for player 2
-            const player2ArenaCard = context.player2.getArenaCards();
-            expect(player2ArenaCard.length).toBe(1); // only Battlefield Marine
+            expect(context.player2.getArenaCards().length).toBe(0);
         });
     });
 });
