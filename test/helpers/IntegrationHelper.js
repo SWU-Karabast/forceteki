@@ -104,13 +104,25 @@ global.integration = function (definitions) {
         beforeEach(function () {
             const newContext = {};
             contextRef.context = newContext;
-            this.flow = newContext.flow = new GameFlowWrapper();
+
+            var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError']);
+            gameRouter.handleError.and.callFake((game, error) => {
+                throw error;
+            });
+
+            this.flow = newContext.flow = new GameFlowWrapper(
+                gameRouter,
+                { id: '111', username: 'player1' },
+                { id: '222', username: 'player2' }
+            );
 
             this.game = newContext.game = this.flow.game;
             this.player1Object = newContext.player1Object = this.game.getPlayerByName('player1');
             this.player2Object = newContext.player2Object = this.game.getPlayerByName('player2');
             this.player1 = newContext.player1 = this.flow.player1;
             this.player2 = newContext.player2 = this.flow.player2;
+            this.player1Name = newContext.player1Name = this.flow.player1Name;
+            this.player2Name = newContext.player2Name = this.flow.player2Name;
 
             ProxiedGameFlowWrapperMethods.forEach((method) => {
                 this[method] = newContext[method] = (...args) => this.flow[method].apply(this.flow, args);

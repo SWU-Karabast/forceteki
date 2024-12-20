@@ -5,29 +5,71 @@ const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
 const playableCardTitles = require('../json/_playableCardTitles.json');
+const GameStateSetup = require('./GameStateSetup.js');
+const Contract = require('../../server/game/core/utils/Contract.js');
+
+/**
+ * @typedef {Object} IPlayerInfo
+ * @property {string} username
+ * @property {string} id
+ */
 
 class GameFlowWrapper {
-    constructor() {
-        var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError']);
-        gameRouter.handleError.and.callFake((game, error) => {
-            throw error;
-        });
+    // constructor() {
+    //     const player1InfoOrDefault = player1Info ?? Settings.getUserWithDefaultsSet({ username: 'player1' });
+
+    //     // TODO: better understand what this is doing and how we could leverage it for testing
+    //     var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError']);
+    //     gameRouter.handleError.and.callFake((game, error) => {
+    //         throw error;
+    //     });
+
+    //     this.game = GameStateSetup.buildGameObject(gameRouter, this.buildPlayerOrDefault(1, player1InfoOrDefault), this.buildPlayerOrDefault(2, player2));
+
+    //     this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player1'), this);
+    //     this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player2'), this);
+    //     // this.player1.player.timerSettings.events = false;
+    //     // this.player2.player.timerSettings.events = false;
+    //     this.allPlayers = [this.player1, this.player2];
+    // }
+
+    // buildPlayerOrDefault(playerNumber, playerInfo) {
+    //     const id = playerInfo?.id ?? `${playerNumber}`.repeat(3);
+    //     const username = playerInfo?.username ?? `player${playerNumber}`;
+
+    //     return { id, user: Settings.getUserWithDefaultsSet({ username }) };
+    // }
+
+    /**
+     * @param {any} router
+     * @param {IPlayerInfo} player1Info
+     * @param {IPlayerInfo} player2Info
+     */
+    constructor(router, player1Info, player2Info) {
+        Contract.assertNotNullLike(router);
+        Contract.assertNotNullLike(player1Info);
+        Contract.assertNotNullLike(player2Info);
+
         var details = {
-            name: 'player1\'s game',
+            name: `${player1Info.username}'s game`,
             id: 12345,
-            owner: 'player1',
+            owner: player1Info.username,
             saveGameId: 12345,
             players: [
-                { id: '111', user: Settings.getUserWithDefaultsSet({ username: 'player1' }) },
-                { id: '222', user: Settings.getUserWithDefaultsSet({ username: 'player2' }) }
+                { id: player1Info.id, user: Settings.getUserWithDefaultsSet({ username: player1Info.username }) },
+                { id: player2Info.id, user: Settings.getUserWithDefaultsSet({ username: player2Info.username }) },
             ],
             playableCardTitles: this.getPlayableCardTitles()
         };
-        this.game = new Game(details, { router: gameRouter });
+
+        this.game = new Game(details, { router });
         this.game.started = true;
 
-        this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player1'), this);
-        this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player2'), this);
+        this.player1Name = player1Info.username;
+        this.player2Name = player2Info.username;
+
+        this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName(this.player1Name), this);
+        this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName(this.player2Name), this);
         // this.player1.player.timerSettings.events = false;
         // this.player2.player.timerSettings.events = false;
         this.allPlayers = [this.player1, this.player2];
