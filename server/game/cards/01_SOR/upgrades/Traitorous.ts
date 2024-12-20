@@ -11,18 +11,16 @@ export default class Traitorous extends UpgradeCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Take control of attached non-leader unit if it costs 3 or less',
+            title: 'Take control of attached unit',
             when: {
-                onUpgradeAttached: (event, context) => event.upgradeCard === context.source,
+                onUpgradeAttached: (event, context) => event.upgradeCard === context.source &&
+                  event.parentCard.isNonLeaderUnit() &&
+                  event.parentCard.cost <= 3,
             },
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.event.parentCard.isNonLeaderUnit() && context.event.parentCard.cost <= 3,
-                onTrue: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                    target: context.event.parentCard,
-                    newController: context.source.owner
-                })),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
-            })
+            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                target: context.event.parentCard,
+                newController: context.source.owner
+            }))
         });
 
         this.addTriggeredAbility({

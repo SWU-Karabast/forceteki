@@ -78,13 +78,6 @@ describe('Traitorous', function() {
                 context.player2.clickCard(context.traitorous);
                 context.player2.clickCard(context.wampa);
 
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'That unit’s owner takes control of it',
-                    'Take control of attached non-leader unit if it costs 3 or less',
-                ]);
-                context.player1.clickPrompt('Take control of attached non-leader unit if it costs 3 or less');
-
                 expect(context.superlaserTechnician).toBeInZone('groundArena', context.player2);
                 expect(context.wampa).toBeInZone('groundArena', context.player1);
 
