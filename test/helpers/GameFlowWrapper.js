@@ -6,13 +6,6 @@ const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
 const playableCardTitles = require('../json/_playableCardTitles.json');
 const GameStateSetup = require('./GameStateSetup.js');
-const Contract = require('../../server/game/core/utils/Contract.js');
-
-/**
- * @typedef {Object} IPlayerInfo
- * @property {string} username
- * @property {string} id
- */
 
 class GameFlowWrapper {
     // constructor() {
@@ -42,14 +35,10 @@ class GameFlowWrapper {
 
     /**
      * @param {any} router
-     * @param {IPlayerInfo} player1Info
-     * @param {IPlayerInfo} player2Info
+     * @param {PlayerInfo} player1Info
+     * @param {PlayerInfo} player2Info
      */
     constructor(router, player1Info, player2Info) {
-        Contract.assertNotNullLike(router);
-        Contract.assertNotNullLike(player1Info);
-        Contract.assertNotNullLike(player2Info);
-
         var details = {
             name: `${player1Info.username}'s game`,
             id: 12345,

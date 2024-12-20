@@ -48,10 +48,16 @@ interface SwuTestContext {
     [field: string]: any;
 }
 
+interface PlayerInfo {
+    id: string;
+    username: string;
+}
+
 interface SwuSetupTestOptions {
     phase?: string;
     player1?: SwuPlayerSetupOptions;
     player2?: SwuPlayerSetupOptions;
+    autoSingleTarget?: boolean;
 
     [field: string]: any;
 }
