@@ -19,7 +19,6 @@ export default class SurvivorsGauntlet extends NonLeaderUnitCard {
             },
             targetResolvers: {
                 chooseUpgrade: {
-                    mode: TargetMode.Single,
                     cardTypeFilter: WildcardCardType.Upgrade,
                     zoneFilter: WildcardZoneName.AnyArena,
                     controller: WildcardRelativePlayer.Any,
@@ -27,7 +26,6 @@ export default class SurvivorsGauntlet extends NonLeaderUnitCard {
                 },
                 chooseUnit: {
                     dependsOn: 'chooseUpgrade',
-                    mode: TargetMode.Single,
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     controller: (context) => (context.source.controller === context.targets.chooseUpgrade.controller ? RelativePlayer.Self : RelativePlayer.Opponent),
