@@ -38,11 +38,24 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     };
 
     public eventHandler(event, additionalProperties): void {
-        Contract.assertArraySize(event.playCardAbilities, 1);
+        const availablePlayCardAbilities = event.playCardAbilities as PlayCardAction[];
 
-        const player = event.player;
-        const newContext = (event.playCardAbilities as PlayCardAction[])[0].createContext(player);
+        if (availablePlayCardAbilities.length === 1) {
+            this.resolvePlayCardAbility(availablePlayCardAbilities[0], event);
+        } else if (availablePlayCardAbilities.length > 1) {
+            event.context.game.promptWithHandlerMenu(event.context.player, {
+                activePromptTitle: `Choose an option for playing ${event.card.title}`,
+                source: event.card,
+                choices: availablePlayCardAbilities.map((action) => action.title),
+                handlers: availablePlayCardAbilities.map((action) => (() => this.resolvePlayCardAbility(action, event)))
+            });
+        } else {
+            Contract.fail('No legal play card abilities found for event');
+        }
+    }
 
+    private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
+        const newContext = ability.createContext(event.player);
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
     }
 

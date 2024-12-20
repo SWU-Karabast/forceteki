@@ -67,5 +67,39 @@ describe('Bamboozle', function () {
             // no resource exhausted since the last action
             expect(context.player1.exhaustedResourceCount).toBe(2);
         });
+
+        it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['bamboozle', 'wampa', 'crafty-smuggler', 'lothal-insurgent'],
+                    groundArena: ['battlefield-marine', 'bib-fortuna#jabbas-majordomo'],
+                    leader: 'lando-calrissian#with-impeccable-taste'
+                },
+                player2: {
+                    groundArena: ['saw-gerrera#extremist'],
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // play Bamboozle using Bib Fortuna ability
+            context.player1.clickCard(context.bibFortuna);
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+
+            // expect to see both play actions, choose the discard mode
+            context.player1.clickCard(context.bamboozle);
+            expect(context.player1).toHaveExactPromptButtons(['Play this event', 'Play Bamboozle by discarding a Cunning card']);
+            context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
+
+            // can discard only cunning card
+            expect(context.player1).toBeAbleToSelectExactly([context.craftySmuggler, context.lothalInsurgent]);
+            context.player1.clickCard(context.craftySmuggler);
+
+            // choose to exhaust saw gerrera
+            context.player1.clickCard(context.sawGerrera);
+            expect(context.sawGerrera.exhausted).toBeTrue();
+        });
     });
 });
