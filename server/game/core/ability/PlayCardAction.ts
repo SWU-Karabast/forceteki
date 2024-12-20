@@ -89,7 +89,7 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     public override getAdjustedCost(context) {
-        const resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
+        const resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
