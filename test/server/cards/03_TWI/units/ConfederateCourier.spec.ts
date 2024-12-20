@@ -1,6 +1,6 @@
 describe('Confederate Courier', function () {
     integration(function (contextRef) {
-        it('ability should create a Battle Droid token when defeated', function () {
+        it('Confederate Courier\'s ability should create a Battle Droid token when defeated', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
