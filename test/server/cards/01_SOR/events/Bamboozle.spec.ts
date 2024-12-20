@@ -100,6 +100,30 @@ describe('Bamboozle', function () {
             // choose to exhaust saw gerrera
             context.player1.clickCard(context.sawGerrera);
             expect(context.sawGerrera.exhausted).toBeTrue();
+
+            // check costs (including Saw Gerrera additional cost)
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+            expect(context.p1Base.damage).toBe(2);
+
+            // reset
+            context.setDamage(context.p1Base, 0);
+            context.player1.moveCard(context.bamboozle, 'hand');
+            context.bibFortuna.exhausted = false;
+            context.player2.passAction();
+
+            // play Bamboozle using Bib Fortuna ability, choose normal play this time
+            context.player1.clickCard(context.bibFortuna);
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+            context.player1.clickCard(context.bamboozle);
+            context.player1.clickPrompt('Play this event');
+
+            // choose to exhaust a-wing
+            context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.greenSquadronAwing.exhausted).toBeTrue();
+
+            // check costs (including Saw Gerrera additional cost)
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+            expect(context.p1Base.damage).toBe(2);
         });
     });
 });

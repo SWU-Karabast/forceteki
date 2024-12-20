@@ -52,6 +52,10 @@ class PlayBamboozleAction extends PlayEventAction {
         }
         return costs;
     }
+
+    public override clone(overrideProperties: IPlayCardActionProperties) {
+        return new PlayBamboozleAction({ ...this.createdWithProperties, ...overrideProperties });
+    }
 }
 
 Bamboozle.implemented = true;
