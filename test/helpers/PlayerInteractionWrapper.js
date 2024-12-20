@@ -407,7 +407,12 @@ class PlayerInteractionWrapper {
     }
 
     findCardByName(name, zones = 'any', side) {
-        return this.filterCardsByName(name, zones, side)[0];
+        var cards = this.filterCardsByName(name, zones, side);
+        // TODO: Update to throw exception when returning more or less than 1 card. This will require updates to the test suite.git
+        if (cards.length === 0) {
+            throw new TestSetupError('Could not find any matching cards');
+        }
+        return cards[0];
     }
 
     findCardsByName(names, zones = 'any', side) {
@@ -428,19 +433,18 @@ class PlayerInteractionWrapper {
                 zones = [zones];
             }
         }
-        try {
-            var cards = this.filterCards(
-                (card) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
-                side
-            );
-        } catch (e) {
-            throw new TestSetupError(`Names: ${namesAra}, ZoneName: ${zones}. Error thrown: ${e}`);
-        }
-        return cards;
+        return this.filterCards(
+            (card) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
+            side
+        );
     }
 
     findCard(condition, side) {
-        return this.filterCards(condition, side)[0];
+        var cards = this.filterCards(condition, side);
+        if (cards.length === 0) {
+            throw new TestSetupError('Could not find any matching cards');
+        }
+        return cards[0];
     }
 
     /**
@@ -453,12 +457,7 @@ class PlayerInteractionWrapper {
         if (side === 'opponent') {
             player = this.opponent;
         }
-        var cards = player.decklist.allCards.filter(condition);
-        if (cards.length === 0) {
-            throw new TestSetupError(`Could not find any matching cards for ${player.name}`);
-        }
-
-        return cards;
+        return player.decklist.allCards.filter(condition);
     }
 
     exhaustResources(number) {

@@ -1073,8 +1073,13 @@ global.integration = function (definitions) {
             // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
             const parallelMode = jasmine.getEnv().configuration().random;
 
-            // if there were already failures in the test case, don't bother checking the prompts after
-            if (!parallelMode && jasmine.getEnv().currentSpec.failedExpectations.length > 0) {
+            // if there were already exceptions in the test case, don't bother checking the prompts after
+            if (
+                !parallelMode && jasmine.getEnv().currentSpec.failedExpectations.some(
+                    (expectation) => expectation.message.startsWith('Error:') ||
+                      expectation.message.startsWith('TestSetupError:')
+                )
+            ) {
                 return;
             }
 

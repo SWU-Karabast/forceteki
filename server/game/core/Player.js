@@ -1126,7 +1126,8 @@ class Player extends GameObject {
             promptedActionWindows: this.promptedActionWindows,
             // stats: this.getStats(),
             // timerSettings: this.timerSettings,
-            user: safeUser
+            user: safeUser,
+            promptState: promptState,
         };
 
         // if (this.showDeck) {
@@ -1142,7 +1143,7 @@ class Player extends GameObject {
             state.clock = this.clock.getState();
         }
 
-        return { ...state, ...promptState };
+        return state;
     }
 }
 
