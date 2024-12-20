@@ -11,7 +11,7 @@ export default class Traitorous extends UpgradeCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Take control of a non-leader unit that costs 3 or less',
+            title: 'Take control of attached non-leader unit if it costs 3 or less',
             when: {
                 onUpgradeAttached: (event, context) => event.upgradeCard === context.source,
             },
@@ -24,6 +24,7 @@ export default class Traitorous extends UpgradeCard {
                 onFalse: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true }),
             })
         });
+
         this.addTriggeredAbility({
             title: 'That unit’s owner takes control of it',
             when: {
