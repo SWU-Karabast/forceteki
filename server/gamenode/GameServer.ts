@@ -112,6 +112,7 @@ export class GameServer {
         // Using default user for now
         // set the user
         lobby.createLobbyUser('Order66', deck);
+        lobby.createLobbyUser('ThisIsTheWay', null);
         this.userLobbyMap.set('Order66', lobby.id);
         this.userLobbyMap.set('ThisIsTheWay', lobby.id);
         return true;
