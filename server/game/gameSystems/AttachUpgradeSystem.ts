@@ -1,11 +1,11 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import { UnitCard } from '../core/card/CardTypes';
+import { GameEvent } from '../core/event/GameEvent.js';
 import { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardTypeFilter, EventName, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Helpers from '../core/utils/Helpers';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     upgrade?: UpgradeCard;
@@ -105,6 +105,22 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
         event.parentCard = card;
         event.upgradeCard = upgrade;
+        event.setContingentEventsGenerator(() => {
+            const contingentEvents = [];
+
+            if (upgrade.isInPlay()) {
+                contingentEvents.push(new GameEvent(
+                    EventName.OnUpgradeUnattached,
+                    context,
+                    {
+                        upgradeCard: upgrade,
+                        parentCard: upgrade.parentCard,
+                    }
+                ));
+            }
+
+            return contingentEvents;
+        });
     }
 
     private getFinalController(properties, context) {

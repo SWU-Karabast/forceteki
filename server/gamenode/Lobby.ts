@@ -230,15 +230,16 @@ export class Lobby {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
                 user.socket.send('gamestate', game.getState(user.id));
-                user.socket.send('deckData', user.deck.data);
             }
         }
     }
 
     public sendDeckInfo(): void {
         for (const user of this.users) {
-            if (user.state === 'connected' && user.socket) {
+            if (user.state === 'connected' && user.socket && user.deck) {
                 user.socket.send('deckData', user.deck.data);
+            } else if (user.state === 'connected' && user.socket) {
+                user.socket.send('deckData', defaultGameSettings.players[0].deck);
             }
         }
     }
