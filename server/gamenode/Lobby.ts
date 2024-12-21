@@ -30,11 +30,14 @@ export class Lobby {
 
     public createLobbyUser(id: string, deck): void {
         const existingUser = this.users.find((u) => u.id === id);
-        const newDeck = new Deck(deck);
+        let newDeck = null;
+        if (deck) {
+            newDeck = new Deck(deck);
 
-        if (existingUser) {
-            existingUser.deck = newDeck;
-            return;
+            if (existingUser) {
+                existingUser.deck = newDeck;
+                return;
+            }
         }
         this.users.push(({ id: id, state: null, socket: null, deck: newDeck }));
     }
@@ -132,9 +135,10 @@ export class Lobby {
 
     // example method to demonstrate the use of the test game setup utility
     private checkLoadTestGame() {
-        if (!fs.existsSync('../../test')) {
+        // this for some reason always returned null.
+        /* if (!fs.existsSync('../../test')) {
             return null;
-        }
+        }*/
 
         // eslint-disable-next-line
         const game: Game = require('../../test/helpers/GameStateSetup.js').setUpTestGame({
@@ -149,15 +153,15 @@ export class Lobby {
             autoSingleTarget: false
         },
         {},
-        { id: '111', username: 'player1' },
-        { id: '222', username: 'player2' }
+        { id: '111', username: 'Order66' },
+        { id: '222', username: 'ThisIsTheWay' }
         );
 
         return game;
     }
 
     private onStartGame(id: string): void {
-        const game = new Game(defaultGameSettings, { router: this });
+        let game = new Game(defaultGameSettings, { router: this });
         this.game = game;
         const existingUser = this.users.find((u) => u.id === id);
         const opponent = this.users.find((u) => u.id !== id);
@@ -183,9 +187,9 @@ export class Lobby {
         } else {
             game.selectDeck('ThisIsTheWay', defaultGameSettings.players[0].deck);
         }
-
+        game = this.checkLoadTestGame();
+        this.game = game;
         game.initialise();
-
         this.sendGameState(game);
     }
 
