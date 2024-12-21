@@ -316,7 +316,7 @@ class PlayerOrCardAbility {
      * Indicates whether a card is played as part of the resolution this ability
      * @returns {this is import('./PlayCardAction.js').PlayCardAction}
      */
-    isCardPlayed() {
+    isPlayCardAbility() {
         return false;
     }
 
