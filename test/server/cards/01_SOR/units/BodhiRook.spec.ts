@@ -18,7 +18,14 @@ describe('Bodhi Rook', function () {
 
                 // Default test, gives the player two options
                 context.player1.clickCard(context.bodhiRook);
+                expect(context.bodhiRook.zoneName).toBe('groundArena');
+
+                // First check that the lookAt sends ALL the oppoents cards in hand to chat
+                expect(context.getChatLogs(1)).toContain('Bodhi Rook sees Battlefield Marine, Inferno Four, Protector, Sabine Wren, and Waylay');
+
+                // Now the player can select using the card filters
                 expect(context.player1).toBeAbleToSelectAllOf([context.waylay, context.protector]);
+
                 context.player1.clickCard(context.waylay);
                 expect(context.waylay).toBeInZone('discard');
 
@@ -27,6 +34,7 @@ describe('Bodhi Rook', function () {
 
                 // Only one possible choice -- autoSingleTarget is off, so this still asks to select
                 context.player1.clickCard(context.bodhiRook);
+                expect(context.getChatLogs(1)).toContain('Bodhi Rook sees Battlefield Marine, Inferno Four, Protector, and Sabine Wren');
                 expect(context.player1).toBeAbleToSelectAllOf([context.protector]);
                 context.player1.clickCard(context.protector);
                 expect(context.protector).toBeInZone('discard');
@@ -36,6 +44,7 @@ describe('Bodhi Rook', function () {
 
                 // No choice here, but the player still needs an opponent hand reveal and select Done
                 context.player1.clickCard(context.bodhiRook);
+                expect(context.getChatLogs(1)).toContain('Bodhi Rook sees Battlefield Marine, Inferno Four, and Sabine Wren');
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
                 context.player1.clickPrompt('Done');
             });

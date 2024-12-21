@@ -13,8 +13,8 @@ export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProp
     amount: Derivable<number, Player>;
     random?: boolean;
 
-    /* TODO: Add reveal system to when card type filter or card condition exists, as this is required to keep the
-    in order to keep the player honest in a in-person game */
+    /* TODO: Add a reveal system to flip over the cards if discarding from an opponent, also in the future
+    this may be necessary for a player discarding from their own ahnds if a card condition or filter exits to keep them honest */
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
     discardingPlayerType?: RelativePlayer; // Self for own hand, or opponent chooses
