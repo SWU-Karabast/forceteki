@@ -1,0 +1,33 @@
+describe('Nameless Valor', function() {
+    integration(function(contextRef) {
+        it('should only attach to token unit and give it Overwhelm', function() {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'battlefield-marine', damage: 1 }],
+                    hand: ['nameless-valor', 'trade-federation-shuttle'],
+                    leader: { card: 'jyn-erso#resisting-oppression', deployed: true },
+                },
+                player2: {
+                    groundArena: ['coruscant-guard']
+                }
+            });
+            const { context } = contextRef;
+            // create a token for testing
+            context.player1.clickCard(context.tradeFederationShuttle);
+            context.player2.passAction();
+            // attach upgrade only to token unit.
+            context.player1.clickCard(context.namelessValor);
+            const battleDroids = context.player1.findCardsByName('battle-droid');
+            expect(context.player1).toBeAbleToSelectExactly([battleDroids[0]]);
+            context.player1.clickCard(battleDroids[0]);
+            // next step setup
+            battleDroids[0].exhausted = false;
+            context.player2.passAction();
+            // token gains overwhelm
+            context.player1.clickCard(battleDroids[0]);
+            context.player1.clickCard(context.coruscantGuard);
+            expect(context.p2Base.damage).toBe(1);
+        });
+    });
+});
