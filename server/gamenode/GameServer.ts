@@ -106,14 +106,11 @@ export class GameServer {
         );
     }
 
-    private createLobby(user: string, deck: any) {
+    private createLobby(user: any, deck: any) {
         const lobby = new Lobby();
         this.lobbies.set(lobby.id, lobby);
-        // Using default user for now
-        // set the user
-        lobby.createLobbyUser('Order66', deck);
-        this.userLobbyMap.set('Order66', lobby.id);
-        this.userLobbyMap.set('ThisIsTheWay', lobby.id);
+        lobby.createLobbyUser(user, deck);
+        this.userLobbyMap.set(user.id, lobby.id);
         return true;
     }
 
@@ -256,16 +253,16 @@ export class GameServer {
             return;
         }
 
-        if (!this.userLobbyMap.has(user.username)) {
+        if (!this.userLobbyMap.has(user.id)) {
             logger.info('No lobby for', ioSocket.request.user.username, 'disconnecting');
             ioSocket.disconnect();
             return;
         }
-        const lobbyId = this.userLobbyMap.get(user.username);
+        const lobbyId = this.userLobbyMap.get(user.id);
         const lobby = this.lobbies.get(lobbyId);
         const socket = new Socket(ioSocket);
-        lobby.addLobbyUser(user.username, socket);
-        socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.username, reason));
+        lobby.addLobbyUser(user, socket);
+        socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
 
         // const player = game.playersAndSpectators[socket.user.username];
         // if (!player) {

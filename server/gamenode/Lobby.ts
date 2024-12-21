@@ -8,6 +8,7 @@ import * as Contract from '../game/core/utils/Contract';
 
 interface LobbyUser {
     id: string;
+    username: string;
     state: 'connected' | 'disconnected';
     socket: Socket | null;
     deck: Deck | null;
@@ -27,20 +28,20 @@ export class Lobby {
         return this._id;
     }
 
-    public createLobbyUser(id: string, deck): void {
-        const existingUser = this.users.find((u) => u.id === id);
+    public createLobbyUser(user, deck): void {
+        const existingUser = this.users.find((u) => u.id === user.id);
         const newDeck = new Deck(deck);
 
         if (existingUser) {
             existingUser.deck = newDeck;
             return;
         }
-        this.users.push(({ id: id, state: null, socket: null, deck: newDeck }));
+        this.users.push(({ id: user.id, username: user.username, state: null, socket: null, deck: newDeck }));
     }
 
-    public addLobbyUser(id: string, socket: Socket): void {
-        const existingUser = this.users.find((u) => u.id === id);
-        socket.registerEvent('startGame', () => this.onStartGame(id));
+    public addLobbyUser(user, socket: Socket): void {
+        const existingUser = this.users.find((u) => u.id === user.id);
+        socket.registerEvent('startGame', () => this.onStartGame(user.id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('updateDeck', (socket, ...args) => this.updateDeck(socket, ...args));
         // maybe we neeed to be using socket.data
@@ -48,7 +49,7 @@ export class Lobby {
             existingUser.state = 'connected';
             existingUser.socket = socket;
         } else {
-            this.users.push({ id: id, state: 'connected', socket, deck: null });
+            this.users.push({ id: user.id, username: user.username, state: 'connected', socket, deck: null });
         }
 
         if (this.game) {
@@ -154,7 +155,7 @@ export class Lobby {
                 game.selectDeck(opponent.id, defaultGameSettings.players[0].deck);
             }
         } else {
-            game.selectDeck('ThisIsTheWay', defaultGameSettings.players[0].deck);
+            game.selectDeck('th3w4y', defaultGameSettings.players[0].deck);
         }
 
         game.initialise();
