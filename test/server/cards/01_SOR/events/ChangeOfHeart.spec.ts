@@ -11,6 +11,7 @@ describe('Change of Heart', function() {
                     },
                     player2: {
                         hand: ['vanquish'],
+                        // TODO THIS PR: map player1 / player2 name onto player objects
                         groundArena: [{ card: 'battlefield-marine', ownerAndController: 'player1' }, 'wampa']
                     }
                 });

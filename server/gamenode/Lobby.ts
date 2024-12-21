@@ -5,6 +5,7 @@ import Socket from '../socket';
 import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
+import fs from 'fs';
 
 interface LobbyUser {
     id: string;
@@ -127,6 +128,32 @@ export class Lobby {
     public cleanLobby(): void {
         this.game = null;
         this.users = [];
+    }
+
+    // example method to demonstrate the use of the test game setup utility
+    private checkLoadTestGame() {
+        if (!fs.existsSync('../../test')) {
+            return null;
+        }
+
+        // eslint-disable-next-line
+        const game: Game = require('../../test/helpers/GameStateSetup.js').setUpTestGame({
+            phase: 'action',
+            player1: {
+                hand: ['tactical-advantage'],
+                groundArena: ['pyke-sentinel']
+            },
+            player2: {
+                groundArena: ['wampa']
+            },
+            autoSingleTarget: false
+        },
+        {},
+        { id: '111', username: 'player1' },
+        { id: '222', username: 'player2' }
+        );
+
+        return game;
     }
 
     private onStartGame(id: string): void {
