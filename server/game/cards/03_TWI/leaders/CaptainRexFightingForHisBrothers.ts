@@ -25,7 +25,7 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
                     controller: context.source.controller,
-                    filter: (attack) => context.source !== attack.attacker
+                    filter: (_attack) => true
                 }),
                 onTrue: AbilityHelper.immediateEffects.createCloneTrooper(),
                 onFalse: AbilityHelper.immediateEffects.noAction()
