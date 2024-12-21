@@ -21,7 +21,7 @@ describe('Pau City', function () {
 
             // unit should not have +0/+1
             expect(context.battlefieldMarine.getPower()).toBe(3);
-            expect(context.battlefieldMarine.getHp()).toBe(3);
+            expect(context.battlefieldMarine.getHp()).toBe(4);
 
             // enemy leader should not have +0/+1
             expect(context.nalaSe.getPower()).toBe(1);

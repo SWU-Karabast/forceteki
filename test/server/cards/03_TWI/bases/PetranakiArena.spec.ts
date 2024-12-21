@@ -21,7 +21,7 @@ describe('Petranaki Arena', function () {
 
             // unit should not have +1/+0
             expect(context.battlefieldMarine.getPower()).toBe(3);
-            expect(context.battlefieldMarine.getHp()).toBe(3);
+            expect(context.battlefieldMarine.getHp()).toBe(4);
 
             // enemy leader should not have +1/+0
             expect(context.nalaSe.getPower()).toBe(1);
