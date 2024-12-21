@@ -28,6 +28,20 @@ describe('Captain Rex, Fighting for his Brothers', function () {
 
                 context.moveToNextActionPhase();
 
+                // Leader ability should be available, but should not create a Clone Trooper since an enemy unit attacked this phase
+                context.player1.passAction();
+                context.player2.clickCard(context.droidCommando);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.captainRex);
+                context.player1.clickPrompt('If a friendly unit attacked this phase, create a Clone Trooper token.');
+
+                expect(context.captainRex.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.player1.findCardsByName('clone-trooper').length).toBe(0);
+
+                context.moveToNextActionPhase();
+
                 // Leader ability should be available and should create a Clone Trooper since a friendly unit attacked this phase
                 context.player1.clickCard(context.advancedReconCommando);
                 context.player1.clickCard(context.p2Base);
