@@ -1,7 +1,8 @@
-const Contract = require('../../server/game/core/utils/Contract.js');
+const Contract = require('../../server/game/core/utils/Contract');
 const { GameMode } = require('../../server/GameMode.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
+const GameFlowWrapper = require('./GameFlowWrapper.js');
 
 const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
@@ -21,6 +22,27 @@ const ProxiedGameFlowWrapperMethods = [
 ];
 
 const deckBuilder = new DeckBuilder();
+
+/**
+ * @param {SwuSetupTestOptions} setupTestOptions
+ * @param {any} router
+ * @param {PlayerInfo} player1Info
+ * @param {PlayerInfo} player2Info
+ * @returns {Game}
+ */
+function setUpTestGame(setupTestOptions, router, player1Info, player2Info) {
+    const gameFlowWrapper = new GameFlowWrapper(
+        router,
+        { id: player1Info.id, username: player1Info.username },
+        { id: player2Info.id, username: player2Info.username }
+    );
+
+    const testContext = {};
+    attachTestInfoToObj(testContext, gameFlowWrapper, player1Info.username, player2Info.username);
+    setupGameState(testContext, setupTestOptions);
+
+    return gameFlowWrapper.game;
+}
 
 /**
  * @param {any} toObj
@@ -297,5 +319,6 @@ function internalNameToPropertyNames(internalName) {
 module.exports = {
     attachTestInfoToObj,
     setupGameState,
-    attachAbbreviatedContextInfo
+    attachAbbreviatedContextInfo,
+    setUpTestGame
 };

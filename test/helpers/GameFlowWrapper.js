@@ -5,34 +5,8 @@ const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
 const playableCardTitles = require('../json/_playableCardTitles.json');
-const GameStateSetup = require('./GameStateSetup.js');
 
 class GameFlowWrapper {
-    // constructor() {
-    //     const player1InfoOrDefault = player1Info ?? Settings.getUserWithDefaultsSet({ username: 'player1' });
-
-    //     // TODO: better understand what this is doing and how we could leverage it for testing
-    //     var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError']);
-    //     gameRouter.handleError.and.callFake((game, error) => {
-    //         throw error;
-    //     });
-
-    //     this.game = GameStateSetup.buildGameObject(gameRouter, this.buildPlayerOrDefault(1, player1InfoOrDefault), this.buildPlayerOrDefault(2, player2));
-
-    //     this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player1'), this);
-    //     this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player2'), this);
-    //     // this.player1.player.timerSettings.events = false;
-    //     // this.player2.player.timerSettings.events = false;
-    //     this.allPlayers = [this.player1, this.player2];
-    // }
-
-    // buildPlayerOrDefault(playerNumber, playerInfo) {
-    //     const id = playerInfo?.id ?? `${playerNumber}`.repeat(3);
-    //     const username = playerInfo?.username ?? `player${playerNumber}`;
-
-    //     return { id, user: Settings.getUserWithDefaultsSet({ username }) };
-    // }
-
     /**
      * @param {any} router
      * @param {PlayerInfo} player1Info
