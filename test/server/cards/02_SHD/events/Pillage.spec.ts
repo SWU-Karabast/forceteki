@@ -59,6 +59,34 @@ describe('Pillage', function() {
                 expect(player2).toBeActivePlayer();
             });
 
+            it('should let the player target the opponent with autoSingleTarget false, so the opponent must select their last remaining card', function() {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['pillage'],
+                    },
+                    player2: {
+                        hand: ['imperial-interceptor']
+                    },
+                });
+
+                const { context } = contextRef;
+                const { player1, player2, pillage, imperialInterceptor } = context;
+
+                player1.clickCard(pillage);
+                player1.clickPrompt('Opponent');
+
+                expect(player2).toBeAbleToSelectExactly([
+                    imperialInterceptor
+                ]);
+                player2.clickCard(imperialInterceptor);
+
+                expect(imperialInterceptor).toBeInZone('discard');
+
+                expect(player2).toBeActivePlayer();
+            });
+
+
             it('should let the player target the opponent, even if they have no cards in hand', function() {
                 contextRef.setupTest({
                     phase: 'action',
