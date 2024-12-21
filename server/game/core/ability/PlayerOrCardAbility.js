@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
 const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
+const Helpers = require('../utils/Helpers.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -70,13 +71,17 @@ class PlayerOrCardAbility {
         }
 
         this.buildTargetResolvers(properties);
+
         this.cost = this.buildCost(properties.cost);
-        for (const cost of this.cost) {
-            if (cost.dependsOn) {
-                let dependsOnTarget = this.targetResolvers.find((target) => target.name === cost.dependsOn);
-                dependsOnTarget.dependentCost = cost;
-            }
-        }
+
+        // TODO: do we still need dependsOn for costs? what would be the use case?
+        // for (const cost of this.cost) {
+        //     if (cost.dependsOn) {
+        //         let dependsOnTarget = this.targetResolvers.find((target) => target.name === cost.dependsOn);
+        //         dependsOnTarget.dependentCost = cost;
+        //     }
+        // }
+
         this.nonDependentTargets = this.targetResolvers.filter((target) => !target.properties.dependsOn);
         this.toStringName = properties.cardName
             ? `'${properties.cardName} ability: ${this.title}'`
@@ -88,12 +93,8 @@ class PlayerOrCardAbility {
     }
 
     buildCost(cost) {
-        if (!cost) {
-            return [];
-        }
-
-        if (!Array.isArray(cost)) {
-            return [cost];
+        if (typeof cost !== 'function') {
+            return Helpers.asArray(cost);
         }
 
         return cost;
@@ -187,14 +188,16 @@ class PlayerOrCardAbility {
 
 
     getCosts(context, playCosts = true, triggerCosts = true) {
-        let costs = this.cost.map((a) => a);
-        if (context.ignoreResourceCost) { // TODO: Add more complex logic in Play For Free PR
-            costs = costs.filter((cost) => !cost.isPrintedResourceCost);
-        }
+        let costs = typeof this.cost === 'function' ? Helpers.asArray(this.cost(context)) : this.cost;
+
+        // TODO THIS PR: is the below line needed?
+
+        costs = costs.map((a) => a);
 
         if (!playCosts) {
             costs = costs.filter((cost) => !cost.isPlayCost);
         }
+
         return costs;
     }
 
@@ -243,7 +246,7 @@ class PlayerOrCardAbility {
     resolveTargets(context, passHandler = null) {
         let targetResults = {
             canIgnoreAllCosts:
-                context.stage === Stage.PreTarget ? this.cost.every((cost) => cost.canIgnoreForTargeting) : false,
+                context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
             cancelled: false,
             payCostsFirst: false,
             delayTargeting: null
@@ -283,7 +286,7 @@ class PlayerOrCardAbility {
         return (
             this.targetResolvers.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
             this.immediateEffect.hasTargetsChosenByInitiatingPlayer(context) ||
-            this.cost.some(
+            this.getCosts(context).some(
                 (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByInitiatingPlayer(context)
             )
         );
@@ -313,7 +316,7 @@ class PlayerOrCardAbility {
      * Indicates whether a card is played as part of the resolution this ability
      * @returns {this is import('./PlayCardAction.js').PlayCardAction}
      */
-    isCardPlayed() {
+    isPlayCardAbility() {
         return false;
     }
 

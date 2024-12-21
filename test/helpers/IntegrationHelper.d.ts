@@ -18,6 +18,8 @@ interface SwuTestContext {
     game: Game;
     player1Object: Player;
     player2Object: Player;
+    player1Name: string;
+    player2Name: string;
     player1: PlayerInteractionWrapper;
     player2: PlayerInteractionWrapper;
     p1Base: BaseCard;
@@ -46,10 +48,16 @@ interface SwuTestContext {
     [field: string]: any;
 }
 
+interface PlayerInfo {
+    id: string;
+    username: string;
+}
+
 interface SwuSetupTestOptions {
     phase?: string;
     player1?: SwuPlayerSetupOptions;
     player2?: SwuPlayerSetupOptions;
+    autoSingleTarget?: boolean;
 
     [field: string]: any;
 }

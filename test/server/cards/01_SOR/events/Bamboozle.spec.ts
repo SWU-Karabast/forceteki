@@ -16,10 +16,16 @@ describe('Bamboozle', function () {
 
             const { context } = contextRef;
 
+            const reset = () => {
+                context.setDamage(context.p1Base, 0);
+                context.player1.moveCard(context.bamboozle, 'hand');
+                context.player2.passAction();
+            };
+
             context.player1.clickCard(context.bamboozle);
-            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play this event', 'Play Bamboozle by discarding a Cunning card']);
+            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Bamboozle', 'Play Bamboozle by discarding a Cunning card']);
             // play bamboozle with resource
-            context.player1.clickPrompt('Play this event');
+            context.player1.clickPrompt('Play Bamboozle');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.sawGerrera]);
 
             // exhaust green squadron awing, nothing to return in hand
@@ -34,10 +40,7 @@ describe('Bamboozle', function () {
             expect(context.p1Base.damage).toBe(2);
             expect(context.player1.exhaustedResourceCount).toBe(2);
 
-            // reset
-            context.setDamage(context.p1Base, 0);
-            context.player1.moveCard(context.bamboozle, 'hand');
-            context.player2.passAction();
+            reset();
 
             // play bamboozle by discarding
             context.player1.clickCard(context.bamboozle);
@@ -66,6 +69,105 @@ describe('Bamboozle', function () {
 
             // no resource exhausted since the last action
             expect(context.player1.exhaustedResourceCount).toBe(2);
+
+            reset();
+
+            // use the discard play mode again to confirm that the cost adjuster still works
+            context.player1.clickCard(context.bamboozle);
+            context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
+
+            expect(context.player1).toBeAbleToSelectExactly([context.lothalInsurgent]);
+            context.player1.clickCard(context.lothalInsurgent);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player2).toBeActivePlayer();
+
+            expect(context.p1Base.damage).toBe(2);
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+
+            // no resource exhausted since the last action
+            expect(context.player1.exhaustedResourceCount).toBe(2);
         });
+
+        it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['bamboozle', 'wampa', 'crafty-smuggler', 'lothal-insurgent'],
+                    groundArena: ['battlefield-marine', 'bib-fortuna#jabbas-majordomo'],
+                    leader: 'lando-calrissian#with-impeccable-taste'
+                },
+                player2: {
+                    groundArena: ['saw-gerrera#extremist'],
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+
+            const { context } = contextRef;
+
+            const reset = () => {
+                context.setDamage(context.p1Base, 0);
+                context.player1.moveCard(context.bamboozle, 'hand');
+                context.player2.passAction();
+                context.bibFortuna.exhausted = false;
+            };
+
+            // play Bamboozle using Bib Fortuna ability
+            context.player1.clickCard(context.bibFortuna);
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+
+            // expect to see both play actions, choose the discard mode
+            context.player1.clickCard(context.bamboozle);
+            expect(context.player1).toHaveExactPromptButtons(['Play Bamboozle', 'Play Bamboozle by discarding a Cunning card']);
+            context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
+
+            // can discard only cunning card
+            expect(context.player1).toBeAbleToSelectExactly([context.craftySmuggler, context.lothalInsurgent]);
+            context.player1.clickCard(context.craftySmuggler);
+
+            // choose to exhaust saw gerrera
+            context.player1.clickCard(context.sawGerrera);
+            expect(context.sawGerrera.exhausted).toBeTrue();
+
+            // check costs (including Saw Gerrera additional cost)
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+            expect(context.p1Base.damage).toBe(2);
+
+            reset();
+
+            // play Bamboozle using Bib Fortuna ability, choose normal play this time
+            context.player1.clickCard(context.bibFortuna);
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+            context.player1.clickCard(context.bamboozle);
+            context.player1.clickPrompt('Play Bamboozle');
+
+            // choose to exhaust a-wing
+            context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.greenSquadronAwing.exhausted).toBeTrue();
+
+            // check costs (including Saw Gerrera additional cost)
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+            expect(context.p1Base.damage).toBe(2);
+
+            reset();
+
+            // use the discard play mode again to confirm that the cost adjuster still works
+            context.player1.clickCard(context.bibFortuna);
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+            context.player1.clickCard(context.bamboozle);
+            context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
+
+            expect(context.player1).toBeAbleToSelectExactly([context.lothalInsurgent]);
+            context.player1.clickCard(context.lothalInsurgent);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player2).toBeActivePlayer();
+
+            expect(context.p1Base.damage).toBe(2);
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+
+            // no resource exhausted since the last action
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+        });
+
+        // TODO TECH: add test for Bamboozle in Smuggle to make sure its alternate play mode doesn't work there
     });
 });

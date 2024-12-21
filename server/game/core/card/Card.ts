@@ -135,12 +135,13 @@ export class Card extends OngoingEffectSource {
     public getActionAbilities(): ActionAbility[] {
         const deduplicatedActionAbilities: ActionAbility[] = [];
 
+        // Add any gained action abilities, deduplicating by any identical gained action abilities from
+        // the same source card (e.g., two Heroic Resolve actions)
         const seenCardNameSources = new Set<string>();
         for (const action of this.actionAbilities) {
             if (action.printedAbility) {
                 deduplicatedActionAbilities.push(action);
             } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
-                // Deduplicate any identical gained action abilities from the same source card (e.g., two Heroic Resolve actions)
                 deduplicatedActionAbilities.push(action);
                 seenCardNameSources.add(action.gainAbilitySource.internalName);
             }

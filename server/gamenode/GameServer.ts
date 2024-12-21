@@ -76,7 +76,6 @@ export class GameServer {
                 res.status(400).json({ success: false });
             }
         });
-
         app.get('/api/available-lobbies', (_, res) => {
             const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
                 id,
@@ -84,7 +83,6 @@ export class GameServer {
             }));
             res.json(availableLobbies);
         });
-
         app.post('/api/join-lobby', (req, res) => {
             const { lobbyId, userId } = req.body;
 
@@ -115,7 +113,7 @@ export class GameServer {
         // set the user
         lobby.createLobbyUser('Order66', deck);
         this.userLobbyMap.set('Order66', lobby.id);
-        // this.userLobbyMap.set('ThisIsTheWay', lobby.id);
+        this.userLobbyMap.set('ThisIsTheWay', lobby.id);
         return true;
     }
 

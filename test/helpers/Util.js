@@ -1,69 +1,5 @@
 const TestSetupError = require('./TestSetupError.js');
 
-/**
- * helper for generating a list of property names and card objects to add to the test context.
- * this is so that we can access things as "this.<cardName>"
- */
-function convertNonDuplicateCardNamesToProperties(players, cardNames) {
-    let mapToPropertyNamesWithCards = (cardNames, player) => cardNames.map((cardName) =>
-        internalNameToPropertyNames(cardName).map((propertyName) => {
-            return {
-                propertyName: propertyName,
-                cardObj: player.findCardByName(cardName)
-            };
-        })
-    ).flat();
-
-    let propertyNamesWithCards = mapToPropertyNamesWithCards(cardNames[0], players[0])
-        .concat(mapToPropertyNamesWithCards(cardNames[1], players[1]));
-
-    // remove all instances of any names that are duplicated
-    propertyNamesWithCards.sort((a, b) => {
-        if (a.propertyName === b.propertyName) {
-            return 0;
-        }
-        return a.propertyName > b.propertyName ? 1 : -1;
-    });
-
-    let nonDuplicateCards = [];
-    for (let i = 0; i < propertyNamesWithCards.length; i++) {
-        if (propertyNamesWithCards[i].propertyName === propertyNamesWithCards[i - 1]?.propertyName ||
-          propertyNamesWithCards[i].propertyName === propertyNamesWithCards[i + 1]?.propertyName
-        ) {
-            continue;
-        }
-        nonDuplicateCards.push(propertyNamesWithCards[i]);
-    }
-
-    return nonDuplicateCards;
-}
-
-/** Converts an internalName into one or two property names, depending on whether there is a subtitle */
-function internalNameToPropertyNames(internalName) {
-    const [title, subtitle] = internalName.split('#');
-
-    const internalNames = subtitle ? [title, title + '-' + subtitle] : [title];
-
-    const propertyNames = [];
-    for (const internalName of internalNames) {
-        const internalNameWords = internalName.split('-');
-
-        let propertyName = internalNameWords[0];
-        if (propertyName[0] >= '0' && propertyName[0] <= '9') {
-            propertyName = '_' + propertyName;
-        }
-
-        for (const word of internalNameWords.slice(1)) {
-            const uppercasedWord = word[0].toUpperCase() + word.slice(1);
-            propertyName += uppercasedWord;
-        }
-
-        propertyNames.push(propertyName);
-    }
-
-    return propertyNames;
-}
-
 // card can be a single or an array
 function checkNullCard(card, testContext) {
     if (Array.isArray(card)) {
@@ -177,7 +113,6 @@ function createStringForOptions(options) {
 
 
 module.exports = {
-    convertNonDuplicateCardNamesToProperties,
     checkNullCard,
     formatPrompt,
     getPlayerPromptState,

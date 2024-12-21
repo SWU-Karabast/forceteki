@@ -16,6 +16,7 @@ import { CreateBattleDroidSystem, ICreateBattleDroidProperties } from './CreateB
 import { CreateCloneTrooperSystem, ICreateCloneTrooperProperties } from './CreateCloneTrooperSystem';
 import { DamageSystem, IDamageProperties } from './DamageSystem';
 import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
+import { DelayedEffectSystem, DelayedEffectType, IDelayedEffectSystemProperties } from './DelayedEffectSystem';
 import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
 import { DiscardCardsFromHandSystem, IDiscardCardsFromHandProperties } from './DiscardCardsFromHandSystem';
 import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
@@ -72,7 +73,7 @@ export function attachUpgrade<TContext extends AbilityContext = AbilityContext>(
 export function attack<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IInitiateAttackProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new InitiateAttackSystem<TContext>(propertyFactory);
 }
-export function capture<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICaptureProperties, TContext> = {}): GameSystem<TContext> {
+export function capture<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICaptureProperties, TContext> = {}) {
     return new CaptureSystem<TContext>(propertyFactory);
 }
 export function cardLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardLastingEffectProperties, TContext>): GameSystem<TContext> {
@@ -364,8 +365,22 @@ export function forThisPhasePlayerEffect<TContext extends AbilityContext = Abili
 export function readyResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadyResourcesSystemProperties, TContext>): GameSystem<TContext> {
     return new ReadyResourcesSystem<TContext>(propertyFactory);
 }
-export function playerLastingEffect(propertyFactory: PropsFactory<IPlayerLastingEffectProperties>): GameSystem {
-    return new PlayerLastingEffectSystem(propertyFactory);
+export function playerLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayerLastingEffectProperties>): GameSystem<TContext> {
+    return new PlayerLastingEffectSystem<TContext>(propertyFactory);
+}
+export function delayedCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectSystemProperties, 'effectType'>>) {
+    return new DelayedEffectSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectSystemProperties, 'effectType'>(
+            propertyFactory,
+            { effectType: DelayedEffectType.Card }
+        ));
+}
+export function delayedPlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectSystemProperties, 'effectType'>>) {
+    return new DelayedEffectSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectSystemProperties, 'effectType'>(
+            propertyFactory,
+            { effectType: DelayedEffectType.Player }
+        ));
 }
 
 // //////////////

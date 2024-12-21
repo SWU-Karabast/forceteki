@@ -239,6 +239,7 @@ export enum EventName {
     OnTokensCreated = 'OnTokensCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
+    OnUpgradeUnattached = 'onUpgradeUnattached',
 }
 
 /**
@@ -266,6 +267,7 @@ export enum MetaEventName {
 export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
+    DelayedEffect = 'delayedEffect',
     Event = 'event',
     ReplacementEffect = 'replacementEffect',
     Triggered = 'triggered',
@@ -401,6 +403,7 @@ export enum AbilityRestriction {
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
@@ -433,4 +436,10 @@ export enum GameStateChangeRequired {
      * would be required to exhaust the full number of requested resources.
      */
     MustFullyResolve = 'mustFullyResolve',
+}
+
+export enum PromptType {
+    Initiative = 'initiative',
+    Resource = 'resource',
+    ActionWindow = 'actionWindow',
 }
