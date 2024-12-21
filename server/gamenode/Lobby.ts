@@ -155,7 +155,7 @@ export class Lobby {
                 game.selectDeck(opponent.id, defaultGameSettings.players[0].deck);
             }
         } else {
-            game.selectDeck('th3w4y', defaultGameSettings.players[0].deck);
+            game.selectDeck('th3w4y', defaultGameSettings.players[1].deck);
         }
 
         game.initialise();

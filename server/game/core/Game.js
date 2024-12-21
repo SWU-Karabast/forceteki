@@ -174,12 +174,15 @@ class Game extends EventEmitter {
      * @returns {Player}
      */
     getPlayerByName(playerName) {
-        // Contract.assertHasProperty(this.playersAndSpectators, playerName);
+        for (const id in this.playersAndSpectators) {
+            const player = this.playersAndSpectators[id];
+            if (player.name === playerName) {
+                Contract.assertFalse(this.isSpectator(player), `Player ${playerName} is a spectator`);
+                return player;
+            }
+        }
 
-        let player = this.playersAndSpectators.find((player) => player.name === playerName);
-        Contract.assertFalse(this.isSpectator(player), `Player ${playerName} is a spectator`);
-
-        return player;
+        throw new Error(`Player with name ${playerName} not found`);
     }
 
     getPlayerById(playerId) {
