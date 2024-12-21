@@ -1,5 +1,5 @@
 import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } from '../core/Constants.js';
-import { putIntoPlay } from '../gameSystems/GameSystemLibrary.js';
+import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import { GameEvent } from '../core/event/GameEvent.js';
 import { PlayCardAction, PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
@@ -12,7 +12,7 @@ export class PlayUnitAction extends PlayCardAction {
     private entersReady: boolean;
 
     public constructor(properties: IPlayUnitActionProperties) {
-        super({ ...properties, title: 'Play this unit' });
+        super(properties);
 
         // default to false
         this.entersReady = !!properties.entersReady;
@@ -42,7 +42,7 @@ export class PlayUnitAction extends PlayCardAction {
         const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 
         const events = [
-            putIntoPlay({ target: context.source, controller: player, entersReady: this.entersReady }).generateEvent(context),
+            new PutIntoPlaySystem({ target: context.source, controller: player, entersReady: this.entersReady }).generateEvent(context),
             cardPlayedEvent
         ];
 
@@ -51,6 +51,10 @@ export class PlayUnitAction extends PlayCardAction {
         }
 
         context.game.openEventWindow(events, this.triggerHandlingMode);
+    }
+
+    public override clone(overrideProperties: IPlayUnitActionProperties) {
+        return new PlayUnitAction({ ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

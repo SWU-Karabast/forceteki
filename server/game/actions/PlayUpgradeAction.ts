@@ -9,7 +9,7 @@ import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(properties: IPlayCardActionProperties) {
-        super({ ...properties, title: 'Play this upgrade', targetResolver: { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source })) } });
+        super({ ...properties, targetResolver: { immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source })) } });
     }
 
     public override executeHandler(context: PlayCardContext) {
@@ -38,6 +38,10 @@ export class PlayUpgradeAction extends PlayCardAction {
         }
 
         context.game.openEventWindow(events, this.triggerHandlingMode);
+    }
+
+    public override clone(overrideProperties: IPlayCardActionProperties) {
+        return new PlayUpgradeAction({ ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

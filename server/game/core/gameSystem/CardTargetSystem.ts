@@ -182,6 +182,19 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
             }
 
+            if (card.isUpgrade()) {
+                contingentEvents.push(
+                    new GameEvent(
+                        EventName.OnUpgradeUnattached,
+                        context,
+                        {
+                            upgradeCard: card,
+                            parentCard: card.parentCard,
+                        }
+                    )
+                );
+            }
+
             return contingentEvents;
         });
 
