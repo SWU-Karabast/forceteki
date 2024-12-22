@@ -15,8 +15,7 @@ export default class BodhiRook extends NonLeaderUnitCard {
             title: 'Look at an opponent\'s hand and discard a non-unit card from it.',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.lookAt((context) => ({
-                    target: context.player.opponent.hand.sort((a, b) => a.title.localeCompare(b.title)),
-                    sendChatMessage: true
+                    target: context.player.opponent.hand,
                 })),
                 AbilityHelper.immediateEffects.discardCardsFromOpponentsHand((context) => ({
                     cardCondition: (card) => !card.isUnit(),
