@@ -31,11 +31,13 @@ export class Lobby {
 
     public createLobbyUser(id: string, deck): void {
         const existingUser = this.users.find((u) => u.id === id);
-        const newDeck = new Deck(deck);
-
-        if (existingUser) {
-            existingUser.deck = newDeck;
-            return;
+        let newDeck = null;
+        if (deck) {
+            newDeck = new Deck(deck);
+            if (existingUser) {
+                existingUser.deck = newDeck;
+                return;
+            }
         }
         this.users.push(({ id: id, state: null, socket: null, deck: newDeck }));
     }
@@ -153,25 +155,25 @@ export class Lobby {
 
     // example method to demonstrate the use of the test game setup utility
     private checkLoadTestGame() {
-        if (!fs.existsSync('../../test')) {
+        /* if (!fs.existsSync('../../test')) {
             return null;
-        }
+        }*/
 
         // eslint-disable-next-line
         const game: Game = require('../../test/helpers/GameStateSetup.js').setUpTestGame({
             phase: 'action',
             player1: {
-                hand: ['tactical-advantage'],
-                groundArena: ['pyke-sentinel']
+                hand: ['tactical-advantage', 'village-protectors'],
             },
             player2: {
-                groundArena: ['wampa']
+                groundArena: ['admiral-motti#brazen-and-scornful'],
+                hand: ['tie-advanced'],
             },
             autoSingleTarget: false
         },
         {},
-        { id: '111', username: 'player1' },
-        { id: '222', username: 'player2' }
+        { id: '111', username: 'Order66' },
+        { id: '222', username: 'ThisIsTheWay' }
         );
 
         return game;
@@ -204,8 +206,9 @@ export class Lobby {
         } else {
             game.selectDeck('ThisIsTheWay', defaultGameSettings.players[0].deck);
         }
-
-        // Fetch tokens from S3 and initialize them in the game
+        // game = this.checkLoadTestGame();
+        this.game = game;
+        console.log(this.tokens);
         game.initialiseTokens(this.tokens);
         game.initialise();
         this.sendGameState(game);
