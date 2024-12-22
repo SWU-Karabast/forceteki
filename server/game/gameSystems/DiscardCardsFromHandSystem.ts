@@ -9,12 +9,6 @@ import * as Helpers from '../core/utils/Helpers';
 import { Derivable, derive } from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
 
-
-export interface DiscardSubEvent {
-    discardingPlayer: Player;
-    targetPlayer: Player;
-}
-
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: Derivable<number, Player>;
     random?: boolean;
@@ -23,7 +17,7 @@ export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProp
     this may be necessary for a player discarding from their own ahnds if a card condition or filter exits to keep them honest */
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
-    discardSubEvents?: DiscardSubEvent[];
+    discardingRelativePlayer?: RelativePlayer;
 }
 
 export class DiscardCardsFromHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
@@ -32,7 +26,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         random: false,
         cardTypeFilter: WildcardCardType.Any,
         cardCondition: () => true,
-        discardSubEvents: []
+        discardingRelativePlayer: RelativePlayer.Self
     };
 
     public override name = 'discard';
@@ -43,11 +37,10 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-
-        const discardingPlayerStr = `[${properties.discardSubEvents.map((event) => event.discardingPlayer).join(', ')}]`;
-        const targetPlayersStr = `[${properties.discardSubEvents.map((event) => event.targetPlayer).join(', ')}]`;
-
-        return ['make {0} {1}discard {2} cards from {3}', [discardingPlayerStr, properties.random ? 'randomly ' : '', properties.amount, targetPlayersStr]];
+        if (properties.discardingRelativePlayer === RelativePlayer.Self) {
+            return ['make {0} {1}discard {2} cards', [properties.target, properties.random ? 'randomly ' : '', properties.amount]];
+        }
+        return ['make {0} {1}discard {2} cards from {3}', [context.player, properties.random ? 'randomly ' : '', properties.amount, properties.target]];
     }
 
     public override canAffect(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -72,19 +65,21 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
     public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Record<string, any> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        for (const discardSubEvent of properties.discardSubEvents) {
-            const availableHand = discardSubEvent.targetPlayer.hand.filter((card) => properties.cardCondition(card, context));
+        for (const player of properties.target as Player[]) {
+            const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
 
-            Contract.assertNonNegative(derive(properties.amount, discardSubEvent.targetPlayer));
+            // Select this player if its their own hand, or the active player from the context if its the 'opponent' choosing
+            const discardingPlayer = properties.discardingRelativePlayer === RelativePlayer.Self ? player : context.player;
 
-            const amount = Math.min(availableHand.length, derive(properties.amount, discardSubEvent.targetPlayer));
+            Contract.assertNonNegative(derive(properties.amount, player));
 
+            const amount = Math.min(availableHand.length, derive(properties.amount, player));
             if (amount === 0) {
                 events.push(this.generateEvent(context, additionalProperties));
                 continue;
             }
 
-            if (amount >= availableHand.length && discardSubEvent.discardingPlayer.autoSingleTarget) {
+            if (amount >= availableHand.length && discardingPlayer.autoSingleTarget) {
                 this.generateEventsForCards(availableHand, context, events, additionalProperties);
                 continue;
             }
@@ -95,13 +90,13 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 continue;
             }
 
-            context.game.promptForSelect(discardSubEvent.discardingPlayer, {
+            context.game.promptForSelect(discardingPlayer, {
                 activePromptTitle: 'Choose ' + (amount === 1 ? 'a card' : amount + ' cards') + ' to discard',
                 context: context,
                 mode: TargetMode.Exactly,
                 numCards: amount,
                 zoneFilter: ZoneName.Hand,
-                controller: discardSubEvent.targetPlayer === context.player ? RelativePlayer.Self : RelativePlayer.Opponent,
+                controller: player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent,
                 cardCondition: (card) => properties.cardCondition(card, context),
                 onSelect: (_player, cards) => {
                     this.generateEventsForCards(cards, context, events, additionalProperties);
