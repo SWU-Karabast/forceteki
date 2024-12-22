@@ -19,12 +19,15 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    private isFirstUpgradePlayedOnThisCopy(card: Card) {
+    private isFirstUpgradePlayedOnThisCopy(upgrade: Card, targetCard: Card): boolean {
+        if (!targetCard.isUnit()) {
+            return false;
+        }
         const playedUpgradesOnThisCardThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
             playedCardEntry.card.isUpgrade() &&
-            playedCardEntry.card.parentCard === this &&
-            playedCardEntry.card.parentCard.inPlayId === this.inPlayId &&
-            playedCardEntry.card !== card
+            playedCardEntry.card.parentCard === targetCard &&
+            playedCardEntry.card.parentCard.inPlayId === targetCard.inPlayId &&
+            playedCardEntry.card !== upgrade
         );
         return playedUpgradesOnThisCardThisPhase.length === 0;
     }
@@ -34,7 +37,7 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
             title: 'The first upgrade you play on this unit each round costs 1 resource less.',
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,
-                match: (card) => card.isUpgrade() && this.isFirstUpgradePlayedOnThisCopy(card),
+                match: (card, adjusterSource) => card.isUpgrade() && this.isFirstUpgradePlayedOnThisCopy(card, adjusterSource),
                 attachTargetCondition: (attachTarget, adjusterSource) => attachTarget === adjusterSource,
                 limit: AbilityLimit.perRound(1),
             }),
