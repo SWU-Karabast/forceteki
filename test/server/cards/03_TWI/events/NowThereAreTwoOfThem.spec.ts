@@ -27,13 +27,41 @@ describe('Now There are Two of Them', function() {
 
                 const { context } = contextRef;
 
-                // You can select Zuckuss and Cad Bane. Zuckuss is free to play.
                 context.player1.clickCard(context.nowThereAreTwoOfThem);
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player1).toBeAbleToSelectExactly([context.toroCalican, context.cadBane, context.syndicateLackeys]);
                 context.player1.clickCard(context.cadBane);
                 expect(context.cadBane).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(5);
+            });
+
+            it('should not allow you to play a card if none share a trait with your unit', function() {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'now-there-are-two-of-them',
+                            'plo-koon#kohtoyah', // Does not share a trait with Greedo
+                            'fetts-firespray#pursuing-the-bounty', // Vehicle can't be selected
+                            'chewbacca#pykesbane' // Too expensive to be played
+                        ],
+                        groundArena: ['greedo#slow-on-the-draw'],
+                        base: { card: 'administrators-tower', damage: 0 },
+                        leader: 'qira#i-alone-survived',
+                        resources: 5
+                    },
+                    player2: {
+                        hand: ['underworld-thug'], // Opponent's card can't be selected
+                        groundArena: ['r2d2#full-of-solutions'], // Shares Republic trait with Plo-koon but should not m
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // There is nothing you can play. Player 2 becomes the active player
+                context.player1.clickCard(context.nowThereAreTwoOfThem);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should not allow you to play a card if you have more than 1 unit in play or 0 unit', function() {
