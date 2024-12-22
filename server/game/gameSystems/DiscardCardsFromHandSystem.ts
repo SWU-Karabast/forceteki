@@ -55,7 +55,6 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             const properties = this.generatePropertiesFromContext(context, additionalProperties);
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && EnumHelpers.cardTypeMatches(card.type, properties.cardTypeFilter));
 
-
             if (mustChangeGameState !== GameStateChangeRequired.None && (availableHand.length === 0 || properties.amount === 0)) {
                 return false;
             }
@@ -80,7 +79,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
             const amount = Math.min(availableHand.length, derive(properties.amount, discardSubEvent.targetPlayer));
 
-            if (amount === 0 && discardSubEvent.discardingPlayer.autoSingleTarget) {
+            if (amount === 0) {
                 events.push(this.generateEvent(context, additionalProperties));
                 continue;
             }
@@ -102,7 +101,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 mode: TargetMode.Exactly,
                 numCards: amount,
                 zoneFilter: ZoneName.Hand,
-                controller: discardSubEvent.targetPlayer === context.player ? RelativePlayer.Self : RelativePlayer.Opponent, // TODO: I want this to be explicit
+                controller: discardSubEvent.targetPlayer === context.player ? RelativePlayer.Self : RelativePlayer.Opponent,
                 cardCondition: (card) => properties.cardCondition(card, context),
                 onSelect: (_player, cards) => {
                     this.generateEventsForCards(cards, context, events, additionalProperties);

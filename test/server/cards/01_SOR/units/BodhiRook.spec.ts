@@ -42,11 +42,9 @@ describe('Bodhi Rook', function () {
                 context.player2.passAction();
                 context.player1.moveCard(context.bodhiRook, 'hand');
 
-                // No choice here, but the player still needs an opponent hand reveal and select Done
+                // No choice here so no prompt, but the player still sees an opponent hand reveal
                 context.player1.clickCard(context.bodhiRook);
                 expect(context.getChatLogs(1)).toContain('Bodhi Rook sees Sabine Wren, Battlefield Marine, and Inferno Four');
-                expect(context.player1).toHaveExactPromptButtons(['Done']);
-                context.player1.clickPrompt('Done');
             });
         });
     });
