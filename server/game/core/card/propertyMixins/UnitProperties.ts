@@ -26,6 +26,7 @@ import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { CaptureZone } from '../../zone/CaptureZone';
 import { IAbilityWithType } from '../../ability/AbilityTypes';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
+import Player from '../../Player';
 
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
@@ -647,6 +648,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
             this._upgrades.push(upgrade);
+        }
+
+        public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+            if (this.isInPlay()) {
+                return { ...super.getSummary(activePlayer, hideWhenFaceup), power: this.getPower(), hp: this.getHp() };
+            }
+            return super.getSummary(activePlayer, hideWhenFaceup);
         }
     };
 }
