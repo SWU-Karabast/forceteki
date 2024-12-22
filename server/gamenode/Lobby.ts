@@ -206,8 +206,8 @@ export class Lobby {
         } else {
             game.selectDeck('ThisIsTheWay', defaultGameSettings.players[0].deck);
         }
-        // game = this.checkLoadTestGame();
-        this.game = game;
+        // game = this.checkLoadTestGame(); Uncomment this if you wish to start a test setup.
+        // this.game = game; Uncomment this if you wish to start a test setup.
         console.log(this.tokens);
         game.initialiseTokens(this.tokens);
         game.initialise();
