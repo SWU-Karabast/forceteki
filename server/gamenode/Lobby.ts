@@ -184,6 +184,7 @@ export class Lobby {
             game.selectDeck('ThisIsTheWay', defaultGameSettings.players[0].deck);
         }
 
+        // game.initialiseTokens(deckBuilder.getTokenData()); we need this.
         game.initialise();
 
         this.sendGameState(game);
