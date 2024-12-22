@@ -84,7 +84,7 @@ export class GameServer {
             res.json(availableLobbies);
         });
         app.post('/api/join-lobby', (req, res) => {
-            const { lobbyId, userId } = req.body;
+            const { lobbyId, user } = req.body;
 
             const lobby = this.lobbies.get(lobbyId);
             if (!lobby) {
@@ -95,7 +95,7 @@ export class GameServer {
                 return res.status(400).json({ success: false, message: 'Lobby is full' });
             }
             // Add the user to the lobby
-            this.userLobbyMap.set(userId, lobby.id);
+            this.userLobbyMap.set(user.id, lobby.id);
             return res.status(200).json({ success: true });
         });
     }

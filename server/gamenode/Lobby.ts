@@ -30,7 +30,7 @@ export class Lobby {
 
     public createLobbyUser(user, deck): void {
         const existingUser = this.users.find((u) => u.id === user.id);
-        const newDeck = new Deck(deck);
+        const newDeck = deck ? new Deck(deck) : null;
 
         if (existingUser) {
             existingUser.deck = newDeck;
