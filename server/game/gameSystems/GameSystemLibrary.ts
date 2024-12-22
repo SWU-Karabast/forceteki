@@ -18,7 +18,7 @@ import { DamageSystem, IDamageProperties } from './DamageSystem';
 import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
 import { DelayedEffectSystem, DelayedEffectType, IDelayedEffectSystemProperties } from './DelayedEffectSystem';
 import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
-import { DiscardCardsFromHandSystem, IDiscardCardsFromHandProperties } from './DiscardCardsFromHandSystem';
+import { DiscardCardsFromHandSystem, DiscardSubEvent, IDiscardCardsFromHandProperties } from './DiscardCardsFromHandSystem';
 import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
 import { DiscardFromDeckSystem, IDiscardFromDeckProperties } from './DiscardFromDeckSystem';
 import { DiscardSpecificCardSystem, IDiscardSpecificCardProperties } from './DiscardSpecificCardSystem';
@@ -55,6 +55,8 @@ import { SequentialSystem } from './SequentialSystem';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
 import { TakeControlOfUnitSystem, ITakeControlProperties } from './TakeControlOfUnitSystem';
+
+import * as Helpers from '../core/utils/Helpers';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -292,18 +294,41 @@ export function takeControlOfUnit<TContext extends AbilityContext = AbilityConte
 export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHandSystem<TContext> {
     const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
         const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
-        // Set `discardingPlayer` to `Self` if it's not explicitly defined to for own hand only
-        if (!properties.discardingPlayerType) {
-            properties.discardingPlayerType = RelativePlayer.Self;
-        }
-        return properties;
+
+        // We might get this from an explicit property, or we might get it via the context with a target resolver etc
+        const targets = Helpers.asArray(properties.target ?? context.target ?? []);
+
+        const discardSubEvents = targets.map((targetPlayer) => ({
+            discardingPlayer: targetPlayer,
+            targetPlayer: targetPlayer
+        }));
+        return {
+            ...properties,
+            discardSubEvents: discardSubEvents,
+        };
     };
 
     return new DiscardCardsFromHandSystem<TContext>(wrappedPropertyFactory);
 }
 
-export function discardCardsFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHandSystem<TContext> {
-    return new DiscardCardsFromHandSystem<TContext>(propertyFactory);
+export function discardCardsFromOpponentsHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHandSystem<TContext> {
+    const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
+        const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
+
+        // We might get this from an explicit property, or we might get it via the context with a target resolver etc
+        const targets = Helpers.asArray(properties.target ?? context.target ?? []);
+
+        const discardSubEvents = targets.map((targetPlayer) => ({
+            discardingPlayer: context.player,
+            targetPlayer: targetPlayer
+        }));
+        return {
+            ...properties,
+            discardSubEvents: discardSubEvents,
+        };
+    };
+
+    return new DiscardCardsFromHandSystem<TContext>(wrappedPropertyFactory);
 }
 
 /**
