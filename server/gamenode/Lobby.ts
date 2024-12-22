@@ -1,5 +1,4 @@
 import Game from '../game/core/Game';
-import type Player from '../game/core/Player';
 import { v4 as uuid } from 'uuid';
 import Socket from '../socket';
 import defaultGameSettings from './defaultGame';
@@ -10,6 +9,7 @@ interface LobbyUser {
     id: string;
     username: string;
     state: 'connected' | 'disconnected';
+    ready: boolean;
     socket: Socket | null;
     deck: Deck | null;
 }
@@ -30,13 +30,24 @@ export class Lobby {
 
     public createLobbyUser(user, deck): void {
         const existingUser = this.users.find((u) => u.id === user.id);
-        const newDeck = deck ? new Deck(deck) : null;
+        const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
 
         if (existingUser) {
             existingUser.deck = newDeck;
             return;
         }
-        this.users.push(({ id: user.id, username: user.username, state: null, socket: null, deck: newDeck }));
+        this.users.push(({ id: user.id, username: user.username, state: null, ready: false, socket: null, deck: newDeck }));
+    }
+
+    private useDefaultDeck(user) {
+        switch (user.id) {
+            case 'exe66':
+                return new Deck(defaultGameSettings.players[0].deck);
+            case 'th3w4y':
+                return new Deck(defaultGameSettings.players[1].deck);
+            default:
+                return null;
+        }
     }
 
     public addLobbyUser(user, socket: Socket): void {
@@ -49,7 +60,7 @@ export class Lobby {
             existingUser.state = 'connected';
             existingUser.socket = socket;
         } else {
-            this.users.push({ id: user.id, username: user.username, state: 'connected', socket, deck: null });
+            this.users.push({ id: user.id, username: user.username, state: 'connected', ready: false, socket, deck: this.useDefaultDeck(user) });
         }
 
         if (this.game) {
@@ -143,19 +154,10 @@ export class Lobby {
         // fetch deck for existing user otherwise set default
         if (existingUser.deck) {
             game.selectDeck(id, existingUser.deck.data);
-        } else {
-            game.selectDeck(id, defaultGameSettings.players[0].deck);
         }
 
-        // if opponent exist fetch deck for opponent otherwise set it as default
-        if (opponent) {
-            if (opponent.deck) {
-                game.selectDeck(opponent.id, opponent.deck.data);
-            } else {
-                game.selectDeck(opponent.id, defaultGameSettings.players[0].deck);
-            }
-        } else {
-            game.selectDeck('th3w4y', defaultGameSettings.players[1].deck);
+        if (opponent.deck) {
+            game.selectDeck(opponent.id, opponent.deck.data);
         }
 
         game.initialise();
