@@ -13,7 +13,6 @@ describe('Force Throw', function() {
                         groundArena: ['specforce-soldier', 'atst'],
                         spaceArena: ['tieln-fighter']
                     },
-                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -51,7 +50,6 @@ describe('Force Throw', function() {
                         hand: ['karabast', 'battlefield-marine'],
                         groundArena: ['specforce-soldier', 'atst', 'ezra-bridger#resourceful-troublemaker']
                     },
-                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -76,7 +74,6 @@ describe('Force Throw', function() {
                         hand: ['karabast', 'battlefield-marine'],
                         groundArena: ['specforce-soldier', 'atst', 'ezra-bridger#resourceful-troublemaker']
                     },
-                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -97,7 +94,6 @@ describe('Force Throw', function() {
                     player2: {
                         groundArena: ['atst']
                     },
-                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -105,6 +101,8 @@ describe('Force Throw', function() {
                 // Discard a card and no force unit in play
                 context.player1.clickCard(context.forceThrow);
                 context.player1.clickPrompt('You');
+
+                context.player1.clickCard(context.strikeTrue);
                 context.player1.clickPrompt('Deal damage to a unit equal to the cost of Strike True (3 damage)');
                 context.player1.clickCard(context.atst);
 
