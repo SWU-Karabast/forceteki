@@ -174,12 +174,9 @@ class Game extends EventEmitter {
      * @returns {Player}
      */
     getPlayerByName(playerName) {
-        for (const id in this.playersAndSpectators) {
-            const player = this.playersAndSpectators[id];
-            if (player.name === playerName) {
-                Contract.assertFalse(this.isSpectator(player), `Player ${playerName} is a spectator`);
-                return player;
-            }
+        const player = this.getPlayers().find((player) => player.name === playerName);
+        if (player) {
+            return player;
         }
 
         throw new Error(`Player with name ${playerName} not found`);
