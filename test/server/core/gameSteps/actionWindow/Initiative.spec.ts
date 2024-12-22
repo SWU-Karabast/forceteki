@@ -12,7 +12,10 @@ describe('Claiming initiative', function() {
                     player2: {
                         groundArena: ['wampa'],
                         hand: ['scout-bike-pursuer'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

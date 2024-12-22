@@ -12,7 +12,10 @@ describe('Spark of Hope', function () {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['mercenary-gunship']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -51,6 +54,53 @@ describe('Spark of Hope', function () {
                 expect(context.pykeSentinel).toBeInZone('resource');
                 expect(context.imperialInterceptor).toBeInZone('discard');
             });
+        });
+
+        it('Spark of Hope\'s ability should only affect units that were defeated as their most recent in-play copy', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['the-emperors-legion', 'spark-of-hope'],
+                    groundArena: ['atst', 'wampa']
+                },
+                player2: {
+                    hand: ['superlaser-blast', 'waylay', 'force-throw', 'vanquish'],
+                    resources: 30,
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // both units are defeated and returned to hand
+            context.player2.clickCard(context.superlaserBlast);
+            context.player1.clickCard(context.theEmperorsLegion);
+            expect(context.atst).toBeInZone('hand');
+            expect(context.wampa).toBeInZone('hand');
+
+            // play AT-ST, then it gets waylaid and discarded (so this copy was never defeated)
+            context.player2.passAction();
+            context.player1.clickCard(context.atst);
+            context.player2.clickCard(context.waylay);
+            context.player2.clickCard(context.atst);
+
+            context.player1.passAction();
+            context.player2.clickCard(context.forceThrow);
+            context.player2.clickPrompt('Opponent');
+            context.player1.clickCard(context.atst);
+
+            // play Wampa then defeat it, so it now has two separately defeated copies this phase
+            context.player1.clickCard(context.wampa);
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.wampa);
+
+            // play Spark of Hope, only the Wampa should be eligible to be resourced
+            // (and not cause an error due to two defeated copies)
+            context.player1.clickCard(context.sparkOfHope);
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            context.player1.clickCard(context.wampa);
+            expect(context.atst).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('resource');
         });
     });
 });

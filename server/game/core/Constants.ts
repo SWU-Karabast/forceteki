@@ -173,10 +173,17 @@ export enum WildcardCardType {
 
 export type CardTypeFilter = CardType | WildcardCardType;
 
-export enum TokenName {
-    Shield = 'shield',
-    Experience = 'experience'
+export enum TokenUpgradeName {
+    Experience = 'experience',
+    Shield = 'shield'
 }
+
+export enum TokenUnitName {
+    BattleDroid = 'battleDroid',
+    CloneTrooper = 'cloneTrooper'
+}
+
+export type TokenName = TokenUpgradeName | TokenUnitName;
 
 // TODO: start removing these if they aren't used
 export enum EventName {
@@ -209,8 +216,8 @@ export enum EventName {
     OnDeckShuffled = 'onDeckShuffled',
     OnDiscardFromDeck = 'onDiscardFromDeck',
     OnEffectApplied = 'onEffectApplied',
-    onExhaustResources = 'onExhaustResources',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
+    onExhaustResources = 'onExhaustResources',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
@@ -229,8 +236,10 @@ export enum EventName {
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnTakeControl = 'onTakeControl',
+    OnTokensCreated = 'OnTokensCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
+    OnUpgradeUnattached = 'onUpgradeUnattached',
 }
 
 /**
@@ -244,6 +253,7 @@ export enum MetaEventName {
     ChooseModalEffects = 'ChooseModalEffects',
     DistributeDamage = 'distributeDamage',
     DistributeHealing = 'distributeHealing',
+    DistributeExperience = 'distributeExperience',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     NoAction = 'noAction',
@@ -257,6 +267,7 @@ export enum MetaEventName {
 export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
+    DelayedEffect = 'delayedEffect',
     Event = 'event',
     ReplacementEffect = 'replacementEffect',
     Triggered = 'triggered',
@@ -274,6 +285,9 @@ export enum Aspect {
 export enum KeywordName {
     Ambush = 'ambush',
     Bounty = 'bounty',
+    Coordinate = 'coordinate',
+    /** @deprecated Not yet implemented */
+    Exploit = 'exploit',
     Grit = 'grit',
     Overwhelm = 'overwhelm',
     Raid = 'raid',
@@ -389,6 +403,7 @@ export enum AbilityRestriction {
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
@@ -421,4 +436,10 @@ export enum GameStateChangeRequired {
      * would be required to exhaust the full number of requested resources.
      */
     MustFullyResolve = 'mustFullyResolve',
+}
+
+export enum PromptType {
+    Initiative = 'initiative',
+    Resource = 'resource',
+    ActionWindow = 'actionWindow',
 }

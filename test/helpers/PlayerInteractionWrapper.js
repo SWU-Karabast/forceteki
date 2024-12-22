@@ -4,7 +4,7 @@ const Player = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
-const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual } = require('./Util.js');
+const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual, formatBothPlayerPrompts } = require('./Util.js');
 
 class PlayerInteractionWrapper {
     /**
@@ -38,6 +38,8 @@ class PlayerInteractionWrapper {
         this.player.discardZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
         this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
         this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+
+        this.game.resolveGameState(true);
     }
 
     get hand() {
@@ -218,7 +220,9 @@ class PlayerInteractionWrapper {
             if (!options.card) {
                 throw new TestSetupError('You must provide a card name');
             }
-            var card = this.findCardByName(options.card, prevZones);
+            const opponentControlled = options.hasOwnProperty('ownerAndController') && options.ownerAndController !== this.player.nameField;
+
+            var card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
 
             if (card.isUnit() && card.defaultArena !== arenaName) {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
@@ -226,6 +230,11 @@ class PlayerInteractionWrapper {
 
             // Move card to play
             this.moveCard(card, arenaName);
+
+            if (opponentControlled) {
+                card.takeControl(card.owner.opponent);
+            }
+
             // Set exhausted state (false by default)
             if (options.exhausted != null) {
                 options.exhausted ? card.exhaust() : card.ready();
@@ -239,16 +248,17 @@ class PlayerInteractionWrapper {
 
             // Get the upgrades
             if (options.upgrades) {
-                options.upgrades.forEach((upgradeName) => {
+                options.upgrades.forEach((upgrade) => {
+                    const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
                     const isToken = ['shield', 'experience'].includes(upgradeName);
-                    let upgrade;
+                    let upgradeCard;
                     if (isToken) {
-                        upgrade = this.game.generateToken(this.player, upgradeName);
+                        upgradeCard = this.game.generateToken(this.player, upgradeName);
                     } else {
-                        upgrade = this.findCardByName(upgradeName, prevZones);
+                        upgradeCard = this.findCardByName(upgradeName, prevZones);
                     }
 
-                    upgrade.attachTo(card);
+                    upgradeCard.attachTo(card);
                 });
             }
             if (options.damage !== undefined) {
@@ -305,6 +315,15 @@ class PlayerInteractionWrapper {
             this.moveCard(card, 'resource');
             card.exhausted = false;
         });
+    }
+
+    attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
+        for (const upgrade of opponentOwnedUpgrades) {
+            const upgradeCard = this.findCardByName(upgrade.card, 'any', 'opponent');
+            const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.nameField;
+            const attachTo = attachedCardAlsoOpponentControlled ? this.findCardByName(upgrade.attachedTo, 'any', 'opponent') : this.findCardByName(upgrade.attachedTo);
+            upgradeCard.attachTo(attachTo);
+        }
     }
 
     get handSize() {
@@ -388,7 +407,12 @@ class PlayerInteractionWrapper {
     }
 
     findCardByName(name, zones = 'any', side) {
-        return this.filterCardsByName(name, zones, side)[0];
+        var cards = this.filterCardsByName(name, zones, side);
+        // TODO: Update to throw exception when returning more or less than 1 card. This will require updates to the test suite.git
+        if (cards.length === 0) {
+            throw new TestSetupError('Could not find any matching cards');
+        }
+        return cards[0];
     }
 
     findCardsByName(names, zones = 'any', side) {
@@ -409,19 +433,18 @@ class PlayerInteractionWrapper {
                 zones = [zones];
             }
         }
-        try {
-            var cards = this.filterCards(
-                (card) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
-                side
-            );
-        } catch (e) {
-            throw new TestSetupError(`Names: ${namesAra}, ZoneName: ${zones}. Error thrown: ${e}`);
-        }
-        return cards;
+        return this.filterCards(
+            (card) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
+            side
+        );
     }
 
     findCard(condition, side) {
-        return this.filterCards(condition, side)[0];
+        var cards = this.filterCards(condition, side);
+        if (cards.length === 0) {
+            throw new TestSetupError('Could not find any matching cards');
+        }
+        return cards[0];
     }
 
     /**
@@ -434,12 +457,7 @@ class PlayerInteractionWrapper {
         if (side === 'opponent') {
             player = this.opponent;
         }
-        var cards = player.decklist.allCards.filter(condition);
-        if (cards.length === 0) {
-            throw new TestSetupError(`Could not find any matching cards for ${player.name}`);
-        }
-
-        return cards;
+        return player.decklist.allCards.filter(condition);
     }
 
     exhaustResources(number) {
@@ -468,7 +486,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
-                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -481,7 +499,7 @@ class PlayerInteractionWrapper {
         var currentPrompt = this.player.currentPrompt();
         if (!currentPrompt.dropdownListOptions.includes(text)) {
             throw new TestSetupError(
-                `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -496,6 +514,10 @@ class PlayerInteractionWrapper {
 
     setDistributeHealingPromptState(cardDistributionMap) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
+    }
+
+    setDistributeExperiencePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeExperience');
     }
 
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
@@ -517,7 +539,7 @@ class PlayerInteractionWrapper {
         if (currentPrompt.buttons.length <= index) {
             throw new TestSetupError(
                 `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                }. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -526,7 +548,7 @@ class PlayerInteractionWrapper {
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
                 `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                }. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -545,7 +567,7 @@ class PlayerInteractionWrapper {
         if (!promptControl) {
             throw new TestSetupError(
                 `Couldn't click card '${cardName}' for ${this.player.name
-                } - unable to find control '${controlName}'. Current prompt is:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`
+                } - unable to find control '${controlName}'. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -560,7 +582,7 @@ class PlayerInteractionWrapper {
         let availableCards = this.currentActionTargets;
 
         if (!availableCards || availableCards.length < nCardsToChoose) {
-            throw new TestSetupError(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`);
+            throw new TestSetupError(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${formatBothPlayerPrompts(this.testContext)}`);
         }
 
         for (let i = 0; i < nCardsToChoose; i++) {
@@ -592,7 +614,7 @@ class PlayerInteractionWrapper {
         if (expectChange) {
             const afterClick = getPlayerPromptState(this.player);
             if (promptStatesEqual(beforeClick, afterClick)) {
-                throw new TestSetupError(`Expected player prompt state to change after clicking ${card.internalName} but it did not. Current prompt:\n${formatPrompt(this.currentPrompt(), this.currentActionTargets)}`);
+                throw new TestSetupError(`Nothing happened when ${this.player.name} clicked ${card.internalName} (prompt and board state did not change). Current prompts:\n${formatBothPlayerPrompts(this.testContext)}`);
             }
         }
 
@@ -618,6 +640,10 @@ class PlayerInteractionWrapper {
 
     getCardsInZone(zone) {
         return this.player.getCardsInZone(zone);
+    }
+
+    getArenaCards() {
+        return this.player.getArenaCards();
     }
 
     dragCard(card, targetZone) {

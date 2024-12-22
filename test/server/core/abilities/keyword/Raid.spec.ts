@@ -10,7 +10,10 @@ describe('Raid keyword', function() {
                     player2: {
                         groundArena: ['battlefield-marine'],
                         hand: ['waylay']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -68,8 +71,9 @@ describe('Raid keyword', function() {
                     player1: {
                         spaceArena: ['red-three#unstoppable', 'green-squadron-awing']
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -80,7 +84,5 @@ describe('Raid keyword', function() {
                 expect(context.p2Base.damage).toBe(4);
             });
         });
-
-        // TODO test that a card that attacked and then is bounced back to hand (i.e. Waylay) doesn't receive a second Raid buff
     });
 });

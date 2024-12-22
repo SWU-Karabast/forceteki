@@ -135,12 +135,13 @@ export class Card extends OngoingEffectSource {
     public getActionAbilities(): ActionAbility[] {
         const deduplicatedActionAbilities: ActionAbility[] = [];
 
+        // Add any gained action abilities, deduplicating by any identical gained action abilities from
+        // the same source card (e.g., two Heroic Resolve actions)
         const seenCardNameSources = new Set<string>();
         for (const action of this.actionAbilities) {
             if (action.printedAbility) {
                 deduplicatedActionAbilities.push(action);
             } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
-                // Deduplicate any identical gained action abilities from the same source card (e.g., two Heroic Resolve actions)
                 deduplicatedActionAbilities.push(action);
                 seenCardNameSources.add(action.gainAbilitySource.internalName);
             }
@@ -489,6 +490,10 @@ export class Card extends OngoingEffectSource {
             newZone: this.zoneName
         });
 
+        this.registerMove(movedFromZone);
+    }
+
+    protected registerMove(movedFromZone: ZoneName) {
         this.game.registerMovedCard(this);
     }
 
@@ -623,29 +628,6 @@ export class Card extends OngoingEffectSource {
     }
 
     // ******************************************* MISC *******************************************
-    /**
-     * Adds a dynamically gained action ability to the unit. Used for "gain ability" effects.
-     *
-     * Duplicates of the same gained action from duplicates of the same source card can be added,
-     * but only one will be presented to the user as an available action.
-     *
-     * @returns The uuid of the created action ability
-     */
-    public addGainedActionAbility(properties: IActionAbilityProps): string {
-        const addedAbility = this.createActionAbility(properties);
-        this.actionAbilities.push(addedAbility);
-
-        return addedAbility.uuid;
-    }
-
-    /** Removes a dynamically gained action ability */
-    public removeGainedActionAbility(removeAbilityUuid: string): void {
-        const updatedAbilityList = this.actionAbilities.filter((ability) => ability.uuid !== removeAbilityUuid);
-        Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
-
-        this.actionAbilities = updatedAbilityList;
-    }
-
     protected assertPropertyEnabled(propertyVal: any, propertyName: string) {
         Contract.assertNotNullLike(propertyVal, this.buildPropertyDisabledStr(propertyName));
     }
@@ -809,6 +791,7 @@ export class Card extends OngoingEffectSource {
 
         const state = {
             id: this.cardData.id,
+            setId: this.cardData.setId,
             controlled: this.owner !== this.controller,
             // facedown: this.isFacedown(),
             zone: this.zoneName,
@@ -820,7 +803,7 @@ export class Card extends OngoingEffectSource {
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,
-            // types: this.types,
+            type: this.type,
             uuid: this.uuid,
             ...selectionState
         };

@@ -11,7 +11,10 @@ describe('Sentinel keyword', function() {
                     player2: {
                         groundArena: ['echo-base-defender', 'battlefield-marine', 'wookiee-warrior'],
                         spaceArena: ['system-patrol-craft', 'seventh-fleet-defender', 'imperial-interceptor'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -52,7 +55,10 @@ describe('Sentinel keyword', function() {
                     player2: {
                         groundArena: ['echo-base-defender', 'pyke-sentinel', 'battlefield-marine', 'wookiee-warrior'],
                         spaceArena: ['system-patrol-craft', 'seventh-fleet-defender', 'imperial-interceptor']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -79,7 +85,10 @@ describe('Sentinel keyword', function() {
                     player2: {
                         groundArena: ['r2d2#ignoring-protocol', 'echo-base-defender'],
                         spaceArena: ['pirated-starfighter', 'corellian-freighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -120,7 +129,10 @@ describe('Sentinel keyword', function() {
                     player2: {
                         groundArena: ['r2d2#ignoring-protocol', 'echo-base-defender'],
                         spaceArena: ['pirated-starfighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -133,6 +145,44 @@ describe('Sentinel keyword', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.r2d2.damage).toBe(3);
                 expect(context.strafingGunship.damage).toBe(0);
+            });
+        });
+
+        describe('When defender have Sentinel and target ability restriction', function () {
+            it('should override target ability restriction', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['unshakeable-will', 'on-top-of-things'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.onTopOfThings);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                context.player2.clickCard(context.wampa);
+                // p1Base is automatically choose because battlefield marine can't be targeted
+
+                expect(context.p1Base.damage).toBe(4);
+
+                context.wampa.exhausted = false;
+                context.player1.clickCard(context.unshakeableWill);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                context.player2.clickCard(context.wampa);
+                // battlefieldMarine is automatically choose because battlefield marine have sentinel
+                expect(context.p1Base.damage).toBe(4);
+                expect(context.battlefieldMarine.damage).toBe(4);
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

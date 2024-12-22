@@ -42,6 +42,9 @@ describe('Omega, Part of the Squad', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 context.player1.clickCard(context.secondOmega);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
+
+                // so we don't need to go all the way through the Omega ability again
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
 
@@ -70,8 +73,6 @@ describe('Omega, Part of the Squad', function() {
                 // crosshair next -- should be 4 resources as it ignores aspect penalties
                 context.player1.clickCard(context.crosshair);
                 expect(context.player1.exhaustedResourceCount).toBe(8);
-
-                context.player2.passAction();
 
                 // This should cost +2 aspect penalty for 4
                 context.player1.clickCard(context.wolffe);

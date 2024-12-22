@@ -2,8 +2,8 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, ZoneFilter, MetaEventName, RelativePlayer, TargetMode, RelativePlayerFilter } from '../core/Constants';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { CardTypeFilter, EffectName, GameStateChangeRequired, MetaEventName, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from '../core/Constants';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
@@ -24,7 +24,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     selector?: BaseCardSelector;
     mode?: TargetMode;
     numCards?: number;
-    hidePromptIfSingleCard?: boolean;
+    canChooseNoCards?: boolean;
     innerSystemProperties?: (card: Card) => any;
     cancelHandler?: () => void;
     effect?: string;
@@ -43,7 +43,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         innerSystem: null,
         innerSystemProperties: (card) => ({ target: card }),
         checkTarget: false,
-        hidePromptIfSingleCard: true,
         manuallyRaiseEvent: false
     };
 
@@ -73,6 +72,15 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 ) && properties.cardCondition(card, context);
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
         }
+
+        if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
+            properties.canChooseNoCards = properties.canChooseNoCards ?? true;
+        } else {
+            if (properties.canChooseNoCards != null) {
+                Contract.fail('Cannot use canChooseNoCards if mode is not UpTo or UpToVariable');
+            }
+        }
+
         return properties;
     }
 
@@ -146,11 +154,26 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 Contract.fail(`Unknown menu option '${arg}'`);
             }
         };
+
+        const legalTargets = properties.selector.getAllLegalTargets(context, player);
+
+        // if there are legal targets but this wouldn't have a gamestate-changing effect on any of them, we can just shortcut and skip selection
+        if (
+            properties.innerSystem &&
+            !legalTargets.some((target) => properties.innerSystem.canAffect(
+                target,
+                this.getContextCopy(target, context),
+                {},
+                GameStateChangeRequired.MustFullyOrPartiallyResolve
+            ))
+        ) {
+            return;
+        }
+
         const finalProperties = Object.assign(defaultProperties, properties);
-        if (properties.hidePromptIfSingleCard) {
-            const cards = properties.selector.getAllLegalTargets(context);
-            if (cards.length === 1) {
-                finalProperties.onSelect(player, cards[0]);
+        if (player.autoSingleTarget) {
+            if (legalTargets.length === 1) {
+                finalProperties.onSelect(player, legalTargets[0]);
                 return;
             }
         }
@@ -168,6 +191,15 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             return true;
         }
         const controller = typeof properties.controller === 'function' ? properties.controller(context) : properties.controller;
-        return CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && properties.selector.hasAnyCardFilter;
+        return properties.canChooseNoCards || (CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && properties.selector.hasAnyCardFilter);
+    }
+
+    private getContextCopy(card: Card, context: TContext): TContext {
+        const contextCopy = context.copy();
+        contextCopy.targets[this.name] = card;
+        if (this.name === 'target') {
+            contextCopy.target = card;
+        }
+        return contextCopy as TContext;
     }
 }

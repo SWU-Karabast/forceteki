@@ -11,6 +11,9 @@ describe('Han Solo, Worth the Risk', function () {
                         base: { card: 'echo-base', damage: 5 },
                         resources: 4,
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -54,6 +57,9 @@ describe('Han Solo, Worth the Risk', function () {
                         leader: { card: 'han-solo#worth-the-risk', deployed: true },
                         base: { card: 'echo-base', damage: 5 },
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -102,6 +108,9 @@ describe('Han Solo, Worth the Risk', function () {
                     player1: {
                         leader: { card: 'han-solo#worth-the-risk', deployed: true },
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

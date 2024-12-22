@@ -9,15 +9,31 @@ import { EffectName, KeywordName } from '../Constants';
 type StatisticTotal = number;
 
 export class Attack extends GameObject {
+    public readonly attacker: UnitCard;
+    public readonly attackerInPlayId: number;
+    public readonly isAmbush: boolean;
+    public readonly target: CardWithDamageProperty;
+    public readonly targetInPlayId?: number;
+
     public previousAttack: Attack;
 
     public constructor(
         game: Game,
-        public attacker: UnitCard,
-        public target: CardWithDamageProperty,
-        public isAmbush: boolean = false
+        attacker: UnitCard,
+        target: CardWithDamageProperty,
+        isAmbush: boolean = false
     ) {
         super(game, 'Attack');
+
+        this.attacker = attacker;
+        this.target = target;
+
+        // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
+        // e.g., to check if the defender was defeated
+        this.attackerInPlayId = attacker.inPlayId;
+        this.targetInPlayId = target.canBeInPlay() ? target.inPlayId : null;
+
+        this.isAmbush = isAmbush;
     }
 
     public getAttackerTotalPower(): number | null {

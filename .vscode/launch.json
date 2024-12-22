@@ -9,6 +9,7 @@
                 "<node_internals>/**"
             ],
             "type": "node",
+            "cwd": "${fileDirname}"
         },
         {
             "name": "Debug Gameserver",
@@ -18,15 +19,14 @@
                 "NODE_OPTIONS": "--enable-source-maps"
             },
             "type": "node",
-            "preLaunchTask": "tsc: build - tsconfig.json",
+            "preLaunchTask": "npm: build",
         },
         {
-            // UP NEXT: add rm -r build to preLaunchTask
             "name": "Debug All Jasmine Tests",
             "type": "node",
             "request": "launch",
             "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
-            "preLaunchTask": "tsc: build - tsconfig.json",
+            "preLaunchTask": "npm: build-test",
             "args": [
                 "--config=./jasmine.json",
                 "--random=false"
@@ -43,7 +43,7 @@
             "type": "node",
             "request": "launch",
             "program": "${workspaceFolder}/node_modules/jasmine/bin/jasmine.js",
-            "preLaunchTask": "tsc: build - tsconfig.json",
+            "preLaunchTask": "npm: build-test",
             "env": {
                 "NODE_OPTIONS": "--enable-source-maps"
             },

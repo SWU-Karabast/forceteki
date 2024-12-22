@@ -3,11 +3,11 @@ import { StateWatcherName } from '../core/Constants';
 import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import Player from '../core/Player';
 import { TokenOrPlayableCard } from '../core/card/CardTypes';
-import Game from '../core/Game';
 import { Card } from '../core/card/Card';
 
 export interface PlayedCardEntry {
     card: TokenOrPlayableCard;
+    inPlayId?: number;
     playedBy: Player;
 }
 
@@ -36,6 +36,11 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
             .map((entry) => entry.card);
     }
 
+    /** Check the list of played cards in the state if we found cards that match filters */
+    public someCardPlayed(filter: (entry: PlayedCardEntry) => boolean): boolean {
+        return this.getCardsPlayed(filter).length > 0;
+    }
+
     protected override setupWatcher() {
         // on card played, add the card to the player's list of cards played this phase
         this.addUpdater({
@@ -43,7 +48,11 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
                 onCardPlayed: () => true,
             },
             update: (currentState: ICardsPlayedThisPhase, event: any) =>
-                currentState.concat({ card: event.card, playedBy: event.card.controller })
+                currentState.concat({
+                    card: event.card,
+                    inPlayId: event.card.canBeInPlay() ? event.card.inPlayId : null,
+                    playedBy: event.card.controller
+                })
         });
     }
 

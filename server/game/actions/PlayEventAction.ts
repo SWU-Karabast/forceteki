@@ -4,10 +4,6 @@ import { PlayCardContext, PlayCardAction, IPlayCardActionProperties } from '../c
 import { GameEvent } from '../core/event/GameEvent.js';
 
 export class PlayEventAction extends PlayCardAction {
-    public constructor(properties: IPlayCardActionProperties) {
-        super({ ...properties, title: 'Play this event' });
-    }
-
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());
 
@@ -19,6 +15,10 @@ export class PlayEventAction extends PlayCardAction {
 
         this.moveEventToDiscard(context);
         context.game.resolveAbility(context.source.getEventAbility().createContext());
+    }
+
+    public override clone(overrideProperties: IPlayCardActionProperties) {
+        return new PlayEventAction({ ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

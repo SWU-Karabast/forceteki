@@ -89,6 +89,8 @@ describe('Midnight Repairs', function () {
 
                 context.player1.clickCard(context.midnightRepairs);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
     });

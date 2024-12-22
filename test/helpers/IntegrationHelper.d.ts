@@ -18,12 +18,16 @@ interface SwuTestContext {
     game: Game;
     player1Object: Player;
     player2Object: Player;
+    player1Name: string;
+    player2Name: string;
     player1: PlayerInteractionWrapper;
     player2: PlayerInteractionWrapper;
     p1Base: BaseCard;
     p1Leader: LeaderCard;
     p2Base: BaseCard;
     p2Leader: LeaderCard;
+
+    allowTestToEndWithOpenPrompt: boolean;
 
     advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
@@ -44,10 +48,16 @@ interface SwuTestContext {
     [field: string]: any;
 }
 
+interface PlayerInfo {
+    id: string;
+    username: string;
+}
+
 interface SwuSetupTestOptions {
     phase?: string;
     player1?: SwuPlayerSetupOptions;
     player2?: SwuPlayerSetupOptions;
+    autoSingleTarget?: boolean;
 
     [field: string]: any;
 }
@@ -87,6 +97,7 @@ declare namespace jasmine {
         toBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toAllBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
+        toAllBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
         toBeCapturedBy(card: any): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;

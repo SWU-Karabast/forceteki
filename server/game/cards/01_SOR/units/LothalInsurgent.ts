@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
@@ -23,13 +22,12 @@ export default class LothalInsurgent extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'The opponent draws a discard and discards a random card',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => {
-                    const otherFriendlyCardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCardsPlayed(
-                        (cardPlay) => cardPlay.playedBy === context.source.controller && cardPlay.card !== context.source
-                    );
-
-                    return otherFriendlyCardsPlayedThisPhase.length > 0;
-                },
+                // this card going into play a previous time this phase then being re-played with e.g. Waylay counts as a separately played card
+                condition: (context) => this.cardsPlayedThisWatcher.someCardPlayed(
+                    (cardPlay) =>
+                        cardPlay.playedBy === context.source.controller &&
+                        (cardPlay.card !== context.source || cardPlay.inPlayId !== context.source.inPlayId)
+                ),
                 onTrue: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller.opponent })),
                     AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({

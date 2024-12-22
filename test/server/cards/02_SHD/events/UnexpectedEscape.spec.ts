@@ -13,7 +13,10 @@ describe('Unexpected Escape', function() {
                         groundArena: ['pyke-sentinel'],
                         spaceArena: ['wing-leader'],
                         hand: ['discerning-veteran', 'take-captive']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
