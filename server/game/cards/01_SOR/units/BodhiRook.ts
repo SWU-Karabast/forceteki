@@ -18,10 +18,8 @@ export default class BodhiRook extends NonLeaderUnitCard {
                     target: context.player.opponent.hand.sort((a, b) => a.title.localeCompare(b.title)),
                     sendChatMessage: true
                 })),
-                AbilityHelper.immediateEffects.discardCardsFromHand((context) => ({
-                    cardTypeFilter: WildcardCardType.Any,
+                AbilityHelper.immediateEffects.discardCardsFromOpponentsHand((context) => ({
                     cardCondition: (card) => !card.isUnit(),
-                    discardingPlayerType: RelativePlayer.Opponent,
                     target: context.player.opponent,
                     amount: 1
                 })),

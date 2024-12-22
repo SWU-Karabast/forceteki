@@ -16,6 +16,7 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 3,
+                controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),
