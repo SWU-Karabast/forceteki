@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, ZoneName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
     protected override getImplementationId() {
