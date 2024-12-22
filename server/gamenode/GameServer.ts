@@ -114,6 +114,7 @@ export class GameServer {
         lobby.createLobbyUser('Order66', deck);
         this.userLobbyMap.set('Order66', lobby.id);
         this.userLobbyMap.set('ThisIsTheWay', lobby.id);
+        lobby.setTokens();
         return true;
     }
 

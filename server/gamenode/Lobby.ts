@@ -6,6 +6,7 @@ import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
+import axios from 'axios';
 
 interface LobbyUser {
     id: string;
@@ -19,7 +20,7 @@ export class Lobby {
     private game: Game;
     // switch partic
     private users: LobbyUser[] = [];
-
+    private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     public constructor() {
         this._id = uuid();
     }
@@ -130,6 +131,26 @@ export class Lobby {
         this.users = [];
     }
 
+    private async fetchCard(cardName: string): Promise<any> {
+        try {
+            const response = await axios.get('https://karabast-assets.s3.amazonaws.com/data/cards/' + encodeURIComponent(cardName));
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching card: ${cardName}`, error);
+            throw error;
+        }
+    }
+
+    public async setTokens(): Promise<void> {
+        const cardData = {
+            battleDroid: await this.fetchCard('battle-droid.json'),
+            cloneTrooper: await this.fetchCard('clone-trooper.json'),
+            experience: await this.fetchCard('experience.json'),
+            shield: await this.fetchCard('shield.json'),
+        };
+        this.tokens = cardData;
+    }
+
     // example method to demonstrate the use of the test game setup utility
     private checkLoadTestGame() {
         if (!fs.existsSync('../../test')) {
@@ -184,9 +205,9 @@ export class Lobby {
             game.selectDeck('ThisIsTheWay', defaultGameSettings.players[0].deck);
         }
 
-        // game.initialiseTokens(deckBuilder.getTokenData()); we need this.
+        // Fetch tokens from S3 and initialize them in the game
+        game.initialiseTokens(this.tokens);
         game.initialise();
-
         this.sendGameState(game);
     }
 
