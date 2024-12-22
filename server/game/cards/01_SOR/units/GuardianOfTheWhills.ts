@@ -19,15 +19,15 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    private isFirstUpgradePlayedOnThisCopy(upgrade: Card, targetCard: Card): boolean {
-        if (!targetCard.isUnit()) {
+    private isFirstUpgradePlayedOnThisCopy(card: Card, adjusterSource: Card): boolean {
+        if (!adjusterSource.isUnit()) {
             return false;
         }
         const playedUpgradesOnThisCardThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
             playedCardEntry.card.isUpgrade() &&
-            playedCardEntry.card.parentCard === targetCard &&
-            playedCardEntry.card.parentCard.inPlayId === targetCard.inPlayId &&
-            playedCardEntry.card !== upgrade
+            playedCardEntry.card.parentCard === adjusterSource &&
+            playedCardEntry.card.parentCard.inPlayId === adjusterSource.inPlayId &&
+            playedCardEntry.card !== card
         );
         return playedUpgradesOnThisCardThisPhase.length === 0;
     }
