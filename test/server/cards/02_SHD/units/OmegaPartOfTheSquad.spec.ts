@@ -74,6 +74,8 @@ describe('Omega, Part of the Squad', function() {
                 context.player1.clickCard(context.crosshair);
                 expect(context.player1.exhaustedResourceCount).toBe(8);
 
+                context.player2.passAction();
+
                 // This should cost +2 aspect penalty for 4
                 context.player1.clickCard(context.wolffe);
                 expect(context.player1.exhaustedResourceCount).toBe(12);
