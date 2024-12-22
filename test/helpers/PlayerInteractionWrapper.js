@@ -474,7 +474,7 @@ class PlayerInteractionWrapper {
     }
 
     selectDeck(deck) {
-        this.game.selectDeck(this.player.name, deck);
+        this.game.selectDeck(this.player.id, deck);
     }
 
     clickPrompt(text) {
