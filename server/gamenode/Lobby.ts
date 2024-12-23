@@ -219,7 +219,7 @@ export class Lobby {
         try {
             func();
         } catch (e) {
-            // this.handleError(game, e);
+            this.handleError(game, e);
 
             // this.sendGameState(game);
         }
@@ -227,33 +227,33 @@ export class Lobby {
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     private handleError(game: Game, e: Error) {
-        // logger.error(e);
+        console.error(e);
 
-        const gameState = game.getState();
-        const debugData: any = {};
+        // const gameState = game.getState();
+        // const debugData: any = {};
 
-        if (e.message.includes('Maximum call stack')) {
-            // debugData.badSerializaton = detectBinary(gameState);
-        } else {
-            debugData.game = gameState;
-            debugData.game.players = undefined;
+        // if (e.message.includes('Maximum call stack')) {
+        //     // debugData.badSerializaton = detectBinary(gameState);
+        // } else {
+        //     debugData.game = gameState;
+        //     debugData.game.players = undefined;
 
-            debugData.messages = game.messages;
-            debugData.game.messages = undefined;
+        //     debugData.messages = game.messages;
+        //     debugData.game.messages = undefined;
 
-            debugData.pipeline = game.pipeline.getDebugInfo();
-            // debugData.effectEngine = game.effectEngine.getDebugInfo();
+        //     debugData.pipeline = game.pipeline.getDebugInfo();
+        //     // debugData.effectEngine = game.effectEngine.getDebugInfo();
 
-            for (const player of game.getPlayers()) {
-                debugData[player.name] = player.getState(player);
-            }
-        }
+        //     for (const player of game.getPlayers()) {
+        //         debugData[player.name] = player.getState(player);
+        //     }
+        // }
 
-        if (game) {
-            game.addMessage(
-                'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
-            );
-        }
+        // if (game) {
+        //     game.addMessage(
+        //         'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
+        //     );
+        // }
     }
 
     public sendGameState(game: Game): void {
