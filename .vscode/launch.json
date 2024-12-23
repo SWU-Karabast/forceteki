@@ -12,14 +12,13 @@
             "cwd": "${fileDirname}"
         },
         {
-            "name": "Debug Gameserver",
-            "program": "${workspaceFolder}/build/server/gamenode/index.js",
+            "name": "Debug dev server",
+            "type": "node-terminal",
             "request": "launch",
+            "command": "npm run dev",
             "env": {
                 "NODE_OPTIONS": "--enable-source-maps"
             },
-            "type": "node",
-            "preLaunchTask": "npm: build",
         },
         {
             "name": "Debug All Jasmine Tests",
