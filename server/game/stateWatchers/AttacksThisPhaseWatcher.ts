@@ -57,7 +57,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
         filter?: (event: AttackEntry) => boolean;
     }) {
         return this.getAttackers((entry) => {
-            const additionalFilter = (filter !== undefined) ? filter(entry) : true;
+            const additionalFilter = (filter != undefined) ? filter(entry) : true;
 
             return entry.attackingPlayer === controller && additionalFilter;
         }).length > 0;
