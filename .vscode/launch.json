@@ -9,6 +9,7 @@
                 "<node_internals>/**"
             ],
             "type": "node",
+            "cwd": "${fileDirname}"
         },
         {
             "name": "Debug Gameserver",

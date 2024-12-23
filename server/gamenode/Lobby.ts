@@ -5,6 +5,7 @@ import Socket from '../socket';
 import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
+import fs from 'fs';
 
 interface LobbyUser {
     id: string;
@@ -129,6 +130,32 @@ export class Lobby {
         this.users = [];
     }
 
+    // example method to demonstrate the use of the test game setup utility
+    private checkLoadTestGame() {
+        if (!fs.existsSync('../../test')) {
+            return null;
+        }
+
+        // eslint-disable-next-line
+        const game: Game = require('../../test/helpers/GameStateSetup.js').setUpTestGame({
+            phase: 'action',
+            player1: {
+                hand: ['tactical-advantage'],
+                groundArena: ['pyke-sentinel']
+            },
+            player2: {
+                groundArena: ['wampa']
+            },
+            autoSingleTarget: false
+        },
+        {},
+        { id: '111', username: 'player1' },
+        { id: '222', username: 'player2' }
+        );
+
+        return game;
+    }
+
     private onStartGame(id: string): void {
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
@@ -230,15 +257,16 @@ export class Lobby {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
                 user.socket.send('gamestate', game.getState(user.id));
-                user.socket.send('deckData', user.deck.data);
             }
         }
     }
 
     public sendDeckInfo(): void {
         for (const user of this.users) {
-            if (user.state === 'connected' && user.socket) {
+            if (user.state === 'connected' && user.socket && user.deck) {
                 user.socket.send('deckData', user.deck.data);
+            } else if (user.state === 'connected' && user.socket) {
+                user.socket.send('deckData', defaultGameSettings.players[0].deck);
             }
         }
     }

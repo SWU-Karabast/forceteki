@@ -38,9 +38,24 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     };
 
     public eventHandler(event, additionalProperties): void {
-        const player = event.player;
-        const newContext = (event.playCardAbility as PlayCardAction).createContext(player);
+        const availablePlayCardAbilities = event.playCardAbilities as PlayCardAction[];
 
+        if (availablePlayCardAbilities.length === 1) {
+            this.resolvePlayCardAbility(availablePlayCardAbilities[0], event);
+        } else if (availablePlayCardAbilities.length > 1) {
+            event.context.game.promptWithHandlerMenu(event.context.player, {
+                activePromptTitle: `Choose an option for playing ${event.card.title}`,
+                source: event.card,
+                choices: availablePlayCardAbilities.map((action) => action.title),
+                handlers: availablePlayCardAbilities.map((action) => (() => this.resolvePlayCardAbility(action, event)))
+            });
+        } else {
+            Contract.fail(`No legal play card abilities found for card ${event.card.internalName}`);
+        }
+    }
+
+    private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
+        const newContext = ability.createContext(event.player);
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
     }
 
@@ -54,7 +69,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        event.playCardAbility = this.generatePlayCardAbility(target, properties, context);
+        event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
     }
 
@@ -67,10 +82,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             return false;
         }
 
-        const playCardAbility = this.generatePlayCardAbility(card, properties, context);
-        const newContext = playCardAbility.createContext(context.player);
-
-        return !playCardAbility.meetsRequirements(newContext, properties.ignoredRequirements);
+        return this.generateLegalPlayCardAbilities(card, properties, context).length > 0;
     }
 
     private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: TContext) {
@@ -80,13 +92,55 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     /**
      * Generate a play card ability for the specified card.
      */
-    private generatePlayCardAbility(card: Card, properties: IPlayCardProperties, context: TContext) {
-        const actionProperties = { card, playType: properties.playType, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, costAdjuster: this.makeCostAdjuster(properties.adjustCost, context) };
-        switch (actionProperties.card.type) {
-            case CardType.BasicUnit: return new PlayUnitAction({ ...actionProperties, entersReady: properties.entersReady });
-            case CardType.BasicUpgrade: return new PlayUpgradeAction(actionProperties);
-            case CardType.Event: return new PlayEventAction(actionProperties);
-            default: Contract.fail(`Attempted to play a card with invalid type ${actionProperties.card.type} as part of an ability`);
+    private generateLegalPlayCardAbilities(card: Card, properties: IPlayCardProperties, context: TContext) {
+        Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
+
+
+        // find the card's available play actions (e.g. play from hand, smuggle), select those that match the type we're looking for,
+        // then clone them with our property overrides
+        const cardPlayActions = card.getPlayCardActions()
+            .filter((action) => action.playType === properties.playType)
+            .map((playAction) => playAction.clone(this.buildPlayActionProperties(card, properties, context, playAction)));
+
+        // if we're playing from out of play we may need to generate an action for the card since it won't have one by default
+        if (cardPlayActions.length === 0 && properties.playType === PlayType.PlayFromOutOfPlay) {
+            cardPlayActions.push(this.buildDefaultOutOfPlayAction(card, properties, context));
+        }
+
+        // filter out actions that aren't legal
+        return cardPlayActions.filter((action) => {
+            const newContext = action.createContext(context.player);
+            return action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+        });
+    }
+
+    private buildPlayActionProperties(card: Card, properties: IPlayCardProperties, context: TContext, action: PlayCardAction = null) {
+        let costAdjusters = [this.makeCostAdjuster(properties.adjustCost, context)];
+        if (action) {
+            costAdjusters = costAdjusters.concat(action.costAdjusters);
+        }
+
+        return {
+            card,
+            playType: properties.playType,
+            triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
+            costAdjusters,
+            entersReady: properties.entersReady
+        };
+    }
+
+    private buildDefaultOutOfPlayAction(card: Card, properties: IPlayCardProperties, context: TContext) {
+        const actionProperties = this.buildPlayActionProperties(card, properties, context);
+
+        switch (card.type) {
+            case CardType.BasicUnit:
+                return new PlayUnitAction(actionProperties);
+            case CardType.BasicUpgrade:
+                return new PlayUpgradeAction(actionProperties);
+            case CardType.Event:
+                return new PlayEventAction(actionProperties);
+            default:
+                Contract.fail(`Attempted to play a card from out of play with invalid type ${actionProperties.card.type} as part of an ability`);
         }
     }
 }

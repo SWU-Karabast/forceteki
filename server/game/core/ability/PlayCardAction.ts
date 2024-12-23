@@ -8,13 +8,14 @@ import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjuster } from '../cost/CostAdjuster';
+import * as Helpers from '../utils/Helpers';
 
 export interface IPlayCardActionProperties {
     card: Card;
     title?: string;
     playType?: PlayType;
     triggerHandlingMode?: TriggerHandlingMode;
-    costAdjuster?: CostAdjuster;
+    costAdjusters?: CostAdjuster | CostAdjuster[];
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
 }
@@ -22,11 +23,20 @@ export interface IPlayCardActionProperties {
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
-    protected readonly playType: PlayType;
-    public readonly costAdjuster: CostAdjuster;
+    public readonly playType: PlayType;
+    public readonly costAdjusters: CostAdjuster[];
+
+    protected readonly createdWithProperties: IPlayCardActionProperties;
 
     public constructor(properties: IPlayCardActionProperties) {
-        const propertiesWithDefaults = { title: 'Play this card', playType: PlayType.PlayFromHand, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, additionalCosts: [], ...properties };
+        const propertiesWithDefaults = {
+            title: `Play ${properties.card.title}`,
+            playType: PlayType.PlayFromHand,
+            triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
+            additionalCosts: [],
+            ...properties
+        };
+
         super(
             propertiesWithDefaults.card,
             PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType),
@@ -36,7 +46,8 @@ export abstract class PlayCardAction extends PlayerAction {
         );
 
         this.playType = propertiesWithDefaults.playType;
-        this.costAdjuster = propertiesWithDefaults.costAdjuster;
+        this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
+        this.createdWithProperties = { ...properties };
     }
 
     private static getTitle(title: string, playType: PlayType): string {
@@ -47,6 +58,8 @@ export abstract class PlayCardAction extends PlayerAction {
                 return title;
         }
     }
+
+    public abstract clone(overrideProperties: IPlayCardActionProperties): PlayCardAction;
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
@@ -84,7 +97,7 @@ export abstract class PlayCardAction extends PlayerAction {
         });
     }
 
-    public override isCardPlayed(): this is PlayCardAction {
+    public override isPlayCardAbility(): this is PlayCardAction {
         return true;
     }
 
