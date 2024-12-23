@@ -57,18 +57,18 @@ describe('Token units', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['general-krell#heartless-tactician'],
-                        hand: ['on-the-doorstep', 'vanquish'],
+                        groundArena: ['general-krell#heartless-tactician', 'battle-droid', 'battle-droid', 'battle-droid'],
+                        hand: ['vanquish'],
                     },
                     player2: {
                         groundArena: ['regional-governor'],
-                        hand: ['supreme-leader-snoke#shadow-ruler']
+                        hand: ['supreme-leader-snoke#shadow-ruler'],
+                        hasInitiative: true
                     }
                 });
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.onTheDoorstep);
                 const battleDroids = context.player1.findCardsByName('battle-droid');
 
                 // CASE 1: defeat due to combat
@@ -105,8 +105,8 @@ describe('Token units', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['general-krell#heartless-tactician'],
-                        hand: ['drop-in', 'waylay'],
+                        groundArena: ['general-krell#heartless-tactician', 'clone-trooper', 'clone-trooper'],
+                        hand: ['waylay'],
                     },
                     player2: {
                         groundArena: ['regional-governor'],
@@ -116,9 +116,7 @@ describe('Token units', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.dropIn);
                 const cloneTroopers = context.player1.findCardsByName('clone-trooper');
-                context.player2.passAction();
 
                 // CASE 1: return to hand
                 context.player1.clickCard(context.waylay);
