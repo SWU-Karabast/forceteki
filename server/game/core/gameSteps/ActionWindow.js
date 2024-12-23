@@ -139,6 +139,7 @@ class ActionWindow extends UiPrompt {
                 return true;
 
             case 'claimInitiative':
+                throw new Error('bleh');
                 this.claimInitiative();
                 return true;
 
