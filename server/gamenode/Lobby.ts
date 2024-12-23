@@ -228,7 +228,7 @@ export class Lobby {
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     private handleError(game: Game, e: Error) {
-        logger.error('There was an error', e);
+        logger.error(e);
 
         // const gameState = game.getState();
         // const debugData: any = {};
