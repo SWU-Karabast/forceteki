@@ -145,10 +145,10 @@ export class Lobby {
 
     public async setTokens(): Promise<void> {
         const cardData = {
-            battleDroid: await this.fetchCard('battle-droid.json'),
-            cloneTrooper: await this.fetchCard('clone-trooper.json'),
-            experience: await this.fetchCard('experience.json'),
-            shield: await this.fetchCard('shield.json'),
+            battleDroid: (await this.fetchCard('battle-droid.json'))[0],
+            cloneTrooper: (await this.fetchCard('clone-trooper.json'))[0],
+            experience: (await this.fetchCard('experience.json'))[0],
+            shield: (await this.fetchCard('shield.json'))[0],
         };
         this.tokens = cardData;
     }
