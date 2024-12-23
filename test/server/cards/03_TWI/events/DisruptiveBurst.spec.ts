@@ -10,7 +10,7 @@ describe('Disruptive Burst', function() {
                     },
                     player2: {
                         hand: ['droid-deployment'],
-                        groundArena: ['consular-security-force'],
+                        groundArena: ['consular-security-force', 'battle-droid', 'battle-droid'],
                         spaceArena: ['tieln-fighter']
                     }
                 });
@@ -19,10 +19,6 @@ describe('Disruptive Burst', function() {
 
                 context.player1.passAction();
                 context.player2.clickCard(context.droidDeployment);
-                const battleDroids = context.player2.findCardsByName('battle-droid');
-
-                // Test setup with two Battle Droid tokens
-                expect(battleDroids.length).toBe(2);
 
                 // Apply the effect to the enemy units
                 context.player1.clickCard(context.disruptiveBurst);
@@ -35,7 +31,9 @@ describe('Disruptive Burst', function() {
                 expect(context.fifthBrother.getHp()).toBe(4);
 
                 // Defeat the Battle Droids
-                expect(context.player2.findCardsByName('battle-droid').length).toBe(0);
+                const battleDroids = context.player2.findCardsByName('battle-droid');
+                expect(battleDroids[0]).toBeInZone('outsideTheGame');
+                expect(battleDroids[1]).toBeInZone('outsideTheGame');
 
                 // Move to the next phase and buff should be removed
                 context.moveToNextActionPhase();
