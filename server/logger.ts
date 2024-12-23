@@ -7,7 +7,18 @@ const rotate = new DailyRotateFile({
     zippedArchive: true
 });
 
+const logFormatter = winston.format.printf(({ timestamp, level, message, ...meta }) => {
+    let log = `${timestamp} [${level}]: ${message}`;
+    if (meta.stack) {
+        log += `\n${meta.stack}`;
+    }
+    return log;
+});
+
 export const logger = winston.createLogger({
     transports: [new winston.transports.Console(), rotate],
-    format: winston.format.simple()
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        logFormatter
+    )
 });

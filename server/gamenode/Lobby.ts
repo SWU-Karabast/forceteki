@@ -5,6 +5,7 @@ import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
+import { logger } from '../logger';
 
 interface LobbyUser {
     id: string;
@@ -227,7 +228,7 @@ export class Lobby {
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     private handleError(game: Game, e: Error) {
-        console.error(e);
+        logger.error('There was an error', e);
 
         // const gameState = game.getState();
         // const debugData: any = {};
