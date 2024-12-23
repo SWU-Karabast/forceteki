@@ -11,6 +11,7 @@ const defaultGameSettings = {
         {
             user: {
                 username: 'Order66',
+                id: 'exe66',
                 settings: {
                     optionSettings: {
                         markCardsUnselectable: true,
@@ -23,7 +24,6 @@ const defaultGameSettings = {
                     }
                 }
             },
-            id: '66',
             deck: {
                 leader: [
                     {
@@ -967,6 +967,7 @@ const defaultGameSettings = {
         {
             user: {
                 username: 'ThisIsTheWay',
+                id: 'th3w4y',
                 settings: {
                     optionSettings: {
                         markCardsUnselectable: true,
@@ -979,7 +980,6 @@ const defaultGameSettings = {
                     }
                 }
             },
-            id: 'th3w4y',
             deck: {
                 leader: [
                     {

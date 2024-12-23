@@ -9,8 +9,8 @@ import * as Contract from '../core/utils/Contract';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
 
 export enum DelayedEffectType {
-    Card,
-    Player
+    Card = 'card',
+    Player = 'player'
 }
 
 export interface IDelayedEffectSystemProperties extends IGameSystemProperties {
@@ -102,7 +102,25 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     }
 
     private getDelayedEffectSource (event: any, context: TContext, additionalProperties?: any) {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.effectType === DelayedEffectType.Card ? event.context.target : event.context.source;
+        const { effectType, target } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        switch (effectType) {
+            case DelayedEffectType.Card:
+                Contract.assertNotNullLike(target, `No target provided for delayed effect from card ${context.source.internalName}`);
+
+                let nonArrayTarget;
+                if (Array.isArray(target)) {
+                    Contract.assertArraySize(target, 1, `Expected exactly one target for delayed effect but found ${target.length}`);
+                    nonArrayTarget = target[0];
+                } else {
+                    nonArrayTarget = target;
+                }
+
+                return nonArrayTarget;
+            case DelayedEffectType.Player:
+                return event.context.source;
+            default:
+                Contract.fail(`Unknown delayed effect type: ${effectType}`);
+        }
     }
 }

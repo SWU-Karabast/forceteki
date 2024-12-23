@@ -6,13 +6,13 @@ describe('Change of Heart', function() {
                     phase: 'action',
                     player1: {
                         hand: ['change-of-heart'],
-                        groundArena: [{ card: 'pyke-sentinel', ownerAndController: 'player2' }],
+                        groundArena: [{ card: 'pyke-sentinel', owner: 'player2' }],
                         spaceArena: ['cartel-spacer']
                     },
                     player2: {
                         hand: ['vanquish'],
-                        // TODO THIS PR: map player1 / player2 name onto player objects
-                        groundArena: [{ card: 'battlefield-marine', ownerAndController: 'player1' }, 'wampa']
+                        // TODO: map player1 / player2 name onto player objects
+                        groundArena: [{ card: 'battlefield-marine', owner: 'player1' }, 'wampa']
                     }
                 });
             });
