@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const TestSetupError = require('./TestSetupError.js');
+const Util = require('./Util.js');
 
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
@@ -243,15 +244,18 @@ class DeckBuilder {
         let inPlayCards = [];
         for (const card of arenaList) {
             if (typeof card === 'string') {
-                inPlayCards.push(card);
+                if (!Util.isTokenUnit(card)) {
+                    inPlayCards.push(card);
+                }
             } else {
-                // Add the card itself
-                inPlayCards.push(card.card);
+                // Add the card itself, if not a token
+                if (!Util.isTokenUnit(card.card)) {
+                    inPlayCards.push(card.card);
+                }
+
                 // Add any upgrades
                 if (card.upgrades) {
-                    let nonTokenUpgrades = card.upgrades.filter((upgrade) =>
-                        !['shield', 'experience'].includes(upgrade)
-                    );
+                    const nonTokenUpgrades = card.upgrades.filter((upgrade) => !Util.isTokenUpgrade(upgrade));
 
                     for (const upgrade of nonTokenUpgrades) {
                         if (typeof upgrade === 'string') {
