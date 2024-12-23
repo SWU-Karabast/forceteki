@@ -215,7 +215,7 @@ class PlayerInteractionWrapper {
 
             var card;
             if (Util.isTokenUnit(options.card)) {
-                card = this.game.generateToken(this.player, options.card);
+                card = this.generateToken(this.player, options.card);
             } else {
                 card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
             }
@@ -259,13 +259,33 @@ class PlayerInteractionWrapper {
             const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
             let upgradeCard;
             if (Util.isTokenUpgrade(upgradeName)) {
-                upgradeCard = this.game.generateToken(this.player, upgradeName);
+                upgradeCard = this.generateToken(this.player, upgradeName);
             } else {
                 upgradeCard = this.findCardByName(upgradeName, prevZones);
             }
 
             upgradeCard.attachTo(card);
         }
+    }
+
+    generateToken(player, tokenName) {
+        let tokenClassName;
+        switch (tokenName) {
+            case 'battle-droid':
+                tokenClassName = 'battleDroid';
+                break;
+            case 'clone-trooper':
+                tokenClassName = 'cloneTrooper';
+                break;
+            case 'experience':
+            case 'shield':
+                tokenClassName = tokenName;
+                break;
+            default:
+                throw new TestSetupError(`Unknown token type: ${tokenName}`);
+        }
+
+        return this.game.generateToken(player, tokenClassName);
     }
 
     get deck() {
