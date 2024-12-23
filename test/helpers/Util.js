@@ -111,6 +111,13 @@ function createStringForOptions(options) {
     return options.length > 10 ? options.slice(0, 10).join(', ') + ', ...' : options.join(', ');
 }
 
+function isTokenUnit(cardName) {
+    return ['battle-droid', 'clone-trooper'].includes(cardName);
+}
+
+function isTokenUpgrade(cardName) {
+    return ['shield', 'experience'].includes(cardName);
+}
 
 module.exports = {
     checkNullCard,
@@ -119,5 +126,7 @@ module.exports = {
     promptStatesEqual,
     stringArraysEqual,
     createStringForOptions,
-    formatBothPlayerPrompts
+    formatBothPlayerPrompts,
+    isTokenUnit,
+    isTokenUpgrade
 };
