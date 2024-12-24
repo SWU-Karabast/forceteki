@@ -27,7 +27,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
             targetZoneFilter: WildcardZoneName.AnyArena,
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                match: (card) => this.isFirstClonePlayedByControllerThisPhase(card),
+                match: (card) => card.hasSomeTrait(Trait.Clone) && this.isFirstClonePlayedByControllerThisPhase(card),
                 limit: AbilityLimit.perRound(1)
             }),
         });
