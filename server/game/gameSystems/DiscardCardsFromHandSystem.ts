@@ -17,7 +17,7 @@ export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProp
     this may be necessary for a player discarding from their own ahnds if a card condition or filter exits to keep them honest */
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardCondition?: (card: Card, context: AbilityContext) => boolean;
-    choosingRelativePlayer: RelativePlayer;
+    choosingPlayer: RelativePlayer;
 }
 
 export class DiscardCardsFromHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
@@ -26,7 +26,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         random: false,
         cardTypeFilter: WildcardCardType.Any,
         cardCondition: () => true,
-        choosingRelativePlayer: RelativePlayer.Self
+        choosingPlayer: RelativePlayer.Self
     };
 
     public override name = 'discard';
@@ -37,7 +37,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        if (properties.choosingRelativePlayer === RelativePlayer.Self) {
+        if (properties.choosingPlayer === RelativePlayer.Self) {
             return ['make {0} {1}discard {2} cards', [properties.target, properties.random ? 'randomly ' : '', properties.amount]];
         }
         return ['make {0} {1}discard {2} cards from {3}', [context.player, properties.random ? 'randomly ' : '', properties.amount, properties.target]];
@@ -69,7 +69,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
 
             // Select this player if its their own hand, or the active player from the context if its the 'opponent' choosing
-            const choosingPlayer = properties.choosingRelativePlayer === RelativePlayer.Self ? player : context.player;
+            const choosingPlayer = properties.choosingPlayer === RelativePlayer.Self ? player : context.player;
 
             Contract.assertNonNegative(derive(properties.amount, player));
 

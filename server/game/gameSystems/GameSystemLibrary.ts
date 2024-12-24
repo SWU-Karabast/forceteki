@@ -291,24 +291,24 @@ export function takeControlOfUnit<TContext extends AbilityContext = AbilityConte
 // //////////////
 // // PLAYER
 // //////////////
-export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingRelativePlayer'>, TContext>): DiscardCardsFromHandSystem<TContext> {
+export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingPlayer'>, TContext>): DiscardCardsFromHandSystem<TContext> {
     const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
         const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
         return {
             ...properties,
-            choosingRelativePlayer: RelativePlayer.Self
+            choosingPlayer: RelativePlayer.Self
         };
     };
 
     return new DiscardCardsFromHandSystem<TContext>(wrappedPropertyFactory);
 }
 
-export function discardCardsFromOpponentsHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingRelativePlayer'>, TContext>): DiscardCardsFromHandSystem<TContext> {
+export function discardCardsFromOpponentsHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingPlayer'>, TContext>): DiscardCardsFromHandSystem<TContext> {
     const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
         const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
         return {
             ...properties,
-            choosingRelativePlayer: RelativePlayer.Opponent,
+            choosingPlayer: RelativePlayer.Opponent,
         };
     };
 
