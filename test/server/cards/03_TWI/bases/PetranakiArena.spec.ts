@@ -6,7 +6,7 @@ describe('Petranaki Arena', function () {
                 player1: {
                     groundArena: ['battlefield-marine'],
                     base: 'petranaki-arena',
-                    leader: { card: 'captain-rex#fighting-for-his-brothers', deployed: true }
+                    leader: { card: 'rey#more-than-a-scavenger', deployed: true }
                 },
                 player2: {
                     leader: { card: 'nala-se#clone-engineer', deployed: true }
@@ -16,8 +16,8 @@ describe('Petranaki Arena', function () {
             const { context } = contextRef;
 
             // rex should have +1/+0
-            expect(context.captainRex.getPower()).toBe(3);
-            expect(context.captainRex.getHp()).toBe(6);
+            expect(context.rey.getPower()).toBe(3);
+            expect(context.rey.getHp()).toBe(6);
 
             // unit should not have +1/+0
             expect(context.battlefieldMarine.getPower()).toBe(3);
