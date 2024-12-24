@@ -5,6 +5,7 @@ import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
+import path from 'path';
 import { logger } from '../logger';
 
 interface LobbyUser {
@@ -144,13 +145,15 @@ export class Lobby {
     }
 
     // example method to demonstrate the use of the test game setup utility
-    private checkLoadTestGame() {
-        if (!fs.existsSync('../../test')) {
+    public startTestGame() {
+        const testPath = path.resolve('test');
+        if (!fs.existsSync(testPath)) {
             return null;
         }
+        const gameSetupHelperPath = path.resolve(testPath, 'helpers', 'GameStateSetup.js');
 
         // eslint-disable-next-line
-        const game: Game = require('../../test/helpers/GameStateSetup.js').setUpTestGame({
+        const game: Game = require(gameSetupHelperPath).setUpTestGame({
             phase: 'action',
             player1: {
                 hand: ['tactical-advantage'],
@@ -162,11 +165,11 @@ export class Lobby {
             autoSingleTarget: false
         },
         {},
-        { id: '111', username: 'player1' },
-        { id: '222', username: 'player2' }
+        { id: 'exe66', username: 'Order66' },
+        { id: 'th3w4y', username: 'ThisIsTheWay' }
         );
 
-        return game;
+        game.initialise();
     }
 
     private onStartGame(id: string): void {
@@ -175,11 +178,7 @@ export class Lobby {
         const existingUser = this.users.find((u) => u.id === id);
         const opponent = this.users.find((u) => u.id !== id);
         game.started = true;
-        // for (const player of Object.values<Player>(pendingGame.players)) {
-        //     game.selectDeck(player.name, player.deck);
-        // }
 
-        // fetch deck for existing user otherwise set default
         if (existingUser.deck) {
             game.selectDeck(id, existingUser.deck.data);
         }
@@ -222,7 +221,7 @@ export class Lobby {
         } catch (e) {
             this.handleError(game, e);
 
-            // this.sendGameState(game);
+            this.sendGameState(game);
         }
     }
 
