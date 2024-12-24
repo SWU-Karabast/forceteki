@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { WildcardZoneName } from '../../../core/Constants';
 
 export default class DeathByDroids extends EventCard {
     protected override getImplementationId () {
@@ -15,7 +15,6 @@ export default class DeathByDroids extends EventCard {
             title: 'Defeat a unit that costs 3 or less. Create 2 Battle Droid tokens',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
-                    cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardCondition: (card) => card.isUnit() && card.cost <= 3,
                     innerSystem: AbilityHelper.immediateEffects.defeat(),

@@ -6,7 +6,7 @@ describe('Grievous Reassembly', function() {
                     phase: 'action',
                     player1: {
                         hand: ['grievous-reassembly'],
-                        groundArena: [{ card: 'fifth-brother#fear-hunter', damage: 3 }]
+                        groundArena: [{ card: 'kanan-jarrus#revealed-jedi', damage: 4 }]
                     },
                     player2: {
                         groundArena: ['atst']
@@ -16,17 +16,19 @@ describe('Grievous Reassembly', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grievousReassembly);
-                expect(context.player1).toBeAbleToSelectExactly([context.fifthBrother, context.atst]);
+                expect(context.player1).toBeAbleToSelectExactly([context.kananJarrus, context.atst]);
 
                 // Selects heal target
-                context.player1.clickCard(context.fifthBrother);
+                context.player1.clickCard(context.kananJarrus);
                 const battleDroids = context.player1.findCardsByName('battle-droid');
 
                 // Validates healing
-                expect(context.fifthBrother.getHp()).toBe(4);
+                expect(context.kananJarrus.remainingHp).toBe(4);
 
                 // Validates Battle Droid token creation
                 expect(battleDroids.length).toBe(1);
+                expect(battleDroids).toAllBeInZone('groundArena');
+                expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
             });
 
             it('should not heal a unit as there is no damage and create a Battle Droid token', function () {
@@ -43,11 +45,11 @@ describe('Grievous Reassembly', function() {
                 context.player1.clickCard(context.grievousReassembly);
                 expect(context.player1).toBeAbleToSelectExactly([context.fifthBrother]);
 
+                // Validates Battle Droid token creation
                 context.player1.clickCard(context.fifthBrother);
                 const battleDroids = context.player1.findCardsByName('battle-droid');
-
-                // Validates Battle Droid token creation
                 expect(battleDroids.length).toBe(1);
+                expect(battleDroids).toAllBeInZone('groundArena');
             });
         });
     });

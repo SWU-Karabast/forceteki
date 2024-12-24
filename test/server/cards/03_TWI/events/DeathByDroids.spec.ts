@@ -6,7 +6,7 @@ describe('Death by Droids', function () {
                     phase: 'action',
                     player1: {
                         hand: ['death-by-droids'],
-                        groundArena: ['fifth-brother#fear-hunter']
+                        groundArena: ['fifth-brother#fear-hunter', 'kanan-jarrus#revealed-jedi']
                     },
                     player2: {
                         spaceArena: ['green-squadron-awing'],
