@@ -3,6 +3,7 @@
   "scripts": {
     "dev": "node scripts/run-server.js",
     "build": "node scripts/build-server.js",
+    "build-dev": "node scripts/build-dev.js",
     "build-test": "node scripts/build-test.js",
     "test": "node scripts/build-test.js && npm run jasmine",
     "test-fast": "node scripts/build-test.js --fast-build && npm run jasmine",

@@ -146,14 +146,14 @@ export class Lobby {
 
     // example method to demonstrate the use of the test game setup utility
     public startTestGame() {
-        const testPath = path.resolve('test');
-        if (!fs.existsSync(testPath)) {
+        const testDirPath = path.resolve(__dirname, '../../test');
+        if (!fs.existsSync(testDirPath)) {
             return null;
         }
-        const gameSetupHelperPath = path.resolve(testPath, 'helpers', 'GameStateSetup.js');
 
+        const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
         // eslint-disable-next-line
-        const game: Game = require(gameSetupHelperPath).setUpTestGame({
+        const game: Game = require(gameSetupPath).setUpTestGame({
             phase: 'action',
             player1: {
                 hand: ['tactical-advantage'],
