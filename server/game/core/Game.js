@@ -83,17 +83,17 @@ class Game extends EventEmitter {
         Contract.assertArraySize(details.players, 2, 'Game must have exactly 2 players');
 
         details.players.forEach((player) => {
-            this.playersAndSpectators[player.user.username] = new Player(
-                player.id,
+            this.playersAndSpectators[player.user.id] = new Player(
+                player.user.id,
                 player.user,
-                this.owner === player.user.username,
+                this.owner === player.user.id,
                 this,
                 details.clocks
             );
         });
 
         details.spectators?.forEach((spectator) => {
-            this.playersAndSpectators[spectator.user.username] = new Spectator(spectator.id, spectator.user);
+            this.playersAndSpectators[spectator.user.id] = new Spectator(spectator.id, spectator.user);
         });
 
         const [player1, player2] = this.getPlayers();
@@ -174,10 +174,19 @@ class Game extends EventEmitter {
      * @returns {Player}
      */
     getPlayerByName(playerName) {
-        Contract.assertHasProperty(this.playersAndSpectators, playerName);
+        const player = this.getPlayers().find((player) => player.name === playerName);
+        if (player) {
+            return player;
+        }
 
-        let player = this.playersAndSpectators[playerName];
-        Contract.assertFalse(this.isSpectator(player), `Player ${playerName} is a spectator`);
+        throw new Error(`Player with name ${playerName} not found`);
+    }
+
+    getPlayerById(playerId) {
+        Contract.assertHasProperty(this.playersAndSpectators, playerId);
+
+        let player = this.playersAndSpectators[playerId];
+        Contract.assertFalse(this.isSpectator(player), `Player ${player.name} is a spectator`);
 
         return player;
     }
@@ -577,8 +586,8 @@ class Game extends EventEmitter {
         }
     }
 
-    selectDeck(playerName, deck) {
-        let player = this.getPlayerByName(playerName);
+    selectDeck(playerId, deck) {
+        let player = this.getPlayerById(playerId);
         if (player) {
             player.selectDeck(deck);
         }
@@ -1320,13 +1329,13 @@ class Game extends EventEmitter {
     // /*
     //  * This information is sent to the client
     //  */
-    getState(notInactivePlayerName) {
-        let activePlayer = this.playersAndSpectators[notInactivePlayerName] || new AnonymousSpectator();
+    getState(notInactivePlayerId) {
+        let activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
         let playerState = {};
         let { blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner } = this.owner;
         if (this.started) {
             for (const player of this.getPlayers()) {
-                playerState[player.name] = player.getState(activePlayer);
+                playerState[player.id] = player.getState(activePlayer);
             }
 
             return {

@@ -56,9 +56,11 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
         controller: Player;
         filter?: (event: AttackEntry) => boolean;
     }) {
-        return this.getAttackers(
-            (entry) => entry.attackingPlayer === controller && (filter(entry) ?? true)
-        ).length > 0;
+        return this.getAttackers((entry) => {
+            const additionalFilter = filter ? filter(entry) : true;
+
+            return entry.attackingPlayer === controller && additionalFilter;
+        }).length > 0;
     }
 
     protected override setupWatcher() {

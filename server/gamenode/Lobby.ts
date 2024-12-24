@@ -1,5 +1,4 @@
 import Game from '../game/core/Game';
-import type Player from '../game/core/Player';
 import { v4 as uuid } from 'uuid';
 import Socket from '../socket';
 import defaultGameSettings from './defaultGame';
@@ -7,10 +6,13 @@ import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
 import axios from 'axios';
+import { logger } from '../logger';
 
 interface LobbyUser {
     id: string;
+    username: string;
     state: 'connected' | 'disconnected';
+    ready: boolean;
     socket: Socket | null;
     deck: Deck | null;
 }
@@ -29,22 +31,31 @@ export class Lobby {
         return this._id;
     }
 
-    public createLobbyUser(id: string, deck): void {
-        const existingUser = this.users.find((u) => u.id === id);
-        let newDeck = null;
-        if (deck) {
-            newDeck = new Deck(deck);
-            if (existingUser) {
-                existingUser.deck = newDeck;
-                return;
-            }
+    public createLobbyUser(user, deck): void {
+        const existingUser = this.users.find((u) => u.id === user.id);
+        const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
+
+        if (existingUser) {
+            existingUser.deck = newDeck;
+            return;
         }
-        this.users.push(({ id: id, state: null, socket: null, deck: newDeck }));
+        this.users.push(({ id: user.id, username: user.username, state: null, ready: false, socket: null, deck: newDeck }));
     }
 
-    public addLobbyUser(id: string, socket: Socket): void {
-        const existingUser = this.users.find((u) => u.id === id);
-        socket.registerEvent('startGame', () => this.onStartGame(id));
+    private useDefaultDeck(user) {
+        switch (user.id) {
+            case 'exe66':
+                return new Deck(defaultGameSettings.players[0].deck);
+            case 'th3w4y':
+                return new Deck(defaultGameSettings.players[1].deck);
+            default:
+                return null;
+        }
+    }
+
+    public addLobbyUser(user, socket: Socket): void {
+        const existingUser = this.users.find((u) => u.id === user.id);
+        socket.registerEvent('startGame', () => this.onStartGame(user.id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('updateDeck', (socket, ...args) => this.updateDeck(socket, ...args));
         // maybe we neeed to be using socket.data
@@ -52,7 +63,7 @@ export class Lobby {
             existingUser.state = 'connected';
             existingUser.socket = socket;
         } else {
-            this.users.push({ id: id, state: 'connected', socket, deck: null });
+            this.users.push({ id: user.id, username: user.username, state: 'connected', ready: false, socket, deck: this.useDefaultDeck(user) });
         }
 
         if (this.game) {
@@ -155,25 +166,25 @@ export class Lobby {
 
     // example method to demonstrate the use of the test game setup utility
     private checkLoadTestGame() {
-        /* if (!fs.existsSync('../../test')) {
+        if (!fs.existsSync('../../test')) {
             return null;
-        }*/
+        }
 
         // eslint-disable-next-line
         const game: Game = require('../../test/helpers/GameStateSetup.js').setUpTestGame({
             phase: 'action',
             player1: {
-                hand: ['tactical-advantage', 'village-protectors'],
+                hand: ['tactical-advantage'],
+                groundArena: ['pyke-sentinel']
             },
             player2: {
-                groundArena: ['admiral-motti#brazen-and-scornful'],
-                hand: ['tie-advanced'],
+                groundArena: ['wampa']
             },
             autoSingleTarget: false
         },
         {},
-        { id: '111', username: 'Order66' },
-        { id: '222', username: 'ThisIsTheWay' }
+        { id: '111', username: 'player1' },
+        { id: '222', username: 'player2' }
         );
 
         return game;
@@ -192,24 +203,15 @@ export class Lobby {
         // fetch deck for existing user otherwise set default
         if (existingUser.deck) {
             game.selectDeck(id, existingUser.deck.data);
-        } else {
-            game.selectDeck(id, defaultGameSettings.players[0].deck);
         }
 
-        // if opponent exist fetch deck for opponent otherwise set it as default
-        if (opponent) {
-            if (opponent.deck) {
-                game.selectDeck(opponent.id, opponent.deck.data);
-            } else {
-                game.selectDeck(opponent.id, defaultGameSettings.players[0].deck);
-            }
-        } else {
-            game.selectDeck('ThisIsTheWay', defaultGameSettings.players[0].deck);
+        if (opponent.deck) {
+            game.selectDeck(opponent.id, opponent.deck.data);
         }
-        // game = this.checkLoadTestGame(); Uncomment this if you wish to start a test setup.
-        // this.game = game; Uncomment this if you wish to start a test setup.
+
         game.initialiseTokens(this.tokens);
         game.initialise();
+
         this.sendGameState(game);
     }
 
@@ -240,7 +242,7 @@ export class Lobby {
         try {
             func();
         } catch (e) {
-            // this.handleError(game, e);
+            this.handleError(game, e);
 
             // this.sendGameState(game);
         }
@@ -248,33 +250,33 @@ export class Lobby {
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     private handleError(game: Game, e: Error) {
-        // logger.error(e);
+        logger.error(e);
 
-        const gameState = game.getState();
-        const debugData: any = {};
+        // const gameState = game.getState();
+        // const debugData: any = {};
 
-        if (e.message.includes('Maximum call stack')) {
-            // debugData.badSerializaton = detectBinary(gameState);
-        } else {
-            debugData.game = gameState;
-            debugData.game.players = undefined;
+        // if (e.message.includes('Maximum call stack')) {
+        //     // debugData.badSerializaton = detectBinary(gameState);
+        // } else {
+        //     debugData.game = gameState;
+        //     debugData.game.players = undefined;
 
-            debugData.messages = game.messages;
-            debugData.game.messages = undefined;
+        //     debugData.messages = game.messages;
+        //     debugData.game.messages = undefined;
 
-            debugData.pipeline = game.pipeline.getDebugInfo();
-            // debugData.effectEngine = game.effectEngine.getDebugInfo();
+        //     debugData.pipeline = game.pipeline.getDebugInfo();
+        //     // debugData.effectEngine = game.effectEngine.getDebugInfo();
 
-            for (const player of game.getPlayers()) {
-                debugData[player.name] = player.getState(player);
-            }
-        }
+        //     for (const player of game.getPlayers()) {
+        //         debugData[player.name] = player.getState(player);
+        //     }
+        // }
 
-        if (game) {
-            game.addMessage(
-                'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
-            );
-        }
+        // if (game) {
+        //     game.addMessage(
+        //         'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
+        //     );
+        // }
     }
 
     public sendGameState(game: Game): void {
