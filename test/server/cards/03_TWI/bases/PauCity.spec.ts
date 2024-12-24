@@ -6,7 +6,7 @@ describe('Pau City', function () {
                 player1: {
                     groundArena: ['battlefield-marine'],
                     base: 'pau-city',
-                    leader: { card: 'captain-rex#fighting-for-his-brothers', deployed: true }
+                    leader: { card: 'rey#more-than-a-scavenger', deployed: true }
                 },
                 player2: {
                     leader: { card: 'nala-se#clone-engineer', deployed: true }
@@ -16,8 +16,8 @@ describe('Pau City', function () {
             const { context } = contextRef;
 
             // rex should have +0/+1
-            expect(context.captainRex.getPower()).toBe(2);
-            expect(context.captainRex.getHp()).toBe(7);
+            expect(context.rey.getPower()).toBe(2);
+            expect(context.rey.getHp()).toBe(7);
 
             // unit should not have +0/+1
             expect(context.battlefieldMarine.getPower()).toBe(3);
@@ -34,7 +34,7 @@ describe('Pau City', function () {
                 player1: {
                     groundArena: ['battlefield-marine'],
                     base: 'pau-city',
-                    leader: 'captain-rex#fighting-for-his-brothers',
+                    leader: 'rey#more-than-a-scavenger',
                 },
                 player2: {
                     leader: 'nala-se#clone-engineer'
