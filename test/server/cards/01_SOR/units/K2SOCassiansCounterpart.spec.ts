@@ -10,7 +10,8 @@ describe('K-2SO', function() {
                     player2: {
                         hand: ['wampa'],
                         groundArena: ['krayt-dragon'],
-                    }
+                    },
+                    autoSingleTarget: true
                 });
             });
 

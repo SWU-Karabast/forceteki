@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, PlayType, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { Aspect, PlayType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class GideonsLightCruiserDarkTroopersStation extends NonLeaderUnitCard {
@@ -15,6 +15,7 @@ export default class GideonsLightCruiserDarkTroopersStation extends NonLeaderUni
         this.addWhenPlayedAbility({
             title: 'If you control Moff Gideon, play a Villainy unit that costs 3 or less from your hand or discard pile for free.',
             targetResolver: {
+                controller: RelativePlayer.Self,
                 zoneFilter: [ZoneName.Discard, ZoneName.Hand],
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Villainy) && card.cost <= 3,
