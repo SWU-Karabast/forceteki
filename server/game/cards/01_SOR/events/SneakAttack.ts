@@ -14,24 +14,24 @@ export default class SneakAttack extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Play a unit from your hand. It costs 3 less and enters play ready. At the start of the regroup phase, defeat it.',
-            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                AbilityHelper.immediateEffects.selectCard({
-                    activePromptTitle: 'Play a unit, it costs 3 less and enters play ready. At the start of the regroup phase, defeat it.',
-                    cardTypeFilter: CardType.BasicUnit,
-                    zoneFilter: ZoneName.Hand,
-                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({
+            immediateEffect: AbilityHelper.immediateEffects.selectCard({
+                activePromptTitle: 'Play a unit, it costs 3 less and enters play ready. At the start of the regroup phase, defeat it.',
+                cardTypeFilter: CardType.BasicUnit,
+                zoneFilter: ZoneName.Hand,
+                innerSystem: AbilityHelper.immediateEffects.sequential([
+                    AbilityHelper.immediateEffects.playCardFromHand({
                         entersReady: true,
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 }
+                    }),
+                    AbilityHelper.immediateEffects.delayedCardEffect({
+                        title: 'Defeat it.',
+                        when: {
+                            onPhaseStarted: (context) => context.phase === PhaseName.Regroup
+                        },
+                        immediateEffect: AbilityHelper.immediateEffects.defeat()
                     })
-                }),
-                AbilityHelper.immediateEffects.delayedCardEffect({
-                    title: 'Defeat it.',
-                    when: {
-                        onPhaseStarted: (context) => context.phase === PhaseName.Regroup
-                    },
-                    immediateEffect: AbilityHelper.immediateEffects.defeat()
-                })
-            ])
+                ])
+            }),
         });
     }
 }
