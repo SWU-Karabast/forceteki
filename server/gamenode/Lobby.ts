@@ -208,7 +208,6 @@ export class Lobby {
         }
         // game = this.checkLoadTestGame(); Uncomment this if you wish to start a test setup.
         // this.game = game; Uncomment this if you wish to start a test setup.
-        console.log(this.tokens);
         game.initialiseTokens(this.tokens);
         game.initialise();
         this.sendGameState(game);
