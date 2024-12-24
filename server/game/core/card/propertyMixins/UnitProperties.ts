@@ -481,7 +481,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * for this card and adds up the total of their effect values.
          * @returns value of the total effect if enabled, `null` if the effect is not present
          */
-        public getNumericKeywordSum(keywordName: KeywordName.Restore | KeywordName.Raid): number | null {
+        public getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null {
             let keywordValueTotal = 0;
 
             for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
