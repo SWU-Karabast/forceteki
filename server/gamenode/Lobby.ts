@@ -5,6 +5,7 @@ import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
+import axios from 'axios';
 import { logger } from '../logger';
 
 interface LobbyUser {
@@ -21,7 +22,7 @@ export class Lobby {
     private game: Game;
     // switch partic
     private users: LobbyUser[] = [];
-
+    private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     public constructor() {
         this._id = uuid();
     }
@@ -73,7 +74,7 @@ export class Lobby {
     }
 
     private updateDeck(socket: Socket, ...args) {
-        const activeUser = this.users.find((u) => u.id === socket.user.username);
+        const activeUser = this.users.find((u) => u.id === socket.user.id);
         const userDeck = activeUser.deck.data;
         const source = args[0]; // [<'Deck'|'Sideboard>'<cardID>]
         const cardID = args[1];
@@ -143,6 +144,26 @@ export class Lobby {
         this.users = [];
     }
 
+    private async fetchCard(cardName: string): Promise<any> {
+        try {
+            const response = await axios.get('https://karabast-assets.s3.amazonaws.com/data/cards/' + encodeURIComponent(cardName));
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching card: ${cardName}`, error);
+            throw error;
+        }
+    }
+
+    public async setTokens(): Promise<void> {
+        const cardData = {
+            battleDroid: (await this.fetchCard('battle-droid.json'))[0],
+            cloneTrooper: (await this.fetchCard('clone-trooper.json'))[0],
+            experience: (await this.fetchCard('experience.json'))[0],
+            shield: (await this.fetchCard('shield.json'))[0],
+        };
+        this.tokens = cardData;
+    }
+
     // example method to demonstrate the use of the test game setup utility
     private checkLoadTestGame() {
         if (!fs.existsSync('../../test')) {
@@ -188,6 +209,7 @@ export class Lobby {
             game.selectDeck(opponent.id, opponent.deck.data);
         }
 
+        game.initialiseTokens(this.tokens);
         game.initialise();
 
         this.sendGameState(game);
