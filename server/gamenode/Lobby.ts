@@ -74,7 +74,7 @@ export class Lobby {
     }
 
     private updateDeck(socket: Socket, ...args) {
-        const activeUser = this.users.find((u) => u.id === socket.user.username);
+        const activeUser = this.users.find((u) => u.id === socket.user.id);
         const userDeck = activeUser.deck.data;
         const source = args[0]; // [<'Deck'|'Sideboard>'<cardID>]
         const cardID = args[1];
