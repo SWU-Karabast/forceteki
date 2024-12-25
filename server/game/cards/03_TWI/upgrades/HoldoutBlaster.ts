@@ -17,14 +17,14 @@ export default class HoldoutBlaster extends UpgradeCard {
         this.addWhenPlayedAbility({
             title: 'You may have attached unit deal 1 damage to a ground unit.',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.selectCard({
-                cardTypeFilter: WildcardCardType.Unit,
+            targetResolver: {
                 zoneFilter: ZoneName.GroundArena,
-                innerSystem: AbilityHelper.immediateEffects.damage((context) => ({
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 1,
                     source: context.source.parentCard
-                })),
-            })
+                }))
+            }
         });
     }
 }

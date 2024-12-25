@@ -20,8 +20,7 @@ describe('Hold-out Blaster', function() {
             context.player1.clickCard(context.holdoutBlaster);
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.r2d2IgnoringProtocol]);
             context.player1.clickCard(context.battlefieldMarine);
-            expect(context.player1).toHavePassAbilityPrompt('You may have attached unit deal 1 damage to a ground unit.');
-            context.player1.clickPrompt('You may have attached unit deal 1 damage to a ground unit.');
+            expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.r2d2IgnoringProtocol]);
             context.player1.clickCard(context.r2d2IgnoringProtocol);
             expect(context.r2d2IgnoringProtocol.damage).toBe(1);
