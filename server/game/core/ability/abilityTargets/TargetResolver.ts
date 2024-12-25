@@ -13,8 +13,10 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
     protected dependentTarget = null;
     protected dependentCost = null;
 
-    public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility) {
+    public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility = null) {
         if (this.properties.dependsOn) {
+            Contract.assertNotNullLike(ability);
+
             const dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
 
             // assert that the target we depend on actually exists

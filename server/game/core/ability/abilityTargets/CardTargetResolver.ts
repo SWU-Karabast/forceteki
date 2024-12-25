@@ -24,7 +24,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
     }
 
-    public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
+    public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility = null) {
         super(name, properties, ability);
 
         if (this.properties.mode === TargetMode.UpTo || this.properties.mode === TargetMode.UpToVariable) {

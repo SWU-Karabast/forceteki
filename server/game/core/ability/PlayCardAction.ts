@@ -9,6 +9,8 @@ import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
+import { UnitCard } from '../card/CardTypes';
+import * as Contract from '../utils/Contract';
 
 export interface IPlayCardActionProperties {
     card: Card;
@@ -18,6 +20,13 @@ export interface IPlayCardActionProperties {
     costAdjusters?: CostAdjuster | CostAdjuster[];
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
+    exploitValue?: number;
+}
+
+export interface IExploitProperties {
+    availableExploit: number;
+    usedExploit: number;
+    exploitedUnits: UnitCard[];
 }
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
@@ -28,7 +37,19 @@ export abstract class PlayCardAction extends PlayerAction {
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
+    protected _exploitProperties?: IExploitProperties = null;
+
+    public get exploitProperties() {
+        return this._exploitProperties;
+    }
+
+    public get usesExploit(): boolean {
+        return !!this._exploitProperties;
+    }
+
     public constructor(properties: IPlayCardActionProperties) {
+        const usesExploit = !!properties.exploitValue;
+
         const propertiesWithDefaults = {
             title: `Play ${properties.card.title}`,
             playType: PlayType.PlayFromHand,
@@ -39,7 +60,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
         super(
             propertiesWithDefaults.card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit),
             propertiesWithDefaults.additionalCosts.concat(CostLibrary.payPlayCardResourceCost(propertiesWithDefaults.playType)),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -50,13 +71,25 @@ export abstract class PlayCardAction extends PlayerAction {
         this.createdWithProperties = { ...properties };
     }
 
-    private static getTitle(title: string, playType: PlayType): string {
+    private static getTitle(title: string, playType: PlayType, withExploit: boolean = false): string {
+        let updatedTitle = title;
+
         switch (playType) {
             case PlayType.Smuggle:
-                return title + ' with Smuggle';
+                updatedTitle += ' with Smuggle';
+                break;
+            case PlayType.PlayFromHand:
+            case PlayType.PlayFromOutOfPlay:
+                break;
             default:
-                return title;
+                Contract.fail(`Unknown play type: ${playType}`);
         }
+
+        if (withExploit) {
+            updatedTitle += ' using Exploit';
+        }
+
+        return updatedTitle;
     }
 
     public abstract clone(overrideProperties: IPlayCardActionProperties): PlayCardAction;
