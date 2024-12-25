@@ -54,7 +54,10 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
-        return { ...super.getSummary(activePlayer, hideWhenFaceup), parentCardId: this._parentCard ? this._parentCard.uuid : null, aspects: this.aspects };
+        return {
+            ...super.getSummary(activePlayer, hideWhenFaceup),
+            parentCardId: this._parentCard ? this._parentCard.uuid : null
+        };
     }
 
     /** The card that this card is underneath */
