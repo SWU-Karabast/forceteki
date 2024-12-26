@@ -193,6 +193,7 @@ export class Lobby {
         { id: 'th3w4y', username: 'ThisIsTheWay' }
         );
 
+        this.game = game;
         game.initialise();
     }
 

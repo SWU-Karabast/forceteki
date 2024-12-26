@@ -16,30 +16,7 @@ fs.mkdirSync('./build/server', { recursive: true });
 // Run TypeScript compilation
 runCommand('tsc');
 
-// Copy the `helpers` directory from `test` to the `build` folder
-const srcDir = path.resolve(__dirname, '../test/helpers');
-const destDir = path.resolve(__dirname, '../build/test/helpers');
-
-function copyDirectory(src, dest) {
-    if (!fs.existsSync(dest)) {
-        fs.mkdirSync(dest, { recursive: true });
-    }
-
-    const entries = fs.readdirSync(src, { withFileTypes: true });
-
-    for (const entry of entries) {
-        const srcPath = path.join(src, entry.name);
-        const destPath = path.join(dest, entry.name);
-
-        if (entry.isDirectory()) {
-            copyDirectory(srcPath, destPath);
-        } else {
-            fs.copyFileSync(srcPath, destPath);
-        }
-    }
-}
-
-// Copy only the `helpers` directory
-copyDirectory(srcDir, destDir);
+runCommand('cpy ./test/json/ ./build/');
+runCommand('cpy ./test/helpers/ ./build/');
 
 console.log('Build-dev process completed.');
