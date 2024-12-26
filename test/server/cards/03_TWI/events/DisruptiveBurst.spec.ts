@@ -8,7 +8,6 @@ describe('Disruptive Burst', function() {
                     groundArena: ['fifth-brother#fear-hunter']
                 },
                 player2: {
-                    hand: ['droid-deployment'],
                     groundArena: ['consular-security-force', 'battle-droid', 'battle-droid'],
                     spaceArena: ['tieln-fighter']
                 }

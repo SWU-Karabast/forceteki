@@ -19,7 +19,7 @@ export default class DeathByDroids extends EventCard {
                     cardCondition: (card) => card.isUnit() && card.cost <= 3,
                     innerSystem: AbilityHelper.immediateEffects.defeat(),
                 }),
-                AbilityHelper.immediateEffects.createBattleDroid((context) => ({ target: context.source.controller, amount: 2 })),
+                AbilityHelper.immediateEffects.createBattleDroid((context) => ({ target: context.source.controller, amount: 2 })), // TODO: determine why default target doesn't work here
             ])
         });
     }

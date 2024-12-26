@@ -18,7 +18,7 @@ export default class GrievousReassembly extends EventCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     innerSystem: AbilityHelper.immediateEffects.heal({ amount: 3 }),
                 }),
-                AbilityHelper.immediateEffects.createBattleDroid((context) => ({ target: context.source.controller }))
+                AbilityHelper.immediateEffects.createBattleDroid((context) => ({ target: context.source.controller })) // TODO: determine why default target doesn't work here
             ]),
         });
     }
