@@ -80,7 +80,7 @@ describe('Zorii Bliss', function() {
                 // Move to regroup phase
                 context.moveToRegroupPhase();
 
-                // No discard prompt as Player 1's hand is empty
+                // Nothing to discard here as Player 1's hand is empty despite auto resolve being off
 
                 // Verify we move on to regroup phase
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
