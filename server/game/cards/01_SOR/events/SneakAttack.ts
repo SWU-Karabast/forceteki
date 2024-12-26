@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { CardType, PhaseName, ZoneName } from '../../../core/Constants';
+import { PhaseName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class SneakAttack extends EventCard {
@@ -14,11 +14,11 @@ export default class SneakAttack extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Play a unit from your hand. It costs 3 less and enters play ready. At the start of the regroup phase, defeat it.',
-            immediateEffect: AbilityHelper.immediateEffects.selectCard({
-                activePromptTitle: 'Play a unit, it costs 3 less and enters play ready. At the start of the regroup phase, defeat it.',
-                cardTypeFilter: CardType.BasicUnit,
+            targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
-                innerSystem: AbilityHelper.immediateEffects.sequential([
+                controller: RelativePlayer.Self,
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromHand({
                         entersReady: true,
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 }
@@ -31,7 +31,7 @@ export default class SneakAttack extends EventCard {
                         immediateEffect: AbilityHelper.immediateEffects.defeat()
                     })
                 ])
-            }),
+            }
         });
     }
 }
