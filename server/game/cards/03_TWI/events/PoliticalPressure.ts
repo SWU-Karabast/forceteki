@@ -18,7 +18,7 @@ export default class PoliticalPressure extends EventCard {
                 mode: TargetMode.Select,
                 choices: () => ({
                     ['Discard a random card from your hand']: AbilityHelper.immediateEffects.discardCardsFromOwnHand({ random: true, amount: 1 }),
-                    ['Opponent creates 2 Battle Droid Tokens']: AbilityHelper.immediateEffects.createBattleDroid((context) => ({ target: context.source.controller.opponent, amount: 2 }))
+                    ['Opponent creates 2 Battle Droid Tokens']: AbilityHelper.immediateEffects.createBattleDroid({ amount: 2 })
                 })
             },
         });
