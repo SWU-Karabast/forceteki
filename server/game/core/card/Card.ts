@@ -310,6 +310,10 @@ export class Card extends OngoingEffectSource {
         return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
     }
 
+    public isTokenUnit(): this is TokenCard {
+        return this.type === CardType.TokenUnit;
+    }
+
     public isShield(): this is Shield {
         return false;
     }
