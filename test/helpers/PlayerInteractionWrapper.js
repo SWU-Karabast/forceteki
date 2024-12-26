@@ -481,6 +481,7 @@ class PlayerInteractionWrapper {
 
     exhaustResources(number) {
         this.player.exhaustResources(number);
+        this.game.resolveGameState(true);
     }
 
     hasPrompt(title) {
