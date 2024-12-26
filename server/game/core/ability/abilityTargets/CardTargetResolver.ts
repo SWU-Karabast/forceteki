@@ -95,8 +95,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         if (CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)) {
             this.properties.optional = true;
             this.selector.optional = true;
-            this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle();
-            this.selector.defaultActivePromptTitle = () => this.selector.oldDefaultActivePromptTitle.concat(' ' + CardTargetResolver.choosingFromHiddenPrompt);
+            this.selector.appendToDefaultTitle = CardTargetResolver.choosingFromHiddenPrompt;
             choosingFromHidden = true;
         }
 

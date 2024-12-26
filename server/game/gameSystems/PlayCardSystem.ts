@@ -129,6 +129,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         };
     }
 
+    // TODO THIS PR: add exploit action if relevant
+
     private buildDefaultOutOfPlayAction(card: Card, properties: IPlayCardProperties, context: TContext) {
         const actionProperties = this.buildPlayActionProperties(card, properties, context);
 

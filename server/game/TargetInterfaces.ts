@@ -61,6 +61,7 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
 
 export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: string;
+    appendToDefaultTitle?: string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** If zoneFilter includes ZoneName.Capture, use this to filter down to only the capture zones of specific units. Otherwise, all captured units in the arena will be targeted. */

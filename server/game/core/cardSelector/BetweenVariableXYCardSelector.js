@@ -9,7 +9,7 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
     }
 
     /** @override */
-    defaultActivePromptTitle(context) {
+    defaultPromptString(context) {
         const minCards = this.minNumCardsFunc(context);
         const maxCards = this.maxNumCardsFunc(context);
 
