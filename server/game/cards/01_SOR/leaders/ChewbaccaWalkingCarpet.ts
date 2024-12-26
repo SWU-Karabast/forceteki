@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, ZoneName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -16,6 +16,7 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 3,
+                controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),
