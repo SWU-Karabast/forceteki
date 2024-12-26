@@ -55,15 +55,13 @@ describe('A New Adventure', function() {
                 phase: 'action',
                 player1: {
                     hand: ['a-new-adventure'],
-                    groundArena: [{ card: 'salacious-crumb#obnoxious-pet', damage: 1 }, 'atat-suppressor'],
+                    groundArena: ['atat-suppressor'],
                     spaceArena: ['cartel-spacer'],
                     base: { card: 'echo-base', damage: 2 }
                 },
                 player2: {
-                    groundArena: ['wampa'],
-                    spaceArena: ['redemption#medical-frigate', 'patrolling-vwing'],
-                    leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
-                    hasInitiative: true
+                    groundArena: ['wampa', { card: 'salacious-crumb#obnoxious-pet', owner: 'player1' }],
+                    spaceArena: ['redemption#medical-frigate', 'patrolling-vwing']
                 },
 
                 // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
@@ -71,9 +69,6 @@ describe('A New Adventure', function() {
             });
 
             const { context } = contextRef;
-
-            // P2 takes control of Crumb
-            context.player2.clickCard(context.emperorPalpatine);
 
             context.player1.clickCard(context.aNewAdventure);
             expect(context.player1).toBeAbleToSelectExactly([context.salaciousCrumb, context.cartelSpacer, context.wampa, context.patrollingVwing]);

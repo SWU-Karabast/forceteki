@@ -166,7 +166,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card} but is in zone ${card.zone}`);
+        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {

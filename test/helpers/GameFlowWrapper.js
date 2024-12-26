@@ -19,8 +19,8 @@ class GameFlowWrapper {
             owner: player1Info.username,
             saveGameId: 12345,
             players: [
-                { id: player1Info.id, user: Settings.getUserWithDefaultsSet({ username: player1Info.username }) },
-                { id: player2Info.id, user: Settings.getUserWithDefaultsSet({ username: player2Info.username }) },
+                { user: Settings.getUserWithDefaultsSet({ username: player1Info.username, id: player1Info.id }) },
+                { user: Settings.getUserWithDefaultsSet({ username: player2Info.username, id: player2Info.id }) },
             ],
             playableCardTitles: this.getPlayableCardTitles()
         };
