@@ -9,7 +9,8 @@ describe('Favorable Delegate\'s', function () {
                     },
                     player2: {
                         leader: { card: 'mace-windu#vaapad-form-master', deployed: true },
-                    }
+                    },
+                    autoSingleTarget: true
                 });
                 const { context } = contextRef;
 
@@ -34,7 +35,8 @@ describe('Favorable Delegate\'s', function () {
                     player2: {
                         leader: { card: 'mace-windu#vaapad-form-master', deployed: true },
                         hasInitiative: true,
-                    }
+                    },
+                    autoSingleTarget: true
                 });
                 const { context } = contextRef;
                 context.player1.setHand([]);
