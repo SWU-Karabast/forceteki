@@ -24,12 +24,17 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
 
     /** @override */
     hasReachedLimit(selectedCards, context) {
-        return selectedCards.length >= this.minNumCardsFunc(context);
+        return selectedCards.length >= this.maxNumCardsFunc(context);
     }
 
     /** @override */
     hasExceededLimit(selectedCards, context) {
         return selectedCards.length > this.maxNumCardsFunc(context);
+    }
+
+    /** @override */
+    hasEnoughSelected(selectedCards, context) {
+        return selectedCards.length >= this.minNumCardsFunc(context);
     }
 
     /** @override */
