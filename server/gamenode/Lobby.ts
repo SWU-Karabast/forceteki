@@ -5,7 +5,6 @@ import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
-import axios from 'axios';
 import { logger } from '../logger';
 
 interface LobbyUser {
@@ -146,8 +145,12 @@ export class Lobby {
 
     private async fetchCard(cardName: string): Promise<any> {
         try {
-            const response = await axios.get('https://karabast-assets.s3.amazonaws.com/data/cards/' + encodeURIComponent(cardName));
-            return response.data;
+            const response = await fetch(`https://karabast-assets.s3.amazonaws.com/data/cards/${encodeURIComponent(cardName)}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
         } catch (error) {
             console.error(`Error fetching card: ${cardName}`, error);
             throw error;
