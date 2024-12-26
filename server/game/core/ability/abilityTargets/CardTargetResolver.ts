@@ -71,7 +71,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
-    private getAllLegalTargets(context: AbilityContext): Card[] {
+    public getAllLegalTargets(context: AbilityContext): Card[] {
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 

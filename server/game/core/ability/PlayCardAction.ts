@@ -1,4 +1,3 @@
-import * as CostLibrary from '../../costs/CostLibrary';
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import { IActionTargetResolver } from '../../TargetInterfaces';
 import { Card } from '../card/Card';
@@ -9,8 +8,9 @@ import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
-import { UnitCard } from '../card/CardTypes';
 import * as Contract from '../utils/Contract';
+import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
+import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 
 export interface IPlayCardActionProperties {
     card: Card;
@@ -23,29 +23,14 @@ export interface IPlayCardActionProperties {
     exploitValue?: number;
 }
 
-export interface IExploitProperties {
-    availableExploit: number;
-    usedExploit: number;
-    exploitedUnits: UnitCard[];
-}
-
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
-    public readonly playType: PlayType;
     public readonly costAdjusters: CostAdjuster[];
+    public readonly playType: PlayType;
+    public readonly usesExploit: boolean;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
-
-    protected _exploitProperties?: IExploitProperties = null;
-
-    public get exploitProperties() {
-        return this._exploitProperties;
-    }
-
-    public get usesExploit(): boolean {
-        return !!this._exploitProperties;
-    }
 
     public constructor(properties: IPlayCardActionProperties) {
         const usesExploit = !!properties.exploitValue;
@@ -58,16 +43,21 @@ export abstract class PlayCardAction extends PlayerAction {
             ...properties
         };
 
+        const playCost = usesExploit
+            ? new ExploitPlayCardResourceCost(properties.exploitValue, propertiesWithDefaults.playType)
+            : new PlayCardResourceCost(propertiesWithDefaults.playType);
+
         super(
             propertiesWithDefaults.card,
             PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit),
-            propertiesWithDefaults.additionalCosts.concat(CostLibrary.payPlayCardResourceCost(propertiesWithDefaults.playType)),
+            propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
         );
 
         this.playType = propertiesWithDefaults.playType;
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
+        this.usesExploit = usesExploit;
         this.createdWithProperties = { ...properties };
     }
 

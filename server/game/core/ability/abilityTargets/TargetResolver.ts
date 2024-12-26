@@ -43,7 +43,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
     }
 
-    protected resolve(context: AbilityContext, targetResults, passPrompt = null) {
+    public resolve(context: AbilityContext, targetResults, passPrompt = null) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;
         }

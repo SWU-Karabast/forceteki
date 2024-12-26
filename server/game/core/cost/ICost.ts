@@ -28,6 +28,6 @@ export interface ICost<TContext extends AbilityContext = AbilityContext> {
     hasTargetsChosenByInitiatingPlayer?(context: TContext): boolean;
     queueGenerateEventGameSteps?(events: GameEvent[], context: TContext, result?: Result): void;
     resolve?(context: TContext, result: Result): void;
-    payEvent?(context: TContext): GameEvent | GameEvent[];
+    payEvents?(context: TContext): GameEvent[];
     pay?(context: TContext): void;
 }

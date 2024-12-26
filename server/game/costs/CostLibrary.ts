@@ -265,8 +265,8 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
  * adjuster effects the play has activated. Upon playing the card, all
  * matching adjuster effects will expire, if applicable.
  */
-export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(playType: PlayType, ignoreType = false): ICost<TContext> {
-    return new PlayCardResourceCost<TContext>(playType, ignoreType);
+export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(playType: PlayType): ICost<TContext> {
+    return new PlayCardResourceCost<TContext>(playType);
 }
 
 // /**

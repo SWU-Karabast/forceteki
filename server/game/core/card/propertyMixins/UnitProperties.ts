@@ -476,22 +476,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 .map((keyword) => keyword as KeywordWithAbilityDefinition);
         }
 
-        /**
-         * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
-         * for this card and adds up the total of their effect values.
-         * @returns value of the total effect if enabled, `null` if the effect is not present
-         */
-        public getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null {
-            let keywordValueTotal = 0;
-
-            for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
-                Contract.assertTrue(keyword instanceof KeywordWithNumericValue);
-                keywordValueTotal += keyword.value;
-            }
-
-            return keywordValueTotal > 0 ? keywordValueTotal : null;
-        }
-
         public unregisterWhenPlayedKeywords() {
             Contract.assertTrue(Array.isArray(this._whenPlayedKeywordAbilities), 'Keyword ability when played registration was skipped');
 

@@ -1,9 +1,10 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
+import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import { PlayCardAction } from '../../ability/PlayCardAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { Aspect, CardType, MoveZoneDestination, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+import { Aspect, CardType, KeywordName, MoveZoneDestination, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
@@ -99,6 +100,22 @@ export class PlayableOrDeployableCard extends Card {
 
     protected setExhaustEnabled(enabledStatus: boolean) {
         this._exhausted = enabledStatus ? true : null;
+    }
+
+    /**
+     * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
+     * for this card and adds up the total of their effect values.
+     * @returns value of the total effect if enabled, `null` if the effect is not present
+     */
+    public getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null {
+        let keywordValueTotal = 0;
+
+        for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
+            Contract.assertTrue(keyword instanceof KeywordWithNumericValue);
+            keywordValueTotal += keyword.value;
+        }
+
+        return keywordValueTotal > 0 ? keywordValueTotal : null;
     }
 
     /**

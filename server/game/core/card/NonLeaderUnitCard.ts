@@ -31,6 +31,17 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayUnitAction({ card: this, playType: PlayType.Smuggle }));
         }
+
+        // generate "play with exploit" action
+        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
+        if (exploitValue) {
+            actions.push(new PlayUnitAction({
+                card: this,
+                exploitValue,
+                playType: this.zoneName === ZoneName.Resource ? PlayType.Smuggle : PlayType.PlayFromHand
+            }));
+        }
+
         return actions;
     }
 

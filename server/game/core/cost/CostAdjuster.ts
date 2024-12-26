@@ -5,7 +5,7 @@ import { PlayType, Aspect, CardTypeFilter, CardType, WildcardCardType } from '..
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
-import { ExploitAbility } from '../../abilities/keyword/ExploitPlayCardResourceCost';
+import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -106,7 +106,7 @@ export class CostAdjuster {
         }
     }
 
-    public isExploit(): this is ExploitAbility {
+    public isExploit(): this is ExploitPlayCardResourceCost {
         return false;
     }
 

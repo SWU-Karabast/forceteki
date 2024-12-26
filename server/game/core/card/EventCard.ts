@@ -37,9 +37,11 @@ export class EventCard extends EventCardParent {
     public override getActions(): PlayerOrCardAbility[] {
         const actions = super.getActions();
 
+        // generate smuggle action
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             actions.push(new PlayEventAction({ card: this, playType: PlayType.Smuggle }));
         }
+
         return actions;
     }
 
