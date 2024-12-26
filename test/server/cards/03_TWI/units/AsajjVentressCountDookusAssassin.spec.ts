@@ -4,10 +4,12 @@ describe('Asajj Ventress Count Doooku\'s Assassin', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
+                    hand: ['keep-fighting'],
                     groundArena: ['asajj-ventress#count-dookus-assassin', 'relentless-rocket-droid', 'shaak-ti#unity-wins-wars']
                 },
                 player2: {
-                    groundArena: ['consular-security-force']
+                    hand: ['waylay'],
+                    groundArena: ['consular-security-force', 'separatist-commando']
                 }
             });
 
@@ -41,17 +43,31 @@ describe('Asajj Ventress Count Doooku\'s Assassin', function() {
             context.player1.clickCard(context.p2Base);
             expect(context.p2Base.damage).toBe(10);
 
-            // Shaak Ti is not sepratist so Asajj Ventress should not get +3/+0
-            context.moveToNextActionPhase();
-            context.player1.clickCard(context.shaakTi);
-            context.player1.clickCard(context.p2Base);
-            expect(context.p2Base.damage).toBe(13);
-
+            // But if a new copy of Asajj Ventress is played, she should get +3/+0
+            context.player2.clickCard(context.waylay);
+            context.player2.clickCard(context.asajjVentress);
+            context.player1.clickCard(context.asajjVentress);
+            context.player2.passAction();
+            context.player1.clickCard(context.keepFighting);
+            context.player1.clickCard(context.asajjVentress);
             context.player2.passAction();
             context.player1.clickCard(context.asajjVentress);
             context.player1.clickCard(context.p2Base);
-            expect(context.asajjVentress.getPower()).toBe(2);
             expect(context.p2Base.damage).toBe(15);
+
+            // Shaak Ti is not sepratist so Asajj Ventress should not get +3/+0
+            // Even if an opponent separatist unit has attacked it should not get +3/+0
+            context.moveToNextActionPhase();
+            context.player1.clickCard(context.shaakTi);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(18);
+
+            context.player2.clickCard(context.separatistCommando);
+            context.player2.clickCard(context.p1Base);
+            context.player1.clickCard(context.asajjVentress);
+            context.player1.clickCard(context.p2Base);
+            expect(context.asajjVentress.getPower()).toBe(2);
+            expect(context.p2Base.damage).toBe(20);
         });
     });
 });
