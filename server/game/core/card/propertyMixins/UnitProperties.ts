@@ -26,6 +26,7 @@ import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { CaptureZone } from '../../zone/CaptureZone';
 import { IAbilityWithType } from '../../ability/AbilityTypes';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
+import Player from '../../Player';
 
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
@@ -647,6 +648,27 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
             this._upgrades.push(upgrade);
+        }
+
+        public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+            if (this.isInPlay()) {
+                // Check for sentinel keyword and no blanking effects
+                const keywords = this.keywords;
+                const sentinelKeyword = keywords.find(
+                    (keyword) => keyword.name === 'sentinel' && !keyword.isBlank
+                );
+
+                // If sentinelKeyword is found and has no blanking effects, sentinel is true
+                const hasSentinel = !!sentinelKeyword;
+
+                return {
+                    ...super.getSummary(activePlayer, hideWhenFaceup),
+                    power: this.getPower(),
+                    hp: this.getHp(),
+                    sentinel: hasSentinel
+                };
+            }
+            return super.getSummary(activePlayer, hideWhenFaceup);
         }
     };
 }
