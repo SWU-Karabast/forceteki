@@ -787,16 +787,13 @@ export class Card extends OngoingEffectSource {
     * This is the infomation for each card that is sent to the client.
     */
 
-    public getSummary(activePlayer, hideWhenFaceup) {
+    public getSummary(activePlayer) {
         const isActivePlayer = activePlayer === this.controller;
         const selectionState = activePlayer.getCardSelectionState(this);
 
-        // This is my facedown card, but I'm not allowed to look at it
-        // OR This is not my card, and it's either facedown or hidden from me
+        // If it is not the active player and in opposing hand or deck - return facedown card
         if (
-            isActivePlayer
-                ? this.facedown
-                : this.facedown || hideWhenFaceup
+            !isActivePlayer && (this.zoneName === ZoneName.Hand || this.zoneName === ZoneName.Deck)
         ) {
             const state = {
                 controller: this.controller.getShortSummary(),

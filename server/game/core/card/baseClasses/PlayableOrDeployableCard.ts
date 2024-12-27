@@ -171,8 +171,8 @@ export class PlayableOrDeployableCard extends Card {
         return true;
     }
 
-    public override getSummary(activePlayer: Player, hideWhenFaceup?: boolean) {
-        return { ...super.getSummary(activePlayer, hideWhenFaceup), exhausted: this._exhausted };
+    public override getSummary(activePlayer: Player) {
+        return { ...super.getSummary(activePlayer), exhausted: this._exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
