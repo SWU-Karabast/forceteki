@@ -1,9 +1,9 @@
 const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
-const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
 const { ZoneName, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
+const { EventWindow } = require('../event/EventWindow.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
     constructor(game, context, optional = false) {
@@ -89,7 +89,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             }
         }
         this.events.push(new GameEvent(eventName, this.context, eventProps, () => this.queueInitiateAbilitySteps()));
-        this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events, this.context.ability.triggerHandlingMode));
+        this.game.openEventWindow(this.events, this.context.ability.triggerHandlingMode);
     }
 
     // if there is an "if you do not" part of this ability, we need to resolve it if the main ability doesn't resolve
