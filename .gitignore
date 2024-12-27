@@ -10,5 +10,6 @@ server/logs/*.gz
 build/
 .idea/
 test/**/json/
+test/gameSetups/*.json
 .env
 *.zip
