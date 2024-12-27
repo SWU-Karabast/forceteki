@@ -64,7 +64,7 @@ describe('Omega, Part of the Squad', function() {
             it('negates aspect penalties on the first clone played', function () {
                 const { context } = contextRef;
 
-                // shore trooper first -- should be +2 aspect penalty for 4
+                // shore trooper first -- should be 4 due to aspect penalties
                 context.player1.clickCard(context.seasonedShoretrooper);
                 expect(context.player1.exhaustedResourceCount).toBe(4);
 
