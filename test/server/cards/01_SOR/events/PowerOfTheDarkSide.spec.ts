@@ -37,7 +37,10 @@ describe('Power of the Dark Side', function() {
                     },
                     player2: {
                         leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

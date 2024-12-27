@@ -28,6 +28,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
     public constructor(owner: Player, cards: TokenOrPlayableCard[]) {
         super(owner);
 
+        this.hiddenForPlayers = WildcardRelativePlayer.Any;
         this.name = ZoneName.Deck;
 
         this.deck = cards;

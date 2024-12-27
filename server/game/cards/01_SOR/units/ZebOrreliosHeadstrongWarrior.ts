@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName, WildcardCardType } from '../../../core/Constants';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -24,15 +25,12 @@ export default class ZebOrreliosHeadstrongWarrior extends NonLeaderUnitCard {
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },
+            optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.GroundArena,
-                optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) =>
-                        // TODO CHECK UNIQUE ID WHEN IT'S DONE
-                        context.event.attack.target.isUnit() &&
-                        this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller.opponent).includes(context.event.attack.target),
+                    condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.unitsDefeatedThisPhaseWatcher),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 4 }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })

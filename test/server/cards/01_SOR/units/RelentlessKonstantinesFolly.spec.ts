@@ -10,7 +10,10 @@ describe('Relentless, Konstantine\'s Folly', function() {
                     player2: {
                         hand: ['vanquish', 'repair', 'moment-of-peace'],
                         base: { card: 'dagobah-swamp', damage: 5 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

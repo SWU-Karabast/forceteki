@@ -12,6 +12,22 @@ export class OngoingEffectSource extends GameObject {
     }
 
     /**
+     * Applies an effect which persists.
+     */
+    public persistent(propertyFactory) {
+        const properties = propertyFactory(AbilityHelper);
+        this.addEffectToEngine(Object.assign({ duration: Duration.Persistent, zoneFilter: WildcardZoneName.Any }, properties));
+    }
+
+    /**
+     * Applies an effect which lasts until the end of the attack.
+     */
+    public untilEndOfAttack(propertyFactory) {
+        const properties = propertyFactory(AbilityHelper);
+        this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfAttack, zoneFilter: WildcardZoneName.Any }, properties));
+    }
+
+    /**
      * Applies an effect which lasts until the end of the phase.
      */
     public untilEndOfPhase(propertyFactory) {

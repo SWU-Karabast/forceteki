@@ -9,7 +9,10 @@ describe('Infiltrator\'s Skill', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'niima-outpost-constables', upgrades: ['shield'] }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

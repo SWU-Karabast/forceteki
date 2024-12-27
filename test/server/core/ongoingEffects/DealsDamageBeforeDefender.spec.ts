@@ -15,7 +15,10 @@ describe('Deals Damage Before Defender', function () {
                         }],
                         base: { card: 'dagobah-swamp', damage: 0 },
                         hand: ['phaseiii-dark-trooper']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -57,7 +60,10 @@ describe('Deals Damage Before Defender', function () {
                     },
                     player2: {
                         groundArena: ['phaseiii-dark-trooper'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

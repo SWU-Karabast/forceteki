@@ -34,8 +34,6 @@ describe('Evacuate', function() {
                 expect(context.academyTraining).toBeInZone('discard');
                 expect(context.grandMoffTarkin).toBeInZone('groundArena');
                 expect(context.player2.groundArena).toHaveSize(1);
-
-                // TODO CAPTURE: test that captured units are returned to the arena and not to hand
             });
         });
     });

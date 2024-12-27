@@ -22,7 +22,9 @@ export default class VanguardAce extends NonLeaderUnitCard {
             title: 'Give one experience for each other card you played this turn',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
                 const otherFriendlyCardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCardsPlayed(
-                    (cardPlay) => cardPlay.playedBy === context.source.controller && cardPlay.card !== context.source
+                    (cardPlay) =>
+                        cardPlay.playedBy === context.source.controller &&
+                        (cardPlay.card !== context.source || cardPlay.inPlayId !== context.source.inPlayId)
                 );
 
                 return { amount: otherFriendlyCardsPlayedThisPhase.length };

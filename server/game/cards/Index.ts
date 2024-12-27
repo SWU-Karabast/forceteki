@@ -34,7 +34,7 @@ for (const filepath of allJsFiles(__dirname)) {
         throw Error('Importing card class without id!');
     }
     if (cardsMap.has(cardId.id)) {
-        throw Error(`Importing card class with repeated id!: ${card.name}`);
+        throw Error(`Importing card class with repeated id!: ${cardId.id}`);
     }
     if (cardClassNames.has(card.name)) {
         throw Error(`Import card class with duplicate class name: ${card.name}`);

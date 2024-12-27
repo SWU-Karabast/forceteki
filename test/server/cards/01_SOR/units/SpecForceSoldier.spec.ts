@@ -10,7 +10,10 @@ describe('SpecForce Soldier', function () {
                     },
                     player2: {
                         groundArena: ['cloud-city-wing-guard']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

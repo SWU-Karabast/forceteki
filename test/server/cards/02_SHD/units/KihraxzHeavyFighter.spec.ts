@@ -10,7 +10,10 @@ describe('Kihraxz Heavy Fighter', function () {
                     },
                     player2: {
                         spaceArena: ['devastator#inescapable']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
                 const { context } = contextRef;
 
@@ -51,7 +54,10 @@ describe('Kihraxz Heavy Fighter', function () {
                     },
                     player2: {
                         spaceArena: ['devastator#inescapable']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
                 const { context } = contextRef;
 

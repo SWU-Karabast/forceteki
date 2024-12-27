@@ -42,7 +42,7 @@ export class ActionAbility extends CardAbility {
         this.doesNotTarget = (properties as any).doesNotTarget;
     }
 
-    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
+    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {
         if (!ignoredRequirements.includes('zone') && !this.isInValidZone(context)) {
             return 'zone';
         }
@@ -55,6 +55,6 @@ export class ActionAbility extends CardAbility {
             return 'condition';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 }

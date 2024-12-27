@@ -11,7 +11,10 @@ describe('Baze Malbus, Temple Guardian', function() {
                         player2: {
                             groundArena: ['wampa', 'battlefield-marine'],
                             hasInitiative: true
-                        }
+                        },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
                 });
 
@@ -47,7 +50,10 @@ describe('Baze Malbus, Temple Guardian', function() {
                         },
                         player2: {
                             groundArena: ['wampa', 'battlefield-marine'],
-                        }
+                        },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
                 });
 

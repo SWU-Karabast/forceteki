@@ -9,7 +9,10 @@ describe('Kylo Ren, Killing the Past', function() {
                         groundArena: ['rey#keeping-the-past', 'pyke-sentinel'],
                         base: 'kestro-city',
                         leader: 'leia-organa#alliance-general'
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -31,7 +34,10 @@ describe('Kylo Ren, Killing the Past', function() {
                         hand: ['kylo-ren#killing-the-past'],
                         base: 'kestro-city',
                         leader: 'rey#more-than-a-scavenger'
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -56,7 +62,10 @@ describe('Kylo Ren, Killing the Past', function() {
                     },
                     player2: {
                         spaceArena: ['concord-dawn-interceptors']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

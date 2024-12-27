@@ -13,7 +13,6 @@ const defaultProperties = {
     numCardsFunc: () => 1,
     cardTypeFilter: [WildcardCardType.Any],
     multiSelect: false,
-    sameDiscardPile: false
 };
 
 const ModeToSelector = {

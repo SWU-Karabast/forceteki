@@ -6,13 +6,17 @@ describe('Medal Ceremony', function() {
                     phase: 'action',
                     player1: {
                         hand: ['medal-ceremony'],
-                        groundArena: ['battlefield-marine', 'frontier-atrt', 'specforce-soldier'],
+                        groundArena: ['battlefield-marine', 'frontier-atrt', 'specforce-soldier', 'regional-sympathizers'],
                         leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     },
                     player2: {
                         groundArena: ['wampa', 'consular-security-force'],
-                        spaceArena: ['alliance-xwing']
-                    }
+                        spaceArena: ['alliance-xwing'],
+                        hand: ['waylay']
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -45,6 +49,14 @@ describe('Medal Ceremony', function() {
                 // attack 7: our rebel (goes to discard)
                 context.player1.clickCard(context.specforceSoldier);
                 context.player1.clickCard(context.wampa);
+                context.player2.passAction();
+
+                // attack 8: our rebel, but then it is waylaid and played back out so that a previous copy is what did the attacks
+                context.player1.clickCard(context.regionalSympathizers);
+                context.player1.clickCard(context.p2Base);
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.regionalSympathizers);
+                context.player1.clickCard(context.regionalSympathizers);
 
                 context.player2.passAction();
 

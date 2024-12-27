@@ -1,19 +1,18 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
+import { PlayCardAction } from '../../ability/PlayCardAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { Aspect, CardType, WildcardRelativePlayer, WildcardZoneName, ZoneName, MoveZoneDestination } from '../../Constants';
+import { Aspect, CardType, MoveZoneDestination, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import Player from '../../Player';
 import * as Contract from '../../utils/Contract';
-import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
-import { InPlayCard } from './InPlayCard';
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
 
-export interface IDecreaseEventCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
+export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
@@ -36,9 +35,9 @@ export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> 
  */
 export class PlayableOrDeployableCard extends Card {
     /**
-         * List of actions that the player can take with this card that aren't printed text abilities.
-         * Typical examples are playing / deploying cards and attacking.
-         */
+     * List of actions that the player can take with this card that aren't printed text abilities.
+     * Typical examples are playing / deploying cards and attacking.
+     */
     protected defaultActions: PlayerOrCardAbility[] = [];
 
     private _exhausted?: boolean = null;
@@ -63,6 +62,11 @@ export class PlayableOrDeployableCard extends Card {
 
     public override getActions(): PlayerOrCardAbility[] {
         return this.defaultActions.concat(super.getActions());
+    }
+
+    // TODO: "underControlOf" is not yet generally supported
+    public getPlayCardActions(): PlayCardAction[] {
+        return this.getActions().filter((action) => action.isPlayCardAbility());
     }
 
     public exhaust() {
@@ -125,7 +129,7 @@ export class PlayableOrDeployableCard extends Card {
             this.zone.updateController(this);
 
             // register this transition with the engine so it can do uniqueness check if needed
-            this.game.registerMovedCard(this);
+            this.registerMove(this.zone.name);
         } else {
             this.moveTo(moveDestination, false);
         }
@@ -141,7 +145,7 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
-    protected generateDecreaseCostAbilityProps(properties: IDecreaseEventCostAbilityProps<this>): IConstantAbilityProps {
+    protected generateDecreaseCostAbilityProps(properties: IDecreaseCostAbilityProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = {

@@ -10,7 +10,10 @@ describe('Outer Rim Headhunter', function () {
                     },
                     player2: {
                         groundArena: ['battlefield-marine', 'scout-bike-pursuer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -21,7 +24,7 @@ describe('Outer Rim Headhunter', function () {
 
                 // can target all non leader unit
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.outerRimHeadhunter, context.scoutBikePursuer]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHavePassAbilityButton();
 
                 // choose battlefield marine
                 context.player1.clickCard(context.battlefieldMarine);
@@ -40,7 +43,10 @@ describe('Outer Rim Headhunter', function () {
                     },
                     player2: {
                         groundArena: ['battlefield-marine']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -12,7 +12,10 @@ describe('Fennec Shand, Honoring the Deal', function () {
                     },
                     player2: {
                         groundArena: ['isb-agent'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -47,7 +50,10 @@ describe('Fennec Shand, Honoring the Deal', function () {
                     },
                     player2: {
                         groundArena: ['isb-agent', 'battlefield-marine'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -97,6 +103,15 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 expect(context.moddedCohort.exhausted).toBeTrue();
                 expect(context.moddedCohort.damage).toBe(3);
                 expect(context.battlefieldMarine.zoneName).toBe('discard');
+
+                // empty hand
+                context.player2.passAction();
+                context.player1.clickCard(context.allianceXwing);
+                context.player2.passAction();
+
+                // hand is empty, can not use fennec ability to soft pass
+                expect(context.fennecShand).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.player1).toBeActivePlayer();
             });
         });
 
@@ -109,7 +124,9 @@ describe('Fennec Shand, Honoring the Deal', function () {
                         hand: ['reinforcement-walker'],
                         resources: 8
                     },
-                    player2: { }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -117,9 +134,9 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fennecShand);
-                expect(context.player1).not.toHaveAvailableActionWhenClickedBy(context.player1);
-                expect(context.player2).toBeActivePlayer();
+                context.player2.passAction();
                 expect(context.fennecShand.exhausted).toBeTrue();
+                expect(context.fennecShand).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.p2Base.damage).toBe(4);
             });
         });

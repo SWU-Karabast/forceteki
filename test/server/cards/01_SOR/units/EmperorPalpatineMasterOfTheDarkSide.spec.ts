@@ -76,6 +76,9 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
                 ]));
 
                 expect(context.player2).toHaveExactPromptButtons(['Draw a card', 'Draw a card']);
+
+                // so we don't have to resolve the rest of the trigger flow
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
 

@@ -11,7 +11,10 @@ describe('Hardpoint Heavy Blaster', function() {
                     player2: {
                         groundArena: ['reinforcement-walker', 'wampa'],
                         spaceArena: ['ruthless-raider']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -66,8 +69,9 @@ describe('Hardpoint Heavy Blaster', function() {
                         hand: ['hardpoint-heavy-blaster'],
                         groundArena: ['snowspeeder', 'battlefield-marine']
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

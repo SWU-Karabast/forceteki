@@ -97,7 +97,10 @@ describe('Jedha Agitator', function() {
                     player2: {
                         groundArena: [{ card: 'wampa', upgrades: ['shield'] }],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

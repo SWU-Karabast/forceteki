@@ -17,7 +17,7 @@ export default class R2D2IgnoringProtocol extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) => event.card === context.source,
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source,
             },
-            immediateEffect: AbilityHelper.immediateEffects.LookMoveDeckCardsTopOrBottom({ amount: 1 })
+            immediateEffect: AbilityHelper.immediateEffects.lookMoveDeckCardsTopOrBottom({ amount: 1 })
         });
     }
 }

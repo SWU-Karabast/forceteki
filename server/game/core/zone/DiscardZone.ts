@@ -10,6 +10,7 @@ export class DiscardZone extends SimpleZone<TokenOrPlayableCard> {
     public constructor(owner: Player) {
         super(owner);
 
+        this.hiddenForPlayers = null;
         this.name = ZoneName.Discard;
     }
 }

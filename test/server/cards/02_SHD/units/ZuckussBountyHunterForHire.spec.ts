@@ -10,7 +10,10 @@ describe('Zuckuss, Bounty Hunter for Hire', function() {
                     },
                     player2: {
                         groundArena: ['bendu#the-one-in-the-middle', 'vigilant-honor-guards']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -45,7 +48,10 @@ describe('Zuckuss, Bounty Hunter for Hire', function() {
                     },
                     player2: {
                         hand: ['4lom#bounty-hunter-for-hire'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

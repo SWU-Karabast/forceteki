@@ -10,7 +10,10 @@ describe('Defeat timing', function() {
                     },
                     player2: {
                         groundArena: ['vanguard-infantry'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -43,7 +46,10 @@ describe('Defeat timing', function() {
                     player2: {
                         hand: ['vanguard-infantry'],
                         groundArena: [{ card: 'maz-kanata#pirate-queen', upgrades: ['experience', 'experience'] }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -75,7 +81,10 @@ describe('Defeat timing', function() {
                     },
                     player2: {
                         hand: ['vanguard-infantry', 'lieutenant-childsen#death-star-prison-warden', 'vanquish']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -87,6 +96,7 @@ describe('Defeat timing', function() {
                 context.player2.clickCard(context.lieutenantChildsen);
 
                 expect(context.lieutenantChildsen).toBeInZone('discard');
+                context.player2.clickPrompt('Reveal up to 4 Vigilance cards from your hand -> Vanquish');
                 expect(context.player1).toBeActivePlayer();
             });
         });
@@ -105,7 +115,10 @@ describe('Defeat timing', function() {
                     player2: {
                         groundArena: ['superlaser-technician', 'yoda#old-master'],
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

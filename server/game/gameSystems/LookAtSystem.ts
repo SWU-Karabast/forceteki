@@ -1,8 +1,7 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
 import { EventName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { ViewCardSystem, IViewCardProperties, ViewCardMode } from './ViewCardSystem';
+import { IViewCardProperties, ViewCardMode, ViewCardSystem } from './ViewCardSystem';
 
 export type ILookAtProperties = Omit<IViewCardProperties, 'viewType'>;
 

@@ -11,7 +11,10 @@ describe('Rich Reward', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['concord-dawn-interceptors']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -70,7 +73,10 @@ describe('Rich Reward', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'phaseiii-dark-trooper', upgrades: ['rich-reward'] }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

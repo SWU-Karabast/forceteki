@@ -18,6 +18,8 @@ interface SwuTestContext {
     game: Game;
     player1Object: Player;
     player2Object: Player;
+    player1Name: string;
+    player2Name: string;
     player1: PlayerInteractionWrapper;
     player2: PlayerInteractionWrapper;
     p1Base: BaseCard;
@@ -25,28 +27,37 @@ interface SwuTestContext {
     p2Base: BaseCard;
     p2Leader: LeaderCard;
 
+    allowTestToEndWithOpenPrompt: boolean;
+
+    advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
-    startGame();
+    getPlayableCardTitles();
+    getChatLog(numbBack = 0);
+    getChatLogs(numbBack = 1, inOrder = false);
+    getPromptedPlayer(title: string);
     keepStartingHand();
-    skipSetupPhase();
-    selectInitiativePlayer(player: PlayerInteractionWrapper);
     moveToNextActionPhase();
     moveToRegroupPhase();
-    advancePhases(endphase);
-    getPromptedPlayer(title: string);
     nextPhase();
-    getChatLogs(numbBack = 1, inOrder = false);
-    getChatLog(numbBack = 0);
+    selectInitiativePlayer(player: PlayerInteractionWrapper);
     setDamage(card: CardWithDamageProperty, amount: number);
+    skipSetupPhase();
+    startGame();
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;
+}
+
+interface PlayerInfo {
+    id: string;
+    username: string;
 }
 
 interface SwuSetupTestOptions {
     phase?: string;
     player1?: SwuPlayerSetupOptions;
     player2?: SwuPlayerSetupOptions;
+    autoSingleTarget?: boolean;
 
     [field: string]: any;
 }
@@ -82,9 +93,12 @@ declare namespace jasmine {
         toBeActivePlayer<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveInitiative<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHavePassAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
+        toHavePassSingleTargetPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any, target: any): boolean;
         toBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toAllBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
+        toAllBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
+        toBeCapturedBy(card: any): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;

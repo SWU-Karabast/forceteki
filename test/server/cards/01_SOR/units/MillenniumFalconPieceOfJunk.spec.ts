@@ -7,6 +7,9 @@ describe('Millennium Falcon, Piece of Junk', function () {
                     player1: {
                         hand: ['millennium-falcon#piece-of-junk'],
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -62,7 +65,7 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 expect(context.millenniumFalcon).toBeInZone('hand');
             });
 
-            // TODO CHECK IF ENTERS READY WHEN PLAYED FROM RESOURCES OR DISCARD
+            // TODO CHECK IF ENTERS READY WHEN PLAYED FROM RESOURCES OR DISCARD OR RESCUED FROM CAPTURE
         });
     });
 });

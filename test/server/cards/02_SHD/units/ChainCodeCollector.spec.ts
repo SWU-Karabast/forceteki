@@ -10,7 +10,10 @@ describe('Chain Code Collector', function () {
                     },
                     player2: {
                         groundArena: [{ card: 'gideon-hask#ruthless-loyalist', upgrades: ['top-target'] }, 'battlefield-marine']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 // ambush gideon hask

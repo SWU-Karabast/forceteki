@@ -53,7 +53,13 @@ export class UpgradeCard extends UpgradeCardParent {
         return actions;
     }
 
-    // TODO CAPTURE: we may need to use the "parent" concept for captured cards as well
+    public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+        return {
+            ...super.getSummary(activePlayer, hideWhenFaceup),
+            parentCardId: this._parentCard ? this._parentCard.uuid : null
+        };
+    }
+
     /** The card that this card is underneath */
     public get parentCard(): UnitCard {
         Contract.assertNotNullLike(this._parentCard);
@@ -75,10 +81,9 @@ export class UpgradeCard extends UpgradeCardParent {
 
     public attachTo(newParentCard: UnitCard) {
         Contract.assertTrue(newParentCard.isUnit());
-        Contract.assertTrue(newParentCard.isInPlay());
 
         // this assert needed for type narrowing or else the moveTo fails
-        Contract.assertTrue(newParentCard.zoneName !== ZoneName.Deck);
+        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
 
         if (this._parentCard) {
             this.unattach();
@@ -87,6 +92,10 @@ export class UpgradeCard extends UpgradeCardParent {
         this.moveTo(newParentCard.zoneName);
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
+    }
+
+    public isAttached(): boolean {
+        return !!this._parentCard;
     }
 
     public unattach() {
@@ -106,14 +115,6 @@ export class UpgradeCard extends UpgradeCardParent {
         }
 
         return true;
-    }
-
-    public override leavesPlay() {
-        if (this._parentCard) {
-            this.unattach();
-        }
-
-        super.leavesPlay();
     }
 
     /**
@@ -158,7 +159,6 @@ export class UpgradeCard extends UpgradeCardParent {
         });
     }
 
-    // TODO: add "gainWhenDefeated" helper
     /**
      * Adds an "attached card gains [X]" ability, where X is an "on attack" triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
@@ -166,6 +166,21 @@ export class UpgradeCard extends UpgradeCardParent {
     protected addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, UnitCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
+
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give ability to the attached card',
+            condition: this.addZoneCheckToGainCondition(gainCondition),
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
+        });
+    }
+
+    /**
+     * Adds an "attached card gains [X]" ability, where X is an "when defeated" triggered ability. You can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, UnitCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+        const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',

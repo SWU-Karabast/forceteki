@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+const rimraf = require('rimraf');
 
 function runCommand(command) {
     console.log('----------------------');
@@ -8,8 +9,12 @@ function runCommand(command) {
 }
 
 const isFast = process.argv.length > 2 && process.argv[2] === '--fast-build';
-
 let buildAll = !isFast;
+
+if (!isFast) {
+    rimraf.sync('./build/');
+}
+
 if (!fs.existsSync('./build/server')) {
     fs.mkdirSync('./build/server', { recursive: true });
     buildAll = true;

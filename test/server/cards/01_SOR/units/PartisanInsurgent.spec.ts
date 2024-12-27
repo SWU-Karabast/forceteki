@@ -11,7 +11,10 @@ describe('Partisan Insurgent', function () {
                     },
                     player2: {
                         spaceArena: ['system-patrol-craft']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

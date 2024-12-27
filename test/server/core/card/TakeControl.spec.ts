@@ -1,4 +1,4 @@
-describe('Take control of a card', function() {
+describe('Take control system', function() {
     integration(function(contextRef) {
         describe('When a player takes control of a unit in the arena', function() {
             beforeEach(function () {
@@ -6,6 +6,7 @@ describe('Take control of a card', function() {
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
+                        groundArena: ['battlefield-marine'],
                         leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
                     },
                     player2: {
@@ -13,12 +14,20 @@ describe('Take control of a card', function() {
                             { card: 'lom-pyke#dealer-in-truths', damage: 1, exhausted: true, upgrades: ['academy-training'] },
                             'wampa', 'atat-suppressor'
                         ],
-                        hand: ['strike-true', 'vanquish'],
+                        hand: ['strike-true', 'vanquish', 'take-captive'],
                         leader: 'finn#this-is-a-rescue'
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
+
+                // Lom Pyke captures Battlefield Marine to confirm that captured units remain captured
+                context.player1.passAction();
+                context.player2.clickCard(context.takeCaptive);
+                context.player2.clickCard(context.lomPyke);
 
                 // flip Palpatine to take control of Lom Pyke
                 context.player1.clickCard(context.emperorPalpatine);
@@ -32,6 +41,11 @@ describe('Take control of a card', function() {
                 expect(context.academyTraining.controller).toBe(context.player2Object);
                 expect(context.lomPyke.exhausted).toBeTrue();
                 expect(context.lomPyke.damage).toBe(1);
+
+                // check capture status
+                expect(context.lomPyke.capturedUnits.length).toBe(1);
+                expect(context.lomPyke.capturedUnits[0]).toBe(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeCapturedBy(context.lomPyke);
 
                 // activate Finn, then Academy Training is automatically targeted since it is still friendly
                 context.player2.setResourceCount(3);
@@ -110,7 +124,10 @@ describe('Take control of a card', function() {
                     player2: {
                         groundArena: [{ card: 'wampa', damage: 1 }],
                         hand: ['attack-pattern-delta']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -145,7 +162,10 @@ describe('Take control of a card', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'regional-sympathizers', damage: 1 }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -171,7 +191,10 @@ describe('Take control of a card', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'supreme-leader-snoke#shadow-ruler', damage: 1 }, 'specforce-soldier', 'wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -204,7 +227,10 @@ describe('Take control of a card', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'bail-organa#rebel-councilor', damage: 1 }, 'wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -232,7 +258,10 @@ describe('Take control of a card', function() {
                     player2: {
                         leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
                         groundArena: [{ card: 'wampa', damage: 1 }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -267,7 +296,10 @@ describe('Take control of a card', function() {
                 },
                 player2: {
                     groundArena: [{ card: 'lom-pyke#dealer-in-truths', damage: 1 }]
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;
@@ -298,7 +330,10 @@ describe('Take control of a card', function() {
                 },
                 player2: {
                     groundArena: [{ card: 'wampa', damage: 1 }]
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
 
             const { context } = contextRef;

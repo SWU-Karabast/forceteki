@@ -12,7 +12,10 @@ describe('MaKlounkee', function() {
                     groundArena: ['wampa'],
                     spaceArena: [{ card: 'imperial-interceptor', upgrades: ['academy-training'] }],
                     leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true },
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
 
@@ -30,7 +33,10 @@ describe('MaKlounkee', function() {
                 player1: {
                     hand: ['ma-klounkee'],
                     groundArena: ['pyke-sentinel', 'academy-defense-walker'],
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
 
@@ -46,7 +52,10 @@ describe('MaKlounkee', function() {
                     hand: ['ma-klounkee'],
                     groundArena: ['academy-defense-walker'],
                     base: 'chopper-base',
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
 
@@ -60,7 +69,10 @@ describe('MaKlounkee', function() {
                 player1: {
                     hand: ['ma-klounkee'],
                     groundArena: ['pyke-sentinel'],
-                }
+                },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
             const { context } = contextRef;
 

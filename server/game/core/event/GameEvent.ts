@@ -17,11 +17,11 @@ export class GameEvent {
     public condition = (event) => true;
     public order = 0;
     public isContingent = false;
-    public preResolutionEffect = () => true;
 
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
+    private _preResolutionEffect = null;
     private replacementEvent: any = null;
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
@@ -154,7 +154,34 @@ export class GameEvent {
     }
 
     public generateContingentEvents(): any[] {
-        return this.contingentEventsGenerator ? this.contingentEventsGenerator() : [];
+        const contingentEvents = this.contingentEventsGenerator ? this.contingentEventsGenerator() : [];
+
+        // recursively generate contingent events in case the new contingent events also have contingent events
+        let i = 0;
+        while (i < contingentEvents.length) {
+            if (i > 1000) {
+                throw new Error(`Infinite loop detected in contingent event generation in event ${this.name}. Last event in list: ${contingentEvents[i].name}`);
+            }
+
+            const newContingentEvents = contingentEvents[i].generateContingentEvents();
+            contingentEvents.push(...newContingentEvents);
+
+            i++;
+        }
+
+        return contingentEvents;
+    }
+
+    public setPreResolutionEffect(preResolutionEffect: (event) => void) {
+        Contract.assertIsNullLike(this._preResolutionEffect, 'Attempting to set preResolutionEffect but it already has a value');
+
+        this._preResolutionEffect = preResolutionEffect;
+    }
+
+    public preResolutionEffect() {
+        if (this._preResolutionEffect) {
+            this._preResolutionEffect(this);
+        }
     }
 
     public addCleanupHandler(handler) {

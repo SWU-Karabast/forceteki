@@ -31,9 +31,12 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 context.bokatanKryze.exhausted = false;
-                context.player2.passAction();
 
-                // no attack done with mandalorian, ability has no effect
+                // enemy mandalorian attacks
+                context.player2.clickCard(context.protectorOfTheThrone);
+                context.player2.clickCard(context.p1Base);
+
+                // no attack done with friendly mandalorian, ability has no effect
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
@@ -43,7 +46,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.protectorOfTheThrone.damage).toBe(0);
                 expect(context.allianceXwing.damage).toBe(0);
-                expect(context.p1Base.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
 
@@ -102,6 +105,19 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.bokatanKryze);
                 expect(context.player2).toBeActivePlayer();
+
+                // attack with enemy mandalorian
+                context.player2.clickCard(context.protectorOfTheThrone);
+                context.player2.clickCard(context.p1Base);
+
+                // if you attack again with bo katan : only 1 damage trigger
+                context.bokatanKryze.exhausted = false;
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickCard(context.bokatanKryze);
+                expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
 
                 // attack with a mandalorian
@@ -126,6 +142,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit)
                 context.bokatanKryze.exhausted = false;
+                context.setDamage(context.p2Base, 0);
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);

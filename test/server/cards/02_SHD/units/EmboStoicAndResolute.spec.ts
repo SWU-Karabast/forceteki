@@ -105,36 +105,35 @@ describe('Embo, Stoic and Resolute', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // TODO CHECK UNIQUE ID WHEN IT'S DONE
-            // it('should not heal up to 2 damage from a unit when killed and played again before his attack', function () {
-            //     contextRef.setupTest({
-            //         phase: 'action',
-            //         player1: {
-            //             hand: ['rivals-fall'],
-            //             groundArena: [{ card: 'escort-skiff', damage: 3 }, 'embo#stoic-and-resolute'],
-            //         },
-            //         player2: {
-            //             hand: ['the-emperors-legion'],
-            //             groundArena: ['consular-security-force'],
-            //         }
-            //     });
-            //
-            //     const { context } = contextRef;
-            //
-            //     // kill consular security done
-            //     context.player1.clickCard(context.rivalsFall);
-            //     context.player1.clickCard(context.consularSecurityForce);
-            //
-            //     // play again consular security force
-            //     context.player2.clickCard(context.theEmperorsLegion);
-            //     context.player1.passAction();
-            //     context.player2.clickCard(context.consularSecurityForce);
-            //
-            //     // embo does not kill, nothing happen
-            //     context.player1.clickCard(context.embo);
-            //     context.player1.clickCard(context.consularSecurityForce);
-            //     expect(context.player2).toBeActivePlayer();
-            // });
+            it('should not heal up to 2 damage from a unit when killed and played again before his attack', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['rivals-fall'],
+                        groundArena: [{ card: 'escort-skiff', damage: 3 }, 'embo#stoic-and-resolute'],
+                    },
+                    player2: {
+                        hand: ['the-emperors-legion'],
+                        groundArena: ['consular-security-force'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // kill consular security done
+                context.player1.clickCard(context.rivalsFall);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // play again consular security force
+                context.player2.clickCard(context.theEmperorsLegion);
+                context.player1.passAction();
+                context.player2.clickCard(context.consularSecurityForce);
+
+                // embo does not kill, nothing happen
+                context.player1.clickCard(context.embo);
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

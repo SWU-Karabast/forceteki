@@ -32,7 +32,7 @@ interface User {
     username: string;
     email: string;
     emailHash: string;
-    _id: string;
+    id: string;
     admin: boolean;
     permissions: unknown;
     blockList: string[];
@@ -64,7 +64,7 @@ interface User {
     }>;
 }
 
-export function getUserWithDefaultsSet(user?: Partial<User> & Pick<User, 'username'>) {
+export function getUserWithDefaultsSet(user?: Partial<User> & Pick<User, 'username' | 'id'>) {
     if (!user) {
         return undefined;
     }

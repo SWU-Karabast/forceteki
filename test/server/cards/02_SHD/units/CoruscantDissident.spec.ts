@@ -6,6 +6,9 @@ describe('Coruscant Dissident', function() {
                 player1: {
                     groundArena: [{ card: 'coruscant-dissident' }],
                 },
+
+                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                autoSingleTarget: true
             });
         });
 

@@ -12,7 +12,10 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
                     player2: {
                         groundArena: ['cantina-braggart'],
                         spaceArena: ['green-squadron-awing'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

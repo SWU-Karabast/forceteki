@@ -9,7 +9,10 @@ describe('Vambrace Grappleshot', function() {
                     },
                     player2: {
                         groundArena: ['snowspeeder']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -47,8 +50,9 @@ describe('Vambrace Grappleshot', function() {
                         hand: ['vambrace-grappleshot'],
                         groundArena: ['snowspeeder', 'battlefield-marine']
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

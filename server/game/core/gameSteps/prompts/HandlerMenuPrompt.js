@@ -75,7 +75,8 @@ class HandlerMenuPrompt extends UiPrompt {
             buttons: buttons,
             controls: this.getAdditionalPromptControls(),
             promptTitle: this.properties.source.name,
-            promptUuid: this.uuid
+            promptUuid: this.uuid,
+            promptType: this.properties.promptType
         };
     }
 

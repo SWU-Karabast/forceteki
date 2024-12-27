@@ -9,7 +9,10 @@ describe('First Legion Snow Trooper', function() {
                     },
                     player2: {
                         groundArena: ['yoda#old-master'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -38,7 +41,10 @@ describe('First Legion Snow Trooper', function() {
                     player2: {
                         groundArena: [{ card: 'snowtrooper-lieutenant', damage: 1 }],
                         base: { card: 'dagobah-swamp', damage: 5 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

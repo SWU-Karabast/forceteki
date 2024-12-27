@@ -9,7 +9,10 @@ describe('Concord Dawn Interceptors', function() {
                     },
                     player2: {
                         spaceArena: ['pirated-starfighter']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

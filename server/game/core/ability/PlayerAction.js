@@ -37,7 +37,7 @@ class PlayerAction extends PlayerOrCardAbility {
     }
 
     getAdjustedCost(context) {
-        let resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
+        let resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 }

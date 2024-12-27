@@ -9,7 +9,10 @@ describe('Heroic Resolve', function() {
                     },
                     player2: {
                         groundArena: ['wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -56,7 +59,10 @@ describe('Heroic Resolve', function() {
                     },
                     player2: {
                         groundArena: ['wampa', 'specforce-soldier', { card: 'battlefield-marine', upgrades: ['heroic-resolve'] }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -119,7 +125,10 @@ describe('Heroic Resolve', function() {
                     player2: {
                         hand: ['heroic-resolve'],
                         groundArena: ['wampa', 'specforce-soldier']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

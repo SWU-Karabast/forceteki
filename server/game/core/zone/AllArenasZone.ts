@@ -46,6 +46,7 @@ export class AllArenasZone extends ConcreteOrMetaArenaZone {
     public constructor(owner: Game, groundArena: GroundArenaZone, spaceArena: SpaceArenaZone) {
         super(owner);
 
+        this.hiddenForPlayers = null;
         this.name = WildcardZoneName.AnyArena;
 
         this.groundArena = groundArena;

@@ -9,7 +9,10 @@ describe('Chewbacca, Loyal Companion', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'chewbacca#loyal-companion', exhausted: true }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

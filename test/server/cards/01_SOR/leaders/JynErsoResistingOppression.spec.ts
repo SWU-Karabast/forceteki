@@ -13,6 +13,9 @@ describe('Jyn Erso, Resisting Oppression', function() {
                     player2: {
                         groundArena: ['wampa'],
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -51,6 +54,9 @@ describe('Jyn Erso, Resisting Oppression', function() {
                         groundArena: ['wampa'],
                         spaceArena: ['system-patrol-craft']
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

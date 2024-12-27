@@ -10,7 +10,10 @@ describe('Blizzard Assault AT-AT', function() {
                     player2: {
                         groundArena: ['wampa', 'mandalorian-warrior', 'atst', 'chewbacca#pykesbane', 'krayt-dragon'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -90,7 +93,10 @@ describe('Blizzard Assault AT-AT', function() {
                     },
                     player2: {
                         groundArena: ['jawa-scavenger']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -121,7 +127,10 @@ describe('Blizzard Assault AT-AT', function() {
                     player2: {
                         groundArena: ['wampa', 'krayt-dragon'],
                         spaceArena: ['cartel-spacer']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

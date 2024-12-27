@@ -1,13 +1,12 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { CardType, CardTypeFilter, EffectName, EventName, GameStateChangeRequired, ZoneName, WildcardCardType } from '../Constants';
+import { CardTypeFilter, EffectName, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../Constants';
 import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
-// import { LoseFateAction } from './LoseFateAction';
+import { UnitCard } from '../card/CardTypes';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -30,7 +29,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
-        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
+        let { target } = this.generatePropertiesFromContext(context, additionalProperties);
+        target = this.processTargets(target);
         for (const card of Helpers.asArray(target)) {
             let allCostsPaid = true;
             const additionalCosts = card
@@ -166,33 +166,33 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as any;
-        super.updateEvent(event, card, context, additionalProperties);
-        event.destination = properties.destination || ZoneName.Discard;
+        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
                 player: context.player,
                 card
             });
-            const contingentEvents = [onCardLeavesPlayEvent];
+            let contingentEvents = [onCardLeavesPlayEvent];
 
-            if (event.card.zoneName !== ZoneName.Resource) {
-                // add events to defeat any upgrades attached to this card. the events will be added as "contingent events"
-                // in the event window, so they'll resolve in the same window but after the primary event
-                for (const upgrade of (event.card.upgrades ?? []) as UpgradeCard[]) {
-                    if (upgrade.isInPlay()) {
-                        const attachmentEvent = context.game.actions
-                            .defeat({ target: upgrade })
-                            .generateEvent(context.game.getFrameworkContext());
-                        attachmentEvent.order = event.order - 1;
-                        const previousCondition = attachmentEvent.condition;
-                        attachmentEvent.condition = (attachmentEvent) =>
-                            previousCondition(attachmentEvent) && upgrade.parentCard === event.card;
-                        attachmentEvent.isContingent = true;
-                        contingentEvents.push(attachmentEvent);
-                    }
-                }
+            if (card.isUnit()) {
+                // add events to defeat any upgrades attached to this card and free any captured units. the events will
+                // be added as "contingent events" in the event window, so they'll resolve in the same window but after the primary event
+                contingentEvents = contingentEvents.concat(this.generateUpgradeDefeatEvents(card, context, event));
+                contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
+            }
+
+            if (card.isUpgrade()) {
+                contingentEvents.push(
+                    new GameEvent(
+                        EventName.OnUpgradeUnattached,
+                        context,
+                        {
+                            upgradeCard: card,
+                            parentCard: card.parentCard,
+                        }
+                    )
+                );
             }
 
             return contingentEvents;
@@ -212,20 +212,72 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         // };
     }
 
-    /**
-     * Manages special rules for cards leaving play. Should be called as the handler for systems
-     * that move a card out of the play areas (arenas).
-     */
-    protected leavesPlayEventHandler(event, additionalProperties = {}): void {
-        // tokens and leaders are defeated if they move out of an arena zone
-        if (
-            (event.card.isToken() || event.card.isLeader()) &&
-            !EnumHelpers.isArena(event.destination)
-        ) {
-            // TODO: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
-            event.context.game.actions.defeat({ target: event.card }).resolve();
+    private generateUpgradeDefeatEvents(card: UnitCard, context: TContext, event: any): any[] {
+        const defeatEvents = [];
+
+        for (const upgrade of card.upgrades) {
+            const defeatEvent = context.game.actions
+                .defeat({ target: upgrade })
+                .generateEvent(context.game.getFrameworkContext());
+
+            defeatEvent.order = event.order - 1;
+
+            defeatEvent.isContingent = true;
+            defeatEvents.push(defeatEvent);
         }
 
-        event.card.moveTo(event.destination);
+        return defeatEvents;
+    }
+
+    private generateRescueEvents(card: UnitCard, context: TContext, event: any): any[] {
+        const rescueEvents = [];
+
+        for (const captured of card.capturedUnits) {
+            const rescueEvent = context.game.actions
+                .rescue({ target: captured })
+                .generateEvent(context.game.getFrameworkContext());
+
+            rescueEvent.order = event.order - 1;
+
+            rescueEvent.isContingent = true;
+            rescueEvents.push(rescueEvent);
+        }
+
+        return rescueEvents;
+    }
+
+    /**
+     * Manages special rules for units leaving play, such as leaders or tokens.
+     * Should be called as the handler for systems that move a unit out of the arena.
+     *
+     * @param card Card leaving play
+     * @param destination Zone the card is being moved to
+     * @param context context
+     * @param defaultMoveAction A handler that will move the card to its destination if none of the special cases apply
+     */
+    protected leavesPlayEventHandler(card: UnitCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
+        // Attached upgrades should be unattached before move
+        if (card.isUpgrade()) {
+            Contract.assertTrue(card.isAttached(), `Attempting to unattach upgrade card ${card} due to leaving play but it is already unattached.`);
+            card.unattach();
+        }
+
+        if (card.isLeader() && !EnumHelpers.isArena(destination)) {
+            // TODO: punting on this since no card could do it currently and it requires some work
+            throw new Error('Leaders leaving the arena due to a non-defeat effect is not yet implemented');
+        } else if (card.isToken() && !EnumHelpers.isArena(destination)) {
+            // tokens are removed from the game when they leave the arena
+            card.moveTo(ZoneName.OutsideTheGame);
+        } else {
+            defaultMoveAction();
+        }
+    }
+
+    /**
+     * You can override this method in case you need to make operations on targets before queuing events
+     * (for example you can look MoveCardSystem.ts for shuffleMovedCards part)
+     */
+    protected processTargets(target: Card | Card[]) {
+        return target;
     }
 }

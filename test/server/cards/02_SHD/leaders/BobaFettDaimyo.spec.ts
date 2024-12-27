@@ -14,6 +14,9 @@ describe('Boba Fett, Daimyo', function () {
                         hand: ['outer-rim-headhunter'],
                         groundArena: ['wampa'],
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -78,7 +81,9 @@ describe('Boba Fett, Daimyo', function () {
                         leader: 'boba-fett#daimyo',
                         resource: 4
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -109,7 +114,9 @@ describe('Boba Fett, Daimyo', function () {
                         leader: 'boba-fett#daimyo',
                         resource: 4
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -135,7 +142,10 @@ describe('Boba Fett, Daimyo', function () {
                     },
                     player2: {
                         spaceArena: ['outer-rim-headhunter'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

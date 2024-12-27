@@ -9,7 +9,7 @@ describe('Pillage', function() {
                     },
                     player2: {
                         hand: ['alliance-xwing', 'battlefield-marine', 'imperial-interceptor', 'wampa']
-                    }
+                    },
                 });
 
                 const { context } = contextRef;
@@ -35,7 +35,7 @@ describe('Pillage', function() {
                 expect(player2).toBeActivePlayer();
             });
 
-            it('should let the player target the opponent, and automatically discard the only card in the opponents hand', function() {
+            it('should let the player target the opponent, and opponent must discard the only card in the opponents hand', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -43,7 +43,7 @@ describe('Pillage', function() {
                     },
                     player2: {
                         hand: ['imperial-interceptor']
-                    }
+                    },
                 });
 
                 const { context } = contextRef;
@@ -51,6 +51,8 @@ describe('Pillage', function() {
 
                 player1.clickCard(pillage);
                 player1.clickPrompt('Opponent');
+
+                player2.clickCard(imperialInterceptor);
 
                 expect(imperialInterceptor).toBeInZone('discard');
 

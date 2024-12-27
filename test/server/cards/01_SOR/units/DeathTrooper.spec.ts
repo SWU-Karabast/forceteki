@@ -16,15 +16,6 @@ describe('Death Trooper', function() {
                 });
             });
 
-            it('cannot be passed', function () {
-                const { context } = contextRef;
-
-                // Play Death Trooper
-                context.player1.clickCard(context.deathTrooper);
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.deathTrooper]);
-                expect(context.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
-            });
-
             it('can only target ground units & can damage itself', function () {
                 const { context } = contextRef;
 

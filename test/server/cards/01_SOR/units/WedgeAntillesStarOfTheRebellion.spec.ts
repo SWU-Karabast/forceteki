@@ -11,7 +11,10 @@ describe('Wedge Antilles, Star of the Rebellion', function() {
                     player2: {
                         spaceArena: ['hwk290-freighter'],
                         hand: ['atst']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

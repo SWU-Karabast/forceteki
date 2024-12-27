@@ -11,7 +11,10 @@ describe('Star Wing Scout', function () {
                         },
                         player2: {
                             hand: ['rivals-fall']
-                        }
+                        },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
                 });
 
@@ -41,7 +44,10 @@ describe('Star Wing Scout', function () {
                         player2: {
                             hand: ['rivals-fall'],
                             hasInitiative: true
-                        }
+                        },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
                 });
 

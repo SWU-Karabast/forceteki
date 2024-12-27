@@ -50,6 +50,7 @@ describe('Ketsu Onyo, Old friend', function() {
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.ketsuOnyoOldFriend);
                 context.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
+                context.player1.clickCard(context.heroicResolve);
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.academyTraining]);
                 context.player1.clickCard(context.entrenched);

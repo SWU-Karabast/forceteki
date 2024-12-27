@@ -10,7 +10,10 @@ describe('Outflank', function () {
                     },
                     player2: {
                         groundArena: ['wampa']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -36,7 +39,10 @@ describe('Outflank', function () {
                     player1: {
                         hand: ['outflank'],
                         groundArena: ['pyke-sentinel']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

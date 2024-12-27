@@ -7,6 +7,7 @@ export interface IPlayerPromptStateProperties {
     menuTitle: string;
     promptUuid: string;
     promptTitle?: string;
+    promptType?: string;
 
     controls?: { type: string; source: any; targets: any }[];
     selectCard?: boolean;
@@ -22,6 +23,7 @@ export class PlayerPromptState {
     public menuTitle = '';
     public promptTitle = '';
     public promptUuid = '';
+    public promptType = '';
     public buttons = [];
     public controls = [];
     public dropdownListOptions = [];
@@ -49,6 +51,7 @@ export class PlayerPromptState {
 
     public setPrompt(prompt: IPlayerPromptStateProperties) {
         this.promptTitle = prompt.promptTitle;
+        this.promptType = prompt.promptType;
         this.selectCard = prompt.selectCard ?? false;
         this.selectOrder = prompt.selectOrder ?? false;
         this.menuTitle = prompt.menuTitle ?? '';
@@ -104,7 +107,8 @@ export class PlayerPromptState {
             promptTitle: this.promptTitle,
             buttons: this.buttons,
             controls: this.controls,
-            promptUuid: this.promptUuid
+            promptUuid: this.promptUuid,
+            promptType: this.promptType
         };
     }
 }

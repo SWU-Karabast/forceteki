@@ -42,6 +42,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     public override initializeForStartZone(): void {
+        super.initializeForStartZone();
+
         // leaders are always in a zone where they are allowed to be exhausted
         this.setExhaustEnabled(true);
         this.resolveAbilitiesForNewZone();
@@ -110,6 +112,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this.setActiveAttackEnabled(true);
                 this.setUpgradesEnabled(true);
                 this.exhausted = false;
+                this.setCaptureZoneEnabled(true);
                 break;
 
             case ZoneName.Base:
@@ -118,6 +121,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
                 this.exhausted = prevZone ? EnumHelpers.isArena(prevZone) : false;
+                this.setCaptureZoneEnabled(false);
                 break;
         }
     }

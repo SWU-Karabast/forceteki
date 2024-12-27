@@ -2,7 +2,7 @@ import Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
 import { CardType, KeywordName, ZoneName, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
-import { IDecreaseEventCostAbilityProps, PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import { IDecreaseCostAbilityProps, PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
@@ -22,7 +22,7 @@ export class EventCard extends EventCardParent {
 
         this.defaultActions.push(new PlayEventAction({ card: this }));
 
-        Contract.assertNotNullLike(this._eventAbility, 'Event card\'s ability was not initialized');
+        Contract.assertFalse(this.hasImplementationFile && !this._eventAbility, 'Event card\'s ability was not initialized');
 
         // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of zone
         for (const constantAbility of this.constantAbilities) {
@@ -76,7 +76,7 @@ export class EventCard extends EventCardParent {
 
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
-    protected addDecreaseCostAbility(properties: IDecreaseEventCostAbilityProps<this>): void {
+    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): void {
         this.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
     }
 }

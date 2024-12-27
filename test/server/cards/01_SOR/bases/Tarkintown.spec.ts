@@ -13,7 +13,10 @@ describe('Tarkintown', function() {
                             'wampa'
                         ],
                         leader: { card: 'boba-fett#daimyo', deployed: true, damage: 1 }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

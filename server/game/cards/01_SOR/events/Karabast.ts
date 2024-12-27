@@ -28,8 +28,10 @@ export default class Karabast extends EventCard {
                     controller: RelativePlayer.Opponent,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
-                        ({ amount: context.targets.friendlyUnit.damage + 1 })),
+                    immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                        amount: context.targets.friendlyUnit.damage + 1,
+                        source: context.targets.friendlyUnit
+                    })),
                 }
             }
         });

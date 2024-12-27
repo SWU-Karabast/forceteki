@@ -9,7 +9,10 @@ describe('Protector of the Throne', function() {
                     },
                     player2: {
                         groundArena: ['wampa', 'jedha-agitator'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -33,6 +36,7 @@ describe('Protector of the Throne', function() {
 
                 // player 2 should be able to select base and unit because Protector of the Throne is not sentinel anymore
                 expect(context.player2).toBeAbleToSelectExactly([context.protectorOfTheThrone, context.p1Base]);
+                context.player2.clickCard(context.p1Base);
             });
         });
     });

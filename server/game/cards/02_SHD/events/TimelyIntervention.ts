@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { CardType, KeywordName, ZoneName } from '../../../core/Constants';
+import { CardType, KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { EventCard } from '../../../core/card/EventCard';
 
 export default class TimelyIntervention extends EventCard {
@@ -15,6 +15,7 @@ export default class TimelyIntervention extends EventCard {
             title: 'Play a unit from your hand. Give it ambush for this phase',
             targetResolver: {
                 cardTypeFilter: CardType.BasicUnit,
+                controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),

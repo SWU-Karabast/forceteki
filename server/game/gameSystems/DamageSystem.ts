@@ -1,13 +1,12 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, DamageType, EventName, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, DamageType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { Attack } from '../core/attack/Attack';
-import { DamageSourceType, IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack, IDamageSource } from '../IDamageOrDefeatSource';
+import { DamageSourceType, IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
 import { UnitCard } from '../core/card/CardTypes';
-import CardAbilityStep from '../core/ability/CardAbilityStep';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type?: DamageType;
@@ -25,6 +24,9 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
     type?: DamageType.Ability;    // this is optional so it can be the default property type
     amount: number | ((card: UnitCard) => number);
+
+    /** The source of the damage, if different from the card that triggered the ability */
+    source?: Card;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -78,6 +80,12 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         event.damageDealt = event.card.addDamage(eventDamageAmount, event.damageSource);
 
+        // excess damage can be "used up" by effects such as Overwhelm, making it unavailable for other effects such Blizzard Assault AT-AT
+        // see unofficial dev ruling at https://nexus.cascadegames.com/resources/Rules_Clarifications/
+        if (event.sourceEventForExcessDamage) {
+            event.sourceEventForExcessDamage.availableExcessDamage = 0;
+        }
+
         event.availableExcessDamage = eventDamageAmount - event.damageDealt;
     }
 
@@ -89,19 +97,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertHasProperty(event, 'sourceEventForExcessDamage', 'Damage event does not have damage amount or source event to get excess damage amount from');
         Contract.assertHasProperty(event.sourceEventForExcessDamage, 'availableExcessDamage', 'Damage event is missing excess damage amount');
 
-        const availableExcessDamage = event.sourceEventForExcessDamage.availableExcessDamage;
-
-        if (availableExcessDamage === 0) {
-            return 0;
-        }
-
-        // excess damage can be "used up" by effects such as Overwhelm, making it unavailable for other effects such Blizzard Assault AT-AT
-        // see unofficial dev ruling at https://nexus.cascadegames.com/resources/Rules_Clarifications/
-        event.sourceEventForExcessDamage.availableExcessDamage = 0;
-        return availableExcessDamage;
+        return event.sourceEventForExcessDamage.availableExcessDamage;
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         // short-circuits to pass targeting if damage amount is set at 0 either directly or via a resolved source event
@@ -121,7 +120,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         if (!EnumHelpers.isAttackableZone(card.zoneName)) {
             return false;
         }
-        if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
+        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
             return false;
         }
         return super.canAffect(card, context);
@@ -149,6 +148,14 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             default:
                 Contract.fail(`Unexpected damage type: ${properties['type']}`);
         }
+
+        Contract.assertTrue(card.canBeDamaged());
+
+        const damageAmount = this.getDamageAmountFromEvent(event);
+        event.availableExcessDamage = damageAmount - Math.min(damageAmount, card.remainingHp);
+
+        // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
+        event.willDefeat = damageAmount >= card.remainingHp;
     }
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
@@ -225,8 +232,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
         const abilityDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
-            player: context.player,
-            card: context.source,
+            player: properties.source?.controller ?? context.player,
+            card: properties.source ?? context.source,
             event
         };
 

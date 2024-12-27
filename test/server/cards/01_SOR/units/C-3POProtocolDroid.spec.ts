@@ -7,7 +7,10 @@ describe('C-3PO, Protocol Droid', function() {
                     player1: {
                         hand: ['c3po#protocol-droid'],
                         deck: ['wampa', 'battlefield-marine', 'atst', 'atst'],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -50,7 +53,10 @@ describe('C-3PO, Protocol Droid', function() {
                     player1: {
                         hand: ['c3po#protocol-droid'],
                         deck: [],
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -24,8 +24,10 @@ export default class StrikeTrue extends EventCard {
                     controller: RelativePlayer.Opponent,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
-                        ({ amount: context.targets.friendlyUnit.getPower() })),
+                    immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                        amount: context.targets.friendlyUnit.getPower(),
+                        source: context.targets.friendlyUnit
+                    })),
                 }
             }
         });

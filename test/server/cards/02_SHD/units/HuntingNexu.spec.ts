@@ -8,7 +8,9 @@ describe('Hunting Nexu', function() {
                         groundArena: ['hunting-nexu'],
                         spaceArena: ['green-squadron-awing']
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -30,7 +32,10 @@ describe('Hunting Nexu', function() {
                     },
                     player2: {
                         spaceArena: ['green-squadron-awing']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

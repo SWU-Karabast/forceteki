@@ -17,7 +17,7 @@ export default class InfernoFourUnforgetting extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) => event.card === context.source,
                 onCardDefeated: (event, context) => event.card === context.source,
             },
-            immediateEffect: AbilityHelper.immediateEffects.LookMoveDeckCardsTopOrBottom({ amount: 2 })
+            immediateEffect: AbilityHelper.immediateEffects.lookMoveDeckCardsTopOrBottom({ amount: 2 })
         });
     }
 }

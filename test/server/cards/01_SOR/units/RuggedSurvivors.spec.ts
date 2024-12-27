@@ -8,7 +8,9 @@ describe('Rugged Survivors', function () {
                         groundArena: ['rugged-survivors'],
                         leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -26,15 +28,15 @@ describe('Rugged Survivors', function () {
         });
 
         describe('Rugged Survivors\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         groundArena: ['rugged-survivors'],
                     },
-                    player2: {}
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

@@ -48,7 +48,10 @@ describe('I Had No Choice', function() {
                         player2: {
                             groundArena: [],
                             leader: { card: 'darth-vader#dark-lord-of-the-sith', deployed: true }
-                        }
+                        },
+
+                        // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                        autoSingleTarget: true
                     });
                 });
 
@@ -56,6 +59,9 @@ describe('I Had No Choice', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.iHadNoChoice);
+
+                    // can choose no targets
+                    context.player1.clickPrompt('Choose up to 2 non-leader units. An opponent chooses 1 of those units. Return that unit to its owner’s hand and put the other on the bottom of its owner’s deck. -> Wampa');
 
                     expect(context.wampa).toBeInZone('hand', context.player1);
                     expect(context.resilient).toBeInZone('discard', context.player1);

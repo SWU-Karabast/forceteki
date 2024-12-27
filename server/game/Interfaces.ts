@@ -22,6 +22,7 @@ import { OutsideTheGameZone } from './core/zone/OutsideTheGameZone';
 import { ResourceZone } from './core/zone/ResourceZone';
 import { GroundArenaZone } from './core/zone/GroundArenaZone';
 import { SpaceArenaZone } from './core/zone/SpaceArenaZone';
+import { CaptureZone } from './core/zone/CaptureZone';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -35,7 +36,8 @@ export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IRepla
 /** Interface definition for addActionAbility */
 export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'optional'> & {
     condition?: (context?: AbilityContext<TSource>) => boolean;
-    cost?: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[];
+    cost?: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[] |
+      ((context: AbilityContext<TSource>) => ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[]);
 
     /**
      * If true, any player can trigger the ability. If false, only the card's controller can trigger it.
@@ -167,6 +169,7 @@ export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordNa
 
 export type Zone =
   | BaseZone
+  | CaptureZone
   | DeckZone
   | DiscardZone
   | GroundArenaZone
@@ -199,6 +202,10 @@ export type WhenType<TSource extends Card = Card> = {
 };
 
 export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
+
+export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
+    thenCondition?: (context?: TContext) => boolean;
+};
 
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
@@ -248,10 +255,6 @@ type IAbilityPropsWithSystems<TContext extends AbilityContext> =
   IAbilityPropsWithTargetResolver<TContext> |
   IAbilityPropsWithTargetResolvers<TContext> |
   IAbilityPropsWithHandler<TContext>;
-
-type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
-    thenCondition?: (context?: TContext) => boolean;
-};
 
 interface IReplacementEffectAbilityWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
     when: WhenType<TSource>;

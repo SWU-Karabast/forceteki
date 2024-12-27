@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+const rimraf = require('rimraf');
 
 function runCommand(command) {
     console.log('----------------------');
@@ -7,7 +8,7 @@ function runCommand(command) {
     execSync(command, { stdio: 'inherit' });
 }
 
-if (!fs.existsSync('./build/server')) {
-    fs.mkdirSync('./build/server', { recursive: true });
-}
+rimraf.sync('./build/');
+fs.mkdirSync('./build/server', { recursive: true });
+
 runCommand('tsc');

@@ -13,7 +13,10 @@ describe('Forced Surrender', function() {
                     player2: {
                         groundArena: ['maz-kanata#pirate-queen', 'gamorrean-guards'],
                         hand: ['atst', 'atst']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

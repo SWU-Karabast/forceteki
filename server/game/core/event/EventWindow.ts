@@ -137,7 +137,7 @@ export class EventWindow extends BaseStepWithPipeline {
                 this._triggeredAbilityWindow = this.parentWindow.triggeredAbilityWindow;
                 break;
             case TriggerHandlingMode.ResolvesTriggers:
-                this._triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.Triggered);
+                this._triggeredAbilityWindow = new TriggeredAbilityWindow(this.game, AbilityType.Triggered, this);
                 break;
             case TriggerHandlingMode.CannotHaveTriggers:
                 this._triggeredAbilityWindow = null;
@@ -158,7 +158,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
         // TODO EFFECTS: will need resolution for replacement effects here
         // not sure if it will need a new window class or can just reuse the existing one
-        const replacementEffectWindow = new TriggeredAbilityWindow(this.game, this, AbilityType.ReplacementEffect);
+        const replacementEffectWindow = new TriggeredAbilityWindow(this.game, AbilityType.ReplacementEffect, this);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
     }
@@ -190,11 +190,11 @@ export class EventWindow extends BaseStepWithPipeline {
         }
 
         for (const event of eventsToResolve) {
-            // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
+            // need to checkCondition here to ensure the event won't fizzle due to another event's resolution
             event.checkCondition();
             if (event.canResolve) {
-                this.game.emit(event.name, event);
                 event.executeHandler();
+                this.game.emit(event.name, event);
 
                 this.resolvedEvents.push(event);
             }

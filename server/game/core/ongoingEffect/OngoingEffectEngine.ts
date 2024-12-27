@@ -49,9 +49,6 @@ export class OngoingEffectEngine {
             } else {
                 const triggeringEvents = events.filter((event) => properties.when[event.name]);
                 if (triggeringEvents.length > 0) {
-                    if (!properties.multipleTrigger && effect.duration !== Duration.Persistent) {
-                        effectsToRemove.push(effect);
-                    }
                     if (triggeringEvents.some((event) => properties.when[event.name](event, effect.context))) {
                         effectsToTrigger.push(effect);
                     }
@@ -63,10 +60,11 @@ export class OngoingEffectEngine {
             const context = effect.context;
             const targets = effect.targets;
             return {
-                title: context.source.name + '\'s effect' + (targets.length === 1 ? ' on ' + targets[0].name : ''),
+                title: context.source.title + '\'s effect' + (targets.length === 1 ? ' on ' + targets[0].name : ''),
                 handler: () => {
-                    properties.gameAction.setDefaultTarget(() => targets);
-                    if (properties.message && properties.gameAction.hasLegalTarget(context)) {
+                    // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
+                    properties.immediateEffect.setDefaultTargetFn(() => targets);
+                    if (properties.message && properties.immediateEffect.hasLegalTarget(context)) {
                         let messageArgs = properties.messageArgs || [];
                         if (typeof messageArgs === 'function') {
                             messageArgs = messageArgs(context, targets);
@@ -74,25 +72,52 @@ export class OngoingEffectEngine {
                         this.game.addMessage(properties.message, ...messageArgs);
                     }
                     const actionEvents = [];
-                    properties.gameAction.queueGenerateEventGameSteps(actionEvents, context);
+                    properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
+                    properties.limit.increment(context.source.owner);
                     this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
                     this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
                 }
             };
         });
-        if (effectsToRemove.length > 0) {
-            this.unapplyAndRemove((effect) => effectsToRemove.includes(effect));
+        for (const effect of this.effects.filter(
+            (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
+        )) {
+            const properties = effect.impl.getValue();
+            const triggeringEvents = events.filter((event) => properties.when[event.name]);
+
+            if (triggeringEvents.length > 0) {
+                if (properties.limit.isAtMax(effect.source.owner)) {
+                    effectsToRemove.push(effect);
+                }
+            }
         }
         if (effectTriggers.length > 0) {
-            this.game.openSimultaneousEffectWindow(effectTriggers);
+            // TODO Implement the correct trigger window. We may need a subclass of TriggeredAbilityWindow for multiple simultaneous effects
+            effectTriggers.forEach((trigger) => {
+                trigger.handler();
+            });
+        }
+        if (effectsToRemove.length > 0) {
+            this.unapplyAndRemove((effect) => effectsToRemove.includes(effect));
         }
     }
 
     public removeLastingEffects(card: OngoingEffectSource) {
         this.unapplyAndRemove(
-            (effect) =>
-                effect.matchTarget === card &&
-                effect.duration !== Duration.Persistent
+            (effect) => {
+                if (effect.impl.type === 'delayedEffect') {
+                    const effectImplValue = effect.impl.getValue();
+                    const limit = effectImplValue.limit;
+
+                    return limit.isAtMax(effect.source.controller);
+                }
+
+                if (effect.duration !== Duration.Persistent) {
+                    return effect.matchTarget === card;
+                }
+
+                return false;
+            }
         );
     }
 

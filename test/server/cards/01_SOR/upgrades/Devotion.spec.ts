@@ -7,8 +7,9 @@ describe('Devotion', function() {
                     player1: {
                         groundArena: [{ card: 'wampa', upgrades: ['devotion'] }],
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

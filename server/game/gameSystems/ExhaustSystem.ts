@@ -1,6 +1,6 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, CardTypeFilter, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardTypeFilter, EventName, GameStateChangeRequired } from '../core/Constants';
 import { CardWithExhaustProperty } from '../core/card/CardTypes';
 import { ExhaustOrReadySystem, IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
 
