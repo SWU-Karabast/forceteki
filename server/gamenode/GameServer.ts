@@ -130,8 +130,8 @@ export class GameServer {
         this.lobbies.set(lobby.id, lobby);
         const order66 = { id: 'exe66', username: 'Order66' };
         const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
-        lobby.createLobbyUser(order66, null);
-        lobby.createLobbyUser(theWay, null);
+        lobby.createLobbyUser(order66);
+        lobby.createLobbyUser(theWay);
         this.userLobbyMap.set(order66.id, lobby.id);
         this.userLobbyMap.set(theWay.id, lobby.id);
         lobby.startTestGame(filename);

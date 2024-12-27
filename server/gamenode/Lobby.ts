@@ -31,7 +31,7 @@ export class Lobby {
         return this._id;
     }
 
-    public createLobbyUser(user, deck): void {
+    public createLobbyUser(user, deck = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
 
