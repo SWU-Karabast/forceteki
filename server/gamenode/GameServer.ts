@@ -1,5 +1,6 @@
 import axios, { all } from 'axios';
 import fs from 'fs';
+import path from 'path';
 import http from 'http';
 import https from 'https';
 import express from 'express';
@@ -71,17 +72,17 @@ export class GameServer {
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', (req, res) => {
             if (this.createLobby(req.body.user, req.body.deck)) {
-                res.status(200).json({ success: true });
-            } else {
-                res.status(400).json({ success: false });
+                return res.status(200).json({ success: true });
             }
+
+            return res.status(400).json({ success: false });
         });
         app.get('/api/available-lobbies', (_, res) => {
             const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
                 id,
                 name: `Game #${id}`,
             }));
-            res.json(availableLobbies);
+            return res.json(availableLobbies);
         });
         app.post('/api/join-lobby', (req, res) => {
             const { lobbyId, user } = req.body;
@@ -98,9 +99,14 @@ export class GameServer {
             this.userLobbyMap.set(user.id, lobby.id);
             return res.status(200).json({ success: true });
         });
+        app.get('/api/test-game-setups', (_, res) => {
+            const testSetupFilenames = this.getTestSetupGames();
+            return res.json(testSetupFilenames);
+        });
         app.post('/api/start-test-game', (req, res) => {
-            this.startTestGame();
-            res.status(200).json({ success: true });
+            const { filename } = req.body;
+            this.startTestGame(filename);
+            return res.status(200).json({ success: true });
         });
     }
 
@@ -119,7 +125,7 @@ export class GameServer {
         return true;
     }
 
-    private startTestGame() {
+    private startTestGame(filename: string) {
         const lobby = new Lobby();
         this.lobbies.set(lobby.id, lobby);
         const order66 = { id: 'exe66', username: 'Order66' };
@@ -128,7 +134,19 @@ export class GameServer {
         lobby.createLobbyUser(theWay, null);
         this.userLobbyMap.set(order66.id, lobby.id);
         this.userLobbyMap.set(theWay.id, lobby.id);
-        lobby.startTestGame();
+        lobby.startTestGame(filename);
+    }
+
+    private getTestSetupGames() {
+        const testGamesDirPath = path.resolve(__dirname, '../../test/gameSetups');
+        if (!fs.existsSync(testGamesDirPath)) {
+            return [];
+        }
+
+        return fs.readdirSync(testGamesDirPath).filter((file) => {
+            const filePath = path.join(testGamesDirPath, file);
+            return fs.lstatSync(filePath).isFile();
+        });
     }
 
     // public debugDump() {

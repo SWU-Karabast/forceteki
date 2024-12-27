@@ -120,11 +120,15 @@ export class Lobby {
     }
 
     public setUserDisconnected(id: string): void {
-        this.users.find((u) => u.id === id).state = 'disconnected';
+        const user = this.users.find((u) => u.id === id);
+        if (user) {
+            user.state = 'disconnected';
+        }
     }
 
     public getUserState(id: string): string {
-        return this.users.find((u) => u.id === id).state;
+        const user = this.users.find((u) => u.id === id);
+        return user ? user.state : null;
     }
 
     public isLobbyFilled(): boolean {
@@ -169,32 +173,25 @@ export class Lobby {
     }
 
     // example method to demonstrate the use of the test game setup utility
-    public startTestGame() {
+    public startTestGame(filename: string): void {
         const testDirPath = path.resolve(__dirname, '../../test');
-        if (!fs.existsSync(testDirPath)) {
+        const testJSONPath = path.resolve(__dirname, `../../test/gameSetups/${filename}`);
+        if (!fs.existsSync(testDirPath) || !fs.existsSync(testJSONPath)) {
             return null;
         }
 
+        const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+
         const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
         // eslint-disable-next-line
-        const game: Game = require(gameSetupPath).setUpTestGame({
-            phase: 'action',
-            player1: {
-                hand: ['tactical-advantage'],
-                groundArena: ['pyke-sentinel']
-            },
-            player2: {
-                groundArena: ['wampa']
-            },
-            autoSingleTarget: false
-        },
-        {},
-        { id: 'exe66', username: 'Order66' },
-        { id: 'th3w4y', username: 'ThisIsTheWay' }
+        const game: Game = require(gameSetupPath).setUpTestGame(
+            setupData,
+            {},
+            { id: 'exe66', username: 'Order66' },
+            { id: 'th3w4y', username: 'ThisIsTheWay' }
         );
 
         this.game = game;
-        game.initialise();
     }
 
     private onStartGame(id: string): void {

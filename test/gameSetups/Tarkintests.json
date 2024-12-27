@@ -1,0 +1,13 @@
+{
+    "phase": "action",
+    "player1": {
+        "hand": ["tactical-advantage"],
+        "groundArena": ["pyke-sentinel"],
+        "leader": "grand-moff-tarkin#oversector-governor",
+        "base": "security-complex"
+    },
+    "player2": {
+        "groundArena": ["wampa", "wampa"]
+    },
+    "autoSingleTarget": false
+}
