@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
+import { InPlayCard } from '../../../core/card/baseClasses/InPlayCard';
 import { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -20,16 +21,14 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
     }
 
     private isFirstUpgradePlayedOnThisCopy(card: Card, adjusterSource: Card): boolean {
-        if (!adjusterSource.isUnit()) {
+        if (!(adjusterSource instanceof InPlayCard)) {
             return false;
         }
-        const playedUpgradesOnThisCardThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
+        return !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.card.isUpgrade() &&
-            playedCardEntry.card.parentCard === adjusterSource &&
-            playedCardEntry.card.parentCard.inPlayId === adjusterSource.inPlayId &&
-            playedCardEntry.card !== card
+            playedCardEntry.parentCard === adjusterSource &&
+            playedCardEntry.parentCardInPlayId === adjusterSource.inPlayId
         );
-        return playedUpgradesOnThisCardThisPhase.length === 0;
     }
 
     public override setupCardAbilities() {
