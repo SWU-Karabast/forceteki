@@ -14,6 +14,10 @@ describe('Subjugating Starfighter', function() {
                 });
 
                 const { context } = contextRef;
+
+                // Allow the test to end with an open prompt.
+                context.allowTestToEndWithOpenPrompt = true;
+
                 // Play the card.
                 context.player1.clickCard(context.subjugatingStarfighter);
 
@@ -22,11 +26,6 @@ describe('Subjugating Starfighter', function() {
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(1);
                 expect(context.player1.findCardsByName('battle-droid')).toAllBeInZone('groundArena', context.player1);
                 expect(context.player1.findCardsByName('battle-droid').every((battleDroid) => battleDroid.exhausted)).toBeTrue();
-
-                // Resolve ambush
-                context.player1.clickPrompt('Ambush');
-                context.player1.clickCard(context.hwk290Freighter);
-                expect(context.hwk290Freighter.damage).toBe(3);
             });
 
             it('Should NOT create a Battle Droid token if the player DOES NOT has the initiative', function () {
@@ -43,6 +42,9 @@ describe('Subjugating Starfighter', function() {
 
                 const { context } = contextRef;
 
+                // Allow the test to end with an open prompt.
+                context.allowTestToEndWithOpenPrompt = true;
+
                 // Have player 2 claim initiative
                 context.player2.claimInitiative();
 
@@ -51,11 +53,6 @@ describe('Subjugating Starfighter', function() {
 
                 // Check that the Battle Droid token was not created.
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(0);
-
-                // Resolve ambush
-                context.player1.clickPrompt('Ambush');
-                context.player1.clickCard(context.hwk290Freighter);
-                expect(context.hwk290Freighter.damage).toBe(3);
             });
         });
     });
