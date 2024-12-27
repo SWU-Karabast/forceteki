@@ -1,6 +1,5 @@
 const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
-const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js');
 const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
 const { ZoneName, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
@@ -12,7 +11,6 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         this.context = context;
         this.canCancel = true;
-        this.initiateAbility = false;
         this.events = [];
         this.targetResults = {};
         this.costResults = this.getCostResults();
@@ -114,7 +112,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.game.queueSimpleStep(() => this.checkCostsWerePaid(), 'checkCostsWerePaid');
         this.game.queueSimpleStep(() => this.resolveTargets(), 'resolveTargets');
         this.game.queueSimpleStep(() => this.checkForCancel(), 'checkForCancel');
-        this.game.queueSimpleStep(() => this.initiateAbilityEffects(), 'initiateAbilityEffects');
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
     }
 
@@ -261,7 +258,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    initiateAbilityEffects() {
+    executeHandler() {
         if (this.cancelled) {
             this.checkResolveIfYouDoNot();
             for (const event of this.events) {
@@ -275,20 +272,10 @@ class AbilityResolver extends BaseStepWithPipeline {
           (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
             this.context.ability.limit.increment(this.context.player);
         }
+
         this.context.ability.displayMessage(this.context);
-
-        if (this.context.ability.isActivatedAbility()) {
-            this.game.openEventWindow(new InitiateCardAbilityEvent(this.context, { card: this.context.source }, () => this.initiateAbility = true));
-        } else {
-            this.initiateAbility = true;
-        }
-    }
-
-    executeHandler() {
-        if (this.cancelled || !this.initiateAbility) {
-            return;
-        }
         this.context.stage = Stage.Effect;
+
         this.context.ability.executeHandler(this.context);
     }
 
