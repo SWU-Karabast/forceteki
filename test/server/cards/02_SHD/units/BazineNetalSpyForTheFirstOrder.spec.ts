@@ -5,7 +5,7 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['bazine-netal#spy-for-the-first-order', 'karabast', 'battlefield-marine'],
+                        hand: ['bazine-netal#spy-for-the-first-order'],
                     },
                     player2: {
                         hand: ['atst', 'waylay'],
@@ -21,7 +21,6 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 };
 
                 // Player looks at the opponent's hand and discards a card from it, opponent draws a card
-                expect(context.player1.hand.length).toBe(3);
                 context.player1.clickCard(context.bazineNetal);
 
                 expect(context.getChatLogs(1)).toContain('Bazine Netal sees AT-ST and Waylay');
@@ -48,6 +47,26 @@ describe('Bazin Netal, Spy For The First Order', function() {
 
                 context.player1.clickPrompt('Pass');
                 expect(context.player2.hand.length).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should be skipped as Opponent does not have any cards in hand', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['bazine-netal#spy-for-the-first-order'],
+                    },
+                    player2: {
+                        deck: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+
+                // Player looks at the opponent's hand and discards a card from it, opponent draws a card
+                context.player1.clickCard(context.bazineNetal);
+                expect(context.getChatLogs(1)).toContain('player1 plays Bazine Netal');
+
+                // Opponent drew a card
                 expect(context.player2).toBeActivePlayer();
             });
         });
