@@ -1,10 +1,11 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
-import { InPlayCard } from '../../../core/card/baseClasses/InPlayCard';
 import { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import * as Contract from '../../../core/utils/Contract';
+
 
 export default class GuardianOfTheWhills extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -21,9 +22,8 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
     }
 
     private isFirstUpgradePlayedOnThisCopy(card: Card, adjusterSource: Card): boolean {
-        if (!(adjusterSource instanceof InPlayCard)) {
-            return false;
-        }
+        Contract.assertTrue(adjusterSource.isUnit());
+
         return !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.card.isUpgrade() &&
             playedCardEntry.parentCard === adjusterSource &&
