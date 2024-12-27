@@ -29,10 +29,17 @@ describe('Private Manufacturing', function () {
                 context.player1.clickCard(context.privateManufacturing);
                 expect(context.player1.hand.length).toBe(4);
                 expect(context.player1).toHavePrompt('Select 2 cards');
+                expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
 
                 context.player1.clickCard(context.republicTacticalOfficer);
                 context.player1.clickCard(context.advancedReconCommando);
+                context.player1.clickPrompt('Done');
+
+                const bottomDeckedCards = context.player1.deck.slice(-2);
+
                 expect(context.player1.hand.length).toBe(2);
+                expect(bottomDeckedCards).toContain(context.republicTacticalOfficer);
+                expect(bottomDeckedCards).toContain(context.advancedReconCommando);
             });
         });
     });
