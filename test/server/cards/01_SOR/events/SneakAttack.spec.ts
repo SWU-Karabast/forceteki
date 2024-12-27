@@ -22,7 +22,7 @@ describe('Sneak Attack', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.sneakAttack);
-                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.obiwanKenobi]);
+                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren]);
                 context.player1.clickCard(context.sabineWren);
                 expect(context.sabineWren.exhausted).toBeFalse();
                 expect(context.player1.readyResourceCount).toBe(0);
@@ -31,18 +31,6 @@ describe('Sneak Attack', function() {
                 context.moveToRegroupPhase();
                 expect(context.sabineWren).toBeInZone('discard');
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
-            });
-
-            it('should not play Obi-Wan because not enough resource', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.sneakAttack);
-                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.obiwanKenobi]);
-                context.player1.clickCard(context.obiwanKenobi);
-                expect(context.obiwanKenobi).toBeInZone('hand');
-                expect(context.sabineWren).toBeInZone('hand');
-                expect(context.player1.readyResourceCount).toBe(1);
-                expect(context.player2).toBeActivePlayer();
             });
 
             it('should not bug if Sabine is defeated before the end of the phase', function () {

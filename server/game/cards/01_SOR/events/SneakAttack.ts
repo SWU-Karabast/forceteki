@@ -18,20 +18,22 @@ export default class SneakAttack extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.playCardFromHand({
-                        entersReady: true,
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 }
-                    }),
-                    AbilityHelper.immediateEffects.delayedCardEffect({
-                        title: 'Defeat it.',
-                        when: {
-                            onPhaseStarted: (context) => context.phase === PhaseName.Regroup
-                        },
-                        immediateEffect: AbilityHelper.immediateEffects.defeat()
-                    })
-                ])
-            }
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
+                    entersReady: true,
+                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 }
+                }),
+            },
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'At the start of the regroup phase, defeat it.',
+                immediateEffect: AbilityHelper.immediateEffects.delayedCardEffect({
+                    title: 'Defeat it.',
+                    target: ifYouDoContext.events[0].card,
+                    when: {
+                        onPhaseStarted: (context) => context.phase === PhaseName.Regroup
+                    },
+                    immediateEffect: AbilityHelper.immediateEffects.defeat()
+                })
+            })
         });
     }
 }
