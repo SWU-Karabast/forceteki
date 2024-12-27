@@ -62,7 +62,6 @@ export function defeatSelf<TContext extends AbilityContext = AbilityContext>(): 
     return new GameSystemCost<TContext>(GameSystems.defeat<TContext>({ isCost: true }));
 }
 
-// TODO THIS PR: add isCost: true to all of these
 /**
  * Cost that requires discard a card from hand that matches the passed condition predicate function.
  */

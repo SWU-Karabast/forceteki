@@ -129,7 +129,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         };
     }
 
-    // TODO THIS PR: add exploit action if relevant
+    // TODO THIS PR: refactor play action generation so exploit can be generated regardless of zone
 
     private buildDefaultOutOfPlayAction(card: Card, properties: IPlayCardProperties, context: TContext) {
         const actionProperties = this.buildPlayActionProperties(card, properties, context);
