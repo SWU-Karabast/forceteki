@@ -11,7 +11,6 @@ export default class SubjugatingStarfighter extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities () {
-        
         this.addTriggeredAbility({
             title: 'Create a Battle Droid token.',
             when: {
@@ -19,7 +18,6 @@ export default class SubjugatingStarfighter extends NonLeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });
-
     }
 }
 
