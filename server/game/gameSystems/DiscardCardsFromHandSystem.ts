@@ -75,7 +75,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
             const amount = Math.min(availableHand.length, derive(properties.amount, player));
             if (amount === 0) {
-                events.push(this.generateEvent(context, additionalProperties));
+                // No event generated here as no discard occured
                 continue;
             }
 
