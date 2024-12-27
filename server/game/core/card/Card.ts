@@ -797,6 +797,7 @@ export class Card extends OngoingEffectSource {
             id: this.cardData.id,
             setId: this.cardData.setId,
             controlled: this.owner !== this.controller,
+            aspects: this.aspects,
             // facedown: this.isFacedown(),
             zone: this.zoneName,
             // menu: this.getMenu(),
