@@ -1,0 +1,21 @@
+{
+    "phase": "action",
+    "player1": {
+        "hand": ["the-emperors-legion", "wilderness-fighter"],
+        "groundArena": [{ "card": "pyke-sentinel", "damage": 1 }, "blizzard-assault-atat"],
+        "spaceArena": [{ "card": "cartel-spacer", "upgrades": ["academy-training"] }],
+        "discard": ["keep-fighting", "disarm"],
+        "base": "echo-base",
+        "leader": "luke-skywalker#faithful-friend"
+    },
+    "player2": {
+        "deck": ["wampa", "atst"],
+        "hand": ["superlaser-blast", "takedown"],
+        "groundArena": [{ "card": "seasoned-shoretrooper", "upgrades": ["shield"] }],
+        "discard": ["tactical-advantage", "guerilla-attack-pod"],
+        "resources": 10,
+        "base": { "card": "chopper-base", "damage": 5 },
+        "leader": { "card": "sabine-wren#galvanized-revolutionary", "deployed": true, "damage": 2 },
+        "hasInitiative": true
+    }
+}
