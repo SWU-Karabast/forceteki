@@ -1,6 +1,6 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { CardType, ZoneName } from '../../../core/Constants';
+import { CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class BibFortunaJabbasMajordomo extends NonLeaderUnitCard {
@@ -17,6 +17,7 @@ export default class BibFortunaJabbasMajordomo extends NonLeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: CardType.Event,
+                controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
