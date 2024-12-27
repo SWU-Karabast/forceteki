@@ -129,7 +129,7 @@ describe('Guardian of the Whills', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.jetpack, context.devotion, context.electrostaff, context.protector]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.protector);
-                expect(context.player1.exhaustedResourceCount).toBe(6); 
+                expect(context.player1.exhaustedResourceCount).toBe(6);
 
                 context.player2.passAction();
 
