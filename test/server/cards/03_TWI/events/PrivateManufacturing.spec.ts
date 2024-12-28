@@ -1,7 +1,7 @@
 describe('Private Manufacturing', function () {
     integration(function (contextRef) {
         describe('Private Manufacturing\'s ability', function () {
-            it('should draw two cards and not ask to move two cards to bottom of the deck', function () {
+            it('should draw two cards and not ask to move two cards to bottom of the deck because there is at least one token unit', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -16,7 +16,7 @@ describe('Private Manufacturing', function () {
                 expect(context.player1.hand.length).toBe(2);
             });
 
-            it('should draw two cards and ahould ask to move two cards to bottom of the deck', function () {
+            it('should draw two cards and should ask to move two cards to bottom of the deck because there are no token units', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -32,14 +32,14 @@ describe('Private Manufacturing', function () {
                 expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
 
                 context.player1.clickCard(context.republicTacticalOfficer);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
                 context.player1.clickCard(context.advancedReconCommando);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
                 context.player1.clickPrompt('Done');
-
-                const bottomDeckedCards = context.player1.deck.slice(-2);
-
                 expect(context.player1.hand.length).toBe(2);
-                expect(bottomDeckedCards).toContain(context.republicTacticalOfficer);
-                expect(bottomDeckedCards).toContain(context.advancedReconCommando);
+                expect([context.republicTacticalOfficer, context.advancedReconCommando]).toAllBeInBottomOfDeck(context.player1, 2);
             });
         });
     });
