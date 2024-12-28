@@ -42,6 +42,16 @@ export class EventCard extends EventCardParent {
             actions.push(new PlayEventAction({ card: this, playType: PlayType.Smuggle }));
         }
 
+        // generate "play with exploit" action
+        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
+        if (exploitValue) {
+            actions.push(new PlayEventAction({
+                card: this,
+                exploitValue,
+                playType: this.zoneName === ZoneName.Resource ? PlayType.Smuggle : PlayType.PlayFromHand
+            }));
+        }
+
         return actions;
     }
 
