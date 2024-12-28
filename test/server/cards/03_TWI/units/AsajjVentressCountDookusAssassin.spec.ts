@@ -47,6 +47,7 @@ describe('Asajj Ventress Count Doooku\'s Assassin', function() {
             context.player2.clickCard(context.waylay);
             context.player2.clickCard(context.asajjVentress);
             context.player1.clickCard(context.asajjVentress);
+            context.player1.clickPrompt('Play Asajj Ventress');
             context.player2.passAction();
             context.player1.clickCard(context.keepFighting);
             context.player1.clickCard(context.asajjVentress);

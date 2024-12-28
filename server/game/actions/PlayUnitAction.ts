@@ -50,7 +50,7 @@ export class PlayUnitAction extends PlayCardAction {
             events.push(this.generateSmuggleEvent(context));
         }
 
-        context.game.openEventWindow(events, this.triggerHandlingMode);
+        context.game.openEventWindow(events);
     }
 
     public override clone(overrideProperties: IPlayUnitActionProperties) {
