@@ -136,9 +136,6 @@ class BaseCardSelector {
         if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter) && card.zoneName !== ZoneName.Capture) {
             return false;
         }
-        if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {
-            return false;
-        }
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardConditionsAreSatisfied(card, selectedCards, context);
     }
 

@@ -5,6 +5,7 @@ import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
+import path from 'path';
 import { logger } from '../logger';
 
 interface LobbyUser {
@@ -21,7 +22,7 @@ export class Lobby {
     private game: Game;
     // switch partic
     private users: LobbyUser[] = [];
-
+    private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     public constructor() {
         this._id = uuid();
     }
@@ -30,7 +31,7 @@ export class Lobby {
         return this._id;
     }
 
-    public createLobbyUser(user, deck): void {
+    public createLobbyUser(user, deck = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
 
@@ -73,7 +74,7 @@ export class Lobby {
     }
 
     private updateDeck(socket: Socket, ...args) {
-        const activeUser = this.users.find((u) => u.id === socket.user.username);
+        const activeUser = this.users.find((u) => u.id === socket.user.id);
         const userDeck = activeUser.deck.data;
         const source = args[0]; // [<'Deck'|'Sideboard>'<cardID>]
         const cardID = args[1];
@@ -119,11 +120,15 @@ export class Lobby {
     }
 
     public setUserDisconnected(id: string): void {
-        this.users.find((u) => u.id === id).state = 'disconnected';
+        const user = this.users.find((u) => u.id === id);
+        if (user) {
+            user.state = 'disconnected';
+        }
     }
 
     public getUserState(id: string): string {
-        return this.users.find((u) => u.id === id).state;
+        const user = this.users.find((u) => u.id === id);
+        return user ? user.state : null;
     }
 
     public isLobbyFilled(): boolean {
@@ -143,30 +148,50 @@ export class Lobby {
         this.users = [];
     }
 
+    private async fetchCard(cardName: string): Promise<any> {
+        try {
+            const response = await fetch(`https://karabast-assets.s3.amazonaws.com/data/cards/${encodeURIComponent(cardName)}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error(`Error fetching card: ${cardName}`, error);
+            throw error;
+        }
+    }
+
+    public async setTokens(): Promise<void> {
+        const cardData = {
+            battleDroid: (await this.fetchCard('battle-droid.json'))[0],
+            cloneTrooper: (await this.fetchCard('clone-trooper.json'))[0],
+            experience: (await this.fetchCard('experience.json'))[0],
+            shield: (await this.fetchCard('shield.json'))[0],
+        };
+        this.tokens = cardData;
+    }
+
     // example method to demonstrate the use of the test game setup utility
-    private checkLoadTestGame() {
-        if (!fs.existsSync('../../test')) {
+    public startTestGame(filename: string): void {
+        const testDirPath = path.resolve(__dirname, '../../test');
+        const testJSONPath = path.resolve(__dirname, `../../test/gameSetups/${filename}`);
+        if (!fs.existsSync(testDirPath) || !fs.existsSync(testJSONPath)) {
             return null;
         }
 
+        const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+
+        const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
         // eslint-disable-next-line
-        const game: Game = require('../../test/helpers/GameStateSetup.js').setUpTestGame({
-            phase: 'action',
-            player1: {
-                hand: ['tactical-advantage'],
-                groundArena: ['pyke-sentinel']
-            },
-            player2: {
-                groundArena: ['wampa']
-            },
-            autoSingleTarget: false
-        },
-        {},
-        { id: '111', username: 'player1' },
-        { id: '222', username: 'player2' }
+        const game: Game = require(gameSetupPath).setUpTestGame(
+            setupData,
+            {},
+            { id: 'exe66', username: 'Order66' },
+            { id: 'th3w4y', username: 'ThisIsTheWay' }
         );
 
-        return game;
+        this.game = game;
     }
 
     private onStartGame(id: string): void {
@@ -175,11 +200,7 @@ export class Lobby {
         const existingUser = this.users.find((u) => u.id === id);
         const opponent = this.users.find((u) => u.id !== id);
         game.started = true;
-        // for (const player of Object.values<Player>(pendingGame.players)) {
-        //     game.selectDeck(player.name, player.deck);
-        // }
 
-        // fetch deck for existing user otherwise set default
         if (existingUser.deck) {
             game.selectDeck(id, existingUser.deck.data);
         }
@@ -188,6 +209,7 @@ export class Lobby {
             game.selectDeck(opponent.id, opponent.deck.data);
         }
 
+        game.initialiseTokens(this.tokens);
         game.initialise();
 
         this.sendGameState(game);
@@ -222,7 +244,7 @@ export class Lobby {
         } catch (e) {
             this.handleError(game, e);
 
-            // this.sendGameState(game);
+            this.sendGameState(game);
         }
     }
 
