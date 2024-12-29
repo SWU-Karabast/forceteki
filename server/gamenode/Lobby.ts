@@ -16,7 +16,6 @@ interface LobbyUser {
     ready: boolean;
     socket: Socket | null;
     deck: Deck | null;
-    owner: boolean;
 }
 
 export class Lobby {
@@ -26,6 +25,7 @@ export class Lobby {
     private users: LobbyUser[] = [];
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private gameChat: GameChat;
+    private lobbyOwner: string;
 
     public constructor() {
         this._id = uuid();
@@ -45,16 +45,15 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.data,
-                owner: u.owner
             })),
             gameChat: this.gameChat,
+            lobbyOwner: this.lobbyOwner,
         };
     }
 
-    public createLobbyUser(user, deck = null, owner = false): void {
+    public createLobbyUser(user, deck = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
-
         if (existingUser) {
             existingUser.deck = newDeck;
             return;
@@ -66,7 +65,6 @@ export class Lobby {
             ready: false,
             socket: null,
             deck: newDeck,
-            owner: owner
         }));
     }
 
@@ -97,7 +95,6 @@ export class Lobby {
                 state: 'connected',
                 ready: false, socket,
                 deck: this.useDefaultDeck(user),
-                owner: owner
             });
         }
 
@@ -171,6 +168,10 @@ export class Lobby {
         if (user) {
             user.state = 'disconnected';
         }
+    }
+
+    public setLobbyOwner(id: string): void {
+        this.lobbyOwner = id;
     }
 
     public getUserState(id: string): string {
@@ -265,7 +266,7 @@ export class Lobby {
 
     private onLobbyMessage(socket: Socket, command: string, ...args): void {
         if (!this[command] || typeof this[command] !== 'function') {
-            return;
+            throw new Error(`Incorrect command or command format expected function but got: ${command}`);
         }
 
         this.runLobbyFuncAndCatchErrors(() => {
