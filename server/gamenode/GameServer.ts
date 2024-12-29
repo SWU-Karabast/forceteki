@@ -1,5 +1,6 @@
 import axios, { all } from 'axios';
 import fs from 'fs';
+import path from 'path';
 import http from 'http';
 import https from 'https';
 import express from 'express';
@@ -71,17 +72,17 @@ export class GameServer {
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', (req, res) => {
             if (this.createLobby(req.body.user, req.body.deck)) {
-                res.status(200).json({ success: true });
-            } else {
-                res.status(400).json({ success: false });
+                return res.status(200).json({ success: true });
             }
+
+            return res.status(400).json({ success: false });
         });
         app.get('/api/available-lobbies', (_, res) => {
             const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
                 id,
                 name: `Game #${id}`,
             }));
-            res.json(availableLobbies);
+            return res.json(availableLobbies);
         });
         app.post('/api/join-lobby', (req, res) => {
             const { lobbyId, user } = req.body;
@@ -96,6 +97,15 @@ export class GameServer {
             }
             // Add the user to the lobby
             this.userLobbyMap.set(user.id, lobby.id);
+            return res.status(200).json({ success: true });
+        });
+        app.get('/api/test-game-setups', (_, res) => {
+            const testSetupFilenames = this.getTestSetupGames();
+            return res.json(testSetupFilenames);
+        });
+        app.post('/api/start-test-game', (req, res) => {
+            const { filename } = req.body;
+            this.startTestGame(filename);
             return res.status(200).json({ success: true });
         });
     }
@@ -113,6 +123,30 @@ export class GameServer {
         this.userLobbyMap.set(user.id, lobby.id);
         lobby.setTokens();
         return true;
+    }
+
+    private startTestGame(filename: string) {
+        const lobby = new Lobby();
+        this.lobbies.set(lobby.id, lobby);
+        const order66 = { id: 'exe66', username: 'Order66' };
+        const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
+        lobby.createLobbyUser(order66);
+        lobby.createLobbyUser(theWay);
+        this.userLobbyMap.set(order66.id, lobby.id);
+        this.userLobbyMap.set(theWay.id, lobby.id);
+        lobby.startTestGame(filename);
+    }
+
+    private getTestSetupGames() {
+        const testGamesDirPath = path.resolve(__dirname, '../../test/gameSetups');
+        if (!fs.existsSync(testGamesDirPath)) {
+            return [];
+        }
+
+        return fs.readdirSync(testGamesDirPath).filter((file) => {
+            const filePath = path.join(testGamesDirPath, file);
+            return fs.lstatSync(filePath).isFile();
+        });
     }
 
     // public debugDump() {
@@ -158,86 +192,6 @@ export class GameServer {
     //     next();
     // }
 
-    // public gameWon(game: Game, reason: string, winner: Player): void {
-    // const saveState = game.getSaveState();
-    // // this.zmqSocket.send('GAMEWIN', { game: saveState, winner: winner.name, reason: reason });
-
-    // void axios
-    //     .post(
-    //         `https://l5r-analytics-engine-production.up.railway.app/api/game-report/${env.environment}`,
-    //         saveState
-    //     )
-    //     .catch(() => {});
-    // }
-
-    // TODO: Once we have lobbies this will take in game details. Not sure if we end up doing that through L5R's PendingGame or not.
-    // public onStartGame(): void {
-    //     const game = new Game(defaultGameSettings, { router: this, shortCardData: this.shortCardData });
-    //     this.games.set(defaultGameSettings.id, game);
-
-
-    //     game.started = true;
-    //     // for (const player of Object.values<Player>(pendingGame.players)) {
-    //     //     game.selectDeck(player.name, player.deck);
-    //     // }
-    //     game.selectDeck('Order66', defaultGameSettings.players[0].deck);
-    //     game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
-
-    //     game.initialise();
-    // }
-
-    // onSpectator(pendingGame: PendingGame, user) {
-    //     const game = this.games.get(pendingGame.id);
-    //     if (!game) {
-    //         return;
-    //     }
-
-    //     game.watch('TBA', user);
-
-    //     this.sendGameState(game);
-    // }
-
-    // onGameSync(callback) {
-    //     const gameSummaries = [];
-    //     for (const game of this.games.values()) {
-    //         const retGame = game.getSummary();
-    //         if (retGame) {
-    //             retGame.password = game.password;
-    //         }
-    //         return gameSummaries.push(retGame);
-    //     }
-
-    //     logger.info('syncing', gameSummaries.length, ' games');
-
-    //     callback(gameSummaries);
-    // }
-
-    // onFailedConnect(gameId, username) {
-    //     const game = this.findGameForUser(username);
-    //     if (!game || game.id !== gameId) {
-    //         return;
-    //     }
-
-    //     game.failedConnect(username);
-
-    //     if (game.isEmpty()) {
-    //         this.games.delete(game.id);
-    //         // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-    //     }
-
-    //     this.sendGameState(game);
-    // }
-
-    // public onCloseGame(gameId) {
-    //     const game = this.games.get(gameId);
-    //     if (!game) {
-    //         return;
-    //     }
-
-    //     this.games.delete(gameId);
-    //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-    // }
-
     public onCardData(cardData) {
         this.titleCardData = cardData.titleCardData;
         this.shortCardData = cardData.shortCardData;
@@ -264,24 +218,6 @@ export class GameServer {
         const socket = new Socket(ioSocket);
         lobby.addLobbyUser(user, socket);
         socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
-
-        // const player = game.playersAndSpectators[socket.user.username];
-        // if (!player) {
-        //     return;
-        // }
-
-        // player.id = socket.id;
-        // if (player.disconnected) {
-        //     logger.info(`user ${socket.user.username} reconnected to game`);
-        //     game.reconnect(socket, player.name);
-        // }
-
-
-        // player.socket = socket;
-
-        // if (!game.isSpectator(player)) {
-        //     game.addMessage('{0} has connected to the game server', player);
-        // }
     }
 
     public onSocketDisconnected(id: string, reason: string) {
@@ -317,55 +253,5 @@ export class GameServer {
             lobby.cleanLobby();
             this.lobbies.delete(lobbyId);
         }
-
-        // logger.info(`user ${socket.user.username} disconnected from a game: ${reason}`);
-
-        // const isSpectator = game.isSpectator(game.playersAndSpectators[socket.user.username]);
-
-        // game.disconnect(socket.user.username);
-
-        // if (game.isEmpty()) {
-        //     this.games.delete(game.id);
-
-        //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-        // } else if (isSpectator) {
-        //     // this.zmqSocket.send('PLAYERLEFT', {
-        //     //     gameId: game.id,
-        //     //     game: game.getSaveState(),
-        //     //     player: socket.user.username,
-        //     //     spectator: true
-        //     // });
-        // }
-
-        // this.sendGameState(game);
     }
-
-    // public onLeaveGame(socket) {
-    //     const game = this.findGameForUser(socket.user.username);
-    //     if (!game) {
-    //         return;
-    //     }
-
-    //     const isSpectator = game.isSpectator(game.playersAndSpectators[socket.user.username]);
-
-    //     game.leave(socket.user.username);
-
-    //     // this.zmqSocket.send('PLAYERLEFT', {
-    //     //     gameId: game.id,
-    //     //     game: game.getSaveState(),
-    //     //     player: socket.user.username,
-    //     //     spectator: isSpectator
-    //     // });
-
-    //     socket.send('cleargamestate');
-    //     socket.leaveChannel(game.id);
-
-    //     // if (game.isEmpty()) {
-    //     //     this.games.delete(game.id);
-
-    //     //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-    //     // }
-
-    //     this.sendGameState(game);
-    // }
 }

@@ -11,6 +11,7 @@ describe('Encouraging Leadership', function () {
                 player2: {
                     spaceArena: ['star-wing-scout'],
                     groundArena: ['specforce-soldier'],
+                    hand: ['waylay']
                 },
             });
             const { context } = contextRef;
@@ -43,14 +44,20 @@ describe('Encouraging Leadership', function () {
             expect(context.wampa.getPower()).toEqual(4);
             expect(context.wampa.getHp()).toEqual(5);
 
+            // Waylay unit and replay it to confirm that the effect falls off
+            context.player2.clickCard(context.waylay);
+            context.player2.clickCard(context.greenSquadronAwing);
+
+            context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.greenSquadronAwing.getPower()).toEqual(1);
+            expect(context.greenSquadronAwing.getHp()).toEqual(3);
+
             // Pass the phase
             context.moveToRegroupPhase();
 
             // Check if units power/hp is back to normal
             expect(context.atst.getPower()).toEqual(6);
             expect(context.atst.getHp()).toEqual(7);
-            expect(context.greenSquadronAwing.getPower()).toEqual(1);
-            expect(context.greenSquadronAwing.getHp()).toEqual(3);
         });
     });
 });
