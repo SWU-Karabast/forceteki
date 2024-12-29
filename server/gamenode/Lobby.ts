@@ -25,7 +25,7 @@ export class Lobby {
     private users: LobbyUser[] = [];
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private gameChat: GameChat;
-    private lobbyOwner: string;
+    private lobbyOwnerId: string;
 
     public constructor() {
         this._id = uuid();
@@ -47,7 +47,7 @@ export class Lobby {
                 deck: u.deck?.data,
             })),
             gameChat: this.gameChat,
-            lobbyOwner: this.lobbyOwner,
+            lobbyOwnerId: this.lobbyOwnerId,
         };
     }
 
@@ -171,7 +171,7 @@ export class Lobby {
     }
 
     public setLobbyOwner(id: string): void {
-        this.lobbyOwner = id;
+        this.lobbyOwnerId = id;
     }
 
     public getUserState(id: string): string {
