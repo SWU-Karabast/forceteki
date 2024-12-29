@@ -190,6 +190,11 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         if (properties.innerSystem.isOptional(context)) {
             return true;
         }
+
+        if (properties.mode === TargetMode.Exactly || properties.mode === TargetMode.ExactlyVariable || properties.mode === TargetMode.Single) {
+            return false;
+        }
+
         const controller = typeof properties.controller === 'function' ? properties.controller(context) : properties.controller;
         return properties.canChooseNoCards || (CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && properties.selector.hasAnyCardFilter);
     }
