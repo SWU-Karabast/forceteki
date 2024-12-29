@@ -1,7 +1,7 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import { IActionTargetResolver } from '../../TargetInterfaces';
 import { Card } from '../card/Card';
-import { EffectName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
+import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
 import { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
@@ -11,6 +11,7 @@ import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
+import { GameEvent } from '../event/GameEvent';
 
 export interface IPlayCardActionProperties {
     card: Card;
@@ -142,7 +143,21 @@ export abstract class PlayCardAction extends PlayerAction {
         return costs;
     }
 
-    public generateSmuggleEvent(context: PlayCardContext) {
+    protected generateSmuggleEvent(context: PlayCardContext) {
         return resourceCard({ target: context.player.getTopCardOfDeck() }).generateEvent(context);
+    }
+
+    protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
+        return new GameEvent(EventName.OnCardPlayed, context, {
+            player: context.player,
+            card: context.source,
+            originalZone: context.source.zoneName,
+            originallyOnTopOfDeck:
+                        context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
+            onPlayCardSource: context.onPlayCardSource,
+            playType: context.playType,
+            costs: context.costs,
+            ...additionalProps
+        });
     }
 }
