@@ -10,6 +10,7 @@ import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup'
 import AbilityHelper from '../../AbilityHelper';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { TokenOrPlayableCard } from './CardTypes';
+import { IPlayCardActionProperties } from '../ability/PlayCardAction';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
@@ -19,8 +20,6 @@ export class EventCard extends EventCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Event);
-
-        this.defaultActions.push(new PlayEventAction({ card: this }));
 
         Contract.assertFalse(this.hasImplementationFile && !this._eventAbility, 'Event card\'s ability was not initialized');
 
@@ -34,25 +33,8 @@ export class EventCard extends EventCardParent {
         return true;
     }
 
-    public override getActions(): PlayerOrCardAbility[] {
-        const actions = super.getActions();
-
-        // generate smuggle action
-        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayEventAction({ card: this, playType: PlayType.Smuggle }));
-        }
-
-        // generate "play with exploit" action
-        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
-        if (exploitValue) {
-            actions.push(new PlayEventAction({
-                card: this,
-                exploitValue,
-                playType: this.zoneName === ZoneName.Resource ? PlayType.Smuggle : PlayType.PlayFromHand
-            }));
-        }
-
-        return actions;
+    protected override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
+        return new PlayEventAction({ card: this, ...properties });
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {

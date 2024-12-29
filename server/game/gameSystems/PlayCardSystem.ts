@@ -95,20 +95,16 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     private generateLegalPlayCardAbilities(card: Card, properties: IPlayCardProperties, context: TContext) {
         Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
 
+        const availableCardPlayActions = properties.playType === PlayType.PlayFromOutOfPlay
+            ? card.getPlayCardFromOutOfPlayActions()
+            : card.getPlayCardActions();
 
-        // find the card's available play actions (e.g. play from hand, smuggle), select those that match the type we're looking for,
-        // then clone them with our property overrides
-        const cardPlayActions = card.getPlayCardActions()
+        const cardPlayActionsWithProperties = availableCardPlayActions
             .filter((action) => action.playType === properties.playType)
             .map((playAction) => playAction.clone(this.buildPlayActionProperties(card, properties, context, playAction)));
 
-        // if we're playing from out of play we may need to generate an action for the card since it won't have one by default
-        if (cardPlayActions.length === 0 && properties.playType === PlayType.PlayFromOutOfPlay) {
-            cardPlayActions.push(this.buildDefaultOutOfPlayAction(card, properties, context));
-        }
-
         // filter out actions that aren't legal
-        return cardPlayActions.filter((action) => {
+        return cardPlayActionsWithProperties.filter((action) => {
             const newContext = action.createContext(context.player);
             return action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
         });
@@ -127,22 +123,5 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             costAdjusters,
             entersReady: properties.entersReady
         };
-    }
-
-    // TODO THIS PR: refactor play action generation so exploit can be generated regardless of zone
-
-    private buildDefaultOutOfPlayAction(card: Card, properties: IPlayCardProperties, context: TContext) {
-        const actionProperties = this.buildPlayActionProperties(card, properties, context);
-
-        switch (card.type) {
-            case CardType.BasicUnit:
-                return new PlayUnitAction(actionProperties);
-            case CardType.BasicUpgrade:
-                return new PlayUpgradeAction(actionProperties);
-            case CardType.Event:
-                return new PlayEventAction(actionProperties);
-            default:
-                Contract.fail(`Attempted to play a card from out of play with invalid type ${actionProperties.card.type} as part of an ability`);
-        }
     }
 }

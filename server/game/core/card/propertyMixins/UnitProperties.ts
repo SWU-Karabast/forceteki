@@ -83,6 +83,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected _captureZone?: CaptureZone = null;
         protected _upgrades?: UpgradeCard[] = null;
 
+        private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenCapturedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
@@ -148,7 +149,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            this.defaultActions.push(new InitiateAttackAction(this));
+            this.attackAction = new InitiateAttackAction(this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************
@@ -203,6 +204,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
+        public override getActions() {
+            return super.getActions()
+                .concat(this.attackAction);
+        }
+
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
             const triggeredProperties = { ...properties, when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } };
             this.addTriggeredAbility(triggeredProperties);

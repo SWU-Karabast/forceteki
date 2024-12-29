@@ -2,6 +2,7 @@ import Player from '../Player';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import * as Contract from '../utils/Contract';
 import { CardType, MoveZoneDestination, ZoneName } from '../Constants';
+import { PlayCardAction } from '../ability/PlayCardAction';
 
 export class LeaderCard extends InPlayCard {
     protected _deployed = false;
@@ -34,6 +35,11 @@ export class LeaderCard extends InPlayCard {
      */
     protected setupLeaderSideAbilities() {
         this.hasImplementationFile = false;
+    }
+
+    // TODO TYPE REFACTOR: separate out the Leader types from the playable types
+    public override getPlayCardActions() {
+        return [];
     }
 
     // TODO TYPE REFACTOR: leaders shouldn't have the takeControl method

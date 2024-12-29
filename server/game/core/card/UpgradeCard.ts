@@ -13,6 +13,7 @@ import AbilityHelper from '../../AbilityHelper';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { AbilityContext } from '../ability/AbilityContext';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import { IPlayCardActionProperties } from '../ability/PlayCardAction';
 
 interface IGainCondition<TSource extends UpgradeCard> {
     gainCondition?: (context: AbilityContext<TSource>) => boolean;
@@ -36,21 +37,14 @@ export class UpgradeCard extends UpgradeCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
-
-        this.defaultActions.push(new PlayUpgradeAction({ card: this }));
     }
 
     public override isUpgrade(): this is UpgradeCard {
         return true;
     }
 
-    public override getActions(): PlayerOrCardAbility[] {
-        const actions = super.getActions();
-
-        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayUpgradeAction({ card: this, playType: PlayType.Smuggle }));
-        }
-        return actions;
+    protected override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
+        return new PlayUpgradeAction({ card: this, ...properties });
     }
 
     public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
