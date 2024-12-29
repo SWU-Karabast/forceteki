@@ -19,6 +19,7 @@ import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
 import type { LeaderUnitCard } from './LeaderUnitCard';
 import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
+import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
@@ -308,6 +309,14 @@ export class Card extends OngoingEffectSource {
 
     public isToken(): this is TokenCard {
         return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
+    }
+
+    public isTokenUnit(): this is TokenUnitCard {
+        return this.type === CardType.TokenUnit;
+    }
+
+    public isTokenUpgrade(): this is TokenUpgradeCard {
+        return this.type === CardType.TokenUpgrade;
     }
 
     public isShield(): this is Shield {
