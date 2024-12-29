@@ -119,7 +119,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return {
             card,
             playType: properties.playType,
-            triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
+            triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow,
             costAdjusters,
             entersReady: properties.entersReady
         };
