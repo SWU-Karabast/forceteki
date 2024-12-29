@@ -1001,7 +1001,7 @@ class Player extends GameObject {
 
     getSummaryForHand(list, activePlayer) {
         // if (this.optionSettings.sortHandByName) {
-        //     return this.getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup);
+        //     return this.getSortedSummaryForCardList(list, activePlayer);
         // }
         return this.getSummaryForZone(list, activePlayer);
     }
@@ -1012,12 +1012,12 @@ class Player extends GameObject {
         });
     }
 
-    getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup) {
+    getSortedSummaryForCardList(list, activePlayer) {
         let cards = list.map((card) => card);
         cards.sort((a, b) => a.printedName.localeCompare(b.printedName));
 
         return cards.map((card) => {
-            return card.getSummary(activePlayer, hideWhenFaceup);
+            return card.getSummary(activePlayer);
         });
     }
 
