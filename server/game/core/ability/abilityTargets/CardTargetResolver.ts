@@ -18,7 +18,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private immediateEffect: GameSystem;
     private selector: any;
 
-    private static choosingFromHiddenPrompt = '(because you are choosing from a hidden zone you may choose nothing)';
+    private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
         return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
