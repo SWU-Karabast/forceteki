@@ -541,7 +541,7 @@ var customMatchers = {
 
                 // in certain cases the prompt may have additional text explaining the hidden zone rule
                 const passPromptText = `Trigger the effect '${abilityText}' on target '${target.title}' or pass`;
-                const passPromptTextForHiddenZone = passPromptText + ' (because you are choosing from a hidden zone you may choose nothing)';
+                const passPromptTextForHiddenZone = passPromptText + ' \n(because you are choosing from a hidden zone you may choose nothing)';
 
                 result.pass = player.hasPrompt(passPromptText) || player.hasPrompt(passPromptTextForHiddenZone);
 

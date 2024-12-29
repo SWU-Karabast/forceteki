@@ -29,6 +29,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     cancelHandler?: () => void;
     effect?: string;
     effectArgs?: (context) => string[];
+    optional?: boolean;
 }
 
 /**
@@ -43,7 +44,8 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         innerSystem: null,
         innerSystemProperties: (card) => ({ target: card }),
         checkTarget: false,
-        manuallyRaiseEvent: false
+        manuallyRaiseEvent: false,
+        optional: false
     };
 
     public constructor(properties: ISelectCardProperties<TContext> | ((context: TContext) => ISelectCardProperties<TContext>)) {
@@ -187,7 +189,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     }
 
     private selectionIsOptional(properties, context): boolean {
-        if (properties.innerSystem.isOptional(context)) {
+        if (properties.optional || properties.innerSystem.isOptional(context)) {
             return true;
         }
 
