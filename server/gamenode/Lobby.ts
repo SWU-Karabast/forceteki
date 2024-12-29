@@ -7,6 +7,7 @@ import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
+import { GameChat } from '../game/core/chat/GameChat';
 
 interface LobbyUser {
     id: string;
@@ -15,6 +16,7 @@ interface LobbyUser {
     ready: boolean;
     socket: Socket | null;
     deck: Deck | null;
+    owner: boolean;
 }
 
 export class Lobby {
@@ -23,15 +25,33 @@ export class Lobby {
     // switch partic
     private users: LobbyUser[] = [];
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
+    private gameChat: GameChat;
+
     public constructor() {
         this._id = uuid();
+        this.gameChat = new GameChat();
     }
 
     public get id(): string {
         return this._id;
     }
 
-    public createLobbyUser(user, deck = null): void {
+    public getLobbyState(): any {
+        return {
+            id: this._id,
+            users: this.users.map((u) => ({
+                id: u.id,
+                username: u.username,
+                state: u.state,
+                ready: u.ready,
+                deck: u.deck?.data,
+                owner: u.owner
+            })),
+            gameChat: this.gameChat,
+        };
+    }
+
+    public createLobbyUser(user, deck = null, owner = false): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
 
@@ -39,7 +59,15 @@ export class Lobby {
             existingUser.deck = newDeck;
             return;
         }
-        this.users.push(({ id: user.id, username: user.username, state: null, ready: false, socket: null, deck: newDeck }));
+        this.users.push(({
+            id: user.id,
+            username: user.username,
+            state: null,
+            ready: false,
+            socket: null,
+            deck: newDeck,
+            owner: owner
+        }));
     }
 
     private useDefaultDeck(user) {
@@ -53,24 +81,44 @@ export class Lobby {
         }
     }
 
-    public addLobbyUser(user, socket: Socket): void {
+    public addLobbyUser(user, socket: Socket, owner = false): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         socket.registerEvent('startGame', () => this.onStartGame(user.id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
-        socket.registerEvent('updateDeck', (socket, ...args) => this.updateDeck(socket, ...args));
+        socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
         // maybe we neeed to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
         } else {
-            this.users.push({ id: user.id, username: user.username, state: 'connected', ready: false, socket, deck: this.useDefaultDeck(user) });
+            this.users.push({
+                id: user.id,
+                username: user.username,
+                state: 'connected',
+                ready: false, socket,
+                deck: this.useDefaultDeck(user),
+                owner: owner
+            });
         }
 
         if (this.game) {
             this.sendGameState(this.game);
         } else {
-            this.sendDeckInfo();
+            this.sendLobbyState();
         }
+    }
+
+    private setReadyStatus(socket: Socket, ...args) {
+        Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
+        const currentUser = this.users.find((u) => u.id === socket.user.id);
+        currentUser.ready = args[0];
+    }
+
+    private sendChatMessage(socket: Socket, ...args) {
+        // we need to get the player and message
+        Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
+        this.gameChat.addChatMessage(socket.user, args[0]);
+        this.sendLobbyState();
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -116,7 +164,6 @@ export class Lobby {
         }
 
         socket.user.deck = userDeck;
-        socket.send('deckData', socket.user.deck);
     }
 
     public setUserDisconnected(id: string): void {
@@ -137,6 +184,7 @@ export class Lobby {
 
     public removeLobbyUser(id: string): void {
         this.users = this.users.filter((u) => u.id !== id);
+        this.sendLobbyState();
     }
 
     public isLobbyEmpty(): boolean {
@@ -215,6 +263,17 @@ export class Lobby {
         this.sendGameState(game);
     }
 
+    private onLobbyMessage(socket: Socket, command: string, ...args): void {
+        if (!this[command] || typeof this[command] !== 'function') {
+            return;
+        }
+
+        this.runLobbyFuncAndCatchErrors(() => {
+            this[command](socket, ...args);
+            this.sendLobbyState();
+        });
+    }
+
     private onGameMessage(socket: Socket, command: string, ...args): void {
         if (!this.game) {
             return;
@@ -243,8 +302,17 @@ export class Lobby {
             func();
         } catch (e) {
             this.handleError(game, e);
-
             this.sendGameState(game);
+        }
+    }
+
+    // might just use the top function at some point?
+    private runLobbyFuncAndCatchErrors(func: () => void) {
+        try {
+            func();
+        } catch (e) {
+            logger.error(e);
+            this.sendLobbyState();
         }
     }
 
@@ -287,12 +355,10 @@ export class Lobby {
         }
     }
 
-    public sendDeckInfo(): void {
+    public sendLobbyState(): void {
         for (const user of this.users) {
-            if (user.state === 'connected' && user.socket && user.deck) {
-                user.socket.send('deckData', user.deck.data);
-            } else if (user.state === 'connected' && user.socket) {
-                user.socket.send('deckData', defaultGameSettings.players[0].deck);
+            if (user.state === 'connected' && user.socket) {
+                user.socket.send('lobbystate', this.getLobbyState());
             }
         }
     }

@@ -119,7 +119,7 @@ export class GameServer {
     private createLobby(user: any, deck: any) {
         const lobby = new Lobby();
         this.lobbies.set(lobby.id, lobby);
-        lobby.createLobbyUser(user, deck);
+        lobby.createLobbyUser(user, deck, true);
         this.userLobbyMap.set(user.id, lobby.id);
         lobby.setTokens();
         return true;
