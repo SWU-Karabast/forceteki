@@ -12,10 +12,7 @@ export default class TheInvasionofChristophsis extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Defeat each unit that your opponent controls.',
-            immediateEffect: AbilityHelper.immediateEffects.defeat((context) => {
-                const units = context.player.opponent.getUnitsInPlay();
-                return { target: units };
-            })
+            immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({ target: context.player.opponent.getUnitsInPlay() }))
         });
     }
 }

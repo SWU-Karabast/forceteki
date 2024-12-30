@@ -16,9 +16,10 @@ describe('The Invasion Of Christophsis', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.theInvasionOfChristophsis);
-            expect(context.player2.getCardsInZone('groundArena').length).toBe(0);
-            expect(context.player2.getCardsInZone('spaceArena').length).toBe(0);
-            expect(context.player1.getCardsInZone('groundArena').length).toBe(1);
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.allianceXwing).toBeInZone('discard');
+            expect(context.lukeSkywalker).toBeInZone('base');
+            expect(context.battlefieldMarine).toBeInZone('groundArena');
         });
     });
 });

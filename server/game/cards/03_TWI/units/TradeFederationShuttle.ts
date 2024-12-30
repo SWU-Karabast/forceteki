@@ -13,8 +13,13 @@ export default class TradeFederationShuttle extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'create a Battle Droid token.',
-            immediateEffect: AbilityHelper.immediateEffects.conditional({ condition: (context) => context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (unit: UnitCard) => unit.damage > 0).length > 0,
+            title: 'Create a Battle Droid token.',
+            // eslint-disable-next-line @stylistic/object-curly-newline
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) => context.source.controller.getUnitsInPlay(
+                    WildcardZoneName.AnyArena,
+                    (unit: UnitCard) => unit.damage > 0).length > 0,
+
                 onTrue: AbilityHelper.immediateEffects.createBattleDroid(),
                 onFalse: AbilityHelper.immediateEffects.noAction() })
         });

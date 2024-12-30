@@ -31,7 +31,7 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addOnAttackAbility({
-            title: 'create a Battle Droid token.',
+            title: 'Create a Battle Droid token.',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });
     }
