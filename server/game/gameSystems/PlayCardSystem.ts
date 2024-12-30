@@ -99,15 +99,23 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             ? card.getPlayCardFromOutOfPlayActions()
             : card.getPlayCardActions();
 
-        const cardPlayActionsWithProperties = availableCardPlayActions
+        // filter out actions that aren't legal
+        return this.clonePlayActionsWithOverrides(availableCardPlayActions, card, properties, context)
+            .filter((action) => {
+                const newContext = action.createContext(context.player);
+                return action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+            });
+    }
+
+    protected clonePlayActionsWithOverrides(
+        availableCardPlayActions: PlayCardAction[],
+        card: Card,
+        properties: IPlayCardProperties,
+        context: TContext
+    ) {
+        return availableCardPlayActions
             .filter((action) => action.playType === properties.playType)
             .map((playAction) => playAction.clone(this.buildPlayActionProperties(card, properties, context, playAction)));
-
-        // filter out actions that aren't legal
-        return cardPlayActionsWithProperties.filter((action) => {
-            const newContext = action.createContext(context.player);
-            return action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
-        });
     }
 
     private buildPlayActionProperties(card: Card, properties: IPlayCardProperties, context: TContext, action: PlayCardAction = null) {

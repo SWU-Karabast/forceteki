@@ -33,7 +33,7 @@ export class EventCard extends EventCardParent {
         return true;
     }
 
-    protected override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
+    public override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
         return new PlayEventAction({ card: this, ...properties });
     }
 

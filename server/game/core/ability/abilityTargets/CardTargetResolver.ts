@@ -67,7 +67,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return contextCopy;
     }
 
-    protected override hasLegalTarget(context: AbilityContext) {
+    public override hasLegalTarget(context: AbilityContext) {
         return this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 

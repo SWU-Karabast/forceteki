@@ -28,6 +28,7 @@ export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjusters: CostAdjuster[];
+    public readonly exploitValue?: number;
     public readonly playType: PlayType;
     public readonly usesExploit: boolean;
 
@@ -59,6 +60,7 @@ export abstract class PlayCardAction extends PlayerAction {
         this.playType = propertiesWithDefaults.playType;
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
         this.usesExploit = usesExploit;
+        this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
     }
 

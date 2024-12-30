@@ -43,7 +43,7 @@ export class UpgradeCard extends UpgradeCardParent {
         return true;
     }
 
-    protected override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
+    public override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
         return new PlayUpgradeAction({ card: this, ...properties });
     }
 

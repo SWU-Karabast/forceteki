@@ -95,7 +95,7 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     // can't do abstract due to mixins
-    protected buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>): PlayCardAction {
+    public buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>): PlayCardAction {
         Contract.fail('This method should be overridden by the subclass');
     }
 
