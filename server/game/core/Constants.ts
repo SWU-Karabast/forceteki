@@ -239,6 +239,7 @@ export enum EventName {
     OnTokensCreated = 'OnTokensCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
+    OnUpgradeUnattached = 'onUpgradeUnattached',
 }
 
 /**
@@ -435,4 +436,10 @@ export enum GameStateChangeRequired {
      * would be required to exhaust the full number of requested resources.
      */
     MustFullyResolve = 'mustFullyResolve',
+}
+
+export enum PromptType {
+    Initiative = 'initiative',
+    Resource = 'resource',
+    ActionWindow = 'actionWindow',
 }

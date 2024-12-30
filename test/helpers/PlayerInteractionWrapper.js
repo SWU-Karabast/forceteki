@@ -4,7 +4,7 @@ const Player = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
-const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual, formatBothPlayerPrompts } = require('./Util.js');
+const Util = require('./Util.js');
 
 class PlayerInteractionWrapper {
     /**
@@ -54,7 +54,7 @@ class PlayerInteractionWrapper {
     setHand(newContents = [], prevZones = ['deck']) {
         this.hand.forEach((card) => this.moveCard(card, 'deck'));
 
-        newContents.reverse().forEach((nameOrCard) => {
+        newContents.forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.moveCard(card, 'hand');
         });
@@ -113,17 +113,7 @@ class PlayerInteractionWrapper {
 
             // Get the upgrades
             if (leaderOptions.upgrades) {
-                leaderOptions.upgrades.forEach((upgradeName) => {
-                    const isToken = ['shield', 'experience'].includes(upgradeName);
-                    let upgrade;
-                    if (isToken) {
-                        upgrade = this.game.generateToken(this.player, upgradeName);
-                    } else {
-                        upgrade = this.findCardByName(upgradeName);
-                    }
-
-                    upgrade.attachTo(leaderCard);
-                });
+                this.setCardUpgrades(leaderCard, leaderOptions.upgrades);
             }
         } else {
             if (leaderOptions.deployed === false) {
@@ -220,9 +210,15 @@ class PlayerInteractionWrapper {
             if (!options.card) {
                 throw new TestSetupError('You must provide a card name');
             }
-            const opponentControlled = options.hasOwnProperty('ownerAndController') && options.ownerAndController !== this.player.nameField;
 
-            var card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
+            const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.nameField;
+
+            var card;
+            if (Util.isTokenUnit(options.card)) {
+                card = this.generateToken(this.player, options.card);
+            } else {
+                card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
+            }
 
             if (card.isUnit() && card.defaultArena !== arenaName) {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
@@ -246,27 +242,50 @@ class PlayerInteractionWrapper {
                 card.damage = options.damage;
             }
 
-            // Get the upgrades
             if (options.upgrades) {
-                options.upgrades.forEach((upgrade) => {
-                    const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
-                    const isToken = ['shield', 'experience'].includes(upgradeName);
-                    let upgradeCard;
-                    if (isToken) {
-                        upgradeCard = this.game.generateToken(this.player, upgradeName);
-                    } else {
-                        upgradeCard = this.findCardByName(upgradeName, prevZones);
-                    }
-
-                    upgradeCard.attachTo(card);
-                });
+                this.setCardUpgrades(card, options.upgrades, prevZones);
             }
+
             if (options.damage !== undefined) {
                 card.damage = options.damage;
             }
         });
 
         this.game.resolveGameState(true);
+    }
+
+    setCardUpgrades(card, upgrades, prevZones = 'any') {
+        for (const upgrade of upgrades) {
+            const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
+            let upgradeCard;
+            if (Util.isTokenUpgrade(upgradeName)) {
+                upgradeCard = this.generateToken(this.player, upgradeName);
+            } else {
+                upgradeCard = this.findCardByName(upgradeName, prevZones);
+            }
+
+            upgradeCard.attachTo(card);
+        }
+    }
+
+    generateToken(player, tokenName) {
+        let tokenClassName;
+        switch (tokenName) {
+            case 'battle-droid':
+                tokenClassName = 'battleDroid';
+                break;
+            case 'clone-trooper':
+                tokenClassName = 'cloneTrooper';
+                break;
+            case 'experience':
+            case 'shield':
+                tokenClassName = tokenName;
+                break;
+            default:
+                throw new TestSetupError(`Unknown token type: ${tokenName}`);
+        }
+
+        return this.game.generateToken(player, tokenClassName);
     }
 
     get deck() {
@@ -407,7 +426,12 @@ class PlayerInteractionWrapper {
     }
 
     findCardByName(name, zones = 'any', side) {
-        return this.filterCardsByName(name, zones, side)[0];
+        var cards = this.filterCardsByName(name, zones, side);
+        // TODO: Update to throw exception when returning more or less than 1 card. This will require updates to the test suite.git
+        if (cards.length === 0) {
+            throw new TestSetupError(`Could not find any cards matching name ${name}`);
+        }
+        return cards[0];
     }
 
     findCardsByName(names, zones = 'any', side) {
@@ -428,19 +452,18 @@ class PlayerInteractionWrapper {
                 zones = [zones];
             }
         }
-        try {
-            var cards = this.filterCards(
-                (card) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
-                side
-            );
-        } catch (e) {
-            throw new TestSetupError(`Names: ${namesAra}, ZoneName: ${zones}. Error thrown: ${e}`);
-        }
-        return cards;
+        return this.filterCards(
+            (card) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
+            side
+        );
     }
 
     findCard(condition, side) {
-        return this.filterCards(condition, side)[0];
+        var cards = this.filterCards(condition, side);
+        if (cards.length === 0) {
+            throw new TestSetupError('Could not find any matching cards');
+        }
+        return cards[0];
     }
 
     /**
@@ -453,12 +476,7 @@ class PlayerInteractionWrapper {
         if (side === 'opponent') {
             player = this.opponent;
         }
-        var cards = player.decklist.allCards.filter(condition);
-        if (cards.length === 0) {
-            throw new TestSetupError(`Could not find any matching cards for ${player.name}`);
-        }
-
-        return cards;
+        return player.decklist.allCards.filter(condition);
     }
 
     exhaustResources(number) {
@@ -475,7 +493,7 @@ class PlayerInteractionWrapper {
     }
 
     selectDeck(deck) {
-        this.game.selectDeck(this.player.name, deck);
+        this.game.selectDeck(this.player.id, deck);
     }
 
     clickPrompt(text) {
@@ -487,7 +505,7 @@ class PlayerInteractionWrapper {
 
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
-                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
+                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -500,7 +518,7 @@ class PlayerInteractionWrapper {
         var currentPrompt = this.player.currentPrompt();
         if (!currentPrompt.dropdownListOptions.includes(text)) {
             throw new TestSetupError(
-                `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
+                `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -540,7 +558,7 @@ class PlayerInteractionWrapper {
         if (currentPrompt.buttons.length <= index) {
             throw new TestSetupError(
                 `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
+                }. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -549,7 +567,7 @@ class PlayerInteractionWrapper {
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
                 `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
+                }. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -568,7 +586,7 @@ class PlayerInteractionWrapper {
         if (!promptControl) {
             throw new TestSetupError(
                 `Couldn't click card '${cardName}' for ${this.player.name
-                } - unable to find control '${controlName}'. Current prompt is:\n${formatBothPlayerPrompts(this.testContext)}`
+                } - unable to find control '${controlName}'. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
@@ -583,7 +601,7 @@ class PlayerInteractionWrapper {
         let availableCards = this.currentActionTargets;
 
         if (!availableCards || availableCards.length < nCardsToChoose) {
-            throw new TestSetupError(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${formatBothPlayerPrompts(this.testContext)}`);
+            throw new TestSetupError(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${Util.formatBothPlayerPrompts(this.testContext)}`);
         }
 
         for (let i = 0; i < nCardsToChoose; i++) {
@@ -598,7 +616,7 @@ class PlayerInteractionWrapper {
     }
 
     clickCard(card, zone = 'any', side = 'self', expectChange = true) {
-        checkNullCard(card, this.testContext);
+        Util.checkNullCard(card, this.testContext);
 
         if (typeof card === 'string') {
             card = this.findCardByName(card, zone, side);
@@ -606,16 +624,16 @@ class PlayerInteractionWrapper {
 
         let beforeClick = null;
         if (expectChange) {
-            beforeClick = getPlayerPromptState(this.player);
+            beforeClick = Util.getPlayerPromptState(this.player);
         }
 
         this.game.cardClicked(this.player.name, card.uuid);
         this.game.continue();
 
         if (expectChange) {
-            const afterClick = getPlayerPromptState(this.player);
-            if (promptStatesEqual(beforeClick, afterClick)) {
-                throw new TestSetupError(`Nothing happened when ${this.player.name} clicked ${card.internalName} (prompt and board state did not change). Current prompts:\n${formatBothPlayerPrompts(this.testContext)}`);
+            const afterClick = Util.getPlayerPromptState(this.player);
+            if (Util.promptStatesEqual(beforeClick, afterClick)) {
+                throw new TestSetupError(`Nothing happened when ${this.player.name} clicked ${card.internalName} (prompt and board state did not change). Current prompts:\n${Util.formatBothPlayerPrompts(this.testContext)}`);
             }
         }
 

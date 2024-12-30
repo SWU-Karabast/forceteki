@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { ZoneName, DeckZoneDestination, PlayType } from '../core/Constants';
+import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer } from '../core/Constants';
 import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
 import { AggregateSystem, ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
@@ -55,6 +55,8 @@ import { SequentialSystem } from './SequentialSystem';
 import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
 import { TakeControlOfUnitSystem, ITakeControlProperties } from './TakeControlOfUnitSystem';
+
+import * as Helpers from '../core/utils/Helpers';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -289,9 +291,28 @@ export function takeControlOfUnit<TContext extends AbilityContext = AbilityConte
 // //////////////
 // // PLAYER
 // //////////////
-export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHandSystem<TContext> {
-    // TODO: Once we support discarding from opponents hand, add logic only allow the target to discard from their own hand here
-    return new DiscardCardsFromHandSystem<TContext>(propertyFactory);
+export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingPlayer'>, TContext>): DiscardCardsFromHandSystem<TContext> {
+    const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
+        const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
+        return {
+            ...properties,
+            choosingPlayer: RelativePlayer.Self
+        };
+    };
+
+    return new DiscardCardsFromHandSystem<TContext>(wrappedPropertyFactory);
+}
+
+export function discardCardsFromOpponentsHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingPlayer'>, TContext>): DiscardCardsFromHandSystem<TContext> {
+    const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
+        const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
+        return {
+            ...properties,
+            choosingPlayer: RelativePlayer.Opponent,
+        };
+    };
+
+    return new DiscardCardsFromHandSystem<TContext>(wrappedPropertyFactory);
 }
 
 /**

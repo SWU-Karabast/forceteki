@@ -53,6 +53,13 @@ export class UpgradeCard extends UpgradeCardParent {
         return actions;
     }
 
+    public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+        return {
+            ...super.getSummary(activePlayer, hideWhenFaceup),
+            parentCardId: this._parentCard ? this._parentCard.uuid : null
+        };
+    }
+
     /** The card that this card is underneath */
     public get parentCard(): UnitCard {
         Contract.assertNotNullLike(this._parentCard);
@@ -152,7 +159,6 @@ export class UpgradeCard extends UpgradeCardParent {
         });
     }
 
-    // TODO: add "gainWhenDefeated" helper
     /**
      * Adds an "attached card gains [X]" ability, where X is an "on attack" triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
@@ -160,6 +166,21 @@ export class UpgradeCard extends UpgradeCardParent {
     protected addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, UnitCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
+
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give ability to the attached card',
+            condition: this.addZoneCheckToGainCondition(gainCondition),
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
+        });
+    }
+
+    /**
+     * Adds an "attached card gains [X]" ability, where X is an "when defeated" triggered ability. You can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, UnitCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+        const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',

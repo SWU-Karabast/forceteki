@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
+import { PlayCardAction } from '../../ability/PlayCardAction';
 import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import { Aspect, CardType, MoveZoneDestination, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
@@ -34,9 +35,9 @@ export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> 
  */
 export class PlayableOrDeployableCard extends Card {
     /**
-         * List of actions that the player can take with this card that aren't printed text abilities.
-         * Typical examples are playing / deploying cards and attacking.
-         */
+     * List of actions that the player can take with this card that aren't printed text abilities.
+     * Typical examples are playing / deploying cards and attacking.
+     */
     protected defaultActions: PlayerOrCardAbility[] = [];
 
     private _exhausted?: boolean = null;
@@ -61,6 +62,11 @@ export class PlayableOrDeployableCard extends Card {
 
     public override getActions(): PlayerOrCardAbility[] {
         return this.defaultActions.concat(super.getActions());
+    }
+
+    // TODO: "underControlOf" is not yet generally supported
+    public getPlayCardActions(): PlayCardAction[] {
+        return this.getActions().filter((action) => action.isPlayCardAbility());
     }
 
     public exhaust() {

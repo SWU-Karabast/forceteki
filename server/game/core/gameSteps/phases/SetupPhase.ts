@@ -4,6 +4,7 @@ import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
+import { PromptType } from '../../Constants';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game) {
@@ -25,6 +26,7 @@ export class SetupPhase extends Phase {
         const firstPlayer = randomItem(this.game.getPlayers());
 
         this.game.promptWithHandlerMenu(firstPlayer, {
+            promptType: PromptType.Initiative,
             activePromptTitle: 'You won the flip. Do you want to start with initiative:',
             source: 'Choose Initiative Player',
             choices: ['Yes', 'No'],

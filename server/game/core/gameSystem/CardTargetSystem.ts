@@ -166,7 +166,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card} but is in zone ${card.zone}`);
+        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
@@ -180,6 +180,19 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 // be added as "contingent events" in the event window, so they'll resolve in the same window but after the primary event
                 contingentEvents = contingentEvents.concat(this.generateUpgradeDefeatEvents(card, context, event));
                 contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
+            }
+
+            if (card.isUpgrade()) {
+                contingentEvents.push(
+                    new GameEvent(
+                        EventName.OnUpgradeUnattached,
+                        context,
+                        {
+                            upgradeCard: card,
+                            parentCard: card.parentCard,
+                        }
+                    )
+                );
             }
 
             return contingentEvents;

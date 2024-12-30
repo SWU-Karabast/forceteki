@@ -19,6 +19,7 @@ import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
 import type { LeaderUnitCard } from './LeaderUnitCard';
 import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
+import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
@@ -135,12 +136,13 @@ export class Card extends OngoingEffectSource {
     public getActionAbilities(): ActionAbility[] {
         const deduplicatedActionAbilities: ActionAbility[] = [];
 
+        // Add any gained action abilities, deduplicating by any identical gained action abilities from
+        // the same source card (e.g., two Heroic Resolve actions)
         const seenCardNameSources = new Set<string>();
         for (const action of this.actionAbilities) {
             if (action.printedAbility) {
                 deduplicatedActionAbilities.push(action);
             } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
-                // Deduplicate any identical gained action abilities from the same source card (e.g., two Heroic Resolve actions)
                 deduplicatedActionAbilities.push(action);
                 seenCardNameSources.add(action.gainAbilitySource.internalName);
             }
@@ -307,6 +309,14 @@ export class Card extends OngoingEffectSource {
 
     public isToken(): this is TokenCard {
         return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
+    }
+
+    public isTokenUnit(): this is TokenUnitCard {
+        return this.type === CardType.TokenUnit;
+    }
+
+    public isTokenUpgrade(): this is TokenUpgradeCard {
+        return this.type === CardType.TokenUpgrade;
     }
 
     public isShield(): this is Shield {
@@ -792,6 +802,7 @@ export class Card extends OngoingEffectSource {
             id: this.cardData.id,
             setId: this.cardData.setId,
             controlled: this.owner !== this.controller,
+            aspects: this.aspects,
             // facedown: this.isFacedown(),
             zone: this.zoneName,
             // menu: this.getMenu(),

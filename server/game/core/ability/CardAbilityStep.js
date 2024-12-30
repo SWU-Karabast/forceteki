@@ -1,7 +1,7 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stage, AbilityType, RelativePlayer } = require('../Constants.js');
-const AttackHelper = require('../attack/AttackHelper.js');
+const AttackHelper = require('../attack/AttackHelpers.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
 
@@ -132,6 +132,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
                 window.setSubAbilityStep(() => this.getSubAbilityStepContext(context, eventsToResolve));
             // if no events for the current step, skip directly to the "then" step (if any)
             } else {
+                // TODO THIS PR: make sure that this part also passes triggers to parent window?
                 const subAbilityStep = this.getSubAbilityStepContext(context, []);
                 if (!!subAbilityStep) {
                     this.game.resolveAbility(subAbilityStep);

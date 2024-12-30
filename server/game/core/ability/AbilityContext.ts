@@ -60,7 +60,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.targetAbility = properties.targetAbility;
         // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
-        this.playType = this.ability?.isCardPlayed()
+        this.playType = this.ability?.isPlayCardAbility()
             ? properties.playType ?? (this.player && this.player.findPlayType(this.source))
             : null;
     }
