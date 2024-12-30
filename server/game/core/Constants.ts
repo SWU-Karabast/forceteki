@@ -124,7 +124,7 @@ export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',
-    Between = 'between',
+    // TODO: add 'Between'
     BetweenVariable = 'betweenVariable',
     DropdownList = 'dropdownList',
     Exactly = 'exactly',
