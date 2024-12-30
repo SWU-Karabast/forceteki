@@ -18,11 +18,10 @@ export class GameChat {
         message: MessageText | { alert: { type: string; message: string | string[] } };
     }[] = [];
 
-    public addChatMessage(player: Player, message: any): void {
+    public addChatMessage(player: any, message: any): void {
         const playerArg = {
-            name: player.user.username,
-            emailHash: player.user.emailHash,
-            noAvatar: player.user.settings.disableGravatar
+            name: player.username,
+            email: player.email,
         };
 
         this.addMessage('{0} {1}', playerArg, message);
