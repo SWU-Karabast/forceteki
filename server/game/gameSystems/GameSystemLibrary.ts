@@ -103,7 +103,6 @@ import { SimultaneousGameSystem } from './SimultaneousSystem';
 import type { ITakeControlProperties } from './TakeControlOfUnitSystem';
 import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
 
-import * as Helpers from '../core/utils/Helpers';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 

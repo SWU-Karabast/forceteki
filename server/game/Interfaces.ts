@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityCon
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { Duration, RelativePlayerFilter } from './core/Constants';
-import { type RelativePlayer, type CardType, type ZoneName, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
+import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';

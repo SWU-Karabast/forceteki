@@ -1,5 +1,4 @@
 import type { IAbilityPropsWithType } from '../../Interfaces';
-import { ITriggeredAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { Aspect, KeywordName } from '../Constants';
 import type { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';

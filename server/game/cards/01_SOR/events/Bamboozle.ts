@@ -1,9 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { Aspect, PlayType, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
 import { PlayEventAction } from '../../../actions/PlayEventAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
-import { PlayCardAction } from '../../../core/ability/PlayCardAction';
 import { CostAdjuster, CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class Bamboozle extends EventCard {

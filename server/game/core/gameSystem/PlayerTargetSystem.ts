@@ -1,5 +1,4 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { Card } from '../card/Card';
 import type { TriggerHandlingMode } from '../event/EventWindow';
 import type { GameEvent } from '../event/GameEvent';
 import Player from '../Player';

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, EffectName, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { EffectName, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
 
 export default class SawGerreraExtremist extends NonLeaderUnitCard {

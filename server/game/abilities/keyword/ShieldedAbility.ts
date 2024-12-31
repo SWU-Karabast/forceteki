@@ -1,5 +1,4 @@
 import AbilityHelper from '../../AbilityHelper';
-import { AbilityContext } from '../../core/ability/AbilityContext';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';

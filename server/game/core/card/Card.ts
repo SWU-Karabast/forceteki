@@ -14,7 +14,7 @@ import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordI
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
-import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard } from './CardTypes';
+import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
@@ -25,7 +25,6 @@ import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployabl
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
-import { CaptureZone } from '../zone/CaptureZone';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;

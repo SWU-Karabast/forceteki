@@ -1,6 +1,5 @@
-import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } from '../core/Constants.js';
+import { AbilityRestriction, EffectName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
-import { GameEvent } from '../core/event/GameEvent.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';

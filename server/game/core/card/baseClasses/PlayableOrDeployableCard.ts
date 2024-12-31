@@ -10,7 +10,6 @@ import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, 
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
-import * as EnumHelpers from '../../utils/EnumHelpers';
 import { Card } from '../Card';
 
 // required for mixins to be based on this class

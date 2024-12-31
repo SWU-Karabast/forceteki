@@ -3,7 +3,7 @@ import type { IPlayerTargetResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
 import type Player from '../../Player';
 import type PlayerOrCardAbility from '../PlayerOrCardAbility';
-import { Stage, TargetMode } from '../../Constants';
+import { TargetMode } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import { isArray } from 'underscore';
 

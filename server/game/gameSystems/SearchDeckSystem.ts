@@ -3,10 +3,9 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
-import { EventName, ZoneName, DeckZoneDestination, TargetMode } from '../core/Constants.js';
+import { EventName, DeckZoneDestination, TargetMode } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { GameSystem } from '../core/gameSystem/GameSystem.js';
-import { IGameSystemProperties } from '../core/gameSystem/GameSystem.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import type Player from '../core/Player.js';

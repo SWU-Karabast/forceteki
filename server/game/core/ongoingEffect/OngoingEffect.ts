@@ -3,9 +3,8 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type { Card } from '../card/Card';
 import type { ZoneFilter } from '../Constants';
-import { Duration, RelativePlayer, WildcardZoneName, EffectName } from '../Constants';
+import { Duration, WildcardZoneName, EffectName } from '../Constants';
 import type Game from '../Game';
-import { GameObject } from '../GameObject';
 import type Player from '../Player';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 

@@ -1,4 +1,3 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';

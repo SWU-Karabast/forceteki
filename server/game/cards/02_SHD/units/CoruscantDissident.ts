@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class CoruscantDissident extends NonLeaderUnitCard {
     protected override getImplementationId() {

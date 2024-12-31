@@ -3,7 +3,6 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
-import { UnitCard } from '../../../core/card/CardTypes';
 
 export default class SparkOfHope extends EventCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;

@@ -6,8 +6,7 @@ import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import type { IAttackProperties } from './AttackStepsSystem';
-import * as GameSystemLibrary from './GameSystemLibrary';
-import { EventName, MetaEventName } from '../core/Constants';
+import { MetaEventName } from '../core/Constants';
 
 export interface IInitiateAttackProperties<TContext extends AbilityContext = AbilityContext> extends IAttackProperties {
     ignoredRequirements?: string[];

@@ -7,7 +7,6 @@ import { EventCard } from './EventCard';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import { UpgradeCard } from './UpgradeCard';
-import { LeaderCard } from './LeaderCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
 
 

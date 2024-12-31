@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, KeywordName } from '../../../core/Constants';
 
 export default class SubjugatingStarfighter extends NonLeaderUnitCard {
     protected override getImplementationId () {

@@ -2,7 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { PlayType, Aspect, CardTypeFilter } from '../Constants';
-import { CardType, WildcardCardType } from '../Constants';
+import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';

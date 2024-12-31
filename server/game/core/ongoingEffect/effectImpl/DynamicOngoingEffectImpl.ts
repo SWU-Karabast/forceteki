@@ -1,7 +1,5 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
-import { OngoingEffectImpl } from './OngoingEffectImpl';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 
 // TODO: eventually this will subclass OngoingEffectImpl directly

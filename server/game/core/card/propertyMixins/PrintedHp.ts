@@ -1,6 +1,5 @@
 import * as Contract from '../../utils/Contract';
 import type { CardConstructor } from '../Card';
-import type { WithDamage } from './Damage';
 
 /**
  * Mixin function that adds the `printedHp` and `hp` properties to a base class.

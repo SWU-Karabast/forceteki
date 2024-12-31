@@ -1,6 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { GameSystem } from '../gameSystem/GameSystem';
-import { TriggeredAbilityContext } from '../ability/TriggeredAbilityContext';
 import type { GameEvent } from '../event/GameEvent';
 import type Player from '../Player.js';
 

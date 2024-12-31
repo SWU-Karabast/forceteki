@@ -1,5 +1,4 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { BaseCard } from '../core/card/BaseCard';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';

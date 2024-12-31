@@ -1,9 +1,7 @@
 import AbilityHelper from '../../AbilityHelper';
-import { AbilityContext } from '../../core/ability/AbilityContext';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import type { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
 import type { Card } from '../../core/card/Card';
-import { UnitCard } from '../../core/card/CardTypes';
 import { KeywordName } from '../../core/Constants';
 import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';

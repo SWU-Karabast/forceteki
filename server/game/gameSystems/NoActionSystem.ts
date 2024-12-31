@@ -1,7 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import type { Card } from '../core/card/Card';
-import { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
 
 export interface INoActionSystemProperties extends IGameSystemProperties {

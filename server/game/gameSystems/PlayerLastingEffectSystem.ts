@@ -4,7 +4,6 @@ import { EventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
-import { OngoingEffect } from '../core/ongoingEffect/OngoingEffect';
 import type Player from '../core/Player';
 
 export interface IPlayerLastingEffectProperties extends ILastingEffectPropertiesBase {

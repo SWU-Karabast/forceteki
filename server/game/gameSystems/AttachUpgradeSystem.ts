@@ -7,7 +7,6 @@ import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constan
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     upgrade?: UpgradeCard;

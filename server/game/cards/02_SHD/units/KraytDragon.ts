@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName, RelativePlayer } from '../../../core/Constants';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class KraytDragon extends NonLeaderUnitCard {
     protected override getImplementationId() {

@@ -3,7 +3,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import { Card } from '../../../core/card/Card';
 
 export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;

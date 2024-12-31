@@ -1,12 +1,7 @@
 import type { Card } from '../../card/Card';
-import { CardWithPrintedHp, CardWithPrintedPower, UnitCard } from '../../card/CardTypes';
 import type { CardType } from '../../Constants';
-import { OngoingEffect } from '../OngoingEffect';
 import type { IOngoingCardEffect } from '../IOngoingCardEffect';
 import type { StatsModifier } from './StatsModifier';
-import { LeaderUnitCard } from '../../card/LeaderUnitCard';
-import { NonLeaderUnitCard } from '../../card/NonLeaderUnitCard';
-import { UnitPropertiesCard } from '../../card/propertyMixins/UnitProperties';
 import * as Contract from '../../utils/Contract';
 
 /**

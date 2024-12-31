@@ -2,7 +2,6 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, PlayType } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
-import { CostAdjuster } from '../core/cost/CostAdjuster';
 import * as Contract from '../core/utils/Contract.js';
 import type { ExploitPlayCardResourceCost } from '../abilities/keyword/ExploitPlayCardResourceCost';
 
