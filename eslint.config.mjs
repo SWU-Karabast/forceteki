@@ -103,6 +103,11 @@ export default tseslint.config(
             ...tseslint.configs.strict,
             ...tseslint.configs.stylistic,
         ],
+        languageOptions: {
+            parserOptions: {
+              projectService: true
+            }
+        },
         rules: {
             "@typescript-eslint/no-unused-vars": ["error", {
                 "vars": "local",
@@ -121,7 +126,8 @@ export default tseslint.config(
             "@typescript-eslint/explicit-member-accessibility": "error",
             "@typescript-eslint/no-namespace": "off",
             "@stylistic/type-annotation-spacing": ["error"],
-            "@typescript-eslint/consistent-type-imports": "error"
+            "@typescript-eslint/consistent-type-imports": "error",
+            "@typescript-eslint/consistent-type-exports": "error"
         }
     },
     {
