@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { GameObject } from '../GameObject';
 import type { IGameSystemProperties } from './GameSystem';
 import { GameSystem } from './GameSystem';
 
@@ -33,7 +34,7 @@ export abstract class AggregateSystem<TContext extends AbilityContext = AbilityC
     public abstract override hasLegalTarget(context: TContext, additionalProperties?: any): boolean;
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
-    protected override isTargetTypeValid(target: any): boolean {
+    protected override isTargetTypeValid(target: GameObject): boolean {
         return false;
     }
 }

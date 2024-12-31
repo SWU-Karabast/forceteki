@@ -637,6 +637,10 @@ export class Card extends OngoingEffectSource {
     }
 
     // ******************************************* MISC *******************************************
+    public override isCard(): this is Card {
+        return true;
+    }
+
     protected assertPropertyEnabled(propertyVal: any, propertyName: string) {
         Contract.assertNotNullLike(propertyVal, this.buildPropertyDisabledStr(propertyName));
     }

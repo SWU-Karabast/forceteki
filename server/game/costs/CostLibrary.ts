@@ -8,13 +8,13 @@ import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
 import type { CardWithDamageProperty } from '../core/card/CardTypes';
 import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
-import { ExhaustSystem } from '../gameSystems/ExhaustSystem';
 import { DefeatCardSystem } from '../gameSystems/DefeatCardSystem';
 import { DiscardSpecificCardSystem } from '../gameSystems/DiscardSpecificCardSystem';
 import { DamageSystem } from '../gameSystems/DamageSystem';
 import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
 import { ExhaustResourcesSystem } from '../gameSystems/ExhaustResourcesSystem';
 import { SelectCardSystem, type ISelectCardProperties } from '../gameSystems/SelectCardSystem';
+import { ExhaustSystem } from '../gameSystems/ExhaustSystem';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;

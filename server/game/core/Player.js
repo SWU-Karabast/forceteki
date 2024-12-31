@@ -89,6 +89,14 @@ class Player extends GameObject {
         this.promptState = new PlayerPromptState(this);
     }
 
+    /**
+     * @override
+     * @returns {this is Player}
+     */
+    isPlayer() {
+        return true;
+    }
+
     startClock() {
         this.clock.start();
         if (this.opponent) {

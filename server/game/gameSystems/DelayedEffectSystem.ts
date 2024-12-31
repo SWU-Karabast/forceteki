@@ -9,6 +9,7 @@ import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
+import type { GameObject } from '../core/GameObject';
 
 export enum DelayedEffectType {
     Card = 'card',
@@ -99,7 +100,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     }
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
-    protected override isTargetTypeValid(target: any): boolean {
+    protected override isTargetTypeValid(target: GameObject): boolean {
         return false;
     }
 

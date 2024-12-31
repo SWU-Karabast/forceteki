@@ -1,12 +1,13 @@
 import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { EventName, MetaEventName } from '../Constants';
-import { GameStateChangeRequired, Stage } from '../Constants';
+import { GameStateChangeRequired } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type Player from '../Player';
 import * as Helpers from '../utils/Helpers';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import * as Contract from '../utils/Contract';
+import type { GameObject } from '../GameObject';
 
 type PlayerOrCard = Player | Card;
 
@@ -42,7 +43,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
     protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
 
-    protected abstract isTargetTypeValid(target: any): boolean;
+    protected abstract isTargetTypeValid(target: GameObject | GameObject[]): boolean;
 
     /**
      * Helper method for adding an additional property onto the `propertiesOrPropertyFactory` signature accepted
@@ -143,14 +144,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @returns True if the target is legal for the system, false otherwise
      */
     // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
-    public canAffect(target: any, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
-
-        return (
-            this.isTargetTypeValid(target) &&
-            !context.gameActionsResolutionChain.includes(this) &&
-            ((context.stage === Stage.Effect && cannotBeCancelled) || !target.hasRestriction(this.name, context))
-        );
+    public canAffect(target: GameObject | GameObject[], context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        return this.isTargetTypeValid(target);
     }
 
     /**
