@@ -120,7 +120,8 @@ export default tseslint.config(
             "@typescript-eslint/prefer-namespace-keyword": "off",
             "@typescript-eslint/explicit-member-accessibility": "error",
             "@typescript-eslint/no-namespace": "off",
-            "@stylistic/type-annotation-spacing": ["error"]
+            "@stylistic/type-annotation-spacing": ["error"],
+            "@typescript-eslint/consistent-type-imports": "error"
         }
     },
     {
