@@ -16,6 +16,7 @@ describe('The Invasion Of Christophsis', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.theInvasionOfChristophsis);
+            context.player1.clickPrompt('Play The Invasion of Christophsis');
             expect(context.wampa).toBeInZone('discard');
             expect(context.allianceXwing).toBeInZone('discard');
             expect(context.lukeSkywalker).toBeInZone('base');
