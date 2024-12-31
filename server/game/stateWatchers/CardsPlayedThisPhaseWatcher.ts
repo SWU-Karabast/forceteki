@@ -10,8 +10,8 @@ export interface PlayedCardEntry {
     card: TokenOrPlayableCard;
     inPlayId?: number;
     playedBy: Player;
-    parentCard: InPlayCard;
-    parentCardInPlayId: number;
+    parentCard?: InPlayCard;
+    parentCardInPlayId?: number;
 }
 
 export type ICardsPlayedThisPhase = PlayedCardEntry[];
@@ -53,7 +53,7 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
             update: (currentState: ICardsPlayedThisPhase, event: any) =>
                 currentState.concat({
                     card: event.card,
-                    parentCard: event.card.parentCard,
+                    parentCard: event.card.parentCard ?? null,
                     parentCardInPlayId: event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
                     inPlayId: event.card.canBeInPlay() ? event.card.inPlayId : null,
                     playedBy: event.card.controller
