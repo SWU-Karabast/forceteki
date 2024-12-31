@@ -59,6 +59,7 @@ class PlayerOrCardAbility {
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
         this.uuid = uuidv4();
+        this.canResolveWithoutLegalTargets = false;
 
         // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
 
