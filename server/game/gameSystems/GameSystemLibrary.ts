@@ -17,6 +17,8 @@ import { CardPhaseLastingEffectSystem } from './CardPhaseLastingEffectSystem';
 import type { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { IPlayModalCardProperties } from './ChooseModalEffectsSystem';
 import { ChooseModalEffectsSystem } from './ChooseModalEffectsSystem';
+import type { ICollectBountyProperties } from './CollectBountySystem';
+import { CollectBountySystem } from './CollectBountySystem';
 import type { IConditionalSystemProperties } from './ConditionalSystem';
 import { ConditionalSystem } from './ConditionalSystem';
 import type { ICreateBattleDroidProperties } from './CreateBattleDroidSystem';
@@ -126,6 +128,9 @@ export function capture<TContext extends AbilityContext = AbilityContext>(proper
 }
 export function cardLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardLastingEffectProperties, TContext>): GameSystem<TContext> {
     return new CardLastingEffectSystem<TContext>(propertyFactory);
+}
+export function collectBounty<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICollectBountyProperties, TContext>) {
+    return new CollectBountySystem<TContext>(propertyFactory);
 }
 export function createBattleDroid<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateBattleDroidProperties, TContext> = {}) {
     return new CreateBattleDroidSystem<TContext>(propertyFactory);

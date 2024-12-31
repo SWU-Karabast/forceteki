@@ -1,16 +1,15 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
+import { EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { ITriggeredAbilityBaseProps } from '../Interfaces';
-import CardAbilityStep from '../core/ability/CardAbilityStep';
-import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import { BountyAbility } from '../abilities/keyword/BountyAbility';
+import type { UnitCard } from '../core/card/CardTypes';
 
 export interface ICollectBountyProperties extends ICardTargetSystemProperties {
-    bountyAbilityProps: ITriggeredAbilityBaseProps;
+    bountyProperties: ITriggeredAbilityBaseProps;
+    bountySource?: UnitCard;
 }
-
-// TODO THIS PR: remove this file if not used
 
 export class CollectBountySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ICollectBountyProperties> {
     public override readonly name = 'collect bounty';
@@ -18,15 +17,15 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
 
     public eventHandler(event): void {
-        const ability = new CardAbilityStep(event.context.game, event.card, event.bountyAbilityProps, AbilityType.Triggered);
+        // force optional to false since the player has already chosen to resolve the bounty
+        const properties = {
+            ...event.bountyProperties,
+            optional: false
+        };
 
-        const abilityContext = ability.createContext(event.context.player);
-        const triggeredAbilityContext = new TriggeredAbilityContext({
-            ...abilityContext.getProps(),
-            event
-        });
+        const ability = new BountyAbility(event.context.game, event.bountySource, properties);
 
-        event.context.game.resolveAbility(triggeredAbilityContext);
+        event.context.game.resolveAbility(ability.createContext(event.context.player, event));
     }
 
     // since the actual effect of the bounty is resolved in a sub-window, we don't check its effects here
@@ -35,8 +34,10 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        const { bountyAbilityProps } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.bountyAbilityProps = bountyAbilityProps;
+
+        const { bountyProperties, bountySource } = this.generatePropertiesFromContext(context, additionalProperties);
+        event.bountyProperties = bountyProperties;
+        event.bountySource = bountySource ?? card;
     }
 }
