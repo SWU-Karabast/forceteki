@@ -10,6 +10,8 @@ export interface ICollectBountyProperties extends ICardTargetSystemProperties {
     bountyAbilityProps: ITriggeredAbilityBaseProps;
 }
 
+// TODO THIS PR: remove this file if not used
+
 export class CollectBountySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ICollectBountyProperties> {
     public override readonly name = 'collect bounty';
     public override readonly eventName = EventName.OnBountyCollected;

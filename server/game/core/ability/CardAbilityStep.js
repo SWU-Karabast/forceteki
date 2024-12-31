@@ -119,13 +119,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
 
     executeGameActions(context) {
         context.events = [];
-        let systems = this.getGameSystems(context);
-        for (const system of systems) {
-            this.game.queueSimpleStep(() => {
-                system.queueGenerateEventGameSteps(context.events, context);
-            },
-            `queue ${system.name} event generation steps for ${this}`);
-        }
+
+        this.queueEventsForSystems(context);
+
         this.game.queueSimpleStep(() => {
             let eventsToResolve = context.events.filter((event) => event.canResolve);
             if (eventsToResolve.length > 0) {
@@ -140,6 +136,17 @@ class CardAbilityStep extends PlayerOrCardAbility {
                 }
             }
         }, `resolve events for ${this}`);
+    }
+
+    queueEventsForSystems(context) {
+        const systems = this.getGameSystems(context);
+
+        for (const system of systems) {
+            this.game.queueSimpleStep(() => {
+                system.queueGenerateEventGameSteps(context.events, context);
+            },
+            `queue ${system.name} event generation steps for ${this}`);
+        }
     }
 
     openEventWindow(events) {

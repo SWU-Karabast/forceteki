@@ -87,8 +87,8 @@ describe('Rich Reward', function() {
                 // Dark Trooper ability happens in same window
                 expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
                 context.player1.clickPrompt('You');
-                expect(context.player1).toHavePassAbilityPrompt('Bounty: Give an Experience token to each of up to 2 units');
-                context.player1.clickPrompt('Bounty: Give an Experience token to each of up to 2 units');
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
+                context.player1.clickPrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
 
                 expect(context.player2).toBeActivePlayer();
             });
