@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Card } from '../core/card/Card';
 import { UnitCard } from '../core/card/CardTypes';
 import { UpgradeCard } from '../core/card/UpgradeCard';
@@ -23,6 +24,7 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
 
 /** Records the "last known information" of a card before it left the arena, in case ability text needs to refer back to it. See SWU 8.12. */
 export interface ILastKnownInformation {
+    card: InPlayCard;
     controller: Player;
     arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
     power?: number;
@@ -132,6 +134,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (card.zoneName === ZoneName.Resource) {
             return {
+                card,
                 controller: card.controller,
                 arena: card.zoneName
             };
@@ -139,6 +142,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (card.isUnit()) {
             return {
+                card,
                 power: card.getPower(),
                 hp: card.getHp(),
                 arena: card.zoneName,
@@ -150,6 +154,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (card.isUpgrade()) {
             return {
+                card,
                 power: card.getPower(),
                 hp: card.getHp(),
                 arena: card.zoneName,

@@ -8,6 +8,7 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { TokenOrPlayableCard } from './CardTypes';
+import { IPlayCardActionProperties, PlayCardAction } from '../ability/PlayCardAction';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 
@@ -17,21 +18,14 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
 
         // superclasses check that we are a unit, check here that we are a non-leader unit
         Contract.assertFalse(this.printedType === CardType.Leader);
-
-        this.defaultActions.push(new PlayUnitAction({ card: this }));
     }
 
     public override isNonLeaderUnit(): this is NonLeaderUnitCard {
         return true;
     }
 
-    public override getActions(): PlayerOrCardAbility[] {
-        const actions = super.getActions();
-
-        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayUnitAction({ card: this, playType: PlayType.Smuggle }));
-        }
-        return actions;
+    public override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
+        return new PlayUnitAction({ card: this, ...properties });
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {

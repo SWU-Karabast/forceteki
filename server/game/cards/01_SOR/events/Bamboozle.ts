@@ -1,8 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { Aspect, EffectName, WildcardCardType } from '../../../core/Constants';
+import { Aspect, PlayType, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { PlayEventAction } from '../../../actions/PlayEventAction';
-import { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
+import { IPlayCardActionProperties, PlayCardAction } from '../../../core/ability/PlayCardAction';
 import { CostAdjuster, CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class Bamboozle extends EventCard {
@@ -13,8 +13,12 @@ export default class Bamboozle extends EventCard {
         };
     }
 
-    public override getActions() {
-        return super.getActions().concat(new PlayBamboozleAction({ card: this }));
+    protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand) {
+        const bamboozleAction = playType === PlayType.Smuggle
+            ? []
+            : [new PlayBamboozleAction({ card: this, playType })];
+
+        return super.buildPlayCardActions(playType).concat(bamboozleAction);
     }
 
     public override setupCardAbilities() {

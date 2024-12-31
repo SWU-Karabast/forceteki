@@ -32,14 +32,7 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     public moveEventToDiscard(context: PlayCardContext) {
-        const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, context, {
-            player: context.player,
-            card: context.source,
-            originalZone: context.source.zoneName,
-            originallyOnTopOfDeck:
-                context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
-            playType: context.playType,
-            onPlayCardSource: context.onPlayCardSource,
+        const cardPlayedEvent = this.generateOnPlayEvent(context, {
             resolver: this,
             handler: () => context.source.moveTo(ZoneName.Discard)
         });

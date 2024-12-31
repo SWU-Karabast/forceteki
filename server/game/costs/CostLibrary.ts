@@ -62,7 +62,6 @@ export function defeatSelf<TContext extends AbilityContext = AbilityContext>(): 
     return new GameSystemCost<TContext>(GameSystems.defeat<TContext>({ isCost: true }));
 }
 
-// TODO THIS PR: add isCost: true to all of these
 /**
  * Cost that requires discard a card from hand that matches the passed condition predicate function.
  */
@@ -265,8 +264,8 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
  * adjuster effects the play has activated. Upon playing the card, all
  * matching adjuster effects will expire, if applicable.
  */
-export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(playType: PlayType, ignoreType = false): ICost<TContext> {
-    return new PlayCardResourceCost<TContext>(playType, ignoreType);
+export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(playType: PlayType): ICost<TContext> {
+    return new PlayCardResourceCost<TContext>(playType);
 }
 
 // /**

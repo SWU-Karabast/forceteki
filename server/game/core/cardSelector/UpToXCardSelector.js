@@ -8,7 +8,7 @@ class UpToXCardSelector extends BaseCardSelector {
     }
 
     /** @override */
-    defaultActivePromptTitle() {
+    defaultPromptString() {
         return this.numCards === 1 ? 'Select a card' : `Select ${this.numCards} cards`;
     }
 

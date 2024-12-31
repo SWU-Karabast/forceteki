@@ -7,7 +7,7 @@ class UpToVariableXCardSelector extends BaseCardSelector {
     }
 
     /** @override */
-    defaultActivePromptTitle(context) {
+    defaultPromptString(context) {
         if (this.cardTypeFilter.length === 1) {
             return this.numCardsFunc(context) === 1 ? 'Select a ' + this.cardTypeFilter[0] : `Select up to ${this.numCardsFunc(context)} ${this.cardTypeFilter[0]}s`;
         }

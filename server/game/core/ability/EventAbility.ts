@@ -4,6 +4,7 @@ import { AbilityType, ZoneName, PhaseName } from '../Constants.js';
 import type { IEventAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
+import { TriggerHandlingMode } from '../event/EventWindow.js';
 
 export class EventAbility extends CardAbility {
     protected anyPlayer: boolean;
@@ -11,7 +12,14 @@ export class EventAbility extends CardAbility {
     protected phase: string;
 
     public constructor(game: Game, card: Card, properties: IEventAbilityProps) {
-        super(game, card, properties, AbilityType.Event);
+        // since event abilities are broken into two stages of resolution, need to make sure
+        // that the first stage is the one that all triggers go to
+        const adjustedProperties = {
+            ...properties,
+            triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow
+        };
+
+        super(game, card, adjustedProperties, AbilityType.Event);
 
         this.doesNotTarget = (properties as any).doesNotTarget;
     }

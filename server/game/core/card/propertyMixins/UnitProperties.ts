@@ -83,6 +83,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected _captureZone?: CaptureZone = null;
         protected _upgrades?: UpgradeCard[] = null;
 
+        private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenCapturedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
@@ -148,7 +149,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            this.defaultActions.push(new InitiateAttackAction(this));
+            this.attackAction = new InitiateAttackAction(this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************
@@ -203,6 +204,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
+        public override getActions() {
+            return super.getActions()
+                .concat(this.attackAction);
+        }
+
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
             const triggeredProperties = { ...properties, when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } };
             this.addTriggeredAbility(triggeredProperties);
@@ -475,22 +481,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private getCoordinateAbilities() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Coordinate)
                 .map((keyword) => keyword as KeywordWithAbilityDefinition);
-        }
-
-        /**
-         * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
-         * for this card and adds up the total of their effect values.
-         * @returns value of the total effect if enabled, `null` if the effect is not present
-         */
-        public getNumericKeywordSum(keywordName: KeywordName.Restore | KeywordName.Raid): number | null {
-            let keywordValueTotal = 0;
-
-            for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
-                Contract.assertTrue(keyword instanceof KeywordWithNumericValue);
-                keywordValueTotal += keyword.value;
-            }
-
-            return keywordValueTotal > 0 ? keywordValueTotal : null;
         }
 
         public unregisterWhenPlayedKeywords() {
