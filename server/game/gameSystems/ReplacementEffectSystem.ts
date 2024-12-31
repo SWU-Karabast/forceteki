@@ -1,8 +1,9 @@
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
-import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import type { GameEvent } from '../core/event/GameEvent';
+import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
 
 export interface IReplacementEffectSystemProperties extends IGameSystemProperties {

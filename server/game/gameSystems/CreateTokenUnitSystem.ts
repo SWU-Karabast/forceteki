@@ -1,7 +1,9 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, TokenUnitName } from '../core/Constants';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import Player from '../core/Player';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { TokenUnitName } from '../core/Constants';
+import { EventName } from '../core/Constants';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type Player from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 

@@ -1,6 +1,7 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { PlayCardContext, PlayCardAction, IPlayCardActionProperties } from '../core/ability/PlayCardAction';
-import { UpgradeCard } from '../core/card/UpgradeCard';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction';
+import { PlayCardAction } from '../core/ability/PlayCardAction';
+import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, PlayType } from '../core/Constants';
 import * as Contract from '../core/utils/Contract';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';

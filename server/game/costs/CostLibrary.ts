@@ -1,14 +1,15 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { DamageType, PlayType, ZoneName } from '../core/Constants';
-import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { PlayType } from '../core/Constants';
+import { DamageType, ZoneName } from '../core/Constants';
+import type { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
-import { ISelectCardProperties } from '../gameSystems/SelectCardSystem';
-import { ICost } from '../core/cost/ICost';
+import type { ISelectCardProperties } from '../gameSystems/SelectCardSystem';
+import type { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
 import { PlayCardResourceCost } from './PlayCardResourceCost';
-import { CardWithDamageProperty } from '../core/card/CardTypes';
-import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { CardWithDamageProperty } from '../core/card/CardTypes';
+import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;

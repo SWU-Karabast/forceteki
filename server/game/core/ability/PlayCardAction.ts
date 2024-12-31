@@ -1,12 +1,12 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
-import { IActionTargetResolver } from '../../TargetInterfaces';
-import { Card } from '../card/Card';
+import type { IActionTargetResolver } from '../../TargetInterfaces';
+import type { Card } from '../card/Card';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
-import { ICost } from '../cost/ICost';
+import type { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import { CostAdjuster } from '../cost/CostAdjuster';
+import type { CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';

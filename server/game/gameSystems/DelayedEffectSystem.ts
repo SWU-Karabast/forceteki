@@ -1,10 +1,12 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { IAbilityLimit, perGame } from '../core/ability/AbilityLimit';
-import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { IAbilityLimit } from '../core/ability/AbilityLimit';
+import { perGame } from '../core/ability/AbilityLimit';
+import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Duration, EventName } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
-import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { WhenType } from '../Interfaces';
+import type { GameEvent } from '../core/event/GameEvent';
+import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import { GameSystem } from '../core/gameSystem/GameSystem';
+import type { WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
 

@@ -1,16 +1,17 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
 import { CardType, KeywordName, ZoneName, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
-import { IDecreaseCostAbilityProps, PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
-import { IEventAbilityProps } from '../../Interfaces';
+import type { IDecreaseCostAbilityProps } from './baseClasses/PlayableOrDeployableCard';
+import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import AbilityHelper from '../../AbilityHelper';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { TokenOrPlayableCard } from './CardTypes';
-import { IPlayCardActionProperties } from '../ability/PlayCardAction';
+import type { TokenOrPlayableCard } from './CardTypes';
+import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 

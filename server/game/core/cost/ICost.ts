@@ -1,8 +1,8 @@
-import { AbilityContext } from '../ability/AbilityContext';
-import { GameSystem } from '../gameSystem/GameSystem';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type { GameSystem } from '../gameSystem/GameSystem';
 import { TriggeredAbilityContext } from '../ability/TriggeredAbilityContext';
-import { GameEvent } from '../event/GameEvent';
-import Player from '../Player.js';
+import type { GameEvent } from '../event/GameEvent';
+import type Player from '../Player.js';
 
 export interface Result {
     canCancel?: boolean;

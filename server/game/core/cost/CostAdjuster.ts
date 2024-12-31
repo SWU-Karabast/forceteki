@@ -1,11 +1,12 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import { PlayType, Aspect, CardTypeFilter, CardType, WildcardCardType } from '../Constants';
+import type { PlayType, Aspect, CardTypeFilter } from '../Constants';
+import { CardType, WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
-import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
+import type { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 
 export enum CostAdjustType {
     Increase = 'increase',

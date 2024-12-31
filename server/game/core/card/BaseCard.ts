@@ -1,11 +1,11 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { Card } from './Card';
 import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
 import AbilityHelper from '../../AbilityHelper';
-import { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
 const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));

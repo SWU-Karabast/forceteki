@@ -1,9 +1,10 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { MetaEventName } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
-import { GameObject } from '../core/GameObject';
-import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { AggregateSystem, ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { MetaEventName } from '../core/Constants';
+import type { GameEvent } from '../core/event/GameEvent';
+import type { GameObject } from '../core/GameObject';
+import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import type { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
+import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 
 
 export interface ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {

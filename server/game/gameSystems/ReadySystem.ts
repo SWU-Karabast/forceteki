@@ -1,8 +1,9 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
-import { CardWithExhaustProperty } from '../core/card/CardTypes';
-import { ExhaustOrReadySystem, IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
+import type { CardWithExhaustProperty } from '../core/card/CardTypes';
+import type { IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
+import { ExhaustOrReadySystem } from './ExhaustOrReadySystem';
 
 export interface IReadySystemProperties extends IExhaustOrReadyProperties {
     isRegroupPhaseReadyStep?: boolean;

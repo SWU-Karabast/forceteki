@@ -1,5 +1,5 @@
 import { CardType } from '../Constants';
-import Player from '../Player';
+import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { BaseCard } from './BaseCard';
 import { Card } from './Card';

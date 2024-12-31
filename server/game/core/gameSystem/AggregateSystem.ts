@@ -1,5 +1,6 @@
-import { AbilityContext } from '../ability/AbilityContext';
-import { GameSystem, IGameSystemProperties } from './GameSystem';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type { IGameSystemProperties } from './GameSystem';
+import { GameSystem } from './GameSystem';
 
 // helper type useful for some extensions of this class
 export type ISystemArrayOrFactory<TContext extends AbilityContext> = (GameSystem<TContext>)[] | ((context: TContext) => (GameSystem<TContext>)[]);

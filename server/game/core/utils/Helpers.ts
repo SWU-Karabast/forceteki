@@ -1,5 +1,6 @@
-import { Card } from '../card/Card';
-import { Aspect, CardType, CardTypeFilter, ZoneName } from '../Constants';
+import type { Card } from '../card/Card';
+import type { Aspect, CardTypeFilter } from '../Constants';
+import { CardType, ZoneName } from '../Constants';
 import * as Contract from './Contract';
 import * as EnumHelpers from './EnumHelpers';
 

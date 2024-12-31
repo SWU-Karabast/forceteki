@@ -1,8 +1,9 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { Card } from '../core/card/Card';
 import { EventName, ZoneName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { IViewCardProperties, ViewCardMode, ViewCardSystem } from './ViewCardSystem';
+import type { IViewCardProperties } from './ViewCardSystem';
+import { ViewCardMode, ViewCardSystem } from './ViewCardSystem';
 
 export type IRevealProperties = Omit<IViewCardProperties, 'viewType'>;
 

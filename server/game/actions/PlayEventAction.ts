@@ -1,6 +1,7 @@
 import { AbilityRestriction, EventName, ZoneName, PlayType } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
-import { PlayCardContext, PlayCardAction, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
+import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
+import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import { GameEvent } from '../core/event/GameEvent.js';
 
 export class PlayEventAction extends PlayCardAction {

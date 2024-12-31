@@ -1,9 +1,10 @@
 import * as GameSystems from '../../../gameSystems/GameSystemLibrary';
 import { AbilityContext } from '../../ability/AbilityContext';
-import { UpgradeCard } from '../../card/UpgradeCard';
-import { PlayType, RelativePlayer } from '../../Constants';
-import Game from '../../Game';
-import Player from '../../Player';
+import type { UpgradeCard } from '../../card/UpgradeCard';
+import type { PlayType } from '../../Constants';
+import { RelativePlayer } from '../../Constants';
+import type Game from '../../Game';
+import type Player from '../../Player';
 import { UiPrompt } from './UiPrompt';
 
 export class AttachUpgradePrompt extends UiPrompt {

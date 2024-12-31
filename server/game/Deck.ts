@@ -1,11 +1,11 @@
 import { CardType, ZoneName } from './core/Constants';
-import { BaseCard } from './core/card/BaseCard';
-import { LeaderCard } from './core/card/LeaderCard';
-import { Card } from './core/card/Card';
+import type { BaseCard } from './core/card/BaseCard';
+import type { LeaderCard } from './core/card/LeaderCard';
+import type { Card } from './core/card/Card';
 import { cards } from './cards/Index';
-import Player from './core/Player';
+import type Player from './core/Player';
 import * as CardHelpers from './core/card/CardHelpers';
-import { TokenOrPlayableCard, TokenCard } from './core/card/CardTypes';
+import type { TokenOrPlayableCard, TokenCard } from './core/card/CardTypes';
 import * as Contract from './core/utils/Contract';
 
 export class Deck {

@@ -1,12 +1,13 @@
-import { IOngoingEffectProps, WhenType } from '../../Interfaces';
-import { AbilityContext } from '../ability/AbilityContext';
-import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { Card } from '../card/Card';
-import { Duration, ZoneFilter, RelativePlayer, WildcardZoneName, EffectName } from '../Constants';
-import Game from '../Game';
+import type { IOngoingEffectProps, WhenType } from '../../Interfaces';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { Card } from '../card/Card';
+import type { ZoneFilter } from '../Constants';
+import { Duration, RelativePlayer, WildcardZoneName, EffectName } from '../Constants';
+import type Game from '../Game';
 import { GameObject } from '../GameObject';
-import Player from '../Player';
-import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+import type Player from '../Player';
+import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 
 /**
  * Represents a card based effect applied to one or more targets.

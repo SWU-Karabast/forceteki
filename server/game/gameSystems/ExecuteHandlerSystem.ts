@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { Card } from '../core/card/Card';
-import { GameEvent } from '../core/event/GameEvent';
+import type { Card } from '../core/card/Card';
+import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
 
 export interface IExecuteHandlerSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {

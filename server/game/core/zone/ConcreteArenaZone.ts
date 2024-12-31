@@ -1,11 +1,12 @@
-import { InPlayCard } from '../card/baseClasses/InPlayCard';
-import { Card } from '../card/Card';
-import { ZoneName } from '../Constants';
-import Game from '../Game';
-import Player from '../Player';
+import type { InPlayCard } from '../card/baseClasses/InPlayCard';
+import type { Card } from '../card/Card';
+import type { ZoneName } from '../Constants';
+import type Game from '../Game';
+import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { ConcreteOrMetaArenaZone, IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
-import { IAddRemoveZone } from './ZoneAbstract';
+import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
+import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';
+import type { IAddRemoveZone } from './ZoneAbstract';
 
 /**
  * Base class for the "concrete" arena zones - ground and space - which are not the meta-zone AllArenasZone

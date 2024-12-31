@@ -1,10 +1,10 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, PlayType } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import { CostAdjuster } from '../core/cost/CostAdjuster';
 import * as Contract from '../core/utils/Contract.js';
-import { ExploitPlayCardResourceCost } from '../abilities/keyword/ExploitPlayCardResourceCost';
+import type { ExploitPlayCardResourceCost } from '../abilities/keyword/ExploitPlayCardResourceCost';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for

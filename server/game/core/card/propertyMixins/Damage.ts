@@ -1,11 +1,11 @@
-import { Attack } from '../../attack/Attack';
+import type { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
-import { Card, CardConstructor } from '../Card';
+import type { Card, CardConstructor } from '../Card';
 import { ZoneName } from '../../Constants';
 import type Player from '../../Player';
 import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';
-import { IDamageSource } from '../../../IDamageOrDefeatSource';
+import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 
 /**
  * Mixin function that adds the `damage` property and corresponding methods to a base class.

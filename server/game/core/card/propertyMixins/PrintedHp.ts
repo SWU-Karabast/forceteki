@@ -1,5 +1,5 @@
 import * as Contract from '../../utils/Contract';
-import { CardConstructor } from '../Card';
+import type { CardConstructor } from '../Card';
 import type { WithDamage } from './Damage';
 
 /**

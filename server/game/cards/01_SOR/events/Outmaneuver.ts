@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { Arena, ZoneName, TargetMode } from '../../../core/Constants';
+import type { Arena } from '../../../core/Constants';
+import { ZoneName, TargetMode } from '../../../core/Constants';
 
 export default class Outmaneuver extends EventCard {
     protected override getImplementationId() {

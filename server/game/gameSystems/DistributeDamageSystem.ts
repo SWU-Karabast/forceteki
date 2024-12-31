@@ -1,10 +1,11 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { Card } from '../core/card/Card';
 import { MetaEventName } from '../core/Constants';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import { DamageSystem } from './DamageSystem';
-import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
-import { HealSystem } from './HealSystem';
+import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
+import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
+import type { HealSystem } from './HealSystem';
 
 export type IDistributeDamageSystemProperties<TContext extends AbilityContext = AbilityContext> = IDistributeAmongTargetsSystemProperties<TContext>;
 

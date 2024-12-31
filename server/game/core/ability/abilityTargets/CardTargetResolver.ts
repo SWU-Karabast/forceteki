@@ -1,15 +1,16 @@
-import { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
-import { AbilityContext } from '../AbilityContext';
-import PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
+import type { AbilityContext } from '../AbilityContext';
+import type PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
-import { Card } from '../../card/Card';
-import { EffectName, GameStateChangeRequired, RelativePlayer, Stage, TargetMode, ZoneFilter, ZoneName } from '../../Constants';
+import type { Card } from '../../card/Card';
+import type { RelativePlayer, ZoneFilter, ZoneName } from '../../Constants';
+import { EffectName, GameStateChangeRequired, Stage, TargetMode } from '../../Constants';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
 import * as EnumHelpers from '../../utils/EnumHelpers.js';
-import { GameSystem } from '../../gameSystem/GameSystem';
+import type { GameSystem } from '../../gameSystem/GameSystem';
 
 /**
  * Target resolver for selecting cards for the target of an effect.

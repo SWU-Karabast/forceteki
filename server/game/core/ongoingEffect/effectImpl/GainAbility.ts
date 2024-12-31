@@ -1,4 +1,4 @@
-import { IAbilityPropsWithType } from '../../../Interfaces';
+import type { IAbilityPropsWithType } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
 import { AbilityType } from '../../Constants';

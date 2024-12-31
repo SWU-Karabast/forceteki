@@ -1,11 +1,12 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { LeaderCard } from './LeaderCard';
-import { CardType, ZoneName, ZoneFilter } from '../Constants';
+import type { ZoneFilter } from '../Constants';
+import { CardType, ZoneName } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import type { UnitCard } from './CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import * as Helpers from '../utils/Helpers';
 import AbilityHelper from '../../AbilityHelper';
 import * as Contract from '../utils/Contract';

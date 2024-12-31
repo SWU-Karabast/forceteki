@@ -1,19 +1,20 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { WithPrintedHp } from './propertyMixins/PrintedHp';
 import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
-import { AbilityType, CardType, KeywordName, ZoneName, MoveZoneDestination, PlayType, WildcardRelativePlayer } from '../Constants';
-import { TokenOrPlayableCard, UnitCard } from './CardTypes';
+import type { MoveZoneDestination } from '../Constants';
+import { AbilityType, CardType, KeywordName, ZoneName, PlayType, WildcardRelativePlayer } from '../Constants';
+import type { TokenOrPlayableCard, UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
-import { Card } from './Card';
+import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import type { Card } from './Card';
 import AbilityHelper from '../../AbilityHelper';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import { AbilityContext } from '../ability/AbilityContext';
+import type { AbilityContext } from '../ability/AbilityContext';
 import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { IPlayCardActionProperties } from '../ability/PlayCardAction';
+import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 
 interface IGainCondition<TSource extends UpgradeCard> {
     gainCondition?: (context: AbilityContext<TSource>) => boolean;

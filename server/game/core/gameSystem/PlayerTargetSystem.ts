@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Card } from '../card/Card';
-import { TriggerHandlingMode } from '../event/EventWindow';
-import { GameEvent } from '../event/GameEvent';
+import type { TriggerHandlingMode } from '../event/EventWindow';
+import type { GameEvent } from '../event/GameEvent';
 import Player from '../Player';
 import { GameSystem, type IGameSystemProperties } from './GameSystem';
 

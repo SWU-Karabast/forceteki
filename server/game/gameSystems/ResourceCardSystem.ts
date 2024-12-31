@@ -5,7 +5,7 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { ready } from './GameSystemLibrary';
 import * as Contract from '../core/utils/Contract';
-import { GameEvent } from '../core/event/GameEvent';
+import type { GameEvent } from '../core/event/GameEvent';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed

@@ -1,13 +1,13 @@
 import AbilityHelper from '../../AbilityHelper';
 import { AbilityContext } from '../../core/ability/AbilityContext';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
-import { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
-import { Card } from '../../core/card/Card';
+import type { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
+import type { Card } from '../../core/card/Card';
 import { UnitCard } from '../../core/card/CardTypes';
 import { KeywordName } from '../../core/Constants';
-import Game from '../../core/Game';
+import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
-import { ITriggeredAbilityProps } from '../../Interfaces';
+import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class AmbushAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Ambush;

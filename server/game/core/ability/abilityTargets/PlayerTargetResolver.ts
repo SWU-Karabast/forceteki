@@ -1,8 +1,8 @@
 import { TargetResolver } from './TargetResolver';
-import { IPlayerTargetResolver } from '../../../TargetInterfaces';
-import { AbilityContext } from '../AbilityContext';
+import type { IPlayerTargetResolver } from '../../../TargetInterfaces';
+import type { AbilityContext } from '../AbilityContext';
 import type Player from '../../Player';
-import PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { Stage, TargetMode } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import { isArray } from 'underscore';

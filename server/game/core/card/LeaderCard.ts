@@ -1,7 +1,8 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import * as Contract from '../utils/Contract';
-import { CardType, MoveZoneDestination, ZoneName } from '../Constants';
+import type { ZoneName } from '../Constants';
+import { CardType, MoveZoneDestination } from '../Constants';
 import { PlayCardAction } from '../ability/PlayCardAction';
 
 export class LeaderCard extends InPlayCard {

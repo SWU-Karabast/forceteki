@@ -1,10 +1,11 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, RelativePlayer } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { RelativePlayer } from '../core/Constants';
+import { EventName } from '../core/Constants';
+import type { GameEvent } from '../core/event/GameEvent';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
+import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
 import { OngoingEffect } from '../core/ongoingEffect/OngoingEffect';
-import Player from '../core/Player';
+import type Player from '../core/Player';
 
 export interface IPlayerLastingEffectProperties extends ILastingEffectPropertiesBase {
 

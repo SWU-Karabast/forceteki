@@ -1,7 +1,7 @@
-import { InPlayCard } from '../card/baseClasses/InPlayCard';
-import { Card } from '../card/Card';
+import type { InPlayCard } from '../card/baseClasses/InPlayCard';
+import type { Card } from '../card/Card';
 import { ZoneName } from '../Constants';
-import Player from '../Player';
+import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { SimpleZone } from './SimpleZone';
 

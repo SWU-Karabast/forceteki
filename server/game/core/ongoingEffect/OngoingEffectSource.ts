@@ -2,7 +2,7 @@ import AbilityHelper from '../../AbilityHelper';
 import { GameObject } from '../GameObject.js';
 
 import { Duration, WildcardZoneName } from '../Constants.js';
-import { OngoingEffect } from './OngoingEffect';
+import type { OngoingEffect } from './OngoingEffect';
 
 // This class is inherited by Card and also represents Framework effects
 
