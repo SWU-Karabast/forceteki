@@ -1,7 +1,7 @@
-import { AbilityRestriction, EffectName, EventName, PlayType, RelativePlayer } from '../core/Constants.js';
+import { AbilityRestriction, EffectName, PlayType, RelativePlayer } from '../core/Constants.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
-import { GameEvent } from '../core/event/GameEvent.js';
-import { PlayCardAction, PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
+import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
+import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
 
 export interface IPlayUnitActionProperties extends IPlayCardActionProperties {
@@ -21,16 +21,6 @@ export class PlayUnitAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isUnit());
 
-        const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, context, {
-            player: context.player,
-            card: context.source,
-            originalZone: context.source.zoneName,
-            originallyOnTopOfDeck:
-                context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
-            onPlayCardSource: context.onPlayCardSource,
-            playType: context.playType
-        });
-
         context.game.addMessage(
             '{0} plays {1}',
             context.player,
@@ -42,15 +32,19 @@ export class PlayUnitAction extends PlayCardAction {
         const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 
         const events = [
-            new PutIntoPlaySystem({ target: context.source, controller: player, entersReady: this.entersReady }).generateEvent(context),
-            cardPlayedEvent
+            new PutIntoPlaySystem({
+                target: context.source,
+                controller: player,
+                entersReady: this.entersReady
+            }).generateEvent(context),
+            this.generateOnPlayEvent(context)
         ];
 
         if (context.playType === PlayType.Smuggle) {
             events.push(this.generateSmuggleEvent(context));
         }
 
-        context.game.openEventWindow(events, this.triggerHandlingMode);
+        context.game.openEventWindow(events);
     }
 
     public override clone(overrideProperties: IPlayUnitActionProperties) {

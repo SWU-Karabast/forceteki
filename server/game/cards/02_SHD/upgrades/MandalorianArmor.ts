@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
-import { Card } from '../../../core/card/Card';
+import type { Card } from '../../../core/card/Card';
 
 export default class MandalorianArmor extends UpgradeCard {
     protected override getImplementationId() {

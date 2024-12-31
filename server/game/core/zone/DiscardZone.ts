@@ -1,6 +1,6 @@
-import { TokenOrPlayableCard } from '../card/CardTypes';
+import type { TokenOrPlayableCard } from '../card/CardTypes';
 import { ZoneName } from '../Constants';
-import Player from '../Player';
+import type Player from '../Player';
 import { SimpleZone } from './SimpleZone';
 
 export class DiscardZone extends SimpleZone<TokenOrPlayableCard> {

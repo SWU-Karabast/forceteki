@@ -29,6 +29,7 @@
     ],
     // "include": ["server/**/*"],
     "exclude": [
-        "test/**/*"
+        "test/**/*",
+        "legacy_jigoku/**/*"
     ]
 }

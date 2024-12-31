@@ -12,7 +12,7 @@ class ExactlyVariableXCardSelector extends BaseCardSelector {
     }
 
     /** @override */
-    defaultActivePromptTitle(context) {
+    defaultPromptString(context) {
         if (this.cardTypeFilter.length === 1) {
             return this.numCardsFunc(context) === 1 ? 'Choose a ' + this.cardTypeFilter[0] : `Choose ${this.numCardsFunc(context)} ${this.cardTypeFilter[0]}s`;
         }

@@ -1,8 +1,8 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, GameStateChangeRequired, ZoneName, WildcardCardType, EventName } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import Player from '../core/Player';
+import type Player from '../core/Player';
 
 export interface ITakeControlProperties extends ICardTargetSystemProperties {
     newController: Player;

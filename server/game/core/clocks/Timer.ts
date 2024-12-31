@@ -1,4 +1,5 @@
-import { BasicClock, Mode } from './BasicClock';
+import type { Mode } from './BasicClock';
+import { BasicClock } from './BasicClock';
 import type { IClock } from './IClock';
 
 export class Timer extends BasicClock implements IClock {

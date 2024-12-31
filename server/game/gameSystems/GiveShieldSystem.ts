@@ -1,6 +1,7 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUpgradeName } from '../core/Constants';
-import { GiveTokenUpgradeSystem, IGiveTokenUpgradeProperties } from './GiveTokenUpgradeSystem';
+import type { IGiveTokenUpgradeProperties } from './GiveTokenUpgradeSystem';
+import { GiveTokenUpgradeSystem } from './GiveTokenUpgradeSystem';
 
 export type IGiveShieldProperties = Omit<IGiveTokenUpgradeProperties, 'tokenType'>;
 

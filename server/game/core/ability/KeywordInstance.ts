@@ -1,7 +1,7 @@
-import { IAbilityPropsWithType, ITriggeredAbilityProps } from '../../Interfaces';
-import { Card } from '../card/Card';
-import { Aspect, KeywordName } from '../Constants';
-import { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';
+import type { IAbilityPropsWithType } from '../../Interfaces';
+import type { Card } from '../card/Card';
+import type { Aspect, KeywordName } from '../Constants';
+import type { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';
 import * as Contract from '../utils/Contract';
 
 export class KeywordInstance {

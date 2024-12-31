@@ -1,10 +1,11 @@
-import { InPlayCard } from '../card/baseClasses/InPlayCard';
-import { UnitCard } from '../card/CardTypes';
-import { UpgradeCard } from '../card/UpgradeCard';
+import type { InPlayCard } from '../card/baseClasses/InPlayCard';
+import type { UnitCard } from '../card/CardTypes';
+import type { UpgradeCard } from '../card/UpgradeCard';
 import { WildcardCardType } from '../Constants';
-import Game from '../Game';
-import Player from '../Player';
-import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import type Game from '../Game';
+import type Player from '../Player';
+import type { IZoneCardFilterProperties } from './ZoneAbstract';
+import { ZoneAbstract } from './ZoneAbstract';
 
 export interface IArenaZoneCardFilterProperties extends IZoneCardFilterProperties {
     controller?: Player;

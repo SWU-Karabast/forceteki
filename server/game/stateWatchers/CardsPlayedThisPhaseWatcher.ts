@@ -1,10 +1,10 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
-import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import Player from '../core/Player';
-import { TokenOrPlayableCard } from '../core/card/CardTypes';
-import { Card } from '../core/card/Card';
-import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import type Player from '../core/Player';
+import type { TokenOrPlayableCard } from '../core/card/CardTypes';
+import type { Card } from '../core/card/Card';
+import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 
 export interface PlayedCardEntry {
     card: TokenOrPlayableCard;

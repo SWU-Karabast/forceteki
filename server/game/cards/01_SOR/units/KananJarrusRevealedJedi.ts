@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, EventName, Trait } from '../../../core/Constants';
+import type { Aspect } from '../../../core/Constants';
+import { EventName, Trait } from '../../../core/Constants';
 
 export default class KananJarrusRevealedJedi extends NonLeaderUnitCard {
     protected override getImplementationId() {

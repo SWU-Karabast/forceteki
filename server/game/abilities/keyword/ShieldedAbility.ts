@@ -1,11 +1,10 @@
-import AbilityHelper from '../../AbilityHelper';
-import { AbilityContext } from '../../core/ability/AbilityContext';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
-import { Card } from '../../core/card/Card';
+import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
-import Game from '../../core/Game';
+import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
-import { ITriggeredAbilityProps } from '../../Interfaces';
+import { GiveShieldSystem } from '../../gameSystems/GiveShieldSystem';
+import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class ShieldedAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Shielded;
@@ -14,7 +13,7 @@ export class ShieldedAbility extends TriggeredAbility {
         return {
             title: 'Shielded',
             when: { onUnitEntersPlay: (event, context) => event.card === context.source },
-            immediateEffect: AbilityHelper.immediateEffects.giveShield(),
+            immediateEffect: new GiveShieldSystem({}),
             zoneFilter: WildcardZoneName.AnyArena
         };
     }

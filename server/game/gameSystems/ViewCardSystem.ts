@@ -1,8 +1,8 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { BaseCard } from '../core/card/BaseCard';
-import { GameEvent } from '../core/event/GameEvent';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import Player from '../core/Player';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { GameEvent } from '../core/event/GameEvent';
+import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import type Player from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
 
 // TODO: Need some future work to fully implement Thrawn

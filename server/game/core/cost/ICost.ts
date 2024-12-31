@@ -1,8 +1,7 @@
-import { AbilityContext } from '../ability/AbilityContext';
-import { GameSystem } from '../gameSystem/GameSystem';
-import { TriggeredAbilityContext } from '../ability/TriggeredAbilityContext';
-import { GameEvent } from '../event/GameEvent';
-import Player from '../Player.js';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type { GameSystem } from '../gameSystem/GameSystem';
+import type { GameEvent } from '../event/GameEvent';
+import type Player from '../Player.js';
 
 export interface Result {
     canCancel?: boolean;
@@ -28,6 +27,6 @@ export interface ICost<TContext extends AbilityContext = AbilityContext> {
     hasTargetsChosenByInitiatingPlayer?(context: TContext): boolean;
     queueGenerateEventGameSteps?(events: GameEvent[], context: TContext, result?: Result): void;
     resolve?(context: TContext, result: Result): void;
-    payEvent?(context: TContext): GameEvent | GameEvent[];
+    payEvents?(context: TContext): GameEvent[];
     pay?(context: TContext): void;
 }

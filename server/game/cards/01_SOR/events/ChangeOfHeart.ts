@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { Duration, PhaseName, WildcardCardType } from '../../../core/Constants';
+import { PhaseName, WildcardCardType } from '../../../core/Constants';
 
 export default class ChangeOfHeart extends EventCard {
     protected override getImplementationId() {

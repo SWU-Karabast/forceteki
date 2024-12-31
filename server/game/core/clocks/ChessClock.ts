@@ -1,5 +1,6 @@
-import Player from '../Player';
-import { BasicClock, Mode } from './BasicClock';
+import type Player from '../Player';
+import type { Mode } from './BasicClock';
+import { BasicClock } from './BasicClock';
 import type { IClock } from './IClock';
 
 export class ChessClock extends BasicClock implements IClock {

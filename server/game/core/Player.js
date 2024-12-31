@@ -89,6 +89,14 @@ class Player extends GameObject {
         this.promptState = new PlayerPromptState(this);
     }
 
+    /**
+     * @override
+     * @returns {this is Player}
+     */
+    isPlayer() {
+        return true;
+    }
+
     startClock() {
         this.clock.start();
         if (this.opponent) {
@@ -671,20 +679,6 @@ class Player extends GameObject {
         }
 
         return penaltyAspects;
-    }
-
-    /**
-     * Checks to see what the minimum possible resource cost for an action is, accounting for aspects and available cost adjusters
-     * @param {PlayType} playingType
-     * @param {AbilityContext} context
-     * @param target
-     * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
-     */
-    getMinimumPossibleCost(playingType, context, target, additionalCostAdjusters = null) {
-        const card = context.source;
-        const adjustedCost = this.getAdjustedCost(playingType, card, target, additionalCostAdjusters);
-
-        return Math.max(adjustedCost, 0);
     }
 
     /**

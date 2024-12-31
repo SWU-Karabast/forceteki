@@ -1,10 +1,11 @@
-import PlayerOrCardAbility from './PlayerOrCardAbility';
-import { Aspect, PlayType, Stage } from '../Constants';
+import type PlayerOrCardAbility from './PlayerOrCardAbility';
+import type { Aspect, PlayType } from '../Constants';
+import { Stage } from '../Constants';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';
-import { Card } from '../card/Card';
+import type { Card } from '../card/Card';
 
 export interface IAbilityContextProperties {
     game: Game;

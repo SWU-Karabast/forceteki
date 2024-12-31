@@ -1,11 +1,7 @@
-import type { AbilityContext } from '../ability/AbilityContext';
-import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type { Card } from '../card/Card';
-import type { Duration, EffectName, ZoneName } from '../Constants';
+import type { EffectName } from '../Constants';
 import type Game from '../Game';
-import type { GameSystem, IGameSystemProperties } from '../gameSystem/GameSystem';
-import type { IOngoingEffectGenerator, IOngoingCardEffectProps, IOngoingEffectProps, IOngoingPlayerEffectProps, WhenType } from '../../Interfaces';
-import type Player from '../Player';
+import type { IOngoingEffectGenerator, IOngoingCardEffectProps, IOngoingPlayerEffectProps } from '../../Interfaces';
 // import type { StatusToken } from '../StatusToken';
 import { OngoingCardEffect } from './OngoingCardEffect';
 // import ConflictEffect from './ConflictEffect';

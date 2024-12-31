@@ -213,16 +213,11 @@ class PlayerOrCardAbility {
                         }
                         context.game.queueSimpleStep(() => {
                             if (!results.cancelled) {
-                                let newEvents = cost.payEvent
-                                    ? cost.payEvent(context)
-                                    : new GameEvent('payCost', context, {}, () => cost.pay(context));
-                                if (Array.isArray(newEvents)) {
-                                    for (let event of newEvents) {
-                                        results.events.push(event);
-                                    }
-                                } else {
-                                    results.events.push(newEvents);
-                                }
+                                let newEvents = cost.payEvents
+                                    ? cost.payEvents(context)
+                                    : [new GameEvent('payCost', context, {}, () => cost.pay(context))];
+
+                                results.events = results.events.concat(newEvents);
                             }
                         }, `Generate cost events for ${cost.gameSystem ? cost.gameSystem : cost.constructor.name} for ${this}`);
                     }

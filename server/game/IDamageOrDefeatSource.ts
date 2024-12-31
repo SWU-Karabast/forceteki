@@ -2,7 +2,6 @@ import type { Attack } from './core/attack/Attack';
 import type { Card } from './core/card/Card';
 import type { UnitCard } from './core/card/CardTypes';
 import type Player from './core/Player';
-import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
