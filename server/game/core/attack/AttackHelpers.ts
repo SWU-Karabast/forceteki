@@ -1,5 +1,4 @@
-import AbilityHelper from '../../AbilityHelper';
-import type { IInitiateAttackProperties } from '../../gameSystems/InitiateAttackSystem';
+import { InitiateAttackSystem, type IInitiateAttackProperties } from '../../gameSystems/InitiateAttackSystem';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 import type { Attack } from './Attack';
 
@@ -14,7 +13,7 @@ export function addInitiateAttackProperties(properties): void {
     }
 
     properties.targetResolver = {
-        immediateEffect: AbilityHelper.immediateEffects.attack((context) => getProperties(properties, context))
+        immediateEffect: new InitiateAttackSystem((context) => getProperties(properties, context))
     };
 }
 

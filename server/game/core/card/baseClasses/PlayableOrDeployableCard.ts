@@ -1,5 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
 import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
+import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IPlayCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
@@ -201,7 +201,7 @@ export class PlayableOrDeployableCard extends Card {
             ...otherProps
         };
 
-        const effect = AbilityHelper.ongoingEffects.decreaseCost(costAdjusterProps);
+        const effect = OngoingEffectLibrary.decreaseCost(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 
@@ -216,7 +216,7 @@ export class PlayableOrDeployableCard extends Card {
             ...otherProps
         };
 
-        const effect = AbilityHelper.ongoingEffects.ignoreAllAspectPenalties(costAdjusterProps);
+        const effect = OngoingEffectLibrary.ignoreAllAspectPenalties(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 
@@ -232,7 +232,7 @@ export class PlayableOrDeployableCard extends Card {
             ...otherProps
         };
 
-        const effect = AbilityHelper.ongoingEffects.ignoreSpecificAspectPenalties(costAdjusterProps);
+        const effect = OngoingEffectLibrary.ignoreSpecificAspectPenalties(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 

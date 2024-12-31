@@ -10,7 +10,7 @@ import type { TokenOrPlayableCard, UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import type { Card } from './Card';
-import AbilityHelper from '../../AbilityHelper';
+import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
@@ -135,7 +135,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
         });
     }
 
@@ -149,7 +149,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
         });
     }
 
@@ -164,7 +164,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
         });
     }
 
@@ -179,7 +179,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
         });
     }
 
@@ -193,7 +193,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give keyword to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(keywordProperties)
+            ongoingEffect: OngoingEffectLibrary.gainKeyword(keywordProperties)
         });
     }
 

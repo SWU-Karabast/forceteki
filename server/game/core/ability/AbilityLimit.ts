@@ -15,7 +15,7 @@ export interface IAbilityLimit {
     unregisterEvents(eventEmitter: EventEmitter): void;
 }
 
-class UnlimitedAbilityLimit implements IAbilityLimit {
+export class UnlimitedAbilityLimit implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
     private useCount = new Map<string, number>();
@@ -59,7 +59,7 @@ class UnlimitedAbilityLimit implements IAbilityLimit {
     }
 }
 
-class PerGameAbilityLimit implements IAbilityLimit {
+export class PerGameAbilityLimit implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
     private useCount = new Map<string, number>();
@@ -109,7 +109,7 @@ class PerGameAbilityLimit implements IAbilityLimit {
     }
 }
 
-class RepeatableAbilityLimit extends PerGameAbilityLimit {
+export class RepeatableAbilityLimit extends PerGameAbilityLimit {
     public constructor(
         max: number,
         private eventName: Set<EventName>
@@ -138,7 +138,7 @@ class RepeatableAbilityLimit extends PerGameAbilityLimit {
     }
 }
 
-class EpicActionLimit extends PerGameAbilityLimit {
+export class EpicActionLimit extends PerGameAbilityLimit {
     public constructor() {
         super(1);
     }

@@ -8,8 +8,9 @@ import type { UnitCard } from './CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import * as Helpers from '../utils/Helpers';
-import AbilityHelper from '../../AbilityHelper';
 import * as Contract from '../utils/Contract';
+import { EpicActionLimit } from '../ability/AbilityLimit';
+import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
@@ -27,10 +28,10 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         // add deploy leader action
         this.addActionAbility({
             title: `Deploy ${this.title}`,
-            limit: AbilityHelper.limit.epicAction(),
+            limit: new EpicActionLimit(),
             condition: (context) => context.source.controller.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
-            immediateEffect: AbilityHelper.immediateEffects.deploy()
+            immediateEffect: new DeployLeaderSystem({})
         });
     }
 

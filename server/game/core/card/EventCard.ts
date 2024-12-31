@@ -8,9 +8,9 @@ import type { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import AbilityHelper from '../../AbilityHelper';
 import type { TokenOrPlayableCard } from './CardTypes';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
+import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
@@ -44,7 +44,11 @@ export class EventCard extends EventCardParent {
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
         return this.isBlank()
-            ? new EventAbility(this._eventAbility.game, this._eventAbility.card, { title: 'No effect', printedAbility: false, immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true }) })
+            ? new EventAbility(this._eventAbility.game, this._eventAbility.card, {
+                title: 'No effect',
+                printedAbility: false,
+                immediateEffect: new NoActionSystem({ hasLegalTarget: true })
+            })
             : this._eventAbility;
     }
 
