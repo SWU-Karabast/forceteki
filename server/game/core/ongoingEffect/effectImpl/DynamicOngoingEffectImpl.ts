@@ -24,15 +24,20 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
     public override recalculate(target) {
         const oldValue = this.getValue(target);
         const newValue = this.setValue(target, this.calculate(target, this.context));
+
+        // TODO: these comparison methods are really inefficient, consider a more explicit comparison implementation
+
         if (typeof oldValue === 'function' && typeof newValue === 'function') {
             return oldValue.toString() !== newValue.toString();
         }
+
         if (
             (Array.isArray(oldValue) && Array.isArray(newValue)) ||
             (typeof oldValue === 'object' && typeof newValue === 'object')
         ) {
             return JSON.stringify(oldValue) !== JSON.stringify(newValue);
         }
+
         return oldValue !== newValue;
     }
 
