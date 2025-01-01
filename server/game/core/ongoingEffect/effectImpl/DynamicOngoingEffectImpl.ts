@@ -2,13 +2,15 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
 import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 
+export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext) => TValue;
+
 // TODO: eventually this will subclass OngoingEffectImpl directly
 export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
     private values: Record<string, TValue> = {};
 
     public constructor(
         type: EffectName,
-        private calculate: ((target: any, context: AbilityContext) => TValue)
+        private calculate: CalculateOngoingEffect<TValue>
     ) {
         super(type, null);
     }

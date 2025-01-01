@@ -59,13 +59,12 @@ describe('97th Legion Keeping the Peace on Sullust', function() {
 
                 // select a ground unit to deal 5 damage, 97th legion should be in discard pile already
                 expect(context.player1).toBeAbleToSelectExactly([context.wrecker, context.atst]);
+                expect(context._97thLegion).toBeInZone('discard');
                 context.player1.clickCard(context.atst);
 
                 expect(context.player1.resources.length).toBe(5);
                 expect(context.devotion).toBeInZone('discard');
                 expect(context.atst.damage).toBe(5);
-
-                expect(context._97thLegion).toBeInZone('discard');
 
                 expect(context.player2).toBeActivePlayer();
             });

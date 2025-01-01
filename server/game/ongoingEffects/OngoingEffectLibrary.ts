@@ -18,6 +18,7 @@ import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 import type { IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
+import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -131,7 +132,8 @@ export = {
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
-    modifyStats: (modifier: StatsModifier) => OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) =>
+        OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // modifyMilitarySkillMultiplier: (value) =>
