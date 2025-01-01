@@ -278,42 +278,44 @@ describe('Bossk, Hunting his Prey', function () {
                 expect(context.player1.handSize).toBe(1);
             });
 
-            // it('should be able to collect a "search for a card" Bounty a second time', function() {
-            //     const { context } = contextRef;
-            //     const prompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
+            it('should be able to collect a nested bounty a second time, and lose the ability to resolve the original bounty a second time', function() {
+                const { context } = contextRef;
+                const prompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
 
-            //     // first Bounty trigger: Bounty Hunter's Quarry, play a unit that has a "when played" which triggers an attack
-            //     context.player1.clickCard(context.bossk);
-            //     context.player1.clickCard(context.cloneTrooper);
-            //     expect(context.player1).toHavePassAbilityPrompt(prompt);
-            //     context.player1.clickPrompt(prompt);
-            //     expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine.title, context.snowtrooperLieutenant.title, context.sabineWren.title, 'Take nothing']);
-            //     expect(context.player1).toHaveDisabledPromptButtons([context.waylay, context.protector.title]);
+                // first Bounty trigger: Bounty Hunter's Quarry, play a unit that has a "when played" which triggers an attack
+                context.player1.clickCard(context.bossk);
+                context.player1.clickCard(context.cloneTrooper);
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                context.player1.clickPrompt(prompt);
+                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine.title, context.snowtrooperLieutenant.title, context.sabineWren.title, 'Take nothing']);
+                expect(context.player1).toHaveDisabledPromptButtons([context.waylay, context.protector.title]);
 
-            //     context.player1.clickPrompt(context.snowtrooperLieutenant.title);
-            //     expect(context.snowtrooperLieutenant).toBeInZone('groundArena');
-            //     expect(context.player1.exhaustedResourceCount).toBe(0);
+                context.player1.clickPrompt(context.snowtrooperLieutenant.title);
+                expect(context.snowtrooperLieutenant).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
 
-            //     // do the attack, trigger _another_ bounty
-            //     expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
-            //     expect(context.player1).toHavePassAbilityButton();
-            //     context.player1.clickCard(context.wampa);
-            //     context.player1.clickCard(context.cloneDeserter);
+                // TODO: need final confirmation from judges / FFG on whether these go in the same trigger window or if there's nesting happening
+                expect(context.player1).toHaveExactPromptButtons(['Collect the Bounty again', 'Attack with a unit']);
 
-            //     // resolve the Clone Deserter bounty
-            //     expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-            //     context.player1.clickPrompt('Collect Bounty: Draw a card');
-            //     expect(context.player1.handSize).toBe(1);
+                // do the attack, trigger _another_ bounty
+                context.player1.clickPrompt('Attack with a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.cloneDeserter);
 
-            //     // activate Bossk ability here to re-collect the Clone Deserter bounty, using up the per-round limit so we can't activate BHQ's Bounty again
-            //     expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-            //     context.player1.clickPrompt('Collect the Bounty again');
-            //     expect(context.player1.handSize).toBe(2);
+                // resolve the Clone Deserter bounty
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                expect(context.player1.handSize).toBe(1);
 
-            //     expect(context.player2).toBeActivePlayer();
-            // });
+                // activate Bossk ability here to re-collect the Clone Deserter bounty, using up the per-round limit so we can't activate BHQ's Bounty again
+                expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Collect the Bounty again');
+                expect(context.player1.handSize).toBe(2);
+
+                expect(context.player2).toBeActivePlayer();
+            });
         });
-
-        // TODO: uncomment the second search test with as much as we can confirm while waiting on the judge answer
     });
 });
