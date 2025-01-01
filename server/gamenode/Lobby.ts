@@ -180,7 +180,7 @@ export class Lobby {
     }
 
     public isLobbyFilled(): boolean {
-        return this.users.length === 2;
+        return this.users.length === 2 && !this.game;
     }
 
     public removeLobbyUser(id: string): void {

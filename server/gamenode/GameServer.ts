@@ -12,12 +12,21 @@ import { Lobby } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
 
+/**
+ * Represents a player waiting in the queue.
+ */
+interface QueuedPlayer {
+    user: any;
+    deck: any;
+    socket: socketio.Socket | null;
+}
+
 export class GameServer {
     private lobbies = new Map<string, Lobby>();
     private userLobbyMap = new Map<string, string>();
-
     private protocol = 'https';
     private host = env.gameNodeHost;
+    private queue: QueuedPlayer[] = [];
     private io: socketio.Server;
     private titleCardData: any;
     private shortCardData: any;
@@ -104,6 +113,14 @@ export class GameServer {
         app.post('/api/start-test-game', (req, res) => {
             const { filename } = req.body;
             this.startTestGame(filename);
+            return res.status(200).json({ success: true });
+        });
+        app.post('/api/enter-queue', (req, res) => {
+            const { user, deck } = req.body;
+            const success = this.enterQueue(user, deck, null);
+            if (!success) {
+                return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+            }
             return res.status(200).json({ success: true });
         });
     }
@@ -206,21 +223,111 @@ export class GameServer {
             ioSocket.disconnect();
             return;
         }
-
-        if (!this.userLobbyMap.has(user.id)) {
-            logger.info('No lobby for', ioSocket.request.user.username, 'disconnecting');
-            ioSocket.disconnect();
+        if (this.userLobbyMap.has(user.id)) {
+            const lobbyId = this.userLobbyMap.get(user.id);
+            const lobby = this.lobbies.get(lobbyId);
+            if (!lobby) {
+                logger.info('No lobby for', ioSocket.request.user.username, 'disconnecting');
+                ioSocket.disconnect();
+                return;
+            }
+            const socket = new Socket(ioSocket);
+            lobby.addLobbyUser(user, socket);
+            socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
             return;
         }
-        const lobbyId = this.userLobbyMap.get(user.id);
-        const lobby = this.lobbies.get(lobbyId);
-        const socket = new Socket(ioSocket);
-        lobby.addLobbyUser(user, socket);
-        socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
+
+        // if they are not in the lobby they could be in a queue
+        const queuedPlayer = this.queue.find((p) => p.user.id === user.id);
+        if (queuedPlayer) {
+            queuedPlayer.socket = ioSocket;
+
+            // handle queue-specific events and add lobby disconnect
+            ioSocket.on('disconnect', (reason) => {
+                this.onSocketDisconnected(user.id, reason);
+            });
+
+            this.matchmakeQueuePlayers();
+            return;
+        }
+    }
+
+    /**
+     * Put a user into the queue array.
+     */
+    private enterQueue(user: any, deck: any, socket: socketio.Socket | null): boolean {
+        // Quick check: if they're already in a lobby, no queue
+        if (this.userLobbyMap.has(user.id)) {
+            logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
+            return false;
+        }
+        // Also check if they're already queued
+        if (this.queue.find((q) => q.user.id === user.id)) {
+            logger.info(`User ${user.id} is already in queue, rejoining`);
+            this.removeFromQueue(user.id);
+        }
+
+        this.queue.push({
+            user,
+            deck,
+            socket
+        });
+        return true;
+    }
+
+    /**
+     * Matchmake two users in a queue
+     */
+    private matchmakeQueuePlayers() {
+        // Simple approach: if at least 2 in queue, pair them up
+        while (this.queue.length >= 2) {
+            const p1 = this.queue.shift();
+            const p2 = this.queue.shift();
+            if (!p1 || !p2) {
+                break;
+            } // Just in case
+
+            // Create a new Lobby
+            const lobby = new Lobby();
+            this.lobbies.set(lobby.id, lobby);
+
+            // Create the 2 lobby users
+            lobby.createLobbyUser(p1.user, p1.deck);
+            lobby.createLobbyUser(p2.user, p2.deck);
+
+            // Attach their sockets to the lobby (if they exist)
+            const socket1 = p1.socket ? new Socket(p1.socket) : null;
+            const socket2 = p2.socket ? new Socket(p2.socket) : null;
+            if (socket1) {
+                lobby.addLobbyUser(p1.user, socket1);
+                socket1.on('disconnect', (_, reason) => this.onSocketDisconnected(p1.user.id, reason));
+            }
+            if (socket2) {
+                lobby.addLobbyUser(p2.user, socket2);
+                socket2.on('disconnect', (_, reason) => this.onSocketDisconnected(p2.user.id, reason));
+            }
+
+            // Save user => lobby mapping
+            this.userLobbyMap.set(p1.user.id, lobby.id);
+            this.userLobbyMap.set(p2.user.id, lobby.id);
+
+            // If needed, set tokens async
+            lobby.setTokens();
+            lobby.sendLobbyState();
+            logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
+        }
+    }
+
+    /**
+     * Remove the user from the queue if they disconnect or otherwise.
+     */
+    private removeFromQueue(userId: string): void {
+        this.queue = this.queue.filter((q) => q.user.id !== userId);
     }
 
     public onSocketDisconnected(id: string, reason: string) {
         if (!this.userLobbyMap.has(id)) {
+            this.removeFromQueue(id);
             return;
         }
         const lobbyId = this.userLobbyMap.get(id);
@@ -235,7 +342,6 @@ export class GameServer {
                 if (lobby.getUserState(id) === 'disconnected') {
                     this.userLobbyMap.delete(id);
                     lobby.removeLobbyUser(id);
-
                     // Check if lobby is empty
                     if (lobby.isLobbyEmpty()) {
                         // Start the cleanup process
