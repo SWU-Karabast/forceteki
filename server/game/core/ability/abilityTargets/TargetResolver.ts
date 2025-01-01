@@ -1,8 +1,8 @@
-import { ITargetResolverBase } from '../../../TargetInterfaces';
-import { AbilityContext } from '../AbilityContext';
+import type { ITargetResolverBase } from '../../../TargetInterfaces';
+import type { AbilityContext } from '../AbilityContext';
 import * as Contract from '../../utils/Contract';
-import { GameSystem } from '../../gameSystem/GameSystem';
-import PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { GameSystem } from '../../gameSystem/GameSystem';
+import type PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { RelativePlayer, Stage } from '../../Constants';
 import type Player from '../../Player';
 
@@ -13,8 +13,10 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
     protected dependentTarget = null;
     protected dependentCost = null;
 
-    public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility) {
+    public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility = null) {
         if (this.properties.dependsOn) {
+            Contract.assertNotNullLike(ability);
+
             const dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
 
             // assert that the target we depend on actually exists
@@ -41,7 +43,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
     }
 
-    protected resolve(context: AbilityContext, targetResults, passPrompt = null) {
+    public resolve(context: AbilityContext, targetResults, passPrompt = null) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;
         }

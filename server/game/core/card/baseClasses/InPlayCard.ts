@@ -1,15 +1,17 @@
-import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { CardType, ZoneName, RelativePlayer, WildcardZoneName } from '../../Constants';
-import Player from '../../Player';
+import type { ZoneName } from '../../Constants';
+import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
+import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './PlayableOrDeployableCard';
+import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
-import { Card } from '../Card';
+import type { Card } from '../Card';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
-import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;

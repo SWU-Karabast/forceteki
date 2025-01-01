@@ -1,7 +1,8 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName } from '../core/Constants';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import Player from '../core/Player';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type Player from '../core/Player';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IShuffleDeckProperties extends IPlayerTargetSystemProperties {}

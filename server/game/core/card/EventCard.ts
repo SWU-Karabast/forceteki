@@ -1,15 +1,16 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
-import { CardType, KeywordName, ZoneName, PlayType } from '../Constants';
+import { CardType, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
-import { IDecreaseCostAbilityProps, PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
-import { IEventAbilityProps } from '../../Interfaces';
+import type { IDecreaseCostAbilityProps } from './baseClasses/PlayableOrDeployableCard';
+import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import AbilityHelper from '../../AbilityHelper';
-import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { TokenOrPlayableCard } from './CardTypes';
+import type { TokenOrPlayableCard } from './CardTypes';
+import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
+import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
@@ -19,8 +20,6 @@ export class EventCard extends EventCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Event);
-
-        this.defaultActions.push(new PlayEventAction({ card: this }));
 
         Contract.assertFalse(this.hasImplementationFile && !this._eventAbility, 'Event card\'s ability was not initialized');
 
@@ -34,13 +33,8 @@ export class EventCard extends EventCardParent {
         return true;
     }
 
-    public override getActions(): PlayerOrCardAbility[] {
-        const actions = super.getActions();
-
-        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayEventAction({ card: this, playType: PlayType.Smuggle }));
-        }
-        return actions;
+    public override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
+        return new PlayEventAction({ card: this, ...properties });
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {
@@ -50,7 +44,11 @@ export class EventCard extends EventCardParent {
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
         return this.isBlank()
-            ? new EventAbility(this._eventAbility.game, this._eventAbility.card, { title: 'No effect', printedAbility: false, immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true }) })
+            ? new EventAbility(this._eventAbility.game, this._eventAbility.card, {
+                title: 'No effect',
+                printedAbility: false,
+                immediateEffect: new NoActionSystem({ hasLegalTarget: true })
+            })
             : this._eventAbility;
     }
 

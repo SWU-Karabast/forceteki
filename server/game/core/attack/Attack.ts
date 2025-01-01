@@ -2,7 +2,7 @@ import { GameObject } from '../GameObject';
 import type Game from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
-import { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
+import type { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
 import { EffectName, KeywordName } from '../Constants';
 
 

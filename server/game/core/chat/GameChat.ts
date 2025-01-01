@@ -1,13 +1,3 @@
-interface Player {
-    user: {
-        username: string;
-        emailHash: string;
-        settings: {
-            disableGravatar: boolean;
-        };
-    };
-}
-
 type MsgArg = string | { name: string } | { getShortSummary: () => string };
 
 type MessageText = string | (string | number)[];

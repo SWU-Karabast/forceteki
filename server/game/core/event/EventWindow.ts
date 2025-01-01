@@ -1,5 +1,4 @@
-import { AbilityContext } from '../ability/AbilityContext';
-import CardAbilityStep from '../ability/CardAbilityStep';
+import type { AbilityContext } from '../ability/AbilityContext';
 import { AbilityType } from '../Constants';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';

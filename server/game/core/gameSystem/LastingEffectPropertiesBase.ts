@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { Duration } from '../Constants';
+import type { Duration } from '../Constants';
 import type { WhenType } from '../../Interfaces';
 import { type IGameSystemProperties } from './GameSystem';
 

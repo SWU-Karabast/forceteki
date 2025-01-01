@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { WildcardZoneName, ZoneName } from '../../../core/Constants';
 
 export default class UnexpectedEscape extends EventCard {
     protected override getImplementationId() {

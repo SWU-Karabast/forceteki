@@ -1,10 +1,12 @@
-import { Card } from '../card/Card';
-import { TokenOrPlayableCard } from '../card/CardTypes';
-import { ZoneName, MoveZoneDestination, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
-import Player from '../Player';
+import type { Card } from '../card/Card';
+import type { TokenOrPlayableCard } from '../card/CardTypes';
+import type { MoveZoneDestination } from '../Constants';
+import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
+import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
-import { IAddRemoveZone, IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import type { IAddRemoveZone, IZoneCardFilterProperties } from './ZoneAbstract';
+import { ZoneAbstract } from './ZoneAbstract';
 
 export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddRemoveZone {
     public override readonly hiddenForPlayers: WildcardRelativePlayer.Any;

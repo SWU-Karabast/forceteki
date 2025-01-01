@@ -1,4 +1,4 @@
-import { InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import type { TokenCard } from '../CardTypes';
 import * as Contract from '../../utils/Contract';
 import { ZoneName } from '../../Constants';

@@ -1,32 +1,34 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import { AbilityType, Arena, CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
+import type { Arena } from '../../Constants';
+import { AbilityType, CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
-import { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
+import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
-import { InPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import { InPlayCard } from '../baseClasses/InPlayCard';
 import { WithDamage } from './Damage';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import { UpgradeCard } from '../UpgradeCard';
-import { Card } from '../Card';
-import { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
-import { KeywordWithAbilityDefinition, KeywordWithNumericValue } from '../../ability/KeywordInstance';
+import type { UpgradeCard } from '../UpgradeCard';
+import type { Card } from '../Card';
+import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
-import type { TokenOrPlayableCard, UnitCard } from '../CardTypes';
+import type { UnitCard } from '../CardTypes';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import type Game from '../../Game';
-import { GameEvent } from '../../event/GameEvent';
-import { DefeatSourceType, IDamageSource } from '../../../IDamageOrDefeatSource';
+import type { GameEvent } from '../../event/GameEvent';
+import type { IDamageSource } from '../../../IDamageOrDefeatSource';
+import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { CaptureZone } from '../../zone/CaptureZone';
-import { IAbilityWithType } from '../../ability/AbilityTypes';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
-import Player from '../../Player';
+import type Player from '../../Player';
 
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
@@ -83,6 +85,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected _captureZone?: CaptureZone = null;
         protected _upgrades?: UpgradeCard[] = null;
 
+        private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _whenCapturedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
@@ -148,7 +151,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            this.defaultActions.push(new InitiateAttackAction(this));
+            this.attackAction = new InitiateAttackAction(this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************
@@ -203,6 +206,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
+        public override getActions() {
+            return super.getActions()
+                .concat(this.attackAction);
+        }
+
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
             const triggeredProperties = { ...properties, when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } };
             this.addTriggeredAbility(triggeredProperties);
@@ -475,22 +483,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private getCoordinateAbilities() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Coordinate)
                 .map((keyword) => keyword as KeywordWithAbilityDefinition);
-        }
-
-        /**
-         * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
-         * for this card and adds up the total of their effect values.
-         * @returns value of the total effect if enabled, `null` if the effect is not present
-         */
-        public getNumericKeywordSum(keywordName: KeywordName.Restore | KeywordName.Raid): number | null {
-            let keywordValueTotal = 0;
-
-            for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
-                Contract.assertTrue(keyword instanceof KeywordWithNumericValue);
-                keywordValueTotal += keyword.value;
-            }
-
-            return keywordValueTotal > 0 ? keywordValueTotal : null;
         }
 
         public unregisterWhenPlayedKeywords() {

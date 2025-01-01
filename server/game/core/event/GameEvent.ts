@@ -1,8 +1,8 @@
 import { EventName, MetaEventName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { EventWindow } from './EventWindow';
-import { AbilityContext } from '../ability/AbilityContext';
+import type { EventWindow } from './EventWindow';
+import type { AbilityContext } from '../ability/AbilityContext';
 
 export enum EventResolutionStatus {
     CREATED = 'created',

@@ -1,8 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DamageType, ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import * as Contract from '../../../core/utils/Contract';
 
 
 export default class BlizzardAssaultAtat extends NonLeaderUnitCard {

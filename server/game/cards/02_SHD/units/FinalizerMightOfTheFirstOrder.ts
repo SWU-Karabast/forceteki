@@ -2,10 +2,11 @@ import AbilityHelper from '../../../AbilityHelper';
 import * as Contract from '../../../core/utils/Contract';
 import * as Helpers from '../../../core/utils/Helpers.js';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
-import { Card } from '../../../core/card/Card';
-import { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { Card } from '../../../core/card/Card';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import type { ZoneName } from '../../../core/Constants';
+import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
     protected override getImplementationId() {

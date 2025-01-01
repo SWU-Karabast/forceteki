@@ -22,7 +22,6 @@ export default class SelfDestruct extends EventCard {
                 title: 'Deal 4 damage to a unit',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
-                    controller: RelativePlayer.Opponent,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 4 })
                 }
             }

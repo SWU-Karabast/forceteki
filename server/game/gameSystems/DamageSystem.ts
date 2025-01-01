@@ -4,9 +4,10 @@ import { AbilityRestriction, CardType, DamageType, EventName, GameStateChangeReq
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import { Attack } from '../core/attack/Attack';
-import { DamageSourceType, IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
-import { UnitCard } from '../core/card/CardTypes';
+import type { Attack } from '../core/attack/Attack';
+import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
+import { DamageSourceType } from '../IDamageOrDefeatSource';
+import type { UnitCard } from '../core/card/CardTypes';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type?: DamageType;

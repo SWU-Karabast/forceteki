@@ -1,15 +1,16 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, CardTypeFilter, ZoneFilter, RelativePlayer, TargetMode, WildcardCardType, RelativePlayerFilter } from '../core/Constants';
+import type { CardTypeFilter, ZoneFilter, RelativePlayerFilter } from '../core/Constants';
+import { CardType, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
-import BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { GameEvent } from '../core/event/GameEvent';
-import { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
-import { DamageSystem } from './DamageSystem';
-import { HealSystem } from './HealSystem';
+import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
+import type { GameEvent } from '../core/event/GameEvent';
+import type { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
+import type { DamageSystem } from './DamageSystem';
+import type { HealSystem } from './HealSystem';
 import * as Contract from '../core/utils/Contract';
-import { GiveExperienceSystem } from './GiveExperienceSystem';
+import type { GiveExperienceSystem } from './GiveExperienceSystem';
 
 export interface IDistributeAmongTargetsSystemProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountToDistribute: number | ((context: TContext) => number);

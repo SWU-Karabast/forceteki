@@ -1,7 +1,8 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { Card } from '../core/card/Card';
 import { EventName, ZoneName } from '../core/Constants';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDiscardSpecificCardProperties extends ICardTargetSystemProperties {}

@@ -1,7 +1,7 @@
-import { AbilityRestriction, EventName, ZoneName, PlayType } from '../core/Constants.js';
+import { AbilityRestriction, ZoneName, PlayType } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
-import { PlayCardContext, PlayCardAction, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
-import { GameEvent } from '../core/event/GameEvent.js';
+import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
+import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 
 export class PlayEventAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
@@ -32,14 +32,7 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     public moveEventToDiscard(context: PlayCardContext) {
-        const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, context, {
-            player: context.player,
-            card: context.source,
-            originalZone: context.source.zoneName,
-            originallyOnTopOfDeck:
-                context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
-            playType: context.playType,
-            onPlayCardSource: context.onPlayCardSource,
+        const cardPlayedEvent = this.generateOnPlayEvent(context, {
             resolver: this,
             handler: () => context.source.moveTo(ZoneName.Discard)
         });

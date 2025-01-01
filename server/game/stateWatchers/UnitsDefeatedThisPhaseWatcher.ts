@@ -1,9 +1,9 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
-import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import Player from '../core/Player';
-import { UnitCard } from '../core/card/CardTypes';
-import { Card } from '../core/card/Card';
+import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import type Player from '../core/Player';
+import type { UnitCard } from '../core/card/CardTypes';
+import type { Card } from '../core/card/Card';
 
 // TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {

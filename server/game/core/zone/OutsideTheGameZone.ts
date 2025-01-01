@@ -1,6 +1,6 @@
-import { Card } from '../card/Card';
+import type { Card } from '../card/Card';
 import { ZoneName } from '../Constants';
-import Player from '../Player';
+import type Player from '../Player';
 import { SimpleZone } from './SimpleZone';
 
 /**

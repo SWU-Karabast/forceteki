@@ -1,4 +1,4 @@
-import { IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import { AbilityType, Aspect, KeywordName, RelativePlayer } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';

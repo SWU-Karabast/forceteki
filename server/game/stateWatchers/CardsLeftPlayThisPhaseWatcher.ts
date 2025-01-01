@@ -1,9 +1,9 @@
-import { InPlayCard } from '../core/card/baseClasses/InPlayCard';
-import { Card } from '../core/card/Card';
+import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { Card } from '../core/card/Card';
 import { StateWatcherName } from '../core/Constants';
-import Player from '../core/Player';
+import type Player from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
-import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 
 export interface CardLeftPlayEntry {
     card: InPlayCard;
