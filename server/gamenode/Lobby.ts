@@ -81,7 +81,6 @@ export class Lobby {
 
     public addLobbyUser(user, socket: Socket, owner = false): void {
         const existingUser = this.users.find((u) => u.id === user.id);
-        socket.registerEvent('startGame', () => this.onStartGame(user.id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
         // maybe we neeed to be using socket.data
@@ -243,20 +242,17 @@ export class Lobby {
         this.game = game;
     }
 
-    private onStartGame(id: string): void {
+    private onStartGame(): void {
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
-        const existingUser = this.users.find((u) => u.id === id);
-        const opponent = this.users.find((u) => u.id !== id);
         game.started = true;
 
-        if (existingUser.deck) {
-            game.selectDeck(id, existingUser.deck.data);
-        }
-
-        if (opponent.deck) {
-            game.selectDeck(opponent.id, opponent.deck.data);
-        }
+        // For each user, if they have a deck, select it in the game
+        this.users.forEach((user) => {
+            if (user.deck) {
+                game.selectDeck(user.id, user.deck.data);
+            }
+        });
 
         game.initialiseTokens(this.tokens);
         game.initialise();
