@@ -1,5 +1,76 @@
 describe('Bossk, Hunting his Prey', function () {
     integration(function (contextRef) {
+        it('Bossk\'s leader undeployed ability should deal 1 damage to a unit with a bounty and optionally give +1/+0', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    leader: 'bossk#hunting-his-prey',
+                    spaceArena: ['cartel-turncoat'],
+                    resources: 4
+                },
+                player2: {
+                    groundArena: [{ card: 'clone-trooper', upgrades: ['public-enemy'] }, 'wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // CASE 1: deal 1 damage and resolve optional +1/+0
+            context.player1.clickCard(context.bossk);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat, context.cloneTrooper]);
+            expect(context.player1).not.toHavePassAbilityButton();
+
+            context.player1.clickCard(context.cloneTrooper);
+            expect(context.cloneTrooper.damage).toBe(1);
+
+            // resolve optional +1/+0
+            expect(context.player1).toHavePassAbilityPrompt('Give it +1/+0 for this phase');
+            context.player1.clickPrompt('Give it +1/+0 for this phase');
+            expect(context.cloneTrooper.getPower()).toBe(3);
+            expect(context.cloneTrooper.getHp()).toBe(2);
+
+            expect(context.bossk.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+
+            context.moveToNextActionPhase();
+
+            // check that +power effect has fallen off
+            expect(context.cloneTrooper.getPower()).toBe(2);
+            expect(context.cloneTrooper.getHp()).toBe(2);
+
+            // CASE 2: deal 1 damage and don't resolve +1/+0
+            context.player1.clickCard(context.bossk);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat, context.cloneTrooper]);
+            expect(context.player1).not.toHavePassAbilityButton();
+
+            context.player1.clickCard(context.cartelTurncoat);
+            expect(context.cartelTurncoat.damage).toBe(1);
+            expect(context.player1).toHavePassAbilityPrompt('Give it +1/+0 for this phase');
+            context.player1.clickPrompt('Pass');
+
+            expect(context.bossk.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+
+            context.moveToNextActionPhase();
+
+            // CASE 3: deal 1 damage and defeat bounty unit
+            context.player1.clickCard(context.bossk);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat, context.cloneTrooper]);
+            expect(context.player1).not.toHavePassAbilityButton();
+
+            context.player1.clickCard(context.cloneTrooper);
+            expect(context.cloneTrooper).toBeInZone('outsideTheGame');
+            expect(context.player1).toHavePassAbilityPrompt('Give it +1/+0 for this phase');
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat, context.wampa]);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+
+            expect(context.bossk.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
+
         describe('Bossk\'s leader deployed ability', function () {
             it('should be able to collect a Bounty a second time (for "simple" bounty effects)', function () {
                 contextRef.setupTest({
