@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class TechSourceOfInsight extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,10 +13,13 @@ export default class TechSourceOfInsight extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'Each friendly resource gains Smuggle',
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({
+            targetZoneFilter: ZoneName.Resource,
+            targetController: RelativePlayer.Self,
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword((target) => ({
                 keyword: KeywordName.Smuggle,
-
-            })
+                cost: target.cost + 2,
+                aspects: target.aspects
+            }))
         });
     }
 }

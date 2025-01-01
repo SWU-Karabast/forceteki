@@ -34,20 +34,31 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
     return keywords;
 }
 
+// "Gain Coordinate" and "gain Exploit" are not yet implemented
 export function keywordFromProperties(properties: IKeywordProperties) {
-    if (properties.keyword === KeywordName.Restore || properties.keyword === KeywordName.Raid) {
-        return new KeywordWithNumericValue(properties.keyword, properties.amount);
+    switch (properties.keyword) {
+        case KeywordName.Restore:
+        case KeywordName.Raid:
+            return new KeywordWithNumericValue(properties.keyword, properties.amount);
+
+        case KeywordName.Bounty:
+            const bountyAbilityProps = createBountyAbilityFromProps(properties.ability);
+            return new KeywordWithAbilityDefinition(properties.keyword, { ...bountyAbilityProps, type: AbilityType.Triggered });
+
+        case KeywordName.Smuggle:
+            return new KeywordWithCostValues(properties.keyword, properties.cost, properties.aspects, false);
+
+        case KeywordName.Ambush:
+        case KeywordName.Grit:
+        case KeywordName.Overwhelm:
+        case KeywordName.Saboteur:
+        case KeywordName.Sentinel:
+        case KeywordName.Shielded:
+            return new KeywordInstance(properties.keyword);
+
+        default:
+            throw new Error(`Keyword '${(properties as any).keyword}' is not implemented yet`);
     }
-
-    if (properties.keyword === KeywordName.Bounty) {
-        const bountyAbilityProps = createBountyAbilityFromProps(properties.ability);
-
-        return new KeywordWithAbilityDefinition(properties.keyword, { ...bountyAbilityProps, type: AbilityType.Triggered });
-    }
-
-    // TODO SMUGGLE: add smuggle here for "gain smuggle" abilities
-
-    return new KeywordInstance(properties.keyword);
 }
 
 export function createBountyAbilityFromProps(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen' | 'abilityController'>): ITriggeredAbilityProps {

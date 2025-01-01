@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Duration, RelativePlayerFilter } from './core/Constants';
+import type { Aspect, Duration, RelativePlayerFilter } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -164,7 +164,8 @@ export type IKeywordProperties =
   | IRestoreKeywordProperties
   | ISaboteurKeywordProperties
   | ISentinelKeywordProperties
-  | IShieldedKeywordProperties;
+  | IShieldedKeywordProperties
+  | ISmuggleKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
 
@@ -310,7 +311,7 @@ interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Sentinel;
 }
 
-interface ISmuggleKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+interface ISmuggleKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Smuggle;
     cost: number;
     aspects: Aspect[];
