@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class TechSourceOfInsight extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,6 +15,7 @@ export default class TechSourceOfInsight extends NonLeaderUnitCard {
             title: 'Each friendly resource gains Smuggle',
             targetZoneFilter: ZoneName.Resource,
             targetController: RelativePlayer.Self,
+            targetCardTypeFilter: WildcardCardType.Any,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword((target) => ({
                 keyword: KeywordName.Smuggle,
                 cost: target.cost + 2,

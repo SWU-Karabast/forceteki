@@ -34,7 +34,6 @@ describe('Tech, Source of Insight', function () {
 
                 reset();
 
-                // TODO THIS PR: for some reason events can't gain smuggle?
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 context.player1.clickCard(context.momentOfPeace);
                 context.player1.clickCard(context.tech);
