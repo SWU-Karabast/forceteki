@@ -11,14 +11,15 @@ import { logger } from '../logger';
 import { Lobby } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
+import type { Deck } from '../game/Deck';
 
 /**
  * Represents a player waiting in the queue.
  */
 interface QueuedPlayer {
-    user: any;
-    deck: any;
-    socket: socketio.Socket | null;
+    deck: Deck;
+    socket?: socketio.Socket;
+    user: { id: string; username: string };
 }
 
 export class GameServer {
@@ -284,8 +285,8 @@ export class GameServer {
             const p1 = this.queue.shift();
             const p2 = this.queue.shift();
             if (!p1 || !p2) {
-                break;
-            } // Just in case
+                throw new Error(`Matchmaking error status either p1 ${p1} or p2 ${p2} isn't a player object.`);
+            }
 
             // Create a new Lobby
             const lobby = new Lobby();
