@@ -160,6 +160,81 @@ describe('Bossk, Hunting his Prey', function () {
             });
         });
 
+        describe('Bossk\'s leader deployed ability,', function () {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'bossk#hunting-his-prey', deployed: true }
+                    },
+                    player2: {
+                        groundArena: [{ card: 'clone-deserter', upgrades: ['guild-target'] }]
+                    },
+                });
+            });
+
+            it('when a unit has two bounties on it, can double trigger the first bounty and will then not be available for the second', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bossk);
+                context.player1.clickCard(context.cloneDeserter);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Collect Bounty: Draw a card',
+                    'Collect Bounty: Deal 2 damage to a base. If the Bounty unit is unique, deal 3 damage instead'
+                ]);
+
+                context.player1.clickPrompt('Collect Bounty: Deal 2 damage to a base. If the Bounty unit is unique, deal 3 damage instead');
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Collect the Bounty again');
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(4);
+
+                // resolve the Clone Deserter bounty, Bossk ability is already used and can't trigger
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                expect(context.player1.handSize).toBe(1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('when a unit has two bounties on it, can pass on double triggering the first bounty and will then double trigger the second', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bossk);
+                context.player1.clickCard(context.cloneDeserter);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Collect Bounty: Draw a card',
+                    'Collect Bounty: Deal 2 damage to a base. If the Bounty unit is unique, deal 3 damage instead'
+                ]);
+
+                context.player1.clickPrompt('Collect Bounty: Deal 2 damage to a base. If the Bounty unit is unique, deal 3 damage instead');
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Pass');
+
+                // resolve the Clone Deserter bounty, Bossk ability is already used and can't trigger
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                expect(context.player1.handSize).toBe(1);
+
+                expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Collect the Bounty again');
+                expect(context.player1.handSize).toBe(2);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('Bossk\'s leader deployed ability', function () {
             beforeEach(function () {
                 contextRef.setupTest({
